@@ -56,7 +56,7 @@ struct RESTEndpointHandler<H: Handler> {
             .insertDefaults(with: defaultStore)
             .cache()
             .evaluate(on: &delegate)
-            .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
+            .map { (responseAndRequest: ResponseWithRequest<H.Response.BodyContent>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
                 
                 

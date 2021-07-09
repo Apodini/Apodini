@@ -47,7 +47,7 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
             internalInterfaceExporter: internalInterfaceExporter,
             on: vaporRequest.eventLoop
         )
-        .map { (handlerResponse: H.Response.Content) -> Vapor.Response in
+        .map { (handlerResponse: H.Response.BodyContent) -> Vapor.Response in
             let vaporResponse = Vapor.Response(status: .ok)
             let encodedHandlerResponse: Data
             do {

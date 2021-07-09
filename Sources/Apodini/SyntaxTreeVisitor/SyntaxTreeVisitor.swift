@@ -97,7 +97,7 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
         
-        let responseType = H.Response.Content.self
+        let responseType = H.Response.BodyContent.self
 
         // Content Metadata is currently added to the Context of the Handler.
         // Also, we currently do not recursively parse properties

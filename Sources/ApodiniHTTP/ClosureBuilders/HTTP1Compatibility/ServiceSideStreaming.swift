@@ -37,10 +37,10 @@ extension Exporter {
                     response.connectionEffect == .close
                 })
                 .collect()
-                .tryMap { (responses: [Apodini.Response<H.Response.Content>]) in
+                .tryMap { (responses: [Apodini.Response<H.Response.BodyContent>]) in
                     let status: Status? = responses.last?.status
                     let information: Set<AnyInformation> = responses.last?.information ?? []
-                    let content: [H.Response.Content] = responses.compactMap { response in
+                    let content: [H.Response.BodyContent] = responses.compactMap { response in
                         response.content
                     }
                     let body = try configuration.encoder.encode(content)

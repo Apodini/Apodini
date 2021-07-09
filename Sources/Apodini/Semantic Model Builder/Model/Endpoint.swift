@@ -97,7 +97,7 @@ private protocol BlobEndpoint {
     func exportBlobEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput
 }
 
-extension Endpoint: BlobEndpoint where H.Response.Content == Blob {
+extension Endpoint: BlobEndpoint where H.Response.BodyContent == Blob {
     func exportBlobEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
         exporter.export(blob: self)
     }

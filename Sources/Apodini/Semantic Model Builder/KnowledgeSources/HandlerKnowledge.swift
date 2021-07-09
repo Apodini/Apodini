@@ -20,7 +20,7 @@ public struct HandleReturnType: HandlerKnowledgeSource {
     public let type: Encodable.Type
     
     public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
-        self.type = H.Response.Content.self
+        self.type = H.Response.BodyContent.self
     }
 }
 

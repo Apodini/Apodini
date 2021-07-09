@@ -53,7 +53,7 @@ public protocol DeploymentProviderRuntime: AnyObject {
     /// It can also re-delegate this responsibility back to the caller.
     func handleRemoteHandlerInvocation<H: InvocableHandler>(
         _ invocation: HandlerInvocation<H>
-    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content>
+    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.BodyContent>
 }
 
 

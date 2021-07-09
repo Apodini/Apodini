@@ -59,7 +59,7 @@ extension Response {
     /// Maps an `Self.Content` to an `Response` with an other `Self.Content`
     /// - Parameter transform: The closure to transform the `Self.Content`
     /// - Returns: The transformed `Response`
-    public func map<T: Encodable>(_ transform: (Self.Content) throws -> (T)) rethrows -> Response<T> {
+    public func map<T: Encodable>(_ transform: (Self.BodyContent) throws -> (T)) rethrows -> Response<T> {
         Response<T>(status: status, content: try content.map(transform), information: information, connectionEffect: connectionEffect)
     }
 }

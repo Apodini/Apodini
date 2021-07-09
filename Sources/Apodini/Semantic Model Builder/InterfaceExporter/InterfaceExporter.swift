@@ -29,7 +29,7 @@ public protocol InterfaceExporter {
     ///
     /// - Parameter endpoint: The `Endpoint` which is to be exported.
     /// - Returns: `EndpointExportOutput` which is defined by the `InterfaceExporter`.
-    func export<H: Handler>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H.Response.Content == Blob
+    func export<H: Handler>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H.Response.BodyContent == Blob
 
     /// This optional method can be defined to export a `EndpointParameter`.
     /// It is called for every `EndpointParameter` on an `Endpoint` when calling `Endpoint.exportParameters(...)`.

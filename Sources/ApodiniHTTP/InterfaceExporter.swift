@@ -97,7 +97,7 @@ struct Exporter: InterfaceExporter {
         }
     }
     
-    func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+    func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.BodyContent == Blob {
         let knowledge = endpoint[VaporEndpointKnowledge.self]
         
         switch knowledge.pattern {
@@ -115,11 +115,11 @@ struct Exporter: InterfaceExporter {
     // MARK: Response Transformers
     
     struct AbortTransformer<H: Handler>: ResultTransformer {
-        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Apodini.Response<H.Response.Content>, Error> {
+        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Apodini.Response<H.Response.BodyContent>, Error> {
             .abort(error)
         }
         
-        func transform(input: Apodini.Response<H.Response.Content>) -> Apodini.Response<H.Response.Content> {
+        func transform(input: Apodini.Response<H.Response.BodyContent>) -> Apodini.Response<H.Response.BodyContent> {
             input
         }
     }

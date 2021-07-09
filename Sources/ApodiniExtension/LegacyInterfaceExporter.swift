@@ -34,7 +34,7 @@ public protocol LegacyInterfaceExporter: InterfaceExporter {
 
 public extension LegacyInterfaceExporter {
     /// The default implementation for exporting Apodini `Blob` for legacy exporters is to export them as a normal endpoint.
-    func export<H>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H: Handler, H.Response.Content == Blob {
+    func export<H>(blob endpoint: Endpoint<H>) -> EndpointExportOutput where H: Handler, H.Response.BodyContent == Blob {
         export(endpoint)
     }
 }

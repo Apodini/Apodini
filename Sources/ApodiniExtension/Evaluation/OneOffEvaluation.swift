@@ -19,7 +19,7 @@ public extension Request {
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
     func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end)
-        -> EventLoopFuture<Response<H.Response.Content>> {
+        -> EventLoopFuture<Response<H.Response.BodyContent>> {
         _Internal.prepareIfNotReady(&handler)
         return handler.evaluate(using: self, with: state)
     }
@@ -27,8 +27,8 @@ public extension Request {
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
     func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end)
-        -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
-        self.evaluate(on: &handler, state).map { (response: Response<H.Response.Content>) in
+        -> EventLoopFuture<ResponseWithRequest<H.Response.BodyContent>> {
+        self.evaluate(on: &handler, state).map { (response: Response<H.Response.BodyContent>) in
             ResponseWithRequest(response: response, request: self)
         }
     }
@@ -40,7 +40,7 @@ internal extension Delegate where D: Handler {
     }
     
     func evaluate(using request: Request, with state: ConnectionState = .end)
-        -> EventLoopFuture<Response<D.Response.Content>> {
+        -> EventLoopFuture<Response<D.Response.BodyContent>> {
         request.eventLoop.makeSucceededVoidFuture().flatMap {
             do {
                 let result: D.Response = try self.evaluate(using: request, with: state)
@@ -52,7 +52,7 @@ internal extension Delegate where D: Handler {
     }
     
     func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end)
-        -> EventLoopFuture<Response<D.Response.Content>> {
+        -> EventLoopFuture<Response<D.Response.BodyContent>> {
         self.setChanged(to: true, reason: trigger)
         
         guard !trigger.cancelled else {

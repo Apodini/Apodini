@@ -43,7 +43,7 @@ public class ConnectionContext<Input, H: Handler> {
     }
     
     /// Evaluate the inner `Delegate` using the given `request`.
-    public func handle(request: Input, eventLoop: EventLoop, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+    public func handle(request: Input, eventLoop: EventLoop, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.BodyContent>> {
         self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
@@ -52,7 +52,7 @@ public class ConnectionContext<Input, H: Handler> {
     public func handleAndReturnParameters(
         request: Input,
         eventLoop: EventLoop,
-        final: Bool = true) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
+        final: Bool = true) -> EventLoopFuture<(Apodini.Response<H.Response.BodyContent>, (UUID) -> Any?)> {
         if self.observation == nil {
             self.observation = delegate.register { event in
                 self.listeners.forEach { listener in listener.onObservedDidChange(self.delegate, event) }
@@ -74,7 +74,7 @@ public class ConnectionContext<Input, H: Handler> {
     public func handle(
         eventLoop: EventLoop,
         observedObject: AnyObservedObject? = nil,
-        event: TriggerEvent) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+        event: TriggerEvent) -> EventLoopFuture<Apodini.Response<H.Response.BodyContent>> {
         guard let request = self.latestRequest else {
             fatalError("Mock ConnectionContext tried to handle event before a Request was present.")
         }
@@ -91,7 +91,7 @@ public class ConnectionContext<Input, H: Handler> {
 
 public extension ConnectionContext where Input: WithEventLoop {
     /// Evaluate the inner `Delegate` using the given `request`.
-    func handle(request: Input, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+    func handle(request: Input, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.BodyContent>> {
         handle(request: request, eventLoop: request.eventLoop, final: final)
     }
 }

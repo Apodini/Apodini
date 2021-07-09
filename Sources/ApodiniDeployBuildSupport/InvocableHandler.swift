@@ -11,7 +11,7 @@ import Apodini
 
 /// An `InvocableHandler` is a `Handler` which can be invoked from within another handler's `handle()` function.
 /// - [Reference](https://github.com/Apodini/Apodini/blob/develop/Documentation/Components/Inter-Component%20Communication.md)
-public protocol InvocableHandler: IdentifiableHandler where Self.Response.Content: Decodable {
+public protocol InvocableHandler: IdentifiableHandler where Self.Response.BodyContent: Decodable {
     /// The protocol a custom arguments storage type has to conform to
     typealias ArgumentsStorageProtocol = InvocableHandlerArgumentsStorageProtocol
     /// The type of this handler's arguments storage object

@@ -27,7 +27,7 @@ public protocol ResponseTransformer {
     func transform(content: Self.InputContent) -> Self.Content
 }
 
-internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.Content == T.InputContent {
+internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: ResponseTransformer, D.Response.BodyContent == T.InputContent {
     let transformed: Delegate<D>
     let transformer: Delegate<T>
     
@@ -64,7 +64,7 @@ private struct TransformerCandidate<Transformer: ResponseTransformer, Delegate: 
     let delegate: Delegate
 }
 
-extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.Content {
+extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.BodyContent {
     func callAsFunction() -> Any {
         SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(
                                                     transformed: Apodini.Delegate(delegate),
@@ -82,7 +82,7 @@ extension Handler {
     /// - Returns: The modified `Handler` with a new `ResponseTransformable` type
     public func response<T: ResponseTransformer>(
         _ responseTransformer: T
-    ) -> DelegationModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
+    ) -> DelegationModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.BodyContent == T.InputContent {
         self.delegated(by: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
     }
 }

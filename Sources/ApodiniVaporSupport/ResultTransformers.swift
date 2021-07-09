@@ -16,7 +16,7 @@ public struct VaporResponseTransformer<H: Handler>: ResultTransformer {
         self.encoder = encoder
     }
     
-    public func transform(input: Apodini.Response<H.Response.Content>) throws -> Vapor.Response {
+    public func transform(input: Apodini.Response<H.Response.BodyContent>) throws -> Vapor.Response {
         var body: Vapor.Response.Body
         
         if let content = input.content {

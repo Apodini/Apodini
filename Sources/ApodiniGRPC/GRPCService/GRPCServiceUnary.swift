@@ -36,7 +36,7 @@ extension GRPCService {
 
                 let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
                 
-                let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
+                let response: EventLoopFuture<Apodini.Response<H.Response.BodyContent>> = strategy
                     .decodeRequest(from: message, with: basis, with: request.eventLoop)
                     .insertDefaults(with: defaults)
                     .cache()

@@ -64,7 +64,7 @@ extension RemoteHandlerInvocationManager {
         _ handlerType: H.Type,
         identifiedBy handlerId: H.HandlerIdentifier,
         arguments: H.ArgumentsStorage
-    ) -> EventLoopFuture<H.Response.Content> {
+    ) -> EventLoopFuture<H.Response.BodyContent> {
         invokeImp(
             handlerType: H.self,
             handlerId: handlerId,
@@ -89,7 +89,7 @@ extension RemoteHandlerInvocationManager {
         _ handlerType: H.Type,
         identifiedBy handlerId: H.HandlerIdentifier,
         arguments: [CollectedArgument<H>] = []
-    ) -> EventLoopFuture<H.Response.Content> where H.ArgumentsStorage == InvocableHandlerEmptyArgumentsStorage<H> {
+    ) -> EventLoopFuture<H.Response.BodyContent> where H.ArgumentsStorage == InvocableHandlerEmptyArgumentsStorage<H> {
         invokeImp(handlerType: handlerType, handlerId: handlerId, collectedInputArgs: arguments)
     }
     
@@ -111,7 +111,7 @@ extension RemoteHandlerInvocationManager {
         handlerType: H.Type,
         handlerId: H.HandlerIdentifier,
         collectedInputArgs: [CollectedArgument<H>]
-    ) -> EventLoopFuture<H.Response.Content> {
+    ) -> EventLoopFuture<H.Response.BodyContent> {
         guard let internalInterfaceExporter = self.app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self) else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to get \(ApodiniDeployInterfaceExporter.self) object"))
         }
@@ -146,7 +146,7 @@ extension RemoteHandlerInvocationManager {
         targetNode: DeployedSystem.Node,
         targetEndpoint: Endpoint<H>,
         collectedInputArgs: [CollectedArgument<H>]
-    ) -> EventLoopFuture<H.Response.Content> {
+    ) -> EventLoopFuture<H.Response.BodyContent> {
         guard let runtime = internalInterfaceExporter.deploymentProviderRuntime else {
             return eventLoop.makeFailedFuture(ApodiniDeployError(message: "Unable to find runtime"))
         }
@@ -216,11 +216,11 @@ extension RemoteHandlerInvocationManager {
                         try clientReq.content.encode(input, using: JSONEncoder())
                     }
                 )
-                .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
+                .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.BodyContent in
                     let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
                     switch handlerResponse.status {
                     case .success:
-                        return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
+                        return try JSONDecoder().decode(H.Response.BodyContent.self, from: handlerResponse.encodedData)
                     case .handlerError, .internalError:
                         throw RemoteInvocationResponseError(
                             context: handlerResponse.status == .handlerError ? .handlerError : .internalError,
@@ -267,7 +267,7 @@ extension Endpoint {
         withCollectedArguments arguments: [CollectedArgument<H>],
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
-    ) -> EventLoopFuture<H.Response.Content> {
+    ) -> EventLoopFuture<H.Response.BodyContent> {
         invokeImp(
             withRequest: ApodiniDeployInterfaceExporter.ExporterRequest(endpoint: self, collectedArguments: arguments),
             internalInterfaceExporter: internalInterfaceExporter,
@@ -280,16 +280,16 @@ extension Endpoint {
         withRequest request: ApodiniDeployInterfaceExporter.ExporterRequest,
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
-    ) -> EventLoopFuture<H.Response.Content> {
+    ) -> EventLoopFuture<H.Response.BodyContent> {
         var delegate = Delegate(handler, .required)
         
-        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
+        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.BodyContent>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
             .applied(to: self)
             .decodeRequest(from: request, with: DefaultRequestBasis(base: request), with: eventLoop)
             .insertDefaults(with: self[DefaultValueStore.self])
             .evaluate(on: &delegate)
         
-        return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.Content>) -> H.Response.Content in
+        return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.BodyContent>) -> H.Response.BodyContent in
             guard response.connectionEffect == .close else {
                 throw ApodiniDeployError(message: "Unexpected response value: \(response). Expected '.final'.")
             }

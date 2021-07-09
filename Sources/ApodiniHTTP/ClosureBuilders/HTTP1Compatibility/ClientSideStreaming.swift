@@ -49,14 +49,14 @@ extension Exporter {
                 .cancel(if: { response in
                     response.connectionEffect == .close
                 })
-                .compactMap { (response: Apodini.Response<H.Response.Content>) in
+                .compactMap { (response: Apodini.Response<H.Response.BodyContent>) in
                     if response.connectionEffect == .open && response.content == nil {
                         return nil
                     } else {
                         return response
                     }
                 }
-                .tryMap { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
+                .tryMap { (response: Apodini.Response<H.Response.BodyContent>) -> Vapor.Response in
                     return try transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)

@@ -126,7 +126,7 @@ extension CancellablePublisher where Output == Event {
     /// does not follow rules for a valid sequence of ``Event``s as defined on ``Event``, the
     /// `Publisher` might crash at runtime.
     public func evaluate<H: Handler>(on handler: inout Delegate<H>)
-        -> CancellablePublisher<AnyPublisher<Result<Response<H.Response.Content>, Error>, Self.Failure>> {
+        -> CancellablePublisher<AnyPublisher<Result<Response<H.Response.BodyContent>, Error>, Self.Failure>> {
         var lastRequest: Request?
         _Internal.prepareIfNotReady(&handler)
         let preparedHandler = handler
@@ -147,7 +147,7 @@ extension CancellablePublisher where Output == Event {
                 return event
             }
         }
-        .syncMap { (event: Event) -> EventLoopFuture<Response<H.Response.Content>> in
+        .syncMap { (event: Event) -> EventLoopFuture<Response<H.Response.BodyContent>> in
             switch event {
             case let .request(request):
                 lastRequest = request
@@ -186,7 +186,7 @@ extension CancellablePublisher {
 // MARK: Handling Pure Request Evaluation
 
 extension Publisher where Output: Request {
-    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.BodyContent>> {
         _Internal.prepareIfNotReady(&handler)
         let preparedHandler = handler
         
@@ -195,12 +195,12 @@ extension Publisher where Output: Request {
         }
     }
     
-    func evaluateAndReturnRequest<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.Content>> {
+    func evaluateAndReturnRequest<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.BodyContent>> {
         _Internal.prepareIfNotReady(&handler)
         let preparedHandler = handler
         
         return self.syncMap { request in
-            preparedHandler.evaluate(using: request, with: .open).map { (response: Response<H.Response.Content>) in
+            preparedHandler.evaluate(using: request, with: .open).map { (response: Response<H.Response.BodyContent>) in
                 ResponseWithRequest(response: response, request: request)
             }
         }

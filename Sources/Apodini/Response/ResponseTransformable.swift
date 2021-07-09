@@ -14,13 +14,12 @@ import NIO
 public protocol ResponseTransformable {
     /// The `Encodable` type that is returned from a `handle()` method in a `Handler`.
     /// The type can be wrapped by an `EventLoopFuture` or an `Response`.
-    associatedtype Content: Encodable
+    associatedtype BodyContent: Encodable
     
     /// Transforms an `ResponseTransformable` into an `Response` to be processed by the Apodini
     /// - Parameter eventLoop: The `EventLoop` that should be used to transform the `ResponseTransformable` to an `Response` if needed
-    func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>>
+    func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<BodyContent>>
 }
-
 
 // MARK: ResponseTransformable for Generic Encodable Types
 extension Encodable {
@@ -28,7 +27,7 @@ extension Encodable {
     /// 
     /// The `Encodable` type that is returned from a `handle()` method in a `Handler`.
     /// The type can be wrapped by an `EventLoopFuture` or an `Response`.
-    public typealias Content = Self
+    public typealias BodyContent = Self
     
     /// Default Implementation for types conforming to `ResponseTransformable`
     ///
@@ -42,9 +41,9 @@ extension Encodable {
 
 // MARK: EventLoopFuture + ResponseTransformable
 extension EventLoopFuture: ResponseTransformable where Value: ResponseTransformable {
-    public typealias Content = Value.Content
+    public typealias BodyContent = Value.BodyContent
     
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>> {
+    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<BodyContent>> {
         self.hop(to: eventLoop)
             .flatMap { value in
                 value.transformToResponse(on: eventLoop)
@@ -57,7 +56,7 @@ extension EventLoopFuture where Value == Void {
     ///
     /// If you want to return a more elaborate message to the client you should `map` the `EventLoopFuture` to a custom type conforming to `Encodable`.
     /// - Parameter status: The status that should be passed to the client
-    /// - Returns: Returns an `EventLoopFuture` containing an Apodini `Response` type. The `Content`type is `Empty` and the response does not contain any instance that will be encoded in the response to the client.
+    /// - Returns: Returns an `EventLoopFuture` containing an Apodini `Response` type. The `BodyContent`type is `Empty` and the response does not contain any instance that will be encoded in the response to the client.
     public func transform(to status: Status = .noContent) -> EventLoopFuture<Status> {
         map { _ in
             status
@@ -82,7 +81,7 @@ extension Double: ResponseTransformable {}
 extension Float: ResponseTransformable {}
 extension Bool: ResponseTransformable {}
 extension UUID: ResponseTransformable {}
-extension Optional: ResponseTransformable where Wrapped: Encodable {}
+extension Optional: ResponseTransformable where Wrapped: Encodable { }
 extension Array: ResponseTransformable where Element: Encodable {}
 extension Set: ResponseTransformable where Element: Encodable {}
 extension Dictionary: ResponseTransformable where Key: Encodable, Value: Encodable {}

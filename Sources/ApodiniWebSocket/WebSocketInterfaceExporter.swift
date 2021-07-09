@@ -64,7 +64,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<H.Response.Content>, Error>
+                    output: AnyPublisher<Message<H.Response.BodyContent>, Error>
                 ) in
             
             // We need a new `Delegate` for each connection
@@ -104,7 +104,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     }
     
     struct Transformer<H: Handler>: ResultTransformer {
-        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Message<H.Response.Content>, Error> {
+        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Message<H.Response.BodyContent>, Error> {
             switch error.option(for: .webSocketConnectionConsequence) {
             case .none:
                 return .graceful(.error(error))
@@ -115,7 +115,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             }
         }
         
-        func transform(input: H.Response.Content) -> Message<H.Response.Content> {
+        func transform(input: H.Response.BodyContent) -> Message<H.Response.BodyContent> {
             Message.message(input)
         }
     }

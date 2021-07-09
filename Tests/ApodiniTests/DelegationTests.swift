@@ -152,7 +152,7 @@ final class DelegationTests: ApodiniTests {
         XCTAssertGreaterThan(observableInitializationTime, before)
     }
     
-    class TestListener<H: Handler>: ObservedListener where H.Response.Content: StringProtocol {
+    class TestListener<H: Handler>: ObservedListener where H.Response.BodyContent: StringProtocol {
         var eventLoop: EventLoop
         
         var context: ConnectionContext<String, H>

@@ -21,7 +21,7 @@ public func mockQuery<Value: Encodable, H: Handler>(
     
     let request = "Mock Request"
     
-    let response: Response<H.Response.Content> = try InterfaceExporterLegacyStrategy(exporter)
+    let response: Response<H.Response.BodyContent> = try InterfaceExporterLegacyStrategy(exporter)
                                                     .applied(to: endpoint)
                                                     .decodeRequest(from: request,
                                                                    with: DefaultRequestBasis(base: request),

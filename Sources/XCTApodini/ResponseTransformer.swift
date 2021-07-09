@@ -22,6 +22,7 @@ public extension Handler {
 public extension ResponseTransformer {
     /// A type erased version of a `ResponseTransformer`'s `Response` type
     var transformedResponseContent: Encodable.Type {
+
         Self.Content.self
     }
     

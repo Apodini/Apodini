@@ -38,7 +38,7 @@ extension Exporter {
     
     func buildBlobRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
+        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.BodyContent == Blob {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let transformer = VaporBlobResponseTransformer()

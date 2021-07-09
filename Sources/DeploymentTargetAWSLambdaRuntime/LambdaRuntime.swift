@@ -42,7 +42,7 @@ public class LambdaRuntime: DeploymentProviderRuntime {
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
         _ invocation: HandlerInvocation<H>
-    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
+    ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.BodyContent> {
         guard let url = URL(string: "https://\(lambdaDeploymentContext.apiGatewayHostname)") else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: Self.identifier,
