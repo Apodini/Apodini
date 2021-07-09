@@ -9,13 +9,13 @@ import Apodini
 import Logging
 
 struct LogGuard: SyncGuard {
-    private let message: String
+    @Binding private var message: String
     
     @Environment(\.logger) var logger: Logger
     
     
     init(_ message: String = "LogGuard 👋") {
-        self.message = message
+        self._message = .constant(message)
     }
     
     

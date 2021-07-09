@@ -74,7 +74,7 @@ extension Component {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `description` Modifier can be used to specify the `DescriptionMetadata` via a `HandlerModifier`.
     /// - Parameter description: The `description` that is used to for the `Handler`.
     /// - Returns: The modified `Handler` with the `DescriptionMetadata` added.

@@ -7,7 +7,7 @@ public struct RelationshipSourceContextKey: ContextKey {
     public static var defaultValue: [Relationship] = []
 }
 
-public struct RelationshipSourceModifier<H: Handler>: HandlerModifier {
+public struct RelationshipSourceModifier<H: HandlerDefiningComponent>: HandlerModifier {
     public let component: H
     let relationship: Relationship
 
@@ -21,7 +21,7 @@ public struct RelationshipSourceModifier<H: Handler>: HandlerModifier {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `relationship(to:)` modifier can be used to mark this `Handler`
     /// as the source for the given `Relationship` instance.
     ///

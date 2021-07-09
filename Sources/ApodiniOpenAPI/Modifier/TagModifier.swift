@@ -8,7 +8,7 @@ public struct TagContextKey: OptionalContextKey {
     public typealias Value = [String]
 }
 
-public struct TagModifier<H: Handler>: HandlerModifier {
+public struct TagModifier<H: HandlerDefiningComponent>: HandlerModifier {
     public let component: H
     let tags: [String]
     
@@ -22,7 +22,7 @@ public struct TagModifier<H: Handler>: HandlerModifier {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `tag` modifier can be used to explicitly specify the `tags` for the given `Handler`
     /// - Parameter tags: Arbitrary amount of `tags` that are used for logical grouping of operations, e.g., within the API documentation
     /// - Returns: The modified `Handler` with specific `tags`

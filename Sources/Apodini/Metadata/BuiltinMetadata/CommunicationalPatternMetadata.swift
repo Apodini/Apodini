@@ -64,7 +64,7 @@ public struct CommunicationalPatternMetadata: HandlerMetadataDefinition {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `pattern` Modifier can be used to specify the ``CommunicationalPatternMetadata`` via a ``HandlerModifier``.
     /// - Parameter value: The communicational pattern of the associated ``Handler``.
     /// - Returns: The modified `Handler` with the `CommunicationalPatternMetadata` added.

@@ -22,7 +22,7 @@ public struct TypedRelationshipDestinationModifier<H: Handler, To>: HandlerModif
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `relationship(name:of:)` modifier can be used to indicate that this `Handler`
     /// has a relationship with the specified name to a `Handler` which returns the specified type.
     ///

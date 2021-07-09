@@ -9,15 +9,15 @@ import Apodini
 
 
 struct EmojiTransformer: ResponseTransformer {
-    private let emojis: String
-    private let growth: Int
+    @Binding private var emojis: String
+    @Binding private var growth: Int
     
     @State var amount: Int = 1
     
     
     init(emojis: String = "✅", growth: Int = 1) {
-        self.emojis = emojis
-        self.growth = growth
+        self._emojis = .constant(emojis)
+        self._growth = .constant(growth)
     }
     
     

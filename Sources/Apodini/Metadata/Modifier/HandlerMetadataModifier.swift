@@ -3,16 +3,16 @@
 //
 
 /// The `HandlerMetadataModifier` can be used to easily add `HandlerMetadataDefinition`
-/// to a `Handler` via a `HandlerModifier`.
+/// to a `HandlerDefiningComponent` via a `HandlerModifier`.
 /// Apodini provides `Handler.metadata(content:)` and `Handler.metadata(...)` as general purpose
 /// Modifiers to add arbitrary Metadata to a `Handler`.
 ///
 /// Furthermore `HandlerMetadataModifier` serves as a build block to easily create a custom
 /// `HandlerModifier` for your `HandlerMetadataDefinition` without much overhead.
-/// In order to create a Modifier declare a `Handler` extension as usual, returning a
+/// In order to create a Modifier declare a `HandlerDefiningComponent` extension as usual, returning a
 /// `HandlerMetadataModifier` instantiated via `HandlerMetadataModifier.init(modifies:with:)`:
 /// ```swift
-/// extension Handler {
+/// extension HandlerDefiningComponent {
 ///     public func myModifier(_ value: ExampleValue) -> HandlerMetadataModifier<Self> {
 ///         HandlerMetadataModifier(modifies: self, with: ExampleHandlerMetadata(value))
 ///     }

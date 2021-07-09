@@ -43,7 +43,7 @@ extension Component {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// Use an asynchronous `Guard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`

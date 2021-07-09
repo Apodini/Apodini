@@ -8,7 +8,7 @@ struct DefaultRelationshipContextKey: OptionalContextKey {
     typealias Value = Void
 }
 
-public struct DefaultRelationshipModifier<H: Handler>: HandlerModifier {
+public struct DefaultRelationshipModifier<H: HandlerDefiningComponent>: HandlerModifier {
     public let component: H
 
     init(_ component: H) {
@@ -20,11 +20,11 @@ public struct DefaultRelationshipModifier<H: Handler>: HandlerModifier {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `defaultRelationship` modifier can be used to mark the return type - the `Content` type -
     /// as "default" for Relationships inferred from type information.
     ///
-    /// - Returns: The modified `Handler` with the `Content` being marked as default.
+    /// - Returns: The modified `HandlerDefiningComponent` with the `Content` being marked as default.
     public func defaultRelationship() -> DefaultRelationshipModifier<Self> {
         DefaultRelationshipModifier(self)
     }

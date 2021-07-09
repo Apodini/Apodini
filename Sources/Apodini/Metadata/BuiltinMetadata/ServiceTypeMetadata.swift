@@ -52,7 +52,7 @@ public struct ServiceTypeHandlerMetadata: HandlerMetadataDefinition {
     }
 }
 
-extension Handler {
+extension HandlerDefiningComponent {
     /// A `Handler.serviceType(...)` modifier can be used to explicitly specify the `ServiceType` Metadata for the given `Handler`,
     /// setting the name of the gRPC service exposed.
     /// - Parameter serviceType: The `ServiceType` that is applied to the Handler
