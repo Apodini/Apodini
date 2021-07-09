@@ -5,10 +5,10 @@
 @testable import Apodini
 
 struct EmojiMediator: ResponseTransformer {
-    private let emojis: String
+    @Binding private var emojis: String
 
     init(emojis: String = "✅") {
-        self.emojis = emojis
+        self._emojis = .constant(emojis)
     }
 
     func transform(content string: String) -> String {

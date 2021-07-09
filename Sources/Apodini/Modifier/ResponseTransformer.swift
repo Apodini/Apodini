@@ -14,7 +14,7 @@ import ApodiniUtils
 /// It only maps in the `.send`,  `.finish` and `.automatic` cases.
 /// If the previous Handler or ResponseTransformer returned an `Response.end` or `Response.nothing` it is not called and will not map anything.
 /// Both types (`InputContent` and `Content`) have to conform to `Encodable`
-public protocol ResponseTransformer { // TODO: make PropertyIterable (also for Guard) and make PropertyIterable requirement for usage of Delegate
+public protocol ResponseTransformer: PropertyIterable {
     /// The type that should be transformed
     associatedtype InputContent: Encodable
     /// The type the `ResponseTransformable`  should be transformed to
@@ -76,7 +76,7 @@ private protocol Transformable {
     func callAsFunction() -> Any
 }
 
-extension _Handler {
+extension HandlerDefiningComponent {
     /// A `response` modifier can be used to transform the output of a `Handler`'s response to a different type using a `ResponseTransformer`
     /// - Parameter responseTransformer: The `ResponseTransformer` used to transform the response of a `Handler`
     /// - Returns: The modified `Handler` with a new `ResponseTransformable` type

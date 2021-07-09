@@ -7,7 +7,7 @@ public struct RelationshipDestinationContextKey: ContextKey {
     public static var defaultValue: [Relationship] = []
 }
 
-public struct RelationshipDestinationModifier<H: _Handler>: HandlerModifier {
+public struct RelationshipDestinationModifier<H: HandlerDefiningComponent>: HandlerModifier {
     public let component: H
     let relationship: Relationship
 
@@ -21,7 +21,7 @@ public struct RelationshipDestinationModifier<H: _Handler>: HandlerModifier {
     }
 }
 
-extension _Handler {
+extension HandlerDefiningComponent {
     /// A `destination(of:)` modifier can be used to mark this `Handler`
     /// as the destination for the given `Relationship` instance.
     ///

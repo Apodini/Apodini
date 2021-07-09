@@ -45,11 +45,11 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     private struct EmojiResponseTransformer: ResponseTransformer {
-        private let emojis: String
+        @Binding private var emojis: String
 
 
         init(emojis: String = "✅") {
-            self.emojis = emojis
+            self._emojis = .constant(emojis)
         }
 
 
@@ -60,11 +60,11 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     private struct OptionalEmojiResponseTransformer: ResponseTransformer {
-        private let emojis: String
+        @Binding private var emojis: String
 
 
         init(emojis: String = "✅") {
-            self.emojis = emojis
+            self._emojis = .constant(emojis)
         }
 
 

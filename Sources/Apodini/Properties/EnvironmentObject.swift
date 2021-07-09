@@ -12,7 +12,7 @@ import ApodiniUtils
 /// A property wrapper to inject pre-defined values  to a `Component`.  If `Value` is an
 /// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
 /// Use `Delegate.environmentObject(_:)` to inject a value.
-public struct EnvironmentObject<Value>: InstanceCodable, DynamicProperty {
+public struct EnvironmentObject<Value>: _InstanceCodable, DynamicProperty {
     private struct Storage {
         var changed: Bool
         weak var ownObservation: Observation?

@@ -22,7 +22,7 @@ struct ExplicitHandlerIdentifierContextKey: Apodini.OptionalContextKey {
 }
 
 
-public struct ExplicitlyIdentifiedHandlerModifier<Content: _Handler>: HandlerModifier {
+public struct ExplicitlyIdentifiedHandlerModifier<Content: HandlerDefiningComponent>: HandlerModifier {
     public let component: Content
     let identifier: AnyHandlerIdentifier
 
@@ -32,7 +32,7 @@ public struct ExplicitlyIdentifiedHandlerModifier<Content: _Handler>: HandlerMod
 }
 
 
-extension _Handler {
+extension HandlerDefiningComponent {
     /// Attach an identifier to this handler
     public func identified(by identifier: String) -> ExplicitlyIdentifiedHandlerModifier<Self> {
         ExplicitlyIdentifiedHandlerModifier(component: self, identifier: AnyHandlerIdentifier(identifier))

@@ -53,7 +53,7 @@ public struct OperationHandlerMetadata: HandlerMetadataDefinition {
     }
 }
 
-extension _Handler {
+extension HandlerDefiningComponent {
     /// A `Handler.operation(...)` modifier can be used to explicitly specify the `Operation` Metadata for the given `Handler`
     /// - Parameter operation: The `Operation` that is used to for the handler
     /// - Returns: The modified `Handler` with a specified `Operation`

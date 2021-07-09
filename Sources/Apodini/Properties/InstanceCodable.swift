@@ -9,35 +9,6 @@ import Foundation
 import ApodiniUtils
 import NIO
 
-//struct Verifier {
-//    @Environment(\.someToken) var token
-//
-//    @Environment(\.database) var db
-//
-//    func verify() throws -> AuthenticatedUser {
-//        let userid = try checkToken()
-//
-//        return db.getUserById(userId)
-//    }
-//
-//    private func checkToken() throws -> UUID {
-//        // ...
-//    }
-//}
-//
-//struct VerifyingHandler<H: Handler>: Handler { // created by DelegatingHandlerInitializer
-//    let verifier = Delegate(Verifier(), .required)
-//    let handler: Delegate<H>
-//
-//    func handle() throws -> H.Response {
-//        let user = try verifier().verify()
-//
-//        return try handler.environmentObject(user)().handle()
-//    }
-//}
-//
-
-
 protocol InstanceEncoder: Encoder {
     func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer
 }
@@ -54,14 +25,7 @@ protocol SingleValueInstanceEncodingContainer: SingleValueEncodingContainer {
     mutating func encode<T>(_ value: T) throws
 }
 
-public protocol InstanceCodable: Codable { }
-
-enum InstanceCodingError: Error {
-    case instantializedUsingNonInstanceCoder
-    case encodedUsingNonInstanceCoder
-    case notImplemented
-    case badType
-}
+public protocol _InstanceCodable: Codable { }
 
 protocol Counter {
     func next() -> Int
@@ -182,7 +146,7 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
     let coder: FlatInstanceEncoder
     
     func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
-        if T.self is InstanceCodable.Type {
+        if T.self is _InstanceCodable.Type {
             coder.codingPath += [key]
             defer { coder.codingPath.removeLast() }
             coder.add(value)
@@ -247,7 +211,7 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
     // decoding
     
     func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
-        if T.self is InstanceCodable.Type {
+        if T.self is _InstanceCodable.Type {
             return coder.next() as! T
         }
         
@@ -298,7 +262,7 @@ struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
     // encoding
     
     func encode<T>(_ value: T) throws {
-        guard T.self is InstanceCodable.Type else {
+        guard T.self is _InstanceCodable.Type else {
             fatalError()
         }
         
@@ -333,10 +297,10 @@ struct InstanceDecodingContainer: SingleValueInstanceDecodingContainer {
 
 // MARK: Default Conformance
 
-extension InstanceCodable {
+extension _InstanceCodable {
     public init(from decoder: Decoder) throws {
         guard let ic = decoder as? InstanceDecoder else {
-            throw InstanceCodingError.instantializedUsingNonInstanceCoder
+            fatalError("Tried to decode '_InstanceCodable'  object from a 'Decoder' that is no 'InstanceDecoder'!")
         }
 
         let container = try ic.singleInstanceDecodingContainer()
@@ -345,7 +309,7 @@ extension InstanceCodable {
 
     public func encode(to encoder: Encoder) throws {
         guard let ic = encoder as? InstanceEncoder else {
-            throw InstanceCodingError.encodedUsingNonInstanceCoder
+            fatalError("Tried to encode '_InstanceCodable'  object to a 'Encoder' that is no 'InstanceEncoder'!")
         }
 
         var container = try ic.singleInstanceEncodingContainer()
@@ -368,7 +332,7 @@ extension Properties: Codable {
         
         for (key, (type, _)) in info.codingInfo {
             let decoder = try instanceContainer.decode(DecoderExtractor.self, forKey: key).decoder
-            elements[key] = try type.init(from: decoder) as! Property
+            elements[key] = try (type.init(from: decoder) as! Property)
         }
         
         self.codingInfo = info.codingInfo
@@ -408,7 +372,7 @@ extension Properties: Codable {
         }
     }
     
-    private struct PropertiesCodableInformation: InstanceCodable {
+    private struct PropertiesCodableInformation: _InstanceCodable {
         let codingInfo: [String: (Decodable.Type, (Encoder, Property) throws -> Void)]
         let namingStrategy: ([String]) -> String?
     }

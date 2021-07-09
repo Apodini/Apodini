@@ -10,14 +10,14 @@ import NIO
 
 /// A `SyncGuard` can be used to inspect request and guard `Component`s using the check method.
 /// SyncGuard`s can  be used with different request-response property wrappers to inject values from incoming requests.
-public protocol SyncGuard {
+public protocol SyncGuard: PropertyIterable {
     /// The `check` method can be used to inspect incoming requests
     func check() throws
 }
 
 
 /// A `Guard` can be used to inspect request and guard `Component`s using the check method
-public protocol Guard {
+public protocol Guard: PropertyIterable {
     /// The `check` method can be used to inspect incoming requests
     func check() throws -> EventLoopFuture<Void>
 }

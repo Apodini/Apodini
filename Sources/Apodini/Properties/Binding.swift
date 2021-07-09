@@ -65,7 +65,7 @@ public struct Binding<Value>: DynamicProperty, PotentiallyParameterIdentifyingBi
 // MARK: Override
 
 extension Binding {
-    fileprivate struct Configuration: Property, InstanceCodable {
+    fileprivate struct Configuration: Property, _InstanceCodable {
         var override: Box<Value?>?
         let retriever: (Properties) -> Value
         let parameterId: UUID?

@@ -6,7 +6,7 @@ import ApodiniUtils
 ///
 /// This is helpful for service-side streams or bidirectional communication.
 @propertyWrapper
-public struct ObservedObject<Element: ObservableObject>: InstanceCodable, Property {
+public struct ObservedObject<Element: ObservableObject>: _InstanceCodable, Property {
     private struct Storage {
         var changed: Bool
         var element: Element

@@ -13,7 +13,7 @@ import ApodiniUtils
 final class TraversableTests: ApodiniTests {
     // swiftlint:disable identifier_name type_name
     @propertyWrapper
-    struct Param<T>: Apodini.Property, InstanceCodable {
+    struct Param<T>: Apodini.Property, _InstanceCodable {
         var _value: T?
         
         var wrappedValue: T? {

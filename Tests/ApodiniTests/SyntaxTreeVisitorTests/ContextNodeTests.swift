@@ -67,7 +67,7 @@ struct IntModifier<C: Component>: Modifier {
     }
 }
 
-extension IntModifier: _Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: _Handler {
+extension IntModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: HandlerDefiningComponent {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -88,7 +88,7 @@ struct OptionalIntModifier<C: Component>: Modifier {
     }
 }
 
-extension OptionalIntModifier: _Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: _Handler {
+extension OptionalIntModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: HandlerDefiningComponent {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -109,7 +109,7 @@ struct IntAdditionModifier<C: Component>: Modifier {
     }
 }
 
-extension IntAdditionModifier: _Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: _Handler {
+extension IntAdditionModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: HandlerDefiningComponent {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -129,7 +129,7 @@ struct StringModifier<C: Component>: Modifier {
     }
 }
 
-extension StringModifier: _Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: _Handler {
+extension StringModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: HandlerDefiningComponent {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -149,7 +149,7 @@ struct IntArrayModifier<C: Component>: Modifier {
     }
 }
 
-extension IntArrayModifier: _Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: _Handler {
+extension IntArrayModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: HandlerDefiningComponent {
     typealias Response = ModifiedComponent.Response
 }
 

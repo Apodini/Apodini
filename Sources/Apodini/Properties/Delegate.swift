@@ -14,7 +14,7 @@ import Foundation
 /// of `@Parameter`s to the point where you call `Delegate` as a function. This enables you to decode
 /// input lazily and to do manual error handling in case decoding fails.
 /// - Warning: `D` must be a `struct`
-public struct Delegate<D>: InstanceCodable {
+public struct Delegate<D>: _InstanceCodable {
     struct Storage {
         var connection: Connection?
         // swiftlint:disable:next weak_delegate
