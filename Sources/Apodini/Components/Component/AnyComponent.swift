@@ -21,7 +21,7 @@ public struct AnyComponent: Component, SyntaxTreeVisitable {
 }
 
 
-public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
+public struct AnyHandler: _Handler, SyntaxTreeVisitable, VisitableHandler {
     public typealias Response = Never
     
     private let _accept: (SyntaxTreeVisitor) -> Void

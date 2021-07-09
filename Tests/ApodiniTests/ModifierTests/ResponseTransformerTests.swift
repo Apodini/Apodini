@@ -23,11 +23,11 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     private struct OptionalText: Handler {
-        let text: String?
+        @Binding var text: String?
         
         
         init(_ text: String?) {
-            self.text = text
+            self._text = .constant(text)
         }
         
         
@@ -37,7 +37,7 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     private struct ResponseHandler: Handler {
-        let response: Apodini.Response<String>
+        @Binding var response: Apodini.Response<String>
         
         func handle() -> Apodini.Response<String> {
             response
@@ -155,19 +155,19 @@ final class ResponseTransformerTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 Group("nothing") {
-                    ResponseHandler(response: .nothing)
+                    ResponseHandler(response: .constant(.nothing))
                         .response(EmojiResponseTransformer())
                 }
                 Group("send") {
-                    ResponseHandler(response: .send("Paul"))
+                    ResponseHandler(response: .constant(.send("Paul")))
                         .response(EmojiResponseTransformer())
                 }
                 Group("final") {
-                    ResponseHandler(response: .final("Paul"))
+                    ResponseHandler(response: .constant(.final("Paul")))
                         .response(EmojiResponseTransformer())
                 }
                 Group("end") {
-                    ResponseHandler(response: .end)
+                    ResponseHandler(response: .constant(.end))
                         .response(EmojiResponseTransformer())
                 }
             }

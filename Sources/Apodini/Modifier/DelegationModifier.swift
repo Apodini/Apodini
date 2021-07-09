@@ -40,7 +40,7 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
     }
 }
 
-extension DelegationModifier: HandlerModifier where Self.ModifiedComponent: Handler {
+extension DelegationModifier: HandlerModifier where Self.ModifiedComponent: _Handler {
     public typealias Response = I.Response
 }
 

@@ -18,7 +18,7 @@
 ///     }
 /// }
 /// ```
-public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
+public struct HandlerMetadataModifier<H: _Handler>: HandlerModifier {
     public let component: H
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
     let handlerMetadata: AnyHandlerMetadata
@@ -38,7 +38,7 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     }
 }
 
-extension Handler {
+extension _Handler {
     /// The `Handler.metadata(content:)` Modifier can be used to apply a Handler Metadata Declaration Block
     /// to the given `Handler`.
     /// - Parameter content: The closure containing the Metadata to be built.

@@ -20,8 +20,8 @@ final class ConnectionTests: ApodiniTests {
         @Apodini.Environment(\.connection)
         var connection: Connection
         
-        var endMessage: String
-        var openMessage: String
+        @Binding var endMessage: String
+        @Binding var openMessage: String
         
         func handle() -> Apodini.Response<String> {
             switch connection.state {
@@ -34,7 +34,7 @@ final class ConnectionTests: ApodiniTests {
     }
     
     func testDefaultConnectionEnvironment() throws {
-        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        var testHandler = TestHandler(endMessage: .constant(endMessage), openMessage: .constant(openMessage)).inject(app: app)
         activate(&testHandler)
         
         let endpoint = testHandler.mockEndpoint(app: app)
@@ -51,7 +51,7 @@ final class ConnectionTests: ApodiniTests {
     
     func testConnectionInjection() throws {
         let mockRequest = MockRequest.createRequest(running: app.eventLoopGroup.next(), queuedParameters: .none)
-        var testHandler = TestHandler(endMessage: endMessage, openMessage: openMessage).inject(app: app)
+        var testHandler = TestHandler(endMessage: .constant(endMessage), openMessage: .constant(openMessage)).inject(app: app)
         activate(&testHandler)
         
         var connection = Connection(state: .open, request: mockRequest)

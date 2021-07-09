@@ -9,7 +9,7 @@ import Foundation
 
 /// A property wrapper that can be used on `Handler`s to obtain `ApodiniError`s.
 @propertyWrapper
-public struct Throws {
+public struct Throws: Property, InstanceCodable {
     private let options: PropertyOptionSet<ErrorOptionNameSpace>
     
     private let `type`: ErrorType

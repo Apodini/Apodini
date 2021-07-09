@@ -37,7 +37,7 @@ final class HandlerIdentifierTests: ApodiniTests {
 
     struct TestHandlerType: IdentifiableHandler {
         typealias Response = Never
-        let handlerId = ScopedHandlerIdentifier<Self>("main")
+        @Binding var handlerId = ScopedHandlerIdentifier<Self>("main")
     }
     
     

@@ -11,9 +11,6 @@ import Foundation
 /// accessed by Apodini in a performant manner without usage of runtime reflection.
 ///
 /// A `PropertyIterable` object may only have Apodini-defined `Property`s,
-/// `DynamicProperty`s or `Properties` as its children. The same restriction applies
-/// to its recursive children nested inside `DynamicProperty`s or `Properties`.
+/// as its children. The same restriction applies to any recursive children nested inside
+/// a `DynamicProperty` or `Properties` element.
 public protocol PropertyIterable: Codable { }
-
-
-public protocol PIHandler: Handler, PropertyIterable { }

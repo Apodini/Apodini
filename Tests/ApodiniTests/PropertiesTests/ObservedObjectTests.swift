@@ -315,7 +315,7 @@ class ObservedObjectTests: ApodiniTests {
             
             @State var count: Int = 1
             
-            let secondObservable: TestObservable
+            @Binding var secondObservable: TestObservable
             
             func handle() -> Apodini.Response<String> {
                 defer {
@@ -343,7 +343,7 @@ class ObservedObjectTests: ApodiniTests {
         
         let observable = TestObservable()
         let observable2 = TestObservable(100, "Hello, World!")
-        var testHandler = TestHandler(testObservable: observable, secondObservable: observable2).inject(app: app)
+        var testHandler = TestHandler(testObservable: observable, secondObservable: .constant(observable2)).inject(app: app)
         activate(&testHandler)
         let endpoint = testHandler.mockEndpoint(app: app)
         
@@ -404,7 +404,7 @@ class ObservedObjectTests: ApodiniTests {
             
             @State var count: Int = 1
             
-            let secondObservable: TestObservable
+            @Binding var secondObservable: TestObservable
 
             func handle() -> Apodini.Response<String> {
                 defer {
@@ -430,7 +430,7 @@ class ObservedObjectTests: ApodiniTests {
         
         let observable = TestObservable()
         let observable2 = TestObservable(100, "Hello, World!")
-        let testHandler = TestHandler(secondObservable: observable2).inject(app: app)
+        let testHandler = TestHandler(secondObservable: .constant(observable2)).inject(app: app)
         app.storage.set(\Keys.testObservable, to: observable)
 
         let endpoint = testHandler.mockEndpoint(app: app)
@@ -493,13 +493,13 @@ class ObservedObjectTests: ApodiniTests {
             
             @State var count: Int = 1
             
-            let secondObservable: TestObservable
+            @Binding var secondObservable: TestObservable
             
             init(secondObservable: TestObservable, testObservableObject: TestObservable) {
                 var envObj = EnvironmentObject<TestObservable>()
                 envObj.prepareValue(testObservableObject)
                 self._testObservable = envObj
-                self.secondObservable = secondObservable
+                self._secondObservable = .constant(secondObservable)
             }
             
             func handle() -> Apodini.Response<String> {

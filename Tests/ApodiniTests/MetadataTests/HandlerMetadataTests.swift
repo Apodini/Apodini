@@ -59,7 +59,7 @@ private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {
 }
 
 private struct TestMetadataHandler: Handler {
-    var state: Bool
+    @Binding var state: Bool
 
     func handle() -> String {
         "Hello Test!"
@@ -196,7 +196,7 @@ final class HandlerMetadataTest: ApodiniTests {
     
     func testDelegatedHandlerMetadata() {
         struct TestDelegatingHandler<D: Handler>: Handler {
-            let delegate: Delegate<D>
+            var delegate: Delegate<D>
             
             func handle() throws -> some ResponseTransformable {
                 ""

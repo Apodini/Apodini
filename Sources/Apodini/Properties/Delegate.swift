@@ -52,7 +52,9 @@ public struct Delegate<D>: InstanceCodable {
         if let codableDelegate = delegate as? PropertyIterable {
             let encoder = FlatInstanceEncoder()
             try! codableDelegate.encode(to: encoder)
-            self.delegateModel = .codable(encoder.freezed)
+            let decoder = encoder.freezed
+            print(decoder.store)
+            self.delegateModel = .codable(decoder)
         } else {
             self.delegateModel = .legacy(delegate)
         }

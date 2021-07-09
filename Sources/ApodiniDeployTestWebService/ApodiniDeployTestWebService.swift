@@ -15,12 +15,12 @@ struct WebService: Apodini.WebService {
         Group("aws_rand") {
             TextHandler("")
                 .operation(.create)
-            AWS_RandomNumberGenerator(handlerId: .main)
+            AWS_RandomNumberGenerator(handlerId: .constant(.main))
         }.formDeploymentGroup(withId: "group_aws_rand")
         Group("aws_rand2") {
             TextHandler("")
                 .operation(.create)
-            AWS_RandomNumberGenerator(handlerId: .other)
+            AWS_RandomNumberGenerator(handlerId: .constant(.other))
         }.formDeploymentGroup(withId: "group_aws_rand2")
         Group("aws_greet") {
             AWS_Greeter()

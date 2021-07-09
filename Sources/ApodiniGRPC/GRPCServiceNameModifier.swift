@@ -12,7 +12,7 @@ struct GRPCServiceNameContextKey: OptionalContextKey {
     typealias Value = String
 }
 
-public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
+public struct GRPCServiceModifier<H: _Handler>: HandlerModifier {
     public let component: H
     let serviceName: String
 
@@ -26,7 +26,7 @@ public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
     }
 }
 
-extension Handler {
+extension _Handler {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
     public func serviceName(_ serviceName: String) -> GRPCServiceModifier<Self> {
         GRPCServiceModifier(self, serviceName: serviceName)

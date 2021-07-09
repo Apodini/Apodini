@@ -81,10 +81,10 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
         ConcatenatedResponseTransformerTests.thirdResponseMediatorExpectation = self.expectation(description: "Third ResponseMediator is executed")
         
         struct Number: Handler {
-            let number: Int
+            @Binding var number: Int
             
             init(_ number: Int) {
-                self.number = number
+                self._number = .constant(number)
             }
             
             func handle() -> Int {

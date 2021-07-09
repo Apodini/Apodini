@@ -368,7 +368,7 @@ extension Properties: Codable {
         
         for (key, (type, _)) in info.codingInfo {
             let decoder = try instanceContainer.decode(DecoderExtractor.self, forKey: key).decoder
-            elements[key] = try (type.init(from: decoder) as! Property)
+            elements[key] = try type.init(from: decoder) as! Property
         }
         
         self.codingInfo = info.codingInfo

@@ -34,7 +34,7 @@ private struct TestWebService: Apodini.WebService {
         class HandlerIdentifier: ScopedHandlerIdentifier<F> {
             static let main = HandlerIdentifier("main")
         }
-        let handlerId = HandlerIdentifier.main
+        @Binding var handlerId = HandlerIdentifier.main
         func handle() -> String {
             "F"
         }
@@ -70,7 +70,7 @@ private struct TestWebService: Apodini.WebService {
         class HandlerIdentifier: ScopedHandlerIdentifier<TextTransformer> {
             static let main = HandlerIdentifier("main")
         }
-        let handlerId = HandlerIdentifier.main
+        @Binding var handlerId = HandlerIdentifier.main
         
         @Parameter var transformation: Transformation = .identity
         @Parameter var input: String
@@ -145,7 +145,7 @@ private struct TestWebService: Apodini.WebService {
             static let main = HandlerIdentifier("main")
         }
         
-        let handlerId = HandlerIdentifier.main
+        @Binding var handlerId = HandlerIdentifier.main
         
         @Parameter var x: Double
         @Parameter var y: Double

@@ -6,10 +6,10 @@
 //
 
 public struct Text: Handler {
-    private let text: String
+    @Binding private var text: String
     
     public init(_ text: String) {
-        self.text = text
+        self._text = .constant(text)
     }
     
     public func handle() -> String {

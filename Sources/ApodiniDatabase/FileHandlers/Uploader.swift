@@ -17,14 +17,14 @@ public struct Uploader: Handler {
     @Parameter
     private var file: File
     
-    private var config: UploadConfiguration
+    @Binding private var config: UploadConfiguration
     
     /// Create a new `Uploader` with a customizable `UploadConfiguration`.
     ///
     /// - parameters:
     ///     - config: A  `UploadConfiguration` object
     public init(_ config: UploadConfiguration) {
-        self.config = config
+        self._config = .constant(config)
     }
     
     public func handle() throws -> EventLoopFuture<Response<String>> {

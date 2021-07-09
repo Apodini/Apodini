@@ -308,7 +308,7 @@ final class DelegationTests: ApodiniTests {
         }
         
         struct SomeHandler: Handler {
-            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            var delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
                 try delegate().delegate().name
@@ -334,7 +334,7 @@ final class DelegationTests: ApodiniTests {
         }
         
         struct SomeHandler: Handler {
-            let delegate = Delegate(RequiredDelegatingDelegate(), .required)
+            var delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
                 try delegate().delegate().name

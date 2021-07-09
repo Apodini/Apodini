@@ -12,6 +12,7 @@ class RelationshipTests: ApodiniTests {
     var id2: String
 
     struct TextParameterized: Handler {
+        @Binding
         var text: String
         @Binding
         var id: String
@@ -22,6 +23,7 @@ class RelationshipTests: ApodiniTests {
     }
 
     struct TextParameterized2: Handler {
+        @Binding
         var text: String
         @Binding
         var id: String

@@ -44,7 +44,7 @@ struct LH_TextMut: InvocableHandler {
     class HandlerIdentifier: ScopedHandlerIdentifier<LH_TextMut> {
         static let main = HandlerIdentifier("main")
     }
-    let handlerId: HandlerIdentifier = .main
+    @Binding var handlerId: HandlerIdentifier = .main
     
     @Parameter var text: String
     
@@ -87,8 +87,8 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
         static let main = HandlerIdentifier("main")
         static let other = HandlerIdentifier("other")
     }
-    let handlerId: HandlerIdentifier
-    let ugh: Int = 12
+    @Binding var handlerId: HandlerIdentifier
+    @Binding var ugh: Int = 12
     
     @Parameter var lowerBound: Int = 0
     @Parameter var upperBound: Int = .max

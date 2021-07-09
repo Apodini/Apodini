@@ -36,7 +36,7 @@ class EndToEndTests: XCTApodiniTest {
         }
     }
     
-    struct BlobGreeter: PIHandler {
+    struct BlobGreeter: Handler {
         @Parameter(.http(.path)) var name: String
         
         @Parameter(.http(.query)) var greeting: String?

@@ -20,14 +20,14 @@ public struct SingleDownloader: Handler {
     @Parameter(.http(.path))
     var fileName: String
     
-    private var config: DownloadConfiguration
+    @Binding private var config: DownloadConfiguration
     
     /// Create a new `Downloader` with a customizable `DownloadConfiguration`.
     ///
     /// - parameters:
     ///     - config: A  `DownloadConfiguration` object
     public init(_ config: DownloadConfiguration) {
-        self.config = config
+        self._config = .constant(config)
     }
     
     public func handle() throws -> EventLoopFuture<File> {

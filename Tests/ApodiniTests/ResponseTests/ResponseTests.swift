@@ -13,7 +13,7 @@ import XCTApodini
 
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
-        var message: String
+        @Binding var message: String
 
         func handle() -> Response<String> {
             .final(message)
@@ -32,8 +32,8 @@ final class ResponseTests: ApodiniTests {
     }
     
     struct FutureBasedHandler: Handler {
-        var eventLoop: EventLoop
-        var message: String
+        @Binding var eventLoop: EventLoop
+        @Binding var message: String
 
         func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Response<String>>>> {
             // Test if `ResponseTransformable` unwraps multiple nested EventLoopFutures
@@ -52,7 +52,7 @@ final class ResponseTests: ApodiniTests {
     func testResponseRequestHandling() throws {
         let expectedContent = "ResponseWithRequest"
         
-        let handler = ResponseHandler(message: expectedContent)
+        let handler = ResponseHandler(message: .constant(expectedContent))
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()
@@ -68,7 +68,7 @@ final class ResponseTests: ApodiniTests {
     func testEventLoopFutureRequestHandling() throws {
         let expectedContent = "ResponseWithRequest"
         
-        let handler = FutureBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)
+        let handler = FutureBasedHandler(eventLoop: .constant(app.eventLoopGroup.next()), message: .constant(expectedContent))
         let endpoint = handler.mockEndpoint()
 
         let exporter = MockExporter<String>()

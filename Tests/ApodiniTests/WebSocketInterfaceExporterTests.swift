@@ -38,7 +38,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             }
         }
         Group("bidirectional") {
-            BidirectionalHandler(observed: self.testObservable, eventLoop: self.app.eventLoopGroup.next(), app: self.app)
+            BidirectionalHandler(observed: self.testObservable, eventLoop: .constant(self.app.eventLoopGroup.next()), app: .constant(self.app))
         }
         Group("address") {
             RemoteAddressChecker()
@@ -436,9 +436,9 @@ struct BidirectionalHandler: Handler {
     
     @Environment(\.connection) var connection: Connection
     
-    let eventLoop: EventLoop
+    @Binding var eventLoop: EventLoop
     
-    let app: Application
+    @Binding var app: Application
     
     @State var finalState = false
     

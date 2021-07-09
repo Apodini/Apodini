@@ -27,8 +27,8 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeComp: Handler {
         @Parameter var name: String
         
-        let someD = Delegate(SomeDelegate())
-        let requiredD = Delegate(SomeRequiredDelegate(), .required)
+        var someD = Delegate(SomeDelegate())
+        var requiredD = Delegate(SomeRequiredDelegate(), .required)
 
         func handle() -> SomeStruct {
             SomeStruct()
