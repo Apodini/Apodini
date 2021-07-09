@@ -271,7 +271,7 @@ struct FooBarMetadata: HandlerMetadataDefinition {
 ```
 
 Now you can declare conformance to the `DefinitionWithDelegatingHandler` protocol on the `FooBarMetadata`.
-This will require us to implement the additional `var initializer: Initializer { get }` property providing
+This will require us to implement the additional `var initializer: DelegatingHandlerContextKey.Entry { get }` property providing
 an instance of the discussed `DelegatingHandlerInitializer`.
 
 ```swift
@@ -280,7 +280,7 @@ struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandle
     
     var value: String
   
-    var initializer = FooBarDelegatingHandlerInitializer()
+    var initializer: DelegatingHandlerContextKey.Entry = .init(FooBarDelegatingHandlerInitializer())
     
     init(foo: String) {
         self.value = foo
@@ -296,12 +296,12 @@ the `initializer` for the `DelegatingHandlerContextKey` (both added with the `Me
 When creating a `MetadataDefinition` which solely contributes a `DelegatingHandlerInitializer`, in addition
 to declaring conformance to the appropriate `MetadataDefinition` protocol (see [1.](#1-creating-the-metadata-definition))
 you need to declare conformance to the `DefinitionWithDelegatingHandlerKey` protocol.  
-This will require us to implement the additional `var initializer: Initializer { get }` property providing
+This will require us to implement the additional `var initializer: DelegatingHandlerContextKey.Entry { get }` property providing
 an instance of the discussed `DelegatingHandlerInitializer`.
 
 ```swift
 struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    var initializer = FooBarDelegatingHandlerInitializer()
+    var initializer: Key.Entry = .init(FooBarDelegatingHandlerInitializer())
   
     init() {
       // ...
