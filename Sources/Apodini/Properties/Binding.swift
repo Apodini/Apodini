@@ -34,7 +34,7 @@ private enum Retrieval<Value> {
 /// `projectedValue`s.
 @propertyWrapper
 public struct Binding<Value>: InstanceCodable, DynamicProperty, PotentiallyParameterIdentifyingBinding {
-    private let store: Properties
+    private var store: Properties
     private let retrieval: Retrieval<Value>
     private var override: Box<Value?>?
     let parameterId: UUID?
@@ -66,6 +66,9 @@ public struct Binding<Value>: InstanceCodable, DynamicProperty, PotentiallyParam
 extension Binding: Activatable {
     mutating func activate() {
         self.override = Box(nil)
+        self.store.apply({ (activatable: inout Activatable, _) in
+            activatable.activate()
+        }, using: [])
     }
 }
 
@@ -152,7 +155,7 @@ extension Binding {
 extension Binding where Value: Codable {
     private init(parameter: Parameter<Value>) {
         store = Properties(namingStrategy: { names in
-            names[names.count - 3]
+            names.count >= 3 ? names[names.count - 3] : nil
         }).with(parameter, named: "parameter")
         retrieval = .storage { store in
             guard let parameter = store.wrappedValue["parameter"] as? Parameter<Value> else {

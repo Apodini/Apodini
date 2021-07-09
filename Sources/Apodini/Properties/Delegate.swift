@@ -14,12 +14,12 @@ import Foundation
 /// of `@Parameter`s to the point where you call `Delegate` as a function. This enables you to decode
 /// input lazily and to do manual error handling in case decoding fails.
 /// - Warning: `D` must be a `struct`
-public struct Delegate<D: Codable>: InstanceCodable {
+public struct Delegate<D>: InstanceCodable {
     struct Storage {
         var connection: Connection?
         // swiftlint:disable:next weak_delegate
         var delegate: D?
-        var delegateModel: FlatInstanceDecoder
+        var delegateModel: DelegateModel
         weak var observation: Observation?
         // swiftlint:disable:next discouraged_optional_collection
         var observables: [(AnyObservedObject, Observation)]?
@@ -34,7 +34,12 @@ public struct Delegate<D: Codable>: InstanceCodable {
         var environmentObject: [Any] = []
     }
     
-    var delegateModel: FlatInstanceDecoder
+    enum DelegateModel {
+        case codable(FlatInstanceDecoder)
+        case legacy(D)
+    }
+    
+    var delegateModel: DelegateModel
     
     let optionality: Optionality
     
@@ -44,9 +49,14 @@ public struct Delegate<D: Codable>: InstanceCodable {
     /// - Parameter `delegate`: the wrapped instance
     /// - Parameter `optionality`: the `Optionality` for all `@Parameter`s of the `delegate`
     public init(_ delegate: D, _ optionality: Optionality = .optional) {
-        let encoder = FlatInstanceEncoder()
-        try! delegate.encode(to: encoder)
-        self.delegateModel = encoder.freezed
+        if let codableDelegate = delegate as? Codable {
+            let encoder = FlatInstanceEncoder()
+            try! codableDelegate.encode(to: encoder)
+            self.delegateModel = .codable(encoder.freezed)
+        } else {
+            self.delegateModel = .legacy(delegate)
+        }
+        
         self.optionality = optionality
     }
     
@@ -59,7 +69,12 @@ public struct Delegate<D: Codable>: InstanceCodable {
         // if not done yet we activate the delegate before injection
         if store.value.delegate == nil {
             Apodini.activate(&store.value.delegateModel)
-            store.value.delegate = try! D(from: store.value.delegateModel)
+            switch store.value.delegateModel {
+            case let .codable(decoder):
+                store.value.delegate = try! (D.self as! Decodable.Type).init(from: decoder) as! D
+            case let .legacy(delegate):
+                store.value.delegate = delegate
+            }
         }
         
         // we inject observedobjects, bindings, environment and environmentObject and invalidate all stores afterwards
@@ -104,7 +119,7 @@ public struct Delegate<D: Codable>: InstanceCodable {
         }
         
         // finally we inject everything and return the prepared delegate
-        try connection.enterConnectionContext(with: store.value.delegate, executing: { _ in Void() })
+        try connection.enterConnectionContext(with: store.value.delegateModel, executing: { _ in Void() })
         
         return store.value.delegate!
     }
