@@ -15,11 +15,11 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
         var someProp = 4
     }
 
-    struct SomeDelegate {
+    struct SomeDelegate: PropertyIterable {
         @Parameter var lazyoptional: String
     }
     
-    struct SomeRequiredDelegate {
+    struct SomeRequiredDelegate: PropertyIterable {
         @Parameter var required: String
         @Parameter var realoptional: String?
     }

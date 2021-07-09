@@ -22,7 +22,7 @@ final class DelegationTests: ApodiniTests {
     }
     
     
-    struct TestDelegate {
+    struct TestDelegate: PropertyIterable {
         @Parameter var message: String
         @Apodini.Environment(\.connection) var connection
         @ObservedObject var observable: TestObservable
@@ -215,7 +215,7 @@ final class DelegationTests: ApodiniTests {
         )
     }
     
-    struct BindingTestDelegate {
+    struct BindingTestDelegate: PropertyIterable {
         @Binding var number: Int
     }
     
@@ -237,12 +237,12 @@ final class DelegationTests: ApodiniTests {
         var name: String
     }
     
-    struct NestedEnvironmentDelegate {
+    struct NestedEnvironmentDelegate: PropertyIterable {
         @EnvironmentObject var number: Int
         @Apodini.Environment(\EnvKey.name) var string: String
     }
     
-    struct DelegatingEnvironmentDelegate {
+    struct DelegatingEnvironmentDelegate: PropertyIterable {
         var nestedD = Delegate(NestedEnvironmentDelegate())
         
         func evaluate() throws -> String {
@@ -269,7 +269,7 @@ final class DelegationTests: ApodiniTests {
     }
     
     func testSetters() throws {
-        struct BindingObservedObjectDelegate {
+        struct BindingObservedObjectDelegate: PropertyIterable {
             @ObservedObject var observable = TestObservable()
             @Binding var binding: Int
             
@@ -299,12 +299,12 @@ final class DelegationTests: ApodiniTests {
     }
     
     func testOptionalOptionality() throws {
-        struct OptionalDelegate {
+        struct OptionalDelegate: PropertyIterable {
             @Parameter var name: String
         }
         
-        struct RequiredDelegatingDelegate {
-            let delegate = Delegate(OptionalDelegate())
+        struct RequiredDelegatingDelegate: PropertyIterable {
+            var delegate = Delegate(OptionalDelegate())
         }
         
         struct SomeHandler: Handler {
@@ -325,11 +325,11 @@ final class DelegationTests: ApodiniTests {
     }
     
     func testRequiredOptionality() throws {
-        struct RequiredDelegate {
+        struct RequiredDelegate: PropertyIterable {
             @Parameter var name: String
         }
         
-        struct RequiredDelegatingDelegate {
+        struct RequiredDelegatingDelegate: PropertyIterable {
             var delegate = Delegate(RequiredDelegate(), .required)
         }
         

@@ -32,7 +32,7 @@ extension Exporter {
                     description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
-            var delegate = Delegate(endpoint.handler, .required)
+            var delegate = endpoint.delegate
             
             return Array(0..<requestCount)
                 .publisher

@@ -23,7 +23,7 @@ extension Exporter {
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            var delegate = endpoint.delegate
             
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
@@ -44,7 +44,7 @@ extension Exporter {
         let transformer = VaporBlobResponseTransformer()
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            var delegate = endpoint.delegate
             
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)

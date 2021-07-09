@@ -411,28 +411,6 @@ extension Delegate: Traversable {
     }
 }
 
-extension Delegate.DelegateModel: Traversable {
-    func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        switch self {
-        case let .codable(decoder):
-            try decoder.execute(operation, using: names)
-        case let .legacy(delegate):
-            try Apodini.execute(operation, on: delegate, using: names)
-        }
-    }
-    
-    mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        switch self {
-        case var .codable(decoder):
-            try decoder.apply(mutation, using: names)
-            self = .codable(decoder)
-        case var .legacy(delegate):
-            try Apodini.apply(mutation, to: &delegate, using: names)
-            self = .legacy(delegate)
-        }
-    }
-}
-
 // MARK: Helpers
 
 private extension Runtime.PropertyInfo {

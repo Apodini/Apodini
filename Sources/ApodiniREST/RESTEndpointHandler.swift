@@ -48,7 +48,7 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        var delegate = Delegate(endpoint.handler, .required)
+        var delegate = endpoint.delegate
         
         return strategy
             .decodeRequest(from: request,

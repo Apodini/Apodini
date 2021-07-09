@@ -23,7 +23,7 @@ extension Exporter {
         let abortAnyError = AbortTransformer<H>()
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            var delegate = endpoint.delegate
             
             return Just(request)
                 .decode(using: strategy, with: request.eventLoop)

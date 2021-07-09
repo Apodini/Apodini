@@ -68,7 +68,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
                 ) in
             
             // We need a new `Delegate` for each connection
-            var delegate = Delegate(endpoint.handler, .required)
+            var delegate = endpoint.delegate
             
         let output = clientInput
             .reduce()
