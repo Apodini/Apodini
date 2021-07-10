@@ -64,8 +64,8 @@ internal struct GuardingHandler<D, G>: Handler where D: Handler, G: Guard {
     let `guard`: Delegate<G>
     
     func handle() throws -> EventLoopFuture<D.Response> {
-        try `guard`().check().flatMapThrowing { _ in
-            try guarded().handle()
+        try `guard`.instance().check().flatMapThrowing { _ in
+            try guarded.instance().handle()
         }
     }
 }
@@ -87,8 +87,8 @@ struct SyncGuardingHandler<D, G>: Handler where D: Handler, G: SyncGuard {
     let `guard`: Delegate<G>
     
     func handle() throws -> D.Response {
-        try `guard`().check()
-        return try guarded().handle()
+        try `guard`.instance().check()
+        return try guarded.instance().handle()
     }
 }
 

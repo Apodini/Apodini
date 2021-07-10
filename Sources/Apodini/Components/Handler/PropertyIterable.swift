@@ -13,4 +13,6 @@ import Foundation
 /// A `PropertyIterable` object may only have Apodini-defined `Property`s,
 /// as its children. The same restriction applies to any recursive children nested inside
 /// a `DynamicProperty` or `Properties` element.
+///
+/// - Warning: Only `struct`s can be `PropertyIterable`!
 public protocol PropertyIterable: Codable { }

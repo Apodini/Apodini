@@ -46,7 +46,10 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         }
         
         func handle() throws -> H.Response {
-            try delegate.environmentObject(language)().handle()
+            try delegate
+                .environmentObject(language)
+                .instance()
+                .handle()
         }
     }
     

@@ -34,9 +34,9 @@ internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: 
     @Environment(\.connection) var connection
     
     func handle() throws -> EventLoopFuture<Response<T.Content>> {
-        try transformed().handle().transformToResponse(on: connection.eventLoop).flatMapThrowing { responseToTransform in
+        try transformed.instance().handle().transformToResponse(on: connection.eventLoop).flatMapThrowing { responseToTransform in
             try responseToTransform.map { content in
-                try transformer().transform(content: content)
+                try transformer.instance().transform(content: content)
             }
         }
     }

@@ -53,7 +53,7 @@ final class DelegationTests: ApodiniTests {
                 }
             }
             
-            let delegate = try testD()
+            let delegate = try testD.instance()
             
             switch delegate.connection.state {
             case .open:
@@ -228,7 +228,7 @@ final class DelegationTests: ApodiniTests {
         
         bindingD.set(\.$number, to: 1)
         
-        let prepared = try bindingD()
+        let prepared = try bindingD.instance()
         
         XCTAssertEqual(prepared.number, 1)
     }
@@ -246,7 +246,7 @@ final class DelegationTests: ApodiniTests {
         var nestedD = Delegate(NestedEnvironmentDelegate())
         
         func evaluate() throws -> String {
-            let nested = try nestedD()
+            let nested = try nestedD.instance()
             return "\(nested.string):\(nested.number)"
         }
     }
@@ -263,7 +263,7 @@ final class DelegationTests: ApodiniTests {
             .environment(\EnvKey.name, "Max")
             .environmentObject(1)
         
-        let prepared = try envD()
+        let prepared = try envD.instance()
         
         XCTAssertEqual(try prepared.evaluate(), "Max:1")
     }
@@ -292,7 +292,7 @@ final class DelegationTests: ApodiniTests {
             .set(\.$binding, to: 1)
             .setObservable(\.$observable, to: TestObservable())
         
-        let prepared = try envD()
+        let prepared = try envD.instance()
         
         XCTAssertEqual(prepared.binding, 1)
         XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
@@ -311,7 +311,11 @@ final class DelegationTests: ApodiniTests {
             var delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
-                try delegate().delegate().name
+                try delegate
+                    .instance()
+                    .delegate
+                    .instance()
+                    .name
             }
         }
         
@@ -337,7 +341,11 @@ final class DelegationTests: ApodiniTests {
             var delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
-                try delegate().delegate().name
+                try delegate
+                    .instance()
+                    .delegate
+                    .instance()
+                    .name
             }
         }
         

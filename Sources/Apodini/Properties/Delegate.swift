@@ -13,7 +13,6 @@ import Foundation
 /// instance of `D` discoverable to the Apodini runtime framework. Moreover, it delays initialization and verification
 /// of `@Parameter`s to the point where you call `Delegate` as a function. This enables you to decode
 /// input lazily and to do manual error handling in case decoding fails.
-/// - Warning: `D` must be a `struct`
 public struct Delegate<D: PropertyIterable>: _InstanceCodable {
     struct Storage {
         var connection: Connection?
@@ -53,7 +52,7 @@ public struct Delegate<D: PropertyIterable>: _InstanceCodable {
     }
     
     /// Prepare the wrapped delegate `D` for usage.
-    public func callAsFunction() throws -> D {
+    public func instance() throws -> D {
         guard let store = storage else {
             fatalError("'Delegate' was called before activation.")
         }
@@ -319,6 +318,6 @@ public extension _Internal {
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
         }
-        return try delegate().handle()
+        return try delegate.instance().handle()
     }
 }
