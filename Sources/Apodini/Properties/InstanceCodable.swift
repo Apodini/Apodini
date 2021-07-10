@@ -77,7 +77,7 @@ struct ThreadSpecificCounter: Counter {
 /// The name is calculated from the coding-keys and the `namingStrategy` valid for the current scope.
 /// The `namingStrategy` is ``Properties/defaultNamingStrategy`` by default, but is overridden
 /// when in the context of a ``DynamicProperty`` or ``Properties`` element (which both provide their
-/// own `namingStrategy`.
+/// own `namingStrategy`).
 ///
 /// On this array `[(String, Any)]`, `Traversable` can be implemented in a very performant manner.
 
