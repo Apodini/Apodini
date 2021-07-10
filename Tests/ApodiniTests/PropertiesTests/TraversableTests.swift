@@ -199,8 +199,6 @@ final class TraversableTests: ApodiniTests {
     func testInstanceCoder() throws {
         let element = Element()
 
-        print(element)
-
         let encoder = FlatInstanceEncoder()
 
         try element.encode(to: encoder)
@@ -208,16 +206,24 @@ final class TraversableTests: ApodiniTests {
         let decoder = encoder.freezed
         
         let decoded1 = try Element(from: decoder)
-
-        print(decoded1)
         
         XCTAssertEqual(decoded1, element)
 
         let decoded2 = try Element(from: decoder)
-
-        print(decoded2)
         
         XCTAssertEqual(decoded2, element)
+    }
+    
+    func testStringKey() throws {
+        let intBased = String(intValue: 12)
+        let stringBased = String(stringValue: "x")
+        
+        XCTAssertEqual(intBased, "12")
+        XCTAssertEqual(intBased?.stringValue, "12")
+        XCTAssertEqual(intBased?.intValue, 12)
+        XCTAssertEqual(stringBased, "x")
+        XCTAssertEqual(stringBased?.stringValue, "x")
+        XCTAssertEqual(stringBased?.intValue, nil)
     }
 }
 

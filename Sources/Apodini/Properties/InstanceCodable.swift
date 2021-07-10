@@ -126,50 +126,6 @@ class FlatInstanceEncoder: InstanceEncoder {
     }
 }
 
-// MARK: FlatInstanceDecoder
-
-struct FlatInstanceDecoder: InstanceDecoder {
-    var codingPath: [CodingKey] = []
-    
-    var userInfo: [CodingUserInfoKey: Any] = [:]
-    
-    var store: [(String, Any)]
-    
-    private let counter: Counter
-    
-    init(_ store: [(String, Any)]) {
-        self.store = store
-        self.counter = ThreadSpecificCounter(count: store.count)
-    }
-    
-    fileprivate func next() -> Any {
-        store[counter.next()].1
-    }
-    
-    
-    // decoding
-    
-    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
-        InstanceDecodingContainer(codingPath: self.codingPath, coder: self)
-    }
-    
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-        KeyedDecodingContainer(KeyedInstanceDecodingContainer(codingPath: self.codingPath,
-                                                              coder: self))
-    }
-    
-    
-    // fatals
-    
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
-    }
-    
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
-        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
-    }
-}
-
 struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
     typealias Key = K
     
@@ -214,12 +170,6 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
         fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
-    mutating func encode<T>(_ value: T, forKey key: K) throws {
-        // this should only be called for all the base-types, so never as we always end up with an
-        // `InstanceCodable` object
-        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
-    }
-    
     mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
         fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
@@ -229,6 +179,73 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
     }
     
     mutating func superEncoder(forKey key: K) -> Encoder {
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
+    }
+}
+
+struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
+    var codingPath: [CodingKey]
+    
+    let coder: FlatInstanceEncoder
+    
+    // encoding
+    
+    func encode<T>(_ value: T) throws {
+        guard T.self is _InstanceCodable.Type else {
+            fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
+        }
+        
+        coder.add(value)
+    }
+    
+    // fatals
+    
+    mutating func encodeNil() throws {
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
+    }
+}
+
+
+// MARK: FlatInstanceDecoder
+
+struct FlatInstanceDecoder: InstanceDecoder {
+    var codingPath: [CodingKey] = []
+    
+    var userInfo: [CodingUserInfoKey: Any] = [:]
+    
+    var store: [(String, Any)]
+    
+    private let counter: Counter
+    
+    init(_ store: [(String, Any)]) {
+        self.store = store
+        self.counter = ThreadSpecificCounter(count: store.count)
+    }
+    
+    fileprivate func next() -> Any {
+        store[counter.next()].1
+    }
+    
+    
+    // decoding
+    
+    func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer {
+        InstanceDecodingContainer(codingPath: self.codingPath, coder: self)
+    }
+    
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
+        KeyedDecodingContainer(KeyedInstanceDecodingContainer(codingPath: self.codingPath,
+                                                              coder: self))
+    }
+    
+    
+    // fatals
+    
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
+    }
+    
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
         fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
@@ -284,28 +301,6 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
     }
     
     func superDecoder(forKey key: K) throws -> Decoder {
-        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
-    }
-}
-
-struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
-    var codingPath: [CodingKey]
-    
-    let coder: FlatInstanceEncoder
-    
-    // encoding
-    
-    func encode<T>(_ value: T) throws {
-        guard T.self is _InstanceCodable.Type else {
-            fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
-        }
-        
-        coder.add(value)
-    }
-    
-    // fatals
-    
-    mutating func encodeNil() throws {
         fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }

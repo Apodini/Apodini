@@ -10,6 +10,7 @@ import ApodiniREST
 import XCTApodini
 import XCTVapor
 import XCTest
+import ApodiniUtils
 
 
 final class DelegationTests: ApodiniTests {
@@ -357,4 +358,45 @@ final class DelegationTests: ApodiniTests {
         XCTAssertEqual(parameter.hasDefaultValue, false)
         XCTAssertEqual(parameter.option(for: .optionality), .required)
     }
+    
+    func testDelegateIsNamingBarrier() {
+        struct NameChecker: DynamicProperty {
+            @Binding var wasExecuted: Box<Bool>
+            
+            func namingStrategy(_ names: [String]) -> String? {
+                XCTAssertEqual(names, ["checker", "x"])
+                wasExecuted.value = true
+                return names.last
+            }
+        }
+        
+        struct DelegateWithNameChecker: PropertyIterable {
+            var checker: NameChecker
+        }
+        
+        struct DelegatingObject: DynamicProperty {
+            var delegate: Delegate<DelegateWithNameChecker>
+        }
+        
+        struct DelegatingObjectWrappingObject: PropertyIterable {
+            var delegatingObject: DelegatingObject
+        }
+        
+        var instance = DelegatingObjectWrappingObject(
+            delegatingObject: DelegatingObject(
+                delegate: Delegate(DelegateWithNameChecker(
+                    checker: NameChecker(wasExecuted: .constant(Box(false)))))))
+        
+        exposedApply({ (_: inout BoolCarrier, name: String) in
+            XCTAssertEqual(name, " x")
+        }, to: &instance)
+        
+        exposedExecute({ (_: BoolCarrier, name: String) in
+            XCTAssertEqual(name, "x")
+        }, on: instance)
+    }
 }
+
+private protocol BoolCarrier { }
+
+extension Binding: BoolCarrier where Value == Box<Bool> { }
