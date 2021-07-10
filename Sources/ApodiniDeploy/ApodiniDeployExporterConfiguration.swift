@@ -90,7 +90,8 @@ public struct DeploymentOptionsModifier<C: Component>: Modifier {
     }
 }
 
-extension DeploymentOptionsModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace where Self.ModifiedComponent: HandlerDefiningComponent {
+extension DeploymentOptionsModifier: HandlerDefiningComponent, HandlerModifier, HandlerMetadataNamespace
+where Self.ModifiedComponent: HandlerDefiningComponent {
     public typealias Response = ModifiedComponent.Response
 }
 

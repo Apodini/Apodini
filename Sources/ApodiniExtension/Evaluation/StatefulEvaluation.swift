@@ -195,7 +195,8 @@ extension Publisher where Output: Request {
         }
     }
     
-    func evaluateAndReturnRequest<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.BodyContent>> {
+    func evaluateAndReturnRequest<H: Handler>(on handler: inout Delegate<H>)
+        -> Publishers.SyncMap<Self, ResponseWithRequest<H.Response.BodyContent>> {
         _Internal.prepareIfNotReady(&handler)
         let preparedHandler = handler
         

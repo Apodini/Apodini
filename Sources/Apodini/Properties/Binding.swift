@@ -79,6 +79,7 @@ extension Binding.Configuration: Activatable {
 }
 
 extension Binding {
+    /// Persistently override the actual value of this ``Binding`` with the given  `value`.
     func override(with value: Value) {
         guard let box = config.override else {
             fatalError("Binding was overridden before it was activated.")
@@ -106,14 +107,17 @@ extension Binding: PathComponent & _PathComponent where Value: Codable {
 extension Binding {
     private init(constant: Value) {
         store = Properties()
-            .with(Configuration(retriever: { _ in constant}, parameterId: nil), named: "config")
+            .with(Configuration(retriever: { _ in constant }, parameterId: nil), named: "config")
     }
     
-    /// Create a `Binding` that always returns the given `value`.
+    /// Create a `Binding` that always returns the given `value`  (unless a different value is set
+    /// using ``Delegate/set(_:to:)``).
     public static func constant(_ value: Value) -> Binding<Value> {
         Binding(constant: value)
     }
     
+    /// Create a ``Binding`` that always returns the given `value` (unless a different value is set
+    /// using ``Delegate/set(_:to:)``).
     public init(wrappedValue value: Value) {
         self.init(constant: value)
     }

@@ -9,28 +9,36 @@ import Foundation
 import ApodiniUtils
 import NIO
 
+/// An `InstanceEncoder` encodes an object by storing the instances of `_InstanceCodable` objects.
 protocol InstanceEncoder: Encoder {
     func singleInstanceEncodingContainer() throws -> SingleValueInstanceEncodingContainer
 }
 
+/// An `InstanceDecoder` decodes an object by using a storage of `_InstanceCodable` instances.
 protocol InstanceDecoder: Decoder {
     func singleInstanceDecodingContainer() throws -> SingleValueInstanceDecodingContainer
 }
 
+/// A container that provides access to a single `_InstanceCodable` instance.
 protocol SingleValueInstanceDecodingContainer: SingleValueDecodingContainer {
     func decode<T>(_ type: T.Type) throws -> T
 }
 
+/// A container that can store a single `_InstanceCodable` instance.
 protocol SingleValueInstanceEncodingContainer: SingleValueEncodingContainer {
     mutating func encode<T>(_ value: T) throws
 }
 
+/// An object that can encode/decode itself using a `InstanceEncoder`/`InstanceDecoder` only.
 public protocol _InstanceCodable: Codable { }
 
+/// A `Counter` loops through a known sequence of integers indefinitely.
 protocol Counter {
     func next() -> Int
 }
 
+/// A `Counter` that stores one counter variable for each thread, thus being able to count for multiple
+/// threads in parallel.
 struct ThreadSpecificCounter: Counter {
     let counter: ThreadSpecificVariable<Box<Int>> = ThreadSpecificVariable()
     
@@ -50,12 +58,36 @@ struct ThreadSpecificCounter: Counter {
     }
 }
 
+// MARK: FlatInstanceCoding Concept
+
+/// Flat instance coding is a concept for providing fast (faster than what the `Runtime` library can do) mutating
+/// access to a struct's properties by first encoding the properties into an array, then performing mutations on
+/// that array, and finally decoding the struct from that array.
+///
+/// Flat instance coding works on three assumptions:
+///     1. The order of the calls to `decode`/`encode` and the accompanying container-construction
+///     are done in the same order for encoding and decoding.
+///     2. Both encoding and decoding are non-failable.
+///     3. The only properties that may exist on the encoded/decoded element as well as its recursive
+///     children are ``DynamicProperty``, ``Properties`` and `_InstanceCodable` objects.
+///     This is the requirement expressed via the ``PropertyIterable`` protocol. Encoding will fail
+///     if any other (even `Codable`) object is encountered.
+///
+/// The whole object is encoded into an array of tuples containing the **instance** and its **name**.
+/// The name is calculated from the coding-keys and the `namingStrategy` valid for the current scope.
+/// The `namingStrategy` is ``Properties/defaultNamingStrategy`` by default, but is overridden
+/// when in the context of a ``DynamicProperty`` or ``Properties`` element (which both provide their
+/// own `namingStrategy`.
+///
+/// On this array `[(String, Any)]`, `Traversable` can be implemented in a very performant manner.
+
+
 // MARK: FlatInstanceEncoder
 
 class FlatInstanceEncoder: InstanceEncoder {
     var codingPath: [CodingKey] = []
     
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    var userInfo: [CodingUserInfoKey: Any] = [:]
     
     private var store: [(String, Any)] = []
     
@@ -64,7 +96,7 @@ class FlatInstanceEncoder: InstanceEncoder {
     init() {}
     
     fileprivate func add(_ value: Any) {
-        store.append((namingStrategy(codingPath.map{ $0.stringValue })!, value))
+        store.append((namingStrategy(codingPath.map { $0.stringValue })!, value))
     }
 
     // encoding
@@ -73,7 +105,7 @@ class FlatInstanceEncoder: InstanceEncoder {
         InstanceEncodingContainer(codingPath: self.codingPath, coder: self)
     }
     
-    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         KeyedEncodingContainer(KeyedInstanceEncodingContainer(codingPath: self.codingPath,
                                                               coder: self))
     }
@@ -86,11 +118,11 @@ class FlatInstanceEncoder: InstanceEncoder {
     // fatals
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -99,7 +131,7 @@ class FlatInstanceEncoder: InstanceEncoder {
 struct FlatInstanceDecoder: InstanceDecoder {
     var codingPath: [CodingKey] = []
     
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    var userInfo: [CodingUserInfoKey: Any] = [:]
     
     var store: [(String, Any)]
     
@@ -121,7 +153,7 @@ struct FlatInstanceDecoder: InstanceDecoder {
         InstanceDecodingContainer(codingPath: self.codingPath, coder: self)
     }
     
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
         KeyedDecodingContainer(KeyedInstanceDecodingContainer(codingPath: self.codingPath,
                                                               coder: self))
     }
@@ -130,11 +162,11 @@ struct FlatInstanceDecoder: InstanceDecoder {
     // fatals
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -145,7 +177,7 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
     
     let coder: FlatInstanceEncoder
     
-    func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
+    func encode<T>(_ value: T, forKey key: K) throws where T: Encodable {
         if T.self is _InstanceCodable.Type {
             coder.codingPath += [key]
             defer { coder.codingPath.removeLast() }
@@ -154,7 +186,7 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
         }
         
         precondition(value is DynamicProperty || value is Properties || value is Properties.EncodingWrapper,
-               "You can only use 'Property's or 'DynamicProperty's on 'Handler's or values you pass into a 'Delegate'!")
+                     "You can only use 'Property's on 'Handler's or other 'PropertyIterable' elements you pass into a 'Delegate'!")
         
         let previousNamingStrategy = coder.namingStrategy
         if let dynamicProperty = value as? DynamicProperty {
@@ -171,33 +203,33 @@ struct KeyedInstanceEncodingContainer<K: CodingKey>: KeyedEncodingContainerProto
         try value.encode(to: coder)
     }
     
-    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedEncodingContainer(KeyedInstanceEncodingContainer<NestedKey>(codingPath: self.codingPath + [key],
-                                                                                coder: self.coder))
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+        KeyedEncodingContainer(KeyedInstanceEncodingContainer<NestedKey>(codingPath: self.codingPath + [key],
+                                                                         coder: self.coder))
     }
     
     // fatals
     
     mutating func encodeNil(forKey key: K) throws {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     mutating func encode<T>(_ value: T, forKey key: K) throws {
         // this should only be called for all the base-types, so never as we always end up with an
         // `InstanceCodable` object
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     mutating func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     mutating func superEncoder() -> Encoder {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     mutating func superEncoder(forKey key: K) -> Encoder {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -221,36 +253,38 @@ struct KeyedInstanceDecodingContainer<K: CodingKey>: KeyedDecodingContainerProto
         return try type.init(from: decoder)
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedDecodingContainer(KeyedInstanceDecodingContainer<NestedKey>(codingPath: self.codingPath + [key],
-                                                                                coder: self.coder))
+    func nestedContainer<NestedKey>(
+        keyedBy type: NestedKey.Type,
+        forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
+        KeyedDecodingContainer(KeyedInstanceDecodingContainer<NestedKey>(codingPath: self.codingPath + [key],
+                                                                         coder: self.coder))
     }
     
     
     // fatals
     
     var allKeys: [K] {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func contains(_ key: K) -> Bool {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func decodeNil(forKey key: K) throws -> Bool {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func nestedUnkeyedContainer(forKey key: K) throws -> UnkeyedDecodingContainer {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func superDecoder() throws -> Decoder {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
     
     func superDecoder(forKey key: K) throws -> Decoder {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -263,7 +297,7 @@ struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
     
     func encode<T>(_ value: T) throws {
         guard T.self is _InstanceCodable.Type else {
-            fatalError()
+            fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
         }
         
         coder.add(value)
@@ -272,7 +306,7 @@ struct InstanceEncodingContainer: SingleValueInstanceEncodingContainer {
     // fatals
     
     mutating func encodeNil() throws {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -284,13 +318,13 @@ struct InstanceDecodingContainer: SingleValueInstanceDecodingContainer {
     // decoding
     
     func decode<T>(_ type: T.Type) throws -> T {
-        return coder.next() as! T
+        coder.next() as! T
     }
     
     // fatals
     
     func decodeNil() -> Bool {
-        fatalError()
+        fatalError("FlatInstanceEncoder/FlatInstanceDecoder was used for encoding/decoding an object that is no valid 'PropertyIterable'.")
     }
 }
 
@@ -298,21 +332,23 @@ struct InstanceDecodingContainer: SingleValueInstanceDecodingContainer {
 // MARK: Default Conformance
 
 extension _InstanceCodable {
+    /// `Decodable` conformance for `_InstanceCodable` objects.
     public init(from decoder: Decoder) throws {
-        guard let ic = decoder as? InstanceDecoder else {
+        guard let instanceCoder = decoder as? InstanceDecoder else {
             fatalError("Tried to decode '_InstanceCodable'  object from a 'Decoder' that is no 'InstanceDecoder'!")
         }
 
-        let container = try ic.singleInstanceDecodingContainer()
+        let container = try instanceCoder.singleInstanceDecodingContainer()
         self = try container.decode(Self.self)
     }
 
+    /// `Encodable` conformance for `_InstanceCodable` objects.
     public func encode(to encoder: Encoder) throws {
-        guard let ic = encoder as? InstanceEncoder else {
+        guard let instanceCoder = encoder as? InstanceEncoder else {
             fatalError("Tried to encode '_InstanceCodable'  object to a 'Encoder' that is no 'InstanceEncoder'!")
         }
 
-        var container = try ic.singleInstanceEncodingContainer()
+        var container = try instanceCoder.singleInstanceEncodingContainer()
         try container.encode(self)
     }
 }
@@ -332,7 +368,7 @@ extension Properties: Codable {
         
         for (key, (type, _)) in info.codingInfo {
             let decoder = try instanceContainer.decode(DecoderExtractor.self, forKey: key).decoder
-            elements[key] = try (type.init(from: decoder) as! Property)
+            elements[key] = try type.init(from: decoder) as? Property
         }
         
         self.codingInfo = info.codingInfo
