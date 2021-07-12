@@ -20,7 +20,7 @@ class DeploymentCLITests: ApodiniDeployTestCase {
         
         let task = Task(
             executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
-            arguments: ["deployment"],
+            arguments: ["deploy"],
             captureOutput: true,
             redirectStderrToStdout: true,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,

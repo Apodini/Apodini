@@ -53,7 +53,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         task = Task(
             executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
             arguments: [
-                "deployment",
+                "deploy",
                 "lambda",
                 Self.getApodiniRepoSourceRoot(),
                 "--product-name", Self.apodiniDeployTestWebServiceTargetName,
