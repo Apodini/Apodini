@@ -55,7 +55,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             arguments: [
                 "deploy",
                 "lambda",
-                Self.getApodiniRepoSourceRoot(),
+                srcRoot.path,
                 "--product-name", Self.apodiniDeployTestWebServiceTargetName,
                 "--aws-region", awsRegionName,
                 "--s3-bucket-name", awsS3BucketName,
