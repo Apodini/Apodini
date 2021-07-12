@@ -52,6 +52,12 @@ extension FileManager {
         }
         try copyItem(at: srcUrl, to: dstUrl)
     }
+    
+    
+    /// Determines whether the file at the specified URL is an executable that can be run by the current operating system
+    public func isExecutableFile(at url: URL) -> Bool {
+        isExecutableFile(atPath: url.absoluteURL.path)
+    }
 }
 
 

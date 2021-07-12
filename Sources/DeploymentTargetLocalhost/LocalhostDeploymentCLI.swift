@@ -1,15 +1,16 @@
 //
-//  LocalHostDeploymentCLI.swift
+//  LocalhostDeploymentCLI.swift
 //  
 //
 //  Created by Felix Desiderato on 02/07/2021.
 //
 
 import Foundation
-import ArgumentParser
 import Apodini
+import ArgumentParser
 
-public struct LocalHostDeploymentCLI<Service: Apodini.WebService>: ParsableCommand {
+
+public struct LocalhostDeploymentCLI<WebService: Apodini.WebService>: ParsableCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "local",
@@ -21,30 +22,24 @@ public struct LocalHostDeploymentCLI<Service: Apodini.WebService>: ParsableComma
         )
     }
     
-    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-    var inputPackageDir: String
-    
-    @Option(help: "Name of the web service's SPM target/product")
-    var productName: String
-    
     @Option(help: "The port on which the API should listen")
     var port: Int = 8080
     
     @Option(help: "The port number for the first-launched child process")
     var endpointProcessesBasePort: Int = 5000
     
+    
+    public init() {}
+    
     public mutating func run() throws {
-        let service = Service()
+        let service = WebService()
         service.runSyntaxTreeVisitor()
         
         let deploymentProvider = LocalhostDeploymentProvider(
-            productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
+            executableUrl: ProcessInfo.processInfo.executableUrl,
             port: port,
             endpointProcessesBasePort: endpointProcessesBasePort
         )
         try deploymentProvider.run()
     }
-    
-    public init() {}
 }

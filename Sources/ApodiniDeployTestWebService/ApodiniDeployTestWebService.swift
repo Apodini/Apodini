@@ -65,7 +65,7 @@ public struct WebService: Apodini.WebService {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: [
             DeploymentCLI.commands(
-                LocalHostDeploymentCLI<Self>.self,
+                LocalhostDeploymentCLI<Self>.self,
                 LambdaDeploymentProviderCLI.self
             )
         ]

@@ -16,11 +16,10 @@ import OpenAPIKit
 struct LocalhostDeploymentProvider: DeploymentProvider {
     static let identifier: DeploymentProviderID = localhostDeploymentProviderId
     
-    let productName: String
-    let packageRootDir: URL
+    let executableUrl: URL
     
     var target: DeploymentProviderTarget {
-        .spmTarget(packageUrl: packageRootDir, targetName: productName)
+        .executable(executableUrl)
     }
     
     // Port on which the proxy should listen
@@ -33,29 +32,13 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     
     func run() throws {
         try fileManager.initialize()
-        try fileManager.setWorkingDirectory(to: packageRootDir)
+        logger.notice("Starting deployment of web service at '\(executableUrl.absoluteURL.path)'...")
         
-        logger.notice("Starting deployment of \(productName)..")
-        
-        var buildMode: String
-        #if DEBUG
-        buildMode = "debug"
-        #else
-        buildMode = "release"
-        #endif
-        
-        let executableUrl = packageRootDir
-            .appendingPathComponent(".build", isDirectory: true)
-            .appendingPathComponent(buildMode, isDirectory: true)
-            .appendingPathComponent(productName, isDirectory: false)
-        guard FileManager.default.fileExists(atPath: executableUrl.path) else {
-            throw ApodiniDeployBuildSupportError(
-                message: "Unable to locate compiled executable at expected location '\(executableUrl.path)'"
-            )
+        guard fileManager.isExecutableFile(at: executableUrl) else {
+            throw ApodiniDeployBuildSupportError(message: "File at url '\(executableUrl.absoluteURL.path)' is not an executable")
         }
         
         logger.notice("Target executable url: \(executableUrl.path)")
-        
         logger.notice("Retrieve web service structure.")
         let wsStructure = try retrieveWebServiceStructure()
         
