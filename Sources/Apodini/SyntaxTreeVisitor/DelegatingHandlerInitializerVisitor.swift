@@ -50,8 +50,6 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
 
         handler.metadata.accept(self.visitor)
 
-        print("--------")
-        print("Parsing \(handler))")
         self.queryInitializers()
 
         if let next = nextInitializer() {
@@ -75,8 +73,6 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         initializers.subtract(self.retrievedInitializers)
         self.retrievedInitializers.append(contentsOf: initializers)
         // `initializers` now contain only the newly added ones
-
-        print("Adding \(initializers.count) \(initializers)")
 
         // apply DelegationFilters
         while let index = initializers.firstIndex(where: { $0.initializer is DelegationFilter && !$0.markedFiltered }) {
