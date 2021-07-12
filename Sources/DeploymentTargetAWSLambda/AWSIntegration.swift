@@ -172,7 +172,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 executableUrl: Context.zipBin,
                 arguments: try [zipFilename] + fileManager.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,
-                captureOutput: true, // suppress output
+                outputHandlingMode: .redirectToNullDevice, // suppress output
                 launchInCurrentProcessGroup: true
             ).launchSyncAndAssertSuccess()
             

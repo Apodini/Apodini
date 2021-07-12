@@ -334,8 +334,8 @@ class NegativeTestRunner {
             executableUrl: swiftBinary,
             arguments: arguments.split(separator: " ").map { String($0) },
             workingDirectory: workingDirectory,
-            captureOutput: true,
-            redirectStderrToStdout: true,
+            outputHandlingMode: .capture,
+            outputHandlingOptions: .redirectStderrToStdout,
             launchInCurrentProcessGroup: false,
 
             // https://stackoverflow.com/questions/67595371/swift-package-calling-usr-bin-swift-errors-with-failed-to-open-macho-file-to

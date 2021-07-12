@@ -40,6 +40,30 @@ public class Task {
     public typealias StdioObserverSignature = (StdioType, Data, Task) -> Void
     private typealias StdioObserverRegistrationToken = Box<StdioObserverSignature>
     
+    /// How a `Task` should handle any output the child process launched by the task writes to stdout and stderr.
+    public enum OutputHandlingMode {
+        /// The task's output will not be touched at all.
+        /// This will cause the task's output to show up as part of the parent's (i.e. current process') output.
+        case none
+        /// The task's output will be captured, and made available via the output-related APIs implemented by the `Task` class.
+        /// This option also implies that the task's output will not show up as part of the parent's output.
+        case capture
+        /// All output written by the task is discarded, by redirecting it to `/dev/null`.
+        case redirectToNullDevice
+    }
+    
+    /// Additional options specifying how the task's output should be handled.
+    public struct OutputHandlingOptions: OptionSet {
+        public let rawValue: UInt8
+        
+        public init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+        
+        /// Specify this option to have the task's standard error stream redirected to the stream specified as its standard output.
+        public static let redirectStderrToStdout = Self(rawValue: 1 << 0)
+    }
+    
     /// Info about why and how a task was terminated
     public struct TerminationInfo {
         /// Exit code type
@@ -111,10 +135,6 @@ public class Task {
     
     
     /// Creates a new `Task` object and configures it using the specified options
-    /// - parameter captureOutput: A boolean value indicating whether the task should capture its child process' output.
-    ///         If this value is `true`, the child's output (both stdout and stderr) will be available via the respective APIs.
-    ///         Capturing output also means that the child's stdout and stderr will not show up in the parent's stdout and stderr.
-    ///         If this value is `false`, the APIs will not work, and the child's output will be printed to the current process' stdout and stderr.
     /// - parameter launchInCurrentProcessGroup: Whether the child should be launched in the same process group as the parent.
     ///         Launching the child into the parent's process group means that the child will receive all signals sent to the parent (eg `SIGINT`, etc),
     ///         which is probably the desired behaviour if the child's lifetime is to be tied to the parent's lifetime.
@@ -126,8 +146,8 @@ public class Task {
         executableUrl: URL,
         arguments: [String] = [],
         workingDirectory: URL? = nil,
-        captureOutput: Bool = false,
-        redirectStderrToStdout: Bool = false,
+        outputHandlingMode: OutputHandlingMode = .none,
+        outputHandlingOptions: OutputHandlingOptions = [],
         launchInCurrentProcessGroup: Bool,
         environment: [String: String?] = [:],
         inheritsParentEnvironment: Bool = true
@@ -142,15 +162,25 @@ public class Task {
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
-
-        if captureOutput {
+        
+        switch outputHandlingMode {
+        case .none:
+            break
+        case .capture:
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
             process.standardInput = stdinPipe
+        case .redirectToNullDevice:
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
         }
-        if redirectStderrToStdout {
-            process.standardError = stdoutPipe
+        
+        if outputHandlingOptions.contains(.redirectStderrToStdout) {
+            // Note that it's important here we redirect to process.standardOutput (instead of self.stdoutPipe)
+            // because the process' standard output might have been adjusted above
+            process.standardError = process.standardOutput
         }
+        
         Self.registerAtexitHandlerIfNecessary()
     }
     

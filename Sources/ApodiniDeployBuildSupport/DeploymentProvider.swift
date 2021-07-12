@@ -115,7 +115,7 @@ extension DeploymentProvider {
             let task = Task(
                 executableUrl: swiftBin,
                 arguments: ["build", "--product", productName],
-                captureOutput: false,
+                outputHandlingMode: .none,
                 launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
             )
             guard try task.launchSync().exitCode == EXIT_SUCCESS else {

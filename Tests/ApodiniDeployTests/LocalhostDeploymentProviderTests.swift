@@ -72,8 +72,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         task = Task(
             executableUrl: Self.urlOfBuildProduct(named: Self.apodiniDeployTestWebServiceTargetName),
             arguments: ["deploy", "local"],
-            captureOutput: true,
-            redirectStderrToStdout: true,
+            outputHandlingMode: .capture,
+            outputHandlingOptions: .redirectStderrToStdout,
             // the tests are dynamically loaded into an `xctest` process, which doesn't statically load CApodiniUtils,
             // meaning we cannot detect child invocations, meaning we cannot launch children into that process group.
             launchInCurrentProcessGroup: false

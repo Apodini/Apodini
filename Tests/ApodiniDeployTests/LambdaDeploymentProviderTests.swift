@@ -63,8 +63,8 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
                 "--aws-api-gateway-api-id", awsAPIGatewayAPIID
             ],
             workingDirectory: nil,
-            captureOutput: true,
-            redirectStderrToStdout: true,
+            outputHandlingMode: .capture,
+            outputHandlingOptions: .redirectStderrToStdout,
             launchInCurrentProcessGroup: false,
             environment: [
                 "AWS_ACCESS_KEY_ID": awsAccessKeyId,
