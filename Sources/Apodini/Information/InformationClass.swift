@@ -5,8 +5,9 @@
 /// A ```InformationClass``` is a way to group multiple, similar ``Information`` types
 /// which represent the same Metadata information and can be mapped to the same type of
 /// key and value.
+///
 /// A ``InformationClass`` is typically defined for a specific ``InterfaceExporter`` or a group
-/// ``InterfaceExporter`` sharing the same middleware.
+/// of ``InterfaceExporter``s sharing the same middleware.
 /// An ``InterfaceExporter`` uses an predefined ``InformationClass`` to collect all ``Information`` instances
 /// which shall be mapped to a certain wire format feature (in both direction). HTTP Headers are one example for that.
 ///
@@ -42,7 +43,7 @@
 /// ```
 ///
 /// ## Filtering the ``InformationSet`` for a given ``InformationClass``
-/// An export could filter for a dedicated ``InformationClass`` like the following:
+/// An exporter could filter for a dedicated ``InformationClass`` like the following:
 ///
 /// ```swift
 /// for (key, value) in information

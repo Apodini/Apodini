@@ -11,8 +11,9 @@ import Foundation
 
 extension Component {
     /// Use a `DelegationFilter` to filter out `DelegatingHandlerInitializer`s for the contained sub-tree.
-    /// - Parameter ensureInitializerTypeUniqueness: If set to true, it is ensure that the same ``DelegationFilter``,
-    ///     even though when inserted multiple times into the context, is only used a single time (the first time it got added).
+    /// - Parameters:
+    ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegationFilter``
+    ///     is only used a single time, even when inserted multiple times.
     public func reset(using filter: DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) -> DelegationFilterModifier<Self> {
         DelegationFilterModifier(self, filter: AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)
     }
@@ -25,19 +26,17 @@ public struct DelegationFilterModifier<C: Component>: Modifier {
     public typealias ModifiedComponent = C
     
     public let component: C
-    private let filter: AnyDelegateFilter
-    private let ensureInitializerTypeUniqueness: Bool
+    private let entry: DelegatingHandlerContextKey.Entry
     
-    fileprivate init(_ component: C, filter: AnyDelegateFilter, ensureInitializerTypeUniqueness: Bool = false) {
+    fileprivate init(_ component: C, filter: AnyDelegateFilter, ensureInitializerTypeUniqueness: Bool = false, inverseOrder: Bool = false) {
         self.component = component
-        self.filter = filter
-        self.ensureInitializerTypeUniqueness = ensureInitializerTypeUniqueness
+        self.entry = .init(filter, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(
             DelegatingHandlerContextKey.self,
-            value: [.init(filter, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)],
+            value: [entry],
             scope: .environment
         )
     }

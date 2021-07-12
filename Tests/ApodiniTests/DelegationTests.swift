@@ -362,22 +362,13 @@ final class DelegationTests: ApodiniTests {
             }
         }
 
-        struct DynamicGuardInitializer: DelegatingHandlerInitializer {
-            typealias Response = Never
-
+        struct DynamicGuardInitializer<Response: ResponseTransformable>: DelegatingHandlerInitializer {
             func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
                 SomeHandler<Response>(DynamicGuard(delegate: Delegate(delegate)))
             }
         }
 
-        struct DynamicGuardMetadata: HandlerMetadataDefinition {
-            typealias Key = DelegatingHandlerContextKey
-            let value: OrderedSet<Key.Entry> = [.init(DynamicGuardInitializer())]
-        }
-
         struct TestHandler: Handler {
-            typealias DynGuard = DynamicGuardMetadata // simulates extension to the TypedHandlerMetadataNamespace
-
             @EnvironmentObject
             var passedName: String
 
@@ -386,7 +377,7 @@ final class DelegationTests: ApodiniTests {
             }
 
             var metadata: Metadata {
-                DynGuard()
+                Delegated(by: DynamicGuardInitializer<String>())
             }
         }
 
@@ -400,12 +391,178 @@ final class DelegationTests: ApodiniTests {
         handler.accept(visitor)
         modelBuilder.finishedRegistration()
 
-        let endpoint = modelBuilder.collectedEndpoints[0]
         let response = exporter.request(on: 0, request: "Example Request", with: app)
 
         try XCTCheckResponse(
             try XCTUnwrap(response.typed(String.self)),
             content: "Hello Alfred"
         )
+    }
+
+    func testFilteringInitializersEnsuringUniqueness() throws {
+        struct TestHandler: Handler {
+            func handle() -> String {
+                "Hello World"
+            }
+
+            var metadata: Metadata {
+                Delegated(by: SimpleForwardInitializer(id: 5), ensureInitializerTypeUniqueness: true)
+            }
+        }
+
+        SimpleForwardFilter.simpleForwardExpectation = expectation(description: "SimpleForward Delegating Handler executed")
+        SimpleForwardFilter.simpleForwardExpectation?.expectedFulfillmentCount = 1
+
+        let handler = TestHandler()
+            .delegated(by: SimpleForwardInitializer<TestHandler.Response>(id: 1), ensureInitializerTypeUniqueness: true)
+            .delegated(by: SimpleForwardInitializer<TestHandler.Response>(id: 2), ensureInitializerTypeUniqueness: true)
+            .reset(using: SimpleForwardFilter())
+            .delegated(by: SimpleForwardInitializer<TestHandler.Response>(id: 3), ensureInitializerTypeUniqueness: true)
+            .delegated(by: SimpleForwardInitializer<TestHandler.Response>(id: 4), ensureInitializerTypeUniqueness: true)
+
+
+        let exporter = MockExporter<String>()
+        app.registerExporter(exporter: exporter)
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        handler.accept(visitor)
+        modelBuilder.finishedRegistration()
+
+        let response = exporter.request(on: 0, request: "Example Request", with: app)
+
+        try XCTCheckResponse(
+            try XCTUnwrap(response.typed(String.self)),
+            content: "Hello World"
+        )
+
+        XCTAssertEqual(SimpleForwardFilter.calledIds, [3])
+
+        waitForExpectations(timeout: 0)
+    }
+
+    func testExtensiveOrdering() throws {
+        enum TestStore {
+            static var collectedIds: [Int] = []
+        }
+
+        struct TestGuard: SyncGuard {
+            let id: Int
+            func check() {
+                TestStore.collectedIds.append(id)
+            }
+        }
+
+        struct TestTransformer: ResponseTransformer {
+            let id: Int
+            func transform(content: String) -> String {
+                TestStore.collectedIds.append(id)
+                return content
+            }
+        }
+
+        struct TestDelegateWithMetadata<H: Handler>: Handler {
+            let id: Int
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                TestStore.collectedIds.append(id)
+                return try delegate().handle()
+            }
+
+            var metadata: Metadata {
+                Guarded(by: TestGuard(id: 3))
+                Guarded(by: TestGuard(id: 4))
+            }
+        }
+
+        struct TestDelegateWithMetadataInitializer<R: ResponseTransformable>: DelegatingHandlerInitializer {
+            let id: Int
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<R> {
+                SomeHandler(TestDelegateWithMetadata(id: id, delegate: Delegate(delegate)))
+            }
+        }
+
+        struct TestHandler: Handler {
+            func handle() -> String {
+                "Hello World"
+            }
+
+            var metadata: Metadata {
+                Guarded(by: TestGuard(id: 8))
+                ResetGuards()
+                Guarded(by: TestGuard(id: 9))
+            }
+        }
+
+        struct TestComponent: Component {
+            var content: some Component {
+                Group {
+                    TestHandler()
+                        .guard(TestGuard(id: 2))
+                        .response(TestTransformer(id: 10))
+                        .delegated(by: TestDelegateWithMetadataInitializer<String>(id: 5)) // injects 3, 4 in front of itself
+                        .metadata {
+                            TestHandler.Guarded(by: TestGuard(id: 6))
+                            TestHandler.Guarded(by: TestGuard(id: 7))
+                        }
+                        .response(TestTransformer(id: 11))
+                }.guard(TestGuard(id: 1))
+            }
+        }
+
+        let component = TestComponent()
+
+        let exporter = MockExporter<String>()
+        app.registerExporter(exporter: exporter)
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        component.accept(visitor)
+        modelBuilder.finishedRegistration()
+
+        let response = exporter.request(on: 0, request: "Example Request", with: app)
+
+        try XCTCheckResponse(
+            try XCTUnwrap(response.typed(String.self)),
+            content: "Hello World"
+        )
+
+        XCTAssertEqual(TestStore.collectedIds, [1, 2, 3, 4, 5, 6, 7, 9, 10, 11])
+    }
+}
+
+private protocol SomeSimpleForwardInit {}
+
+private struct SimpleForward<H: Handler>: Handler {
+    let delegate: Delegate<H>
+    let id: Int
+
+    func handle() throws -> H.Response {
+        SimpleForwardFilter.calledIds.append(id)
+        SimpleForwardFilter.simpleForwardExpectation?.fulfill()
+
+        return try delegate().handle()
+    }
+}
+
+private struct SimpleForwardInitializer<Response: ResponseTransformable>: DelegatingHandlerInitializer, SomeSimpleForwardInit {
+    let id: Int
+    func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+        SomeHandler(SimpleForward(delegate: Delegate(delegate), id: id))
+    }
+}
+
+private struct SimpleForwardFilter: DelegationFilter {
+    static var simpleForwardExpectation: XCTestExpectation?
+    static var calledIds: [Int] = []
+
+    func callAsFunction<I: AnyDelegatingHandlerInitializer>(_ initializer: I) -> Bool {
+        if initializer is SomeSimpleForwardInit {
+            return false
+        }
+        return true
     }
 }

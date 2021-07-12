@@ -14,11 +14,24 @@ import OrderedCollections
 extension Component {
     /// Use a `DelegatingHandlerInitializer` to create a fitting delegating `Handler` for each of the `Component`'s endpoints.
     /// All instances created by the `initializer` can delegate evaluations to their respective child-`Handler` using `Delegate`.
-    /// - Parameter ensureInitializerTypeUniqueness: If set to true, it is ensure that the same ``DelegatingHandlerInitializer``,
-    ///     even though when inserted multiple times into the context, is only used a single time (the first time it got added).
-    public func delegated<I: DelegatingHandlerInitializer>(by initializer: I, ensureInitializerTypeUniqueness: Bool = false)
-            -> DelegationModifier<Self, I> {
-        DelegationModifier(self, initializer: initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)
+    /// - Parameters:
+    ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegatingHandlerInitializer``
+    ///     is only used a single time, even when inserted multiple times.
+    ///   - inverseOrder: Set this to true if the according DelegatingHandler should act on the output of
+    ///     the delegated Handler. Those Handler typically call the delegate first and then execute their own logic.
+    ///     Therefore, such an initializer which is added first, should be inserted on the "innerst" position not
+    ///     the "outerst", as it should be the first to act once handle returns.
+    public func delegated<I: DelegatingHandlerInitializer>(
+        by initializer: I,
+        ensureInitializerTypeUniqueness: Bool = false,
+        inverseOrder: Bool = false
+    ) -> DelegationModifier<Self, I> {
+        DelegationModifier(
+            self,
+            initializer: initializer,
+            ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness,
+            inverseOrder: inverseOrder
+        )
     }
 }
 
@@ -28,19 +41,17 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
     public typealias ModifiedComponent = C
     
     public let component: C
-    private let initializer: I
-    private let ensureInitializerTypeUniqueness: Bool
+    private let entry: DelegatingHandlerContextKey.Entry
 
-    fileprivate init(_ component: C, initializer: I, ensureInitializerTypeUniqueness: Bool = false) {
+    fileprivate init(_ component: C, initializer: I, ensureInitializerTypeUniqueness: Bool = false, inverseOrder: Bool = false) {
         self.component = component
-        self.initializer = initializer
-        self.ensureInitializerTypeUniqueness = ensureInitializerTypeUniqueness
+        self.entry = .init(initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(
             DelegatingHandlerContextKey.self,
-            value: [.init(initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)],
+            value: [entry],
             scope: .environment
         )
     }
@@ -84,7 +95,7 @@ public extension AnyDelegatingHandlerInitializer {
     }
 }
 
-private extension AnyDelegatingHandlerInitializer {
+extension AnyDelegatingHandlerInitializer {
     var id: ObjectIdentifier {
         if let filter = self as? AnyDelegateFilter {
             return ObjectIdentifier(type(of: filter.filter))
@@ -108,48 +119,70 @@ public struct DelegatingHandlerContextKey: ContextKey {
     public static var defaultValue: Value = []
 
     public static func reduce(value: inout Value, nextValue: Value) {
-        // append won't update members already in the original set (see `Entry.ensureInitializerTypeUniqueness`)
         value.append(contentsOf: nextValue)
     }
 }
 
 extension DelegatingHandlerContextKey {
     /// Represents the entry type for the value of an ``DelegatingHandlerContextKey``
-    public struct Entry {
+    public class Entry {
         /// Every entry of the ``DelegatingHandlerContextKey`` is identified by a instance specific
         /// `UUID` used to check if we already inserted into the ``Handler`` stack when parsing initializers.
-        private let uuid: UUID
+        let uuid: UUID
 
         /// The according ``AnyDelegatingHandlerInitializer`` used to instantiate the delegating ``Handler``.
         let initializer: AnyDelegatingHandlerInitializer
+
         /// If set to true, it is ensure that the same ``AnyDelegatingHandlerInitializer``, even though
         /// when inserted multiple times into the context, is only used a single time (the first time it got inserted).
         let ensureInitializerTypeUniqueness: Bool
 
+        let inverseOrder: Bool
+
+        var markedFiltered = false
+
         /// Creates a new ``Entry`` instance.
         /// - Parameters:
         ///   - initializer: The ``AnyDelegatingHandlerInitializer`` for the delegating Handler.
-        ///   - ensureInitializerTypeUniqueness: If set to true, it is ensure that the same ``DelegatingHandlerInitializer``,
-        ///     even though when inserted multiple times into the context, is only used a single time (the first time it got added).
-        public init(_ initializer: AnyDelegatingHandlerInitializer, ensureInitializerTypeUniqueness: Bool = false) {
+        ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegatingHandlerInitializer``
+        ///     is only used a single time, even when inserted multiple times.
+        ///   - inverseOrder: Set this to true if the according DelegatingHandler should act on the output of
+        ///     the delegated Handler. Those Handler typically call the delegate first and then execute their own logic.
+        ///     Therefore, such an initializer which is added first, should be inserted on the "innerst" position not
+        ///     the "outerst", as it should be the first to act once handle returns.
+        public init(
+            _ initializer: AnyDelegatingHandlerInitializer,
+            ensureInitializerTypeUniqueness: Bool = false,
+            inverseOrder: Bool = false
+        ) {
             self.uuid = UUID()
             self.initializer = initializer
             self.ensureInitializerTypeUniqueness = ensureInitializerTypeUniqueness
+            self.inverseOrder = inverseOrder
         }
     }
 }
 
 extension DelegatingHandlerContextKey.Entry: Hashable {
     public func hash(into hasher: inout Hasher) {
-        if ensureInitializerTypeUniqueness {
-            hasher.combine(initializer.id)
-        } else {
-            hasher.combine(uuid)
-        }
+        hasher.combine(uuid)
     }
 
     public static func == (lhs: DelegatingHandlerContextKey.Entry, rhs: DelegatingHandlerContextKey.Entry) -> Bool {
-        lhs.uuid == rhs.uuid ||
-            (lhs.ensureInitializerTypeUniqueness == true && rhs.ensureInitializerTypeUniqueness == true && lhs.initializer.id == rhs.initializer.id)
+        lhs.uuid == rhs.uuid
+    }
+}
+
+extension DelegatingHandlerContextKey.Entry: CustomStringConvertible {
+    public var description: String {
+        """
+        Apodini.DelegatingHandlerContextKey.Entry(\
+        uuid: \(uuid), \
+        initializer: \(initializer), \
+        ensureInitializerTypeUniqueness: \(ensureInitializerTypeUniqueness), \
+        inverseOrder: \(inverseOrder), \
+        markedFiltered: \(markedFiltered)\
+        )
+        """
     }
 }

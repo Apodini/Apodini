@@ -111,7 +111,7 @@ extension GuardingHandlerInitializer: SomeGuardInitializer { }
 extension SyncGuardingHandlerInitializer: SomeGuardInitializer { }
 
 
-private struct GuardFilter: DelegationFilter {
+struct GuardFilter: DelegationFilter {
     func callAsFunction<I>(_ initializer: I) -> Bool where I: AnyDelegatingHandlerInitializer {
         if initializer is SomeGuardInitializer {
             return false

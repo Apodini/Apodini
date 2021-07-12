@@ -10,13 +10,12 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     let semanticModelBuilder: SemanticModelBuilder?
     unowned let visitor: SyntaxTreeVisitor
 
+    /// Used as a store of what initializer we already retrieved in queryInitializers
+    private var retrievedInitializers: OrderedSet<DelegatingHandlerContextKey.Entry> = []
 
-    /// The index of the next element in the ContextKey value which we haven't
-    /// considered yet. This is required as the `initializer` property will most certainly
-    /// remove some elements from the original context key value.
-    private var nextContextKeyIndex: Int = 0
-
-    private var initializers: OrderedSet<DelegatingHandlerContextKey.Entry> = []
+    /// represents the working set
+    private var initializers: OrderedSet<StoredContextKeyEntry> = []
+    private var nextInitializerIndex = 0
 
     /// Defines if `visit` is called for the first/main Handler
     private var firstHandler = true
@@ -25,7 +24,11 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         self.semanticModelBuilder = builder
         self.visitor = visitor
 
-        self.queryInitializers()
+        // This call to `queryInitializers` MUST be made here.
+        // At this point we are sure that all modifiers have been parsed, and that all further
+        // additions to the `DelegatingHandlerContextKey` stem from additions through the Metadata.
+        // This allows us to easily treat those two types of source according to their ordering expectations.
+        queryInitializers()
     }
 
     func visit<H: Handler>(handler: H) throws {
@@ -46,12 +49,14 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
 
         handler.metadata.accept(self.visitor)
 
+        print("--------")
+        print("Parsing \(handler))")
         self.queryInitializers()
 
-        if !initializers.isEmpty {
-            let entry = initializers.removeFirst()
+        if let next = nextInitializer() {
+            nextInitializerIndex += 1
 
-            let nextHandler = try entry.initializer.anyinstance(for: handler)
+            let nextHandler = try next.initializer.anyinstance(for: handler)
             try nextHandler.accept(self)
         } else {
             let context = visitor.currentNode.export()
@@ -65,30 +70,100 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     /// That mechanism allows for dynamically adding `DelegatingHandlerInitializer` through Metadata.
     func queryInitializers() {
         var initializers = visitor.currentNode.peekValue(for: DelegatingHandlerContextKey.self)
-        let contextValueCount = initializers.count
 
-        // remove all previously parsed initializers
-        initializers.removeSubrange(0..<nextContextKeyIndex)
+        initializers.subtract(self.retrievedInitializers)
+        self.retrievedInitializers.append(contentsOf: initializers)
+        // `initializers` now contain only the newly added ones
 
-        while let index = initializers.firstIndex(where: { $0.initializer is DelegationFilter }) {
-            guard let filter = initializers.remove(at: index).initializer as? DelegationFilter else {
+        print("Adding \(initializers.count) \(initializers)")
+
+        // apply DelegationFilters
+        while let index = initializers.firstIndex(where: { $0.initializer is DelegationFilter && !$0.markedFiltered }) {
+            let filterEntry = initializers[index]
+            guard let filter = filterEntry.initializer as? DelegationFilter else {
                 fatalError("Reached inconsistent state. Someone introduced a bug somewhere!")
             }
 
-            let scope = initializers[0..<index]
+            filterEntry.markedFiltered = true
+
+            if self.initializers.contains(.init(entry: filterEntry)) {
+                // checks `ensureInitializerTypeUniqueness` for filters
+                continue
+            }
+
+            let scope = initializers[initializers.startIndex ..< index]
 
             // contains all entries which shall be removed
             let entriesToFilter = scope.filter { entryToFilter in
                 !entryToFilter.initializer.evaluate(filter: filter)
             }
 
+            for entry in entriesToFilter {
+                entry.markedFiltered = true
+            }
+
             initializers.subtract(entriesToFilter)
         }
 
-        nextContextKeyIndex = contextValueCount
-        self.initializers.append(contentsOf: initializers)
+
+        // reverse the order of all initializers marked with the `inverseOrder` property
+        var reverseOrderIndices: [Int] = []
+        for index in initializers.startIndex ..< initializers.endIndex
+            where initializers[index].inverseOrder {
+            reverseOrderIndices.append(index)
+        }
+
+        for index in reverseOrderIndices.startIndex ..< (reverseOrderIndices.endIndex / 2) {
+            let lowerIndex = reverseOrderIndices[index]
+            let upperIndex = reverseOrderIndices[reverseOrderIndices.endIndex - 1 - index]
+
+            let higher = initializers.remove(at: upperIndex)
+            let lower = initializers.remove(at: lowerIndex)
+
+            initializers.insert(higher, at: lowerIndex)
+            initializers.insert(lower, at: upperIndex)
+        }
+
+
+        // iterate over the new initializer INORDER but prepending resulting in a REVERSE order.
+        // Though, as the insertion itself happens inorder, we ensure that the `ensureInitializerTypeUniqueness` property holds.
+        for value in initializers {
+            self.initializers.insert(.init(entry: value), at: nextInitializerIndex)
+        }
+    }
+
+    func nextInitializer() -> DelegatingHandlerContextKey.Entry? {
+        while initializers[safe: nextInitializerIndex]?.entry.markedFiltered == true {
+            nextInitializerIndex += 1
+        }
+
+        return initializers[safe: nextInitializerIndex]?.entry
     }
 }
+
+
+private struct StoredContextKeyEntry {
+    let entry: DelegatingHandlerContextKey.Entry
+}
+
+extension StoredContextKeyEntry: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        if entry.ensureInitializerTypeUniqueness {
+            hasher.combine(entry.initializer.id)
+            hasher.combine(entry.markedFiltered)
+        } else {
+            hasher.combine(entry.uuid)
+        }
+    }
+
+    public static func == (lhs: StoredContextKeyEntry, rhs: StoredContextKeyEntry) -> Bool {
+        lhs.entry.uuid == rhs.entry.uuid ||
+            (lhs.entry.ensureInitializerTypeUniqueness == true && rhs.entry.ensureInitializerTypeUniqueness == true
+                && lhs.entry.initializer.id == rhs.entry.initializer.id
+                && lhs.entry.markedFiltered == rhs.entry.markedFiltered)
+    }
+}
+
 
 // MARK: Delegate
 

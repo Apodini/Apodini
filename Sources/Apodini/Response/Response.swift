@@ -18,6 +18,14 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Content>(information: InformationSet(), connectionEffect: .close)
     }
 
+    public static func end(status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+        Response<Content>(status: status, information: information, connectionEffect: .close)
+    }
+
+    public static func end(status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+        Response<Content>(status: status, information: information, connectionEffect: .close)
+    }
+
 
     public static func send(_ content: Content, status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
         // nil must not be passable by the user as a value
