@@ -9,7 +9,7 @@
 @testable import ApodiniWebSocket
 import XCTApodini
 
-
+@available(macOS 12.0, *)
 class WebSocketInterfaceExporterTests: XCTApodiniTest {
     static let blockTime: UInt32 = 10000
     
@@ -427,6 +427,7 @@ class TestObservable: Apodini.ObservableObject {
     }
 }
 
+@available(macOS 12.0, *)
 struct BidirectionalHandler: Handler {
     @Parameter var input: Int
     

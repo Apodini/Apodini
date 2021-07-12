@@ -9,6 +9,7 @@ import Foundation
 import Apodini
 import ApodiniUtils
 import OpenCombine
+import _Concurrency
 
 // MARK: RequestBasis
 
@@ -97,6 +98,23 @@ extension DecodingStrategy {
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
         self.decodeRequest(from: input, with: input, with: eventLoop)
+    }
+}
+
+@available(macOS 12.0, *)
+extension AsyncSequence {
+    public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
+        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
+        self.map { requestBasis, input in
+            strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
+        }
+    }
+    
+    public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
+        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == S.Input, S.Input: RequestBasis {
+        self.map { input in
+            strategy.decodeRequest(from: input, with: eventLoop)
+        }
     }
 }
 

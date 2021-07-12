@@ -8,6 +8,94 @@
 import Foundation
 import Apodini
 import OpenCombine
+import _Concurrency
+
+@available(macOS 12.0, *)
+extension AsyncSequence {
+    public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
+        self.cancel(if: { result in
+            if case let .success(response) = result {
+                print(response.connectionEffect == .close)
+                return response.connectionEffect == .close
+            }
+            print("false")
+            return false
+        })
+        .debug(onMake: { print("TRANSFORM 1 Make \($0)") }, onNext: { print("TRANSFORM 1 Next") }, afterNext:  { print("TRANSFORM 1 Return \($0)") }, onError:  { print("TRANSFORM 1 Throw \($0)") })
+        .compactMap  { result throws -> Result<T.Output, Error>? in
+            switch result {
+            case let .success(response):
+                if let content = response.content {
+                    do {
+                        return .success(try transformer.transform(input: content))
+                    } catch {
+                        return .failure(error)
+                    }
+                } else {
+                    return nil
+                }
+            case let .failure(error):
+                return .failure(error)
+            }
+        }
+        .compactMap { result throws -> (Bool, T.Output)? in
+            switch result {
+            case let .success(output):
+                return (false, output)
+            case let .failure(error):
+                switch transformer.handle(error: error.apodiniError) {
+                case .ignore:
+                    return nil
+                case let .abort(error):
+                    throw error
+                case let .complete(output):
+                    return (true, output)
+                case let .graceful(output):
+                    return (false, output)
+                }
+            }
+        }
+        .cancel(if: { (cancel, _) in cancel })
+        .map { (_, output) in output }
+        .typeErased
+    }
+    
+    public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<T.Input, Error> {
+        self.map { result throws -> Result<T.Output, Error> in
+            switch result {
+            case let .success(response):
+                do {
+                    return .success(try transformer.transform(input: response))
+                } catch {
+                    return .failure(error)
+                }
+            case let .failure(error):
+                return .failure(error)
+            }
+        }
+        .compactMap { result throws -> (Bool, T.Output)? in
+            switch result {
+            case let .success(output):
+                return (false, output)
+            case let .failure(error):
+                switch transformer.handle(error: error.apodiniError) {
+                case .ignore:
+                    return nil
+                case let .abort(error):
+                    throw error
+                case let .complete(output):
+                    return (true, output)
+                case let .graceful(output):
+                    return (false, output)
+                }
+            }
+        }
+        .cancel(if: { (cancel, _) in cancel })
+        .map { (_, output) in output }
+        .typeErased
+    }
+}
+
 
 extension CancellablePublisher {
     /// A `Publisher` that transforms each incoming `Result` using the given `transformer`

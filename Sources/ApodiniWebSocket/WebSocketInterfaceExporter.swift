@@ -15,6 +15,7 @@ import NIOWebSocket
 
 // MARK: Exporter
 
+@available(macOS 12.0, *)
 public final class WebSocket: Configuration {
     let configuration: WebSocket.ExporterConfiguration
     
@@ -34,6 +35,7 @@ public final class WebSocket: Configuration {
 /// The WebSocket exporter uses a custom JSON based protocol on top of WebSocket's text messages.
 /// This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel.
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
+@available(macOS 12.0, *)
 final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let app: Apodini.Application
     private let exporterConfiguration: WebSocket.ExporterConfiguration
@@ -62,7 +64,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let transformer = Transformer<H>()
         
-        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
+        self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyPublisher<Message<H.Response.Content>, Error>
                 ) in
@@ -70,7 +72,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             // We need a new `Delegate` for each connection
             var delegate = Delegate(endpoint.handler, .required)
             
-        let output = clientInput
+            let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
                 (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
@@ -79,10 +81,16 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
+            .debug(onMake: { print("0.3 Make \($0)") }, onNext: { print("0.3 Next") }, afterNext:  { print("0.3 Return \($0)") }, onError:  { print("0.3 Throw \($0)") })
             .subscribe(to: &delegate)
+            .debug(onMake: { print("0.6 Make \($0)") }, onNext: { print("0.6 Next") }, afterNext:  { print("0.6 Return \($0)") }, onError:  { print("0.6 Throw \($0)") })
             .evaluate(on: &delegate)
+            .debug(onMake: { print("1 Make \($0)") }, onNext: { print("1 Next") }, afterNext:  { print("1 Return \($0)") }, onError:  { print("1 Throw \($0)") })
             .transform(using: transformer)
-
+            .debug(onMake: { print("2 Make \($0)") }, onNext: { print("2 Next") }, afterNext:  { print("2 Return \($0)") }, onError:  { print("2 Throw \($0)") })
+            .typeErased
+            .publisher
+            .handleEvents(receiveSubscription: { Swift.print("Subscribed \($0)") }, receiveOutput: { Swift.print("Output \($0)") }, receiveCompletion: { Swift.print("Completion \($0)") }, receiveCancel: { Swift.print("Cancel") }, receiveRequest: { Swift.print("Demand \($0)") })
 
             return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
@@ -225,3 +233,31 @@ extension ApodiniError {
     }
 }
 #endif
+
+// MARK: PublisherSubscription
+
+struct PublisherSubscription<P: Publisher>: Subscribable {
+    let publisher: P
+    
+    func register(_ callback: @escaping (PublisherEvent) -> Void) -> AnyCancellable {
+        return publisher.sink(receiveCompletion: { completion in
+            Swift.print("Publisher Completion: \(completion)")
+            callback(.completion(completion))
+        }, receiveValue: { output in
+            Swift.print("Publisher Output: \(output)")
+            callback(.output(output))
+        })
+    }
+    
+    enum PublisherEvent: CompletionCandidate {
+        case completion(Subscribers.Completion<P.Failure>)
+        case output(P.Output)
+        
+        var isCompletion: Bool {
+            if case .completion(_) = self {
+                return true
+            }
+            return false
+        }
+    }
+}

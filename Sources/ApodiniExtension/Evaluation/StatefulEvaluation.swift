@@ -8,9 +8,41 @@
 import Apodini
 import OpenCombine
 import Foundation
+import _Concurrency
 
 
 // MARK: Handling Subscription
+
+extension Delegate: Subscribable { }
+
+extension TriggerEvent: CompletionCandidate {
+    public var isCompletion: Bool { false }
+}
+
+@available(macOS 12.0, *)
+public extension AsyncSequence where Element: Request {
+    func subscribe<H: Handler>(to handler: inout Delegate<H>) -> AsyncMergeSequence<AnyAsyncSequence<Event>, AnyAsyncSequence<Event>> {
+        _Internal.prepareIfNotReady(&handler)
+        
+        let handler = handler
+        
+        let upstream: AnyAsyncSequence<Event> = self.map { (request: Request) -> Event in
+            Event.request(request)
+        }
+        .append([Event.end].asAsyncSequence)
+        .debug(onMake: { print("SUBSCRIBE 0 Make \($0)") }, onNext: { print("SUBSCRIBE 0 Next") }, afterNext:  { print("SUBSCRIBE 0 Return \($0)") }, onError:  { print("SUBSCRIBE 0 Throw \($0)") })
+        .typeErased
+        
+        let observations: AnyAsyncSequence<Event> = AsyncSubscribingSequence(handler).map { triggerEvent in
+            Event.trigger(triggerEvent)
+        }
+        .debug(onMake: { print("SUBSCRIBE 1 Make \($0)") }, onNext: { print("SUBSCRIBE 1 Next") }, afterNext:  { print("SUBSCRIBE 1 Return \($0)") }, onError:  { print("SUBSCRIBE 1 Throw \($0)") })
+        .typeErased
+        
+        return upstream.merge(with: observations)
+    }
+}
+
 
 public extension Publisher where Output: Request {
     /// A `Publisher` that takes care of subscribing to `TriggerEvent`s emitted
@@ -106,6 +138,65 @@ extension Publisher {
 
 
 // MARK: Handling Event Evaluation
+
+@available(macOS 12.0, *)
+public extension AsyncSequence where Element == Event {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, Error>> {
+        _Internal.prepareIfNotReady(&handler)
+        let handler = handler
+        
+        var latestRequest: Request?
+        
+        var connectionState = ConnectionState.open
+        
+        return self
+        .map { event in
+            switch event {
+            case .end:
+                connectionState = .end
+                if let request = latestRequest {
+                    print("--------> END (\(request))")
+                    return .request(request)
+                } else {
+                    print("--------> END (nil)")
+                    return .end
+                }
+            default:
+                return event
+            }
+        }
+        .compactMap { (event: Event) async throws -> Result<Response<H.Response.Content>, Error>? in
+            switch event {
+            case let .request(request):
+                print("--------> REQUEST (\(request))")
+                
+                latestRequest = request
+                do {
+                    return .success(try await handler.evaluateAsync(using: request, with: connectionState))
+                } catch {
+                    return .failure(error)
+                }
+            case let .trigger(trigger):
+                print("--------> TRIGGER (\(trigger))")
+                
+                guard let request = latestRequest else {
+                    fatalError("Cannot handle TriggerEvent before first Request!")
+                }
+                
+                do {
+                    return .success(try await handler.evaluateAsync(trigger, using: request, with: connectionState))
+                } catch {
+                    return .failure(error)
+                }
+            case .end:
+                return nil
+            }
+        }
+        .typeErased
+    }
+}
+
+
 
 extension CancellablePublisher where Output == Event {
     /// A `Publisher` that consumes the incoming ``Event``s and publishes

@@ -10,6 +10,13 @@ import OpenCombine
 import Apodini
 import ApodiniUtils
 
+@available(macOS 12.0, *)
+public extension AsyncSequence where Element: Request {
+    func validateParameterMutability() -> AsyncMapSequence<Self, MutabilityValidatingRequest<Element>> {
+        self.reduce()
+    }
+}
+
 public extension Publisher where Output: Request {
     /// Wraps all incoming `Request`s in ``MutabilityValidatingRequest``s, which share
     /// a common storage for providing stateful validation.

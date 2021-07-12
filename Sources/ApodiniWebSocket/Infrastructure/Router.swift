@@ -9,6 +9,7 @@
 import NIOWebSocket
 @_implementationOnly import OpenCombine
 @_implementationOnly import Logging
+import ApodiniExtension
 
 /// An error type that receives special treatment by the router. The router sends the
 /// `reason` to the client if it receives a `WSError` on the `output`. Other error
@@ -37,6 +38,7 @@ enum Message<T> {
 /// A `Router` provides an endpoint-based, typed abstraction of a WebSocket connection. It uses
 /// a spcific `Input` for each `register`ed endpoint to maintain state and possibly also check
 /// validity of incoming messages. Each endpoint is identified by its `identifier`.
+@available(macOS 12.0, *)
 protocol Router {
     /// A `Router`-specific type that carries information about an incoming connection.
     associatedtype ConnectionInformation
@@ -45,7 +47,7 @@ protocol Router {
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String)
 }
@@ -102,6 +104,7 @@ protocol Router {
 ///         "error": <Errors>
 ///     }
 ///
+@available(macOS 12.0, *)
 final class VaporWSRouter: Router {
     typealias ConnectionInformation = Vapor.Request
     
@@ -133,7 +136,7 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {

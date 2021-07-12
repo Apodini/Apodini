@@ -31,6 +31,33 @@ public protocol Initializable: Reducible {
     init(_ initial: Input)
 }
 
+@available(macOS 12.0, *)
+public extension AsyncSequence where Element: Reducible {
+    func reduce() -> AsyncMapSequence<Self, Element> where Element.Input == Element {
+        var last: Element?
+        
+        return self.map { (new: Element) -> Element in
+            let result = last?.reduce(with: new) ?? new
+            last = result
+            return result
+        }
+    }
+}
+
+@available(macOS 12.0, *)
+public extension AsyncSequence {
+    func reduce<R: Initializable>(_ type: R.Type = R.self) -> AsyncMapSequence<Self, R> where Element == R.Input {
+        var last: R?
+        
+        return self.map { (new: Element) -> R in
+            let result = last?.reduce(with: new) ?? R(new)
+            last = result
+            return result
+        }
+    }
+}
+
+
 public extension Publisher where Output: Reducible {
     /// This publisher implements a reduction on the upstream's output. For each
     /// incoming value, the current result of the reduction is published.

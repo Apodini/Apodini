@@ -6,8 +6,11 @@
 //
 
 @_implementationOnly import Vapor
-@_implementationOnly import OpenCombine
+import OpenCombine
+import _Concurrency
 import NIOWebSocket
+import ApodiniExtension
+import ApodiniUtils
 
 
 protocol ContextResponsible {
@@ -16,9 +19,38 @@ protocol ContextResponsible {
     func complete()
 }
 
+
+
+@available(macOS 12.0, *)
 class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
+    class Subscribable: ApodiniExtension.Subscribable {
+        typealias Event = InputEvent
+        
+        typealias Handle = Void
+        
+        var onInput: ((InputEvent) -> Void)?
+        
+        func register(_ callback: @escaping (InputEvent) -> Void) {
+            print("WS Subscribable connected")
+            self.onInput = callback
+        }
+    }
+    
+    enum InputEvent: CompletionCandidate {
+        case input(I)
+        case completion
+        
+        var isCompletion: Bool {
+            switch self {
+            case .completion:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
     var input: I
-    let receiver: PassthroughSubject<I, Never>
     
     let outputSubscriber: AnyCancellable
     
@@ -27,8 +59,10 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     let destruct: () -> Void
     let close: (WebSocketErrorCode) -> Void
     
+    let inputReceiver: Subscribable
+    
     convenience init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Vapor.Request) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) ->
             (default: I, output: AnyPublisher<Message<O>, Error>),
         con: ConnectionResponsible,
         context: UUID) {
@@ -47,7 +81,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     init(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, Vapor.Request) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) -> (default: I, output: AnyPublisher<Message<O>, Error>),
         eventLoop: EventLoop,
         send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
@@ -55,13 +89,29 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         close: @escaping (WebSocketErrorCode) -> Void,
         request: Vapor.Request
     ) {
-        let receiver = PassthroughSubject<I, Never>()
+        let subscribable = Subscribable()
         
-        let (defaultInput, output) = opener(receiver.eraseToAnyPublisher(), eventLoop, request)
+        self.inputReceiver = subscribable
+        
+        var sequence = AsyncSubscribingSequence(subscribable)
+        sequence.connect()
+        
+        let (defaultInput, output) = opener(try! sequence
+                                                .prefix(while: { (event: InputEvent) in
+                                                    if case .input(_) = event {
+                                                        return true
+                                                    }
+                                                    return false
+                                                })
+                                                .map { event in
+                                                    guard case let .input(input) = event else {
+                                                        fatalError("Prefix should have cut this off!")
+                                                    }
+                                                    return input
+                                                }
+                                                .typeErased, eventLoop, request)
         
         self.input = defaultInput
-        
-        self.receiver = receiver
         
         self.outputSubscriber = output.sink(receiveCompletion: { completion in
             switch completion {
@@ -84,6 +134,8 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.sendError = sendError
         self.destruct = destruct
         self.close = close
+        
+        print("WS INIT COMPLETE")
     }
     
     func receive(_ parameters: [String: Any], _ data: Data) throws {
@@ -101,12 +153,13 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             throw InputError.missing(parameters)
         case .ok:
             self.input.apply()
-            self.receiver.send(self.input)
+            print("WS SENDING OUTPUT")
+            self.inputReceiver.onInput?(.input(self.input))
         }
     }
     
     func complete() {
-        self.receiver.send(completion: .finished)
+        self.inputReceiver.onInput?(.completion)
     }
 }
 

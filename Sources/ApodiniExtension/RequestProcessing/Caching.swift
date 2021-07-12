@@ -8,6 +8,16 @@
 import Foundation
 import Apodini
 import OpenCombine
+import _Concurrency
+
+@available(macOS 12.0, *)
+public extension AsyncSequence where Element: Request {
+    func cache() -> AsyncMapSequence<Self, CachingRequest> {
+        self.map { request in
+            request.cache()
+        }
+    }
+}
 
 public extension Publisher where Output: Request {
     /// This `Publisher` maps each incoming `Request` into a ``CachingRequest``.

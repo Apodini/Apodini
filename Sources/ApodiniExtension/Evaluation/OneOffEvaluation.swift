@@ -8,6 +8,7 @@
 import Apodini
 import ApodiniUtils
 import Foundation
+import _NIOConcurrency
 
 /// A wrapper which contains the input-output pair of a `Delegate`'s evaluation.
 public struct ResponseWithRequest<C: Encodable>: WithRequest {
@@ -35,6 +36,19 @@ public extension Request {
 }
 
 internal extension Delegate where D: Handler {
+    @available(macOS 12.0, *)
+    func evaluateAsync(using request: Request, with state: ConnectionState = .end) async throws
+        -> Response<D.Response.Content> {
+        try await evaluate(using: request, with: state).get()
+    }
+    
+    @available(macOS 12.0, *)
+    func evaluateAsync(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws
+        -> Response<D.Response.Content> {
+        try await evaluate(trigger, using: request, with: state).get()
+    }
+    
+    
     func evaluate(using request: Request, with state: ConnectionState = .end) throws -> D.Response {
         try _Internal.evaluate(delegate: self, using: request, with: state)
     }
