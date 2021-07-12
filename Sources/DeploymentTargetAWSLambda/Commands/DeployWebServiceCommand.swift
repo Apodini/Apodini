@@ -217,7 +217,6 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             // If `docker info` fails, the docker daemon is not running
             throw Context.makeError("docker daemon is not running")
         }
-        fatalError()
         
         try fileManager.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
         try fileManager.copyItem(
