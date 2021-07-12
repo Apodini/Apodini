@@ -462,9 +462,20 @@ final class DelegationTests: ApodiniTests {
             }
         }
 
+        struct TestNestedHandler: Handler {
+            func handle() -> String {
+                "Hello World 2"
+            }
+
+            var metadata: Metadata {
+                Guarded(by: TestGuard(id: 3))
+            }
+        }
+
         struct TestDelegateWithMetadata<H: Handler>: Handler {
             let id: Int
             let delegate: Delegate<H>
+            let otherDelegate = Delegate(TestNestedHandler())
 
             func handle() throws -> H.Response {
                 TestStore.collectedIds.append(id)
@@ -472,8 +483,8 @@ final class DelegationTests: ApodiniTests {
             }
 
             var metadata: Metadata {
-                Guarded(by: TestGuard(id: 3))
                 Guarded(by: TestGuard(id: 4))
+                Guarded(by: TestGuard(id: 5))
             }
         }
 
@@ -490,9 +501,9 @@ final class DelegationTests: ApodiniTests {
             }
 
             var metadata: Metadata {
-                Guarded(by: TestGuard(id: 8))
-                ResetGuards()
                 Guarded(by: TestGuard(id: 9))
+                ResetGuards()
+                Guarded(by: TestGuard(id: 10))
             }
         }
 
@@ -501,13 +512,13 @@ final class DelegationTests: ApodiniTests {
                 Group {
                     TestHandler()
                         .guard(TestGuard(id: 2))
-                        .response(TestTransformer(id: 10))
-                        .delegated(by: TestDelegateWithMetadataInitializer<String>(id: 5)) // injects 3, 4 in front of itself
-                        .metadata {
-                            TestHandler.Guarded(by: TestGuard(id: 6))
-                            TestHandler.Guarded(by: TestGuard(id: 7))
-                        }
                         .response(TestTransformer(id: 11))
+                        .delegated(by: TestDelegateWithMetadataInitializer<String>(id: 6)) // injects 3, 4, 5 in front of itself
+                        .metadata {
+                            TestHandler.Guarded(by: TestGuard(id: 7))
+                            TestHandler.Guarded(by: TestGuard(id: 8))
+                        }
+                        .response(TestTransformer(id: 12))
                 }.guard(TestGuard(id: 1))
             }
         }
@@ -530,7 +541,7 @@ final class DelegationTests: ApodiniTests {
             content: "Hello World"
         )
 
-        XCTAssertEqual(TestStore.collectedIds, [1, 2, 3, 4, 5, 6, 7, 9, 10, 11])
+        XCTAssertEqual(TestStore.collectedIds, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12])
     }
 }
 

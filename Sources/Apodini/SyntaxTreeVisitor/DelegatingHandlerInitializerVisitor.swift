@@ -17,6 +17,7 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     private var initializers: OrderedSet<StoredContextKeyEntry> = []
     private var nextInitializerIndex = 0
 
+    private var lastHandlerType: ObjectIdentifier?
     /// Defines if `visit` is called for the first/main Handler
     private var firstHandler = true
 
@@ -34,23 +35,17 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     func visit<H: Handler>(handler: H) throws {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
 
-        // we only look at the Delegates for the "main" Handler (also to not get into an infinite loop)
-        // We currently ignore Metadata of Delegates declared on Delegating Handlers instantiated
-        // via DelegatingHandlerInitializer, inorder to not risk getting into an infinite loop.
-        if firstHandler {
-            firstHandler = false
-
-            var metadata: [AnyHandlerMetadata] = []
-            collectChildrenMetadata(from: handler, into: &metadata)
-
-            for entry in metadata {
-                entry.accept(self.visitor)
-            }
+        // Collect the Metadata from potential `Delegates` declared in the `Handler`
+        var metadata: [AnyHandlerMetadata] = []
+        collectChildrenMetadata(from: handler, into: &metadata, ignoring: lastHandlerType)
+        for entry in metadata {
+            entry.accept(self.visitor)
         }
 
         handler.metadata.accept(self.visitor)
 
         self.queryInitializers()
+        self.lastHandlerType = ObjectIdentifier(H.self)
 
         if let next = nextInitializer() {
             nextInitializerIndex += 1
@@ -168,22 +163,29 @@ extension StoredContextKeyEntry: Hashable {
 private protocol DelegateWithMetadata {
     /// Collect the metadata from the wrapped ``Handler`` as well as from all ``Handler`` based
     /// ``Delegates`` the wrapped ``Handler`` might contain.
-    /// - Parameter metadata: The array of ``AnyHandlerMetadata`` the results should be collected into.
-    func collectMetadata(into metadata: inout [AnyHandlerMetadata])
+    /// - Parameters:
+    ///   - metadata: The array of ``AnyHandlerMetadata`` the results should be collected into.
+    ///   - handlerType: The ObjectIdentifier of the ``Handler`` visited last. Any Delegates with that
+    ///     type are ignored to avoid getting into an infinite loop.
+    func collectMetadata(into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?)
 }
 
 extension Delegate: DelegateWithMetadata where D: Handler {
-    func collectMetadata(into metadata: inout [AnyHandlerMetadata]) {
+    func collectMetadata(into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?) {
+        if handlerType == ObjectIdentifier(D.self) {
+            return
+        }
+
         // note, we can't enter an infinite loop here, as the swift type system already covers
         // the case where a Delegate wraps itself at some point (as long as the struct requirement for Handlers holds).
-        collectChildrenMetadata(from: delegateModel, into: &metadata)
+        collectChildrenMetadata(from: delegateModel, into: &metadata, ignoring: handlerType)
 
         // outer metadata always has higher precedence than inner metadata when reducing, thus APPEND
         metadata.append(delegateModel.metadata)
     }
 }
 
-private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyHandlerMetadata]) {
+private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?) {
     // This is probably the part were its a bit weird how we set precedence for metadata reduction.
     // But we define that a property declared second has higher priority that the Delegate declared before,
     // similar how it is done in the Metadata Blocks itself.
@@ -192,7 +194,7 @@ private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyHan
     let mirror = Mirror(reflecting: any)
     for (_, value) in mirror.children {
         if let delegate = value as? DelegateWithMetadata {
-            delegate.collectMetadata(into: &metadata)
+            delegate.collectMetadata(into: &metadata, ignoring: handlerType)
         }
     }
 }
