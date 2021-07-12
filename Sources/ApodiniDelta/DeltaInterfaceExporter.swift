@@ -11,29 +11,20 @@ import ApodiniMigrator
 import Logging
 @_implementationOnly import ApodiniVaporSupport
 
-public final class DeltaInterfaceExporter: InterfaceExporter {
+final class DeltaInterfaceExporter: InterfaceExporter {
     public static var parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Application
     var document: Document
     let logger: Logger
-    var deltaConfiguration: DeltaConfiguration?
+    var deltaConfiguration: DeltaConfiguration
     
-    public init(_ app: Application) {
+    init(_ app: Application, configuration: DeltaConfiguration) {
         self.app = app
+        self.deltaConfiguration = configuration
         document = Document()
-        logger = Logger(label: "org.apodini.\(Self.self)")
         
-        if let storage = app.storage.get(DeltaStorageKey.self) {
-            deltaConfiguration = storage.configuration
-        } else {
-            logger.warning(
-                """
-                \(DeltaConfiguration.self) not set. Use \(DeltaConfiguration.self)() and `.absolutePath(_:)` to specify where `DeltaDocument` should
-                be persisted locally.
-                """
-            )
-        }
+        logger = Logger(label: "org.apodini.\(Self.self)")
         
         setServerPath()
     }
@@ -88,7 +79,7 @@ public final class DeltaInterfaceExporter: InterfaceExporter {
     }
     
     public func finishedExporting(_ webService: WebServiceModel) {
-        if let documentPath = deltaConfiguration?.absolutePath {
+        if let documentPath = deltaConfiguration.absolutePath {
             do {
                 try document.export(at: documentPath + "/" + "delta_document.json")
             } catch {
@@ -97,7 +88,7 @@ public final class DeltaInterfaceExporter: InterfaceExporter {
         } else {
             logger.warning(
                 """
-                \(DeltaConfiguration.self) not set. Use \(DeltaConfiguration.self)() and `.absolutePath(_:)` to specify where `DeltaDocument` should
+                Absolute path not set. Use \(DeltaConfiguration.self)() and `.absolutePath(_:)` to specify where `DeltaDocument` should
                 be persisted locally.
                 """
             )

@@ -65,10 +65,10 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
 
-//        .package(url: "https://github.com/Supereg/Runtime.git", .branch("master")),
+        .package(url: "https://github.com/Supereg/Runtime.git", .branch("master")),
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
-         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
+//         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
 
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
@@ -83,9 +83,7 @@ let package = Package(
         
         
         // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("ecc76c7d0d4bcfb82c7fd226f8917f92356b29cd"))
-
-        
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("d22edf268abe2268435bad86e42f9262e0835ad9"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -326,6 +324,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),

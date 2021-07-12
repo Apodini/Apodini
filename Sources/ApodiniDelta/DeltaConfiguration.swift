@@ -7,6 +7,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 
 /// Represents cases how the document structure should be trated
 public enum DeltaStrategy {
@@ -38,8 +39,8 @@ public class DeltaConfiguration: Configuration {
         #endif
     }
 
-    public func configure(_ app: Application) {
-        app.storage.set(DeltaStorageKey.self, to: DeltaStorageValue(configuration: self))
+    public func configure(_ app: Apodini.Application) {
+        app.registerExporter(exporter: DeltaInterfaceExporter(app, configuration: self))
     }
 
     /// Registers the absolute path for persisting the document

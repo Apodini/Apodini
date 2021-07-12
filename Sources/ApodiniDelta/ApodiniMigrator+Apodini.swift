@@ -14,20 +14,20 @@ import Logging
 extension ApodiniMigrator.Parameter {
     static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigrator.Parameter {
         let typeInformation: TypeInformation
-        do {
-            typeInformation = try TypeInformation(type: parameter.propertyType)
-        } catch {
-            if parameter.propertyType == MimeType.self {
-                let codingKeys = MimeType.CodingKeys.self
-                typeInformation = .object(
-                    name: .init(MimeType.self),
-                    properties: [
-                        .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
-                        .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
-                        .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
-                    ]
-                )
-            } else {
+        if parameter.propertyType == MimeType.self {
+            let codingKeys = MimeType.CodingKeys.self
+            typeInformation = .object(
+                name: .init(MimeType.self),
+                properties: [
+                    .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
+                    .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
+                    .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
+                ]
+            )
+        } else {
+            do {
+                typeInformation = try TypeInformation(type: parameter.propertyType)
+            } catch {
                 logger.error(
                     """
                     Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
@@ -36,7 +36,6 @@ extension ApodiniMigrator.Parameter {
                 )
                 typeInformation = .scalar(.null)
             }
-            
         }
         
         let isRequired: Bool = {

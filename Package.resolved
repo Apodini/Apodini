@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "ecc76c7d0d4bcfb82c7fd226f8917f92356b29cd",
+          "revision": "d22edf268abe2268435bad86e42f9262e0835ad9",
           "version": null
         }
       },
@@ -282,11 +282,11 @@
       },
       {
         "package": "Runtime",
-        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
+        "repositoryURL": "https://github.com/Supereg/Runtime.git",
         "state": {
-          "branch": null,
-          "revision": "a848b81e1a0100801f572e5273ffe4352fd54088",
-          "version": "2.2.2"
+          "branch": "master",
+          "revision": "596e22a518bb3f8177cd796cd77e5386098a33f8",
+          "version": null
         }
       },
       {
@@ -474,8 +474,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "086d0b80f2c3623ffd6b5e32b964ad00b67c2e90",
-          "version": "4.47.1"
+          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
+          "version": "4.47.2"
         }
       },
       {

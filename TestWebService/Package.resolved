@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -182,7 +182,7 @@
         }
       },
       {
-        "package": "NioDNS",
+        "package": "DNSClient",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -257,8 +257,8 @@
         "package": "Runtime",
         "repositoryURL": "https://github.com/Supereg/Runtime.git",
         "state": {
-          "branch": "fix/linux-swift5.4-class-metadata-layout",
-          "revision": "c71b275c39094f07fd94832604cf6eddb8479093",
+          "branch": "master",
+          "revision": "596e22a518bb3f8177cd796cd77e5386098a33f8",
           "version": null
         }
       },
@@ -447,8 +447,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "086d0b80f2c3623ffd6b5e32b964ad00b67c2e90",
-          "version": "4.47.1"
+          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
+          "version": "4.47.2"
         }
       },
       {
