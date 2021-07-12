@@ -18,8 +18,6 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
     private var nextInitializerIndex = 0
 
     private var lastHandlerType: ObjectIdentifier?
-    /// Defines if `visit` is called for the first/main Handler
-    private var firstHandler = true
 
     init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
         self.semanticModelBuilder = builder
