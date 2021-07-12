@@ -35,7 +35,8 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
 
         // we only look at the Delegates for the "main" Handler (also to not get into an infinite loop)
-        // The other ones instantiated via DelegatingHandlerInitializer are covered below.
+        // We currently ignore Metadata of Delegates declared on Delegating Handlers instantiated
+        // via DelegatingHandlerInitializer, inorder to not risk getting into an infinite loop.
         if firstHandler {
             firstHandler = false
 
