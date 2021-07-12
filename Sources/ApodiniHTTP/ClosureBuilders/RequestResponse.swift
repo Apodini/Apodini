@@ -12,6 +12,7 @@ import ApodiniVaporSupport
 import OpenCombine
 import Vapor
 
+@available(macOS 12.0, *)
 extension Exporter {
     // MARK: Request Response Closure
     

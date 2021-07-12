@@ -9,9 +9,9 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniVaporSupport
-import OpenCombine
 import Vapor
 
+@available(macOS 12.0, *)
 extension Exporter {
     // MARK: Client Streaming Closure
     
@@ -35,7 +35,7 @@ extension Exporter {
             var delegate = Delegate(endpoint.handler, .required)
             
             return Array(0..<requestCount)
-                .publisher
+                .asAsyncSequence
                 .map { index in
                     (request, (request, index))
                 }
@@ -56,7 +56,7 @@ extension Exporter {
                         return response
                     }
                 }
-                .tryMap { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
+                .map { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
                     return try transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)

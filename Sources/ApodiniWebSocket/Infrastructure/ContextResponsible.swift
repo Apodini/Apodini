@@ -6,7 +6,6 @@
 //
 
 @_implementationOnly import Vapor
-import OpenCombine
 import _Concurrency
 import NIOWebSocket
 import ApodiniExtension
@@ -52,8 +51,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     
     var input: I
     
-    let outputSubscriber: AnyCancellable
-    
     let send: (O) -> Void
     let sendError: (Error) -> Void
     let destruct: () -> Void
@@ -63,7 +60,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     
     convenience init(
         _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) ->
-            (default: I, output: AnyPublisher<Message<O>, Error>),
+            (default: I, output: AnyAsyncSequence<Message<O>>),
         con: ConnectionResponsible,
         context: UUID) {
         self.init(
@@ -81,7 +78,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     init(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) -> (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) -> (default: I, output: AnyAsyncSequence<Message<O>>),
         eventLoop: EventLoop,
         send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
@@ -113,22 +110,22 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         
         self.input = defaultInput
         
-        self.outputSubscriber = output.sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let error):
+        _Concurrency.Task {
+            do {
+                for try await message in output {
+                    switch message {
+                    case .message(let output):
+                        send(output)
+                    case .error(let error):
+                        sendError(error)
+                    }
+                }
+                destruct()
+            } catch {
                 sendError(error)
                 close((error as? WSClosingError)?.code ?? .unexpectedServerError)
-            case .finished:
-                destruct()
             }
-        }, receiveValue: { message in
-            switch message {
-            case .message(let output):
-                send(output)
-            case .error(let error):
-                sendError(error)
-            }
-        })
+        }
         
         self.send = send
         self.sendError = sendError

@@ -6,9 +6,8 @@
 //
 
 @_implementationOnly import Vapor
-import NIOWebSocket
-@_implementationOnly import OpenCombine
 @_implementationOnly import Logging
+import NIOWebSocket
 import ApodiniExtension
 
 /// An error type that receives special treatment by the router. The router sends the
@@ -48,7 +47,7 @@ protocol Router {
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
         _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyPublisher<Message<O>, Error>),
+            (default: I, output: AnyAsyncSequence<Message<O>>),
         on identifier: String)
 }
 
@@ -137,7 +136,7 @@ final class VaporWSRouter: Router {
     /// different code.
     func register<I: Input, O: Encodable>(
         _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyPublisher<Message<O>, Error>),
+            (default: I, output: AnyAsyncSequence<Message<O>>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {
             self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")

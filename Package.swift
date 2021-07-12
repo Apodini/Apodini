@@ -262,8 +262,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine")
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
 
@@ -291,8 +290,6 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),

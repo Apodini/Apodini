@@ -11,9 +11,8 @@ import Vapor
 import ApodiniHTTP
 @testable import Apodini
 import XCTVapor
-import OpenCombine
 
-
+@available(macOS 12.0, *)
 class EndToEndTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()

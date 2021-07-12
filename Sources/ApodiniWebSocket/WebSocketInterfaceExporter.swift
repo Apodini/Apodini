@@ -66,7 +66,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<H.Response.Content>, Error>
+                    output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
             
             // We need a new `Delegate` for each connection
@@ -81,18 +81,12 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
-            .debug(onMake: { print("0.3 Make \($0)") }, onNext: { print("0.3 Next") }, afterNext:  { print("0.3 Return \($0)") }, onError:  { print("0.3 Throw \($0)") })
             .subscribe(to: &delegate)
-            .debug(onMake: { print("0.6 Make \($0)") }, onNext: { print("0.6 Next") }, afterNext:  { print("0.6 Return \($0)") }, onError:  { print("0.6 Throw \($0)") })
             .evaluate(on: &delegate)
-            .debug(onMake: { print("1 Make \($0)") }, onNext: { print("1 Next") }, afterNext:  { print("1 Return \($0)") }, onError:  { print("1 Throw \($0)") })
             .transform(using: transformer)
-            .debug(onMake: { print("2 Make \($0)") }, onNext: { print("2 Next") }, afterNext:  { print("2 Return \($0)") }, onError:  { print("2 Throw \($0)") })
             .typeErased
-            .publisher
-            .handleEvents(receiveSubscription: { Swift.print("Subscribed \($0)") }, receiveOutput: { Swift.print("Output \($0)") }, receiveCompletion: { Swift.print("Completion \($0)") }, receiveCancel: { Swift.print("Cancel") }, receiveRequest: { Swift.print("Demand \($0)") })
 
-            return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
+            return (defaultInput: emptyInput, output: output)
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 
