@@ -205,6 +205,20 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             throw Context.makeError("Unable to locate docker resources in bundle")
         }
         
+        do {
+            let dockerInfoTask = Task(
+                executableUrl: Context.dockerBin,
+                arguments: ["info"],
+                outputHandlingMode: .redirectToNullDevice,
+                launchInCurrentProcessGroup: false
+            )
+            try dockerInfoTask.launchSyncAndAssertSuccess()
+        } catch {
+            // If `docker info` fails, the docker daemon is not running
+            throw Context.makeError("docker daemon is not running")
+        }
+        fatalError()
+        
         try fileManager.copyItem(at: dockerfileBundleUrl, to: dockerfileUrl, overwriteExisting: true)
         try fileManager.copyItem(
             at: dockerignoreBundleUrl,
@@ -223,7 +237,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
                 "--build-arg", "USERNAME=\(NSUserName())",
                 "."
             ],
-            captureOutput: false,
+            outputHandlingMode: .none,
             launchInCurrentProcessGroup: true,
             environment: [
                 "DOCKER_BUILDKIT": "1"
@@ -253,7 +267,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             executableUrl: Context.dockerBin,
             arguments: taskArguments,
             workingDirectory: workingDirectory,
-            captureOutput: false,
+            outputHandlingMode: .none,
             launchInCurrentProcessGroup: true
         )
         try task.launchSyncAndAssertSuccess()

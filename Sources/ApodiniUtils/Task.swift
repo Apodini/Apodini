@@ -239,7 +239,7 @@ public class Task {
     public func launchSyncAndAssertSuccess() throws {
         let terminationInfo = try launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            fatalError("Task '\(self)' terminated with non-zero exit code \(terminationInfo.exitCode)")
+            throw TaskError(message: "Task '\(self)' terminated with non-zero exit code \(terminationInfo.exitCode)")
         }
     }
     
