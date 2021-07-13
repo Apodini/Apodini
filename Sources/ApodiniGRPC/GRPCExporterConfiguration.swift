@@ -8,6 +8,7 @@
 import Foundation
 import Apodini
 
+@available(macOS 12.0, *)
 extension GRPC {
     /// Configuration of the `GRPCInterfaceExporter`
     public struct ExporterConfiguration {

@@ -8,6 +8,7 @@
 import Apodini
 
 /// `GRPCDependentStaticConfiguration`s are used to register static services dependend on the `GRPCInterfaceExporter`
+@available(macOS 12.0, *)
 public protocol GRPCDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:
@@ -17,12 +18,14 @@ public protocol GRPCDependentStaticConfiguration {
 }
 
 /// The default configuration is an `EmptyGRPCDependentStaticConfiguration`
+@available(macOS 12.0, *)
 public struct EmptyGRPCDependentStaticConfiguration: GRPCDependentStaticConfiguration {
     public func configure(_ app: Application, parentConfiguration: GRPC.ExporterConfiguration) { }
     
     public init() { }
 }
 
+@available(macOS 12.0, *)
 extension Array where Element == GRPCDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:

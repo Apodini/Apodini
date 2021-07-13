@@ -59,6 +59,7 @@ struct LH_GreeterResponse: Codable {
     let textMutPid: pid_t
 }
 
+@available(macOS 12.0, *)
 struct LH_Greeter: Handler {
     @Apodini.Environment(\.RHI) private var RHI
     
@@ -113,7 +114,7 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
     }
 }
 
-
+@available(macOS 12.0, *)
 struct AWS_Greeter: Handler {
     @Apodini.Environment(\.RHI) private var RHI
     

@@ -12,7 +12,7 @@ import XCTApodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-
+@available(macOS 12.0, *)
 final class ResponseTransformerTests: ApodiniTests {
     private static var emojiTransformerExpectation: XCTestExpectation?
     private static var helloTransformerExpectation: XCTestExpectation?

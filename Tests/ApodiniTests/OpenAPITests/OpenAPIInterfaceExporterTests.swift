@@ -11,6 +11,7 @@ import XCTest
 @_implementationOnly import OpenAPIKit
 import XCTVapor
 
+@available(macOS 12.0, *)
 final class OpenAPIInterfaceExporterTests: ApodiniTests {
     struct SomeComp: Handler {
         func handle() -> String {

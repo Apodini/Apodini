@@ -15,7 +15,7 @@ public protocol Handler: HandlerMetadataNamespace, Component {
     typealias Metadata = AnyHandlerMetadata
 
     /// A function that is called when a request reaches the `Handler`
-    func handle() throws -> Response
+    func handle() async throws -> Response
 }
 
 // MARK: Metadata DSL
@@ -30,21 +30,5 @@ extension Handler {
     /// By default, `Handler`s don't provide any further content
     public var content: some Component {
         EmptyComponent()
-    }
-}
-
-// This extensions provides a helper for evaluating the `Handler`'s `handle` function.
-// The function hides the syntactic difference between the newly introduced `async`
-// version of `handle()` and the traditional, `EventLoopFuture`-based one.
-extension Handler {
-    internal func evaluate(using eventLoop: EventLoop) -> EventLoopFuture<Response> {
-        let promise: EventLoopPromise<Response> = eventLoop.makePromise()
-        do {
-            let result = try self.handle()
-            promise.succeed(result)
-        } catch {
-            promise.fail(error)
-        }
-        return promise.futureResult
     }
 }

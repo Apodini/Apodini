@@ -11,7 +11,9 @@ import XCTApodini
 import XCTVapor
 import XCTest
 
+import _NIOConcurrency
 
+@available(macOS 12.0, *)
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
     let openMessage = "Open"
@@ -98,34 +100,6 @@ final class ConnectionTests: ApodiniTests {
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssert(res.body.string.contains("127.0.0.1:8080"))
-        }
-    }
-
-    func testConnectionEventLoop() throws {
-        struct TestHandler: Handler {
-            @Apodini.Environment(\.connection)
-            var connection: Connection
-
-            func handle() -> String {
-                connection.eventLoop.assertInEventLoop()
-                return "success"
-            }
-        }
-        
-        struct TestWebService: WebService {
-            var content: some Component {
-                TestHandler()
-            }
-
-            var configuration: Configuration {
-                REST()
-            }
-        }
-
-        TestWebService.start(app: app)
-
-        try app.vapor.app.test(.GET, "/v1/") { res in
-            XCTAssertEqual(res.status, .ok)
         }
     }
 }

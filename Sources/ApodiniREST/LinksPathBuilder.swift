@@ -5,6 +5,7 @@
 import Apodini
 import Foundation
 
+@available(macOS 12.0, *)
 struct LinksFormatter: RelationshipFormatter {
     let configuration: REST.Configuration
 

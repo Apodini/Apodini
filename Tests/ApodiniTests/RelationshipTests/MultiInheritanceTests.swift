@@ -6,6 +6,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
+@available(macOS 12.0, *)
 class MultiInheritanceTests: ApodiniTests {
     struct TestA: Content {
         var testA: String

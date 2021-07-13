@@ -13,6 +13,7 @@ import Apodini
 import ApodiniExtension
 
 /// Public Apodini Interface Exporter for gRPC
+@available(macOS 12.0, *)
 public final class GRPC: Configuration {
     let configuration: GRPC.ExporterConfiguration
     let staticConfigurations: [GRPCDependentStaticConfiguration]
@@ -37,6 +38,7 @@ public final class GRPC: Configuration {
 }
 
 /// Internal Apodini Interface Exporter for gRPC
+@available(macOS 12.0, *)
 final class GRPCInterfaceExporter: LegacyInterfaceExporter {
     let app: Apodini.Application
     let exporterConfiguration: GRPC.ExporterConfiguration
@@ -155,6 +157,7 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
 
 // MARK: Parameter retrieval utility
 
+@available(macOS 12.0, *)
 extension GRPCInterfaceExporter {
     /// Retrieves explicitly provided Protobuffer field tag, if exists,
     /// or uses default field tag that was generated in `export()`.

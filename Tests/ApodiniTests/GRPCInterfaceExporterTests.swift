@@ -40,6 +40,7 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
+@available(macOS 12.0, *)
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var exporterConfiguration: GRPC.ExporterConfiguration!

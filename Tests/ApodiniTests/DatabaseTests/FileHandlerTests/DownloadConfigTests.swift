@@ -4,6 +4,7 @@ import Vapor
 @testable import ApodiniDatabase
 import XCTApodini
 
+@available(macOS 12.0, *)
 final class DownloadConfigTests: FileHandlerTests {
     func testDownloadConfigInfo() throws {
         //Upload file

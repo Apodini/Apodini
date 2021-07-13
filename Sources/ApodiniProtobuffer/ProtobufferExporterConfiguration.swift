@@ -9,6 +9,7 @@ import Foundation
 import Apodini
 import ApodiniGRPC
 
+@available(macOS 12.0, *)
 extension Protobuffer {
     struct ExporterConfiguration {
         var parentConfiguration: GRPC.ExporterConfiguration

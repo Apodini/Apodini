@@ -16,6 +16,7 @@ import DeploymentTargetLocalhostCommon
 import DeploymentTargetAWSLambdaCommon
 
 
+@available(macOS 12.0, *)
 private struct TestWebService: Apodini.WebService {
     var content: some Component {
         Text("a")

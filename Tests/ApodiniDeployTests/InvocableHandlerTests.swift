@@ -28,7 +28,7 @@ extension Vapor.ContentContainer {
     }
 }
 
-
+@available(macOS 12.0, *)
 private struct TestWebService: Apodini.WebService {
     struct F: InvocableHandler {
         class HandlerIdentifier: ScopedHandlerIdentifier<F> {
@@ -40,6 +40,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
+    @available(macOS 12.0, *)
     struct FInvoker: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -94,7 +95,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
 
-
+    @available(macOS 12.0, *)
     struct Greeter: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -155,7 +156,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-    
+    @available(macOS 12.0, *)
     struct Calculator: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -199,7 +200,7 @@ private struct TestWebService: Apodini.WebService {
     }
 }
 
-
+@available(macOS 12.0, *)
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
         TestWebService.start(app: app)

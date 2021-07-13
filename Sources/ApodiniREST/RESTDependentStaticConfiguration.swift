@@ -8,6 +8,7 @@
 import Apodini
 
 /// `RESTDependentStaticConfiguration`s are used to register static services dependend on the `RESTInterfaceExporter`
+@available(macOS 12.0, *)
 public protocol RESTDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:
@@ -17,12 +18,14 @@ public protocol RESTDependentStaticConfiguration {
 }
 
 /// The default configuration is an `EmptyRESTDependentStaticConfiguration`
+@available(macOS 12.0, *)
 public struct EmptyRESTDependentStaticConfiguration: RESTDependentStaticConfiguration {
     public func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) { }
     
     public init() { }
 }
 
+@available(macOS 12.0, *)
 extension Array where Element == RESTDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:

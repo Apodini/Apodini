@@ -9,6 +9,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniGRPC
 
+@available(macOS 12.0, *)
 final class GRPCServiceTests: ApodiniTests {
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -26,6 +27,7 @@ final class GRPCServiceTests: ApodiniTests {
     }
 }
 
+@available(macOS 12.0, *)
 extension GRPCServiceTests {
     func testPrimitiveResponse() {
         let responseString = "Hello Moritz"
@@ -61,6 +63,7 @@ extension GRPCServiceTests {
     }
 }
 
+@available(macOS 12.0, *)
 extension GRPCServiceTests {
     func testWebServiceHelloWorld() throws {
         struct WebService: Apodini.WebService {

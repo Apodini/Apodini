@@ -7,6 +7,7 @@ import Apodini
 import ApodiniREST
 import OpenAPIKit
 
+@available(macOS 12.0, *)
 extension ApodiniOpenAPI.OpenAPI {
     /// A configuration structure for manually setting OpenAPI information and output locations.
     struct ExporterConfiguration {

@@ -301,13 +301,13 @@ public extension _Internal {
     }
     
     /// Evaluates the delegate using the given `state` and `request`.
-    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) throws -> H.Response {
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) async throws -> H.Response {
         do {
             delegate.inject(Connection(state: state, request: request), for: \Application.connection)
             try delegate.inject(using: request)
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
         }
-        return try delegate().handle()
+        return try await delegate().handle()
     }
 }

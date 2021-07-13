@@ -12,7 +12,7 @@ import XCTest
 import XCTApodini
 import ApodiniUtils
 
-
+@available(macOS 12.0, *)
 private struct TestWebService: Apodini.WebService {
     static let handler1Id = AnyHandlerIdentifier("handler1")
     static let handler2Id = AnyHandlerIdentifier("handler2")
@@ -57,7 +57,7 @@ private struct TestWebService: Apodini.WebService {
     }
 }
 
-
+@available(macOS 12.0, *)
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
         #if os(Linux)

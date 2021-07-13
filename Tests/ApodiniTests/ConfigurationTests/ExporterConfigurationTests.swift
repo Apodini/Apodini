@@ -34,6 +34,7 @@ extension XMLDecoder: ApodiniREST.AnyDecoder {
 }
 
 // swiftlint:disable type_name
+@available(macOS 12.0, *)
 class ExporterConfigurationTests: XCTestCase {
     func testExporterConfigurationWithDefaultEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
@@ -104,6 +105,7 @@ class ExporterConfigurationTests: XCTestCase {
     }
 }
 
+@available(macOS 12.0, *)
 class RESTExporterConfigurationTests: ApodiniTests {
     lazy var application = Vapor.Application(.testing)
 

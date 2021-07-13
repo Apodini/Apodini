@@ -11,6 +11,7 @@ import ApodiniExtension
 @_implementationOnly import Vapor
 
 // MARK: Unary request handler
+@available(macOS 12.0, *)
 extension GRPCService {
     func createUnaryHandler<H: Handler>(handler: H,
                                         strategy: AnyDecodingStrategy<GRPCMessage>,

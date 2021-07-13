@@ -12,7 +12,7 @@
 import XCTVapor
 import XCTApodini
 
-
+@available(macOS 12.0, *)
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)

@@ -9,6 +9,7 @@ import ApodiniOpenAPI
 
 
 /// Used to test the two deployment providers (localhost and Lambda).
+@available(macOS 12.0, *)
 @main
 struct WebService: Apodini.WebService {
     var content: some Component {

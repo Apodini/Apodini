@@ -8,6 +8,7 @@ import NIO
 import ApodiniVaporSupport
 
 /// Public Apodini Interface Exporter for REST
+@available(macOS 12.0, *)
 public final class REST: Configuration {
     let configuration: REST.ExporterConfiguration
     var staticConfigurations: [RESTDependentStaticConfiguration]
@@ -46,6 +47,7 @@ public final class REST: Configuration {
     }
 }
 
+@available(macOS 12.0, *)
 extension REST {
     /// Initializes the configuration of the `RESTInterfaceExporter` with (default) JSON Coders and possibly associated Exporters (eg. OpenAPI Exporter)
     /// - Parameters:
@@ -63,6 +65,7 @@ extension REST {
 }
 
 /// Internal Apodini Interface Exporter for REST
+@available(macOS 12.0, *)
 final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     

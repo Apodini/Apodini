@@ -11,7 +11,7 @@ import NIOHTTP1
 @_implementationOnly import Vapor
 import Apodini
 
-
+@available(macOS 12.0, *)
 struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
     unowned let internalInterfaceExporter: ApodiniDeployInterfaceExporter
     let endpoint: Endpoint<H>
@@ -86,7 +86,7 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
     }
 }
 
-
+@available(macOS 12.0, *)
 extension InternalInvocationResponder {
     struct Request: Codable {
         struct EncodedParameter: Codable {

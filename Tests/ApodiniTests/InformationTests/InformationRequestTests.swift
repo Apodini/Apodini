@@ -10,7 +10,7 @@
 import XCTApodini
 import Vapor
 
-
+@available(macOS 12.0, *)
 final class InformationRequestTests: XCTApodiniTest {
     func testInformationRequestWithRESTExporter() throws {
         struct InformationHandler: Handler {

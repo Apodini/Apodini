@@ -6,6 +6,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
+@available(macOS 12.0, *)
 class RelationshipDSLTests: ApodiniTests {
     struct User: Content, Identifiable {
         var id: Int

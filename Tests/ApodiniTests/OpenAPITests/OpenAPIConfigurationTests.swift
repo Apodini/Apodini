@@ -7,6 +7,7 @@ import XCTest
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
 
+@available(macOS 12.0, *)
 final class OpenAPIConfigurationTests: ApodiniTests {
     func testBuildDocumentWithConfiguration() throws {
         let configuredOutputFormat: OpenAPI.OutputFormat = .yaml

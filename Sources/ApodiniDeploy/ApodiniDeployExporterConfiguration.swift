@@ -11,6 +11,7 @@ import Apodini
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 
+@available(macOS 12.0, *)
 extension ApodiniDeploy {
     struct ExporterConfiguration {
         let runtimes: [DeploymentProviderRuntime.Type]

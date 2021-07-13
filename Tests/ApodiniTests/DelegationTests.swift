@@ -11,7 +11,7 @@ import XCTApodini
 import XCTVapor
 import XCTest
 
-
+@available(macOS 12.0, *)
 final class DelegationTests: ApodiniTests {
     class TestObservable: Apodini.ObservableObject {
         @Apodini.Published var date: Date

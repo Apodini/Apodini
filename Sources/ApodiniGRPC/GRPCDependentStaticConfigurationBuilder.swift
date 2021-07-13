@@ -6,6 +6,7 @@
 //
 
 /// A function builder used to aggregate multiple `GRPCDependentStaticConfiguration`s
+@available(macOS 12.0, *)
 @resultBuilder
 public enum GRPCDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `GRPCDependentStaticConfiguration`s

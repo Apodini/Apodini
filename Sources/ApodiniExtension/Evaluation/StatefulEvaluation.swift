@@ -172,7 +172,7 @@ public extension AsyncSequence where Element == Event {
                 
                 latestRequest = request
                 do {
-                    return .success(try await handler.evaluateAsync(using: request, with: connectionState))
+                    return .success(try await handler.evaluate(using: request, with: connectionState))
                 } catch {
                     return .failure(error)
                 }
@@ -184,7 +184,7 @@ public extension AsyncSequence where Element == Event {
                 }
                 
                 do {
-                    return .success(try await handler.evaluateAsync(trigger, using: request, with: connectionState))
+                    return .success(try await handler.evaluate(trigger, using: request, with: connectionState))
                 } catch {
                     return .failure(error)
                 }
@@ -198,6 +198,7 @@ public extension AsyncSequence where Element == Event {
 
 
 
+@available(macOS 12.0, *)
 extension CancellablePublisher where Output == Event {
     /// A `Publisher` that consumes the incoming ``Event``s and publishes
     /// a `Result` for each evaluation of the `handler` containing the `Response`
@@ -276,6 +277,7 @@ extension CancellablePublisher {
 
 // MARK: Handling Pure Request Evaluation
 
+@available(macOS 12.0, *)
 extension Publisher where Output: Request {
     func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
         _Internal.prepareIfNotReady(&handler)

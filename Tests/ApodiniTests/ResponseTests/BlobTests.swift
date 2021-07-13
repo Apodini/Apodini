@@ -11,7 +11,7 @@ import XCTApodini
 @testable import ApodiniOpenAPI
 import Vapor
 
-
+@available(macOS 12.0, *)
 final class BlobTests: ApodiniTests {
     func testBlobResponseHandler() throws {
         struct BlobResponseHandler: Handler {

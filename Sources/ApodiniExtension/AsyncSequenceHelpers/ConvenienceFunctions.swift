@@ -6,6 +6,8 @@
 //
 
 import _Concurrency
+import NIO
+import _NIOConcurrency
 
 @available(macOS 12.0, *)
 public extension AsyncSequence {
@@ -20,5 +22,18 @@ public extension AsyncSequence {
         Just({ try await self.reduce(into: [Element](), { result, element in
             result.append(element)
         })})
+    }
+}
+
+@available(macOS 12.0, *)
+public extension AsyncSequence {
+    func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Element?> {
+        let promise = eventLoop.makePromise(of: Element?.self)
+        
+        promise.completeWithAsync {
+            try await self.first(where: { _ in true })
+        }
+    
+        return promise.futureResult
     }
 }

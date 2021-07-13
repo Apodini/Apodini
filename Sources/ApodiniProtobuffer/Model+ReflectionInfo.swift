@@ -25,6 +25,7 @@ extension ProtobufferMessage {
     }
 }
 
+@available(macOS 12.0, *)
 extension ProtobufferMessage.Property {
     init?(_ info: ReflectionInfo) throws {
         guard info.typeInfo.type != HandleArrayDidEncounterCircle.self else {
@@ -54,6 +55,7 @@ extension ProtobufferMessage.Property {
     }
 }
 
+@available(macOS 12.0, *)
 fileprivate extension TypeInfo {
     func compatibleName() throws -> String {
         if isSupportedScalarType(type) {

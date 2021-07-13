@@ -4,6 +4,7 @@ import XCTest
 import ApodiniExtension
 
 /// Evaluates the given `handler` on the given `app` using the given `parameterValues`.
+@available(macOS 12.0, *)
 public func mockQuery<Value: Encodable, H: Handler>(
     handler: H,
     value: Value.Type,
