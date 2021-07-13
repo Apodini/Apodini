@@ -25,9 +25,11 @@ public struct VaporResponseTransformer<H: Handler>: ResultTransformer {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: input.responseStatus,
-                              headers: HTTPHeaders(input.information),
-                              body: body)
+        return Vapor.Response(
+            status: input.responseStatus,
+            headers: HTTPHeaders(input.information),
+            body: body
+        )
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {
@@ -41,15 +43,22 @@ public struct VaporBlobResponseTransformer: ResultTransformer {
     public func transform(input: Apodini.Response<Blob>) -> Vapor.Response {
         var body: Vapor.Response.Body
         
+        var information = input.information
+        
         if let content = input.content {
             body = Vapor.Response.Body(buffer: content.byteBuffer)
+            if let contentType = content.type?.description {
+                information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+            }
         } else {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: input.responseStatus,
-                              headers: HTTPHeaders(input.information),
-                              body: body)
+        return Vapor.Response(
+            status: input.responseStatus,
+            headers: HTTPHeaders(information),
+            body: body
+        )
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {
