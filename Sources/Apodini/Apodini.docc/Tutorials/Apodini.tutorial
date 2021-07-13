@@ -1,0 +1,12 @@
+@Tutorials(name: "Apodini") {
+    @Intro(title: "Meet Apodini") {
+        Build native Swift web services using Apodini. Get started with Apodini by builiding the demo app _Example_.
+        
+    }
+    
+    @Chapter(name: "Apodini Installation") {
+        Add Apodini as a project dependency and add the packages to the target.
+        
+        @TutorialReference(tutorial: "doc:Apodini Installation")
+    }
+}
