@@ -20,28 +20,7 @@ extension ApodiniError: AbortError {
     }
     
     public var headers: HTTPHeaders {
-        self.option(for: .httpHeaders)
-    }
-}
-
-
-// MARK: HTTPHeaders Option
-
-extension HTTPHeaders: ApodiniErrorCompliantOption {
-    public static func `default`(for type: ErrorType) -> HTTPHeaders {
-        HTTPHeaders()
-    }
-}
-
-
-extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == HTTPHeaders {
-    static let httpHeaders = PropertyOptionKey<ErrorOptionNameSpace, HTTPHeaders>()
-}
-
-extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
-    /// An option that holds the HTTP headers.
-    public static func httpHeaders(_ headers: HTTPHeaders) -> AnyPropertyOption<ErrorOptionNameSpace> {
-        AnyPropertyOption(key: .httpHeaders, value: headers)
+        HTTPHeaders(information)
     }
 }
 
@@ -75,7 +54,7 @@ extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Opt
 
 extension AnyPropertyOption where PropertyNameSpace == ErrorOptionNameSpace {
     /// An option that holds the HTTP response status.
-    public static func httpRespnoseStatus(_ code: HTTPResponseStatus) -> AnyPropertyOption<ErrorOptionNameSpace> {
+    public static func httpResponseStatus(_ code: HTTPResponseStatus) -> AnyPropertyOption<ErrorOptionNameSpace> {
         AnyPropertyOption(key: .httpResponseStatus, value: code)
     }
 }

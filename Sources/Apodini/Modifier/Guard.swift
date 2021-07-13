@@ -17,12 +17,12 @@ extension Component {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Never>> {
-        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`))
     }
 
     /// Resets all guards for the modified `Component`
     public func resetGuards() -> DelegationFilterModifier<Self> {
-        self.reset(using: GuardFilter(), prepend: true)
+        self.reset(using: GuardFilter())
     }
 }
 
@@ -31,7 +31,7 @@ extension Handler {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Response>> {
-        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`))
     }
 }
 
@@ -62,7 +62,7 @@ private protocol SomeGuardInitializer { }
 extension GuardingHandlerInitializer: SomeGuardInitializer { }
 
 
-private struct GuardFilter: DelegationFilter {
+struct GuardFilter: DelegationFilter {
     func callAsFunction<I>(_ initializer: I) -> Bool where I: AnyDelegatingHandlerInitializer {
         if initializer is SomeGuardInitializer {
             return false

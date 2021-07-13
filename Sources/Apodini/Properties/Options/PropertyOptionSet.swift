@@ -39,3 +39,17 @@ struct PropertyOptionSet<Property> {
         }
     }
 }
+
+extension PropertyOptionSet {
+    init(lhs: PropertyOptionSet<Property>, rhs: [AnyPropertyOption<Property>]) {
+        self.options = lhs.options
+
+        for option in rhs {
+            if let lhsOption = options[option.key] {
+                options[option.key] = option.key.combine(lhs: lhsOption, rhs: option.value)
+            } else {
+                options[option.key] = option.value
+            }
+        }
+    }
+}

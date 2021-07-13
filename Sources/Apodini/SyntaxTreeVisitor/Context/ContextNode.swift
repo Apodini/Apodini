@@ -146,10 +146,19 @@ class ContextNode {
     private func peekExportEntry<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> AnyContextEntry? {
         let id = ObjectIdentifier(contextKey)
 
+        var storedEntries = self.storedEntries[id]
+
+        for (key, value) in currentWorkingSet where key == id {
+            if storedEntries != nil {
+                storedEntries!.add(entry: value, derivedFromModifier: parsingModifier)
+            } else {
+                storedEntries = value.deriveCollection(entry: value, derivedFromModifier: parsingModifier)
+            }
+        }
+
         return [
             parentContextNode?.peekExportEntry(for: contextKey)?.filterLocalValues(),
-            storedEntries[id]?.joined(),
-            currentWorkingSet[id]
+            storedEntries?.joined()
         ]
             .compactMap { $0 }
             .reduceIntoFirst { first, entry in

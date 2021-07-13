@@ -12,10 +12,13 @@ import Vapor
 extension Vapor.HTTPHeaders {
     /// Creates a `Vapor``HTTPHeaders` instance based on an `Apodini` `Information` array.
     /// - Parameter information: The `Apodini` `Information` array that should be transformed in a `Vapor``HTTPHeaders` instance
-    public init(_ information: Set<AnyInformation>) {
+    public init(_ information: InformationSet) {
         self.init()
-        for (key, value) in information.map({ ($0.key, $0.rawValue) }) {
-            self.add(name: key, value: value)
+
+        for (header, value) in information
+            .compactMap({ $0 as? HTTPHeaderInformationClass })
+            .map({ $0.entry }) {
+            self.add(name: header, value: value)
         }
     }
 }

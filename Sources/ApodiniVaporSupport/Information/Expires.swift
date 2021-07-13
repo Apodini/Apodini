@@ -6,24 +6,23 @@
 //
 
 import Foundation
+import Apodini
 
 
 // MARK: ETag
-/// An `Information` carrying information about the expiration date of resources
-public struct Expires: Information {
-    private static let dateFormatter: DateFormatter = {
+/// An `HTTPInformation` carrying information about the expiration date of resources
+public struct Expires: HTTPInformation {
+    fileprivate static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US")
         dateFormatter.dateFormat = "EEE, dd LLL yyyy HH:mm:ss zzz"
         return dateFormatter
     }()
-    
-    public static var key: String {
-        "Expires"
-    }
+
+    public static let header = "Expires"
     
     
-    public private(set) var value: Date
+    public let value: Date
     
     
     public var rawValue: String {
@@ -38,17 +37,9 @@ public struct Expires: Information {
         
         self.init(date)
     }
-    
+
+    /// An `HTTPInformation` carrying information about the expiration date of resources
     public init(_ value: Date) {
         self.value = value
-    }
-}
-
-
-// MARK: - AnyInformation + ETag
-extension AnyInformation {
-    /// An `Information` carrying information about the expiration date of resources
-    public static func expires(_ eexpires: Expires.Value) -> AnyInformation {
-        AnyInformation(Expires(eexpires))
     }
 }

@@ -13,7 +13,7 @@ import XCTest
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
     _ expression: @escaping @autoclosure () -> T,
-    _ message: @autoclosure () -> String = "",
+    _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
     file: StaticString = #filePath,
     line: UInt = #line) {
     guard catchBadInstruction(in: { _ = expression() }) == nil else {

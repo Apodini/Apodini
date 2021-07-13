@@ -64,6 +64,8 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
 
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "0.0.4")),
+
         .package(url: "https://github.com/Supereg/Runtime.git", .branch("master")),
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
@@ -103,7 +105,8 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "OrderedCollections", package: "swift-collections")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -137,7 +140,8 @@ let package = Package(
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "SotoTestUtils", package: "soto-core")
+                .product(name: "SotoTestUtils", package: "soto-core"),
+                .product(name: "OrderedCollections", package: "swift-collections")
             ],
             resources: [
                 .process("Resources")

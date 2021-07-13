@@ -98,6 +98,8 @@ class ContextEntry<Key: OptionalContextKey>: AnyContextEntry {
             }
         }
 
+        Key.mapFinal(value: &value)
+
         return value
     }
 
