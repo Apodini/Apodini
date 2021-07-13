@@ -409,9 +409,8 @@ class RESTInterfaceExporterTests: ApodiniTests {
             XCTAssertEqual(response.headers["Content-Type"].first, "application/json; charset=utf-8")
             XCTAssertEqual(response.headers["Test"].first, "Test")
             XCTAssertEqual(response.status, .created)
-            XCTAssertEqual(
-                response.body.string,
-                """
+            
+            let firstPossibleJSON = """
                 {
                   "data" : "Paul",
                   "_links" : {
@@ -419,7 +418,16 @@ class RESTInterfaceExporterTests: ApodiniTests {
                   }
                 }
                 """
-            )
+            let secondPossibleJSON = """
+                {
+                  "_links" : {
+                    "self" : "http://127.0.0.1:8080/v1"
+                  },
+                  "data" : "Paul"
+                }
+                """
+            
+            XCTAssertTrue(response.body.string == firstPossibleJSON || response.body.string == secondPossibleJSON)
         }
     }
     

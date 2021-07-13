@@ -127,7 +127,10 @@ final class BlobTests: ApodiniTests {
         XCTAssertEqual(stringEncodedMimeType.subtype, "plain")
         XCTAssertEqual(stringEncodedMimeType.parameters["test"], "test")
         XCTAssertEqual(stringEncodedMimeType.parameters["test2"], "test")
-        XCTAssertEqual(stringEncodedMimeType.description, "text/plain;test=test;test2=test")
+        XCTAssertTrue(
+            stringEncodedMimeType.description == "text/plain;test=test;test2=test"
+            || stringEncodedMimeType.description == "text/plain;test2=test;test=test"
+        )
         
         let simpleEtringEncodedMimeType = try XCTUnwrap(MimeType("text/plain"))
         XCTAssertEqual(simpleEtringEncodedMimeType.type, "text")
