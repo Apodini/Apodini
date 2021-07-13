@@ -110,12 +110,11 @@ class ResultTransformerTests: XCTApodiniTest {
                     type: .badInput,
                     reason: "Nothing Wrong",
                     description: "This test case just needs an error with description🤷‍♂️",
-                    .init([
-                        .httpRespnoseStatus(.httpVersionNotSupported),
-                        .httpHeaders(.init(.init(arrayLiteral: ("headerName", "headerValue"))))
-                    ])))
-                                .transform(using: transformer)
-                                .wait()
+                    information: AnyHTTPInformation(key: "headerName", rawValue: "headerValue"),
+                    options: .httpResponseStatus(.httpVersionNotSupported))
+                )
+                .transform(using: transformer)
+                .wait()
             XCTFail("Should have thrown!")
         } catch {
             let abort = try XCTUnwrap(error as? AbortError)

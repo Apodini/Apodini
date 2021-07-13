@@ -26,7 +26,7 @@ public protocol RequestBasis {
     /// The remote address associated with this request.
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
-    var information: Set<AnyInformation> { get }
+    var information: InformationSet { get }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -36,7 +36,7 @@ public struct DefaultRequestBasis: RequestBasis {
     private let _debugDescription: String?
     
     public let remoteAddress: SocketAddress?
-    public let information: Set<AnyInformation>
+    public let information: InformationSet
     
     public var description: String {
         _description ?? "Request(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
@@ -50,7 +50,7 @@ public struct DefaultRequestBasis: RequestBasis {
     public init(description: String? = nil,
                 debugDescription: String? = nil,
                 remoteAddress: SocketAddress? = nil,
-                information: Set<AnyInformation> = []) {
+                information: InformationSet = []) {
         self._description = description
         self._debugDescription = debugDescription
         self.remoteAddress = remoteAddress
@@ -62,7 +62,7 @@ public struct DefaultRequestBasis: RequestBasis {
     /// ``DefaultRequestBasis/debugDescription`` properties.
     public init(base: Any,
                 remoteAddress: SocketAddress? = nil,
-                information: Set<AnyInformation> = []) {
+                information: InformationSet = []) {
         self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
                   debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
                   remoteAddress: remoteAddress,
@@ -161,7 +161,7 @@ public struct DecodingRequest<Input>: Request {
         basis.remoteAddress
     }
     
-    public var information: Set<AnyInformation> {
+    public var information: InformationSet {
         basis.information
     }
 }

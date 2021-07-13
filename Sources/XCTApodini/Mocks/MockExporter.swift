@@ -2,16 +2,31 @@
 // Created by Andreas Bauer on 25.12.20.
 //
 
+#if DEBUG || RELEASE_TESTING
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
 import ApodiniExtension
+import ApodiniUtils
 
 open class MockExporter<Request>: LegacyInterfaceExporter {
+    struct EndpointRepresentation<R> {
+        let endpoint: AnyEndpoint
+        let evaluateCallback: (_ request: Request, _ parameters: [Any??], _ app: Apodini.Application) throws -> Response<AnyEncodable>
+
+        internal init(_ endpoint: AnyEndpoint,
+                      _ evaluateCallback: @escaping (Request, [Any??], Apodini.Application) throws -> Response<AnyEncodable>) {
+            self.endpoint = endpoint
+            self.evaluateCallback = evaluateCallback
+        }
+    }
+
     var parameterValues: [Any??] = []
     
     let onExport: (AnyEndpoint) -> Void
     let onFinished: (WebServiceModel) -> Void
+
+    var endpoints: [EndpointRepresentation<Request>] = []
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter
     public init(queued parameterValues: Any??...,
@@ -31,13 +46,26 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
         self.onFinished = onFinished
     }
 
-    public required init(_ app: Apodini.Application) {
+    public required init() {
         self.onExport = { _ in }
         self.onFinished = { _ in }
     }
 
     open func export<H: Handler>(_ endpoint: Endpoint<H>) {
         onExport(endpoint)
+
+        endpoints.append(EndpointRepresentation(endpoint) { request, parameters, app in
+            self.append(injected: parameters)
+            let context = endpoint.createConnectionContext(for: self)
+
+            let (response, _) = try context.handleAndReturnParameters(
+                request: request,
+                eventLoop: app.eventLoopGroup.next(),
+                final: true)
+                .wait()
+
+            return response.typeErasured
+        })
     }
 
     open func finishedExporting(_ webService: WebServiceModel) {
@@ -50,6 +78,16 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
 
     public func append(injected: [Any??]) {
         parameterValues.append(contentsOf: injected)
+    }
+
+    public func request(on index: Int, request: Request, with app: Apodini.Application, parameters: Any??...) -> Response<AnyEncodable> {
+        let executable = endpoints[index].evaluateCallback
+
+        do {
+            return try executable(request, parameters, app)
+        } catch {
+            fatalError("Error when handling MockExporter<\(Request.self)> request: \(error)")
+        }
     }
 
     public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
@@ -72,3 +110,4 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
         return casted
     }
 }
+#endif

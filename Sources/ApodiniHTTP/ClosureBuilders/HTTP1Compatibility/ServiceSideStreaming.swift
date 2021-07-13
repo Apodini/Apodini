@@ -39,7 +39,7 @@ extension Exporter {
                 .collect()
                 .tryMap { (responses: [Apodini.Response<H.Response.Content>]) in
                     let status: Status? = responses.last?.status
-                    let information: Set<AnyInformation> = responses.last?.information ?? []
+                    let information: InformationSet = responses.last?.information ?? []
                     let content: [H.Response.Content] = responses.compactMap { response in
                         response.content
                     }

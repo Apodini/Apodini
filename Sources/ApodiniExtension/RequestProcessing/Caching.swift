@@ -44,7 +44,7 @@ public class CachingRequest: WithRequest {
 
     public lazy var remoteAddress: SocketAddress? = request.remoteAddress
     
-    public lazy var information: Set<AnyInformation> = request.information
+    public lazy var information: InformationSet = request.information
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
         if let cached = cache[parameter.id] {
