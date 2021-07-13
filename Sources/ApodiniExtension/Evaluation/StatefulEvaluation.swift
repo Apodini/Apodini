@@ -30,13 +30,11 @@ public extension AsyncSequence where Element: Request {
             Event.request(request)
         }
         .append([Event.end].asAsyncSequence)
-        .debug(onMake: { print("SUBSCRIBE 0 Make \($0)") }, onNext: { print("SUBSCRIBE 0 Next") }, afterNext:  { print("SUBSCRIBE 0 Return \($0)") }, onError:  { print("SUBSCRIBE 0 Throw \($0)") })
         .typeErased
         
         let observations: AnyAsyncSequence<Event> = AsyncSubscribingSequence(handler).map { triggerEvent in
             Event.trigger(triggerEvent)
         }
-        .debug(onMake: { print("SUBSCRIBE 1 Make \($0)") }, onNext: { print("SUBSCRIBE 1 Next") }, afterNext:  { print("SUBSCRIBE 1 Return \($0)") }, onError:  { print("SUBSCRIBE 1 Throw \($0)") })
         .typeErased
         
         return upstream.merge(with: observations)
@@ -155,10 +153,8 @@ public extension AsyncSequence where Element == Event {
             case .end:
                 connectionState = .end
                 if let request = latestRequest {
-                    print("--------> END (\(request))")
                     return .request(request)
                 } else {
-                    print("--------> END (nil)")
                     return .end
                 }
             default:
@@ -168,8 +164,6 @@ public extension AsyncSequence where Element == Event {
         .compactMap { (event: Event) async throws -> Result<Response<H.Response.Content>, Error>? in
             switch event {
             case let .request(request):
-                print("--------> REQUEST (\(request))")
-                
                 latestRequest = request
                 do {
                     return .success(try await handler.evaluate(using: request, with: connectionState))
@@ -177,8 +171,6 @@ public extension AsyncSequence where Element == Event {
                     return .failure(error)
                 }
             case let .trigger(trigger):
-                print("--------> TRIGGER (\(trigger))")
-                
                 guard let request = latestRequest else {
                     fatalError("Cannot handle TriggerEvent before first Request!")
                 }

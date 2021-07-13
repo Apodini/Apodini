@@ -45,55 +45,45 @@ extension AsyncMergeSequence {
         }
         
         public func next() async throws -> Element? {
-            print("next.lock()")
             _lock.lock()
             
             if let latestBase = latestBase {
                 self.latestBase = nil
                 _lock.unlock()
-                print("next.unlock() 1")
                 return try latestBase.get()
             }
             
             if let latestOther = latestOther {
                 self.latestOther = nil
                 _lock.unlock()
-                print("next.unlock() 2")
                 return try latestOther.get()
             }
             
             if base == nil && other == nil {
                 _lock.unlock()
-                print("next.unlock() 3")
                 return nil
             }
             
             return try await withCheckedThrowingContinuation { continuation in
                 self.continuation = continuation
                 _lock.unlock()
-                print("next.(continuation).unlock()")
                 
                 Task {
-                    print("baseTask.lock() 1")
                     _lock.lock()
                     guard var base = self.base, !baseBusy else {
                         _lock.unlock()
-                        print("baseTask.unlock() 1")
                         return
                     }
                     baseBusy = true
                     _lock.unlock()
-                    print("baseTask.unlock() 1")
                     do {
                         let next = try await base.next()
-                        print("baseTask.lock() 2")
                         _lock.lock()
                         if self.base != nil {
                             self.base = base
                             baseBusy = false
                         }
                         _lock.unlock()
-                        print("baseTask.unlock() 2")
                         self.handle(result: .success(next), base: true)
                     } catch {
                         self.handle(result: .failure(error), base: true)
@@ -101,26 +91,21 @@ extension AsyncMergeSequence {
                 }
                 
                 Task {
-                    print("otherTask.lock() 1")
                     _lock.lock()
                     guard var other = self.other, !otherBusy else {
                         _lock.unlock()
-                        print("otherTask.unlock() 1")
                         return
                     }
                     otherBusy = true
                     _lock.unlock()
-                    print("otherTask.unlock() 1")
                     do {
                         let next = try await other.next()
-                        print("otherTask.lock() 2")
                         _lock.lock()
                         if self.other != nil {
                             self.other = other
                             otherBusy = false
                         }
                         _lock.unlock()
-                        print("otherTask.unlock() 2")
                         self.handle(result: .success(next), base: false)
                     } catch {
                         self.handle(result: .failure(error), base: false)
@@ -130,7 +115,6 @@ extension AsyncMergeSequence {
         }
         
         private func handle(result: Result<Element?, Error>, base: Bool) {
-            print("handle(\(base)).lock()")
             _lock.lock()
             
             switch result {
@@ -141,7 +125,6 @@ extension AsyncMergeSequence {
                 if let continuation = continuation {
                     self.continuation = nil
                     _lock.unlock()
-                    print("handle(\(base)).unlock()")
                     continuation.resume(throwing: error)
                     return
                 } else {
@@ -151,7 +134,6 @@ extension AsyncMergeSequence {
                         self.latestOther = .failure(error)
                     }
                     _lock.unlock()
-                    print("handle(\(base)).unlock()")
                     return
                 }
             case let .success(result):
@@ -167,13 +149,11 @@ extension AsyncMergeSequence {
                     if let value = result {
                         self.continuation = nil
                         _lock.unlock()
-                        print("handle(\(base)).unlock()")
                         continuation.resume(returning: value)
                         return
                     } else if self.base == nil && self.other == nil {
                         self.continuation = nil
                         _lock.unlock()
-                        print("handle(\(base)).unlock()")
                         continuation.resume(returning: nil)
                         return
                     }
@@ -186,12 +166,10 @@ extension AsyncMergeSequence {
                         }
                     }
                     _lock.unlock()
-                    print("handle(\(base)).unlock()")
                     return
                 }
             }
             _lock.unlock()
-            print("handle(\(base)).unlock()")
         }
     }
 }

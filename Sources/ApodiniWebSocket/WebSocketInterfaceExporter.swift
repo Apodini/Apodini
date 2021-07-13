@@ -227,31 +227,3 @@ extension ApodiniError {
     }
 }
 #endif
-
-// MARK: PublisherSubscription
-
-struct PublisherSubscription<P: Publisher>: Subscribable {
-    let publisher: P
-    
-    func register(_ callback: @escaping (PublisherEvent) -> Void) -> AnyCancellable {
-        return publisher.sink(receiveCompletion: { completion in
-            Swift.print("Publisher Completion: \(completion)")
-            callback(.completion(completion))
-        }, receiveValue: { output in
-            Swift.print("Publisher Output: \(output)")
-            callback(.output(output))
-        })
-    }
-    
-    enum PublisherEvent: CompletionCandidate {
-        case completion(Subscribers.Completion<P.Failure>)
-        case output(P.Output)
-        
-        var isCompletion: Bool {
-            if case .completion(_) = self {
-                return true
-            }
-            return false
-        }
-    }
-}

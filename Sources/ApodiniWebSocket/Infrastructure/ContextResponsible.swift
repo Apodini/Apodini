@@ -30,7 +30,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         var onInput: ((InputEvent) -> Void)?
         
         func register(_ callback: @escaping (InputEvent) -> Void) {
-            print("WS Subscribable connected")
             self.onInput = callback
         }
     }
@@ -131,8 +130,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         self.sendError = sendError
         self.destruct = destruct
         self.close = close
-        
-        print("WS INIT COMPLETE")
     }
     
     func receive(_ parameters: [String: Any], _ data: Data) throws {
@@ -150,7 +147,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             throw InputError.missing(parameters)
         case .ok:
             self.input.apply()
-            print("WS SENDING OUTPUT")
             self.inputReceiver.onInput?(.input(self.input))
         }
     }

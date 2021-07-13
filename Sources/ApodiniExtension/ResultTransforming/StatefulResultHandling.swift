@@ -15,13 +15,10 @@ extension AsyncSequence {
     public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
         self.cancel(if: { result in
             if case let .success(response) = result {
-                print(response.connectionEffect == .close)
                 return response.connectionEffect == .close
             }
-            print("false")
             return false
         })
-        .debug(onMake: { print("TRANSFORM 1 Make \($0)") }, onNext: { print("TRANSFORM 1 Next") }, afterNext:  { print("TRANSFORM 1 Return \($0)") }, onError:  { print("TRANSFORM 1 Throw \($0)") })
         .compactMap  { result throws -> Result<T.Output, Error>? in
             switch result {
             case let .success(response):
