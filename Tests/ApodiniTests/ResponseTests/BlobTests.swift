@@ -136,6 +136,14 @@ final class BlobTests: ApodiniTests {
         XCTAssertEqual(simpleEtringEncodedMimeType.type, "text")
         XCTAssertEqual(simpleEtringEncodedMimeType.subtype, "plain")
         XCTAssertEqual(simpleEtringEncodedMimeType.description, "text/plain")
+        
+        
+        XCTAssertNil(MimeType("text"))
+        XCTAssertEqual(MimeType("text/plain;parameter"), MimeType(type: "text", subtype: "plain"))
+        XCTAssertEqual(MimeType("text/markdown"), MimeType(type: "text", subtype: "markdown"))
+        XCTAssertEqual(MimeType("application/widget"), MimeType(type: "application", subtype: "widget"))
+        XCTAssertEqual(MimeType("image/tiff"), MimeType(type: "image", subtype: "tiff"))
+        XCTAssertEqual(MimeType("video/mp4"), MimeType(type: "video", subtype: "mp4"))
     }
     
     func testMIMEDecoding() throws {
