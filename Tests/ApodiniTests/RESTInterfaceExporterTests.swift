@@ -381,4 +381,84 @@ class RESTInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(restoredHeaders.first(name: .authorization), value)
         XCTAssertEqual(restoredHeaders.first(name: .eTag), "W/\"someTag\"")
     }
+    
+    func testRESTInformation() throws {
+        struct InformationHandler: Handler {
+            func handle() -> Apodini.Response<String> {
+                Response.send(
+                    "Paul",
+                    status: .created,
+                    information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
+                )
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                InformationHandler()
+            }
+            
+            var configuration: Configuration {
+                REST()
+            }
+        }
+        
+        TestWebService.start(app: app, webService: TestWebService())
+
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers["Content-Type"].first, "application/json; charset=utf-8")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+            XCTAssertEqual(response.status, .created)
+            
+            let firstPossibleJSON = """
+                {
+                  "data" : "Paul",
+                  "_links" : {
+                    "self" : "http://127.0.0.1:8080/v1"
+                  }
+                }
+                """
+            let secondPossibleJSON = """
+                {
+                  "_links" : {
+                    "self" : "http://127.0.0.1:8080/v1"
+                  },
+                  "data" : "Paul"
+                }
+                """
+            
+            XCTAssertTrue(response.body.string == firstPossibleJSON || response.body.string == secondPossibleJSON)
+        }
+    }
+    
+    func testRESTBlobInformation() throws {
+        struct BlobInformationHandler: Handler {
+            func handle() -> Apodini.Response<Blob> {
+                Response.send(
+                    Blob(ByteBuffer(), type: .application(.pdf)),
+                    status: .created,
+                    information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
+                )
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                BlobInformationHandler()
+            }
+            
+            var configuration: Configuration {
+                REST()
+            }
+        }
+        
+        TestWebService.start(app: app, webService: TestWebService())
+
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+            XCTAssertEqual(response.status, .created)
+            XCTAssertEqual(response.body.readableBytes, 0)
+        }
+    }
 }

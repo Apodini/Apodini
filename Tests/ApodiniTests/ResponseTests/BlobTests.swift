@@ -28,10 +28,11 @@ final class BlobTests: ApodiniTests {
         let mimeTypes = [
             MimeType.text(.html, parameters: ["Test": "Test"]),
             MimeType.application(.json),
-            MimeType.image(.gif)
+            MimeType.image(.gif),
+            MimeType.custom(type: "application", subtype: "pkcs8", parameters: ["Test": "Test"])
         ]
         
-        let exporter = MockExporter<String>(queued: mimeTypes[0], mimeTypes[1], mimeTypes[2])
+        let exporter = MockExporter<String>(queued: mimeTypes[0], mimeTypes[1], mimeTypes[2], mimeTypes[3])
         let context = endpoint.createConnectionContext(for: exporter)
 
         try XCTCheckResponse(
@@ -49,6 +50,12 @@ final class BlobTests: ApodiniTests {
         try XCTCheckResponse(
             context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
             content: Blob(Data(), type: mimeTypes[2]),
+            connectionEffect: .close
+        )
+        
+        try XCTCheckResponse(
+            context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
+            content: Blob(Data(), type: mimeTypes[3]),
             connectionEffect: .close
         )
     }
@@ -72,13 +79,14 @@ final class BlobTests: ApodiniTests {
             withExporterConfiguration: REST.ExporterConfiguration(),
             for: endpoint,
             rendpoint,
-            on: exporter)
+            on: exporter
+        )
         
         
         func makeRequest(blobContent: String, mimeType: MimeType) throws {
             let request = Vapor.Request(
                 application: app.vapor.app,
-                method: .GET,
+                method: .POST,
                 url: URI("https://ase.in.tum.de/schmiedmayer?name=\(blobContent)"),
                 collectedBody: ByteBuffer(data: try JSONEncoder().encode(mimeType)),
                 on: app.eventLoopGroup.next()
@@ -112,6 +120,36 @@ final class BlobTests: ApodiniTests {
         XCTAssert(encodedBlob.contains(#""subtype" : "plain""#))
     }
     
+    func testMIMEToAndFromString() throws {
+        let stringEncodedMimeType = try XCTUnwrap(MimeType("text/plain;test=test;test2=test"))
+        
+        XCTAssertEqual(stringEncodedMimeType.type, "text")
+        XCTAssertEqual(stringEncodedMimeType.subtype, "plain")
+        XCTAssertEqual(stringEncodedMimeType.parameters["test"], "test")
+        XCTAssertEqual(stringEncodedMimeType.parameters["test2"], "test")
+        XCTAssertTrue(
+            stringEncodedMimeType.description == "text/plain;test=test;test2=test"
+            || stringEncodedMimeType.description == "text/plain;test2=test;test=test"
+        )
+        
+        let simpleEtringEncodedMimeType = try XCTUnwrap(MimeType("text/plain"))
+        XCTAssertEqual(simpleEtringEncodedMimeType.type, "text")
+        XCTAssertEqual(simpleEtringEncodedMimeType.subtype, "plain")
+        XCTAssertEqual(simpleEtringEncodedMimeType.description, "text/plain")
+        
+        let customMimeType = MimeType.custom(type: "video", subtype: "mp4")
+        XCTAssertEqual(customMimeType.type, "video")
+        XCTAssertEqual(customMimeType.subtype, "mp4")
+        XCTAssertEqual(customMimeType.parameters, [:])
+        
+        XCTAssertNil(MimeType("text"))
+        XCTAssertEqual(MimeType("text/plain;parameter"), MimeType(type: "text", subtype: "plain"))
+        XCTAssertEqual(MimeType("text/markdown"), MimeType(type: "text", subtype: "markdown"))
+        XCTAssertEqual(MimeType("application/widget"), MimeType(type: "application", subtype: "widget"))
+        XCTAssertEqual(MimeType("image/tiff"), MimeType(type: "image", subtype: "tiff"))
+        XCTAssertEqual(MimeType("video/mp4"), MimeType(type: "video", subtype: "mp4"))
+    }
+    
     func testMIMEDecoding() throws {
         let validMIMEJSON =
             """
@@ -136,7 +174,7 @@ final class BlobTests: ApodiniTests {
             """
             {
               "type" : "myFancyType",
-              "subtype" : "plain",
+              "subtypes" : "plain",
               "parameters" : {
             
               }
