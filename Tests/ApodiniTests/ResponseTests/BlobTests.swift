@@ -137,6 +137,10 @@ final class BlobTests: ApodiniTests {
         XCTAssertEqual(simpleEtringEncodedMimeType.subtype, "plain")
         XCTAssertEqual(simpleEtringEncodedMimeType.description, "text/plain")
         
+        let customMimeType = MimeType.custom(type: "video", subtype: "mp4")
+        XCTAssertEqual(customMimeType.type, "video")
+        XCTAssertEqual(customMimeType.subtype, "mp4")
+        XCTAssertEqual(customMimeType.parameters, [:])
         
         XCTAssertNil(MimeType("text"))
         XCTAssertEqual(MimeType("text/plain;parameter"), MimeType(type: "text", subtype: "plain"))
