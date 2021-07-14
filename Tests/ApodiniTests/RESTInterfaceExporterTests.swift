@@ -383,7 +383,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
     
     func testRESTInformation() throws {
-        struct BlobInformationHandler: Handler {
+        struct InformationHandler: Handler {
             func handle() -> Apodini.Response<String> {
                 Response.send(
                     "Paul",
@@ -395,7 +395,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         struct TestWebService: WebService {
             var content: some Component {
-                BlobInformationHandler()
+                InformationHandler()
             }
             
             var configuration: Configuration {
