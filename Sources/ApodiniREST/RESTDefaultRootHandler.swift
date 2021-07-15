@@ -7,7 +7,6 @@ import Vapor
 
 /// A RoutesHandler which is automatically registered to the root path
 /// if there is no Endpoint registered under the root, in order to server entry point links.
-@available(macOS 12.0, *)
 struct RESTDefaultRootHandler {
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration

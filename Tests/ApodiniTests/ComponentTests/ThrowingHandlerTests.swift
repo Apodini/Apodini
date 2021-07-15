@@ -12,7 +12,6 @@ import XCTest
 import Fluent
 import Vapor
 
-@available(macOS 12.0, *)
 class ThrowingErrorTests: ApodiniTests {
     struct MyError: Codable, Error {
         let reason: String

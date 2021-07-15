@@ -5,7 +5,6 @@
 import Vapor
 import XCTApodini
 
-@available(macOS 12.0, *)
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {
         self.app.vapor.app

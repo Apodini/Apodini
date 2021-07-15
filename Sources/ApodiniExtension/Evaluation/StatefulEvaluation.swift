@@ -19,7 +19,6 @@ extension TriggerEvent: CompletionCandidate {
     public var isCompletion: Bool { false }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element: Request {
     func subscribe<H: Handler>(to handler: inout Delegate<H>) -> AsyncMergeSequence<AnyAsyncSequence<Event>, AnyAsyncSequence<Event>> {
         _Internal.prepareIfNotReady(&handler)
@@ -137,7 +136,6 @@ extension Publisher {
 
 // MARK: Handling Event Evaluation
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element == Event {
     func evaluate<H: Handler>(on handler: inout Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, Error>> {
         _Internal.prepareIfNotReady(&handler)
@@ -190,7 +188,6 @@ public extension AsyncSequence where Element == Event {
 
 
 
-@available(macOS 12.0, *)
 extension CancellablePublisher where Output == Event {
     /// A `Publisher` that consumes the incoming ``Event``s and publishes
     /// a `Result` for each evaluation of the `handler` containing the `Response`
@@ -269,7 +266,6 @@ extension CancellablePublisher {
 
 // MARK: Handling Pure Request Evaluation
 
-@available(macOS 12.0, *)
 extension Publisher where Output: Request {
     func evaluate<H: Handler>(on handler: inout Delegate<H>) -> Publishers.SyncMap<Self, Response<H.Response.Content>> {
         _Internal.prepareIfNotReady(&handler)

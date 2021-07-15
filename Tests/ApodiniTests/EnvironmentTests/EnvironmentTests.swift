@@ -9,7 +9,6 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-@available(macOS 12.0, *)
 final class EnvironmentTests: ApodiniTests {
     struct BirdHandler: Handler {
         @Apodini.Environment(\.birdFacts) var birdFacts: BirdFacts

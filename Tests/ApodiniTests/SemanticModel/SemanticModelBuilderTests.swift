@@ -10,7 +10,6 @@
 import Vapor
 import XCTApodini
 
-@available(macOS 12.0, *)
 final class SemanticModelBuilderTests: ApodiniTests {
     struct TestHandler: Handler {
         @Binding

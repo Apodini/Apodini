@@ -7,7 +7,6 @@ import XCTApodini
 @testable import Apodini
 @testable import ApodiniREST
 
-@available(macOS 12.0, *)
 class RelationshipExporter: MockExporter<String> {
     struct EndpointRepresentation {
         let endpoint: AnyEndpoint
@@ -59,7 +58,6 @@ class RelationshipExporter: MockExporter<String> {
     }
 }
 
-@available(macOS 12.0, *)
 class RelationshipExporterRetriever: InterfaceExporterVisitor {
     private var exporter: RelationshipExporter?
 

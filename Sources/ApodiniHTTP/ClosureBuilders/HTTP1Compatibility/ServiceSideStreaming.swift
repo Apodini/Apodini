@@ -11,7 +11,6 @@ import ApodiniExtension
 import ApodiniVaporSupport
 import Vapor
 
-@available(macOS 12.0, *)
 extension Exporter {
     // MARK: Service Streaming Closure
     

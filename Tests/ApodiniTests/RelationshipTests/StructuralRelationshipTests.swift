@@ -5,7 +5,6 @@
 import XCTest
 @testable import Apodini
 
-@available(macOS 12.0, *)
 class RelationshipTests: ApodiniTests {
     @PathParameter
     var id: String

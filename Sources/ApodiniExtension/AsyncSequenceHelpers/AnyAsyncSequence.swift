@@ -7,7 +7,6 @@
 
 import _Concurrency
 
-@available(macOS 12.0, *)
 public struct AnyAsyncSequence<Element>: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl
     
@@ -24,7 +23,6 @@ public struct AnyAsyncSequence<Element>: AsyncSequence {
     }
 }
 
-@available(macOS 12.0, *)
 extension AnyAsyncSequence {
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         private let _next: (Any) async throws -> (Any, Element?)
@@ -50,7 +48,6 @@ extension AnyAsyncSequence {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence {
     var typeErased: AnyAsyncSequence<Element> {
         AnyAsyncSequence(self)

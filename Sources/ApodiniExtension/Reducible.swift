@@ -31,7 +31,6 @@ public protocol Initializable: Reducible {
     init(_ initial: Input)
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element: Reducible {
     func reduce() -> AsyncMapSequence<Self, Element> where Element.Input == Element {
         var last: Element?
@@ -44,7 +43,6 @@ public extension AsyncSequence where Element: Reducible {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence {
     func reduce<R: Initializable>(_ type: R.Type = R.self) -> AsyncMapSequence<Self, R> where Element == R.Input {
         var last: R?

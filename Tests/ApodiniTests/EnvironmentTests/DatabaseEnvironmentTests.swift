@@ -3,7 +3,6 @@ import protocol Fluent.Database
 import XCTApodini
 @testable import Apodini
 
-@available(macOS 12.0, *)
 final class DatabaseEnvironmentTests: ApodiniTests {
     struct DatabaseComponent: Handler {
         @Apodini.Environment(\.database) var database: Database

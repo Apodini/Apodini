@@ -13,7 +13,6 @@ import XCTest
 
 import _NIOConcurrency
 
-@available(macOS 12.0, *)
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
     let openMessage = "Open"

@@ -7,7 +7,6 @@
 import Vapor
 import XCTApodini
 
-@available(macOS 12.0, *)
 class RESTInterfaceExporterTests: ApodiniTests {
     lazy var application = Vapor.Application(.testing)
 

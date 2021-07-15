@@ -12,7 +12,6 @@ import XCTest
 import XCTApodini
 import ApodiniREST
 
-@available(macOS 12.0, *)
 final class BindingTests: ApodiniTests, EnvironmentAccessible {
     struct Greeter: Handler {
         @Binding var country: String?

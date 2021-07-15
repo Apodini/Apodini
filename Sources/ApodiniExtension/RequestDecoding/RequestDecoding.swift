@@ -101,7 +101,6 @@ extension DecodingStrategy {
     }
 }
 
-@available(macOS 12.0, *)
 extension AsyncSequence {
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {

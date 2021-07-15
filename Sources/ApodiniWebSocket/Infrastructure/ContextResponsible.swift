@@ -20,7 +20,6 @@ protocol ContextResponsible {
 
 
 
-@available(macOS 12.0, *)
 class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     class Subscribable: ApodiniExtension.Subscribable {
         typealias Event = InputEvent

@@ -10,7 +10,6 @@ import Apodini
 import OpenCombine
 import _Concurrency
 
-@available(macOS 12.0, *)
 extension AsyncSequence {
     public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
         self.cancel(if: { result in

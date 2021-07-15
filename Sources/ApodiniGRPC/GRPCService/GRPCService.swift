@@ -15,7 +15,6 @@ import ApodiniVaporSupport
 
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
-@available(macOS 12.0, *)
 class GRPCService {
     private let app: Apodini.Application
     private let exporterConfiguration: GRPC.ExporterConfiguration
@@ -102,7 +101,6 @@ class GRPCService {
 }
 
 // MARK: Encoding response
-@available(macOS 12.0, *)
 extension GRPCService {
     /// Encodes the given encodable value
     /// to  `Data` using Protobuffer encoding

@@ -10,7 +10,6 @@ import OpenCombine
 import Apodini
 import ApodiniUtils
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element: Request {
     func validateParameterMutability() -> AsyncMapSequence<Self, MutabilityValidatingRequest<Element>> {
         self.reduce()

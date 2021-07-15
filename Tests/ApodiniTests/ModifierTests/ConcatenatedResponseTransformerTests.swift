@@ -10,7 +10,6 @@ import XCTVapor
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-@available(macOS 12.0, *)
 final class ConcatenatedResponseTransformerTests: ApodiniTests {
     private static var firstResponseMediatorExpectation: XCTestExpectation?
     private static var secondResponseMediatorExpectation: XCTestExpectation?

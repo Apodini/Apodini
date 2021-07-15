@@ -4,7 +4,6 @@
 import Vapor
 import XCTApodini
 
-@available(macOS 12.0, *)
 final class DownloaderTests: FileHandlerTests {
     func testSingleDownloader() throws {
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))

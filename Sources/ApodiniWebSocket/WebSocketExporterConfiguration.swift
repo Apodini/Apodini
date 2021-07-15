@@ -7,7 +7,6 @@
 
 import Apodini
 
-@available(macOS 12.0, *)
 extension WebSocket {
     /// /// Configuration of the `WebSocketInterfaceExporter`
     public struct ExporterConfiguration {

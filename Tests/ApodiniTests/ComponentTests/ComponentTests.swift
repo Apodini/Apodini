@@ -13,7 +13,6 @@ import XCTest
 import XCTApodini
 
 
-@available(macOS 12.0, *)
 class ComponentTests: ApodiniTests {
     func testPreconditionTypeIsStruct() throws {
         class TestClass {}

@@ -9,7 +9,6 @@
 import Vapor
 import XCTApodini
 
-@available(macOS 12.0, *)
 class StateTests: ApodiniTests {
     struct CountGuard: Guard {
         @State var count: Int = 0

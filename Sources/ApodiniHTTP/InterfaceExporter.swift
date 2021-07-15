@@ -16,7 +16,6 @@ import Logging
 // MARK: HTTP Declaration
 
 /// Public Apodini Interface Exporter for basic HTTP
-@available(macOS 12.0, *)
 public final class HTTP: Configuration {
     let configuration: ExporterConfiguration
     
@@ -53,7 +52,6 @@ public final class HTTP: Configuration {
 
 // MARK: Exporter
 
-@available(macOS 12.0, *)
 struct Exporter: InterfaceExporter {
     let app: Apodini.Application
     

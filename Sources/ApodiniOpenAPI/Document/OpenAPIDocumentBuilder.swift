@@ -8,7 +8,6 @@ import OpenAPIKit
 
 /// Creates the OpenAPI specification document
 /// https://swagger.io/specification/#openapi-object
-@available(macOS 12.0, *)
 struct OpenAPIDocumentBuilder {
     var document: OpenAPIKit.OpenAPI.Document {
         self.build()

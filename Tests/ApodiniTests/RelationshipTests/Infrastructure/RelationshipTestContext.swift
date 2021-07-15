@@ -9,7 +9,6 @@ import XCTest
 @testable import Apodini
 import ApodiniUtils
 
-@available(macOS 12.0, *)
 class RelationshipTestContext {
     let app: Application
     let exporter: RelationshipExporter

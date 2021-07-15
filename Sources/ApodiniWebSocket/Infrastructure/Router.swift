@@ -37,7 +37,6 @@ enum Message<T> {
 /// A `Router` provides an endpoint-based, typed abstraction of a WebSocket connection. It uses
 /// a spcific `Input` for each `register`ed endpoint to maintain state and possibly also check
 /// validity of incoming messages. Each endpoint is identified by its `identifier`.
-@available(macOS 12.0, *)
 protocol Router {
     /// A `Router`-specific type that carries information about an incoming connection.
     associatedtype ConnectionInformation
@@ -103,7 +102,6 @@ protocol Router {
 ///         "error": <Errors>
 ///     }
 ///
-@available(macOS 12.0, *)
 final class VaporWSRouter: Router {
     typealias ConnectionInformation = Vapor.Request
     

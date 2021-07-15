@@ -12,7 +12,6 @@ import ApodiniHTTP
 @testable import Apodini
 import XCTVapor
 
-@available(macOS 12.0, *)
 class EndToEndTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -73,6 +72,7 @@ class EndToEndTests: XCTApodiniTest {
                 return .send("\(start - counter)...")
             }
         }
+        
         
         var metadata: AnyHandlerMetadata {
             Pattern(.serviceSideStream)

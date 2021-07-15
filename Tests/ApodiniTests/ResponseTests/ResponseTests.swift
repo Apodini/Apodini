@@ -10,7 +10,6 @@ import ApodiniUtils
 import XCTest
 import XCTApodini
 
-@available(macOS 12.0, *)
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
         var message: String

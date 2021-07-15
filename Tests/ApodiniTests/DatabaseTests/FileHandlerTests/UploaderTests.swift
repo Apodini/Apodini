@@ -3,7 +3,6 @@ import Foundation
 @testable import ApodiniDatabase
 import XCTApodini
 
-@available(macOS 12.0, *)
 final class UploaderTests: FileHandlerTests {
     func testUploader() throws {
         let uploader = Uploader(UploadConfiguration(.default, subPath: "Misc/"))

@@ -11,7 +11,6 @@ import XCTest
 import XCTApodini
 
 
-@available(macOS 12.0, *)
 final class EndpointsTreeTests: ApodiniTests {
     struct Birthdate: Codable {
         let year: Int

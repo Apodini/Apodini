@@ -11,7 +11,6 @@ import Apodini
 import ApodiniExtension
 
 // MARK: Client streaming request handler
-@available(macOS 12.0, *)
 extension GRPCService {
     private func drainBody<H: Handler>(from request: Vapor.Request,
                                        handler: H,

@@ -7,7 +7,6 @@
 
 import _Concurrency
 
-@available(macOS 12.0, *)
 extension AnySequence: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl
     
@@ -18,7 +17,6 @@ extension AnySequence: AsyncSequence {
     
 }
 
-@available(macOS 12.0, *)
 extension AnySequence {
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var iterator: AnySequence.Iterator
@@ -29,7 +27,6 @@ extension AnySequence {
     }
 }
 
-@available(macOS 12.0, *)
 public extension Sequence {
     var asAsyncSequence: AnySequence<Element> {
         AnySequence(self)

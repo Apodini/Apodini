@@ -9,7 +9,6 @@ import Foundation
 import OpenAPIKit
 @_implementationOnly import Yams
 
-@available(macOS 12.0, *)
 extension OpenAPIKit.OpenAPI.Document {
     func output(configuration: OpenAPI.ExporterConfiguration) throws -> String? {
         let output: String?

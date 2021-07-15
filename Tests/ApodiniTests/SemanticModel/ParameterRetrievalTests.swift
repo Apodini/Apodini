@@ -5,7 +5,6 @@
 @testable import Apodini
 import XCTApodini
 
-@available(macOS 12.0, *)
 class ParameterRetrievalTests: ApodiniTests {
     struct TestHandler: Handler {
         @Parameter

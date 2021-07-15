@@ -10,7 +10,6 @@ import Apodini
 import OpenCombine
 import _Concurrency
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element: Request {
     func cache() -> AsyncMapSequence<Self, CachingRequest> {
         self.map { request in

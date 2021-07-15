@@ -9,7 +9,6 @@ import Foundation
 import _Concurrency
 
 
-@available(macOS 12.0, *)
 public struct AsyncCancelSequence<Base>: AsyncSequence where Base: AsyncSequence {
     public typealias Element = Base.Element
     
@@ -29,7 +28,6 @@ public struct AsyncCancelSequence<Base>: AsyncSequence where Base: AsyncSequence
     }
 }
 
-@available(macOS 12.0, *)
 extension AsyncCancelSequence {
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var iterator: Base.AsyncIterator?
@@ -49,7 +47,6 @@ extension AsyncCancelSequence {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence {
     func cancel(if cancel: @escaping (Self.Element) async -> Bool) -> AsyncCancelSequence<Self> {
         AsyncCancelSequence(self, cancel: cancel)

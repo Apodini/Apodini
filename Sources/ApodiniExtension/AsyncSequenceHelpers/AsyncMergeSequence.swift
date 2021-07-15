@@ -8,7 +8,6 @@
 import Foundation
 import _Concurrency
 
-@available(macOS 12.0, *)
 public struct AsyncMergeSequence<Base, Other>: AsyncSequence where Base: AsyncSequence, Other: AsyncSequence, Base.Element == Other.Element {
     public typealias AsyncIterator = AsyncIteratorImpl
     
@@ -22,7 +21,6 @@ public struct AsyncMergeSequence<Base, Other>: AsyncSequence where Base: AsyncSe
     }
 }
 
-@available(macOS 12.0, *)
 extension AsyncMergeSequence {
     public class AsyncIteratorImpl: AsyncIteratorProtocol {
         private var base: Base.AsyncIterator?
@@ -174,7 +172,6 @@ extension AsyncMergeSequence {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence {
     func merge<Other>(with other: Other) -> AsyncMergeSequence<Self, Other> where Other: AsyncSequence, Self.Element == Other.Element {
         AsyncMergeSequence(base: self, other: other)

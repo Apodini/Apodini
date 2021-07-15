@@ -3,7 +3,6 @@ import XCTVapor
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
 
-@available(macOS 12.0, *)
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
@@ -25,7 +24,6 @@ final class ProtobufferBuilderTests: XCTestCase {
 
 // MARK: - Test Supported Types
 
-@available(macOS 12.0, *)
 extension ProtobufferBuilderTests {
     func testVoid() throws {
         XCTAssertNoThrow(try buildMessage(Void.self))
@@ -64,7 +62,6 @@ extension ProtobufferBuilderTests {
 
 // MARK: - Test Messages
 
-@available(macOS 12.0, *)
 extension ProtobufferBuilderTests {
     func testScalarType() throws {
         let expected = """
@@ -233,7 +230,6 @@ extension ProtobufferBuilderTests {
 
 // MARK: - Test Handlers
 
-@available(macOS 12.0, *)
 extension ProtobufferBuilderTests {
     func testServiceParametersZero() throws {
         struct WebService: Apodini.WebService {

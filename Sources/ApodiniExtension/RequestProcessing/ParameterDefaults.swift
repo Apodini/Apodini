@@ -96,7 +96,6 @@ extension EndpointParameter: DefaultNilValueProvider {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence where Element: Request {
     func insertDefaults(with defaults: DefaultValueStore) -> AsyncMapSequence<Self, DefaultValueStore.DefaultInsertingRequest> {
         self.map { request in

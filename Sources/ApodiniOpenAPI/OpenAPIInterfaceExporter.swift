@@ -10,7 +10,6 @@ import ApodiniVaporSupport
 import OpenAPIKit
 
 /// Public Apodini Interface Exporter for OpenAPI
-@available(macOS 12.0, *)
 public final class OpenAPI: RESTDependentStaticConfiguration {
     var configuration: OpenAPI.ExporterConfiguration
     
@@ -42,7 +41,6 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
 }
 
 /// Internal Apodini Interface Exporter for OpenAPI
-@available(macOS 12.0, *)
 final class OpenAPIInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
     

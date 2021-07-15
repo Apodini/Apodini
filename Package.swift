@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v12)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),

@@ -55,7 +55,6 @@ public struct RemoteHandlerInvocationManager {
 }
 
 
-@available(macOS 12.0, *)
 extension RemoteHandlerInvocationManager {
     /// Invoke an invocable handler from within your handler.
     /// - parameter handlerType: The static type of the `InvocableHandler` you wish to invoke
@@ -263,7 +262,6 @@ extension RemoteHandlerInvocationManager {
 }
 
 
-@available(macOS 12.0, *)
 extension Endpoint {
     func invokeImp(
         withCollectedArguments arguments: [CollectedArgument<H>],

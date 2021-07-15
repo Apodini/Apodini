@@ -9,7 +9,6 @@ import XCTest
 @testable import ApodiniVaporSupport
 import ApodiniREST
 
-@available(macOS 12.0, *)
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
         var someProp = 4

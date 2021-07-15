@@ -37,7 +37,6 @@ struct ApodiniDeployError: Swift.Error {
     let message: String
 }
 
-@available(macOS 12.0, *)
 public final class ApodiniDeploy: Configuration {
     let configuration: ApodiniDeploy.ExporterConfiguration
     
@@ -62,7 +61,6 @@ public final class ApodiniDeploy: Configuration {
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
-@available(macOS 12.0, *)
 class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
@@ -241,7 +239,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
 
 // MARK: ApodiniDeployInterfaceExporter.ExporterRequest
 
-@available(macOS 12.0, *)
 extension ApodiniDeployInterfaceExporter {
     struct ExporterRequest {
         enum Argument {

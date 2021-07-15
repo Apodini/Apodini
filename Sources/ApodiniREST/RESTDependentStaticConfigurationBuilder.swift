@@ -6,7 +6,6 @@
 //
 
 /// A function builder used to aggregate multiple `RESTDependentStaticConfiguration`s
-@available(macOS 12.0, *)
 @resultBuilder
 public enum RESTDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `RESTDependentStaticConfiguration`s

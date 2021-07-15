@@ -7,7 +7,6 @@
 
 import _Concurrency
 
-@available(macOS 12.0, *)
 public struct Just<Element>: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl
     
@@ -28,7 +27,6 @@ public struct Just<Element>: AsyncSequence {
     }
 }
 
-@available(macOS 12.0, *)
 extension Just {
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var closure: (() async throws -> Element?)?

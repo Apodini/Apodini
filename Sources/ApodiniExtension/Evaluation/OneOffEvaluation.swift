@@ -16,7 +16,6 @@ public struct ResponseWithRequest<C: Encodable>: WithRequest {
     public let request: Request
 }
 
-@available(macOS 12.0, *)
 public extension Request {
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
@@ -53,8 +52,7 @@ internal extension Delegate where D: Handler {
         try await _Internal.evaluate(delegate: self, using: request, with: state)
     }
     
-    @available(macOS 12.0, *)
-    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+        func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
         promise.completeWithAsync {
@@ -64,14 +62,12 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-    @available(macOS 12.0, *)
-    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+        func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         let result: D.Response = try await self.evaluate(using: request, with: state)
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-    @available(macOS 12.0, *)
-    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+        func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
         promise.completeWithAsync {
@@ -81,8 +77,7 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-    @available(macOS 12.0, *)
-    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+        func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
         
         guard !trigger.cancelled else {

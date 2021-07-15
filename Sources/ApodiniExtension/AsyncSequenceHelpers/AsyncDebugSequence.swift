@@ -9,7 +9,6 @@ import Foundation
 import _Concurrency
 
 
-@available(macOS 12.0, *)
 public struct DebugAsyncSequence<Base>: AsyncSequence where Base: AsyncSequence {
     public typealias Element = Base.Element
     
@@ -40,7 +39,6 @@ public struct DebugAsyncSequence<Base>: AsyncSequence where Base: AsyncSequence 
     }
 }
 
-@available(macOS 12.0, *)
 extension DebugAsyncSequence {
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var iterator: Base.AsyncIterator
@@ -65,7 +63,6 @@ extension DebugAsyncSequence {
     }
 }
 
-@available(macOS 12.0, *)
 public extension AsyncSequence {
     func debug(onMake: @escaping (Self.AsyncIterator) -> Void, onNext: @escaping () -> Void, afterNext: @escaping (Self.Element?) -> Void, onError: @escaping (Error) -> Void) -> DebugAsyncSequence<Self> {
         DebugAsyncSequence(self, onMake: onMake, onNext: onNext, afterNext: afterNext, onError: onError)

@@ -10,7 +10,6 @@ import XCTVapor
 @testable import ApodiniVaporSupport
 @testable import ApodiniREST
 
-@available(macOS 12.0, *)
 final class OperationModifierTests: ApodiniTests {
     struct HelloWorldHandler: Handler {
         func handle() -> String {
@@ -22,8 +21,7 @@ final class OperationModifierTests: ApodiniTests {
         }
     }
 
-    @available(macOS 12.0, *)
-    struct TestWebService: WebService {
+        struct TestWebService: WebService {
         var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
         
         var content: some Component {

@@ -5,7 +5,6 @@
 import Apodini
 import Vapor
 
-@available(macOS 12.0, *)
 extension REST {
     /// Configuration of the RESTful Interface
     public struct Configuration {

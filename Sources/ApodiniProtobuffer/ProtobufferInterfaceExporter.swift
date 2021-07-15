@@ -9,7 +9,6 @@ import ApodiniTypeReflection
 import ApodiniUtils
 @_implementationOnly import class Vapor.Application
 
-@available(macOS 12.0, *)
 public final class Protobuffer: GRPCDependentStaticConfiguration {
     var configuration: Protobuffer.ExporterConfiguration
     
@@ -29,7 +28,6 @@ public final class Protobuffer: GRPCDependentStaticConfiguration {
     }
 }
 
-@available(macOS 12.0, *)
 final class ProtobufferInterfaceExporter: InterfaceExporter {
     // MARK: Nested Types
     struct Error: Swift.Error, CustomDebugStringConvertible {
@@ -133,7 +131,6 @@ final class ProtobufferInterfaceExporter: InterfaceExporter {
     }
 }
 
-@available(macOS 12.0, *)
 private extension ProtobufferInterfaceExporter {
     func exportThrows<H: Handler>(_ endpoint: Endpoint<H>) throws {
         // Output
@@ -194,7 +191,6 @@ private extension ProtobufferInterfaceExporter {
 }
 
 // MARK: - ProtobufferInterfaceExporter.Builder Implementation
-@available(macOS 12.0, *)
 private extension ProtobufferInterfaceExporter.Builder {
     func handleUUIDProperty(
         _ property: ProtobufferMessage.Property
@@ -252,7 +248,6 @@ private extension ProtobufferMessage {
 }
 
 // MARK: - ProtobufferInterfaceExporter: CustomStringConvertible
-@available(macOS 12.0, *)
 extension ProtobufferInterfaceExporter: CustomStringConvertible {
     public var description: String {
         let protoFile = [

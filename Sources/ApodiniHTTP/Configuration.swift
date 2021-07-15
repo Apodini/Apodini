@@ -12,7 +12,6 @@ import ApodiniVaporSupport
 import Vapor
 
 
-@available(macOS 12.0, *)
 extension HTTP {
     /// Configuration that can be used to customize the behavior of the ``HTTP`` exporter.
     public struct ExporterConfiguration {

@@ -13,7 +13,6 @@ import protocol Fluent.Database
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-@available(macOS 12.0, *)
 final class GuardTests: ApodiniTests {
     private static var guardExpectation: XCTestExpectation?
     

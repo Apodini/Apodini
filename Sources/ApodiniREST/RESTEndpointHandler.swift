@@ -9,7 +9,6 @@ import Vapor
 import ApodiniExtension
 
 
-@available(macOS 12.0, *)
 struct RESTEndpointHandler<H: Handler> {
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration

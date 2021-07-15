@@ -14,7 +14,6 @@ import ApodiniDeployBuildSupport
 import OpenAPIKit
 
 
-@available(macOS 12.0, *)
 extension ApodiniDeployInterfaceExporter {
     func exportWebServiceStructure(to outputUrl: URL, apodiniDeployConfiguration: ApodiniDeploy.ExporterConfiguration) throws {
         let deploymentConfig = apodiniDeployConfiguration.config

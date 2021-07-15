@@ -4,7 +4,6 @@ import Vapor
 import Foundation
 import XCTApodini
 
-@available(macOS 12.0, *)
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
     class TestObservable: Apodini.ObservableObject {

@@ -20,7 +20,6 @@ import Vapor
 /// certain `Input`.  The evaluation comes with the complete standard
 /// set of validation mechanisms. Furthermore, the ``ConnectionContext`` also
 /// takes care of observing the `Delegate`.
-@available(macOS 12.0, *)
 public class ConnectionContext<Input, H: Handler> {
     var delegate: Delegate<H>
     
@@ -90,7 +89,6 @@ public class ConnectionContext<Input, H: Handler> {
     }
 }
 
-@available(macOS 12.0, *)
 public extension ConnectionContext where Input: WithEventLoop {
     /// Evaluate the inner `Delegate` using the given `request`.
     func handle(request: Input, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
@@ -106,7 +104,6 @@ public protocol WithEventLoop {
 
 extension Vapor.Request: WithEventLoop { }
 
-@available(macOS 12.0, *)
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
@@ -133,7 +130,6 @@ public protocol EndpointDecodingStrategyProvider {
     var strategy: AnyEndpointDecodingStrategy<Input> { get }
 }
 
-@available(macOS 12.0, *)
 extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     public var strategy: AnyEndpointDecodingStrategy<Vapor.Request> {
         ParameterTypeSpecific(
