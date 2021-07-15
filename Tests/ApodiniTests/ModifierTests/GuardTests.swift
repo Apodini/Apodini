@@ -243,7 +243,7 @@ final class GuardTests: ApodiniTests {
     }
 
     func testGuardMetadata() throws {
-        struct MetadataGuard: SyncGuard {
+        struct MetadataGuard: Guard {
             static var metadataGuardExpectation: XCTestExpectation?
 
             let order: Int
@@ -253,7 +253,7 @@ final class GuardTests: ApodiniTests {
             }
         }
 
-        struct ModifierGuard: SyncGuard {
+        struct ModifierGuard: Guard {
             static var modifierGuardExpectation: XCTestExpectation?
 
             let order: Int

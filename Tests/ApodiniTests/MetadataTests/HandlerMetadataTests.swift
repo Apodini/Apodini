@@ -234,8 +234,8 @@ final class HandlerMetadataTest: ApodiniTests {
         struct DynamicNameGuard<H: Handler>: Handler {
             let delegate: Delegate<H>
 
-            func handle() throws -> H.Response {
-                try delegate
+            func handle() async throws -> H.Response {
+                try await delegate
                     .environmentObject("Alfred")()
                     .handle()
             }
@@ -251,8 +251,8 @@ final class HandlerMetadataTest: ApodiniTests {
         struct DynamicIntGuard<H: Handler>: Handler {
             let delegate: Delegate<H>
 
-            func handle() throws -> H.Response {
-                try delegate
+            func handle() async throws -> H.Response {
+                try await delegate
                     .environmentObject(34)()
                     .handle()
             }

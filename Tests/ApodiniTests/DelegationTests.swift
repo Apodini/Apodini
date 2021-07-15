@@ -354,8 +354,8 @@ final class DelegationTests: ApodiniTests {
         struct DynamicGuard<H: Handler>: Handler {
             let delegate: Delegate<H>
 
-            func handle() throws -> H.Response {
-                try delegate
+            func handle() async throws -> H.Response {
+                try await delegate
                     .environmentObject("Alfred")()
                     .handle()
             }
@@ -446,7 +446,7 @@ final class DelegationTests: ApodiniTests {
             static var collectedIds: [Int] = []
         }
 
-        struct TestGuard: SyncGuard {
+        struct TestGuard: Guard {
             let id: Int
             func check() {
                 TestStore.collectedIds.append(id)
@@ -476,9 +476,9 @@ final class DelegationTests: ApodiniTests {
             let delegate: Delegate<H>
             let otherDelegate = Delegate(TestNestedHandler())
 
-            func handle() throws -> H.Response {
+            func handle() async throws -> H.Response {
                 TestStore.collectedIds.append(id)
-                return try delegate().handle()
+                return try await delegate().handle()
             }
 
             var metadata: Metadata {
@@ -550,11 +550,11 @@ private struct SimpleForward<H: Handler>: Handler {
     let delegate: Delegate<H>
     let id: Int
 
-    func handle() throws -> H.Response {
+    func handle() async throws -> H.Response {
         SimpleForwardFilter.calledIds.append(id)
         SimpleForwardFilter.simpleForwardExpectation?.fulfill()
 
-        return try delegate().handle()
+        return try await delegate().handle()
     }
 }
 

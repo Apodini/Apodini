@@ -26,12 +26,6 @@ public struct GuardMetadata<H: Handler>: HandlerMetadataDefinition, DefinitionWi
     public init<G: Guard>(by guard: G) {
         self.initializer = .init(GuardingHandlerInitializer<G, H.Response>(guard: `guard`))
     }
-
-    /// Use a synchronous ``SyncGuard`` to guard ``Handler``s by inspecting incoming requests
-    /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    public init<G: SyncGuard>(by guard: G) {
-        self.initializer = .init(SyncGuardingHandlerInitializer<G, H.Response>(guard: `guard`))
-    }
 }
 
 
