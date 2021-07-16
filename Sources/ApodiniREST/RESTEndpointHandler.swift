@@ -75,9 +75,16 @@ struct RESTEndpointHandler<H: Handler> {
                 if let blob = response.content?.response.typed(Blob.self) {
                     let vaporResponse = Vapor.Response()
                     
+                    var information = response.information
+                    if let contentType = blob.type?.description {
+                        information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                    }
+                    vaporResponse.headers = HTTPHeaders(information)
+                    
                     if let status = response.status {
                         vaporResponse.status = HTTPStatus(status)
                     }
+                    
                     vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
                     
                     return request.eventLoop.makeSucceededFuture(vaporResponse)
