@@ -72,8 +72,28 @@ public struct ApodiniError: Error {
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `information`: Possible array of `Information` entries attached to the `Response`.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    public init(type: ErrorType, reason: String? = nil, description: String? = nil, information: AnyInformation..., options: Option...) {
+    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, information: AnyInformation..., options: Option...) {
         self.init(type: type, reason: reason, description: description, information: InformationSet(information), PropertyOptionSet(options))
+    }
+
+    /// Create a new `ApodiniError` from this instance using a different `reason` and/or `description`
+    /// - Parameter `reason`: The **public** reason explaining what led to the this error.
+    /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
+    ///   - information: If provided, it creates a union of the provided `Information` entries and the existing ones.
+    ///   - options: If provided, it appends exporter-specific options to the existing ones.
+    public func callAsFunction(
+        reason: String? = nil,
+        description: String? = nil,
+        information: [AnyInformation],
+        options: [Option]
+    ) -> ApodiniError {
+        ApodiniError(
+            type: type,
+            reason: reason ?? self.reason,
+            description: description ?? self.description,
+            information: self.information.merge(with: information),
+            PropertyOptionSet(lhs: self.options, rhs: options)
+        )
     }
     
     /// Create a new `ApodiniError` from this instance using a different `reason` and/or `description`
@@ -87,12 +107,17 @@ public struct ApodiniError: Error {
         information: AnyInformation...,
         options: Option...
     ) -> ApodiniError {
-        ApodiniError(
+        callAsFunction(reason: reason, description: description, information: information, options: options)
+    }
+
+    public func merge(with error: ApodiniError) -> ApodiniError {
+        precondition(type == error.type, "When merging ApodiniErrors, the error types must match. \(error.type) can't override \(type).")
+        return ApodiniError(
             type: type,
-            reason: reason ?? self.reason,
-            description: description ?? self.description,
-            information: self.information.union(information),
-            PropertyOptionSet(lhs: self.options, rhs: options)
+            reason: reason ?? error.reason,
+            description: description ?? error.description,
+            information: information.merge(with: error.information),
+            PropertyOptionSet(lhs: options, rhs: error.options)
         )
     }
 }
@@ -113,6 +138,10 @@ public protocol ApodiniErrorCompliantOption: PropertyOption {
 extension ApodiniError {
     public func option<T: ApodiniErrorCompliantOption>(for key: OptionKey<T>) -> T {
         self.options.option(for: key) ?? T.default(for: self.type)
+    }
+
+    public func option<T: PropertyOption>(for key: OptionKey<T>) -> T? {
+        self.options.option(for: key)
     }
     
     public func message(with prefix: String?) -> String {

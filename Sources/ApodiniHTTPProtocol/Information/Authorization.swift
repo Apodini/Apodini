@@ -55,7 +55,7 @@ extension Authorization {
         
         /// `username` and `password` using the basic authorization mechanism if the `Authorization.Value` is based on basic authorization
         public var basic: (username: String, password: String)? {
-            guard type == "Basic",
+            guard type.lowercased() == "basic",
                   let base64data = Data(base64Encoded: credentials),
                   let usernameAndPassword = String(data: base64data, encoding: .utf8) else {
                 return nil
@@ -72,7 +72,7 @@ extension Authorization {
         
         /// The bearer token the `Authorization.Value` is based on bearer authorization
         public var bearerToken: String? {
-            guard type == "Bearer" else {
+            guard type.lowercased() == "bearer" else {
                 return nil
             }
             

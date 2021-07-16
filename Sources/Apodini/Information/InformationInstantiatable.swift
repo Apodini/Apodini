@@ -37,6 +37,13 @@ public protocol InformationInstantiatable: AnyInformation {
     /// - Parameter value: The value ``Value``.
     init(_ value: Value)
 
+    /// Merges this ``InformationInstantiatable`` instance with the provided instance.
+    /// The ``InformationInstantiatable`` instance passed in as the parameter has a higher precedence.
+    /// The default implementation will merge by overriding.
+    /// - Parameter information: The ``InformationInstantiatable`` to merge with.
+    /// - Returns: The merged ``InformationInstantiatable`` instance.
+    func merge(with information: Self) -> Self
+
     /// Enables developers to directly access properties of the ``value``
     /// property using the ``InformationInstantiatable``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Member { get }
@@ -51,12 +58,32 @@ public extension InformationInstantiatable {
     }
 }
 
+public extension InformationInstantiatable {
+    /// Default implementation, merging by overriding.
+    func merge(with information: Self) -> Self {
+        information
+    }
+}
+
 // MARK: AnyInformation
 public extension InformationInstantiatable {
     /// Provides the type erased value as required by ``AnyInformation``
-
     var value: Any {
         rawValue
+    }
+
+    /// Returns the result of `untyped()`
+    func anyUntyped() -> AnyInformation {
+        untyped()
+    }
+
+    /// Default implementation. Forwards to ``Information/merge(with:)``.
+    /// If types don't match, the passed value will override the current Information.
+    func anyMerge(with information: AnyInformation) -> AnyInformation {
+        if let selfInformation = information as? Self {
+            return merge(with: selfInformation)
+        }
+        return information
     }
 }
 

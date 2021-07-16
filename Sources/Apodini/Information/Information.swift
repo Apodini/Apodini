@@ -79,6 +79,13 @@ public protocol Information: AnyInformation where Self: InformationClass {
     func typed<Instantiatable: InformationInstantiatable>(_ instantiatable: Instantiatable.Type) -> Instantiatable?
         where Instantiatable.AssociatedInformation == Self
 
+    /// Merges this ``Information`` instance with the provided instance.
+    /// The ``Information`` instance passed in as the parameter has a higher precedence.
+    /// The default implementation will merge by overriding.
+    /// - Parameter information: The ``Information`` to merge with.
+    /// - Returns: The merged ``Information`` instance.
+    func merge(with information: Self) -> Self
+
     /// Enables developers to directly access properties of the ``value`` property using the ``Information``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Key.RawValue, Member>) -> Member { get }
 }
@@ -92,6 +99,11 @@ public extension Information {
 }
 
 public extension Information {
+    /// Default implementation, merging by overriding.
+    func merge(with information: Self) -> Self {
+        information
+    }
+
     /// Default implementation using the default ``InformationInstantiatable/init(rawValue:)``
     /// to instantiate the provided ``InformationInstantiatable``.
     func typed<Instantiatable: InformationInstantiatable>(_ instantiatable: Instantiatable.Type) -> Instantiatable?
@@ -117,6 +129,20 @@ public extension Information {
     /// Provides the type erased value as required by ``AnyInformation``
     var value: Any {
         value as Key.RawValue
+    }
+
+    /// Returns `self`
+    func anyUntyped() -> AnyInformation {
+        self
+    }
+
+    /// Default implementation. Forwards to ``Information/merge(with:)``.
+    /// If types don't match, the passed value will override the current Information.
+    func anyMerge(with information: AnyInformation) -> AnyInformation {
+        if let selfInformation = information as? Self {
+            return merge(with: selfInformation)
+        }
+        return information
     }
 }
 

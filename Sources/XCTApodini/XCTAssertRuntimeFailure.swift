@@ -13,12 +13,12 @@ import XCTest
 
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
-    _ expression: @escaping @autoclosure () -> T,
+    _ expression: @escaping @autoclosure () throws -> T,
     _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
     file: StaticString = #filePath,
     line: UInt = #line) {
     XCTAssertCrash(
-        expression(),
+        try! expression(),
         message(),
         file: file,
         line: line,
@@ -27,7 +27,7 @@ public func XCTAssertRuntimeFailure<T>(
 #else
 /// Empty implementation used for platforms that don't support `CwlPreconditionTesting`.
 public func XCTAssertRuntimeFailure<T>(
-    _ expression: @escaping @autoclosure () -> T,
+    _ expression: @escaping @autoclosure () throws -> T,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line) {
