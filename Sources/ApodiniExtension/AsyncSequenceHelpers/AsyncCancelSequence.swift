@@ -9,6 +9,8 @@ import Foundation
 import _Concurrency
 
 
+/// An `AsyncSequence` that behaves similar to `AsyncPrefixWhileSequence`, but keeps one more
+/// element.
 public struct AsyncCancelSequence<Base>: AsyncSequence where Base: AsyncSequence {
     public typealias Element = Base.Element
     
@@ -48,8 +50,9 @@ extension AsyncCancelSequence {
 }
 
 public extension AsyncSequence {
+    /// Returns an asynchronous sequence, containing the initial, consecutive elements of the
+    /// base sequence up until (and including) the first for which `cancel` returns `true`.
     func cancel(if cancel: @escaping (Self.Element) async -> Bool) -> AsyncCancelSequence<Self> {
         AsyncCancelSequence(self, cancel: cancel)
     }
 }
-

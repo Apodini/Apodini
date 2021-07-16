@@ -236,7 +236,8 @@ final class HandlerMetadataTest: ApodiniTests {
 
             func handle() async throws -> H.Response {
                 try await delegate
-                    .environmentObject("Alfred")()
+                    .environmentObject("Alfred")
+                    .instance()
                     .handle()
             }
         }
@@ -253,7 +254,8 @@ final class HandlerMetadataTest: ApodiniTests {
 
             func handle() async throws -> H.Response {
                 try await delegate
-                    .environmentObject(34)()
+                    .environmentObject(34)
+                    .instance()
                     .handle()
             }
         }
@@ -351,7 +353,7 @@ final class HandlerMetadataTest: ApodiniTests {
 
         modelBuilder.finishedRegistration()
 
-        let endpoint = modelBuilder.collectedEndpoints[0]
+        _ = modelBuilder.collectedEndpoints[0]
         let response = exporter.request(on: 0, request: "Example Request", with: app)
 
         try XCTCheckResponse(

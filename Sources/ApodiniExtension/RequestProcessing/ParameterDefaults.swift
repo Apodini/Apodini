@@ -97,17 +97,9 @@ extension EndpointParameter: DefaultNilValueProvider {
 }
 
 public extension AsyncSequence where Element: Request {
-    func insertDefaults(with defaults: DefaultValueStore) -> AsyncMapSequence<Self, DefaultValueStore.DefaultInsertingRequest> {
-        self.map { request in
-            defaults.insertDefaults(request)
-        }
-    }
-}
-
-public extension Publisher where Output: Request {
     /// Wraps each incoming `Request` into a ``DefaultValueStore/DefaultInsertingRequest`` using
     /// the given `defaults`.
-    func insertDefaults(with defaults: DefaultValueStore) -> OpenCombine.Publishers.Map<Self, DefaultValueStore.DefaultInsertingRequest> {
+    func insertDefaults(with defaults: DefaultValueStore) -> AsyncMapSequence<Self, DefaultValueStore.DefaultInsertingRequest> {
         self.map { request in
             defaults.insertDefaults(request)
         }

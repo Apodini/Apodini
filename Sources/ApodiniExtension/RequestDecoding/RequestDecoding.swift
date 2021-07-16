@@ -102,6 +102,15 @@ extension DecodingStrategy {
 }
 
 extension AsyncSequence {
+    /// Maps each incoming `Element` to an Apodini `Request` based on the given `strategy` by
+    /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:with:)`` function.
+    ///
+    /// The `Element` must be a tuple consisting of a ``RequestBasis`` and the ``DecodingStrategy/Input`` for `S`.
+    ///
+    /// - Parameters:
+    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
+    ///     contained in the second element of each value in the upstream sequence
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
         self.map { requestBasis, input in
@@ -109,6 +118,13 @@ extension AsyncSequence {
         }
     }
     
+    /// Maps each incoming `Element` to an Apodini `Request` based on the given `strategy` by
+    /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:)`` function.
+    ///
+    /// - Parameters:
+    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
+    ///     value in the upstream sequence
+    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == S.Input, S.Input: RequestBasis {
         self.map { input in

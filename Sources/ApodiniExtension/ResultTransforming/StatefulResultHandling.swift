@@ -11,29 +11,21 @@ import OpenCombine
 import _Concurrency
 
 extension AsyncSequence {
-    public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
-        self.cancel(if: { result in
-            if case let .success(response) = result {
-                return response.connectionEffect == .close
-            }
-            return false
-        })
-        .compactMap  { result throws -> Result<T.Output, Error>? in
-            switch result {
-            case let .success(response):
-                if let content = response.content {
-                    do {
-                        return .success(try transformer.transform(input: content))
-                    } catch {
-                        return .failure(error)
-                    }
-                } else {
-                    return nil
-                }
-            case let .failure(error):
-                return .failure(error)
-            }
-        }
+    /// An `AsyncSequence` that transforms each incoming `Result` using the given `transformer`
+    /// after unwrapping the `Response` for `successful(_:)` input values.
+    ///
+    /// If a `Response` has no `content` it is absorbed. If the `Response`'s
+    /// `connectionEffect` is `close`, the upstream pipeline is cancelled.
+    ///
+    /// If the `transformer`'s ``ResultTransformer/handle(error:)`` returns
+    /// ``ErrorHandlingStrategy/ignore``, the element is absorbed. In case of
+    /// ``ErrorHandlingStrategy/graceful(_:)`` the recovered value is passed downstream just
+    /// as for `successful(_:)` input values. For ``ErrorHandlingStrategy/complete(_:)``
+    /// the sequence ends after this final value. ``ErrorHandlingStrategy/abort(_:)``
+    /// causes a the error to be thrown`.
+    public func transform<T: ResultTransformer>(using transformer: T)
+        -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
+        self.handleSuccessfulResponse(transformer)
         .compactMap { result throws -> (Bool, T.Output)? in
             switch result {
             case let .success(output):
@@ -51,11 +43,46 @@ extension AsyncSequence {
                 }
             }
         }
-        .cancel(if: { (cancel, _) in cancel })
-        .map { (_, output) in output }
+        .cancel(if: { cancel, _ in cancel })
+        .map { _, output in output }
         .typeErased
     }
     
+    private func handleSuccessfulResponse<T: ResultTransformer>(_ transformer: T)
+        -> AsyncThrowingCompactMapSequence<AsyncCancelSequence<Self>, Result<T.Output, Error>> where Element == Result<Response<T.Input>, Error> {
+        self.cancel(if: { result in
+            if case let .success(response) = result {
+                return response.connectionEffect == .close
+            }
+            return false
+        })
+        .compactMap { result throws -> Result<T.Output, Error>? in
+            switch result {
+            case let .success(response):
+                if let content = response.content {
+                    do {
+                        return .success(try transformer.transform(input: content))
+                    } catch {
+                        return .failure(error)
+                    }
+                } else {
+                    return nil
+                }
+            case let .failure(error):
+                return .failure(error)
+            }
+        }
+    }
+    
+    /// A `Publisher` and `Cancellable` that transforms each incoming `Result` using the
+    /// given `transformer`.
+    ///
+    /// If the `transformer`'s ``ResultTransformer/handle(error:)`` returns
+    /// ``ErrorHandlingStrategy/ignore``, no value is published. In case of
+    /// ``ErrorHandlingStrategy/graceful(_:)`` the recovered value is published just
+    /// as for `successful(_:)` input values. For ``ErrorHandlingStrategy/complete(_:)``
+    /// the value is followed by a `.finished` completion. ``ErrorHandlingStrategy/abort(_:)``
+    /// causes a completion with `.failure(_:)`.
     public func transform<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<T.Input, Error> {
         self.map { result throws -> Result<T.Output, Error> in
             switch result {
@@ -86,8 +113,8 @@ extension AsyncSequence {
                 }
             }
         }
-        .cancel(if: { (cancel, _) in cancel })
-        .map { (_, output) in output }
+        .cancel(if: { cancel, _ in cancel })
+        .map { _, output in output }
         .typeErased
     }
 }

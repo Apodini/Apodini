@@ -8,7 +8,8 @@
 import Foundation
 import _Concurrency
 
-
+/// An `AsyncSequence` that allows for debugging the events defined by the `AsyncSequence` protocol
+/// and its `AsyncIterator` child.
 public struct DebugAsyncSequence<Base>: AsyncSequence where Base: AsyncSequence {
     public typealias Element = Base.Element
     
@@ -24,7 +25,11 @@ public struct DebugAsyncSequence<Base>: AsyncSequence where Base: AsyncSequence 
     
     let onError: (Error) -> Void
     
-    init(_ base: Base, onMake: @escaping (Base.AsyncIterator) -> Void, onNext: @escaping () -> Void, afterNext: @escaping (Base.Element?) -> Void, onError: @escaping (Error) -> Void) {
+    init(_ base: Base,
+         onMake: @escaping (Base.AsyncIterator) -> Void,
+         onNext: @escaping () -> Void,
+         afterNext: @escaping (Base.Element?) -> Void,
+         onError: @escaping (Error) -> Void) {
         self.base = base
         self.onMake = onMake
         self.onNext = onNext
@@ -64,8 +69,12 @@ extension DebugAsyncSequence {
 }
 
 public extension AsyncSequence {
-    func debug(onMake: @escaping (Self.AsyncIterator) -> Void, onNext: @escaping () -> Void, afterNext: @escaping (Self.Element?) -> Void, onError: @escaping (Error) -> Void) -> DebugAsyncSequence<Self> {
+    /// Wraps this `AsyncSequence` in a `DebugAsyncSequence` that will call the given closures when
+    /// it is interacted with.
+    func debug(onMake: @escaping (Self.AsyncIterator) -> Void,
+               onNext: @escaping () -> Void,
+               afterNext: @escaping (Self.Element?) -> Void,
+               onError: @escaping (Error) -> Void) -> DebugAsyncSequence<Self> {
         DebugAsyncSequence(self, onMake: onMake, onNext: onNext, afterNext: afterNext, onError: onError)
     }
 }
-

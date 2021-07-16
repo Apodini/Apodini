@@ -32,6 +32,8 @@ public protocol Initializable: Reducible {
 }
 
 public extension AsyncSequence where Element: Reducible {
+    /// This `AsyncSequence` implements a reduction on a type `R` that can be created from the
+    /// upstream's output. Each incoming value is mapped to the current accumulated result of the reduction.
     func reduce() -> AsyncMapSequence<Self, Element> where Element.Input == Element {
         var last: Element?
         
@@ -44,6 +46,8 @@ public extension AsyncSequence where Element: Reducible {
 }
 
 public extension AsyncSequence {
+    /// This `AsyncSequence` implements a reduction on a type `R` that can be created from the
+    /// upstream's output. Each incoming value is mapped to the current accumulated result of the reduction.
     func reduce<R: Initializable>(_ type: R.Type = R.self) -> AsyncMapSequence<Self, R> where Element == R.Input {
         var last: R?
         

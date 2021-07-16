@@ -11,6 +11,8 @@ import Apodini
 import ApodiniUtils
 
 public extension AsyncSequence where Element: Request {
+    /// Wraps all incoming `Request`s in ``MutabilityValidatingRequest``s, which share
+    /// a common storage for providing stateful validation.
     func validateParameterMutability() -> AsyncMapSequence<Self, MutabilityValidatingRequest<Element>> {
         self.reduce()
     }

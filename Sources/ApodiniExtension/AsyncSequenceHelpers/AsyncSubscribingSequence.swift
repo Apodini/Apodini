@@ -8,18 +8,26 @@
 import Foundation
 import _Concurrency
 
+/// An element that might signal the completion of a sequence/stream of elements.
 public protocol CompletionCandidate {
+    /// Returns `true` if this element should be the first to **not** be part of
+    /// the sequence/stream.
     var isCompletion: Bool { get }
 }
 
+/// An element that allows for registering a closure to be called on certain ``Event``s.
 public protocol Subscribable {
+    /// The type of events this ``Subscribable`` produces.
     associatedtype Event: CompletionCandidate
+    /// The ``Handle`` must be kept by the subscriber until it wants to
+    /// cancel the subscription.
     associatedtype Handle
     
+    /// The function for registering a callback closure.
     func register(_ callback: @escaping (Event) -> Void) -> Handle
 }
 
-
+/// An `AsyncSequence` that contains the elements published by a ``Subscribable`` source.
 public struct AsyncSubscribingSequence<S: Subscribable>: AsyncSequence {
     public typealias AsyncIterator = AsyncStream<Element>.AsyncIterator
     
@@ -40,6 +48,13 @@ public struct AsyncSubscribingSequence<S: Subscribable>: AsyncSequence {
         }
     }
     
+    /// When called, an `AsyncIterator` is created, which will be used by all
+    /// subsequent calls to ``makeAsyncIterator()``. If not called, the
+    /// ``makeAsyncIterator()`` function creates a new `AsyncIterator``
+    /// for each call.
+    ///
+    /// - Note: Use this function to start buffering elements published by the ``Subscribable``
+    /// immediately.
     @discardableResult
     public mutating func connect() -> AsyncIterator {
         switch self.source {

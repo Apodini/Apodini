@@ -40,8 +40,8 @@ internal struct GuardingHandler<D, G>: Handler where D: Handler, G: Guard {
     let `guard`: Delegate<G>
     
     func handle() async throws -> D.Response {
-        try await `guard`().check()
-        return try await guarded().handle()
+        try await `guard`.instance().check()
+        return try await guarded.instance().handle()
     }
 }
 

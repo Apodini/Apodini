@@ -7,10 +7,11 @@
 
 import _Concurrency
 
+/// A type-erased version of a `AsyncSequence` that contains values of type `Element`.
 public struct AnyAsyncSequence<Element>: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl
     
-    let _makeAsyncIterator: () -> AsyncIteratorImpl
+    private let _makeAsyncIterator: () -> AsyncIteratorImpl
     
     init<S>(_ sequence: S) where S: AsyncSequence, S.Element == Element {
         self._makeAsyncIterator = {
@@ -24,6 +25,7 @@ public struct AnyAsyncSequence<Element>: AsyncSequence {
 }
 
 extension AnyAsyncSequence {
+    /// The type-erased iterator implementation of ``AnyAsyncSequence``.
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         private let _next: (Any) async throws -> (Any, Element?)
         private var iterator: Any
@@ -49,6 +51,7 @@ extension AnyAsyncSequence {
 }
 
 public extension AsyncSequence {
+    /// Erases the type from this `AsyncSequence` by wrapping it in an ``AnyAsyncSequence``.
     var typeErased: AnyAsyncSequence<Element> {
         AnyAsyncSequence(self)
     }

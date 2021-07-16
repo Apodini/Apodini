@@ -19,7 +19,6 @@ protocol ContextResponsible {
 }
 
 
-
 class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     class Subscribable: ApodiniExtension.Subscribable {
         typealias Event = InputEvent
@@ -91,20 +90,22 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         var sequence = AsyncSubscribingSequence(subscribable)
         sequence.connect()
         
-        let (defaultInput, output) = opener(try! sequence
-                                                .prefix(while: { (event: InputEvent) in
-                                                    if case .input(_) = event {
-                                                        return true
-                                                    }
-                                                    return false
-                                                })
-                                                .map { event in
-                                                    guard case let .input(input) = event else {
-                                                        fatalError("Prefix should have cut this off!")
-                                                    }
-                                                    return input
-                                                }
-                                                .typeErased, eventLoop, request)
+        let outputToHandler = sequence
+            .prefix(while: { (event: InputEvent) in
+                if case .input(_) = event {
+                    return true
+                }
+                return false
+            })
+            .map { event -> I in
+                guard case let .input(input) = event else {
+                    fatalError("Prefix should have cut this off!")
+                }
+                return input
+            }
+            .typeErased
+        
+        let (defaultInput, output) = opener(outputToHandler, eventLoop, request)
         
         self.input = defaultInput
         

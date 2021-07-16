@@ -47,7 +47,7 @@ public struct Delegate<D> {
     }
     
     /// Prepare the wrapped delegate `D` for usage.
-    public func callAsFunction() throws -> D {
+    public func instance() throws -> D {
         guard let store = storage else {
             fatalError("'Delegate' was called before activation.")
         }
@@ -308,6 +308,6 @@ public extension _Internal {
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
         }
-        return try await delegate().handle()
+        return try await delegate.instance().handle()
     }
 }

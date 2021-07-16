@@ -67,52 +67,62 @@ extension AsyncMergeSequence {
                 _lock.unlock()
                 
                 Task {
-                    _lock.lock()
-                    guard var base = self.base, !baseBusy else {
-                        _lock.unlock()
-                        return
-                    }
-                    baseBusy = true
-                    _lock.unlock()
-                    do {
-                        let next = try await base.next()
-                        _lock.lock()
-                        if self.base != nil {
-                            self.base = base
-                            baseBusy = false
-                        }
-                        _lock.unlock()
-                        self.handle(result: .success(next), base: true)
-                    } catch {
-                        self.handle(result: .failure(error), base: true)
-                    }
+                    await requestNextOnBaseIfNecessary()
                 }
                 
                 Task {
-                    _lock.lock()
-                    guard var other = self.other, !otherBusy else {
-                        _lock.unlock()
-                        return
-                    }
-                    otherBusy = true
-                    _lock.unlock()
-                    do {
-                        let next = try await other.next()
-                        _lock.lock()
-                        if self.other != nil {
-                            self.other = other
-                            otherBusy = false
-                        }
-                        _lock.unlock()
-                        self.handle(result: .success(next), base: false)
-                    } catch {
-                        self.handle(result: .failure(error), base: false)
-                    }
+                    await requestNextOnOtherIfNecessary()
                 }
             }
         }
         
-        private func handle(result: Result<Element?, Error>, base: Bool) {
+        private func requestNextOnBaseIfNecessary() async {
+            _lock.lock()
+            guard var base = self.base, !baseBusy else {
+                _lock.unlock()
+                return
+            }
+            baseBusy = true
+            _lock.unlock()
+            do {
+                let next = try await base.next()
+                _lock.lock()
+                if self.base != nil {
+                    self.base = base
+                    baseBusy = false
+                }
+                _lock.unlock()
+                self.handleResultFromBase(result: .success(next))
+            } catch {
+                _lock.unlock()
+                self.handleResultFromBase(result: .failure(error))
+            }
+        }
+        
+        private func requestNextOnOtherIfNecessary() async {
+            _lock.lock()
+            guard var other = self.other, !otherBusy else {
+                _lock.unlock()
+                return
+            }
+            otherBusy = true
+            _lock.unlock()
+            do {
+                let next = try await other.next()
+                _lock.lock()
+                if self.other != nil {
+                    self.other = other
+                    otherBusy = false
+                }
+                _lock.unlock()
+                self.handleResultFromOther(result: .success(next))
+            } catch {
+                _lock.unlock()
+                self.handleResultFromOther(result: .failure(error))
+            }
+        }
+        
+        private func handleResultFromBase(result: Result<Element?, Error>) {
             _lock.lock()
             
             switch result {
@@ -126,21 +136,13 @@ extension AsyncMergeSequence {
                     continuation.resume(throwing: error)
                     return
                 } else {
-                    if base {
-                        self.latestBase = .failure(error)
-                    } else {
-                        self.latestOther = .failure(error)
-                    }
+                    self.latestBase = .failure(error)
                     _lock.unlock()
                     return
                 }
             case let .success(result):
                 if result == nil {
-                    if base {
-                        self.base = nil
-                    } else {
-                        self.other = nil
-                    }
+                    self.base = nil
                 }
                 
                 if let continuation = self.continuation {
@@ -157,11 +159,53 @@ extension AsyncMergeSequence {
                     }
                 } else {
                     if let value = result {
-                        if base {
-                            self.latestBase = .success(value)
-                        } else {
-                            self.latestOther = .success(value)
-                        }
+                        self.latestBase = .success(value)
+                    }
+                    _lock.unlock()
+                    return
+                }
+            }
+            _lock.unlock()
+        }
+        
+        private func handleResultFromOther(result: Result<Element?, Error>) {
+            _lock.lock()
+            
+            switch result {
+            case let .failure(error):
+                self.base = nil
+                self.other = nil
+                
+                if let continuation = continuation {
+                    self.continuation = nil
+                    _lock.unlock()
+                    continuation.resume(throwing: error)
+                    return
+                } else {
+                    self.latestOther = .failure(error)
+                    _lock.unlock()
+                    return
+                }
+            case let .success(result):
+                if result == nil {
+                    self.other = nil
+                }
+                
+                if let continuation = self.continuation {
+                    if let value = result {
+                        self.continuation = nil
+                        _lock.unlock()
+                        continuation.resume(returning: value)
+                        return
+                    } else if self.base == nil && self.other == nil {
+                        self.continuation = nil
+                        _lock.unlock()
+                        continuation.resume(returning: nil)
+                        return
+                    }
+                } else {
+                    if let value = result {
+                        self.latestOther = .success(value)
                     }
                     _lock.unlock()
                     return
@@ -173,6 +217,13 @@ extension AsyncMergeSequence {
 }
 
 public extension AsyncSequence {
+    /// An asynchronous sequence that merges the elements from the base sequence with those from the `other`
+    /// sequence.
+    ///
+    /// There is no fixed precedence between the two upstream sequence's elements. Instead, whenever
+    /// a new element is requested by the downstream sequence, both upstreams get the change to provide an element.
+    /// The one that returns first is handed downstream immediately, the other is stored to be returned when the
+    /// downstream requests the next element.
     func merge<Other>(with other: Other) -> AsyncMergeSequence<Self, Other> where Other: AsyncSequence, Self.Element == Other.Element {
         AsyncMergeSequence(base: self, other: other)
     }

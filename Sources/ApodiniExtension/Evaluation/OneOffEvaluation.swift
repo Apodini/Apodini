@@ -26,7 +26,8 @@ public extension Request {
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end) async throws -> ResponseWithRequest<H.Response.Content> {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>,
+                              _ state: ConnectionState = .end) async throws -> ResponseWithRequest<H.Response.Content> {
         let response: Response<H.Response.Content> = try await self.evaluate(on: &handler, state)
         return ResponseWithRequest(response: response, request: self)
     }
@@ -40,7 +41,8 @@ public extension Request {
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
+    func evaluate<H: Handler>(on handler: inout Delegate<H>,
+                              _ state: ConnectionState = .end) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
         self.evaluate(on: &handler, state).map { (response: Response<H.Response.Content>) in
             ResponseWithRequest(response: response, request: self)
         }
@@ -67,7 +69,9 @@ internal extension Delegate where D: Handler {
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-        func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+        func evaluate(_ trigger: TriggerEvent,
+                      using request: Request,
+                      with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
         promise.completeWithAsync {
@@ -77,7 +81,9 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-        func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+        func evaluate(_ trigger: TriggerEvent,
+                      using request: Request,
+                      with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
         
         guard !trigger.cancelled else {

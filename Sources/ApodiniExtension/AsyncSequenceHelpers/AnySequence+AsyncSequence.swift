@@ -13,8 +13,6 @@ extension AnySequence: AsyncSequence {
     public func makeAsyncIterator() -> AsyncIteratorImpl {
         AsyncIteratorImpl(iterator: self.makeIterator())
     }
-    
-    
 }
 
 extension AnySequence {
@@ -22,12 +20,14 @@ extension AnySequence {
         var iterator: AnySequence.Iterator
         
         public mutating func next() async throws -> Element? {
-            return iterator.next()
+            iterator.next()
         }
     }
 }
 
 public extension Sequence {
+    /// Wraps this `Sequence` in an `AnySequence`, which in turn can be used
+    /// as an `AsyncSequence`.
     var asAsyncSequence: AnySequence<Element> {
         AnySequence(self)
     }

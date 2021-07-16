@@ -299,7 +299,7 @@ final class GuardTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 
         handler.accept(visitor)
-        let context = visitor.currentNode.export()
+        _ = visitor.currentNode.export()
 
         modelBuilder.finishedRegistration()
 
