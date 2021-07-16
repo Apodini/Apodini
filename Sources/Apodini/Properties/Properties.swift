@@ -1,10 +1,10 @@
 //
-//  Properties.swift
-//  
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 10.12.20.
+// SPDX-License-Identifier: MIT
 //
-
 import Foundation
 
 /// Properties provides same functionality as `DynamicProperty`, but for elements that are only known

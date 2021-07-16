@@ -1,10 +1,10 @@
 //
-//  MimeType.swift
-//  
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 5/26/21.
+// SPDX-License-Identifier: MIT
 //
-
 
 /// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
 public enum MimeType: Codable, Equatable {

@@ -1,15 +1,10 @@
 //
-//  ProtoDecodingContainer.swift
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
 //
-//  Created by Moritz Schüll on 28.11.20.
-//
-//  The decoding logic here was created with
-//  https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryDecoder.swift
-//  as a reference.
-//  Thus, there are several similarities and also parts simply copied.
-//
-
 import Foundation
 
 /// Offers basic functionality shared by several decoding containers for Protobuffers.

@@ -1,7 +1,10 @@
 //
-// Created by Andreas Bauer on 16.05.21.
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
+// SPDX-License-Identifier: MIT
+//
 /// The `AnyMetadataBlock` protocol represents Metadata that is _somehow_ grouped together.
 /// How the Metadata is grouped and how it is made accessible is the responsibility
 /// of the one conforming to this protocol or of the protocol inheriting from this one.

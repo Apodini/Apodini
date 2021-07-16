@@ -1,10 +1,10 @@
 //
-//  Input.swift
-//  
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 04.12.20.
+// SPDX-License-Identifier: MIT
 //
-
 import Foundation
 
 /// A `ParameterDecoder` allows for decoding an element of given type `T`.

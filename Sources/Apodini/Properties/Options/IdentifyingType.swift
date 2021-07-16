@@ -1,7 +1,10 @@
 //
-// Created by Andreas Bauer on 20.01.21.
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
+// SPDX-License-Identifier: MIT
+//
 /// Defines the identifying type passed to a `PathParameter`.
 /// The identifying type is required to conform to `Identifiable`,
 /// thus we save the `type` itself and its `Identifiable.ID` type.

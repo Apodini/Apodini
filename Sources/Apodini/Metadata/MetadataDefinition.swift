@@ -1,7 +1,10 @@
 //
-// Created by Andreas Bauer on 21.05.21.
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
+// SPDX-License-Identifier: MIT
+//
 /// A `MetadataDefinition` represents a specific type of Metadata which can be declared
 /// on appropriate locations, like in the Metadata Declaration blocks of a `Component`.
 /// To create a `MetadataDefinition` use one of the following protocols, depending on where

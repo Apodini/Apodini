@@ -1,7 +1,10 @@
 //
-// Created by Andreas Bauer on 23.01.21.
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
+// SPDX-License-Identifier: MIT
+//
 enum RelationshipType: Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     /// All relationships from the destination are inherited (including the self relationship).
     /// This requires that the `RelationshipSourceCandidate` contains resolvers
