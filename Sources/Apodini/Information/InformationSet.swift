@@ -27,7 +27,7 @@ public struct InformationSet {
 
         let key = AnyHashable(information.key)
         storage[key] = information
-        storage.removeValue(forKey: key)
+        capturedInstantiatables.removeValue(forKey: key) // ensures no outdated information is present
     }
 
     mutating func insert<I: InformationInstantiatable>(_ instantiatable: I) {
