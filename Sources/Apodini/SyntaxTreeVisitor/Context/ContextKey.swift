@@ -1,15 +1,11 @@
-//
+//                   
 // This source file is part of the Apodini open source project
-// 
+//
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//
-/// A `OptionalContextKey` serves as a key definition for a `ContextNode`.
-/// Optionally it can serve a reduction logic when inserting a new value into the `ContextNode`,
-/// see `OptionalContextKey.reduce(...)`.
-/// The `OptionalContextKey` is optional in the sense that it doesn't provide a default value, meaning
-/// it may not exist on the `Context` for a given `Handler`.
+//              
+
 public protocol OptionalContextKey {
     /// The type of the value the `OptionalContextKey` identifies. The value MUST NOT be of type `Optional`.
     associatedtype Value

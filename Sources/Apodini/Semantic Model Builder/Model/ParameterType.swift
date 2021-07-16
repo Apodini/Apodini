@@ -1,11 +1,11 @@
-//
+//                   
 // This source file is part of the Apodini open source project
-// 
+//
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//
-/// `Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
+//              
+
 public enum ParameterType {
     /// Lightweight parameters are any parameters which are
     /// considered to be lightweight in some sort of way.

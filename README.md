@@ -1,3 +1,13 @@
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 # Apodini
 [![DOI](https://zenodo.org/badge/274515276.svg)](https://zenodo.org/badge/latestdoi/274515276)
 [![codecov](https://codecov.io/gh/apodini/apodini/branch/develop/graph/badge.svg?token=QOAYN4SWRN)](https://codecov.io/gh/apodini/apodini)

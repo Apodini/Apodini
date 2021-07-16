@@ -1,12 +1,11 @@
-//
+//                   
 // This source file is part of the Apodini open source project
-// 
+//
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//
-/// Models relationships of a `Endpoint` to (multiple) destination `Endpoint`s,
-/// which all are located under the same path.
+//              
+
 public struct EndpointRelationship: Equatable {
     /// Absolut path to the Relationship destinations
     /// Internal as this path isn't scoped to a destination `Endpoint`.

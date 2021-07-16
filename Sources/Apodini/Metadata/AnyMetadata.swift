@@ -1,24 +1,11 @@
-//
+//                   
 // This source file is part of the Apodini open source project
-// 
+//
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//
-/// The `AnyMetadata` protocol represents arbitrary Metadata.
-/// This might be a `MetadataDefinition`, a `AnyMetadataBlock` or something else.
-///
-/// If you want to create new Metadata Definitions you may want to look at `MetadataDefinition`.
-///
-/// Furthermore Metadata is classified in terms of **WHERE** it can be declared:
-/// - `AnyHandlerMetadata` represents arbitrary Metadata that can be declared on `Handler`s.
-/// - `AnyWebServiceMetadata` represents arbitrary Metadata that can be declared on the `WebService`.
-/// - `AnyComponentMetadata` represents arbitrary Metadata that can be declared on `Component`s.
-///     Such Metadata can also be used on `Handler`s and on the `WebService` which both are Components as well,
-///     as it inherits from `AnyHandlerMetadata`, `AnyWebServiceMetadata` and `AnyComponentOnlyMetadata`.
-/// - `AnyComponentOnlyMetadata` represents arbitrary Metadata that can be declared on `Component` only,
-///     meaning on all `Component`s  which are **not** `Handler`s or the `WebService`.
-/// - `ContentMetadata` represents arbitrary Metadata that can be declared on `Content` types.
+//              
+
 public protocol AnyMetadata {
     /// This method accepts the `SyntaxTreeVisitor` in order to parse the Metadata tree.
     /// The implementation should either forward the visitor to its content (e.g. in the case of a `AnyMetadataBlock`)

@@ -1,12 +1,11 @@
-//
+//                   
 // This source file is part of the Apodini open source project
-// 
+//
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//
-/// `IntegerWidthCodingStrategy` may be used to override a protocol buffer coder's strategy for
-/// en/decoding `Int`s and `UInt`s.
+//              
+
 public enum IntegerWidthCodingStrategy {
     /// `Int`s and `UInt`s are encoded with a 32 bit wide field.
     case thirtyTwo
