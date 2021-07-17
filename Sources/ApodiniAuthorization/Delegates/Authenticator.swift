@@ -75,8 +75,8 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
             case .optional:
                 // found no authentication information and it isn't required. Create an appropriate error
                 // and save it into the environment value. See `AuthorizationStateContainer/potentialError`.
-                return try await delegate
-                    .environmentObject(authenticatable.environmentValue(potentialError: authenticationRequired))
+                return try await authenticatable
+                    .store(into: delegate, potentialError: authenticationRequired)
                     .instance()
                     .handle()
             }
@@ -108,8 +108,8 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
             if authenticatable.isAuthorized {
                 return try await delegate.instance().handle()
             } else {
-                return try await delegate
-                    .environmentObject(authenticatable.environmentValue(instance))
+                return try await authenticatable
+                    .store(into: delegate, instance: instance)
                     .instance()
                     .handle()
             }

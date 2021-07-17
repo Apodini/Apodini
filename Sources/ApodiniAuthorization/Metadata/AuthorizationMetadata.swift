@@ -21,7 +21,6 @@ public struct AuthorizationMetadata: ComponentMetadataDefinition, DefinitionWith
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) where Scheme.AuthenticationInfo == Verifier.AuthenticationInfo, Verifier.Element == Element {
         self.initializer = [
-            .init(AuthenticationEnvironmentInjectorInitializer<Element>(), ensureInitializerTypeUniqueness: true),
             .init(AuthenticatorInitializer(
                 StandardAuthenticatorConfiguration(
                     type: .required,

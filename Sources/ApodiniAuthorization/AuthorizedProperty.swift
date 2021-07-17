@@ -7,8 +7,12 @@ import Apodini
 /// The ``Authorized`` `DynamicProperty` can be used to access the ``Authenticatable``
 /// instance created through a authorization Metadata.
 public struct Authorized<Element: Authenticatable>: DynamicProperty {
-    @EnvironmentObject
-    var environmentValue: AuthorizationStateContainer<Element>
+    @Environment(\.wrapped.stateContainer)
+    private var stateContainer
+
+    private var environmentValue: AuthorizationStateContainer<Element> {
+        stateContainer.retrieve(Element.self)
+    }
 
     @Throws(.unauthenticated, options: .authorizationErrorReason(.authenticationRequired))
     var authenticationRequired
@@ -19,7 +23,7 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
         environmentValue.element != nil
     }
 
-    public init() {}
+    public init(_: Element.Type = Element.self) {}
 
     /// Returns the ``Authenticatable`` instance.
     /// - Returns: The ``Authenticatable`` instance.
@@ -35,5 +39,53 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
         }
 
         return element
+    }
+
+    func store<H: Handler>(into delegate: Delegate<H>, instance: Element) -> Delegate<H> {
+        delegate.environment(\.wrapped.stateContainer, SomeAuthorizationStateContainer(environmentValue(instance)))
+    }
+
+    func store<H: Handler>(into delegate: Delegate<H>, potentialError: ApodiniError) -> Delegate<H> {
+        delegate.environment(\.wrapped.stateContainer, SomeAuthorizationStateContainer(environmentValue(potentialError: potentialError)))
+    }
+}
+
+// MARK: Environment
+
+/// ``AnyStateContainer`` represents a type erased ``AuthorizationStateContainer``
+private protocol AnyStateContainer {}
+extension AuthorizationStateContainer: AnyStateContainer {}
+
+
+/// The ``SomeAuthorizationStateContainer`` type is a type erasing wrapper around an ``AuthorizationStateContainer``
+private struct SomeAuthorizationStateContainer {
+    let wrappedContainer: (id: ObjectIdentifier, container: AnyStateContainer)?
+
+    init() {
+        wrappedContainer = nil
+    }
+
+    init<Element: Authenticatable>(_ container: AuthorizationStateContainer<Element>) {
+        wrappedContainer = (ObjectIdentifier(Element.self), container)
+    }
+
+    func retrieve<Element: Authenticatable>(_ type: Element.Type = Element.self) -> AuthorizationStateContainer<Element> {
+        guard let containerTuple = wrappedContainer,
+              containerTuple.id == ObjectIdentifier(type),
+              let container = containerTuple.container as? AuthorizationStateContainer<Element> else {
+            return AuthorizationStateContainer()
+        }
+
+        return container
+    }
+}
+
+private extension Application {
+    class WrappedContainer {
+        var stateContainer = SomeAuthorizationStateContainer()
+    }
+
+    var wrapped: WrappedContainer {
+        WrappedContainer()
     }
 }

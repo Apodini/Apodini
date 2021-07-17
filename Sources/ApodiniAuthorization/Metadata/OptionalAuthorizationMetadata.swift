@@ -20,7 +20,6 @@ public struct OptionalAuthorizationMetadata: ComponentMetadataDefinition, Defini
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) where Scheme.AuthenticationInfo == Verifier.AuthenticationInfo, Verifier.Element == Element {
         self.initializer = [
-            .init(AuthenticationEnvironmentInjectorInitializer<Element>(), ensureInitializerTypeUniqueness: true),
             .init(AuthenticatorInitializer(
                 StandardAuthenticatorConfiguration(
                     type: .optional,

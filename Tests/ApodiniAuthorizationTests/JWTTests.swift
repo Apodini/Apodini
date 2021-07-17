@@ -29,6 +29,9 @@ class JWTTests: XCTApodiniTest {
     }
 
     struct AuthorizedHandler: Handler {
+        @Throws(.unauthenticated, options: .bearerErrorResponse(.init(.invalidToken)))
+        var unauthenticatedError
+
         func handle() -> String {
             "Hello World"
         }
@@ -42,7 +45,12 @@ class JWTTests: XCTApodiniTest {
                 Verify(issuer: \.iss, is: "https://other-option.org", "https://example.org")
             }
             Authorize(ExampleJWTToken.self) {
-                Deny(ifNil: \.email)
+                Deny { element in
+                    if element.email == nil {
+                        throw unauthenticatedError
+                    }
+                    return false
+                }
             }
         }
     }
@@ -117,17 +125,26 @@ class JWTTests: XCTApodiniTest {
 
     func runExpectAuthError(
         _ exporter: MockExporter<EmptyRequest>,
-        token: String,
+        handler: Int = 0,
+        token: String? = nil,
+        expectedWWWAuthenticate: String = "Bearer",
         httpResponse: HTTPResponseStatus = .unauthorized,
         reason: AuthorizationErrorReason
     ) {
+        let request: EmptyRequest
+        if let token = token {
+            request = EmptyRequest(information: Authorization(.bearer(token)))
+        } else {
+            request = EmptyRequest()
+        }
+
         // test tokenWithInvalidAudience
         XCTAssertThrowsError(
             try exporter
-                .requestThrowing(on: 0, request: EmptyRequest(information: Authorization(.bearer(token))), with: app)
+                .requestThrowing(on: handler, request: request, with: app)
         ) { (error: Error) in
             // WWWAuthenticate currently doesn't support parsing, therefore we just inspect the raw value!
-            XCTAssertEqual(error.apodiniError.information[httpHeader: WWWAuthenticate.header], "Bearer")
+            XCTAssertEqual(error.apodiniError.information[httpHeader: WWWAuthenticate.header], expectedWWWAuthenticate)
             XCTAssertEqual(error.apodiniError.option(for: .httpResponseStatus), httpResponse)
             XCTAssertEqual(error.apodiniError.option(for: .authorizationErrorReason), reason)
         }
@@ -136,12 +153,7 @@ class JWTTests: XCTApodiniTest {
 
     func testJWTWithoutToken() throws {
         // tests that accessing the protected endpoint results in an error
-        XCTAssertThrowsError(try exporter.requestThrowing(on: authorizedHandler, request: EmptyRequest(), with: app)) { (error: Error) in
-            // WWWAuthenticate currently doesn't support parsing, therefore we just inspect the raw value!
-            XCTAssertEqual(error.apodiniError.information[httpHeader: WWWAuthenticate.header], "Bearer")
-            XCTAssertEqual(error.apodiniError.option(for: .httpResponseStatus), .unauthorized)
-            XCTAssertEqual(error.apodiniError.option(for: .authorizationErrorReason), .authenticationRequired)
-        }
+        runExpectAuthError(exporter, reason: .authenticationRequired)
     }
 
     func testJWTProperToken() throws {
@@ -188,7 +200,7 @@ class JWTTests: XCTApodiniTest {
         )
 
         // test fullyCorrectToken
-        runExpectAuthError(exporter, token: tokenWithoutEmail, reason: .failedAuthorization)
+        runExpectAuthError(exporter, token: tokenWithoutEmail, expectedWWWAuthenticate: "Bearer error=invalid_token", reason: .failedAuthorization)
     }
 
     func testJWTFailingAudienceClaim() throws {
