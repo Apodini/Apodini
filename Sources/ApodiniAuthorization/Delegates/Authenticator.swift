@@ -35,7 +35,6 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
         self.delegate = Delegate(handler, .required)
     }
 
-    // TODO consider existing Optional Authorization Error Challenges!
     func handle() async throws -> H.Response {
         if authenticatable.isAuthorized {
             if skipRequirementsForAuthorized {
