@@ -6,6 +6,20 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// The `HandlerMetadataNamespace` can be used to define an appropriate
+/// Name for your `HandlerMetadataDefinition` in a way that avoids Name collisions
+/// on the global Scope.
+///
+/// Given the example of `DescriptionHandlerMetadata` you can define a Name like the following:
+/// ```swift
+/// extension HandlerMetadataNamespace {
+///     public typealias Description = DescriptionHandlerMetadata
+/// }
+/// ```
+///
+/// Refer to `TypedHandlerMetadataNamespace` if you need access to the generic `Handler`
+/// Type where the Metadata is used on.
+
 public protocol HandlerMetadataNamespace {}
 
 /// The `ComponentOnlyMetadataNamespace` can be used to define an appropriate

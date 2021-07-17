@@ -4,7 +4,16 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//        
+
+/// Represents a error declaration in the source file which should be tested for a compiler error.
+/// To define a `ExpectedError` add a comment above the line where the compiler error is expected,
+/// adhering to the format like illustrated in the example below:
+/// ```swift
+/// // error: cannot find operator '++' in scope; did you mean '+= 1'?
+/// i++
+/// ```
+
 
 class ExpectedError: CustomStringConvertible {
     var description: String {

@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// `IntegerWidthCodingStrategy` may be used to override a protocol buffer coder's strategy for
+/// en/decoding `Int`s and `UInt`s.
+
 public enum IntegerWidthCodingStrategy {
     /// `Int`s and `UInt`s are encoded with a 32 bit wide field.
     case thirtyTwo

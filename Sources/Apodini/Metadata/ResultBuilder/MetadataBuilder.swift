@@ -1,3 +1,5 @@
+// swiftlint:disable missing_docs
+
 //                   
 // This source file is part of the Apodini open source project
 //

@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+import Foundation
+
 /// A ``ParameterCollection`` provides access to an endpoint's ``EndpointParameter``s.
 public protocol ParameterCollection {
     /// Provides access to the ``EndpointParameter``s related to this collection.

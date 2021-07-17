@@ -4,7 +4,9 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//           
+
+// MARK: - Message
 
 struct ProtobufferMessage: Equatable, Hashable {
     struct Property: Equatable, Hashable {

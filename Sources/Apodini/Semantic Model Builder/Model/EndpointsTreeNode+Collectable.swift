@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// Helper type which acts as a Hashable wrapper around `AnyEndpoint`
+
 private struct AnyHashableRelationshipEndpoint: Hashable, Equatable {
     let endpoint: AnyRelationshipEndpoint
     

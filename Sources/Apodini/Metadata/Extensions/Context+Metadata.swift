@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// MARK: Metadata
+
 public extension Context {
     /// Retrieves the value for a given `MetadataDefinition`.
     /// - Parameter contextKey: The `MetadataDefinition` to retrieve the value for.

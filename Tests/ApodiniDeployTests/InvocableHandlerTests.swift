@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// swiftlint:disable identifier_name type_name nesting
+
 import Foundation
 @testable import Apodini
 import ApodiniREST

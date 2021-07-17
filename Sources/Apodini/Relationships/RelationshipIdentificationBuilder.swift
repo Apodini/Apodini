@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// swiftlint:disable missing_docs
+
 @resultBuilder
 public enum RelationshipIdentificationBuilder<From> {
     static func buildExpression<To: Identifiable>(_ expression: RelationshipIdentification<From, To>) -> [AnyRelationshipIdentification] {

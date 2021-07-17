@@ -6,6 +6,23 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// The `AnyMetadataBlock` protocol represents Metadata that is _somehow_ grouped together.
+/// How the Metadata is grouped and how it is made accessible is the responsibility
+/// of the one conforming to this protocol or of the protocol inheriting from this one.
+///
+/// The following Metadata Blocks are available:
+/// - `HandlerMetadataBlock`
+/// - `ComponentOnlyMetadataBlock`
+/// - `WebServiceMetadataBlock`
+/// - `ComponentMetadataBlock`
+/// - `ContentMetadataBlock`
+///
+/// See those docs for examples on how to use them in their respective scope
+/// or on how to create **independent** and thus **reusable** Metadata.
+///
+/// See `RestrictedMetadataBlock` for a way to create custom Metadata Blocks where
+/// the content is restricted to a specific `MetadataDefinition`.
+
 public protocol AnyMetadataBlock: AnyMetadata {}
 
 /// The `HandlerMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain

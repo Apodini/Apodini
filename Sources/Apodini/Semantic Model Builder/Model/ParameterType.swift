@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// `Parameter` categorization needed for certain interface exporters (e.g., HTTP-based).
+
 public enum ParameterType {
     /// Lightweight parameters are any parameters which are
     /// considered to be lightweight in some sort of way.

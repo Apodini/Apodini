@@ -6,6 +6,26 @@
 // SPDX-License-Identifier: MIT
 //              
 
+
+/// A `MetadataDefinition` represents a specific type of Metadata which can be declared
+/// on appropriate locations, like in the Metadata Declaration blocks of a `Component`.
+/// To create a `MetadataDefinition` use one of the following protocols, depending on where
+/// you want your `MetadataDefinition` to be accessible:
+/// - `HandlerMetadataDefinition`
+/// - `ComponentOnlyMetadataDefinition`
+/// - `WebServiceMetadataDefinition`
+/// - `ComponentMetadataDefinition`
+/// - `ContentMetadataDefinition`
+///
+/// - Note: When creating `MetadataDefinition`s it is advised to give them unique and precise names.
+///     The Metadata DSL subsystem is designed in such a way, that the Type name itself will and should
+///     not be the name used by the user in the Metadata DSL. Therefore there is no reason to keep the names short
+///     or name them according to some "natural language flow". Ideally all such definitions should
+///     have the "Metadata" suffix (maybe adding even the scope e.g. "XXXXHandlerMetadata").
+///     The name used in the Metadata DSL (the one which should ideally reflect the "natural language flow")
+///     can be defined by extending the appropriate Metadata Namespace: `ComponentMetadataNamespace`,
+///     `HandlerMetadataNamespace`, `WebServiceMetadataNamespace` or `ContentMetadataNamespace`.
+
 public protocol MetadataDefinition: AnyMetadata {
     /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata.
     associatedtype Key: OptionalContextKey

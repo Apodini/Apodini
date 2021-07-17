@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// swiftlint:disable static_operator
+
 import Foundation
 import Apodini
 import ApodiniDeployBuildSupport

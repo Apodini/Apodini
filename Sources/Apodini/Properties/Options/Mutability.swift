@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+//import Foundation
+
 /// A generic `PropertyOption` that indicates if the `@Parameter`'s value can be updated during the lifetime of its container once it has been set.
 public enum Mutability: PropertyOption {
     /// The `@Parameter` can be updated without restrictions.

@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// swiftlint:disable missing_docs
+// MARK: - Tree
+
 // swiftlint:disable syntactic_sugar
 /// `Tree.none` is to `Node`, what `[]` is to `Array` or `Set`.
 public typealias Tree<T> = Optional<Node<T>>

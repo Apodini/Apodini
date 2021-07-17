@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+/// A type erased version of `ContextEntryCollection`.
+
 protocol AnyContextEntryCollection {
     /// Append a `AnyContextEntry` to the collection.
     /// - Parameters:
