@@ -16,7 +16,6 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
             Group("example") {
                 ExampleHandler()
             }
-
             Group("external") {
                 EmptyHandler()
             }.metadata {
@@ -25,17 +24,17 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
                     using: BasicAuthenticationScheme(realm: "Realm"),
                     verifiedBy: MockCredentialVerifier(expectedPassword: "123456", state: 3))
             }
-
             Group("forgottenAuth") {
                 EmptyHandler()
             }
-
             Group("tokenAuth") {
                 TokenHandler()
             }
-
             Group("someError") {
                 ErroneousHandler()
+            }
+            Group("TokenWith2Schemes") {
+                HandlerWithOptionalAuth()
             }
         }
     }
@@ -146,6 +145,27 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
         }
     }
 
+    struct HandlerWithOptionalAuth: Handler {
+        var token = Authorized<MockToken>()
+
+        func handle() throws -> String {
+            _ = try token()
+            return "Hello World"
+        }
+
+        var metadata: Metadata {
+            AuthorizeOptionally(
+                MockToken.self,
+                using: BearerAuthenticationScheme(),
+                verifiedBy: MockJsonTokenVerifier<MockToken>())
+
+            AuthorizeOptionally(
+                MockCredentials<Int>.self,
+                using: BasicAuthenticationScheme(realm: "Realm"),
+                verifiedBy: MockCredentialVerifier(expectedPassword: "123456", state: -1))
+        }
+    }
+
     // swiftlint:disable:next implicitly_unwrapped_optional
     var exporter: MockExporter<EmptyRequest>!
     var exampleHandler = 0
@@ -153,6 +173,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
     var forgottenAuthHandler = 2
     var tokenAuthHandler = 3
     var genericHandlerWithError = 4
+    var handlerWithTwoOptionalAuths = 5
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -264,7 +285,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
     }
 
     func testMalformedCredentials() {
-        let information = AnyHTTPInformation(key: Authorization.header, rawValue: "Basic MALFOREDBASICAUTH")
+        let information = AnyHTTPInformation(key: Authorization.header, rawValue: "Basic MALFORMED_BASIC_AUTH")
 
         XCTAssertThrowsError(
             try exporter
@@ -350,5 +371,14 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
             httpResponse: .internalServerError,
             reason: nil
         )
+    }
+
+
+    func testResponseWithMultipleChallenges() throws {
+        try runExpectTokenAuthError(
+            exporter,
+            handler: handlerWithTwoOptionalAuths,
+            expectedWWWAuthenticate: "Basic realm=Realm, Bearer",
+            reason: .authenticationRequired)
     }
 }

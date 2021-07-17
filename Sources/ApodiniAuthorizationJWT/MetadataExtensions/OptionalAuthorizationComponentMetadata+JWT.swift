@@ -14,7 +14,7 @@ public extension OptionalAuthorizationMetadata {
         _ authenticatable: Element.Type = Element.self,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) {
-        self.init(authenticatable, using: BearerAuthenticationScheme(), verifiedBy: JWTVerifier(), requirements: requirements)
+        self.init(authenticatable, using: BearerAuthenticationScheme(), requirements: requirements)
     }
 
     /// Initializes a new `OptionalAuthorizationMetadata` using the `BearerAuthenticationScheme` and the ``JWTVerifier``.

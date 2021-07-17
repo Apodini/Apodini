@@ -35,6 +35,7 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
         self.delegate = Delegate(handler, .required)
     }
 
+    // TODO consider existing Optional Authorization Error Challenges!
     func handle() async throws -> H.Response {
         if authenticatable.isAuthorized {
             if skipRequirementsForAuthorized {
@@ -73,10 +74,9 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
             case .required:
                 throw authenticationRequired
             case .optional:
-                // found no authentication information and it isn't required. Create an appropriate error
-                // and save it into the environment value. See `AuthorizationStateContainer/potentialError`.
+                // found no authentication information and it isn't required.
                 return try await authenticatable
-                    .store(into: delegate, potentialError: authenticationRequired)
+                    .store(into: delegate)
                     .instance()
                     .handle()
             }

@@ -18,7 +18,6 @@ public extension AuthorizationMetadata {
         self.init(
             authenticatable,
             using: BearerAuthenticationScheme(),
-            verifiedBy: JWTVerifier(),
             skipRequirementsForAuthorized: skipRequirementsForAuthorized,
             requirements: requirements
         )
