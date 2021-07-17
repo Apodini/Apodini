@@ -49,10 +49,10 @@ struct AuthorizationRequirementsChecker<H: Handler, Element: Authenticatable>: H
 
         switch result {
         case let .fulfilled(cause), let .undecided(cause): // undecided is a acceptance state as well!
-            logger.trace("Authorization on Handler \(H.self) succeeded with \(cause)")
+            logger.trace("Authorization on Handler \(H.self) succeeded with \(cause())")
             return await try delegate.instance().handle()
         case let .rejected(cause):
-            logger.debug("Authorization on Handler \(H.self) rejected with \(cause)")
+            logger.debug("Authorization on Handler \(H.self) rejected with \(cause())")
             throw failedAuthorization
         }
     }

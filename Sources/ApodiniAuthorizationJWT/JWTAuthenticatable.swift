@@ -11,11 +11,12 @@ import JWTKit
 ///
 /// While you can implement the `verify(using:)` method, it is advised to not do so and express
 /// the verification claims using `AuthorizationRequirement`s.
-/// The `ApodiniAuthorizationJWT` package provides the following `AuthorizationRequirement`s to verify JWT claims:
-/// - ``VerifyIntendedAudience``
-/// - ``VerifyIssuer``
-/// - ``VerifyNotBefore``
-/// - ``VerifyNotExpired``
+/// The `ApodiniAuthorizationJWT` package provides the following extension to the `Verify` `AuthorizationRequirement`,
+//  in order to easily verify JWT claims:
+/// - ``Verify/init(intendedAudience:includes:)``
+/// - ``Verify/init(issuer:is:)``
+/// - ``Verify/init(notBefore:date:)``
+/// - ``Verify/init(notExpired:date:)``
 public protocol JWTAuthenticatable: Authenticatable, JWTPayload {}
 
 public extension JWTAuthenticatable {

@@ -94,13 +94,13 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
 
         switch result {
         case let .fulfilled(cause), let .undecided(cause): // undecided is a acceptance state as well!
-            logger.trace("Authorization on Handler \(H.self) succeeded with \(cause)")
+            logger.trace("Authorization on Handler \(H.self) succeeded with \(cause())")
             return try await delegate
                 .environmentObject(authenticatable.environmentValue(instance))
                 .instance()
                 .handle()
         case let .rejected(cause):
-            logger.debug("Authorization on Handler \(H.self) rejected with \(cause)")
+            logger.debug("Authorization on Handler \(H.self) rejected with \(cause())")
             throw failedAuthorization
         }
     }

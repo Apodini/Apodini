@@ -32,11 +32,11 @@ class JWTTests: XCTApodiniTest {
 
         var metadata: Metadata {
             Authorize(ExampleJWTToken.self) {
-                VerifyNotExpired(\.exp)
-                VerifyIntendedAudience(\.aud, includes: "ExampleAudience")
-                VerifyNotBefore(\.nbf)
+                Verify(notExpired: \.exp)
+                Verify(intendedAudience: \.aud, includes: "ExampleAudience")
+                Verify(notBefore: \.nbf)
 
-                VerifyIssuer(\.iss, is: "https://other-option.org", "https://example.org")
+                Verify(issuer: \.iss, is: "https://other-option.org", "https://example.org")
 
                 Deny(ifNil: \.email)
             }

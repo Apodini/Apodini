@@ -6,18 +6,18 @@
 public enum RequirementResult {
     /// Represents a positive ``RequirementResult``.
     /// Captures the ``Cause`` leading to the result. The ``Cause`` is only captured for debug purposes.
-    case fulfilled(cause: Cause = .unspecified)
+    case fulfilled(cause: @autoclosure () -> Cause = .unspecified)
     /// Represents a neutral ``RequirementResult``.
     /// Captures the ``Cause`` leading to the result. The ``Cause`` is only captured for debug purposes.
-    case undecided(cause: Cause = .unspecified)
+    case undecided(cause: @autoclosure () -> Cause = .unspecified)
     /// Represents a negative ``RequirementResult``.
     /// Captures the ``Cause`` leading to the result. The ``Cause`` is only captured for debug purposes.
-    case rejected(cause: Cause = .unspecified)
+    case rejected(cause: @autoclosure () -> Cause = .unspecified)
 
     /// Represents the ``Cause`` of a specific ``RequirementResult`` instance.
     public enum Cause {
         /// The result was caused by an `Error`.
-        case error(_ error: Error)
+        case error(_ error: Error, in: AnyAuthorizationRequirement? = nil)
         /// The result is the cause of a single ``AuthenticationRequirement``.
         case result(_ requirement: AnyAuthorizationRequirement)
         /// The result is the cause of multiple evaluations of different ``AuthenticationRequirement``.
