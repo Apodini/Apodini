@@ -10,7 +10,8 @@
 //
 // SPDX-FileCopyrightText: 2020 Qutheory, LLC
 //
-// SPDX-License-Identifier: MIT          
+// SPDX-License-Identifier: MIT
+//          
 
 import NIO
 

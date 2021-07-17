@@ -4,6 +4,13 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
+//
+//
+// This code is based on the Vapor project: https://github.com/vapor/vapor
+//
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
+//
+// SPDX-License-Identifier: MIT
 //              
 
 import NIO
