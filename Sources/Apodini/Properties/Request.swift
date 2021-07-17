@@ -6,8 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-//import Foundation
-
+import Foundation
 import NIO
 
 /// A ``Request`` is a generalized wrapper around an ``InterfaceExporter``'s internal request type.

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//import Apodini
+import Apodini
 
 import Fluent
 @_implementationOnly import Vapor
