@@ -10,8 +10,6 @@ import NIO
 import ApodiniUtils
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-// TODO handler metadata namespace!
-
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
 /// A `Component`  consists of different other components as described by the `content` property.

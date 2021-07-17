@@ -10,11 +10,9 @@ import Vapor
 public struct WWWAuthenticate: HTTPInformation {
     public static let header: String = "WWW-Authenticate"
 
-    // TODO ensure uniqueness via OrderedSet?
     private let _value: [Challenge]
 
     public var value: [Challenge] {
-        // TODO can we easily support parsing?
         precondition(!_value.isEmpty, "Parsing WWWAuthenticate from string is currently unsupported")
         return _value
     }
@@ -43,11 +41,55 @@ public struct WWWAuthenticate: HTTPInformation {
     }
 }
 
+
 extension WWWAuthenticate {
+    /// Represents a ``WWWAuthenticate`` ``Challenge``.
+    public struct Challenge {
+        /// The scheme.
+        public let scheme: String
+        /// The parameters associated with the ``Challenge``.
+        public let parameters: [AuthenticationParameter]
+
+        /// The raw string value of the ``Challenge``.
+        public var rawValue: String {
+            if parameters.isEmpty {
+                return scheme
+            } else {
+                return "\(scheme) " + parameters
+                    .map { $0 .rawValue }
+                    .joined(separator: ", ")
+            }
+        }
+
+        /// Initializes a new ``Challenge``.
+        /// - Parameters:
+        ///   - scheme: The challenge scheme.
+        ///   - parameters: The associated parameters.
+        public init(scheme: String, parameters: AuthenticationParameter...) {
+            self.scheme = scheme
+            self.parameters = parameters
+        }
+
+        /// Initializes a new ``Challenge``.
+        /// - Parameters:
+        ///   - scheme: The challenge scheme.
+        ///   - parameters: The associated parameters.
+        public init(scheme: String, parameters: [AuthenticationParameter]) {
+            self.scheme = scheme
+            self.parameters = parameters
+        }
+    }
+}
+
+extension WWWAuthenticate {
+    /// A single ``AuthenticationParameter`` of a ``Challenge``
     public struct AuthenticationParameter {
+        /// The key of the parameter
         public var key: String
+        /// The value of the parameter
         public var value: String
 
+        /// The raw string value representation of the ``AuthenticationParameter``
         public var rawValue: String {
             let escaped = value.replacingOccurrences(of: "\"", with: "\\\"")
 
@@ -59,6 +101,10 @@ extension WWWAuthenticate {
             }
         }
 
+        /// Initializes a new ``AuthenticationParameter``.
+        /// - Parameters:
+        ///   - key: The key of the parameter.
+        ///   - value: The value of the parameter.
         public init(key: String, value: String) {
             self.key = key
             self.value = value
@@ -66,39 +112,14 @@ extension WWWAuthenticate {
     }
 }
 
-extension WWWAuthenticate {
-    public struct Challenge {
-        public let scheme: String
-        public let parameters: [AuthenticationParameter]
-
-        public var rawValue: String {
-            if parameters.isEmpty {
-                return scheme
-            } else {
-                return "\(scheme) " + parameters
-                    .map { $0 .rawValue }
-                    .joined(separator: ", ")
-            }
-        }
-
-        public init(scheme: String, parameters: AuthenticationParameter...) {
-            self.scheme = scheme
-            self.parameters = parameters
-        }
-
-        public init(scheme: String, parameters: [AuthenticationParameter]) {
-            self.scheme = scheme
-            self.parameters = parameters
-        }
-    }
-}
-
 public extension Array where Element == WWWAuthenticate.Challenge {
+    /// The raw string value representation of a ``WWWAuthenticate/Challenge`` array.
     var rawValue: String {
         map { $0.rawValue }
             .joined(separator: ", ")
     }
 
+    /// Reduce this ``WWWAuthenticate/Challenge`` array with another.
     func merge(with array: Self) -> Self {
         var result: [WWWAuthenticate.Challenge] = self
 

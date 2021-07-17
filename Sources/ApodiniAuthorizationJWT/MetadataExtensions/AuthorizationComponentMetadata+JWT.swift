@@ -8,14 +8,13 @@ import ApodiniAuthorizationBearerScheme
 public extension AuthorizationMetadata {
     /// Initializes a new `AuthorizationMetadata` using the `BearerAuthenticationScheme` and the ``JWTVerifier``.
     /// - Parameters:
-    ///   - authenticatable: The ``JWTAuthenticatable``
-    ///   - requirements: TODO finish docs
+    ///   - authenticatable: The ``JWTAuthenticatable``.
+    ///   - requirements: The ``AuthorizationRequirement`` evaluated on the authenticated token.
     init<Element: JWTAuthenticatable>(
         _ authenticatable: Element.Type = Element.self,
         skipRequirementsForAuthorized: Bool = false,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) {
-        // TODO doesn't allow to configure the bearer auth scheme!
         self.init(
             authenticatable,
             using: BearerAuthenticationScheme(),
@@ -25,6 +24,12 @@ public extension AuthorizationMetadata {
         )
     }
 
+    /// Initializes a new `AuthorizationMetadata` using the `BearerAuthenticationScheme` and the ``JWTVerifier``.
+    /// This initializer is particularly useful to pass a custom `AuthenticationScheme` or to pass
+    /// a `BearerAuthenticationScheme` with custom configuration.
+    /// - Parameters:
+    ///   - authenticatable: The ``JWTAuthenticatable``.
+    ///   - requirements: The ``AuthorizationRequirement`` evaluated on the authenticated token.
     init<Scheme: AuthenticationScheme, Element: JWTAuthenticatable>(
         _ authenticatable: Element.Type = Element.self,
         using authenticationScheme: Scheme,

@@ -146,6 +146,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
         }
     }
 
+    // swiftlint:disable:next implicitly_unwrapped_optional
     var exporter: MockExporter<EmptyRequest>!
     var exampleHandler = 0
     var emptyHandler = 1

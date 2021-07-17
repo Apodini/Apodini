@@ -16,8 +16,6 @@ public protocol AnyDefinitionWithDynamicDelegatingHandler {
     func addInitializerContextValue(_ visitor: SyntaxTreeVisitor)
 }
 
-// TODO i think we can remove that again!
-
 /// Some ``MetadataDefinition`` might declare conformance to ``DefinitionWithDelegatingHandler``
 /// if it wishes to bootstrap an ``DelegatingHandlerInitializer`` for the respective ``Component``, ``WebService`` and/or ``Handler``.
 /// This protocol shall be used if the Initializer is supplied in addition to the ``OptionalContextKey`` provided

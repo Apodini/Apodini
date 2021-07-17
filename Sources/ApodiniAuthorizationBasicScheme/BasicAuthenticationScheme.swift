@@ -22,7 +22,6 @@ public struct BasicAuthenticationScheme: AuthenticationScheme {
     }
 
     public func deriveAuthenticationInfo() throws -> (username: String, password: String)? {
-        // TODO does this also contain username@password in url?
         guard let authorization = connection.information[ApodiniHTTPProtocol.Authorization.self],
               authorization.type.lowercased() == "basic" else {
             return nil

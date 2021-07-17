@@ -6,6 +6,22 @@ import Apodini
 
 /// The ``Authorized`` `DynamicProperty` can be used to access the ``Authenticatable``
 /// instance created through a authorization Metadata.
+///
+/// Given the example of an `ExampleUser` ``Authenticatable``, the following code may be used to
+/// access the authenticated and authorized instance.
+/// ```swift
+/// struct ExampleHandler: Handler {
+///     var authorizedUser = Authorized<ExampleUser>()
+///
+///     func handle() -> String {
+///         // you might want to use `authorizedUser.isAuthorized` if using optional authorization
+///
+///         let user = try authorizedUser()
+///         // ...
+///         return ...
+///     }
+/// }
+/// ```
 public struct Authorized<Element: Authenticatable>: DynamicProperty {
     @Environment(\.wrapped.stateContainer)
     private var stateContainer

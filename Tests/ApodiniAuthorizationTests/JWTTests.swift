@@ -110,6 +110,7 @@ class JWTTests: XCTApodiniTest {
         var email: String?
     }
 
+    // swiftlint:disable:next implicitly_unwrapped_optional
     var exporter: MockExporter<EmptyRequest>!
     var authorizedHandler = 0
     var optionalAuthorizedHandler = 1
