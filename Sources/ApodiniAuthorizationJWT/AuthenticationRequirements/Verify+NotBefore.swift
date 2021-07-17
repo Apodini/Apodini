@@ -22,7 +22,7 @@ public extension Verify {
     /// - Parameters:
     ///   - keyPath: The `KeyPath` to the `NotBeforeClaim` of the ``JWTAuthenticatable``.
     ///   - date: Optionally, provide a different current `Date`. Otherwise **now** is used.
-    init(notBefore keyPath: KeyPath<Element, NotBeforeClaim>, date: Date = .init()) {
+    init(notBefore keyPath: KeyPath<Element, NotBeforeClaim>, date: Date = .init()) where Element: JWTAuthenticatable {
         self.init { element in
             do {
                 try element[keyPath: keyPath].verifyNotBefore(currentDate: date)

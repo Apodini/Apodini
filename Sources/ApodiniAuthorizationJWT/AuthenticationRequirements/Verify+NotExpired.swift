@@ -22,7 +22,7 @@ public extension Verify {
     /// - Parameters:
     ///   - keyPath: The `KeyPath` to the `ExpirationClaim` of the ``JWTAuthenticatable``.
     ///   - date: Optionally, provide a different current `Date`. Otherwise **now** is used.
-    public init(notExpired keyPath: KeyPath<Element, ExpirationClaim>, date: Date = .init()) {
+    public init(notExpired keyPath: KeyPath<Element, ExpirationClaim>, date: Date = .init()) where Element: JWTAuthenticatable {
         self.init { element in
             do {
                 try element[keyPath: keyPath].verifyNotExpired(currentDate: date)

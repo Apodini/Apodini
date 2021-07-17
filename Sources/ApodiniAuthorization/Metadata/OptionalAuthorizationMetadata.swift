@@ -16,6 +16,7 @@ public struct OptionalAuthorizationMetadata: ComponentMetadataDefinition, Defini
         _ authenticatable: Element.Type = Element.self,
         using authenticationScheme: Scheme,
         verifiedBy verifier: Verifier,
+        skipRequirementsForAuthorized: Bool = false,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) where Scheme.AuthenticationInfo == Verifier.AuthenticationInfo, Verifier.Element == Element {
         self.initializer = [
@@ -25,9 +26,11 @@ public struct OptionalAuthorizationMetadata: ComponentMetadataDefinition, Defini
                     type: .optional,
                     scheme: authenticationScheme,
                     verifier: verifier,
-                    authenticatable: authenticatable),
-                requirements())
-            )
+                    authenticatable: authenticatable,
+                    skipRequirementsForAuthorized: skipRequirementsForAuthorized
+                ),
+                requirements()
+            ))
         ]
     }
 }

@@ -4,6 +4,8 @@
 
 import Apodini
 
+/// The ``Authorized`` `DynamicProperty` can be used to access the ``Authenticatable``
+/// instance created through a authorization Metadata.
 public struct Authorized<Element: Authenticatable>: DynamicProperty {
     @EnvironmentObject
     var environmentValue: AuthorizationStateContainer<Element>
@@ -11,12 +13,18 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
     @Throws(.unauthenticated, options: .authorizationErrorReason(.authenticationRequired))
     var authenticationRequired
 
-    var isAuthorized: Bool {
+    /// Returns if the associated ``Element`` was successfully authenticated.
+    /// This property might return false in cases of ``ComponentMetadataNamespace/AuthorizeOptionally`` Metadata.
+    public var isAuthorized: Bool {
         environmentValue.element != nil
     }
 
     public init() {}
 
+    /// Returns the ``Authenticatable`` instance.
+    /// - Returns: The ``Authenticatable`` instance.
+    /// - Throws: Might throw an `ApodiniError` in cases where an authorized ``Element`` instance
+    ///     could not be found.
     public func callAsFunction() throws -> Element {
         guard let element = environmentValue.element else {
             // throws an error because the user requires the Authenticatable to be present, but it isn't.

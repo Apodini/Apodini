@@ -12,17 +12,31 @@ public extension AuthorizationMetadata {
     ///   - requirements: TODO finish docs
     init<Element: JWTAuthenticatable>(
         _ authenticatable: Element.Type = Element.self,
+        skipRequirementsForAuthorized: Bool = false,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) {
         // TODO doesn't allow to configure the bearer auth scheme!
-        self.init(authenticatable, using: BearerAuthenticationScheme(), verifiedBy: JWTVerifier(), requirements: requirements)
+        self.init(
+            authenticatable,
+            using: BearerAuthenticationScheme(),
+            verifiedBy: JWTVerifier(),
+            skipRequirementsForAuthorized: skipRequirementsForAuthorized,
+            requirements: requirements
+        )
     }
 
     init<Scheme: AuthenticationScheme, Element: JWTAuthenticatable>(
         _ authenticatable: Element.Type = Element.self,
         using authenticationScheme: Scheme,
+        skipRequirementsForAuthorized: Bool = false,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) where Scheme.AuthenticationInfo == String {
-        self.init(authenticatable, using: authenticationScheme, verifiedBy: JWTVerifier(), requirements: requirements)
+        self.init(
+            authenticatable,
+            using: authenticationScheme,
+            verifiedBy: JWTVerifier(),
+            skipRequirementsForAuthorized: skipRequirementsForAuthorized,
+            requirements: requirements
+        )
     }
 }

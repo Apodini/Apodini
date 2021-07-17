@@ -15,6 +15,9 @@ class JWTTests: XCTApodiniTest {
             Group("access") {
                 AuthorizedHandler()
             }
+            Group("optionalAccess") {
+                OptionallyAuthorizedHandler()
+            }
             Group("token") {
                 TokenCreationHandler()
             }
@@ -37,8 +40,29 @@ class JWTTests: XCTApodiniTest {
                 Verify(notBefore: \.nbf)
 
                 Verify(issuer: \.iss, is: "https://other-option.org", "https://example.org")
-
+            }
+            Authorize(ExampleJWTToken.self) {
                 Deny(ifNil: \.email)
+            }
+        }
+    }
+
+    struct OptionallyAuthorizedHandler: Handler {
+        var token = Authorized<ExampleJWTToken>()
+
+        func handle() throws -> String {
+            guard token.isAuthorized else {
+                return "Hello World"
+            }
+
+            return "Hello to \(try token().aud.value[0])"
+        }
+
+        var metadata: Metadata {
+            AuthorizeOptionally(ExampleJWTToken.self)
+
+            OptionalAuthorizationRequirements(ExampleJWTToken.self) {
+                Verify(notExpired: \.exp)
             }
         }
     }
@@ -78,102 +102,17 @@ class JWTTests: XCTApodiniTest {
         var email: String?
     }
 
-    // TODO maybe split up into multiple test cases?
-    func testJWTEndToEnd() throws {
-        let exporter = MockExporter<EmptyRequest>()
+    var exporter: MockExporter<EmptyRequest>!
+    var authorizedHandler = 0
+    var optionalAuthorizedHandler = 1
+    var tokenHandler = 2
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        exporter = MockExporter<EmptyRequest>()
         app.registerExporter(exporter: exporter)
 
         TestWebService.start(app: app)
-
-        let authorizedHandler = 0
-        let tokenHandler = 1
-
-        // tests that accessing the protected endpoint results in an error
-        XCTAssertThrowsError(try exporter.requestThrowing(on: authorizedHandler, request: EmptyRequest(), with: app)) { (error: Error) in
-            // WWWAuthenticate currently doesn't support parsing, therefore we just inspect the raw value!
-            XCTAssertEqual(error.apodiniError.information[httpHeader: WWWAuthenticate.header], "Bearer")
-            XCTAssertEqual(error.apodiniError.option(for: .httpResponseStatus), .unauthorized)
-            XCTAssertEqual(error.apodiniError.option(for: .authorizationErrorReason), .authenticationRequired)
-        }
-
-
-        // request fullyCorrectToken
-        let fullyCorrectToken: String = try XCTUnwrap(
-            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app, parameters: "test@example.org")
-                .typed(String.self)?.content
-        )
-
-        // test fullyCorrectToken
-        try XCTCheckResponse(
-            try XCTUnwrap(
-                exporter.request(on: authorizedHandler, request: EmptyRequest(information: Authorization(.bearer(fullyCorrectToken))), with: app)
-            ),
-            content: "Hello World"
-        )
-
-
-        // request tokenWithoutEmail
-        let tokenWithoutEmail: String = try XCTUnwrap(
-            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app)
-                .typed(String.self)?.content
-        )
-
-        // test fullyCorrectToken
-        runExpectAuthError(exporter, token: tokenWithoutEmail, reason: .failedAuthorization)
-
-
-        // request tokenWithInvalidAudience
-        let tokenInvalidAudience: String = try XCTUnwrap(
-            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app, parameters: "test@example.org", "SomeOtherAudience")
-                .typed(String.self)?.content
-        )
-
-        // test tokenWithInvalidAudience
-        runExpectAuthError(exporter, token: tokenInvalidAudience, reason: .failedAuthorization)
-
-
-        // request tokenExpired
-        let tokenExpired: String = try XCTUnwrap(
-            exporter.request(
-                    on: tokenHandler,
-                    request: EmptyRequest(),
-                    with: app,
-                    parameters: "test@example.org",
-                    "ExampleAudience",
-                    Date().addingTimeInterval(-1 * 60 * 60)) // expiration: 1h in the past
-                .typed(String.self)?.content
-        )
-
-        // test tokenExpired
-        runExpectAuthError(exporter, token: tokenExpired, reason: .failedAuthorization)
-
-        // request tokenNotYetValid
-        let tokenNotYetValid: String = try XCTUnwrap(
-            exporter.request(
-                    on: tokenHandler,
-                    request: EmptyRequest(),
-                    with: app,
-                    parameters: "test@example.org",
-                    "ExampleAudience",
-                    Date().addingTimeInterval(60 * 60), // expiration: 1h in the future
-                    Date().addingTimeInterval(60 * 30)) // notBefore: 30m in the future
-                .typed(String.self)?.content
-        )
-
-        // test tokenNotYetValid
-        runExpectAuthError(exporter, token: tokenNotYetValid, reason: .failedAuthorization)
-
-
-        // test manipulated token with invalid signature
-        runExpectAuthError(
-            exporter,
-            token: """
-                   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\
-                   eyJleHAiOjE2MjYzNzM2NzMuMjQyNzQyLCJuYmYiOjE2MjYzNjY0NzMuMjQyNzQ1OSwiZ\
-                   W1haWwiOiJ0ZXN0QGV4YW1wbGUub3JnIiwiYXVkIjoiRXhhbXBsZUF1ZGllbmNlIn0.\
-                   aYTxbySIcILhdLdTxKqcsvt51NvwoIjyh82Eo8bVmdE
-                   """,
-            reason: .failedAuthentication)
     }
 
     func runExpectAuthError(
@@ -192,5 +131,122 @@ class JWTTests: XCTApodiniTest {
             XCTAssertEqual(error.apodiniError.option(for: .httpResponseStatus), httpResponse)
             XCTAssertEqual(error.apodiniError.option(for: .authorizationErrorReason), reason)
         }
+    }
+
+
+    func testJWTWithoutToken() throws {
+        // tests that accessing the protected endpoint results in an error
+        XCTAssertThrowsError(try exporter.requestThrowing(on: authorizedHandler, request: EmptyRequest(), with: app)) { (error: Error) in
+            // WWWAuthenticate currently doesn't support parsing, therefore we just inspect the raw value!
+            XCTAssertEqual(error.apodiniError.information[httpHeader: WWWAuthenticate.header], "Bearer")
+            XCTAssertEqual(error.apodiniError.option(for: .httpResponseStatus), .unauthorized)
+            XCTAssertEqual(error.apodiniError.option(for: .authorizationErrorReason), .authenticationRequired)
+        }
+    }
+
+    func testJWTProperToken() throws {
+        // request fullyCorrectToken
+        let fullyCorrectToken: String = try XCTUnwrap(
+            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app, parameters: "test@example.org")
+                .typed(String.self)?.content
+        )
+
+        // test fullyCorrectToken
+        try XCTCheckResponse(
+            try XCTUnwrap(
+                exporter.request(on: authorizedHandler, request: EmptyRequest(information: Authorization(.bearer(fullyCorrectToken))), with: app)
+            ),
+            content: "Hello World"
+        )
+    }
+    func testJWTOptionalAuthorization() throws {
+        try XCTCheckResponse(
+            try XCTUnwrap(
+                exporter.request(on: optionalAuthorizedHandler, request: EmptyRequest(), with: app)
+            ),
+            content: "Hello World"
+        )
+
+        let requestToken: String = try XCTUnwrap(
+            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app, parameters: "test@example.org")
+                .typed(String.self)?.content
+        )
+
+        try XCTCheckResponse(
+            try XCTUnwrap(
+                exporter.request(on: optionalAuthorizedHandler, request: EmptyRequest(information: Authorization(.bearer(requestToken))), with: app)
+            ),
+            content: "Hello to ExampleAudience"
+        )
+    }
+
+    func testJWTTokenFailingEmailRequirement() throws {
+        // request tokenWithoutEmail
+        let tokenWithoutEmail: String = try XCTUnwrap(
+            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app)
+                .typed(String.self)?.content
+        )
+
+        // test fullyCorrectToken
+        runExpectAuthError(exporter, token: tokenWithoutEmail, reason: .failedAuthorization)
+    }
+
+    func testJWTFailingAudienceClaim() throws {
+        // request tokenWithInvalidAudience
+        let tokenInvalidAudience: String = try XCTUnwrap(
+            exporter.request(on: tokenHandler, request: EmptyRequest(), with: app, parameters: "test@example.org", "SomeOtherAudience")
+                .typed(String.self)?.content
+        )
+
+        // test tokenWithInvalidAudience
+        runExpectAuthError(exporter, token: tokenInvalidAudience, reason: .failedAuthorization)
+    }
+
+    func testJWTFailingExpirationClaim() throws {
+        // request tokenExpired
+        let tokenExpired: String = try XCTUnwrap(
+            exporter.request(
+                    on: tokenHandler,
+                    request: EmptyRequest(),
+                    with: app,
+                    parameters: "test@example.org",
+                    "ExampleAudience",
+                    Date().addingTimeInterval(-1 * 60 * 60)) // expiration: 1h in the past
+                .typed(String.self)?.content
+        )
+
+        // test tokenExpired
+        runExpectAuthError(exporter, token: tokenExpired, reason: .failedAuthorization)
+    }
+
+    func testJWTFailingNotBeforeClaim() throws {
+        // request tokenNotYetValid
+        let tokenNotYetValid: String = try XCTUnwrap(
+            exporter.request(
+                    on: tokenHandler,
+                    request: EmptyRequest(),
+                    with: app,
+                    parameters: "test@example.org",
+                    "ExampleAudience",
+                    Date().addingTimeInterval(60 * 60), // expiration: 1h in the future
+                    Date().addingTimeInterval(60 * 30)) // notBefore: 30m in the future
+                .typed(String.self)?.content
+        )
+
+        // test tokenNotYetValid
+        runExpectAuthError(exporter, token: tokenNotYetValid, reason: .failedAuthorization)
+    }
+
+    func testJWTFailingSignatureCheck() throws {
+        // test manipulated token with invalid signature
+        runExpectAuthError(
+            exporter,
+            token: """
+                   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\
+                   eyJleHAiOjE2MjYzNzM2NzMuMjQyNzQyLCJuYmYiOjE2MjYzNjY0NzMuMjQyNzQ1OSwiZ\
+                   W1haWwiOiJ0ZXN0QGV4YW1wbGUub3JnIiwiYXVkIjoiRXhhbXBsZUF1ZGllbmNlIn0.\
+                   aYTxbySIcILhdLdTxKqcsvt51NvwoIjyh82Eo8bVmdE
+                   """,
+            reason: .failedAuthentication)
     }
 }

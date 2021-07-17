@@ -33,6 +33,7 @@ protocol AuthorizationConfiguration where Scheme.AuthenticationInfo == Verifier.
     var scheme: Scheme { get }
     var verifier: Verifier { get }
     var authenticatable: Authenticatable.Type { get }
+    var skipRequirementsForAuthorized: Bool { get }
 }
 
 struct StandardAuthenticatorConfiguration<Scheme: AuthenticationScheme, Verifier: AuthenticationVerifier, Authenticatable>: AuthorizationConfiguration
@@ -41,4 +42,5 @@ struct StandardAuthenticatorConfiguration<Scheme: AuthenticationScheme, Verifier
     var scheme: Scheme
     var verifier: Verifier
     var authenticatable: Authenticatable.Type
+    var skipRequirementsForAuthorized: Bool
 }

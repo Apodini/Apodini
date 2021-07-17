@@ -10,6 +10,7 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
     let scheme: Delegate<Configuration.Scheme>
     let verifier: Delegate<Configuration.Verifier>
     let requirements: AuthorizationRequirements<Configuration.Authenticatable>
+    let skipRequirementsForAuthorized: Bool
 
     /// The `Delegate` to forward execution once done.
     let delegate: Delegate<H>
@@ -30,12 +31,17 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
         self.scheme = Delegate(configuration.scheme, type.optionality)
         self.verifier = Delegate(configuration.verifier, type.optionality)
         self.requirements = requirements
+        self.skipRequirementsForAuthorized = configuration.skipRequirementsForAuthorized
         self.delegate = Delegate(handler, .required)
     }
 
     func handle() async throws -> H.Response {
         if authenticatable.isAuthorized {
-            return try await delegate.instance().handle()
+            if skipRequirementsForAuthorized {
+                return try await delegate.instance().handle()
+            }
+
+            return try await evaluateRequirements(against: try authenticatable())
         }
 
         let authenticationScheme = try self.scheme.instance()
@@ -85,6 +91,10 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
             throw error.apodiniError(options: .authorizationErrorReason(.failedAuthentication))
         }
 
+        return try await evaluateRequirements(against: instance)
+    }
+
+    func evaluateRequirements(against instance: Configuration.Authenticatable) async throws -> H.Response {
         let result: RequirementResult
         do {
             result = try requirements.evaluate(for: instance)
@@ -95,10 +105,14 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
         switch result {
         case let .fulfilled(cause), let .undecided(cause): // undecided is a acceptance state as well!
             logger.trace("Authorization on Handler \(H.self) succeeded with \(cause())")
-            return try await delegate
-                .environmentObject(authenticatable.environmentValue(instance))
-                .instance()
-                .handle()
+            if authenticatable.isAuthorized {
+                return try await delegate.instance().handle()
+            } else {
+                return try await delegate
+                    .environmentObject(authenticatable.environmentValue(instance))
+                    .instance()
+                    .handle()
+            }
         case let .rejected(cause):
             logger.debug("Authorization on Handler \(H.self) rejected with \(cause())")
             throw failedAuthorization

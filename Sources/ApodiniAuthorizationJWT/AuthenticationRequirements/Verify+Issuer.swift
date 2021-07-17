@@ -22,7 +22,7 @@ public extension Verify {
     /// - Parameters:
     ///   - keyPath: The `KeyPath` to the `IssuerClaim` of the ``JWTAuthenticatable``.
     ///   - issuers: Verifies that the issue claim is one of the passed issuers.
-    init(issuer keyPath: KeyPath<Element, IssuerClaim>, is issuers: String...) {
+    init(issuer keyPath: KeyPath<Element, IssuerClaim>, is issuers: String...) where Element: JWTAuthenticatable {
         self.init { element in
             issuers.contains(element[keyPath: keyPath].value)
         }

@@ -22,7 +22,7 @@ public extension Verify {
     /// - Parameters:
     ///   - keyPath: The `KeyPath` to the `AudienceClaim` of the ``JWTAuthenticatable``.
     ///   - audience: Verifies that the provided audience is contained in the claim.
-    init(intendedAudience keyPath: KeyPath<Element, AudienceClaim>, includes audience: String) {
+    init(intendedAudience keyPath: KeyPath<Element, AudienceClaim>, includes audience: String) where Element: JWTAuthenticatable {
         self.init { element in
             do {
                 try element[keyPath: keyPath].verifyIntendedAudience(includes: audience)

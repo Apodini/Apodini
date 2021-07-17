@@ -12,7 +12,10 @@ public extension ComponentMetadataNamespace {
 public struct AuthorizationRequirementsMetadata<Element: Authenticatable>: ComponentMetadataDefinition, DefinitionWithDelegatingHandlerKey {
     public let initializer: DelegatingHandlerContextKey.Value
 
-    public init(@AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element>) {
+    public init(
+        _ authenticatable: Element.Type = Element.self,
+        @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element>
+    ) {
         self.initializer = [
             .init(AuthorizationRequirementsCheckerInitializer(type: .required, requirements: requirements()))
         ]
