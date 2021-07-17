@@ -37,7 +37,6 @@ let package = Package(
         .library(name: "ApodiniAuthorizationBasicScheme", targets: ["ApodiniAuthorizationBasicScheme"]),
         .library(name: "ApodiniAuthorizationBearerScheme", targets: ["ApodiniAuthorizationBearerScheme"]),
         .library(name: "ApodiniAuthorizationJWT", targets: ["ApodiniAuthorizationJWT"]),
-        .library(name: "ApodiniAuthorizationFluent", targets: ["ApodiniAuthorizationFluent"]),
 
         // Deploy
         .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
@@ -349,16 +348,6 @@ let package = Package(
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .product(name: "JWTKit", package: "jwt-kit")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniAuthorizationFluent",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniDatabase"),
-                .target(name: "ApodiniAuthorization"),
-                .target(name: "ApodiniAuthorizationBasicScheme")
             ]
         ),
 
