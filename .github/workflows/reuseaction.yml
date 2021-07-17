@@ -4,17 +4,16 @@
 # SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 #
 # SPDX-License-Identifier: MIT
-#              
+#  
 
-FROM swift:amazonlinux2
+name: REUSE Compliance Check
 
-ARG USER_ID
-ARG GROUP_ID
-ARG USERNAME
+on: [push, pull_request]
 
-RUN yum -y install zip sqlite-devel
-
-RUN groupadd --gid $GROUP_ID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_ID --gid $GROUP_ID -m $USERNAME
-
-USER $USERNAME
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: actions/checkout@v2
+    - name: REUSE Compliance Check
+      uses: fsfe/reuse-action@v1
