@@ -50,9 +50,6 @@ let package = Package(
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // OpenCombine seems to be only available as a pre release and is not feature complete.
-        // We constrain it to the next minor version as it doen't follow semantic versioning.
-        .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.12.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.30.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
@@ -117,7 +114,6 @@ let package = Package(
             dependencies: [
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "_NIOConcurrency", package: "swift-nio")
             ],
@@ -136,8 +132,6 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
             ],

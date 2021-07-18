@@ -76,7 +76,7 @@ private struct SomeDecodingStrategyCaller<S: DecodingStrategy>: DecodingStrategy
 /// and a parent ``DecodingStrategy`` with ``DecodingStrategy/Input`` type `I`.
 ///
 /// This strategy allows for reuse of ``DecodingStrategy`` with a more basic ``DecodingStrategy/Input`` than
-/// the one you are acutally using. E.g. many of the predefined strategies have input type `Data`.
+/// the one you are actually using. E.g. many of the predefined strategies have input type `Data`.
 /// If your input type is a complete request, you can probably reuse those predefined strategies by extracting the body
 /// from the request.
 public struct TransformingStrategy<S: DecodingStrategy, I>: DecodingStrategy {

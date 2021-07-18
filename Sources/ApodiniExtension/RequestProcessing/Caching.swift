@@ -7,7 +7,6 @@
 
 import Foundation
 import Apodini
-import OpenCombine
 import _Concurrency
 
 public extension AsyncSequence where Element: Request {
@@ -18,7 +17,6 @@ public extension AsyncSequence where Element: Request {
         }
     }
 }
-
 
 public extension Request {
     /// Wraps this `Request` into a ``CachingRequest``.

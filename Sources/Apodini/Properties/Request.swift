@@ -13,15 +13,6 @@ import NIO
 /// ``Parameter``s. Furthermore, many of the request's properties are reflected on ``Connection``
 /// where they are exposed to the user.
 public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
-    /// Returns a description of the Request.
-    /// If the `ExporterRequest` also conforms to `CustomStringConvertible`, its `description`
-    /// will be appended.
-    var description: String { get }
-    /// Returns a debug description of the Request.
-    /// If the `ExporterRequest` also conforms to `CustomDebugStringConvertible`, its `debugDescription`
-    /// will be appended.
-    var debugDescription: String { get }
-
     /// The `EventLoop` this request is to be handled on.
     var eventLoop: EventLoop { get }
 

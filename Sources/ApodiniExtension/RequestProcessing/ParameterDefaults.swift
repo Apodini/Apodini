@@ -7,7 +7,6 @@
 
 import Foundation
 import Apodini
-import OpenCombine
 
 /// This value stores the default values for each `Parameter` of an endpoint. It can
 /// be used to obtain an ``DefaultInsertingRequest`` using the `Request`'s

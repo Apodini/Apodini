@@ -8,7 +8,6 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-import OpenCombine
 import _Concurrency
 
 // MARK: RequestBasis
@@ -127,38 +126,6 @@ extension AsyncSequence {
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == S.Input, S.Input: RequestBasis {
-        self.map { input in
-            strategy.decodeRequest(from: input, with: eventLoop)
-        }
-    }
-}
-
-extension Publisher {
-    /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
-    /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:with:)`` function.
-    ///
-    /// The `Output` must be a tuple consisting of a ``RequestBasis`` and the ``DecodingStrategy/Input`` for `S`.
-    ///
-    /// - Parameters:
-    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
-    ///     contained in the second element of each value published on this `Publisher`
-    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
-        -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == (R, S.Input) {
-        self.map { requestBasis, input in
-            strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
-        }
-    }
-    
-    /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
-    /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:)`` function.
-    ///
-    /// - Parameters:
-    ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
-    ///     contained in the second element of each value published on this `Publisher`
-    ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
-        -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == S.Input, S.Input: RequestBasis {
         self.map { input in
             strategy.decodeRequest(from: input, with: eventLoop)
         }

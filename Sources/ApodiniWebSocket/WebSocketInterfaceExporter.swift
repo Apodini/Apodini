@@ -10,7 +10,6 @@ import ApodiniUtils
 import ApodiniExtension
 import ApodiniVaporSupport
 import NIOWebSocket
-@_implementationOnly import OpenCombine
 @_implementationOnly import Vapor
 
 // MARK: Exporter
@@ -23,7 +22,7 @@ public final class WebSocket: Configuration {
     }
     
     public func configure(_ app: Apodini.Application) {
-        /// Instanciate exporter
+        /// Instantiate exporter
         let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -39,7 +38,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
 
-    /// Initalize a `WebSocketInterfaceExporter` from an `Application`
+    /// Initialize a `WebSocketInterfaceExporter` from an `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
         self.app = app
