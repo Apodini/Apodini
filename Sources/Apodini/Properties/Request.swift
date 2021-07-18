@@ -29,9 +29,9 @@ public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     /// The remote address associated with this request.
     var remoteAddress: SocketAddress? { get }
-    
+
     /// A set of arbitrary information that is associated with this request.
-    var information: Set<AnyInformation> { get }
+    var information: InformationSet { get }
 
     /// A function for obtaining the value for a ``Parameter`` from this request.
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element

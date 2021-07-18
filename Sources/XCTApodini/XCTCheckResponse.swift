@@ -89,7 +89,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
-/// - Throws: Thows an error in case of failure
+/// - Throws: Throws an error in case of failure
 @discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,

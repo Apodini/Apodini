@@ -43,7 +43,7 @@ public extension WithRequest {
     
     /// The default implementation of ``WithRequest`` for ``information``
     /// forwards the call to the underlying `Request`.
-    var information: Set<AnyInformation> {
+    var information: InformationSet {
         request.information
     }
 

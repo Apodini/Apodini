@@ -12,11 +12,11 @@ import Foundation
 
 extension Component {
     /// Use a `DelegationFilter` to filter out `DelegatingHandlerInitializer`s for the contained sub-tree.
-    /// - Parameter prepend: If set to `true`, the modifier is prepended to all other calls to `reset` or `delegated`
-    ///                      instead of being appended as usual.
-    /// - Note: `prepend` should only be used if `I.Response` is `Self.Response` or `Self` is no `Handler`.
-    public func reset(using filter: DelegationFilter, prepend: Bool = false) -> DelegationFilterModifier<Self> {
-        DelegationFilterModifier(self, filter: AnyDelegateFilter(filter: filter), prepend: prepend)
+    /// - Parameters:
+    ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegationFilter``
+    ///     is only used a single time, even when inserted multiple times.
+    public func reset(using filter: DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) -> DelegationFilterModifier<Self> {
+        DelegationFilterModifier(self, filter: AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)
     }
 }
 
@@ -27,19 +27,19 @@ public struct DelegationFilterModifier<C: Component>: Modifier {
     public typealias ModifiedComponent = C
     
     public let component: C
-    private let filter: AnyDelegateFilter
-    private let prepend: Bool
+    private let entry: DelegatingHandlerContextKey.Entry
     
-    public var content: some Component { EmptyComponent() }
-    
-    fileprivate init(_ component: C, filter: AnyDelegateFilter, prepend: Bool = false) {
+    fileprivate init(_ component: C, filter: AnyDelegateFilter, ensureInitializerTypeUniqueness: Bool = false, inverseOrder: Bool = false) {
         self.component = component
-        self.filter = filter
-        self.prepend = prepend
+        self.entry = .init(filter, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, filter)], scope: .environment)
+        visitor.addContext(
+            DelegatingHandlerContextKey.self,
+            value: [entry],
+            scope: .environment
+        )
     }
 }
 
@@ -56,7 +56,7 @@ public protocol DelegationFilter {
     func callAsFunction<I: AnyDelegatingHandlerInitializer>(_ initializer: I) -> Bool
 }
 
-private struct AnyDelegateFilter: DelegatingHandlerInitializer, DelegationFilter {
+struct AnyDelegateFilter: DelegatingHandlerInitializer, DelegationFilter {
     let filter: DelegationFilter
     
     func instance<D>(for delegate: D) throws -> SomeHandler<Never> where D: Handler {

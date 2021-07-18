@@ -84,6 +84,6 @@ extension Handler {
     public func response<T: ResponseTransformer>(
         _ responseTransformer: T
     ) -> DelegationModifier<Self, ResponseTransformingHandlerInitializer<T>> where Self.Response.Content == T.InputContent {
-        self.delegated(by: ResponseTransformingHandlerInitializer(transformer: responseTransformer))
+        self.delegated(by: ResponseTransformingHandlerInitializer(transformer: responseTransformer), inverseOrder: true)
     }
 }

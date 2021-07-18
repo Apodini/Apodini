@@ -79,7 +79,7 @@ final class ResponseTransformerTests: ApodiniTests {
     private func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
         XCTAssertEqual(response.status, .ok)
         let content = try response.content.decode(Content<T>.self)
-        XCTAssert(content.data == data)
+        XCTAssert(content.data == data, "Expected \(data) but got \(content.data)")
         waitForExpectations(timeout: 0, handler: nil)
     }
     
@@ -162,10 +162,13 @@ final class ResponseTransformerTests: ApodiniTests {
                 Group("send") {
                     ResponseHandler(response: .send("Paul"))
                         .response(EmojiResponseTransformer())
+                        .response(EmojiResponseTransformer(emojis: "🚀"))
                 }
                 Group("final") {
                     ResponseHandler(response: .final("Paul"))
                         .response(EmojiResponseTransformer())
+                        .response(EmojiResponseTransformer(emojis: "🚀"))
+                        .response(EmojiResponseTransformer(emojis: "🎸"))
                 }
                 Group("end") {
                     ResponseHandler(response: .end)
@@ -186,13 +189,15 @@ final class ResponseTransformerTests: ApodiniTests {
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
+        ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 2
         try app.vapor.app.test(.GET, "/v1/send") { res in
-            try expect("✅ Paul ✅", in: res)
+            try expect("🚀 ✅ Paul ✅ 🚀", in: res)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
+        ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 3
         try app.vapor.app.test(.GET, "/v1/final") { res in
-            try expect("✅ Paul ✅", in: res)
+            try expect("🎸 🚀 ✅ Paul ✅ 🚀 🎸", in: res)
         }
         
         try app.vapor.app.test(.GET, "/v1/end") { response in

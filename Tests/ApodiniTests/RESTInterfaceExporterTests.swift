@@ -362,4 +362,107 @@ class RESTInterfaceExporterTests: ApodiniTests {
             XCTAssertEqual(container.links, ["test1": prefix + "/test1", "test2": prefix + "/test2", "test3": prefix + "/test3"])
         }
     }
+
+    func testInformation() throws {
+        let value = "Basic UGF1bFNjaG1pZWRtYXllcjpTdXBlclNlY3JldFBhc3N3b3Jk"
+
+        var headers = HTTPHeaders()
+        headers.add(name: .authorization, value: value)
+
+        let request = Vapor.Request(application: app.vapor.app, headers: headers, on: app.eventLoopGroup.next())
+
+        var information = request.information
+        information.insert(ETag("someTag", isWeak: true))
+
+        let authorization = try XCTUnwrap(information[Authorization.self])
+        XCTAssertEqual(authorization.type, "Basic")
+        XCTAssertEqual(authorization.credentials, "UGF1bFNjaG1pZWRtYXllcjpTdXBlclNlY3JldFBhc3N3b3Jk")
+        XCTAssertEqual(authorization.basic?.username, "PaulSchmiedmayer")
+        XCTAssertEqual(authorization.basic?.password, "SuperSecretPassword")
+        XCTAssertNil(authorization.bearerToken)
+
+        let restoredHeaders = HTTPHeaders(information)
+        XCTAssertEqual(restoredHeaders.first(name: .authorization), value)
+        XCTAssertEqual(restoredHeaders.first(name: .eTag), "W/\"someTag\"")
+    }
+    
+    func testRESTInformation() throws {
+        struct InformationHandler: Handler {
+            func handle() -> Apodini.Response<String> {
+                Response.send(
+                    "Paul",
+                    status: .created,
+                    information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
+                )
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                InformationHandler()
+            }
+            
+            var configuration: Configuration {
+                REST()
+            }
+        }
+        
+        TestWebService.start(app: app, webService: TestWebService())
+
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers["Content-Type"].first, "application/json; charset=utf-8")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+            XCTAssertEqual(response.status, .created)
+            
+            let firstPossibleJSON = """
+                {
+                  "data" : "Paul",
+                  "_links" : {
+                    "self" : "http://127.0.0.1:8080/v1"
+                  }
+                }
+                """
+            let secondPossibleJSON = """
+                {
+                  "_links" : {
+                    "self" : "http://127.0.0.1:8080/v1"
+                  },
+                  "data" : "Paul"
+                }
+                """
+            
+            XCTAssertTrue(response.body.string == firstPossibleJSON || response.body.string == secondPossibleJSON)
+        }
+    }
+    
+    func testRESTBlobInformation() throws {
+        struct BlobInformationHandler: Handler {
+            func handle() -> Apodini.Response<Blob> {
+                Response.send(
+                    Blob(ByteBuffer(), type: .application(.pdf)),
+                    status: .created,
+                    information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
+                )
+            }
+        }
+        
+        struct TestWebService: WebService {
+            var content: some Component {
+                BlobInformationHandler()
+            }
+            
+            var configuration: Configuration {
+                REST()
+            }
+        }
+        
+        TestWebService.start(app: app, webService: TestWebService())
+
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+            XCTAssertEqual(response.status, .created)
+            XCTAssertEqual(response.body.readableBytes, 0)
+        }
+    }
 }

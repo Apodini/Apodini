@@ -16,10 +16,10 @@ extension Vapor.Request: RequestBasis {
     public var debugDescription: String {
         "Vapor.Request: \(self.description)"
     }
-    
-    public var information: Set<AnyInformation> {
-        Set(headers.map { key, rawValue in
-            AnyInformation(key: key, rawValue: rawValue)
+
+    public var information: InformationSet {
+        InformationSet(headers.map { key, rawValue in
+            AnyHTTPInformation(key: key, rawValue: rawValue)
         })
     }
 }

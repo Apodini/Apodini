@@ -4,16 +4,15 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-/// An `Information` instance carrying information about cookies
-public struct Cookies: Information {
-    public static var key: String {
-        "Cookie"
-    }
+import Apodini
+
+/// An `HTTPInformation` instance carrying information about cookies
+public struct Cookies: HTTPInformation {
+    public static let header = "Cookie"
     
-    
-    public private(set) var value: [String: String]
+    public let value: [String: String]
     
     
     public var rawValue: String {
@@ -39,17 +38,9 @@ public struct Cookies: Information {
         
         self.init(cookies)
     }
-    
+
+    /// An `HTTPInformation` instance carrying information about cookies
     public init(_ value: [String: String]) {
         self.value = value
-    }
-}
-
-
-// MARK: - AnyInformation + Cookies
-extension AnyInformation {
-    /// An `Information` instance carrying information about cookies
-    public static func cookies(_ cookies: Cookies.Value) -> AnyInformation {
-        AnyInformation(Cookies(cookies))
     }
 }

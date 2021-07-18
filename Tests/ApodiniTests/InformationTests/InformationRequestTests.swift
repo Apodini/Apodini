@@ -15,7 +15,7 @@ import Vapor
 final class InformationRequestTests: XCTApodiniTest {
     func testInformationRequestWithRESTExporter() throws {
         struct InformationHandler: Handler {
-            let testExpectations: (Set<AnyInformation>) throws -> Void
+            let testExpectations: (InformationSet) throws -> Void
             
             
             @Apodini.Environment(\.connection) var connection: Connection
@@ -32,7 +32,7 @@ final class InformationRequestTests: XCTApodiniTest {
             }
         }
         
-        func testHeaders(_ header: [(String, String)], expectations: @escaping (Set<AnyInformation>) throws -> Void) throws {
+        func testHeaders(_ header: [(String, String)], expectations: @escaping (InformationSet) throws -> Void) throws {
             let handler = InformationHandler(testExpectations: expectations)
             let endpoint = handler.mockEndpoint(app: app)
             
@@ -69,7 +69,7 @@ final class InformationRequestTests: XCTApodiniTest {
         }
         
         try testHeaders([("Test", "ATest")]) { information in
-            let test = try XCTUnwrap(information["Test"])
+            let test: String = try XCTUnwrap(information[httpHeader: "Test"])
             XCTAssertEqual(test, "ATest")
         }
     }

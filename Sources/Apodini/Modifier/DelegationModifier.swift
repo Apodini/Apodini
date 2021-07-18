@@ -8,16 +8,31 @@
 
 import Foundation
 import ApodiniUtils
+import OrderedCollections
 
 // MARK: Component+DelegationModifier
 
 extension Component {
     /// Use a `DelegatingHandlerInitializer` to create a fitting delegating `Handler` for each of the `Component`'s endpoints.
     /// All instances created by the `initializer` can delegate evaluations to their respective child-`Handler` using `Delegate`.
-    /// - Parameter prepend: If set to `true`, the modifier is prepended to all other calls to `delegated` instead of being appended as usual.
-    /// - Note: `prepend` should only be used if `I.Response` is `Self.Response` or `Self` is no `Handler`.
-    public func delegated<I: DelegatingHandlerInitializer>(by initializer: I, prepend: Bool = false) -> DelegationModifier<Self, I> {
-        DelegationModifier(self, initializer: initializer, prepend: prepend)
+    /// - Parameters:
+    ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegatingHandlerInitializer``
+    ///     is only used a single time, even when inserted multiple times.
+    ///   - inverseOrder: Set this to true if the according DelegatingHandler should act on the output of
+    ///     the delegated Handler. Those Handler typically call the delegate first and then execute their own logic.
+    ///     Therefore, such an initializer which is added first, should be inserted on the "innerst" position not
+    ///     the "outerst", as it should be the first to act once handle returns.
+    public func delegated<I: DelegatingHandlerInitializer>(
+        by initializer: I,
+        ensureInitializerTypeUniqueness: Bool = false,
+        inverseOrder: Bool = false
+    ) -> DelegationModifier<Self, I> {
+        DelegationModifier(
+            self,
+            initializer: initializer,
+            ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness,
+            inverseOrder: inverseOrder
+        )
     }
 }
 
@@ -27,17 +42,19 @@ public struct DelegationModifier<C: Component, I: DelegatingHandlerInitializer>:
     public typealias ModifiedComponent = C
     
     public let component: C
-    private let initializer: I
-    private let prepend: Bool
-    
-    fileprivate init(_ component: C, initializer: I, prepend: Bool = false) {
+    private let entry: DelegatingHandlerContextKey.Entry
+
+    fileprivate init(_ component: C, initializer: I, ensureInitializerTypeUniqueness: Bool = false, inverseOrder: Bool = false) {
         self.component = component
-        self.initializer = initializer
-        self.prepend = prepend
+        self.entry = .init(initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(DelegatingHandlerContextKey.self, value: [(prepend, initializer)], scope: .environment)
+        visitor.addContext(
+            DelegatingHandlerContextKey.self,
+            value: [entry],
+            scope: .environment
+        )
     }
 }
 
@@ -79,6 +96,15 @@ public extension AnyDelegatingHandlerInitializer {
     }
 }
 
+extension AnyDelegatingHandlerInitializer {
+    var id: ObjectIdentifier {
+        if let filter = self as? AnyDelegateFilter {
+            return ObjectIdentifier(type(of: filter.filter))
+        }
+        return ObjectIdentifier(Self.self)
+    }
+}
+
 public extension DelegatingHandlerInitializer {
     /// The default implementation for `anyinstance`, which erases the type of the `SomeHandler` returned
     /// by `.instance(for:)`.
@@ -89,47 +115,75 @@ public extension DelegatingHandlerInitializer {
 
 // MARK: DelegatingHandlerContextKey
 
-struct DelegatingHandlerContextKey: ContextKey {
-    typealias Value = [(Bool, AnyDelegatingHandlerInitializer)]
-    static var defaultValue: Value = []
+public struct DelegatingHandlerContextKey: ContextKey {
+    public typealias Value = OrderedSet<Entry>
+    public static var defaultValue: Value = []
+
+    public static func reduce(value: inout Value, nextValue: Value) {
+        value.append(contentsOf: nextValue)
+    }
 }
 
+extension DelegatingHandlerContextKey {
+    /// Represents the entry type for the value of an ``DelegatingHandlerContextKey``
+    public class Entry {
+        /// Every entry of the ``DelegatingHandlerContextKey`` is identified by a instance specific
+        /// `UUID` used to check if we already inserted into the ``Handler`` stack when parsing initializers.
+        let uuid: UUID
 
-// MARK: DelegatingHandlerInitializerVisitor
+        /// The according ``AnyDelegatingHandlerInitializer`` used to instantiate the delegating ``Handler``.
+        let initializer: AnyDelegatingHandlerInitializer
 
-class DelegatingHandlerInitializerVisitor: HandlerVisitor {
-    var initializers: [AnyDelegatingHandlerInitializer]
-    let semanticModelBuilder: SemanticModelBuilder?
-    unowned let visitor: SyntaxTreeVisitor
-    
-    init(calling builder: SemanticModelBuilder?, with visitor: SyntaxTreeVisitor) {
-        let initializers = visitor.currentNode.peekValue(for: DelegatingHandlerContextKey.self)
-        self.initializers = (initializers.filter { prepend, _ in prepend }.reversed()
-                                + initializers.filter { prepend, _ in !prepend }).map { _, initializer in initializer }
-        self.semanticModelBuilder = builder
-        self.visitor = visitor
-    }
-    
-    func visit<H: Handler>(handler: H) throws {
-        preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
+        /// If set to true, it is ensure that the same ``AnyDelegatingHandlerInitializer``, even though
+        /// when inserted multiple times into the context, is only used a single time (the first time it got inserted).
+        let ensureInitializerTypeUniqueness: Bool
 
-        handler.metadata.accept(self.visitor)
-        
-        if !initializers.isEmpty {
-            let initializer = initializers.removeFirst()
-            
-            if let filter = initializer as? DelegationFilter {
-                initializers = initializers.filter { initializerToFilter in
-                    initializerToFilter.evaluate(filter: filter)
-                }
-                try visit(handler: handler)
-            } else {
-                let nextHandler = try initializer.anyinstance(for: handler)
-                try nextHandler.accept(self)
-            }
-        } else {
-            let context = visitor.currentNode.export()
-            semanticModelBuilder?.register(handler: handler, withContext: context)
+        let inverseOrder: Bool
+
+        var markedFiltered = false
+
+        /// Creates a new ``Entry`` instance.
+        /// - Parameters:
+        ///   - initializer: The ``AnyDelegatingHandlerInitializer`` for the delegating Handler.
+        ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegatingHandlerInitializer``
+        ///     is only used a single time, even when inserted multiple times.
+        ///   - inverseOrder: Set this to true if the according DelegatingHandler should act on the output of
+        ///     the delegated Handler. Those Handler typically call the delegate first and then execute their own logic.
+        ///     Therefore, such an initializer which is added first, should be inserted on the "innerst" position not
+        ///     the "outerst", as it should be the first to act once handle returns.
+        public init(
+            _ initializer: AnyDelegatingHandlerInitializer,
+            ensureInitializerTypeUniqueness: Bool = false,
+            inverseOrder: Bool = false
+        ) {
+            self.uuid = UUID()
+            self.initializer = initializer
+            self.ensureInitializerTypeUniqueness = ensureInitializerTypeUniqueness
+            self.inverseOrder = inverseOrder
         }
+    }
+}
+
+extension DelegatingHandlerContextKey.Entry: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid)
+    }
+
+    public static func == (lhs: DelegatingHandlerContextKey.Entry, rhs: DelegatingHandlerContextKey.Entry) -> Bool {
+        lhs.uuid == rhs.uuid
+    }
+}
+
+extension DelegatingHandlerContextKey.Entry: CustomStringConvertible {
+    public var description: String {
+        """
+        Apodini.DelegatingHandlerContextKey.Entry(\
+        uuid: \(uuid), \
+        initializer: \(initializer), \
+        ensureInitializerTypeUniqueness: \(ensureInitializerTypeUniqueness), \
+        inverseOrder: \(inverseOrder), \
+        markedFiltered: \(markedFiltered)\
+        )
+        """
     }
 }
