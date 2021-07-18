@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-postgres-driver.git",
         "state": {
           "branch": null,
-          "revision": "afe159ce915e752ab5f5b76479dc78a17051ce73",
-          "version": "2.1.3"
+          "revision": "11d4fce0c5d8a027a5d131439c9c94dd3230cb8e",
+          "version": "2.1.2"
         }
       },
       {
@@ -197,15 +197,6 @@
           "branch": null,
           "revision": "4986552e76c331a99770428bd2be77ad76068c08",
           "version": "2.4.0"
-        }
-      },
-      {
-        "package": "OpenCombine",
-        "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
-        "state": {
-          "branch": null,
-          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
-          "version": "0.12.0"
         }
       },
       {
@@ -438,8 +429,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "2ada54b7ce56cc6934cd2c0207bef2305bfbd7a1",
-          "version": "4.48.2"
+          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
+          "version": "4.47.2"
         }
       },
       {
