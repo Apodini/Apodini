@@ -67,8 +67,8 @@ private struct TransformerCandidate<Transformer: ResponseTransformer, Delegate: 
 extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.Content {
     func callAsFunction() -> Any {
         SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(
-                                                    transformed: Apodini.Delegate(delegate),
-                                                    transformer: Apodini.Delegate(transformer)))
+            transformed: Apodini.Delegate(delegate, .required),
+            transformer: Apodini.Delegate(transformer, .required)))
     }
 }
 

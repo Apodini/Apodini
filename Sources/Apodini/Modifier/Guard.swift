@@ -52,7 +52,7 @@ public struct GuardingHandlerInitializer<G: Guard, R: ResponseTransformable>: De
     let `guard`: G
     
     public func instance<D>(for delegate: D) throws -> SomeHandler<Response> where D: Handler {
-        SomeHandler<Response>(GuardingHandler(guarded: Delegate(delegate), guard: Delegate(self.guard)))
+        SomeHandler<Response>(GuardingHandler(guarded: Delegate(delegate, .required), guard: Delegate(self.guard, .required)))
     }
 }
 
