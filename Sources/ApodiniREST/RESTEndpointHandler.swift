@@ -15,6 +15,7 @@ struct RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
+    let delegateFactory: DelegateFactory<H>
     
     private let strategy: AnyDecodingStrategy<Vapor.Request>
     
@@ -40,6 +41,7 @@ struct RESTEndpointHandler<H: Handler> {
         ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
+        self.delegateFactory = endpoint[DelegateFactory<H>.self]
     }
     
     
@@ -48,14 +50,14 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        var delegate = Delegate(endpoint.handler, .required)
+        let delegate = delegateFactory.instance()
         
         return strategy
             .decodeRequest(from: request,
                            with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
-            .evaluate(on: &delegate)
+            .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
                 

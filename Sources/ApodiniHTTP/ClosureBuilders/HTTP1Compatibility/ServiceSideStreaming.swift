@@ -20,9 +20,11 @@ extension Exporter {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let abortAnyError = AbortTransformer<H>()
+            
+        let factory = endpoint[DelegateFactory<H>.self]
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             return [request]
                 .asAsyncSequence
@@ -30,8 +32,8 @@ extension Exporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
+                .subscribe(to: delegate)
+                .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancel(if: { response in
                     response.connectionEffect == .close

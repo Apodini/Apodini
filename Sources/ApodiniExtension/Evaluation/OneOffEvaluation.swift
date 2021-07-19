@@ -19,31 +19,29 @@ public struct ResponseWithRequest<C: Encodable>: WithRequest {
 public extension Request {
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
-    func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end) async throws -> Response<H.Response.Content> {
-        _Internal.prepareIfNotReady(&handler)
-        return try await handler.evaluate(using: self, with: state)
+    func evaluate<H: Handler>(on handler: Delegate<H>, _ state: ConnectionState = .end) async throws -> Response<H.Response.Content> {
+        try await handler.evaluate(using: self, with: state)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: inout Delegate<H>,
+    func evaluate<H: Handler>(on handler: Delegate<H>,
                               _ state: ConnectionState = .end) async throws -> ResponseWithRequest<H.Response.Content> {
-        let response: Response<H.Response.Content> = try await self.evaluate(on: &handler, state)
+        let response: Response<H.Response.Content> = try await self.evaluate(on: handler, state)
         return ResponseWithRequest(response: response, request: self)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
-    func evaluate<H: Handler>(on handler: inout Delegate<H>, _ state: ConnectionState = .end) -> EventLoopFuture<Response<H.Response.Content>> {
-        _Internal.prepareIfNotReady(&handler)
-        return handler.evaluate(using: self, with: state)
+    func evaluate<H: Handler>(on handler: Delegate<H>, _ state: ConnectionState = .end) -> EventLoopFuture<Response<H.Response.Content>> {
+        handler.evaluate(using: self, with: state)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: inout Delegate<H>,
+    func evaluate<H: Handler>(on handler: Delegate<H>,
                               _ state: ConnectionState = .end) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
-        self.evaluate(on: &handler, state).map { (response: Response<H.Response.Content>) in
+        self.evaluate(on: handler, state).map { (response: Response<H.Response.Content>) in
             ResponseWithRequest(response: response, request: self)
         }
     }

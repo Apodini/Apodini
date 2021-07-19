@@ -22,6 +22,8 @@ extension Exporter {
         let abortAnyError = AbortTransformer<H>()
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
+            
+        let factory = endpoint[DelegateFactory<H>.self]
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
@@ -31,7 +33,7 @@ extension Exporter {
                     description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             return Array(0..<requestCount)
                 .asAsyncSequence
@@ -42,8 +44,8 @@ extension Exporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
+                .subscribe(to: delegate)
+                .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancel(if: { response in
                     response.connectionEffect == .close

@@ -61,13 +61,15 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let transformer = Transformer<H>()
         
+        let factory = endpoint[DelegateFactory<H>.self]
+        
         self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
             
             // We need a new `Delegate` for each connection
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             let output = clientInput
             .reduce()
@@ -78,8 +80,8 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
-            .subscribe(to: &delegate)
-            .evaluate(on: &delegate)
+            .subscribe(to: delegate)
+            .evaluate(on: delegate)
             .transform(using: transformer)
             .typeErased
 

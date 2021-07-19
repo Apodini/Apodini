@@ -28,11 +28,7 @@ public extension AsyncSequence where Element: Request {
     ///     - it maps the upstream's end (`nil`)  to an ``Event/end``
     ///     - it subscribes to `TriggerEvent`s produced by the given `handler`
     ///     and maps them to a ``Event/trigger(_:)``
-    func subscribe<H: Handler>(to handler: inout Delegate<H>) -> AsyncMergeSequence<AnyAsyncSequence<Event>, AnyAsyncSequence<Event>> {
-        _Internal.prepareIfNotReady(&handler)
-        
-        let handler = handler
-        
+    func subscribe<H: Handler>(to handler: Delegate<H>) -> AsyncMergeSequence<AnyAsyncSequence<Event>, AnyAsyncSequence<Event>> {
         let upstream: AnyAsyncSequence<Event> = self.map { (request: Request) -> Event in
             Event.request(request)
         }
@@ -66,10 +62,7 @@ public extension AsyncSequence where Element == Event {
     /// - Warning: If the sequence of ``Event``s coming from the upstream `AsyncSequence`
     /// does not follow rules for a valid sequence of ``Event``s as defined on ``Event``, the
     /// `AsyncIterator` might crash at runtime.
-    func evaluate<H: Handler>(on handler: inout Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, Error>> {
-        _Internal.prepareIfNotReady(&handler)
-        let handler = handler
-        
+    func evaluate<H: Handler>(on handler: Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, Error>> {
         var latestRequest: Request?
         
         var connectionState = ConnectionState.open
