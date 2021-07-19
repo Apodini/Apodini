@@ -1,5 +1,5 @@
 import Foundation
-import Fluent
+import FluentKit
 import Apodini
 
 public final class DeviceDatabaseModel: Model, Content {
@@ -16,7 +16,7 @@ public final class DeviceDatabaseModel: Model, Content {
     
     
     public init() {
-        // Empty intializer used by Fluent.
+        // Empty intializer used by FluentKit
     }
     
     public init(id: String, type: DeviceType) {
@@ -46,7 +46,7 @@ public final class DeviceTopic: Model, Content {
     public var topic: Topic
     
     public init() {
-        // Empty intializer used by Fluent.
+        // Empty intializer used by FluentKit
     }
     
     init(id: UUID? = nil, device: DeviceDatabaseModel, topic: Topic) throws {
@@ -69,7 +69,7 @@ public final class Topic: Model, Content {
     public var devices: [DeviceDatabaseModel]
     
     public init() {
-        // Empty intializer used by Fluent.
+        // Empty intializer used by FluentKit
     }
     
     public init(name: String) {
@@ -114,7 +114,7 @@ public enum DeviceType: String, Codable, CaseIterable {
 }
 
 internal struct DeviceMigration: Migration {
-    func prepare(on database: Fluent.Database) -> EventLoopFuture<Void> {
+    func prepare(on database: FluentKit.Database) -> EventLoopFuture<Void> {
         database.eventLoop.flatten([
             database.schema(Topic.schema)
                 .id()
@@ -140,7 +140,7 @@ internal struct DeviceMigration: Migration {
         ])
     }
     
-    func revert(on database: Fluent.Database) -> EventLoopFuture<Void> {
+    func revert(on database: FluentKit.Database) -> EventLoopFuture<Void> {
         database.eventLoop.flatten([
             database.schema(Topic.schema).delete(),
             database.enum("type").delete().flatMap {

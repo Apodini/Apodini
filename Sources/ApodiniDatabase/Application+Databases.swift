@@ -1,8 +1,8 @@
 //
-//  Application+Databases.swift
-//  
+// Application+Databases.swift
 //
-//  Created by Tim Gymnich on 23.12.20.
+//
+// Created by Tim Gymnich on 23.12.20.
 //
 // This code is based on the Vapor project: https://github.com/vapor/vapor
 //
@@ -30,6 +30,7 @@
 
 import Apodini
 import FluentKit
+
 
 extension Application {
     /// Used to store the applications databases
@@ -80,8 +81,7 @@ extension Application {
             .database(
                 id,
                 logger: self.logger,
-                on: self.eventLoopGroup.next(),
-                history: self.fluent.history.historyEnabled ? self.fluent.history.history : nil
+                on: self.eventLoopGroup.next()
             )!
     }
 
@@ -128,72 +128,10 @@ extension Application {
             )
             self.application.lifecycle.use(Lifecycle())
         }
-
-        /// Database query history
-        public var history: History {
-            .init(fluent: self)
-        }
-
-        /// Database query history
-        public struct History {
-            let fluent: Fluent
-        }
     }
 
     /// Used to keep track of the fluent database configutation
     public var fluent: Fluent {
         .init(application: self)
-    }
-}
-
-struct RequestQueryHistory: StorageKey {
-    typealias Value = QueryHistory
-}
-
-struct FluentHistoryKey: StorageKey {
-    typealias Value = FluentHistory
-}
-
-struct FluentHistory {
-    let enabled: Bool
-}
-
-extension Application.Fluent.History {
-    var historyEnabled: Bool {
-        storage[FluentHistoryKey.self]?.enabled ?? false
-    }
-
-    var storage: Storage {
-        get {
-            self.fluent.application.storage
-        }
-        nonmutating set {
-            self.fluent.application.storage = newValue
-        }
-    }
-
-    var history: QueryHistory? {
-        storage[RequestQueryHistory.self]
-    }
-
-    /// The queries stored in this lifecycle history
-    public var queries: [DatabaseQuery] {
-        history?.queries ?? []
-    }
-
-    /// Start recording the query history
-    public func start() {
-        storage[FluentHistoryKey.self] = .init(enabled: true)
-        storage[RequestQueryHistory.self] = .init()
-    }
-
-    /// Stop recording the query history
-    public func stop() {
-        storage[FluentHistoryKey.self] = .init(enabled: false)
-    }
-
-    /// Clear the stored query history
-    public func clear() {
-        storage[RequestQueryHistory.self] = .init()
     }
 }

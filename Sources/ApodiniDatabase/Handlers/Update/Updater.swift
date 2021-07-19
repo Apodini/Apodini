@@ -1,5 +1,5 @@
 import Apodini
-import Fluent
+import FluentKit
 @_implementationOnly import Vapor
 
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update

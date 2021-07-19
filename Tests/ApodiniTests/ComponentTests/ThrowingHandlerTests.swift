@@ -9,7 +9,7 @@
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 import XCTest
-import Fluent
+import FluentKit
 import Vapor
 
 

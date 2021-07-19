@@ -34,16 +34,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
-        .package(url: "https://github.com/vapor/fluent.git", from: "4.3.0"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
         .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.10.0"),
-        .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.1.0"),
-        .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
@@ -163,12 +159,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "Fluent", package: "fluent"),
-                .product(name: "FluentKit", package: "fluent-kit"),
-                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
-                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver")
+                .product(name: "FluentKit", package: "fluent-kit")
             ]
         ),
 

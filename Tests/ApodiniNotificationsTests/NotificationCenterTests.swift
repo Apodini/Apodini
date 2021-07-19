@@ -1,7 +1,7 @@
 // swiftlint:disable first_where
 import XCTest
 import XCTApodini
-import Fluent
+import FluentKit
 import FCM
 import APNSwift
 import XCTVapor

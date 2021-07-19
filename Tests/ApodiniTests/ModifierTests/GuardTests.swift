@@ -8,7 +8,7 @@
 import XCTest
 import XCTVapor
 import XCTApodini
-import protocol Fluent.Database
+import protocol FluentKit.Database
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport

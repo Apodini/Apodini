@@ -1,5 +1,5 @@
 import Foundation
-import Fluent
+import FluentKit
 @_implementationOnly import Vapor
 import Apodini
 
@@ -10,7 +10,7 @@ import Apodini
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Update<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Parameter<[String: TypeContainer]>
     private var parameters: [String: TypeContainer]

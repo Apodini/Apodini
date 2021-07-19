@@ -1,4 +1,4 @@
-import Fluent
+import FluentKit
 
 /// A protocol all field property visitors that want to update values of a `FieldProperty` have to conform to.
 /// It returns whatever has been specified as `Value`.
