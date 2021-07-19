@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -182,7 +182,7 @@
         }
       },
       {
-        "package": "NioDNS",
+        "package": "DNSClient",
         "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
         "state": {
           "branch": null,
@@ -339,8 +339,8 @@
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
           "branch": null,
-          "revision": "54a65d6391a1467a896d0d351ff2de6f469ee53c",
-          "version": "1.2.3"
+          "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
+          "version": "1.3.1"
         }
       },
       {
