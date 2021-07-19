@@ -7,8 +7,6 @@
 //          
 
 /// A function builder used to aggregate multiple `GRPCDependentStaticConfiguration`s
-
-
 @resultBuilder
 public enum GRPCDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `GRPCDependentStaticConfiguration`s

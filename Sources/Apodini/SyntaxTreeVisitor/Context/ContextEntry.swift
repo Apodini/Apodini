@@ -7,7 +7,6 @@
 //    
 
 /// A single captures context value with its respective `Scope`.
-
 struct ContextValueEntry<Key: OptionalContextKey> {
     let value: Key.Value
     let scope: Scope

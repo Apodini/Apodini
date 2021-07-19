@@ -7,7 +7,6 @@
 //      
 
 /// This protocol can be used to format a set of RelationshipDestinations
-
 public protocol RelationshipFormatter {
     /// Describes the output of the formatting process (e.g. a dictionary listing all relationships)
     associatedtype Result

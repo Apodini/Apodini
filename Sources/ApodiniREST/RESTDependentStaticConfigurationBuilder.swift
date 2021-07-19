@@ -7,7 +7,6 @@
 //              
 
 /// A function builder used to aggregate multiple `RESTDependentStaticConfiguration`s
-
 @resultBuilder
 public enum RESTDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `RESTDependentStaticConfiguration`s

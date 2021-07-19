@@ -22,7 +22,6 @@
 ///     }
 /// }
 /// ```
-
 public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     public let component: H
     // property is not called `metadata` as it would conflict with the Metadata Declaration block

@@ -9,7 +9,6 @@
 
 /// Every `Endpoint` is uniquely identified by its path and `Operation`
 /// and thus can be reference by this information.
-
 struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible {
     var description: String {
         "Endpoint(operation: \(operation), at: \(absolutePath.asPathString())}"

@@ -11,7 +11,6 @@
 /// thus we save the `type` itself and its `Identifiable.ID` type.
 /// Such definitions are e.g. used to match property resolvers of Relationship
 /// definitions to their path parameter they actually resolve.
-
 public struct IdentifyingType: PropertyOption, Equatable {
     /// The `Identifiable` type.
     public let type: Any.Type

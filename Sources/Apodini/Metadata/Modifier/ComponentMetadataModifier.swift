@@ -25,7 +25,6 @@
 ///
 /// - Note: Be aware that a `Modifier` can be applied to all `Component`s including `Handler` and `WebService`.
 /// Therefore it is advised to not use `ComponentOnlyMetadataDefinition` with `ComponentMetadataModifier`.
-
 public struct ComponentMetadataModifier<C: Component>: Modifier {
     public let component: C
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
