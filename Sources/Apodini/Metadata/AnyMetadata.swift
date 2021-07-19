@@ -20,7 +20,6 @@
 /// - `AnyComponentOnlyMetadata` represents arbitrary Metadata that can be declared on `Component` only,
 ///     meaning on all `Component`s  which are **not** `Handler`s or the `WebService`.
 /// - `ContentMetadata` represents arbitrary Metadata that can be declared on `Content` types.
-
 public protocol AnyMetadata {
     /// This method accepts the `SyntaxTreeVisitor` in order to parse the Metadata tree.
     /// The implementation should either forward the visitor to its content (e.g. in the case of a `AnyMetadataBlock`)
