@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 #    
 
-FROM swift:5.3
+FROM swift:latest
 
 # Or your actual UID, GID on Linux if not the default 1000
 ARG USERNAME=vscode

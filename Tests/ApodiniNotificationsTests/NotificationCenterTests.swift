@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //       
 
-// swiftlint:enable first_where
+// swiftlint:disable first_where
 
 import XCTest
 import XCTApodini

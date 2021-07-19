@@ -4,10 +4,6 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
-
-//
-// Created by Andreas Bauer on 02.07.21.
 //
 
 /// A type erased ``DefinitionWithDelegatingHandler``.

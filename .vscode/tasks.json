@@ -12,7 +12,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "swift build --build-tests --enable-test-discovery -Xswiftc -g -Xswiftc -Xfrontend -Xswiftc -serialize-debugging-options",
+            "command": "swift build --build-tests -Xswiftc -g -Xswiftc -Xfrontend -Xswiftc -serialize-debugging-options",
             "group": {
                 "kind": "build",
                 "isDefault": true
