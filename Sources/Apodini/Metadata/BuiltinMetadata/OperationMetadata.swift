@@ -1,11 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  OperationMetadata.swift
-//  Apodini
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
-
-// MARK: Public API
+// SPDX-License-Identifier: MIT
+//              
 
 /// Defines the Operation of a given endpoint
 public enum Operation: String, CaseIterable, Hashable, CustomStringConvertible {

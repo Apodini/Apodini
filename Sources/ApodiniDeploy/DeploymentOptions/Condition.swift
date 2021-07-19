@@ -1,12 +1,12 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Condition.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-02-06.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 // swiftlint:disable static_operator
-
 
 import Foundation
 import Apodini

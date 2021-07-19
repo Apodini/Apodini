@@ -1,11 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 06.06.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
-// swiftlint:disable missing_docs
+// SPDX-License-Identifier: MIT
+//              
 
 // Having a separate MetadataBuilder for Content Metadata Blocks improves
 // the error output of compiler errors for misplaced ComponentMetadataDefinitions
+
+// swiftlint:disable missing_docs
 
 #if swift(>=5.4)
 @resultBuilder

@@ -1,3 +1,13 @@
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 # Apodini Documentation
 
 * The [communication patterns](./Communicational%20Patterns/) folder contains general information about different communicational patterns that can be used to implement a web service using Apodini.  
