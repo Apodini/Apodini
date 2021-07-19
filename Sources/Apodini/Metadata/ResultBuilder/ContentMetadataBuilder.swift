@@ -1,5 +1,3 @@
-// swiftlint:disable missing_docs
-
 //                   
 // This source file is part of the Apodini open source project
 //
@@ -10,6 +8,8 @@
 
 // Having a separate MetadataBuilder for Content Metadata Blocks improves
 // the error output of compiler errors for misplaced ComponentMetadataDefinitions
+
+// swiftlint:disable missing_docs
 
 #if swift(>=5.4)
 @resultBuilder

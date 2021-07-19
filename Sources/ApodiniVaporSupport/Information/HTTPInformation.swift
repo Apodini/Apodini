@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 03.07.21.
-//
-
 import Apodini
 
 /// A `HTTPInformation` is a `DynamicInformationInstantiatable` for the `AnyHTTPInformation` `Information`.

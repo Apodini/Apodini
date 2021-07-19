@@ -13,8 +13,6 @@
 /// // error: cannot find operator '++' in scope; did you mean '+= 1'?
 /// i++
 /// ```
-
-
 class ExpectedError: CustomStringConvertible {
     var description: String {
         "NegativeCompileTestsRunner.ExpectedError(filePath: \"\(filePath)\", line: \(line), errorMessage: \"\(errorMessage)\", triggered: \(triggered))"

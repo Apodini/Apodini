@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 04.07.21.
-//
-
 import Apodini
 
 public struct MockStringKey: InformationKey {

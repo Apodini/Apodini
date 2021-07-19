@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 12.07.21.
-//
-
 public extension TypedHandlerMetadataNamespace {
     /// Name Definition for the ``GuardMetadata``
     typealias Guarded = GuardMetadata<Self>

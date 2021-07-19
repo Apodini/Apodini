@@ -1,5 +1,3 @@
-// swiftlint:disable missing_docs
-
 //                   
 // This source file is part of the Apodini open source project
 //
@@ -7,6 +5,8 @@
 //
 // SPDX-License-Identifier: MIT
 //              
+
+// swiftlint:disable missing_docs
 
 #if swift(>=5.4)
 @resultBuilder

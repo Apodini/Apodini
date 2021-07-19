@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 12.07.21.
-//
-
 public extension HandlerMetadataNamespace {
     /// Name Definition for the ``ResetMetadata``
     typealias Reset = ResetMetadata

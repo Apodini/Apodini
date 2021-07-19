@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 03.07.21.
-//
-
 /// A ``InformationInstantiatable`` represents type implementation of a predefined
 /// ``Information`` instance for a fixed ``InformationKey``.
 @dynamicMemberLookup

@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: MIT
 //
+
 import Apodini
 
 struct TestVoidContextKey: ContextKey {

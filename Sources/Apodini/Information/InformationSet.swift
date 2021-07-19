@@ -6,13 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-//  InformationSet.swift
-//  
-//
-//  Created by Paul Schmiedmayer on 6/16/21.
-//
-
 /// An ``InformationSet`` is used to store ``Information`` instances, checked for uniqueness
 /// against their ``InformationKey``.
 public struct InformationSet {

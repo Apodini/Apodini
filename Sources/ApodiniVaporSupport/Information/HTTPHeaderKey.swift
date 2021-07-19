@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 03.07.21.
-//
-
 import Apodini
 
 /// The ``InformationClass`` identifying any ``Information`` which holds HTTP Header information.

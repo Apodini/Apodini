@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 03.07.21.
-//
-
 /// Uniquely identifies a `Information` instance.
 ///
 /// Note, when you create a new ``InformationKey`` you might want to add a custom subscript overload

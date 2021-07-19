@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 02.07.21.
-//
-
 import Foundation
 import OrderedCollections
 import ApodiniUtils

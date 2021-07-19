@@ -6,13 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-//  RedirectTo.swift
-//  
-//
-//  Created by Paul Schmiedmayer on 6/16/21.
-//
-
 import Foundation
 import Apodini
 

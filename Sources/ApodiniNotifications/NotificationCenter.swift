@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+// swiftlint:disable first_where
+
 import Fluent
 import APNSwift
 import FCM
