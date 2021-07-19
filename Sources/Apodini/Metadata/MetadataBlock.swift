@@ -22,7 +22,6 @@
 ///
 /// See `RestrictedMetadataBlock` for a way to create custom Metadata Blocks where
 /// the content is restricted to a specific `MetadataDefinition`.
-
 public protocol AnyMetadataBlock: AnyMetadata {}
 
 /// The `HandlerMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain

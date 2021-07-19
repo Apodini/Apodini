@@ -6,10 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
-// Created by Andreas Bauer on 06.07.21.
-//
-
 /// A ```InformationClass``` is a way to group multiple, similar ``Information`` types
 /// which represent the same Metadata information and can be mapped to the same type of
 /// key and value.

@@ -19,7 +19,6 @@
 ///
 /// Refer to `TypedHandlerMetadataNamespace` if you need access to the generic `Handler`
 /// Type where the Metadata is used on.
-
 public protocol HandlerMetadataNamespace {}
 
 /// The `ComponentOnlyMetadataNamespace` can be used to define an appropriate

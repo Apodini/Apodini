@@ -7,7 +7,6 @@
 //              
 
 /// Defines a representation for a `WebService` that is used to build up and present relationship-information.
-
 public class RelationshipWebServiceModel: CustomDebugStringConvertible {
     public var debugDescription: String {
         root.debugDescription

@@ -7,7 +7,6 @@
 //              
 
 import Apodini
-
 import Fluent
 @_implementationOnly import Vapor
 @_implementationOnly import Runtime

@@ -8,8 +8,6 @@
 
 /// Models relationships of a `Endpoint` to (multiple) destination `Endpoint`s,
 /// which all are located under the same path.
-
-
 public struct EndpointRelationship: Equatable {
     /// Absolut path to the Relationship destinations
     /// Internal as this path isn't scoped to a destination `Endpoint`.

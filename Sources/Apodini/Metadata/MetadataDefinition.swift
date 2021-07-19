@@ -25,7 +25,6 @@
 ///     The name used in the Metadata DSL (the one which should ideally reflect the "natural language flow")
 ///     can be defined by extending the appropriate Metadata Namespace: `ComponentMetadataNamespace`,
 ///     `HandlerMetadataNamespace`, `WebServiceMetadataNamespace` or `ContentMetadataNamespace`.
-
 public protocol MetadataDefinition: AnyMetadata {
     /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata.
     associatedtype Key: OptionalContextKey

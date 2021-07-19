@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//
 /// The `AnyMetadata` protocol represents arbitrary Metadata.
 /// This might be a `MetadataDefinition`, a `AnyMetadataBlock` or something else.
 ///

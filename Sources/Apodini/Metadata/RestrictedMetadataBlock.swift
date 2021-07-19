@@ -20,7 +20,6 @@
 /// - `RestrictedWebServiceMetadataBlock`
 /// - `RestrictedComponentMetadataBlock`
 /// - `RestrictedContentMetadataBlock`
-
 public protocol RestrictedMetadataBlock: AnyMetadataBlock {
     associatedtype RestrictedContent: AnyMetadata
 }

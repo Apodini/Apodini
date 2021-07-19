@@ -7,7 +7,6 @@
 //    
 
 /// A type erasured version of an `RelationshipIdentification`.
-
 public struct AnyRelationshipIdentification {
     let resolver: AnyPathParameterResolver
 

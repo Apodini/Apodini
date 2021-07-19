@@ -8,7 +8,6 @@
 
 
 /// A full path is built out of multiple PathComponents
-
 public protocol PathComponent {}
 
 protocol _PathComponent: PathComponent {
