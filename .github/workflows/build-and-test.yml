@@ -15,12 +15,12 @@ on:
 jobs:
   latest-beta-swift-version-macos:
     name: Latest (Beta) Swift Version macOS
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v2
     - uses: maxim-lobanov/setup-xcode@v1.2.3
       with:
-        xcode-version: latest
+        xcode-version: '13.0'
     - uses: actions/cache@v2
       with:
         path: .build
@@ -31,23 +31,6 @@ jobs:
       run: swift --version
     - name: Debug Build & Test
       run: swift test
-  latest-nightly-swift-version-linux:
-    name: Latest (Nightly) Swift Version Linux
-    container:
-      image: swiftlang/swift:nightly-focal
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install libsqlite3
-      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
-    - uses: actions/cache@v2
-      with:
-        path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
-    - name: Check Swift version
-      run: swift --version
-    - name: Debug Build & Test
-      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
   macos:
     name: macOS ${{ matrix.configuration }}
     runs-on: macos-11
@@ -89,7 +72,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
-      image: swift:${{ matrix.linux }}
+	image: swiftlang/swift:nightly-5.5-${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

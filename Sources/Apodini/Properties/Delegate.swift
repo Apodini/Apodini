@@ -112,7 +112,7 @@ public enum Optionality: PropertyOption {
     /// Default for `@Parameter`s behind a `Delegate`. Documentation should show this parameter as not required.
     case optional
     /// Default for normal `@Parameter`s, i.e. such that are not behind a `Delegate`. Pass this to a `Delegate`, if there is no path
-    /// throgh your `handle()` that doesn't `throw` where the `Delegate` is not called.
+    /// through your `handle()` that doesn't `throw` where the `Delegate` is not called.
     case required
 }
 
