@@ -41,6 +41,7 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
     /// - Returns: The ``Authenticatable`` instance.
     /// - Throws: Might throw an `ApodiniError` in cases where an authorized ``Element`` instance
     ///     could not be found.
+    @discardableResult
     public func callAsFunction() throws -> Element {
         guard let element: Element = stateContainer.retrieve() else {
             // throws an error because the user requires the Authenticatable to be present, but it isn't.
