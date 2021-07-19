@@ -8,7 +8,7 @@
 
 // swiftlint:disable first_where
 
-import Fluent
+import FluentKit
 import APNSwift
 import FCM
 import NIO

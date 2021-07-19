@@ -7,7 +7,7 @@
 //              
 
 import Apodini
-import Fluent
+import FluentKit
 @_implementationOnly import Vapor
 @_implementationOnly import Runtime
 
@@ -21,7 +21,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         self.parameters = parameters
     }
     
-    internal func execute(on database: Fluent.Database) -> EventLoopFuture<[Model]> {
+    internal func execute(on database: FluentKit.Database) -> EventLoopFuture<[Model]> {
         let queryBuilder = Model.query(on: database)
         for (key, value) in parameters {
             queryBuilder.filter(key: key, method: .equal, codableValue: value)
@@ -51,7 +51,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
     }
 }
 
-extension Fluent.QueryBuilder {
+extension FluentKit.QueryBuilder {
     // swiftlint:disable cyclomatic_complexity
     func filter(key: FieldKey, method: DatabaseQuery.Filter.Method, codableValue: TypeContainer) {
         switch codableValue {

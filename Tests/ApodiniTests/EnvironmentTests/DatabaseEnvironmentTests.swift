@@ -7,7 +7,7 @@
 //              
 
 import XCTest
-import protocol Fluent.Database
+import protocol FluentKit.Database
 import XCTApodini
 @testable import Apodini
 

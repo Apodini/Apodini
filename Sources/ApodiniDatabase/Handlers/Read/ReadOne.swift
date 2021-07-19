@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import Fluent
+import FluentKit
 import Apodini
 @_implementationOnly import Vapor
 
@@ -15,7 +15,7 @@ public struct ReadOne<Model: DatabaseModel>: Handler {
     var objectNotFoundError: ApodiniError
     
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Parameter(.http(.path))
     var id: Model.IDValue

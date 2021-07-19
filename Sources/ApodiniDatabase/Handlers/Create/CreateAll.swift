@@ -6,14 +6,14 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import Fluent
+import FluentKit
 import Apodini
 
 /// Creates, if possible, an array of object in the database that conform to `DatabaseModel`
 /// See also `Create`.
 public struct CreateAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Environment(\.eventLoopGroup)
     private var eventLoopGroup: EventLoopGroup

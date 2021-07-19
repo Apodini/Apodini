@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import Fluent
+import FluentKit
 
 /// A protocol to make the `FieldProperty` of a database model accessible at run time.
 /// It returns an `AnyCodable` object which contains the value associated with this `FieldProperty`
