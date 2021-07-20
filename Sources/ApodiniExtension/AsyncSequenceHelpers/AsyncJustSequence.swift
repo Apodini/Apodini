@@ -9,16 +9,21 @@
 
 import _Concurrency
 
+/// An `AsyncSequence` that only contains the result of a single async closure.
 public struct Just<Element>: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl
     
     let closure: () async throws -> Element?
     
-    init(_ closure: @escaping () async throws -> Element?) {
+    /// Create a sequence that either contains one or zero elements depending on
+    /// the result of the given `closure`.
+    public init(_ closure: @escaping () async throws -> Element?) {
         self.closure = closure
     }
     
-    init(_ closure: @escaping () async throws -> Element) {
+    /// Create a sequence that contains exactly the one element returned by the
+    /// given `closure`.
+    public init(_ closure: @escaping () async throws -> Element) {
         self.closure = {
             try await closure()
         }

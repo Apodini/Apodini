@@ -22,7 +22,7 @@ final class OperationModifierTests: ApodiniTests {
         }
     }
 
-        struct TestWebService: WebService {
+    struct TestWebService: WebService {
         var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
         
         var content: some Component {

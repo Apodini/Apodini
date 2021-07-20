@@ -40,7 +40,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-        struct FInvoker: Handler {
+    struct FInvoker: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
         func handle() -> EventLoopFuture<String> {
@@ -94,7 +94,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
 
-        struct Greeter: Handler {
+    struct Greeter: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
         @Parameter var name: String
@@ -154,7 +154,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-        struct Calculator: Handler {
+    struct Calculator: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
         @Parameter var operation: String

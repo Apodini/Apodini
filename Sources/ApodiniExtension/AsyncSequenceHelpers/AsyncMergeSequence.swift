@@ -10,6 +10,8 @@
 import Foundation
 import _Concurrency
 
+/// An asynchronous sequence that merges the elements from the ``Base`` sequence with those from the ``Other``
+/// sequence.
 public struct AsyncMergeSequence<Base, Other>: AsyncSequence where Base: AsyncSequence, Other: AsyncSequence, Base.Element == Other.Element {
     public typealias AsyncIterator = AsyncIteratorImpl
     
