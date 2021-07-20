@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ContextResponsible.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 04.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @_implementationOnly import Vapor
 import _Concurrency

@@ -1,5 +1,13 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 import Foundation
-import Fluent
+import FluentKit
 import Apodini
 
 /// A Handler that returns an array of `DatabaseModel` which all conform to the query parameters of the request.
@@ -13,7 +21,7 @@ import Apodini
 /// return an array of `Bird` object that have an age of 19 and the name Foo.
 public struct ReadAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
 
     @Properties
     private var dynamics: [String: Apodini.Property]

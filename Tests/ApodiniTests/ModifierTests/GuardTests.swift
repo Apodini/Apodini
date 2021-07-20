@@ -1,14 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  GuardTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/27/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 import XCTVapor
 import XCTApodini
-import protocol Fluent.Database
+import protocol FluentKit.Database
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport

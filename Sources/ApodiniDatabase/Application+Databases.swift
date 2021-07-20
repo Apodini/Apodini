@@ -1,35 +1,21 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Application+Databases.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Tim Gymnich on 23.12.20.
+// SPDX-License-Identifier: MIT
+//
 //
 // This code is based on the Vapor project: https://github.com/vapor/vapor
 //
-// The MIT License (MIT)
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
 //
-// Copyright (c) 2020 Qutheory, LLC
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import FluentKit
+
 
 extension Application {
     /// Used to store the applications databases
@@ -80,8 +66,7 @@ extension Application {
             .database(
                 id,
                 logger: self.logger,
-                on: self.eventLoopGroup.next(),
-                history: self.fluent.history.historyEnabled ? self.fluent.history.history : nil
+                on: self.eventLoopGroup.next()
             )!
     }
 
@@ -128,72 +113,10 @@ extension Application {
             )
             self.application.lifecycle.use(Lifecycle())
         }
-
-        /// Database query history
-        public var history: History {
-            .init(fluent: self)
-        }
-
-        /// Database query history
-        public struct History {
-            let fluent: Fluent
-        }
     }
 
     /// Used to keep track of the fluent database configutation
     public var fluent: Fluent {
         .init(application: self)
-    }
-}
-
-struct RequestQueryHistory: StorageKey {
-    typealias Value = QueryHistory
-}
-
-struct FluentHistoryKey: StorageKey {
-    typealias Value = FluentHistory
-}
-
-struct FluentHistory {
-    let enabled: Bool
-}
-
-extension Application.Fluent.History {
-    var historyEnabled: Bool {
-        storage[FluentHistoryKey.self]?.enabled ?? false
-    }
-
-    var storage: Storage {
-        get {
-            self.fluent.application.storage
-        }
-        nonmutating set {
-            self.fluent.application.storage = newValue
-        }
-    }
-
-    var history: QueryHistory? {
-        storage[RequestQueryHistory.self]
-    }
-
-    /// The queries stored in this lifecycle history
-    public var queries: [DatabaseQuery] {
-        history?.queries ?? []
-    }
-
-    /// Start recording the query history
-    public func start() {
-        storage[FluentHistoryKey.self] = .init(enabled: true)
-        storage[RequestQueryHistory.self] = .init()
-    }
-
-    /// Stop recording the query history
-    public func stop() {
-        storage[FluentHistoryKey.self] = .init(enabled: false)
-    }
-
-    /// Clear the stored query history
-    public func clear() {
-        storage[RequestQueryHistory.self] = .init()
     }
 }

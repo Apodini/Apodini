@@ -1,15 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ProtoEncodingContainer.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Moritz Schüll on 28.11.20.
-//
-//  The encoding logic here was created with
-//  https://github.com/apple/swift-protobuf/blob/master/Sources/SwiftProtobuf/BinaryEncoder.swift
-//  as a reference.
-//  Thus, there are several similarities and also parts simply copied.
-//
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
