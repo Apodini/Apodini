@@ -1,8 +1,9 @@
 //
-//  BlackboardTests.swift
+// This source file is part of the Apodini open source project
 //
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 21.07.21.
+// SPDX-License-Identifier: MIT
 //
 
 @testable import Apodini
@@ -16,12 +17,12 @@ final class BlackboardTests: ApodiniTests {
     
     func testLazyInitialization() throws {
         struct RequiredKnowledge: KnowledgeSource {
-            init<B>(_ blackboard: B) throws where B : Blackboard { }
+            init<B>(_ blackboard: B) throws where B: Blackboard { }
         }
         
         struct NotRequiredKnowledge: KnowledgeSource {
-            init<B>(_ blackboard: B) throws where B : Blackboard {
-                XCTFail()
+            init<B>(_ blackboard: B) throws where B: Blackboard {
+                XCTFail("Not required KnowledgeSource was initialized")
             }
         }
         
@@ -42,7 +43,7 @@ final class BlackboardTests: ApodiniTests {
         struct RandomKnowledge<T: TruthAnchor>: KnowledgeSource {
             var random: Int
             
-            init<B>(_ blackboard: B) throws where B : Blackboard {
+            init<B>(_ blackboard: B) throws where B: Blackboard {
                 self.random = Int.random(in: Int.min...Int.max)
             }
         }
@@ -68,4 +69,3 @@ final class BlackboardTests: ApodiniTests {
         XCTAssertNotEqual(localBlackboard[RandomKnowledge<Exporter1>.self].random, localBlackboard[RandomKnowledge<Exporter2>.self].random)
     }
 }
-

@@ -112,7 +112,7 @@ final class DelegationTests: ApodiniTests {
     func testLazyDecodingThroughDelegateCall() throws {
         struct Undecodable: Codable {
             init(from decoder: Decoder) throws {
-                XCTFail()
+                XCTFail("Unneeded lazy parameter was decoded.")
                 throw DecodingError.valueNotFound(Self.self,
                                                   .init(codingPath: [],
                                                         debugDescription: "Undecodable should have not been decoded!",
@@ -133,7 +133,7 @@ final class DelegationTests: ApodiniTests {
             var delegate = Delegate(MyDelegate())
             
             func handle() throws -> String {
-                return "did not use delegate"
+                "did not use delegate"
             }
         }
         
