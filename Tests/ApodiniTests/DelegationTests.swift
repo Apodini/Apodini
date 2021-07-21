@@ -109,6 +109,48 @@ final class DelegationTests: ApodiniTests {
         )
     }
     
+    func testLazyDecodingThroughDelegateCall() throws {
+        struct Undecodable: Codable {
+            init(from decoder: Decoder) throws {
+                XCTFail()
+                throw DecodingError.valueNotFound(Self.self,
+                                                  .init(codingPath: [],
+                                                        debugDescription: "Undecodable should have not been decoded!",
+                                                        underlyingError: nil))
+            }
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(false)
+            }
+        }
+        
+        struct MyDelegate {
+            @Parameter var failing: Undecodable
+        }
+        
+        struct MyHandler: Handler {
+            var delegate = Delegate(MyDelegate())
+            
+            func handle() throws -> String {
+                return "did not use delegate"
+            }
+        }
+        
+        
+        var testHandler = MyHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let successfulExporter = MockExporter<String>(queued: false)
+        let successfulContext = endpoint.createConnectionContext(for: successfulExporter)
+        
+        try XCTCheckResponse(
+            successfulContext.handle(request: "", eventLoop: app.eventLoopGroup.next()),
+            content: "did not use delegate")
+    }
+    
     func testConnectionAwareDelegate() throws {
         var testHandler = TestHandler().inject(app: app)
         activate(&testHandler)

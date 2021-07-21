@@ -24,35 +24,35 @@ defaults:
     working-directory: TestWebService
 
 jobs:
-  macos:
-    name: macOS ${{ matrix.configuration }}
-    runs-on: macos-12
-    strategy:
-      fail-fast: false
-      matrix:
-        configuration: [debug, release, release_testing]
-    steps:
-    - uses: actions/checkout@v2
-    - uses: maxim-lobanov/setup-xcode@v1.2.3
-      with:
-        xcode-version: '13.0'
-    - uses: actions/cache@v2
-      with:
-        path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-    - name: Check Xcode version
-      run: xcodebuild -version
-    - name: Check Swift version
-      run: swift --version
-    - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
-      if: matrix.configuration == 'release'
-      run: swift build -c release
-    - name: Release Build & Test
-      if: matrix.configuration == 'release_testing'
-      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
-    - name: Debug Build & Test
-      if: matrix.configuration == 'debug'
-      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
+#  macos:
+#    name: macOS ${{ matrix.configuration }}
+#    runs-on: macos-12
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        configuration: [debug, release, release_testing]
+#    steps:
+#    - uses: actions/checkout@v2
+#    - uses: maxim-lobanov/setup-xcode@v1.2.3
+#      with:
+#        xcode-version: '13.0'
+#    - uses: actions/cache@v2
+#      with:
+#        path: .build
+#        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+#    - name: Check Xcode version
+#      run: xcodebuild -version
+#    - name: Check Swift version
+#      run: swift --version
+#    - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
+#      if: matrix.configuration == 'release'
+#      run: swift build -c release
+#    - name: Release Build & Test
+#      if: matrix.configuration == 'release_testing'
+#      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+#    - name: Debug Build & Test
+#      if: matrix.configuration == 'debug'
+#      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
