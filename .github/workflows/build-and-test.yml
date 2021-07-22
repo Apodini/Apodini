@@ -73,7 +73,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install libsqlite3, lsof and zsh
       if: ${{ !(startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' )) }}
-      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev lsof zsh
+      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev lsof zsh curl
     - name: Install libsqlite3
       if: startsWith( matrix.linux, 'amazonlinux' )
       run: yum update -y && yum install -y sqlite-devel
