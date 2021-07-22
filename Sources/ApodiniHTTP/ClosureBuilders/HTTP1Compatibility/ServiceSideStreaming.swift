@@ -31,7 +31,6 @@ extension Exporter {
                 .asAsyncSequence
                 .decode(using: strategy, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
                 .cache()
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
