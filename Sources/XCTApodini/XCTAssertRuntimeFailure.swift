@@ -7,6 +7,7 @@
 //              
 
 import XCTest
+// swiftlint:disable line_length
 #warning("""
     CwlPreconditionTesting currently seems to trigger a compiler bug in Xcode beta 3 with release builds.
     Try to uncomment the code below after each compiler release.
@@ -18,6 +19,8 @@ import XCTest
         /Users/***/Library/Developer/Xcode/DerivedData/apodini-gsirduylpqvqisgpfkhgicvjgsww/Build/Intermediates.noindex/CwlPreconditionTesting.build/Release/CwlPreconditionTesting.build/Objects-normal/x86_64/CwlCatchBadInstruction.o
     ld: 1 duplicate symbol for architecture x86_64
 """)
+// swiftlint:enable line_length
+
 //#if canImport(CwlPreconditionTesting)
 //@_implementationOnly import CwlPreconditionTesting
 //

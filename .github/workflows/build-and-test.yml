@@ -97,6 +97,6 @@ jobs:
       run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
     - name: Convert coverage report
       if: matrix.configuration == 'debug' && matrix.linux == 'bionic'
-      run: llvm-cov export -format="lcov" .build/debug/ApodiniPackageTests.xctest/Contents/Linux/ApodiniPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
+      run: llvm-cov export -ignore-filename-regex="checkouts/*" -format="lcov" .build/debug/ApodiniPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
