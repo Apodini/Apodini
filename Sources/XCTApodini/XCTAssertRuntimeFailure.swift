@@ -7,22 +7,22 @@
 //              
 
 import XCTest
-#if canImport(CwlPreconditionTesting)
-@_implementationOnly import CwlPreconditionTesting
-
-/// Asserts that an expression leads to a runtime failure.
-public func XCTAssertRuntimeFailure<T>(
-    _ expression: @escaping @autoclosure () -> T,
-    _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
-    file: StaticString = #filePath,
-    line: UInt = #line) {
-    guard catchBadInstruction(in: { _ = expression() }) == nil else {
-        return
-    }
-    XCTFail(message(), file: file, line: line)
-}
-#else
-/// Empty implementation used for plattforms that don' support `CwlPreconditionTesting`.
+//#if canImport(CwlPreconditionTesting) && DEBUG
+//@_implementationOnly import CwlPreconditionTesting
+//
+///// Asserts that an expression leads to a runtime failure.
+//public func XCTAssertRuntimeFailure<T>(
+//    _ expression: @escaping @autoclosure () -> T,
+//    _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
+//    file: StaticString = #filePath,
+//    line: UInt = #line) {
+//    guard catchBadInstruction(in: { _ = expression() }) == nil else {
+//        return
+//    }
+//    XCTFail(message(), file: file, line: line)
+//}
+//#else
+/// Empty implementation used for platforms that don't support `CwlPreconditionTesting`.
 public func XCTAssertRuntimeFailure<T>(
     _ expression: @escaping @autoclosure () -> T,
     _ message: @autoclosure () -> String = "",
@@ -31,4 +31,4 @@ public func XCTAssertRuntimeFailure<T>(
     // Empty implementation for Linux Tests
     print("[NOTICE] XCTAssertRuntimeFailure unsupported on this platform!")
 }
-#endif
+//#endif
