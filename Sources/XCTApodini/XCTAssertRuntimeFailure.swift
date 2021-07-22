@@ -7,7 +7,18 @@
 //              
 
 import XCTest
-//#if canImport(CwlPreconditionTesting) && DEBUG
+#warning("""
+    CwlPreconditionTesting currently seems to trigger a compiler bug in Xcode beta 3 with release builds.
+    Try to uncomment the code below after each compiler release.
+    
+    Currently fails with:
+    
+    duplicate symbol '_NDR_record' in:
+        /Users/***/Library/Developer/Xcode/DerivedData/apodini-gsirduylpqvqisgpfkhgicvjgsww/Build/Intermediates.noindex/CwlPreconditionTesting.build/Release/CwlPreconditionTesting.build/Objects-normal/x86_64/CwlBadInstructionException.o
+        /Users/***/Library/Developer/Xcode/DerivedData/apodini-gsirduylpqvqisgpfkhgicvjgsww/Build/Intermediates.noindex/CwlPreconditionTesting.build/Release/CwlPreconditionTesting.build/Objects-normal/x86_64/CwlCatchBadInstruction.o
+    ld: 1 duplicate symbol for architecture x86_64
+""")
+//#if canImport(CwlPreconditionTesting)
 //@_implementationOnly import CwlPreconditionTesting
 //
 ///// Asserts that an expression leads to a runtime failure.

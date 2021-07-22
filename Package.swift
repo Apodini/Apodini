@@ -71,7 +71,7 @@ let package = Package(
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
         
         // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
-        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
+//        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
@@ -317,7 +317,7 @@ let package = Package(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+//                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),
