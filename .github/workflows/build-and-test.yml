@@ -94,7 +94,7 @@ jobs:
       run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-       run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
+      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
 #
 # Creating Coverage Report from Linux (not advised, as not all test-scenarios are executed on linux): 
 #
