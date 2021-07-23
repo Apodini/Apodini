@@ -73,7 +73,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install libsqlite3, lsof and zsh
       if: ${{ !(startsWith( matrix.linux, 'centos' ) || startsWith( matrix.linux, 'amazonlinux' )) }}
-      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev lsof zsh curl
+      run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev lsof zsh
     - name: Install libsqlite3
       if: startsWith( matrix.linux, 'amazonlinux' )
       run: yum update -y && yum install -y sqlite-devel
@@ -94,9 +94,13 @@ jobs:
       run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
-    - name: Convert coverage report
-      if: matrix.configuration == 'debug' && matrix.linux == 'bionic'
-      run: llvm-cov export -ignore-filename-regex="(checkouts/*)|(.build/*)" -format="lcov" .build/debug/ApodiniPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+       run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
+#
+# Creating Coverage Report from Linux (not advised, as not all test-scenarios are executed on linux): 
+#
+#      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none
+#    - name: Convert coverage report
+#      if: matrix.configuration == 'debug' && matrix.linux == 'bionic'
+#      run: llvm-cov export -ignore-filename-regex="(checkouts/*)|(.build/*)" -format="lcov" .build/debug/ApodiniPackageTests.xctest -instr-profile .build/debug/codecov/default.profdata > coverage.lcov
+#    - name: Upload coverage to Codecov
+#      uses: codecov/codecov-action@v1

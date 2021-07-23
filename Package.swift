@@ -32,7 +32,7 @@ let debugOnlyDependencies = [
     .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0")
 ]
 let debugOnlyTargetDependencies = [
-    .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+    .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
 ]
 
 #else
