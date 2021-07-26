@@ -1,11 +1,14 @@
 # Configuration of Exporters
 
-Configuration of Exporters
+Extensive configuration options for Apodini Exporters.
 
-The `configuration` variable of the `WebService` allows developers to specify various settings of the Apodini web service. The probably most important one is the configuration of the Exporters, so what interfaces of the declaratively defined web service are exposed. Of course, the DSL of Apodini should also allow the developer to configure the exporters themselves, so for example what Encoding/Decoding strategy should be used by the exporter. 
+## Overview
+
+The `configuration` variable of the `WebService` allows developers to specify various settings of the Apodini web service. The probably most important one is the configuration of the Exporters, so what interfaces of the declaratively defined web service are exposed. Of course, the DSL of Apodini should also allow the developer to configure the exporters themselves, so for example what Encoding/Decoding strategy should be used by the exporter.
+
 This results in certain requirements that the ExporterConfiguration must fulfill. First, the exposed interfaces should be configurable via exporters as well as the exporters themselves. Furthermore, associated exporters, as for example the `REST` exporter and the `OpenAPI` exporter should be able to share their configuration without the need for the developer to pass the configuration twice.
 
-## Exporter-specific configuration
+### Exporter-specific Configuration
 
 Apodini's DSL implements these requirements in the following way. This example shows the definition of the `REST` interface exporter that exposes the `WebService` via a RESTful API.
 
@@ -79,9 +82,10 @@ This now encodes and decodes all messages coming from or to RESTful routes in th
 
 Furthermore, the `REST` exporter provides a parameter to enable case-insensitive routing with the parameter `caseInsensitiveRouting`. By default, this parameter is set to `false`, conforming to the actual URL standards.
 
-## Shared configurations of associated exporters
+### Shared Configurations of Associated Exporters
 
 A further requirement is the shared configuration of associated exporters. This might seems unintuitive at first, what exporters are actually dependent on each other, shouldn't they be independently exporting some kind of interface? As an answer, I state the `REST` and `OpenAPI` exporters. The `REST` exporter is completely independent and doesn't need the `OpenAPI` exporter at all. However, in the other way around this doesn't hold up. The `OpenAPI` exporter generates a description of a webservice and this webservice is required to be RESTful. Therefore, the `OpenAPI` exporter has a dependence on the `REST` exporter and can only "exist" when the parent `REST` exporter is present.
+
 Here an example of these associated, or nested, exporters:
 
 ```swift
@@ -168,6 +172,7 @@ public struct Example: WebService {
 
 ## Topics
 
-### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->
+### Protocols
 
-- <!--@START_MENU_TOKEN@-->``Symbol``<!--@END_MENU_TOKEN@-->
+- ``WebService``
+- ``Configuration``

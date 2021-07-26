@@ -1,6 +1,6 @@
 # Delegating Handlers
 
-Delegating Handlers
+Defining reusable and assertive `Handler`s
 
 In some situations, putting all of your application logic into a single `Handler` is not practical. There might be a certain part of this logic that is reusable and required in multiple `Handler`s. You might not want to initialize certain objects before you have done some assertions. Or there is just so much going on in your `Handler` that it becomes difficult to read. In all of these situations you need a `Delegate`.
 
@@ -146,4 +146,12 @@ extension Component {
 
 ### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->
 
-- <!--@START_MENU_TOKEN@-->``Symbol``<!--@END_MENU_TOKEN@-->
+- ``Handler``
+- ``HandlerModifier``
+- ``Delegate``
+- ``DelegatingHandlerInitializer``
+- ``Property``
+- ``Response``
+- ``ResponseTransformer``
+- ``ResponseTransformingHandlerInitializer``
+- ``SyncGuard``

@@ -1,8 +1,7 @@
-# Operation
+# ``Operation``
 
-Definiton of Operation and the it's usage with interface exporters.
-
-This document describes what the `Operation` is and how interface exporters may deal with it.  
+## Overview
+ 
 The `Operation` models all four basic CRUD operations. For every endpoint it is to be defined which operation is
 represented by the given endpoint.
 

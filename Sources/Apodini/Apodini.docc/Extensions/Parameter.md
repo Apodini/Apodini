@@ -1,6 +1,10 @@
-# Parameter
+# ``Apodini/Parameter``
 
-`@Parameter` property wrapper
+@Metadata {
+    @DocumentationExtension(mergeBehavior: append)
+}
+
+## Overview
 
 The `@Parameter` property wrapper can be used to express input in different ways. 
 The internal name of the `@Parameter` and can be different to the external representation of the `Handler` by passing a string into the `@Parameter` property wrapper as a first optional argument.
@@ -21,7 +25,7 @@ Apodini is designed so that different web API exporters for different protocols 
 
 Non primitive types defined by the user that conform to `Codable` and are not [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible) are automatically considered to be a request content for all protocols and types of middleware that are applicable to contain a request content such as an HTTP body. If there are multiple non primitive types marked with `@Parameter` the elements should be encoded in a wrapper enclosure.
 
-### Single `@Parameter` for Request Content
+### Single @Parameter for Request Content
 
 The following example showcases a simple `Handler` with one `@Property` wrapper around a non primitive type:
 ```swift
@@ -86,7 +90,7 @@ Exposing the `Handler` on a web socket interface requires the client to send the
 }
 ```
 
-### Multiple `@Parameter`s for Request Content
+### Multiple @Parameter s for Request Content
 
 The following example showcases a `Handler` with multiple `@Parameter` property wrappers around a non primitive type:
 ```swift
@@ -184,7 +188,7 @@ Exposing the `Handler` on a web socket interface requires the client to send the
 }
 ```
 
-### Inferring Query `@Parameter`s
+### Inferring Query @Parameter s
 
 Some middleware types and protocols can expose parameters as lightweight parameters that can be part of a URI path such as query parameters found in the URI of RESTful and OpenAPI based interfaces. Apodini automatically exposes primitive types as lightweight parameters that conform to [`LosslessStringConvertible`](https://developer.apple.com/documentation/swift/losslessstringconvertible). Complex types such as custom types conforming to `Codable` can not be exposed using lightweight parameters. 
 
@@ -267,7 +271,7 @@ Exposing the `Handler` on a web socket interface requires the client to send the
 }
 ```
 
-### Defining a Parameter outside of a `Handler`
+### Defining a Parameter outside of a Handler
 
 Some middleware types and protocols can expose parameters as part of the endpoint defining characteristics. E.g. RESTful and OpenAPI based APIs use the URI path to define endpoints including variables such as `/birds/BIRD_ID` to identify the requested `Bird` by its identifier `BIRD_ID`.
 A `@PathParameter` property used as a path parameter within a `Component` defined outside of a `Handler` (e.g.: as part of a `Group`) can be inferred to be a parameter in the URI path for some HTTP based web API exporters.
@@ -377,7 +381,6 @@ extension Parameter {
     }
 }
 ```
-
 ## Topics
 
 ### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->

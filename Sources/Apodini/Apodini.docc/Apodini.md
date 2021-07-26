@@ -4,10 +4,21 @@ A declarative, composable framework to build web services using Swift.
 
 ## Overview
 
-Apodini provides various functionalities of web services
+Apodini is an open source server side Swift framework completely written in Swift.
+
+This framework is part of a research project at the TUM Research Group for Applied Software Engineering.
+
+It defines an **internal DSL** and other high level APIs on top of [SwiftNIO](https://github.com/apple/swift-nio) and [Vapor](https://vapor.codes).
+
+> Tip: Learn more about DSL components in Apodini: <doc:DSLComponents>
+
+It also works with an ecosystem of server-side Swift frameworks that including [Fluent](https://docs.vapor.codes/4.0/fluent/overview/), an object–relational mapping framework which provides an easy-to-use interface for your database.
 
 ## Topics
 
-### Essentials
+### Getting Started
 
-- <doc:/tutorials/Apodini>
+- <doc:Installation>
+- <doc:HelloWorld>
+- <doc:DatabaseConnection>
+
