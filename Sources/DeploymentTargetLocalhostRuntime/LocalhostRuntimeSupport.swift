@@ -103,7 +103,7 @@ public struct LocalhostStructureExporter: StructureExporter {
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
-    ) throws -> DeployedSystem {
+    ) throws -> AnyDeployedSystem {
         guard let openApiDocument = app.storage.get(OpenAPI.StorageKey.self)?.document else {
             throw ApodiniDeployRuntimeSupportError(message: "Unable to get OpenAPI document")
         }

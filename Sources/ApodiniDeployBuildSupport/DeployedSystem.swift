@@ -9,13 +9,22 @@
 import Foundation
 import Apodini
 
+/// The protocol that defines the output of the structure retrieval of a `StructureExporter`.
+/// The default implementation of it is `DeployedSystem`.
+/// If you want to retrieve the structure in a custom type, adhere to the following:
+///     1. Conform your type to this protocol
+///     2. Return the type in your implementation of `retrieveStructure` of `StructureExporter`.
+///     3. In your deployment provider, specify the decode type of `retrieveSystemStructure` with your type.
+public protocol AnyDeployedSystem: Codable {
+    var deploymentProviderId: DeploymentProviderID { get }
+}
 
 /// The structure of a deployed system.
 /// A deployed system is a distributed system consisting of one or more nodes.
 /// Each node implements one or more of the deployed `WebService`'s endpoints.
 /// - Note: There may be more than one instances of a node running at a given time,
 ///   for example when deploying to a platform which supports scaling.
-public struct DeployedSystem: Codable {
+public struct DeployedSystem: AnyDeployedSystem {
     /// Identifier of the deployment provider used to create the deployment
     public let deploymentProviderId: DeploymentProviderID
     

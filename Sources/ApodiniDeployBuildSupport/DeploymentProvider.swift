@@ -108,8 +108,11 @@ extension DeploymentProvider {
         }
     }
     
-    
-    public func retrieveSystemStructure(_ executableUrl: URL, cliCommand: String) throws -> (URL, DeployedSystem) {
+    public func retrieveSystemStructure<T: AnyDeployedSystem>(
+        _ executableUrl: URL,
+        cliCommand: String,
+        as: T.Type = T.self) throws -> (URL, T)
+    {
         let fileManager = FileManager()
         let logger = Logger(label: "ApodiniDeployCLI.\(cliCommand)")
         
@@ -141,7 +144,7 @@ extension DeploymentProvider {
         
         logger.notice("System structure written to '\(modelFileUrl)'")
         let data = try Data(contentsOf: modelFileUrl, options: [])
-        return (modelFileUrl, try JSONDecoder().decode(DeployedSystem.self, from: data))
+        return (modelFileUrl, try JSONDecoder().decode(T.self, from: data))
     }
     
     /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object

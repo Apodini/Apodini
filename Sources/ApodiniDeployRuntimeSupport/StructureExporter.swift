@@ -1,6 +1,7 @@
 import Foundation
 import Apodini
 import ApodiniUtils
+import ApodiniDeployBuildSupport
 
 /// A protocol is used to define how the structure of the web service is retrieved and persisted.
 /// This can be used in a custom subcommand of `export-ws-structure` to compute
@@ -24,7 +25,7 @@ public protocol StructureExporter {
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
-    ) throws -> DeployedSystem
+    ) throws -> AnyDeployedSystem
 }
 
 extension StructureExporter {
