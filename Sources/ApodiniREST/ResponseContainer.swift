@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 22.01.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import ApodiniUtils
@@ -17,7 +21,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     
     let status: Status?
-    let information: Set<AnyInformation>
+    let information: InformationSet
     let data: AnyEncodable?
     let links: Links?
     let encoder: AnyEncoder
@@ -28,7 +32,7 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     
     init<E: Encodable>(_ type: E.Type = E.self,
                        status: Status? = nil,
-                       information: Set<AnyInformation> = [],
+                       information: InformationSet = [],
                        data: E? = nil,
                        links: Links? = nil,
                        encoder: AnyEncoder = JSONEncoder()) {

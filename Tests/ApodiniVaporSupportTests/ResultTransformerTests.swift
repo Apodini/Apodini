@@ -1,10 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ResultTransformerTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 04.07.21.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTApodini
 import ApodiniVaporSupport
@@ -110,12 +110,11 @@ class ResultTransformerTests: XCTApodiniTest {
                     type: .badInput,
                     reason: "Nothing Wrong",
                     description: "This test case just needs an error with description🤷‍♂️",
-                    .init([
-                        .httpRespnoseStatus(.httpVersionNotSupported),
-                        .httpHeaders(.init(.init(arrayLiteral: ("headerName", "headerValue"))))
-                    ])))
-                                .transform(using: transformer)
-                                .wait()
+                    information: AnyHTTPInformation(key: "headerName", rawValue: "headerValue"),
+                    options: .httpResponseStatus(.httpVersionNotSupported))
+                )
+                .transform(using: transformer)
+                .wait()
             XCTFail("Should have thrown!")
         } catch {
             let abort = try XCTUnwrap(error as? AbortError)

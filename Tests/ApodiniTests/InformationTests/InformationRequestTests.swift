@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  InformationRequestTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/16/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 @testable import ApodiniREST
@@ -14,7 +15,7 @@ import Vapor
 final class InformationRequestTests: XCTApodiniTest {
     func testInformationRequestWithRESTExporter() throws {
         struct InformationHandler: Handler {
-            let testExpectations: (Set<AnyInformation>) throws -> Void
+            let testExpectations: (InformationSet) throws -> Void
             
             
             @Apodini.Environment(\.connection) var connection: Connection
@@ -31,7 +32,7 @@ final class InformationRequestTests: XCTApodiniTest {
             }
         }
         
-        func testHeaders(_ header: [(String, String)], expectations: @escaping (Set<AnyInformation>) throws -> Void) throws {
+        func testHeaders(_ header: [(String, String)], expectations: @escaping (InformationSet) throws -> Void) throws {
             let handler = InformationHandler(testExpectations: expectations)
             let endpoint = handler.mockEndpoint(app: app)
             
@@ -68,7 +69,7 @@ final class InformationRequestTests: XCTApodiniTest {
         }
         
         try testHeaders([("Test", "ATest")]) { information in
-            let test = try XCTUnwrap(information["Test"])
+            let test: String = try XCTUnwrap(information[httpHeader: "Test"])
             XCTAssertEqual(test, "ATest")
         }
     }

@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 22.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import XCTest
@@ -228,5 +232,137 @@ final class HandlerMetadataTest: ApodiniTests {
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
         XCTAssertEqual(capturedStrings, "TestDelegatingHandler")
+    }
+
+    func testDynamicHandlerInitializerMetadataAndDelegateMetadataParsing() throws {
+        struct DynamicNameGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                try delegate
+                    .environmentObject("Alfred")()
+                    .handle()
+            }
+        }
+
+        struct DynamicNameGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicNameGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+        struct DynamicIntGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() throws -> H.Response {
+                try delegate
+                    .environmentObject(34)()
+                    .handle()
+            }
+        }
+
+        struct DynamicIntGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicIntGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+
+        struct DynamicNameGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = DelegatingHandlerContextKey
+            let initializer: Key.Entry = .init(DynamicNameGuardInitializer())
+        }
+
+        struct SomeContextKey: OptionalContextKey {
+            typealias Value = String
+        }
+
+        struct DynamicIntGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = SomeContextKey
+            var value = "asdf"
+            var initializer: DelegatingHandlerContextKey.Entry = .init(DynamicIntGuardInitializer())
+        }
+
+        struct TestHandler: Handler {
+            // simulates extension to the TypedHandlerMetadataNamespace
+            typealias NameGuard = DynamicNameGuardMetadata
+            typealias IntGuard = DynamicIntGuardMetadata
+
+            @EnvironmentObject
+            var passedName: String
+            @EnvironmentObject
+            var passedAge: Int
+
+            var delegate1 = Delegate(SomeDelegatedHandler1())
+            var delegate2 = Delegate(SomeDelegatedHandler3())
+
+            func handle() -> String {
+                "Hello \(passedName) \(passedAge)"
+            }
+
+            var metadata: Metadata {
+                NameGuard()
+                IntGuard()
+
+                TestInt(4)
+            }
+        }
+
+        struct SomeDelegatedHandler1: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(1)
+            }
+        }
+
+        struct SomeDelegatedHandler2: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(2)
+            }
+        }
+
+        struct SomeDelegatedHandler3: Handler {
+            var delegate = Delegate(SomeDelegatedHandler2())
+
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(3)
+            }
+        }
+
+        let exporter = MockExporter<String>()
+        app.registerExporter(exporter: exporter)
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        let handler = TestHandler()
+        handler.accept(visitor)
+
+        let context = visitor.currentNode.export()
+
+        modelBuilder.finishedRegistration()
+
+        let endpoint = modelBuilder.collectedEndpoints[0]
+        let response = exporter.request(on: 0, request: "Example Request", with: app)
+
+        try XCTCheckResponse(
+            try XCTUnwrap(response.typed(String.self)),
+            content: "Hello Alfred 34"
+        )
+
+        XCTAssertEqual(context.get(valueFor: TestIntMetadataContextKey.self), [1, 2, 3, 4])
     }
 }

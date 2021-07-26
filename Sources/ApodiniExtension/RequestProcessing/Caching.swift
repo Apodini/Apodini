@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Caching.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 06.07.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -44,7 +45,7 @@ public class CachingRequest: WithRequest {
 
     public lazy var remoteAddress: SocketAddress? = request.remoteAddress
     
-    public lazy var information: Set<AnyInformation> = request.information
+    public lazy var information: InformationSet = request.information
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
         if let cached = cache[parameter.id] {

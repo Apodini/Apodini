@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Request+ExporterRequestWithEventLoop.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/16/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import ApodiniExtension
@@ -15,10 +16,10 @@ extension Vapor.Request: RequestBasis {
     public var debugDescription: String {
         "Vapor.Request: \(self.description)"
     }
-    
-    public var information: Set<AnyInformation> {
-        Set(headers.map { key, rawValue in
-            AnyInformation(key: key, rawValue: rawValue)
+
+    public var information: InformationSet {
+        InformationSet(headers.map { key, rawValue in
+            AnyHTTPInformation(key: key, rawValue: rawValue)
         })
     }
 }

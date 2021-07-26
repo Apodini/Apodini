@@ -1,13 +1,14 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ThrowsTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 22.01.21.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 import XCTApodini
+@testable import Apodini
 import Vapor
 
 class ThrowsTests: ApodiniTests {
@@ -15,7 +16,7 @@ class ThrowsTests: ApodiniTests {
         @Throws(.badInput, reason: "!badInput!", description: "<badInput>")
         var error1: ApodiniError
         
-        @Throws(.badInput, reason: "!badInput!")
+        @Throws(.badInput, reason: "!badInput!", information: MockIntInformationInstantiatable(4))
         var error2: ApodiniError
         
         @Throws(.badInput, description: "<badInput>")
@@ -54,7 +55,7 @@ class ThrowsTests: ApodiniTests {
                 }
             case 4:
                 if applyChanges {
-                    throw error4(reason: reason, description: description)
+                    throw error4(reason: reason, description: description, options: .webSocketErrorCode(.goingAway))
                 } else {
                     throw error4
                 }
@@ -140,6 +141,13 @@ class ThrowsTests: ApodiniTests {
                         reason: nil,
                         description: "<other>").evaluationError().standardMessage.contains("<other>"))
         #endif
+    }
+
+    func testInformation() throws {
+        XCTAssertEqual(
+            ErrorTestHandler(errorCode: 2).evaluationError().information[MockIntInformationInstantiatable.self],
+            4
+        )
     }
 }
 

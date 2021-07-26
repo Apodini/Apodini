@@ -1,10 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Modifier.swift
-//  Apodini
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 /// A modifier which can be invoked on a `Component`
 public protocol Modifier: Component, SyntaxTreeVisitable {

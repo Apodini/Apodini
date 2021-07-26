@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ResultTransformers.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 30.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import ApodiniExtension
@@ -25,9 +26,11 @@ public struct VaporResponseTransformer<H: Handler>: ResultTransformer {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: input.responseStatus,
-                              headers: HTTPHeaders(input.information),
-                              body: body)
+        return Vapor.Response(
+            status: input.responseStatus,
+            headers: HTTPHeaders(input.information),
+            body: body
+        )
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {
@@ -41,15 +44,22 @@ public struct VaporBlobResponseTransformer: ResultTransformer {
     public func transform(input: Apodini.Response<Blob>) -> Vapor.Response {
         var body: Vapor.Response.Body
         
+        var information = input.information
+        
         if let content = input.content {
             body = Vapor.Response.Body(buffer: content.byteBuffer)
+            if let contentType = content.type?.description {
+                information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+            }
         } else {
             body = Vapor.Response.Body()
         }
         
-        return Vapor.Response(status: input.responseStatus,
-                              headers: HTTPHeaders(input.information),
-                              body: body)
+        return Vapor.Response(
+            status: input.responseStatus,
+            headers: HTTPHeaders(information),
+            body: body
+        )
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {

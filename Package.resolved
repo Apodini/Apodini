@@ -38,15 +38,6 @@
         }
       },
       {
-        "package": "BSON",
-        "repositoryURL": "https://github.com/OpenKitten/BSON.git",
-        "state": {
-          "branch": null,
-          "revision": "5ef02954ff53960ae6fba46cd03c7bee51deb62e",
-          "version": "7.0.27"
-        }
-      },
-      {
         "package": "console-kit",
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
@@ -92,48 +83,12 @@
         }
       },
       {
-        "package": "fluent",
-        "repositoryURL": "https://github.com/vapor/fluent.git",
-        "state": {
-          "branch": null,
-          "revision": "5810a409eb0271a576f68887fa6713dae3985056",
-          "version": "4.3.1"
-        }
-      },
-      {
         "package": "fluent-kit",
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
           "revision": "2eddf6fda3f1ca114f96e0cf82875fefab342343",
           "version": "1.13.0"
-        }
-      },
-      {
-        "package": "fluent-mongo-driver",
-        "repositoryURL": "https://github.com/vapor/fluent-mongo-driver.git",
-        "state": {
-          "branch": null,
-          "revision": "ce519013f51439773fe668d6575888665b0e2dda",
-          "version": "1.0.2"
-        }
-      },
-      {
-        "package": "fluent-mysql-driver",
-        "repositoryURL": "https://github.com/vapor/fluent-mysql-driver.git",
-        "state": {
-          "branch": null,
-          "revision": "699e164880387349bf04c2329fe53097524a5904",
-          "version": "4.0.0"
-        }
-      },
-      {
-        "package": "fluent-postgres-driver",
-        "repositoryURL": "https://github.com/vapor/fluent-postgres-driver.git",
-        "state": {
-          "branch": null,
-          "revision": "11d4fce0c5d8a027a5d131439c9c94dd3230cb8e",
-          "version": "2.1.2"
         }
       },
       {
@@ -164,48 +119,12 @@
         }
       },
       {
-        "package": "MongoKitten",
-        "repositoryURL": "https://github.com/OpenKitten/MongoKitten.git",
-        "state": {
-          "branch": null,
-          "revision": "8a98326aca11c29d87a8bf1538679bb5ad9fd733",
-          "version": "6.6.6"
-        }
-      },
-      {
         "package": "multipart-kit",
         "repositoryURL": "https://github.com/vapor/multipart-kit.git",
         "state": {
           "branch": null,
           "revision": "c9ea04017b7fb3b1f034ad7a77f8e53d3e080be5",
           "version": "4.2.1"
-        }
-      },
-      {
-        "package": "mysql-kit",
-        "repositoryURL": "https://github.com/vapor/mysql-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "fe836ecd52815ed1399e654b5365c108ff1638fd",
-          "version": "4.1.0"
-        }
-      },
-      {
-        "package": "mysql-nio",
-        "repositoryURL": "https://github.com/vapor/mysql-nio.git",
-        "state": {
-          "branch": null,
-          "revision": "4cbef4c0903c9792ff1f8dc4b55532276fa70c99",
-          "version": "1.3.2"
-        }
-      },
-      {
-        "package": "NioDNS",
-        "repositoryURL": "https://github.com/OpenKitten/NioDNS.git",
-        "state": {
-          "branch": null,
-          "revision": "7517b774d48833f04869fcde668d2f338fadc464",
-          "version": "2.0.6"
         }
       },
       {
@@ -224,24 +143,6 @@
           "branch": null,
           "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
           "version": "0.12.0"
-        }
-      },
-      {
-        "package": "postgres-kit",
-        "repositoryURL": "https://github.com/vapor/postgres-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "13f6c735cf9a9053011d03e77e2a81802ad6c680",
-          "version": "2.3.0"
-        }
-      },
-      {
-        "package": "postgres-nio",
-        "repositoryURL": "https://github.com/vapor/postgres-nio.git",
-        "state": {
-          "branch": null,
-          "revision": "33eea144f465a48b17f4c63573c40d33824fdde4",
-          "version": "1.5.2"
         }
       },
       {
@@ -266,9 +167,9 @@
         "package": "Runtime",
         "repositoryURL": "https://github.com/Supereg/Runtime.git",
         "state": {
-          "branch": "master",
+          "branch": null,
           "revision": "596e22a518bb3f8177cd796cd77e5386098a33f8",
-          "version": null
+          "version": "2.2.3"
         }
       },
       {
@@ -357,8 +258,17 @@
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {
           "branch": null,
-          "revision": "54a65d6391a1467a896d0d351ff2de6f469ee53c",
-          "version": "1.2.3"
+          "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
+          "version": "1.3.1"
+        }
+      },
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "3426dba9ee5c9f8e4981b0fc9d39a818d36eec28",
+          "version": "0.0.4"
         }
       },
       {
@@ -447,8 +357,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
-          "version": "4.47.2"
+          "revision": "2ada54b7ce56cc6934cd2c0207bef2305bfbd7a1",
+          "version": "4.48.2"
         }
       },
       {

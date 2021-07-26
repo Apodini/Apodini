@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ResponseTests.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Paul Schmiedmayer on 1/5/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import ApodiniUtils
@@ -98,15 +99,28 @@ final class ResponseTests: ApodiniTests {
     }
     
     func testResponseMapFunctionality() {
-        let responses: [Response<String>] = [.nothing, .send("42"), .final("42"), .end]
+        let responses: [Response<String>] = [
+            .nothing,
+            .send("42", information: MockIntInformationInstantiatable(1)),
+            .final("42", information: MockIntInformationInstantiatable(2)),
+            .end,
+            .send(.ok, information: MockIntInformationInstantiatable(3)),
+            .final(.noContent, information: MockIntInformationInstantiatable(4))
+        ]
         
         let intResponses = responses.map { response in
             response.map { Int($0) }
         }
         XCTAssertEqual(intResponses[0].content, nil)
         XCTAssertEqual(intResponses[1].content, 42)
+        XCTAssertEqual(intResponses[1].information[MockIntInformationInstantiatable.self], 1)
         XCTAssertEqual(intResponses[2].content, 42)
+        XCTAssertEqual(intResponses[2].information[MockIntInformationInstantiatable.self], 2)
         XCTAssertEqual(intResponses[3].content, nil)
+        XCTAssertEqual(intResponses[4].status, .ok)
+        XCTAssertEqual(intResponses[4].information[MockIntInformationInstantiatable.self], 3)
+        XCTAssertEqual(intResponses[5].status, .noContent)
+        XCTAssertEqual(intResponses[5].information[MockIntInformationInstantiatable.self], 4)
     }
     
     func testResponseGeneration() throws {

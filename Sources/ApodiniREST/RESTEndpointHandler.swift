@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 30.12.20.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -75,9 +79,16 @@ struct RESTEndpointHandler<H: Handler> {
                 if let blob = response.content?.response.typed(Blob.self) {
                     let vaporResponse = Vapor.Response()
                     
+                    var information = response.information
+                    if let contentType = blob.type?.description {
+                        information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                    }
+                    vaporResponse.headers = HTTPHeaders(information)
+                    
                     if let status = response.status {
                         vaporResponse.status = HTTPStatus(status)
                     }
+                    
                     vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
                     
                     return request.eventLoop.makeSucceededFuture(vaporResponse)

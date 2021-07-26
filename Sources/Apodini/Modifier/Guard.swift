@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Guard.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/27/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import NIO
 
@@ -27,19 +28,19 @@ extension Component {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Never>> {
-        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`))
     }
     
     /// Use a synchronous `SyncGuard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: G) -> DelegationModifier<Self, SyncGuardingHandlerInitializer<G, Never>> {
-        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`))
     }
     
     /// Resets all guards for the modified `Component`
     public func resetGuards() -> DelegationFilterModifier<Self> {
-        self.reset(using: GuardFilter(), prepend: true)
+        self.reset(using: GuardFilter())
     }
 }
 
@@ -48,14 +49,14 @@ extension Handler {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func `guard`<G: Guard>(_ guard: G) -> DelegationModifier<Self, GuardingHandlerInitializer<G, Response>> {
-        self.delegated(by: GuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: GuardingHandlerInitializer(guard: `guard`))
     }
     
     /// Use a synchronous `SyncGuard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the synchronous `SyncGuard`
     public func `guard`<G: SyncGuard>(_ guard: G) -> DelegationModifier<Self, SyncGuardingHandlerInitializer<G, Response>> {
-        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`), prepend: true)
+        self.delegated(by: SyncGuardingHandlerInitializer(guard: `guard`))
     }
 }
 
@@ -111,7 +112,7 @@ extension GuardingHandlerInitializer: SomeGuardInitializer { }
 extension SyncGuardingHandlerInitializer: SomeGuardInitializer { }
 
 
-private struct GuardFilter: DelegationFilter {
+struct GuardFilter: DelegationFilter {
     func callAsFunction<I>(_ initializer: I) -> Bool where I: AnyDelegatingHandlerInitializer {
         if initializer is SomeGuardInitializer {
             return false

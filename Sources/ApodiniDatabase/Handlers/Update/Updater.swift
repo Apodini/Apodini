@@ -1,5 +1,13 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 import Apodini
-import Fluent
+import FluentKit
 @_implementationOnly import Vapor
 
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update

@@ -1,9 +1,9 @@
 //
-//  CApodiniUtils.h
-//  CApodiniUtils
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-31.
-//  Copyright © 2021 Lukas Kollmer. All rights reserved.
+// SPDX-License-Identifier: MIT
 //
 
 // The value for `argv[1]` if the process is being launched as a child invocation wrapper.
