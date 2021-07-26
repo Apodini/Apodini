@@ -1,3 +1,13 @@
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 @Tutorial(time: 5) {
     @Intro(title: "Installing Apodini") {
         This tutorial guides you through creating web services _Example_ - a native Swift web service package. You will start by installing Apodini to the web service.
