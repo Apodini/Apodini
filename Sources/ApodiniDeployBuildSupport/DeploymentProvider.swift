@@ -110,11 +110,12 @@ extension DeploymentProvider {
     
     public func retrieveSystemStructure<T: AnyDeployedSystem>(
         _ executableUrl: URL,
-        cliCommand: String,
+        providerCommand: String,
+        additionalCommands: [String] = [],
         as: T.Type = T.self) throws -> (URL, T)
     {
         let fileManager = FileManager()
-        let logger = Logger(label: "ApodiniDeployCLI.\(cliCommand)")
+        let logger = Logger(label: "ApodiniDeployCLI.\(providerCommand)")
         
         let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
         guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
@@ -126,9 +127,9 @@ extension DeploymentProvider {
             arguments: [
                 "deploy",
                 "export-ws-structure",
-                cliCommand,
+                providerCommand,
                 modelFileUrl.path
-            ],
+            ] + additionalCommands,
             captureOutput: false,
             launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
             environment: [
@@ -216,7 +217,7 @@ extension DeploymentProvider {
     public func computeDefaultDeployedSystemNodes(
         from wsStructure: WebServiceStructure,
         nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
-    ) throws -> Set<DeployedSystem.Node> {
+    ) throws -> Set<DeployedSystemNode> {
         guard wsStructure.enabledDeploymentProviders.contains(Self.identifier) else {
             throw ApodiniDeployBuildSupportError(
                 message: """
@@ -253,11 +254,11 @@ extension DeploymentProvider {
         }
         
         // The nodes w/in the deployed system
-        var nodes: Set<DeployedSystem.Node> = []
+        var nodes: Set<DeployedSystemNode> = []
         
         // one node per deployment group
         nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
-            try DeployedSystem.Node(
+            try DeployedSystemNode(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints,
                 userInfo: nil,
@@ -268,7 +269,7 @@ extension DeploymentProvider {
         switch wsStructure.deploymentConfig.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
-                try DeployedSystem.Node(
+                try DeployedSystemNode(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint],
                     userInfo: nil,
@@ -276,7 +277,7 @@ extension DeploymentProvider {
                 )
             }
         case .singleNode:
-            nodes.insert(try DeployedSystem.Node(
+            nodes.insert(try DeployedSystemNode(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints,
                 userInfo: nil,
@@ -299,9 +300,9 @@ extension DeploymentGroup {
 }
 
 
-extension Sequence where Element == DeployedSystem.Node {
+extension Sequence where Element == DeployedSystemNode {
     // check that, in the sequence of nodes, every handler appears in only one node
-    func assertHandlersLimitedToSingleNode() throws {
+    public func assertHandlersLimitedToSingleNode() throws {
         var exportedHandlerIds = Set<AnyHandlerIdentifier>()
         // make sure a handler isn't listed in multiple nodes
         for node in self {

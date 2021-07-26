@@ -20,10 +20,10 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
     
     public let deployedSystem: DeployedSystem
-    public let currentNodeId: DeployedSystem.Node.ID
+    public let currentNodeId: DeployedSystemNode.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws {
+    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard
@@ -77,12 +77,16 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
     @OptionGroup
     var options: ExportStructureCommand.ExportOptions
     
+    @Option(help: "The port number for the first-launched child process")
+    var endpointProcessesBasePort: Int = 5000
+    
     public init() {}
     
     public func run() throws {
         let localhostCoordinator = LocalhostStructureExporter(
             fileUrl: URL(fileURLWithPath: options.filePath),
-            providerID: DeploymentProviderID(options.identifier)
+            providerID: DeploymentProviderID(options.identifier),
+            endpointProcessesBasePort: self.endpointProcessesBasePort
         )
         DeploymentMemoryStorage.current.store(localhostCoordinator)
         var webService = Service.init()
@@ -94,9 +98,12 @@ public struct LocalhostStructureExporter: StructureExporter {
     public var providerID: DeploymentProviderID
     public var fileUrl: URL
     
-    public init(fileUrl: URL, providerID: DeploymentProviderID) {
+    public var endpointProcessesBasePort: Int
+    
+    public init(fileUrl: URL, providerID: DeploymentProviderID, endpointProcessesBasePort: Int) {
         self.providerID = providerID
         self.fileUrl = fileUrl
+        self.endpointProcessesBasePort = endpointProcessesBasePort
     }
     
     public func retrieveStructure(
@@ -109,7 +116,12 @@ public struct LocalhostStructureExporter: StructureExporter {
         }
         
         var defaultSystem = try self.retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
+        
         defaultSystem.userInfo = try openApiDocument.encodeToJSON()
+        defaultSystem.nodes = Set(try defaultSystem.nodes.enumerated().map { idx, node in
+            try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
+        })
+
         return defaultSystem
     }
 }

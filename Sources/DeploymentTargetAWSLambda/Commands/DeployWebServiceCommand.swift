@@ -134,27 +134,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         
         let dockerImageName = try prepareDockerImage()
         Context.logger.notice("successfully built docker image. image name: \(dockerImageName)")
-        
-        Context.logger.notice("generating web service structure")
-        let webServiceStructure = try { () -> WebServiceStructure in
-            if awsDeployOnly {
-                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
-                return try JSONDecoder().decode(WebServiceStructure.self, from: data)
-            } else {
-                return try readWebServiceStructure(usingDockerImage: dockerImageName)
-            }
-        }()
-        
-        let nodes = try computeDefaultDeployedSystemNodes(
-            from: webServiceStructure,
-            nodeIdProvider: { endpoints in
-                guard let endpoint = endpoints.first, endpoints.count == 1 else {
-                    return UUID().uuidString
-                }
-                return endpoint.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
-            }
-        )
-        
+
         let awsIntegration = AWSIntegration(
             awsRegionName: awsRegion,
             awsCredentials: Context.makeAWSCredentialProviderFactory(profileName: awsProfileName)//,
@@ -164,14 +144,16 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         if awsApiGatewayApiId == "_createNew" {
             awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
         }
+        Context.logger.notice("generating web service structure")
         
-        let deploymentStructure = try DeployedSystem(
-            deploymentProviderId: Self.identifier,
-            //currentInstanceNodeId: "", // we can safely set an invalid id here, because the
-            nodes: nodes,
-            userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId)
-        )
-        
+        let deploymentStructure = try { () -> LambdaDeployedSystem in
+            if awsDeployOnly {
+                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
+                return try JSONDecoder().decode(LambdaDeployedSystem.self, from: data)
+            } else {
+                return try retrieveDeployedSystem(usingDockerImage: dockerImageName)
+            }
+        }()
         
         let lambdaExecutableUrl: URL = awsDeployOnly
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
@@ -180,7 +162,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         Context.logger.notice("Deploying to AWS")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
-            openApiDocument: webServiceStructure.openApiDocument,
+            openApiDocument: deploymentStructure.openApiDocument,
             lambdaExecutableUrl: lambdaExecutableUrl,
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: s3BucketName,
@@ -273,6 +255,17 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
         return try WebServiceStructure(decodingJSONAt: url)
+    }
+    
+    private func retrieveDeployedSystem(usingDockerImage dockerImageName: String) throws -> LambdaDeployedSystem {
+        let filename = "WebServiceStructure.json"
+        let filePath = ".build/\(tmpDirName)/\(filename)"
+        try runInDocker(
+            imageName: dockerImageName,
+            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
+        )
+        let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
+        return try LambdaDeployedSystem(decodingJSONAt: url)
     }
     
     

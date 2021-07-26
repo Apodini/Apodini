@@ -8,6 +8,7 @@
 
 import Foundation
 import ApodiniDeployBuildSupport
+import OpenAPIKit
 
 
 /// Identifier of the lambda deployment provider.
@@ -69,4 +70,30 @@ public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
     static func lambdaDescription(_ value: LambdaDescriptionOption) -> AnyOption {
         ResolvedOption(key: .lambdaDescription, value: value)
     }
+}
+
+public struct LambdaDeployedSystem: AnyDeployedSystem {
+    public var userInfo: Data
+    
+    public var nodes: Set<DeployedSystemNode>
+    
+    public var deploymentProviderId: DeploymentProviderID
+    
+    public var openApiDocument: OpenAPI.Document
+    
+    public init<T: Encodable>(
+        deploymentProviderId: DeploymentProviderID,
+        nodes: Set<DeployedSystemNode>,
+        userInfo: T?,
+        userInfoType: T.Type = T.self,
+        openApiDocument: OpenAPI.Document
+    ) throws {
+        self.deploymentProviderId = deploymentProviderId
+        self.nodes = nodes
+        self.userInfo = try JSONEncoder().encode(userInfo)
+        self.openApiDocument = openApiDocument
+        
+        try nodes.assertHandlersLimitedToSingleNode()
+    }
+    
 }

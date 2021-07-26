@@ -144,7 +144,7 @@ extension RemoteHandlerInvocationManager {
     private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length cyclomatic_complexity
         handlerId: H.HandlerIdentifier,
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
-        targetNode: DeployedSystem.Node,
+        targetNode: DeployedSystemNode,
         targetEndpoint: Endpoint<H>,
         collectedInputArgs: [CollectedArgument<H>]
     ) -> EventLoopFuture<H.Response.Content> {
@@ -238,7 +238,7 @@ extension RemoteHandlerInvocationManager {
     
     private enum DispatchStrategy {
         case locally
-        case remotely(DeployedSystem.Node)
+        case remotely(DeployedSystemNode)
     }
     
     

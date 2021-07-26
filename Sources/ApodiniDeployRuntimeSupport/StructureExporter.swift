@@ -14,7 +14,7 @@ public protocol StructureExporter {
     
     var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String { get }
     
-    init(fileUrl: URL, providerID: DeploymentProviderID)
+//    init(fileUrl: URL, providerID: DeploymentProviderID)
     /// Defines how the structure is retrieved.
     /// This is called from `ApodiniDeployInterfaceExporter` when the web service is started.
     /// The service automatically quits after `retrieveStructure` is called.
@@ -75,11 +75,11 @@ extension StructureExporter {
         }
         
         // The nodes w/in the deployed system
-        var nodes: Set<DeployedSystem.Node> = []
+        var nodes: Set<DeployedSystemNode> = []
         
         // one node per deployment group
         nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
-            try DeployedSystem.Node(
+            try DeployedSystemNode(
                 id: deploymentGroup.id,
                 exportedEndpoints: endpoints.convert(),
                 userInfo: nil,
@@ -90,7 +90,7 @@ extension StructureExporter {
         switch config.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
-                try DeployedSystem.Node(
+                try DeployedSystemNode(
                     id: nodeIdProvider([endpoint]),
                     exportedEndpoints: [endpoint.convert()],
                     userInfo: nil,
@@ -98,7 +98,7 @@ extension StructureExporter {
                 )
             }
         case .singleNode:
-            nodes.insert(try DeployedSystem.Node(
+            nodes.insert(try DeployedSystemNode(
                 id: nodeIdProvider(remainingEndpoints),
                 exportedEndpoints: remainingEndpoints.convert(),
                 userInfo: nil,
@@ -145,9 +145,9 @@ extension DeploymentGroup {
 }
 
 
-extension Sequence where Element == DeployedSystem.Node {
+extension Sequence where Element == DeployedSystemNode {
     // check that, in the sequence of nodes, every handler appears in only one node
-    func assertHandlersLimitedToSingleNode() throws {
+    public func assertHandlersLimitedToSingleNode() throws {
         var exportedHandlerIds = Set<AnyHandlerIdentifier>()
         // make sure a handler isn't listed in multiple nodes
         for node in self {

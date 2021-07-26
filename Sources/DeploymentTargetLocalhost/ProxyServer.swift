@@ -88,7 +88,7 @@ extension OpenAPI.Path {
 
 private struct ProxyRequestResponder: Vapor.Responder {
     let proxyServer: ProxyServer
-    let targetNode: DeployedSystem.Node
+    let targetNode: DeployedSystemNode
     
     func respond(to request: Request) -> EventLoopFuture<Vapor.Response> {
         guard let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self) else {

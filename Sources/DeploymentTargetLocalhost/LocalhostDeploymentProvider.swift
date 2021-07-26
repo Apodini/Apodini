@@ -77,12 +77,12 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         logger.notice("Invoking target with arguments to generate web service structure")
 
-        var (modelFileUrl, deployedSystem) = try retrieveSystemStructure(executableUrl, cliCommand: "local", as: DeployedSystem.self)
-        
-        deployedSystem.nodes = Set(try deployedSystem.nodes.enumerated().map { idx, node in
-            try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
-        })
-        try deployedSystem.writeJSON(to: modelFileUrl)
+        var (modelFileUrl, deployedSystem) = try retrieveSystemStructure(
+            executableUrl,
+            providerCommand: "local",
+            additionalCommands: ["endpoint-processes-base-port ", "\(self.endpointProcessesBasePort)"],
+            as: DeployedSystem.self
+        )
 
         for node in deployedSystem.nodes {
             let task = Task(

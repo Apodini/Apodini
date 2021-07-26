@@ -5,6 +5,7 @@ import ArgumentParser
 /// The export can be configured by providing options and arguments.
 /// The default implementation of this command exports the structure without any constraints.
 /// A deployment provider may define a subcommand to this to account for custom options.
+/// **Note**: Should not be called by the user directly
 public struct ExportStructureCommand: ParsableCommand {
     
     /// Often used options that can be imported into a subcommand.
