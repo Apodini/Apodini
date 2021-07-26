@@ -102,3 +102,35 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
         lhs.handlerId == rhs.handlerId
     }
 }
+
+/// The information collected about an `Endpoint`.
+/// - Note: This type's `Hashable`  implementation ignores deployment options.
+/// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
+///         and will only work if all deployment options of both objects being compared are reducible.
+public struct CollectedEndpointInfo: Hashable, Equatable {
+    public let handlerType: HandlerTypeIdentifier
+    public let endpoint: AnyEndpoint
+    public let deploymentOptions: DeploymentOptions
+    
+    public init(handlerType: HandlerTypeIdentifier,
+                endpoint: AnyEndpoint,
+                deploymentOptions: DeploymentOptions) {
+        self.handlerType = handlerType
+        self.endpoint = endpoint
+        self.deploymentOptions = deploymentOptions
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(endpoint[AnyHandlerIdentifier.self])
+    }
+    
+    public static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
+        lhs.handlerType == rhs.handlerType
+            && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
+            && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
+                rhs.deploymentOptions.reduced().options,
+                computeHash: { option, hasher in hasher.combine(option) },
+                areEqual: { lhs, rhs in lhs.testEqual(rhs) }
+            )
+    }
+}

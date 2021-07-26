@@ -5,9 +5,10 @@
 //
 // SPDX-License-Identifier: MIT
 //              
-
+import ArgumentParser
 import Foundation
 import Apodini
+import ApodiniUtils
 import NIO
 @_exported import ApodiniDeployBuildSupport
 
@@ -46,6 +47,8 @@ public protocol DeploymentProviderRuntime: AnyObject {
     var deployedSystem: DeployedSystem { get }
     var currentNodeId: DeployedSystem.Node.ID { get }
     
+    static var exportCommand: ParsableCommand.Type { get }
+    
     func configure(_ app: Apodini.Application) throws
     
     /// This function is called when a handler uses the remote handler invocation API to invoke another
@@ -62,5 +65,19 @@ extension DeploymentProviderRuntime {
     /// The identifier of the deployment provider
     public var identifier: DeploymentProviderID {
         Self.identifier
+    }
+}
+
+public struct DeploymentMemoryStorage: MemoryStorage {
+    public static var current = DeploymentMemoryStorage()
+    
+    private var object: StructureExporter?
+    
+    public mutating func store(_ object: StructureExporter) {
+        self.object = object
+    }
+    
+    public func retrieve() -> StructureExporter? {
+        object
     }
 }

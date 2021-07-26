@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ApodiniUtils
 import ApodiniOpenAPI
+import ApodiniDeployRuntimeSupport
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor
 import OpenAPIKit
@@ -46,5 +47,24 @@ extension ApodiniDeployInterfaceExporter {
             to: outputUrl,
             encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes]
         )
+    }
+    
+    func exportDeployedSystemIfNeeded() throws {
+        guard let structureExporter = DeploymentMemoryStorage.current.retrieve() else {
+            return
+        }
+        var allDeploymentGroups: Set<DeploymentGroup> = self.exporterConfiguration.config.deploymentGroups
+        allDeploymentGroups += explicitlyCreatedDeploymentGroups.map { groupId, handlerIds in
+            DeploymentGroup(id: groupId, handlerTypes: [], handlerIds: handlerIds)
+        }
+        let config = DeploymentConfig(defaultGrouping: self.exporterConfiguration.config.defaultGrouping, deploymentGroups: allDeploymentGroups)
+        
+        let deployedSystem = try structureExporter.retrieveStructure(Set(self.collectedEndpoints), config: config, app: self.app)
+        print(structureExporter.fileUrl)
+        try deployedSystem.writeJSON(
+            to: structureExporter.fileUrl,
+            encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes]
+        )
+        exit(EXIT_SUCCESS)
     }
 }

@@ -35,6 +35,10 @@ extension WebService {
         try Self.start(webService: self)
     }
     
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(subcommands: Self().configuration._commands)
+    }
+    
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
     ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run

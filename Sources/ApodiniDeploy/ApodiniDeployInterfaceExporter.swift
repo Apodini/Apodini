@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import ArgumentParser
 import Apodini
 import ApodiniExtension
 import ApodiniUtils
@@ -55,6 +56,14 @@ public final class ApodiniDeploy: Configuration {
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: deployExporter)
     }
+    
+    public var command: ParsableCommand.Type {
+        return ApodiniDeployCommand.commands(
+            ExportStructureCommand.commands(
+                configuration.runtimes.map { $0.exportCommand }
+            )
+        )
+    }
 }
 
 
@@ -65,30 +74,6 @@ public final class ApodiniDeploy: Configuration {
 class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
-    }
-    
-    /// The information collected about an `Endpoint`.
-    /// - Note: This type's `Hashable`  implementation ignores deployment options.
-    /// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
-    ///         and will only work if all deployment options of both objects being compared are reducible.
-    struct CollectedEndpointInfo: Hashable, Equatable {
-        let handlerType: HandlerTypeIdentifier
-        let endpoint: AnyEndpoint
-        let deploymentOptions: DeploymentOptions
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(endpoint[AnyHandlerIdentifier.self])
-        }
-        
-        static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
-            lhs.handlerType == rhs.handlerType
-                && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
-                && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
-                    rhs.deploymentOptions.reduced().options,
-                    computeHash: { option, hasher in hasher.combine(option) },
-                    areEqual: { lhs, rhs in lhs.testEqual(rhs) }
-                )
-        }
     }
     
     
@@ -145,6 +130,9 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
+        
+        try self.exportDeployedSystemIfNeeded()
+        
         let env = ProcessInfo.processInfo.environment
         guard let mode = env[WellKnownEnvironmentVariables.executionMode],
               let fileURL = env[WellKnownEnvironmentVariables.fileUrl]

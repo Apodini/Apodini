@@ -109,6 +109,41 @@ extension DeploymentProvider {
     }
     
     
+    public func retrieveSystemStructure(_ executableUrl: URL, cliCommand: String) throws -> (URL, DeployedSystem) {
+        let fileManager = FileManager()
+        let logger = Logger(label: "ApodiniDeployCLI.\(cliCommand)")
+        
+        let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
+        guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
+            throw ApodiniDeployBuildSupportError(message: "Unable to create file")
+        }
+        
+        let retrieveStructureTask = Task(
+            executableUrl: executableUrl,
+            arguments: [
+                "deploy",
+                "export-ws-structure",
+                cliCommand,
+                modelFileUrl.path
+            ],
+            captureOutput: false,
+            launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+            environment: [
+                WellKnownEnvironmentVariables.executionMode:
+                    WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+            ]
+        )
+        let terminationInfo = try retrieveStructureTask.launchSync()
+        guard terminationInfo.exitCode == EXIT_SUCCESS else {
+            throw ApodiniDeployBuildSupportError(message: "Unable to generate system structure: \(terminationInfo.exitCode)")
+        }
+        
+        logger.notice("System structure written to '\(modelFileUrl)'")
+        let data = try Data(contentsOf: modelFileUrl, options: [])
+        return (modelFileUrl, try JSONDecoder().decode(DeployedSystem.self, from: data))
+    }
+    
     /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
     public func readWebServiceStructure() throws -> WebServiceStructure {
         let fileManager = FileManager()

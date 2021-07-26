@@ -20,10 +20,10 @@ public struct DeployedSystem: Codable {
     public let deploymentProviderId: DeploymentProviderID
     
     /// The nodes the system consists of
-    public let nodes: Set<Node>
+    public var nodes: Set<Node>
     
     /// Additional, deployment provider specific data
-    public let userInfo: Data
+    public var userInfo: Data
     
     
     public init<T: Encodable>(

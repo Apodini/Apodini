@@ -75,24 +75,15 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         let executableUrl = try buildWebService()
         logger.notice("Target executable url: \(executableUrl.path)")
         
-        logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try readWebServiceStructure()
+        logger.notice("Invoking target with arguments to generate web service structure")
+        var (modelFileUrl, deployedSystem) = try retrieveSystemStructure(executableUrl, cliCommand: "local")
         
-        
-        let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
+        let openApiDocument = deployedSystem.readUserInfo(as: OpenAPIKit.OpenAPI.Document.self)
+        deployedSystem.nodes = Set(try deployedSystem.nodes.enumerated().map { idx, node in
             try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
         })
-        
-        let deployedSystem = try DeployedSystem(
-            deploymentProviderId: Self.identifier,
-            nodes: nodes,
-            userInfo: nil,
-            userInfoType: Null.self
-        )
-        
-        let deployedSystemFileUrl = fileManager.getTemporaryFileUrl(fileExtension: "json")
-        try deployedSystem.writeJSON(to: deployedSystemFileUrl)
-        
+        try deployedSystem.writeJSON(to: modelFileUrl)
+
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
@@ -101,7 +92,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     WellKnownEnvironmentVariables.executionMode:
                         WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
                     WellKnownEnvironmentVariables.fileUrl:
-                        deployedSystemFileUrl.path,
+                        modelFileUrl.path,
                     WellKnownEnvironmentVariables.currentNodeId:
                         node.id
                 ]
@@ -133,8 +124,13 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         logger.notice("Starting proxy server")
         do {
+            guard let openApiDocument = deployedSystem
+                    .readUserInfo(as: OpenAPIKit.OpenAPI.Document.self) else {
+                fatalError("No open api document found.")
+            }
+            
             let proxyServer = try ProxyServer(
-                openApiDocument: wsStructure.openApiDocument,
+                openApiDocument: openApiDocument,
                 deployedSystem: deployedSystem
             )
             try proxyServer.run(port: self.port)
