@@ -8,8 +8,8 @@
 
 import XCTest
 
-#if canImport(CwlPreconditionTesting)
-@_implementationOnly import CwlPreconditionTesting
+#if canImport(XCTAssertCrash)
+@_implementationOnly import XCTAssertCrash
 
 /// Asserts that an expression leads to a runtime failure.
 public func XCTAssertRuntimeFailure<T>(
@@ -17,10 +17,11 @@ public func XCTAssertRuntimeFailure<T>(
     _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
     file: StaticString = #filePath,
     line: UInt = #line) {
-    guard catchBadInstruction(in: { _ = expression() }) == nil else {
-        return
-    }
-    XCTFail(message(), file: file, line: line)
+    XCTAssertCrash(
+        expression(),
+        message(),
+        file: file,
+        line: line)
 }
 #else
 /// Empty implementation used for platforms that don't support `CwlPreconditionTesting`.

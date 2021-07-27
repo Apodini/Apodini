@@ -353,6 +353,15 @@
         }
       },
       {
+        "package": "XCTAssertCrash",
+        "repositoryURL": "https://github.com/norio-nomura/XCTAssertCrash.git",
+        "state": {
+          "branch": null,
+          "revision": "880c5241254da53f32caf77248ee3d25cb2a9630",
+          "version": "0.2.0"
+        }
+      },
+      {
         "package": "Yams",
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {

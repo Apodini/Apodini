@@ -10,37 +10,6 @@
 
 import PackageDescription
 
-
-// swiftlint:disable line_length
-#warning("""
-    CwlPreconditionTesting currently seems to trigger a compiler bug in Xcode beta 3 with release builds.
-    Once this bug is fixed, put the CwlPreconditionTesting dependency back into the normal structure, so
-    it is also used for release builds.
-    
-    Currently fails with:
-    
-    duplicate symbol '_NDR_record' in:
-        /Users/***/Library/Developer/Xcode/DerivedData/apodini-gsirduylpqvqisgpfkhgicvjgsww/Build/Intermediates.noindex/CwlPreconditionTesting.build/Release/CwlPreconditionTesting.build/Objects-normal/x86_64/CwlBadInstructionException.o
-        /Users/***/Library/Developer/Xcode/DerivedData/apodini-gsirduylpqvqisgpfkhgicvjgsww/Build/Intermediates.noindex/CwlPreconditionTesting.build/Release/CwlPreconditionTesting.build/Objects-normal/x86_64/CwlCatchBadInstruction.o
-    ld: 1 duplicate symbol for architecture x86_64
-""")
-// swiftlint:enable line_length
-
-#if DEBUG
-let debugOnlyDependencies = [
-    // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
-    .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0")
-]
-let debugOnlyTargetDependencies = [
-    .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS]))
-]
-
-#else
-let debugOnlyDependencies = [Package.Dependency]()
-let debugOnlyTargetDependencies = [Target.Dependency]()
-#endif
-
-
 let package = Package(
     name: "Apodini",
     platforms: [
@@ -106,8 +75,11 @@ let package = Package(
         // Deploy
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
-    ] + debugOnlyDependencies,
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
+        
+        // testing runtime crashes
+        .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0")
+    ],
     targets: [
         .target(name: "CApodiniUtils"),
         .target(
@@ -344,12 +316,13 @@ let package = Package(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
+                .product(name: "XCTAssertCrash", package: "XCTAssertCrash", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniREST")
-            ] + debugOnlyTargetDependencies
+            ]
         ),
         
         

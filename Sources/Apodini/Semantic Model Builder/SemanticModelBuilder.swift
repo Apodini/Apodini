@@ -39,8 +39,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
         // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
         // the web service even when accessed from an `Endpoint`.
-        collectedEndpoints.append(Endpoint(
-            handler: handler,
+        collectedEndpoints.append(Endpoint<H>(
             blackboard: localBlackboard
         ))
     }

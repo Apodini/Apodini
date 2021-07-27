@@ -11,7 +11,7 @@ public extension TypedHandlerMetadataNamespace {
     typealias Guarded = GuardMetadata<Self>
 }
 
-/// The ``GuardMetadata`` can be used to add a ``Guard`` or ``SyncGuard`` to a ``Handler``.
+/// The ``GuardMetadata`` can be used to add a ``Guard`` to a ``Handler``.
 ///
 /// The Metadata is available under the `Handler/Guarded` name and can be used like the following:
 /// ```swift

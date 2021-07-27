@@ -137,9 +137,9 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     }
 }
 
-/// An object that can be called whenever a ``TriggerEvent`` is raised.
+/// An object that can be called whenever a `TriggerEvent` is raised.
 public protocol ObservedListener {
-    /// The function to be called whenever a ``TriggerEvent`` is raised.
+    /// The function to be called whenever a `TriggerEvent` is raised.
     func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent)
 }
 

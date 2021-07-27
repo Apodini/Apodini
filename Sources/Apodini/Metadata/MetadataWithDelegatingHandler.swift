@@ -22,16 +22,16 @@ public protocol AnyDefinitionWithDynamicDelegatingHandler {
 /// by the ``MetadataDefinition``.
 /// If ``MetadataDefinition`` solely provides a ``DelegatingHandlerInitializer``, use ``DefinitionWithDelegatingHandlerKey``.
 ///
-/// Note, this conformance has no effects when used with a ``ContentMetadata``.
+/// Note, this conformance has no effects when used with a `ContentMetadata`.
 public protocol DefinitionWithDelegatingHandler: AnyDefinitionWithDynamicDelegatingHandler where Self: MetadataDefinition {
     /// Provides the respective Value for the ``DelegatingHandlerContextKey``.
     var initializer: DelegatingHandlerContextKey.Entry { get }
 }
 
 /// Some ``MetadataDefinition`` might declare conformance to ``DefinitionWithDelegatingHandlerKey``
-/// if it wishes (and only wishes; meaning doesn't expose any other Context values) to boostrap an
+/// if it wishes (and only wishes; meaning doesn't expose any other Context values) to bootstrap an
 /// ``DelegatingHandlerInitializer`` for the respective ``Component``, ``WebService`` and/or ``Handler``.
-/// Therefore this protocol sets the ``MetadataDefinition.Key`` associated type.
+/// Therefore this protocol sets the ``MetadataDefinition/Key`` associated type.
 public protocol DefinitionWithDelegatingHandlerKey: DefinitionWithDelegatingHandler {
     typealias Key = DelegatingHandlerContextKey
 }
@@ -48,7 +48,7 @@ public extension DefinitionWithDelegatingHandler {
 }
 
 public extension DefinitionWithDelegatingHandler where Self.Key == DelegatingHandlerContextKey {
-    /// Default value for ``MetadataDefinitions`` with ``DelegatingHandlerContextKey``.
+    /// Default value for ``MetadataDefinition``s with ``DelegatingHandlerContextKey``.
     /// It assembles the value for the ``DelegatingHandlerContextKey``.
     var value: Self.Key.Value {
         [self.initializer]
