@@ -48,6 +48,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             return
         }
         
+        print("====>: \(awsAccessKeyId) | \(awsRegionName) | \(awsS3BucketName) | \(awsAPIGatewayAPIID)")
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
@@ -79,6 +80,9 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             withoutContinuingAfterFailures {
                 // If the deployment provider didn't succeed, there's no point in continuing...
                 XCTAssertEqual(EXIT_SUCCESS, terminationInfo.exitCode)
+                if terminationInfo.exitCode != EXIT_SUCCESS {
+                    print(terminationInfo.reason)
+                }
             }
             taskDidFinishExpectation.fulfill()
         }
@@ -107,6 +111,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let output = fullOutput.components(separatedBy: .newlines)
         
+        print("------->: " + output)
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(
