@@ -58,9 +58,12 @@ public final class ApodiniDeploy: Configuration {
     }
     
     public var command: ParsableCommand.Type {
-        return ApodiniDeployCommand.commands(
-            ExportStructureCommand.commands(
+        return ApodiniDeployCommand.withSubcommands(
+            ExportStructureCommand.withSubcommands(
                 configuration.runtimes.map { $0.exportCommand }
+            ),
+            StartupCommand.withSubcommands(
+                configuration.runtimes.map { $0.startupCommand }
             )
         )
     }

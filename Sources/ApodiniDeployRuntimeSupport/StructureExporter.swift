@@ -39,7 +39,7 @@ extension StructureExporter {
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
-    ) throws -> DeployedSystem {
+    ) throws -> AnyDeployedSystem {
         try retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
     }
     

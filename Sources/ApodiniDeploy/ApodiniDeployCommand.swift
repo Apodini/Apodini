@@ -23,7 +23,7 @@ public struct ApodiniDeployCommand: ParsableCommand {
         print("deploy")
     }
     
-    public static func commands(_ commands: ParsableCommand.Type...) -> Self.Type {
+    public static func withSubcommands(_ commands: ParsableCommand.Type...) -> Self.Type {
         configuration.subcommands = commands
         return Self.self
     }

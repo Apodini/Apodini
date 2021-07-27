@@ -62,6 +62,10 @@ extension LocalhostRuntime {
     public static var exportCommand: ParsableCommand.Type {
         ExportWSLocalhostCommand<Service>.self
     }
+    
+    public static var startupCommand: ParsableCommand.Type {
+        LocalhostStartupCommand<Service>.self
+    }
 }
 
 public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
@@ -69,7 +73,7 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
         CommandConfiguration(commandName: "local",
                              abstract: "Export web service structure - Localhost",
                              discussion: """
-                                    Exports an Apodini web service structure for localhost deployment
+                                    Exports an Apodini web service structure for the localhost deployment
                                   """,
                              version: "0.0.1")
     }
@@ -83,14 +87,16 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
     public init() {}
     
     public func run() throws {
+        let app = Application()
+        
         let localhostCoordinator = LocalhostStructureExporter(
             fileUrl: URL(fileURLWithPath: options.filePath),
             providerID: DeploymentProviderID(options.identifier),
             endpointProcessesBasePort: self.endpointProcessesBasePort
         )
-        DeploymentMemoryStorage.current.store(localhostCoordinator)
-        var webService = Service.init()
-        try webService.run()
+        
+        app.storage.set(DeploymentStructureExporterStorageKey.self, to: localhostCoordinator)
+        try Service.start(app: app, webService: Service.init())
     }
 }
 
@@ -124,4 +130,30 @@ public struct LocalhostStructureExporter: StructureExporter {
 
         return defaultSystem
     }
+}
+
+public struct LocalhostStartupCommand<Service: WebService>: ParsableCommand {
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(commandName: "local",
+                             abstract: "Start a web service - Localhost",
+                             discussion: """
+                                    Starts up an Apodini web service for the localhost deployment
+                                  """,
+                             version: "0.0.1")
+    }
+    
+    @OptionGroup
+    var commonOptions: StartupCommand.CommonOptions
+    
+    public func run() throws {
+        let app = Application()
+        let defaultConfig = StartupCommand.DefaultDeploymentStartupConfiguration(
+            URL(fileURLWithPath: commonOptions.fileUrl),
+            nodeId: commonOptions.nodeId
+        )
+        app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
+        try Service.start(app: app, webService: Service.init())
+    }
+    
+    public init() {}
 }

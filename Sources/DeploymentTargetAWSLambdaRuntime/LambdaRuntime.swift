@@ -60,6 +60,10 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     public static var exportCommand: ParsableCommand.Type {
         LambdaExportStructureCommand<Service>.self
     }
+    
+    public static var startupCommand: ParsableCommand.Type {
+        LambdaStartupCommand<Service>.self
+    }
 }
 
 public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand {
@@ -84,15 +88,17 @@ public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand
     public init() {}
     
     public func run() throws {
+        let app = Apodini.Application()
+        
         let lambdaStructureExporter = LambdaStructureExporter(
             providerID: DeploymentProviderID(options.identifier),
             fileUrl: URL(fileURLWithPath: options.filePath),
             awsApiGatewayApiId: awsApiGatewayApiId,
             awsRegion: awsRegion)
         
-        DeploymentMemoryStorage.current.store(lambdaStructureExporter)
-        var webService = Service.init()
-        try webService.run()
+        app.storage.set(DeploymentStructureExporterStorageKey.self, to: lambdaStructureExporter)
+        
+        try Service.start(app: app, webService: Service.init())
     }
 }
 
@@ -130,4 +136,31 @@ public struct LambdaStructureExporter: StructureExporter {
         let awsSystem = try LambdaDeployedSystem(deploymentProviderId: self.providerID, nodes: defaultSystem.nodes, userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId), openApiDocument: openApiDocument)
         return awsSystem
     }
+}
+
+/// - TODO: Check if lamdba deployment provider actually needs the cli based startup command.
+public struct LambdaStartupCommand<Service: WebService>: ParsableCommand {
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(commandName: "aws",
+                             abstract: "Start a web service - AWS Lambda",
+                             discussion: """
+                                    Starts up an Apodini web service for the aws lambda deployment
+                                  """,
+                             version: "0.0.1")
+    }
+
+    @OptionGroup
+    var commonOptions: StartupCommand.CommonOptions
+
+    public func run() throws {
+        let app = Application()
+        let defaultConfig = StartupCommand.DefaultDeploymentStartupConfiguration(
+            URL(fileURLWithPath: commonOptions.fileUrl),
+            nodeId: commonOptions.nodeId
+        )
+        app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
+        try Service.start(app: app, webService: Service.init())
+    }
+
+    public init() {}
 }

@@ -42,11 +42,11 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
     ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
+    ///    - app: The instanciated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
-    static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
-        let app = Application()
+    public static func start(waitForCompletion: Bool = true, app: Application = Application(), webService: Self = Self()) throws -> Application {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         start(app: app, webService: webService)

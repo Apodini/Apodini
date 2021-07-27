@@ -50,7 +50,7 @@ extension ApodiniDeployInterfaceExporter {
     }
     
     func exportDeployedSystemIfNeeded() throws {
-        guard let structureExporter = DeploymentMemoryStorage.current.retrieve() else {
+        guard let structureExporter = app.storage[DeploymentStructureExporterStorageKey.self] else {
             return
         }
         var allDeploymentGroups: Set<DeploymentGroup> = self.exporterConfiguration.config.deploymentGroups

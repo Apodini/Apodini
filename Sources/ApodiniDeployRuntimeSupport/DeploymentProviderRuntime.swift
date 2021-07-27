@@ -48,6 +48,7 @@ public protocol DeploymentProviderRuntime: AnyObject {
     var currentNodeId: DeployedSystemNode.ID { get }
     
     static var exportCommand: ParsableCommand.Type { get }
+    static var startupCommand: ParsableCommand.Type { get }
     
     func configure(_ app: Apodini.Application) throws
     
@@ -67,6 +68,28 @@ extension DeploymentProviderRuntime {
         Self.identifier
     }
 }
+
+public struct DeploymentStructureExporterStorageKey: StorageKey {
+    public typealias Value = StructureExporter
+}
+
+public struct DeploymentStartUpStorageKey: StorageKey {
+    public typealias Value = DeploymentStartupConfiguration
+}
+
+public protocol DeploymentStartupConfiguration {
+    var fileUrl: URL { get }
+    var nodeId: String { get }
+    
+    var deployedSystem: AnyDeployedSystem.Type { get }
+}
+
+extension DeploymentStartupConfiguration {
+    public var deployedSystem: AnyDeployedSystem.Type {
+        DeployedSystem.self
+    }
+}
+
 
 public struct DeploymentMemoryStorage: MemoryStorage {
     public static var current = DeploymentMemoryStorage()
