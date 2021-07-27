@@ -48,7 +48,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             return
         }
         
-        print("====>: \(awsAccessKeyId) | \(awsRegionName) | \(awsS3BucketName) | \(awsAPIGatewayAPIID)")
+        print("===a>: \(awsAccessKeyId) | \(awsRegionName) | \(awsS3BucketName) | \(awsAPIGatewayAPIID)")
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
@@ -77,12 +77,12 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         let taskDidFinishExpectation = XCTestExpectation("Task did finish")
         
         try task.launchAsync { [unowned self] terminationInfo in
+            print("===b>: \(terminationInfo)")
             withoutContinuingAfterFailures {
+                print("===c>: \(terminationInfo.exitCode)")
+                print("===d>: \(terminationInfo.reason)")
                 // If the deployment provider didn't succeed, there's no point in continuing...
                 XCTAssertEqual(EXIT_SUCCESS, terminationInfo.exitCode)
-                if terminationInfo.exitCode != EXIT_SUCCESS {
-                    print(terminationInfo.reason)
-                }
             }
             taskDidFinishExpectation.fulfill()
         }
@@ -91,12 +91,14 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         taskStdioObserverToken = task.observeOutput { _, data, _ in
             let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
+            print("===d>: \(text)")
             print(text, terminator: "")
             fullOutput += text
         }
         
-        
+        print("===e>: \(Date())")
         wait(for: [taskDidFinishExpectation], timeout: 60 * 45) // We give it *a ton* of time, just to be sure.
+        print("===f>: \(Date())")
         
         taskStdioObserverToken = nil
         task = nil
@@ -111,7 +113,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let output = fullOutput.components(separatedBy: .newlines)
         
-        print("------->: \n \(output)")
+        print("===g>: \(output)")
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(
@@ -119,15 +121,18 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
                 options: [.anchorsMatchLines]
             )
             for line in output {
+                print("===h>: \(line)")
                 let matches = regex.matches(in: line)
                 guard let match = matches.first, matches.count == 1 else {
                     continue
                 }
                 return match.contentsOfCaptureGroup(atIndex: 1, in: line)
             }
+            print("===i>: Unable to find s3 upload url")
             throw makeError(message: "Unable to find s3 upload url")
         }()
         
+        print("===j>: \(s3Url)")
         XCTAssertEqual(s3Url, "s3://\(awsS3BucketName)/\(awsS3BucketPath)/lambda.out.zip")
         
         
