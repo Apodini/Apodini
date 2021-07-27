@@ -111,7 +111,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let output = fullOutput.components(separatedBy: .newlines)
         
-        print("------->: " + output)
+        print("------->: \n \(output)")
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(
