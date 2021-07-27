@@ -21,7 +21,8 @@ public func XCTAssertRuntimeFailure<T>(
         expression(),
         message(),
         file: file,
-        line: line)
+        line: line,
+        skipIfBeingDebugged: false)
 }
 #else
 /// Empty implementation used for platforms that don't support `CwlPreconditionTesting`.
