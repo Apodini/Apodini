@@ -95,5 +95,4 @@ public struct LambdaDeployedSystem: AnyDeployedSystem {
         
         try nodes.assertHandlersLimitedToSingleNode()
     }
-    
 }

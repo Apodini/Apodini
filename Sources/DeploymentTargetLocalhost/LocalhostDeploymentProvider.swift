@@ -84,7 +84,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 "--identifier",
                 Self.identifier.rawValue,
                 "--endpoint-processes-base-port",
-                "\(self.endpointProcessesBasePort)"],
+                "\(self.endpointProcessesBasePort)"
+            ],
             as: DeployedSystem.self
         )
 

@@ -20,6 +20,7 @@ public protocol Configuration {
     /// if the `CommandConfiguration` has not been overridden.
     var command: ParsableCommand.Type { get }
     
+    // swiftlint:disable identifier_name
     /// *For internal use only:* An array of the `command` of the configuration.
     /// Used to allow iteration over the commands of a `ConfigurationBuilder`.
     var _commands: [ParsableCommand.Type] { get }
@@ -32,10 +33,14 @@ public protocol ConfigurationCollection {
 }
 
 extension Configuration {
+    // swiftlint:disable identifier_name
+    /// *For internal use only:* An array of the `command` of the configuration.
+    /// Used to allow iteration over the commands of a `ConfigurationBuilder`.
     public var _commands: [ParsableCommand.Type] {
         [self.command]
     }
     
+    /// Default implementation of the cli command
     public var command: ParsableCommand.Type {
         EmptyCommand.self
     }
@@ -70,7 +75,7 @@ extension Array: Configuration where Element == Configuration {
             $0.configure(app)
         }
     }
-
+    // swiftlint:disable identifier_name
     public var _commands: [ParsableCommand.Type] {
         compactMap {
             $0.command

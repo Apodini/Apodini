@@ -38,7 +38,7 @@ extension LifecycleHandler {
     public func didBoot(_ application: Application) throws { }
     /// server is shutting down
     public func shutdown(_ application: Application) { }
-    
+    /// Allows to perform custom actions on the endpoints of the web service
     public func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint] {
         endpoints
     }

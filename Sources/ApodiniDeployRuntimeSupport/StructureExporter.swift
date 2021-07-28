@@ -11,7 +11,7 @@ public protocol StructureExporter {
     var fileUrl: URL { get }
     /// The id of the deployment provider that calle
     var providerID: DeploymentProviderID { get }
-    
+    /// Specifies how the id of the deployment node should be computed
     var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String { get }
     
 //    init(fileUrl: URL, providerID: DeploymentProviderID)
@@ -30,10 +30,14 @@ public protocol StructureExporter {
 
 // MARK: - Default implementations of `StructureExporter`
 extension StructureExporter {
+    /// Specifies how the id of the deployment node should be computed
     public var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String {
         { _ in UUID().uuidString }
     }
     
+    /// Defines how the structure is retrieved.
+    /// This is called from `ApodiniDeployInterfaceExporter` when the web service is started.
+    /// The service automatically quits after `retrieveStructure` is called.
     public func retrieveStructure(
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
@@ -42,6 +46,7 @@ extension StructureExporter {
         try retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
     }
     
+    /// Computes the default deployed system where all endpoints are matched to deployment groups if possible.
     public func retrieveDefaultDeployedSystem(
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
@@ -133,47 +138,5 @@ extension Sequence where Element == CollectedEndpointInfo {
         Set(
             map { $0.convert() }
         )
-    }
-}
-
-extension DeploymentGroup {
-    // whether this group should contain the exported endpoint
-    func matches(exportedEndpointInfo: CollectedEndpointInfo) -> Bool {
-        handlerTypes.contains(exportedEndpointInfo.handlerType) || handlerIds.contains(exportedEndpointInfo.endpoint[AnyHandlerIdentifier.self])
-    }
-}
-
-
-extension Sequence where Element == DeployedSystemNode {
-    // check that, in the sequence of nodes, every handler appears in only one node
-    public func assertHandlersLimitedToSingleNode() throws {
-        var exportedHandlerIds = Set<AnyHandlerIdentifier>()
-        // make sure a handler isn't listed in multiple nodes
-        for node in self {
-            for endpoint in node.exportedEndpoints {
-                guard exportedHandlerIds.insert(endpoint.handlerId).inserted else {
-                    throw ApodiniDeployRuntimeSupportError(
-                        message: "Handler with id '\(endpoint.handlerId)' appears in multiple deployment groups, which is illegal."
-                    )
-                }
-            }
-        }
-    }
-    
-    // check that the sequence of nodes contains all endpoints from the other set
-    func assertContainsAllEndpointsIn(_ allEndpoints: Set<CollectedEndpointInfo>) throws {
-        // make sure every handler appears in one node
-        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerId))
-        let expectedHandlerIds = Set(allEndpoints.map { $0.endpoint[AnyHandlerIdentifier.self] })
-        guard expectedHandlerIds == exportedHandlerIds else {
-            assert(exportedHandlerIds.isSubset(of: expectedHandlerIds))
-            // All handler ids which appear in one of the two sets, but not in both.
-            // Since the set of exported handler ids is a subset of the set of all handler ids,
-            // this difference is the set of all handlers which aren't exported by a node
-            let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
-            throw ApodiniDeployRuntimeSupportError(
-                message: "Handler ids\(diff.map { "'\($0.rawValue)'" }.joined(separator: ", "))"
-            )
-        }
     }
 }

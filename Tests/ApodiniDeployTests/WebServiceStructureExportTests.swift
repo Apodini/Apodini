@@ -51,7 +51,6 @@ private struct StaticDeploymentProvider: DeploymentProvider {
 
 
 class WebServiceStructureExportTests: ApodiniDeployTestCase {
-    
     func testExportLambdaDeployedSystem() throws { // swiftlint:disable:this function_body_length
         let (_, deployedSystem) = try StaticDeploymentProvider(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl

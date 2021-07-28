@@ -46,8 +46,9 @@ public protocol DeploymentProviderRuntime: AnyObject {
     
     var deployedSystem: AnyDeployedSystem { get }
     var currentNodeId: DeployedSystemNode.ID { get }
-    
+    /// The subcommand of `export-ws-structure` that should be used with this runtime.
     static var exportCommand: ParsableCommand.Type { get }
+    /// The subcommand of `startup` that should be used with this runtime.
     static var startupCommand: ParsableCommand.Type { get }
     
     func configure(_ app: Apodini.Application) throws
@@ -69,38 +70,31 @@ extension DeploymentProviderRuntime {
     }
 }
 
+/// A public storage key that is used to save/retrieve the `StructureExporter` to/from the app;s storage.
 public struct DeploymentStructureExporterStorageKey: StorageKey {
     public typealias Value = StructureExporter
 }
 
+/// A public storage key that is used to save/retrieve the `DeploymentStartupConfiguration` to/from the app;s storage.
 public struct DeploymentStartUpStorageKey: StorageKey {
     public typealias Value = DeploymentStartupConfiguration
 }
 
+/// When using the startup cli command for deployment providers, the CLI should save a struct conforming to this protocol using
+/// the `DeploymentStartUpStorageKey`. It contains the basic properties that are needed to initialize the deployment runtimes.
 public protocol DeploymentStartupConfiguration {
+    /// The `URL` of the deployment structure json.
     var fileUrl: URL { get }
+    /// The id of the deployment node
     var nodeId: String { get }
-    
+    /// The type of `AnyDeployedSystem` that should is used by the deployment provider.
+    /// To this type the json at `fileUrl` will be decoded to. Defaults to `DeployedSystem.self`
     var deployedSystem: AnyDeployedSystem.Type { get }
 }
 
 extension DeploymentStartupConfiguration {
+    /// The default value of `deployedSystem`.
     public var deployedSystem: AnyDeployedSystem.Type {
         DeployedSystem.self
-    }
-}
-
-
-public struct DeploymentMemoryStorage: MemoryStorage {
-    public static var current = DeploymentMemoryStorage()
-    
-    private var object: StructureExporter?
-    
-    public mutating func store(_ object: StructureExporter) {
-        self.object = object
-    }
-    
-    public func retrieve() -> StructureExporter? {
-        object
     }
 }

@@ -26,6 +26,7 @@ public protocol AnyDeployedSystem: Codable {
 }
 
 extension AnyDeployedSystem {
+    /// Returns the userInfo as the given type.
     public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
         try? T(decodingJSON: userInfo)
     }
@@ -124,5 +125,46 @@ public struct DeployedSystemNode: Codable, Identifiable, Hashable, Equatable {
     /// The deployment options for all endpoints exported by this node
     public func combinedEndpointDeploymentOptions() -> DeploymentOptions {
         DeploymentOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
+    }
+}
+
+extension DeploymentGroup {
+    /// Checks whether this group should contain the exported endpoint
+    public func matches(exportedEndpointInfo: CollectedEndpointInfo) -> Bool {
+        handlerTypes.contains(exportedEndpointInfo.handlerType) || handlerIds.contains(exportedEndpointInfo.endpoint[AnyHandlerIdentifier.self])
+    }
+}
+
+extension Sequence where Element == DeployedSystemNode {
+    /// Asserts that, in the sequence of nodes, every handler appears in only one node
+    public func assertHandlersLimitedToSingleNode() throws {
+        var exportedHandlerIds = Set<AnyHandlerIdentifier>()
+        // make sure a handler isn't listed in multiple nodes
+        for node in self {
+            for endpoint in node.exportedEndpoints {
+                guard exportedHandlerIds.insert(endpoint.handlerId).inserted else {
+                    throw ApodiniDeployBuildSupportError(
+                        message: "Handler with id '\(endpoint.handlerId)' appears in multiple deployment groups, which is illegal."
+                    )
+                }
+            }
+        }
+    }
+    
+    /// Check that the sequence of nodes contains all endpoints from the other set
+    public func assertContainsAllEndpointsIn(_ allEndpoints: Set<CollectedEndpointInfo>) throws {
+        // make sure every handler appears in one node
+        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerId))
+        let expectedHandlerIds = Set(allEndpoints.map { $0.endpoint[AnyHandlerIdentifier.self] })
+        guard expectedHandlerIds == exportedHandlerIds else {
+            assert(exportedHandlerIds.isSubset(of: expectedHandlerIds))
+            // All handler ids which appear in one of the two sets, but not in both.
+            // Since the set of exported handler ids is a subset of the set of all handler ids,
+            // this difference is the set of all handlers which aren't exported by a node
+            let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
+            throw ApodiniDeployBuildSupportError(
+                message: "Handler ids\(diff.map { "'\($0.rawValue)'" }.joined(separator: ", "))"
+            )
+        }
     }
 }

@@ -56,9 +56,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         }
         return .invokeDefault(url: url)
     }
-}
-
-extension LocalhostRuntime {
+    
     public static var exportCommand: ParsableCommand.Type {
         ExportWSLocalhostCommand<Service>.self
     }
@@ -96,7 +94,7 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
         )
         
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: localhostCoordinator)
-        try Service.start(app: app, webService: Service.init())
+        try Service.start(app: app, webService: Service())
     }
 }
 
@@ -152,7 +150,7 @@ public struct LocalhostStartupCommand<Service: WebService>: ParsableCommand {
             nodeId: commonOptions.nodeId
         )
         app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
-        try Service.start(app: app, webService: Service.init())
+        try Service.start(app: app, webService: Service())
     }
     
     public init() {}

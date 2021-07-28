@@ -79,7 +79,7 @@ public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand
     @OptionGroup
     var options: ExportStructureCommand.ExportOptions
     
-    @ArgumentParser.Option(help: "Defines the AWS API Gateway ID that is used. If '_createNew' is passed in the deployment provider creates a new AWS API Gateway")
+    @ArgumentParser.Option(help: "Defines the AWS API Gateway ID that is used.")
     var awsApiGatewayApiId: String
     
     @ArgumentParser.Option
@@ -98,7 +98,7 @@ public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand
         
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: lambdaStructureExporter)
         
-        try Service.start(app: app, webService: Service.init())
+        try Service.start(app: app, webService: Service())
     }
 }
 
@@ -128,17 +128,24 @@ public struct LambdaStructureExporter: StructureExporter {
         }
     }
     
-    public func retrieveStructure(_ endpoints: Set<CollectedEndpointInfo>, config: DeploymentConfig, app: Apodini.Application) throws -> AnyDeployedSystem {
+    public func retrieveStructure(
+        _ endpoints: Set<CollectedEndpointInfo>,
+        config: DeploymentConfig,
+        app: Apodini.Application) throws -> AnyDeployedSystem {
         guard let openApiDocument = app.storage.get(OpenAPI.StorageKey.self)?.document else {
             throw ApodiniDeployRuntimeSupportError(message: "Unable to get OpenAPI document")
         }
         let defaultSystem = try self.retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
-        let awsSystem = try LambdaDeployedSystem(deploymentProviderId: self.providerID, nodes: defaultSystem.nodes, userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId), openApiDocument: openApiDocument)
+        let awsSystem = try LambdaDeployedSystem(
+            deploymentProviderId: self.providerID,
+            nodes: defaultSystem.nodes,
+            userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId),
+            openApiDocument: openApiDocument
+        )
         return awsSystem
     }
 }
 
-/// - TODO: Check if lamdba deployment provider actually needs the cli based startup command.
 public struct LambdaStartupCommand<Service: WebService>: ParsableCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "aws",
@@ -159,7 +166,7 @@ public struct LambdaStartupCommand<Service: WebService>: ParsableCommand {
             nodeId: commonOptions.nodeId
         )
         app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
-        try Service.start(app: app, webService: Service.init())
+        try Service.start(app: app, webService: Service())
     }
 
     public init() {}

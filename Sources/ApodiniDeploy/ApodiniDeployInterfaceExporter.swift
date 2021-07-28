@@ -58,7 +58,7 @@ public final class ApodiniDeploy: Configuration {
     }
     
     public var command: ParsableCommand.Type {
-        return ApodiniDeployCommand.withSubcommands(
+        ApodiniDeployCommand.withSubcommands(
             ExportStructureCommand.withSubcommands(
                 configuration.runtimes.map { $0.exportCommand }
             ),
@@ -133,7 +133,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
-        
         try self.exportDeployedSystemIfNeeded()
         
         let env = ProcessInfo.processInfo.environment
@@ -149,7 +148,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
            env[WellKnownEnvironmentVariables.currentNodeId] != nil {
             currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId]!
             deployedSystem = try DeployedSystem(decodingJSONAt: URL(fileURLWithPath: env[WellKnownEnvironmentVariables.fileUrl]!))
-            
         } else if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
             // If no env variables found, check if the web service was started using the `deploy startup` command
             configUrl = URL(fileURLWithPath: deploymentConfig.fileUrl.path)

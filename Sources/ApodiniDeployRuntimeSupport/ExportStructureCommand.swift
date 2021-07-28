@@ -9,7 +9,6 @@ import Runtime
 /// A deployment provider may define a subcommand to this to account for custom options.
 /// **Note**: Should not be called by the user directly
 public struct ExportStructureCommand: ParsableCommand {
-    
     /// Often used options that can be imported into a subcommand.
     public struct ExportOptions: ParsableArguments {
         @Argument(help: "The location of the json file")
@@ -21,7 +20,7 @@ public struct ExportStructureCommand: ParsableCommand {
         public init() {}
     }
     
-    public static var configuration: CommandConfiguration = CommandConfiguration(
+    public static var configuration = CommandConfiguration(
         commandName: "export-ws-structure",
         abstract: "Export web service structure",
         discussion: """
@@ -44,7 +43,6 @@ public struct ExportStructureCommand: ParsableCommand {
 }
 
 public struct StartupCommand: ParsableCommand {
-    
     public struct CommonOptions: ParsableArguments {
         @Argument(help: "The location of the json containing the system structure")
         public var fileUrl: String
@@ -55,7 +53,7 @@ public struct StartupCommand: ParsableCommand {
         public init() {}
     }
     
-    public static var configuration: CommandConfiguration = CommandConfiguration(
+    public static var configuration = CommandConfiguration(
         commandName: "startup",
         abstract: "Startup command for a node of a deployment system",
         discussion: """
