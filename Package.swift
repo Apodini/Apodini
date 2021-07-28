@@ -396,6 +396,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniOpenAPI"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit")
