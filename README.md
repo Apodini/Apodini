@@ -30,6 +30,7 @@ dependencies: [
 ```
 
 Add the base package and all exporters you want to use to your target:
+
 ```swift
 targets: [
     .target(
