@@ -15,6 +15,7 @@ import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 import VaporAWSLambdaRuntime
 import ApodiniOpenAPI
+import OpenAPIKit
 
 
 public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
