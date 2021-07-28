@@ -19,11 +19,11 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         localhostDeploymentProviderId
     }
     
-    public let deployedSystem: DeployedSystem
+    public let deployedSystem: AnyDeployedSystem
     public let currentNodeId: DeployedSystemNode.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
+    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard

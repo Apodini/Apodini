@@ -28,13 +28,12 @@ public protocol StructureExporter {
     ) throws -> AnyDeployedSystem
 }
 
+// MARK: - Default implementations of `StructureExporter`
 extension StructureExporter {
     public var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String {
         { _ in UUID().uuidString }
     }
-}
-
-extension StructureExporter {
+    
     public func retrieveStructure(
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,

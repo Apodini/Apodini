@@ -57,8 +57,30 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         call(exporter: exporter)
         exporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
     }
+    
+    private func performLifeCyleActions() throws {
+        let firstEndpoints = (try app.lifecycle.handlers.first?.filter(self.collectedEndpoints, app: app) ?? []).compactMap { $0 as? _AnyEndpoint }
+        self.collectedEndpoints = try app.lifecycle.handlers
+            .map { handler in
+                try handler.filter(self.collectedEndpoints, app: self.app)
+            }
+            .compactMap {
+                $0 as? [_AnyEndpoint]
+            }
+            .reduce(firstEndpoints, { result, element in
+                result.intersection(element)
+            })
+    }
 
     private func call<I: InterfaceExporter>(exporter: I) {
+        do {
+            try self.performLifeCyleActions()
+        } catch {
+            fatalError(
+                "An error \(error) occurred while performing life cycle action 'filter'."
+            )
+        }
+        
         for endpoint in collectedEndpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
@@ -107,6 +129,16 @@ extension Handler {
             return identifier
         } else {
             return nil
+        }
+    }
+}
+
+extension Array where Element == _AnyEndpoint {
+    func intersection(_ other: Array<Element>) -> Self<Element> {
+        filter { element in
+            other.contains(where: { otherElement in
+                element[AnyHandlerIdentifier.self] == otherElement[AnyHandlerIdentifier.self]
+            })
         }
     }
 }

@@ -107,7 +107,7 @@ extension DeploymentProvider {
             return executableUrl
         }
     }
-    
+
     public func retrieveSystemStructure<T: AnyDeployedSystem>(
         _ executableUrl: URL,
         providerCommand: String,
@@ -131,12 +131,7 @@ extension DeploymentProvider {
                 modelFileUrl.path
             ] + additionalCommands,
             captureOutput: false,
-            launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-            environment: [
-                WellKnownEnvironmentVariables.executionMode:
-                    WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
-            ]
+            launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
         )
         let terminationInfo = try retrieveStructureTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {

@@ -137,53 +137,48 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         try self.exportDeployedSystemIfNeeded()
         
         let env = ProcessInfo.processInfo.environment
-        guard let mode = env[WellKnownEnvironmentVariables.executionMode],
-              let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
-        else {
+        
+        let configUrl: URL
+        let currentNodeId: String
+        
+        let deployedSystem: AnyDeployedSystem
+        
+        // The aws deployment provider still uses env variables,
+        // so first check if there are any present
+        if env[WellKnownEnvironmentVariables.fileUrl] != nil,
+           env[WellKnownEnvironmentVariables.currentNodeId] != nil {
+            currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId]!
+            deployedSystem = try DeployedSystem(decodingJSONAt: URL(fileURLWithPath: env[WellKnownEnvironmentVariables.fileUrl]!))
+            
+        } else if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
+            // If no env variables found, check if the web service was started using the `deploy startup` command
+            configUrl = URL(fileURLWithPath: deploymentConfig.fileUrl.path)
+            currentNodeId = deploymentConfig.nodeId
+            
+            deployedSystem = try deploymentConfig.deployedSystem.init(decodingJSONAt: configUrl)
+        } else {
+            // If both are no there, web service was started without deployment. Just return, there's nothing to do.
             return
         }
         
-        switch mode {
-        case WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure:
-            let outputUrl = URL(fileURLWithPath: fileURL)
-            do {
-                try self.exportWebServiceStructure(
-                    to: outputUrl,
-                    apodiniDeployConfiguration: self.exporterConfiguration
+        do {
+            guard
+                let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
+            else {
+                throw ApodiniDeployError(
+                    message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
                 )
-            } catch {
-                fatalError("Error exporting web service structure: \(error)")
             }
-            exit(EXIT_SUCCESS)
-            
-        case WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig:
-            let configUrl = URL(fileURLWithPath: fileURL)
-            guard let currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId] else {
-                throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
-            }
-            do {
-                let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
-                guard
-                    let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
-                else {
-                    throw ApodiniDeployError(
-                        message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
-                    )
-                }
-                // initializing from a metatype, which requires the '.init'
-                // swiftlint:disable:next explicit_init
-                let runtimeSupport = try DPRSType.init(
-                    deployedSystem: deployedSystem,
-                    currentNodeId: currentNodeId
-                )
-                self.deploymentProviderRuntime = runtimeSupport
-                try runtimeSupport.configure(app)
-            } catch {
-                throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
-            }
-            
-        default:
-            break
+            // initializing from a metatype, which requires the '.init'
+            // swiftlint:disable:next explicit_init
+            let runtimeSupport = try DPRSType.init(
+                deployedSystem: deployedSystem,
+                currentNodeId: currentNodeId
+            )
+            self.deploymentProviderRuntime = runtimeSupport
+            try runtimeSupport.configure(app)
+        } catch {
+            throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
         }
     }
     

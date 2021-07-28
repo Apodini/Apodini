@@ -77,25 +77,29 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         logger.notice("Invoking target with arguments to generate web service structure")
 
-        var (modelFileUrl, deployedSystem) = try retrieveSystemStructure(
+        let (modelFileUrl, deployedSystem) = try retrieveSystemStructure(
             executableUrl,
             providerCommand: "local",
-            additionalCommands: ["endpoint-processes-base-port ", "\(self.endpointProcessesBasePort)"],
+            additionalCommands: [
+                "--identifier",
+                Self.identifier.rawValue,
+                "--endpoint-processes-base-port",
+                "\(self.endpointProcessesBasePort)"],
             as: DeployedSystem.self
         )
 
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                launchInCurrentProcessGroup: true,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
-                    WellKnownEnvironmentVariables.fileUrl:
-                        modelFileUrl.path,
-                    WellKnownEnvironmentVariables.currentNodeId:
-                        node.id
-                ]
+                arguments: [
+                    "deploy",
+                    "startup",
+                    "local",
+                    modelFileUrl.path,
+                    "--node-id",
+                    node.id
+                ],
+                launchInCurrentProcessGroup: true
             )
             func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {

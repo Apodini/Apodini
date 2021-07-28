@@ -42,9 +42,9 @@ public protocol DeploymentProviderRuntime: AnyObject {
     ///         used to create the deployment, so it has to match the corresponding CLI's `identifier` exactly.
     static var identifier: DeploymentProviderID { get }
     
-    init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystemNode.ID) throws
+    init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws
     
-    var deployedSystem: DeployedSystem { get }
+    var deployedSystem: AnyDeployedSystem { get }
     var currentNodeId: DeployedSystemNode.ID { get }
     
     static var exportCommand: ParsableCommand.Type { get }

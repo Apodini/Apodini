@@ -64,10 +64,7 @@ public struct StartupCommand: ParsableCommand {
         version: "0.0.1",
         subcommands: []
     )
-    
-    @OptionGroup
-    var commonOptions: CommonOptions
-    
+
     public init() {}
     
     public func run() throws {

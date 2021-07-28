@@ -22,11 +22,11 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         lambdaDeploymentProviderId
     }
     
-    public let deployedSystem: DeployedSystem
+    public let deployedSystem: AnyDeployedSystem
     public let currentNodeId: DeployedSystemNode.ID
     private let lambdaDeploymentContext: LambdaDeployedSystemContext
     
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
+    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
