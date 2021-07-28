@@ -72,11 +72,9 @@ private struct ReusableTestComponentMetadata: ComponentMetadataBlock {
             TestInt(offset + 4)
         }
 
-        #if swift(>=5.4)
         for num in (offset + 5) ... (offset + 7) {
             TestInt(num)
         }
-        #endif
     }
 }
 
@@ -148,18 +146,14 @@ private struct TestMetadataComponent: Component {
                 TestInt(10)
             }
 
-            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
-            #endif
         }
 
-        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
-        #endif
 
         ReusableTestComponentMetadata(offset: 14, state: true)
         ReusableTestComponentMetadata(offset: 22, state: false)
@@ -186,21 +180,11 @@ private struct TestMetadataWebService: WebService {
 
 final class ComponentMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
-        #if swift(>=5.4)
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15, 16, 17,             22, 23, 26            ]
-        #endif
     }
 
     static var expectedInts: [Int] {
-        #if swift(>=5.4)
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,      14, 15, 16, 17,             22, 23, 26            ]
-        #endif
     }
 
     func testComponentMetadataTrue() {

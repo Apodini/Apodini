@@ -8,13 +8,9 @@
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
+
 @resultBuilder
 public enum ComponentMetadataBuilder {}
-#else
-@_functionBuilder
-public enum ComponentMetadataBuilder {}
-#endif
 
 public extension ComponentMetadataBuilder {
     static func buildExpression<Metadata: ComponentMetadataDefinition>(_ expression: Metadata) -> AnyComponentMetadata {

@@ -11,13 +11,8 @@
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
 @resultBuilder
 public enum ContentMetadataBuilder {}
-#else
-@_functionBuilder
-public enum ContentMetadataBuilder {}
-#endif
 
 public extension ContentMetadataBuilder {
     static func buildExpression<Metadata: ContentMetadataDefinition>(_ expression: Metadata) -> AnyContentMetadata {
