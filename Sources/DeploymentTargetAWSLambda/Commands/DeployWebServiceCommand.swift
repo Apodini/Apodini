@@ -242,21 +242,6 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         try task.launchSyncAndAssertSuccess()
     }
     
-    
-    private func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
-        let filename = "WebServiceStructure.json"
-        try runInDocker(
-            imageName: dockerImageName,
-            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName)",
-            environment: [
-                WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                WellKnownEnvironmentVariables.fileUrl: ".build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
-            ]
-        )
-        let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
-        return try WebServiceStructure(decodingJSONAt: url)
-    }
-    
     private func retrieveDeployedSystem(usingDockerImage dockerImageName: String) throws -> LambdaDeployedSystem {
         let filename = "WebServiceStructure.json"
         let filePath = ".build/\(tmpDirName)/\(filename)"
@@ -267,7 +252,6 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
         return try LambdaDeployedSystem(decodingJSONAt: url)
     }
-    
     
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {

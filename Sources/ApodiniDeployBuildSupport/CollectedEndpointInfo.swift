@@ -51,27 +51,6 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
     }
 }
 
-
-public struct WebServiceStructure: Codable {
-    public let endpoints: Set<ExportedEndpoint>
-    public let deploymentConfig: DeploymentConfig
-    public let openApiDocument: OpenAPI.Document
-    public let enabledDeploymentProviders: [DeploymentProviderID]
-    
-    public init(
-        endpoints: Set<ExportedEndpoint>,
-        deploymentConfig: DeploymentConfig,
-        openApiDocument: OpenAPI.Document,
-        enabledDeploymentProviders: [DeploymentProviderID]
-    ) {
-        self.endpoints = endpoints
-        self.deploymentConfig = deploymentConfig
-        self.openApiDocument = openApiDocument
-        self.enabledDeploymentProviders = enabledDeploymentProviders
-    }
-}
-
-
 public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public let handlerType: HandlerTypeIdentifier
     /// Identifier of the  handler this endpoint was generated for

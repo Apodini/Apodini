@@ -53,7 +53,7 @@ struct WebService: Apodini.WebService {
             OpenAPI()
         }
         ApodiniDeploy(
-            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self],
             config: DeploymentConfig(
                 defaultGrouping: .separateNodes,
                 deploymentGroups: [
