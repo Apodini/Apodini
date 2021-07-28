@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
         "state": {
           "branch": null,
-          "revision": "3e0645f7897a570568e66029a1bb97dde965bdeb",
-          "version": "2.10.1"
+          "revision": "54a380a67a5ecbaf780c1f071048fe867c9ce18a",
+          "version": "2.11.0"
         }
       },
       {
@@ -101,6 +101,15 @@
         }
       },
       {
+        "package": "jmespath.swift",
+        "repositoryURL": "https://github.com/adam-fowler/jmespath.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "4a166ea71f0d9e9cc3523fc3dee516080a4c36a0",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "jwt",
         "repositoryURL": "https://github.com/vapor/jwt.git",
         "state": {
@@ -114,8 +123,8 @@
         "repositoryURL": "https://github.com/vapor/jwt-kit.git",
         "state": {
           "branch": null,
-          "revision": "b50b30b567726b14ac282aa6d3a42a52c1ebc8c0",
-          "version": "4.2.2"
+          "revision": "df7955305940ea0fcd1626a0a6d1a1556623f95e",
+          "version": "4.2.3"
         }
       },
       {
@@ -177,8 +186,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "9a7fcaa3e434b57c92bcb8a1b60ee9fdf84334c6",
-          "version": "5.6.0"
+          "revision": "693fc693b580a2c635c1457d09cbf54411691ffe",
+          "version": "5.7.0"
         }
       },
       {
@@ -186,8 +195,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "c5776786a8cfd43b63b2258a143ae484e05b9c17",
-          "version": "5.3.1"
+          "revision": "56f009db6ba3f8f2acdcfe91ecd4ba1b3478c868",
+          "version": "5.4.0"
         }
       },
       {
@@ -204,8 +213,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "dd87127c7b005237b24ee24917c515ecae9ff0ef",
-          "version": "3.9.1"
+          "revision": "b70d1fea1b544dd819c17e83d59fb9aa85c81e74",
+          "version": "3.10.0"
         }
       },
       {
@@ -249,8 +258,8 @@
         "repositoryURL": "https://github.com/swift-server/swift-aws-lambda-runtime.git",
         "state": {
           "branch": null,
-          "revision": "e33e4afbf0e290029c9887f271ae2ad6a4a65269",
-          "version": "0.4.0"
+          "revision": "a9e15b13b30b6700056c4cfbdcf6a69382a9fb6f",
+          "version": "0.5.0"
         }
       },
       {
