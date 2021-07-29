@@ -247,7 +247,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         let filePath = ".build/\(tmpDirName)/\(filename)"
         try runInDocker(
             imageName: dockerImageName,
-            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
+            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier.rawValue) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
         return try LambdaDeployedSystem(decodingJSONAt: url)
