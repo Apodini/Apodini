@@ -37,7 +37,7 @@ extension HandlerMetadataNamespace {
 /// ``CommunicationalPattern``.
 ///
 /// The framework can automatically detect ``CommunicationalPattern/requestResponse`` if the
-/// ``Handler/handle()-94skg``'s return type is no ``Response``. If that is not the case and you don't
+/// ``Handler/handle()-3440f``'s return type is no ``Response``. If that is not the case and you don't
 /// explicitly specify the ``HandlerMetadataNamespace/Pattern``, the ``Handler`` is assumed to use
 /// ``CommunicationalPattern/bidirectionalStream``.
 ///

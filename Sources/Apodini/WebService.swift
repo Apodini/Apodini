@@ -30,7 +30,7 @@ public extension WebService {
 }
 
 extension WebService {
-    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
+    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
     public mutating func run() throws {
         try Self.start(webService: self)
     }
@@ -38,7 +38,7 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
     ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
-    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instantiated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {

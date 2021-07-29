@@ -10,7 +10,6 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniVaporSupport
-import OpenCombine
 import Vapor
 
 extension Exporter {
@@ -22,15 +21,17 @@ extension Exporter {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
+            
+        let factory = endpoint[DelegateFactory<H>.self]
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
                 .cache()
-                .evaluate(on: &delegate)
+                .evaluate(on: delegate)
                 .transform(using: transformer)
         }
     }
@@ -43,15 +44,17 @@ extension Exporter {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let transformer = VaporBlobResponseTransformer()
+            
+        let factory = endpoint[DelegateFactory<H>.self]
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
                 .cache()
-                .evaluate(on: &delegate)
+                .evaluate(on: delegate)
                 .transform(using: transformer)
         }
     }

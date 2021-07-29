@@ -8,13 +8,9 @@
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
+
 @resultBuilder
 public enum MetadataBuilder {}
-#else
-@_functionBuilder
-public enum MetadataBuilder {}
-#endif
 
 // MARK: Handler Metadata
 public extension MetadataBuilder {

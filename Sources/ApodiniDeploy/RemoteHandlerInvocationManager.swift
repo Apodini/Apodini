@@ -282,13 +282,13 @@ extension Endpoint {
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        var delegate = Delegate(handler, .required)
+        let delegate = self[DelegateFactory<H>.self].instance()
         
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
             .applied(to: self)
             .decodeRequest(from: request, with: DefaultRequestBasis(base: request), with: eventLoop)
             .insertDefaults(with: self[DefaultValueStore.self])
-            .evaluate(on: &delegate)
+            .evaluate(on: delegate)
         
         return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.Content>) -> H.Response.Content in
             guard response.connectionEffect == .close else {

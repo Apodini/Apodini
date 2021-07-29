@@ -8,11 +8,11 @@
 
 import Foundation
 import Apodini
-import OpenCombine
+import _Concurrency
 
-public extension Publisher where Output: Request {
-    /// This `Publisher` maps each incoming `Request` into a ``CachingRequest``.
-    func cache() -> OpenCombine.Publishers.Map<Self, CachingRequest> {
+public extension AsyncSequence where Element: Request {
+    /// This `AsyncSequence` maps each incoming `Request` to a ``CachingRequest``.
+    func cache() -> AsyncMapSequence<Self, CachingRequest> {
         self.map { request in
             request.cache()
         }

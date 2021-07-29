@@ -9,7 +9,6 @@
 @testable import Apodini
 import XCTApodini
 
-
 class ParameterRetrievalTests: ApodiniTests {
     struct TestHandler: Handler {
         @Parameter

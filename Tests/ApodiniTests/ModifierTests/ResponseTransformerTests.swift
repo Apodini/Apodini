@@ -13,7 +13,6 @@ import XCTApodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-
 final class ResponseTransformerTests: ApodiniTests {
     private static var emojiTransformerExpectation: XCTestExpectation?
     private static var helloTransformerExpectation: XCTestExpectation?

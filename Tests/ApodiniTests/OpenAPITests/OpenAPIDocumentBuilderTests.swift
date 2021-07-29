@@ -13,7 +13,6 @@ import XCTest
 @testable import ApodiniVaporSupport
 import ApodiniREST
 
-
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {
         var someProp = 4

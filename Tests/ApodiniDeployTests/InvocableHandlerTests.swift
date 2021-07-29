@@ -29,7 +29,6 @@ extension Vapor.ContentContainer {
     }
 }
 
-
 private struct TestWebService: Apodini.WebService {
     struct F: InvocableHandler {
         class HandlerIdentifier: ScopedHandlerIdentifier<F> {
@@ -95,7 +94,6 @@ private struct TestWebService: Apodini.WebService {
         }
     }
 
-
     struct Greeter: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -156,7 +154,6 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-    
     struct Calculator: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -199,7 +196,6 @@ private struct TestWebService: Apodini.WebService {
         ApodiniDeploy()
     }
 }
-
 
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {

@@ -10,11 +10,10 @@
 
 import PackageDescription
 
-
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v12)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -54,9 +53,6 @@ let package = Package(
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // OpenCombine seems to be only available as a pre release and is not feature complete.
-        // We constrain it to the next minor version as it doen't follow semantic versioning.
-        .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.12.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.30.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
@@ -72,9 +68,6 @@ let package = Package(
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
-        
-        // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
-        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
@@ -82,7 +75,10 @@ let package = Package(
         // Deploy
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0")
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
+        
+        // testing runtime crashes
+        .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -112,7 +108,8 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ]
+            ],
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
         
         .target(
@@ -120,9 +117,10 @@ let package = Package(
             dependencies: [
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "NIO", package: "swift-nio")
-            ]
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "_NIOConcurrency", package: "swift-nio")
+            ],
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
 
         .testTarget(
@@ -137,14 +135,13 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
 
         .testTarget(
@@ -259,8 +256,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine")
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
 
@@ -288,13 +284,12 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
-            ]
+            ],
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
 
         // ProtobufferCoding
@@ -321,7 +316,7 @@ let package = Package(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .product(name: "XCTAssertCrash", package: "XCTAssertCrash", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),

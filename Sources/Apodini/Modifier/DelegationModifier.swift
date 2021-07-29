@@ -142,15 +142,15 @@ extension DelegatingHandlerContextKey {
 
         var markedFiltered = false
 
-        /// Creates a new ``Entry`` instance.
+        /// Creates a new ``DelegatingHandlerContextKey/Entry`` instance.
         /// - Parameters:
         ///   - initializer: The ``AnyDelegatingHandlerInitializer`` for the delegating Handler.
         ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegatingHandlerInitializer``
         ///     is only used a single time, even when inserted multiple times.
         ///   - inverseOrder: Set this to true if the according DelegatingHandler should act on the output of
         ///     the delegated Handler. Those Handler typically call the delegate first and then execute their own logic.
-        ///     Therefore, such an initializer which is added first, should be inserted on the "innerst" position not
-        ///     the "outerst", as it should be the first to act once handle returns.
+        ///     Therefore, such an initializer which is added first, should be inserted on the "innermost" position not
+        ///     the "outermost", as it should be the first to act once handle returns.
         public init(
             _ initializer: AnyDelegatingHandlerInitializer,
             ensureInitializerTypeUniqueness: Bool = false,

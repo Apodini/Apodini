@@ -12,7 +12,7 @@ import Foundation
 /// It also allows for mutating `KnowledgeSource`s. Most initializations are performed lazily.
 public protocol Blackboard {
     /// `Blackboard`s can be read from and written to based on a `KnowledgeSource`'s type. If not present yet,
-    /// the `Blackboard` takes care of initlaizing the `KnowledgeSource`.
+    /// the `Blackboard` takes care of initializing the `KnowledgeSource`.
     subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource { get nonmutating set }
     
     /// An alternative for the `Blackboard`'s subscript for graceful error handling.

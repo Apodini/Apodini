@@ -13,7 +13,6 @@ import XCTVapor
 import XCTest
 import OrderedCollections
 
-
 final class DelegationTests: ApodiniTests {
     class TestObservable: Apodini.ObservableObject {
         @Apodini.Published var date: Date
@@ -55,7 +54,7 @@ final class DelegationTests: ApodiniTests {
                 }
             }
             
-            let delegate = try testD()
+            let delegate = try testD.instance()
             
             switch delegate.connection.state {
             case .open:
@@ -108,6 +107,48 @@ final class DelegationTests: ApodiniTests {
             content: "Invalid Login",
             connectionEffect: .close
         )
+    }
+    
+    func testLazyDecodingThroughDelegateCall() throws {
+        struct Undecodable: Codable {
+            init(from decoder: Decoder) throws {
+                XCTFail("Unneeded lazy parameter was decoded.")
+                throw DecodingError.valueNotFound(Self.self,
+                                                  .init(codingPath: [],
+                                                        debugDescription: "Undecodable should have not been decoded!",
+                                                        underlyingError: nil))
+            }
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(false)
+            }
+        }
+        
+        struct MyDelegate {
+            @Parameter var failing: Undecodable
+        }
+        
+        struct MyHandler: Handler {
+            var delegate = Delegate(MyDelegate())
+            
+            func handle() throws -> String {
+                "did not use delegate"
+            }
+        }
+        
+        
+        var testHandler = MyHandler().inject(app: app)
+        activate(&testHandler)
+
+        let endpoint = testHandler.mockEndpoint(app: app)
+
+        let successfulExporter = MockExporter<String>(queued: false)
+        let successfulContext = endpoint.createConnectionContext(for: successfulExporter)
+        
+        try XCTCheckResponse(
+            successfulContext.handle(request: "", eventLoop: app.eventLoopGroup.next()),
+            content: "did not use delegate")
     }
     
     func testConnectionAwareDelegate() throws {
@@ -230,7 +271,7 @@ final class DelegationTests: ApodiniTests {
         
         bindingD.set(\.$number, to: 1)
         
-        let prepared = try bindingD()
+        let prepared = try bindingD.instance()
         
         XCTAssertEqual(prepared.number, 1)
     }
@@ -248,7 +289,7 @@ final class DelegationTests: ApodiniTests {
         var nestedD = Delegate(NestedEnvironmentDelegate())
         
         func evaluate() throws -> String {
-            let nested = try nestedD()
+            let nested = try nestedD.instance()
             return "\(nested.string):\(nested.number)"
         }
     }
@@ -265,7 +306,7 @@ final class DelegationTests: ApodiniTests {
             .environment(\EnvKey.name, "Max")
             .environmentObject(1)
         
-        let prepared = try envD()
+        let prepared = try envD.instance()
         
         XCTAssertEqual(try prepared.evaluate(), "Max:1")
     }
@@ -294,7 +335,7 @@ final class DelegationTests: ApodiniTests {
             .set(\.$binding, to: 1)
             .setObservable(\.$observable, to: TestObservable())
         
-        let prepared = try envD()
+        let prepared = try envD.instance()
         
         XCTAssertEqual(prepared.binding, 1)
         XCTAssertGreaterThan(prepared.observable.date, afterInitializationBeforeInjection)
@@ -313,7 +354,7 @@ final class DelegationTests: ApodiniTests {
             let delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
-                try delegate().delegate().name
+                try delegate.instance().delegate.instance().name
             }
         }
         
@@ -339,7 +380,7 @@ final class DelegationTests: ApodiniTests {
             let delegate = Delegate(RequiredDelegatingDelegate(), .required)
             
             func handle() throws -> some ResponseTransformable {
-                try delegate().delegate().name
+                try delegate.instance().delegate.instance().name
             }
         }
         
@@ -356,9 +397,10 @@ final class DelegationTests: ApodiniTests {
         struct DynamicGuard<H: Handler>: Handler {
             let delegate: Delegate<H>
 
-            func handle() throws -> H.Response {
-                try delegate
-                    .environmentObject("Alfred")()
+            func handle() async throws -> H.Response {
+                try await delegate
+                    .environmentObject("Alfred")
+                    .instance()
                     .handle()
             }
         }
@@ -448,7 +490,7 @@ final class DelegationTests: ApodiniTests {
             static var collectedIds: [Int] = []
         }
 
-        struct TestGuard: SyncGuard {
+        struct TestGuard: Guard {
             let id: Int
             func check() {
                 TestStore.collectedIds.append(id)
@@ -478,9 +520,9 @@ final class DelegationTests: ApodiniTests {
             let delegate: Delegate<H>
             let otherDelegate = Delegate(TestNestedHandler())
 
-            func handle() throws -> H.Response {
+            func handle() async throws -> H.Response {
                 TestStore.collectedIds.append(id)
-                return try delegate().handle()
+                return try await delegate.instance().handle()
             }
 
             var metadata: Metadata {
@@ -552,11 +594,11 @@ private struct SimpleForward<H: Handler>: Handler {
     let delegate: Delegate<H>
     let id: Int
 
-    func handle() throws -> H.Response {
+    func handle() async throws -> H.Response {
         SimpleForwardFilter.calledIds.append(id)
         SimpleForwardFilter.simpleForwardExpectation?.fulfill()
 
-        return try delegate().handle()
+        return try await delegate.instance().handle()
     }
 }
 

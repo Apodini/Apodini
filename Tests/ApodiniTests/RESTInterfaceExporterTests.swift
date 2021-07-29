@@ -11,7 +11,6 @@
 import Vapor
 import XCTApodini
 
-
 class RESTInterfaceExporterTests: ApodiniTests {
     lazy var application = Vapor.Application(.testing)
 

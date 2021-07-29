@@ -8,7 +8,6 @@
 
 import Foundation
 import Apodini
-import OpenCombine
 
 /// This value stores the default values for each `Parameter` of an endpoint. It can
 /// be used to obtain an ``DefaultInsertingRequest`` using the `Request`'s
@@ -97,10 +96,10 @@ extension EndpointParameter: DefaultNilValueProvider {
     }
 }
 
-public extension Publisher where Output: Request {
+public extension AsyncSequence where Element: Request {
     /// Wraps each incoming `Request` into a ``DefaultValueStore/DefaultInsertingRequest`` using
     /// the given `defaults`.
-    func insertDefaults(with defaults: DefaultValueStore) -> OpenCombine.Publishers.Map<Self, DefaultValueStore.DefaultInsertingRequest> {
+    func insertDefaults(with defaults: DefaultValueStore) -> AsyncMapSequence<Self, DefaultValueStore.DefaultInsertingRequest> {
         self.map { request in
             defaults.insertDefaults(request)
         }
