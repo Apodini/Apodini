@@ -12,7 +12,6 @@ import XCTest
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-
 final class HandlerIdentifierTests: ApodiniTests {
     // Hashable summary of an endpoint, useful for comparing endpoint arrays
     private struct EndpointSummary: Hashable {

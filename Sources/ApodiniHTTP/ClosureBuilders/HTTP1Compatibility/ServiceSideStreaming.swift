@@ -10,7 +10,6 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniVaporSupport
-import OpenCombine
 import Vapor
 
 extension Exporter {
@@ -22,23 +21,25 @@ extension Exporter {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         
         let abortAnyError = AbortTransformer<H>()
+            
+        let factory = endpoint[DelegateFactory<H>.self]
         
         return { (request: Vapor.Request) in
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
-            return Just(request)
+            return [request]
+                .asAsyncSequence
                 .decode(using: strategy, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
                 .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
+                .subscribe(to: delegate)
+                .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancel(if: { response in
                     response.connectionEffect == .close
                 })
                 .collect()
-                .tryMap { (responses: [Apodini.Response<H.Response.Content>]) in
+                .map { (responses: [Apodini.Response<H.Response.Content>]) in
                     let status: Status? = responses.last?.status
                     let information: InformationSet = responses.last?.information ?? []
                     let content: [H.Response.Content] = responses.compactMap { response in

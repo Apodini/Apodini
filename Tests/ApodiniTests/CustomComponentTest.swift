@@ -13,7 +13,6 @@
 import XCTVapor
 import XCTApodini
 
-
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)

@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 [![jazzy](https://raw.githubusercontent.com/Apodini/Apodini/gh-pages/badge.svg)](https://apodini.github.io/Apodini/)
 ![Build and Test](https://github.com/Apodini/Apodini/workflows/Build%20and%20Test/badge.svg)
 
-A declarative, composable framework to build web services using Swift.
+Apodini is a declarative, composable framework to build web services using Swift. It is part of a research project at the [TUM Research Group for Applied Software Engineering](https://ase.in.tum.de/schmiedmayer).
 
 ## Getting Started
 
@@ -23,6 +23,7 @@ A declarative, composable framework to build web services using Swift.
 Apodini uses the Swift Package Manager:
 
 Add it as a project-dependency:
+
 ```swift
 dependencies: [
     .package(url: "https://github.com/Apodini/Apodini.git", .branch("develop"))
@@ -30,6 +31,7 @@ dependencies: [
 ```
 
 Add the base package and all exporters you want to use to your target:
+
 ```swift
 targets: [
     .target(

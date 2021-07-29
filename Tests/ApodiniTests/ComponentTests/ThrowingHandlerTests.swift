@@ -13,7 +13,6 @@ import XCTest
 import FluentKit
 import Vapor
 
-
 class ThrowingErrorTests: ApodiniTests {
     struct MyError: Codable, Error {
         let reason: String

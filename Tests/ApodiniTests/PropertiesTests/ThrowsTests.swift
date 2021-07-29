@@ -151,7 +151,7 @@ class ThrowsTests: ApodiniTests {
     }
 }
 
-private extension Handler {
+private extension ThrowsTests.ErrorTestHandler {
     func evaluationError() -> ApodiniError {
         do {
             _ = try handle()

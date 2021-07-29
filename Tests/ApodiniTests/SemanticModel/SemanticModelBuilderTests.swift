@@ -11,7 +11,6 @@
 import Vapor
 import XCTApodini
 
-
 final class SemanticModelBuilderTests: ApodiniTests {
     struct TestHandler: Handler {
         @Binding
@@ -22,7 +21,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         }
     }
 
-    struct PrintGuard: SyncGuard {
+    struct PrintGuard: Guard {
         func check() {
             print("PrintGuard check executed")
         }

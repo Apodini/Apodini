@@ -12,8 +12,6 @@ import Vapor
 import ApodiniHTTP
 @testable import Apodini
 import XCTVapor
-import OpenCombine
-
 
 class EndToEndTests: XCTApodiniTest {
     override func setUpWithError() throws {
@@ -83,6 +81,7 @@ class EndToEndTests: XCTApodiniTest {
                 return .send("\(start - counter)...")
             }
         }
+        
         
         var metadata: AnyHandlerMetadata {
             Pattern(.serviceSideStream)

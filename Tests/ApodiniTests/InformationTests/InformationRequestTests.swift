@@ -11,7 +11,6 @@
 import XCTApodini
 import Vapor
 
-
 final class InformationRequestTests: XCTApodiniTest {
     func testInformationRequestWithRESTExporter() throws {
         struct InformationHandler: Handler {

@@ -10,7 +10,7 @@
 import ApodiniUtils
 import XCTest
 import XCTApodini
-
+import _NIOConcurrency
 
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
@@ -49,7 +49,6 @@ final class ResponseTests: ApodiniTests {
         }
     }
     
-    
     func testResponseRequestHandling() throws {
         let expectedContent = "ResponseWithRequest"
         
@@ -79,6 +78,31 @@ final class ResponseTests: ApodiniTests {
             context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
             content: expectedContent,
             connectionEffect: .open
+        )
+    }
+    
+    func testAsyncAwaitRequestHandling() throws {
+        struct AsyncBasedHandler: Handler {
+            var eventLoop: EventLoop
+            var message: String
+
+            func handle() async throws -> String {
+                try await eventLoop.makeSucceededFuture(message).get()
+            }
+        }
+        
+        let expectedContent = "ResponseWithRequest"
+        
+        let handler = AsyncBasedHandler(eventLoop: app.eventLoopGroup.next(), message: expectedContent)
+        let endpoint = handler.mockEndpoint()
+
+        let exporter = MockExporter<String>()
+        let context = endpoint.createConnectionContext(for: exporter)
+        
+        try XCTCheckResponse(
+            context.handle(request: "Example Request", eventLoop: app.eventLoopGroup.next()),
+            content: expectedContent,
+            connectionEffect: .close
         )
     }
     

@@ -11,7 +11,6 @@ import XCTVapor
 @testable import ApodiniVaporSupport
 @testable import ApodiniREST
 
-
 final class OperationModifierTests: ApodiniTests {
     struct HelloWorldHandler: Handler {
         func handle() -> String {

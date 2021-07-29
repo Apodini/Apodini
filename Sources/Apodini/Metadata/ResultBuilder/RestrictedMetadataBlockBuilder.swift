@@ -9,13 +9,8 @@
 // swiftlint:disable missing_docs
 
 
-#if swift(>=5.4)
 @resultBuilder
 public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
-#else
-@_functionBuilder
-public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
-#endif
 
 // MARK: Restricted Handler Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: HandlerMetadataBlock, Block.RestrictedContent: AnyHandlerMetadata {

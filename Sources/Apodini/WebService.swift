@@ -30,7 +30,7 @@ public extension WebService {
 }
 
 extension WebService {
-    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
+    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
     public mutating func run() throws {
         try Self.start(webService: self)
     }

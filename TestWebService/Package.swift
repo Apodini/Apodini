@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 
 //
 // This source file is part of the Apodini open source project
@@ -14,7 +14,7 @@ import PackageDescription
 let package = Package(
     name: "TestWebService",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v12)
     ],
     products: [
         .executable(name: "TestWebService", targets: ["TestWebService"])

@@ -34,10 +34,10 @@ internal struct ResponseTransformingHandler<D, T>: Handler where D: Handler, T: 
     
     @Environment(\.connection) var connection
     
-    func handle() throws -> EventLoopFuture<Response<T.Content>> {
-        try transformed().handle().transformToResponse(on: connection.eventLoop).flatMapThrowing { responseToTransform in
+    func handle() async throws -> EventLoopFuture<Response<T.Content>> {
+        try await transformed.instance().handle().transformToResponse(on: connection.eventLoop).flatMapThrowing { responseToTransform in
             try responseToTransform.map { content in
-                try transformer().transform(content: content)
+                try transformer.instance().transform(content: content)
             }
         }
     }
@@ -68,8 +68,8 @@ private struct TransformerCandidate<Transformer: ResponseTransformer, Delegate: 
 extension TransformerCandidate: Transformable where Transformer.InputContent == Delegate.Response.Content {
     func callAsFunction() -> Any {
         SomeHandler<Response<Transformer.Content>>(ResponseTransformingHandler<Delegate, Transformer>(
-                                                    transformed: Apodini.Delegate(delegate),
-                                                    transformer: Apodini.Delegate(transformer)))
+            transformed: Apodini.Delegate(delegate, .required),
+            transformer: Apodini.Delegate(transformer, .required)))
     }
 }
 

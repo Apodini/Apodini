@@ -10,7 +10,6 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniVaporSupport
-import OpenCombine
 import Vapor
 import Logging
 
@@ -107,7 +106,7 @@ struct Exporter: InterfaceExporter {
                              knowledge.path,
                              use: buildBlobRequestResponseClosure(for: endpoint, using: knowledge.defaultValues))
         default:
-            logger.warning("HTTP exporter can only handle 'CommunicationalPatter.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(knowledge.path) is exported with degraded functionality.")
+            logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(knowledge.path) is exported with degraded functionality.")
             self.export(endpoint)
         }
     }

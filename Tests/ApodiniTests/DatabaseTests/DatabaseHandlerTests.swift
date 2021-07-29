@@ -13,7 +13,6 @@
 import Vapor
 import XCTApodini
 
-
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {
         self.app.vapor.app
