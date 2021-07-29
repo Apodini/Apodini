@@ -4,21 +4,22 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//        
+//
 
 import Foundation
 import Apodini
 import ApodiniUtils
 import ApodiniDeployBuildSupport
+import ArgumentParser
 
 /// A protocol is used to define how the structure of the web service is retrieved and persisted.
 /// This can be used in a custom subcommand of `export-ws-structure` to compute
 /// the structure in a way that is suitable for each use case.
-public protocol StructureExporter {
-    /// The `URL` to which the structure is persisted to
-    var fileUrl: URL { get }
+public protocol StructureExporter: ParsableCommand {
+    /// The filePath to which the structure is persisted to
+    var filePath: String { get }
     /// The id of the deployment provider that calle
-    var providerID: DeploymentProviderID { get }
+    var identifier: String { get }
     /// Specifies how the id of the deployment node should be computed
     var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String { get }
     
@@ -122,7 +123,7 @@ extension StructureExporter {
         try nodes.assertContainsAllEndpointsIn(endpoints)
         
         return try DeployedSystem(
-            deploymentProviderId: self.providerID,
+            deploymentProviderId: DeploymentProviderID(rawValue: self.identifier),
             nodes: nodes,
             userInfo: nil,
             userInfoType: Null.self

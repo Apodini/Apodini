@@ -57,8 +57,8 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         return .invokeDefault(url: url)
     }
     
-    public static var exportCommand: ParsableCommand.Type {
-        ExportWSLocalhostCommand<Service>.self
+    public static var exportCommand: StructureExporter.Type {
+        LocalhostStructureExporterCommand<Service>.self
     }
     
     public static var startupCommand: ParsableCommand.Type {
@@ -66,7 +66,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
 }
 
-public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
+public struct LocalhostStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "local",
                              abstract: "Export web service structure - Localhost",
@@ -76,8 +76,11 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
                              version: "0.0.1")
     }
     
-    @OptionGroup
-    var options: ExportStructureCommand.ExportOptions
+    @Argument(help: "The location of the json file")
+    public var filePath: String = "service-structure.json"
+    
+    @Option(help: "The identifier of the deployment provider")
+    public var identifier: String = "de.lukaskollmer.ApodiniDeploymentProvider.Localhost"
     
     @Option(help: "The port number for the first-launched child process")
     var endpointProcessesBasePort: Int = 5000
@@ -86,28 +89,9 @@ public struct ExportWSLocalhostCommand<Service: WebService>: ParsableCommand {
     
     public func run() throws {
         let app = Application()
-        
-        let localhostCoordinator = LocalhostStructureExporter(
-            fileUrl: URL(fileURLWithPath: options.filePath),
-            providerID: DeploymentProviderID(options.identifier),
-            endpointProcessesBasePort: self.endpointProcessesBasePort
-        )
-        
-        app.storage.set(DeploymentStructureExporterStorageKey.self, to: localhostCoordinator)
-        try Service.start(app: app, webService: Service())
-    }
-}
 
-public struct LocalhostStructureExporter: StructureExporter {
-    public var providerID: DeploymentProviderID
-    public var fileUrl: URL
-    
-    public var endpointProcessesBasePort: Int
-    
-    public init(fileUrl: URL, providerID: DeploymentProviderID, endpointProcessesBasePort: Int) {
-        self.providerID = providerID
-        self.fileUrl = fileUrl
-        self.endpointProcessesBasePort = endpointProcessesBasePort
+        app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
+        try Service.start(app: app, webService: Service())
     }
     
     public func retrieveStructure(

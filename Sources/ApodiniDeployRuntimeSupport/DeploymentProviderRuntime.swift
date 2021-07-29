@@ -47,7 +47,7 @@ public protocol DeploymentProviderRuntime: AnyObject {
     var deployedSystem: AnyDeployedSystem { get }
     var currentNodeId: DeployedSystemNode.ID { get }
     /// The subcommand of `export-ws-structure` that should be used with this runtime.
-    static var exportCommand: ParsableCommand.Type { get }
+    static var exportCommand: StructureExporter.Type { get }
     /// The subcommand of `startup` that should be used with this runtime.
     static var startupCommand: ParsableCommand.Type { get }
     

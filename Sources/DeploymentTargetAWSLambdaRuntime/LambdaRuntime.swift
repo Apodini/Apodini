@@ -58,8 +58,8 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         return .invokeDefault(url: url)
     }
     
-    public static var exportCommand: ParsableCommand.Type {
-        LambdaExportStructureCommand<Service>.self
+    public static var exportCommand: StructureExporter.Type {
+        LambdaStructureExporterCommand<Service>.self
     }
     
     public static var startupCommand: ParsableCommand.Type {
@@ -67,7 +67,8 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
 }
 
-public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand {
+
+public struct LambdaStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "aws",
                              abstract: "Export web service structure - AWS",
@@ -77,48 +78,19 @@ public struct LambdaExportStructureCommand<Service: WebService>: ParsableCommand
                              version: "0.0.1")
     }
     
-    @OptionGroup
-    var options: ExportStructureCommand.ExportOptions
+    @ArgumentParser.Argument(help: "The location of the json file")
+    public var filePath: String
+    
+    @ArgumentParser.Option(help: "The identifier of the deployment provider")
+    public var identifier: String
     
     @ArgumentParser.Option(help: "Defines the AWS API Gateway ID that is used.")
     var awsApiGatewayApiId: String
     
     @ArgumentParser.Option
     var awsRegion: String = "eu-central-1"
-    
-    public init() {}
-    
-    public func run() throws {
-        let app = Apodini.Application()
-        
-        let lambdaStructureExporter = LambdaStructureExporter(
-            providerID: DeploymentProviderID(options.identifier),
-            fileUrl: URL(fileURLWithPath: options.filePath),
-            awsApiGatewayApiId: awsApiGatewayApiId,
-            awsRegion: awsRegion)
-        
-        app.storage.set(DeploymentStructureExporterStorageKey.self, to: lambdaStructureExporter)
-        
-        try Service.start(app: app, webService: Service())
-    }
-}
 
-public struct LambdaStructureExporter: StructureExporter {
-    public var providerID: DeploymentProviderID
-    public var fileUrl: URL
-    
-    public let awsApiGatewayApiId: String
-    public let awsRegion: String
-    
-    public init(providerID: DeploymentProviderID,
-                fileUrl: URL,
-                awsApiGatewayApiId: String,
-                awsRegion: String) {
-        self.providerID = providerID
-        self.fileUrl = fileUrl
-        self.awsApiGatewayApiId = awsApiGatewayApiId
-        self.awsRegion = awsRegion
-    }
+    public init() {}
     
     public var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String {
         { endpoints in
@@ -127,6 +99,13 @@ public struct LambdaStructureExporter: StructureExporter {
             }
             return endpoint.endpoint[AnyHandlerIdentifier.self].rawValue.replacingOccurrences(of: ".", with: "-")
         }
+    }
+    
+    public func run() throws {
+        let app = Apodini.Application()
+        app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
+        
+        try Service.start(app: app, webService: Service())
     }
     
     public func retrieveStructure(
@@ -138,7 +117,7 @@ public struct LambdaStructureExporter: StructureExporter {
         }
         let defaultSystem = try self.retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
         let awsSystem = try LambdaDeployedSystem(
-            deploymentProviderId: self.providerID,
+            deploymentProviderId: DeploymentProviderID(rawValue: self.identifier),
             nodes: defaultSystem.nodes,
             userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId),
             openApiDocument: openApiDocument
