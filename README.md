@@ -23,6 +23,7 @@ Apodini is a declarative, composable framework to build web services using Swift
 Apodini uses the Swift Package Manager:
 
 Add it as a project-dependency:
+
 ```swift
 dependencies: [
     .package(url: "https://github.com/Apodini/Apodini.git", .branch("develop"))
