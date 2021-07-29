@@ -1,13 +1,3 @@
-<!--
-                  
-This source file is part of the Apodini open source project
-
-SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
-
-SPDX-License-Identifier: MIT
-             
--->
-
 # ``Apodini``
 
 A declarative, composable framework to build web services using Swift.
@@ -24,11 +14,30 @@ It defines an **internal DSL** and other high level APIs on top of [SwiftNIO](ht
 
 It also works with an ecosystem of server-side Swift frameworks that including [Fluent](https://docs.vapor.codes/4.0/fluent/overview/), an object–relational mapping framework which provides an easy-to-use interface for your database.
 
+> Tip: Apodini also provide simplified error handling: ``ApodiniError``.
+
 ## Topics
 
-### Getting Started
+### Essentials
 
 - <doc:Installation>
 - <doc:HelloWorld>
 - <doc:DatabaseConnection>
+- <doc:UnitTesting>
+- <doc:CommunicationPattern>
 
+### Additional Functionalities
+
+- <doc:PushNotifications>
+- <doc:Jobs>
+- <doc:ProtocolBuffers>
+
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->

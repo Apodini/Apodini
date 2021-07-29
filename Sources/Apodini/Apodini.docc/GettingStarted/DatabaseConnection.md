@@ -1,13 +1,3 @@
-<!--
-                  
-This source file is part of the Apodini open source project
-
-SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
-
-SPDX-License-Identifier: MIT
-             
--->
-
 # Database Connection
 
 Connect Apodini project to a database system.
@@ -63,7 +53,7 @@ Apodini provides `.addMigrations(_:)` function to add one or more `Migrations`.
 ```swift
 struct ExampleWebService: WebService {
     var content: some Component {
-        // ...
+        ContactComponent()
     }
     
     var configuration: Configuration {
@@ -81,6 +71,48 @@ The `Migration` should conform to Fluent [Migration](https://docs.vapor.codes/4.
 It is required to prepare your object models beforehand. They should conform to Fluent [Model](https://docs.vapor.codes/4.0/fluent/model/).
 
 > Important: Each object model should also conform to ``Content``.
+
+### Define Components
+
+You can use ``Component`` to define the route based on the input parameter as follows:
+
+```swift
+struct ContactComponent: Component {
+    @PathParameter
+    var contactId: Contact.IDValue
+    
+    
+    var content: some Component {
+        Group("contacts") {
+            
+            CreateContact()
+                .operation(.create)
+            
+            GetContacts()
+            
+            Group($contactId) {
+                
+                GetContact(contactId: $contactId)
+                
+                UpdateContact(contactId: $contactId)
+                    .operation(.update)
+                
+                DeleteContact(contactId: $contactId)
+                    .operation(.delete)
+            }
+        }
+    }
+}
+```
+
+In this case, the `contactId` can be passed as a path in the URL request
+```
+http://localhost:8080/v1/contacts/<contactId>
+```
+For every endpoint it is to be defined which ``operation`` is represented by the given endpoint.
+
+> Tip: Learn more advance relationship retrieval: <doc:RetrieveRelationship>
+
 
 ### Query Example
 
