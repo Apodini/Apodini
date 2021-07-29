@@ -133,7 +133,7 @@ extension Handler {
 }
 
 extension Array where Element == _AnyEndpoint {
-    func intersection(_ other: [Element]) -> Self<Element> {
+    func intersection(_ other: [Element]) -> Array<Element> {
         filter { element in
             other.contains(where: { otherElement in
                 element[AnyHandlerIdentifier.self] == otherElement[AnyHandlerIdentifier.self]
