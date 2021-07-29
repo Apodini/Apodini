@@ -12,7 +12,6 @@ import XCTApodini
 @testable import ApodiniOpenAPI
 import Vapor
 
-
 final class BlobTests: ApodiniTests {
     func testBlobResponseHandler() throws {
         struct BlobResponseHandler: Handler {

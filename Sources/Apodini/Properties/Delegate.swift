@@ -48,7 +48,7 @@ public struct Delegate<D> {
     }
     
     /// Prepare the wrapped delegate `D` for usage.
-    public func callAsFunction() throws -> D {
+    public func instance() throws -> D {
         guard let store = storage else {
             fatalError("'Delegate' was called before activation.")
         }
@@ -113,7 +113,7 @@ public enum Optionality: PropertyOption {
     /// Default for `@Parameter`s behind a `Delegate`. Documentation should show this parameter as not required.
     case optional
     /// Default for normal `@Parameter`s, i.e. such that are not behind a `Delegate`. Pass this to a `Delegate`, if there is no path
-    /// throgh your `handle()` that doesn't `throw` where the `Delegate` is not called.
+    /// through your `handle()` that doesn't `throw` where the `Delegate` is not called.
     case required
 }
 
@@ -294,21 +294,14 @@ extension Delegate: AnyObservedObject {
 }
 
 public extension _Internal {
-    /// Activates the delegate if not done yet.
-    static func prepareIfNotReady<H: Handler>(_ delegate: inout Delegate<H>) {
-        if delegate.storage == nil {
-            delegate.activate()
-        }
-    }
-    
     /// Evaluates the delegate using the given `state` and `request`.
-    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) throws -> H.Response {
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) async throws -> H.Response {
         do {
             delegate.inject(Connection(state: state, request: request), for: \Application.connection)
             try delegate.inject(using: request)
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
         }
-        return try delegate().handle()
+        return try await delegate.instance().handle()
     }
 }

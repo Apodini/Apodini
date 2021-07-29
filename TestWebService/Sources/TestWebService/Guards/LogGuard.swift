@@ -9,7 +9,7 @@
 import Apodini
 import Logging
 
-struct LogGuard: SyncGuard {
+struct LogGuard: Guard {
     private let message: String
     
     @Environment(\.logger) var logger: Logger

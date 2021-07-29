@@ -8,7 +8,7 @@
 
 @testable import Apodini
 
-struct PrintGuard: SyncGuard {
+struct PrintGuard: Guard {
     func check() {
         print("PrintGuard check executed")
     }

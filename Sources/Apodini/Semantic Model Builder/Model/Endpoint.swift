@@ -53,14 +53,10 @@ protocol _AnyEndpoint: AnyEndpoint {
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     private let blackboard: Blackboard
-
-    public let handler: H
     
     init(
-        handler: H,
         blackboard: Blackboard
     ) {
-        self.handler = handler
         self.blackboard = blackboard
     }
     
@@ -85,6 +81,15 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     @discardableResult
     public func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self[EndpointParameters.self].exportParameters(on: exporter)
+    }
+}
+
+extension Endpoint {
+    /// The ``Handler`` responsible for this ``Endpoint``.
+    ///
+    /// This is just a shortcut for ``EndpointSource/handler``. which can be accessed via the ``Blackboard``.
+    public var handler: H {
+        self[EndpointSource<H>.self].handler
     }
 }
 

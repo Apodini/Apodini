@@ -12,7 +12,6 @@ import Vapor
 import Foundation
 import XCTApodini
 
-
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
     class TestObservable: Apodini.ObservableObject {

@@ -10,7 +10,6 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
-
 final class ThreadSafetyTests: ApodiniTests {
     struct Greeter: Handler {
         @Parameter var id: String

@@ -9,7 +9,6 @@
 @testable import Apodini
 import XCTApodini
 
-
 class ParameterMutabilityTests: ApodiniTests {
     struct TestHandler: Handler {
         // variable

@@ -195,7 +195,6 @@ private extension ProtobufferInterfaceExporter {
 }
 
 // MARK: - ProtobufferInterfaceExporter.Builder Implementation
-
 private extension ProtobufferInterfaceExporter.Builder {
     func handleUUIDProperty(
         _ property: ProtobufferMessage.Property
@@ -253,7 +252,6 @@ private extension ProtobufferMessage {
 }
 
 // MARK: - ProtobufferInterfaceExporter: CustomStringConvertible
-
 extension ProtobufferInterfaceExporter: CustomStringConvertible {
     public var description: String {
         let protoFile = [

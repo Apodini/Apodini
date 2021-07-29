@@ -14,64 +14,17 @@ import protocol FluentKit.Database
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 
-
 final class GuardTests: ApodiniTests {
     private static var guardExpectation: XCTestExpectation?
     
     
-    func testSyncGuard() throws {
-        struct TestSyncGuard: SyncGuard {
+    func testGuard() throws {
+        struct TestGuard: Guard {
             func check() {
                 guard let guardExpectation = GuardTests.guardExpectation else {
                     fatalError("The test expectation must be set before testing `TestGuard`")
                 }
                 guardExpectation.fulfill()
-            }
-        }
-        
-        GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
-        
-        struct TestWebService: WebService {
-            var version = Version(prefix: "v", major: 2, minor: 1, patch: 0)
-            
-            var content: some Component {
-                Text("Hello")
-                    .guard(TestSyncGuard())
-            }
-
-            var configuration: Configuration {
-                REST()
-            }
-        }
-        
-        TestWebService.start(app: app)
-        
-        
-        try app.vapor.app.test(.GET, "/v2/") { res in
-            XCTAssertEqual(res.status, .ok)
-            
-            struct Content: Decodable {
-                let data: String
-            }
-            
-            let content = try res.content.decode(Content.self)
-            XCTAssert(content.data == "Hello")
-            waitForExpectations(timeout: 0, handler: nil)
-        }
-    }
-    
-    func testGuard() throws {
-        struct TestGuard: Guard {
-            @Apodini.Environment(\.database)
-            var database: Database
-            
-            func check() -> EventLoopFuture<Void> {
-                guard let guardExpectation = GuardTests.guardExpectation else {
-                    fatalError("The test expectation must be set before testing `TestGuard`")
-                }
-                guardExpectation.fulfill()
-                
-                return database.eventLoop.makeSucceededFuture(Void())
             }
         }
         
@@ -107,7 +60,7 @@ final class GuardTests: ApodiniTests {
     }
     
     func testResetGuard() throws {
-        struct TestSyncGuard: SyncGuard {
+        struct TestGuard: Guard {
             func check() {
                 XCTFail("Check must never be called!")
             }
@@ -118,7 +71,7 @@ final class GuardTests: ApodiniTests {
                 Group {
                     Text("Hello")
                         .resetGuards()
-                }.guard(TestSyncGuard())
+                }.guard(TestGuard())
             }
 
             var configuration: Configuration {
@@ -141,7 +94,7 @@ final class GuardTests: ApodiniTests {
     }
     
     func testResetGuardOnMultipleLayers() throws {
-        struct TestSyncGuard: SyncGuard {
+        struct TestSyncGuard: Guard {
             static var collectedOrder: [Int] = []
 
             let order: Int
@@ -219,7 +172,7 @@ final class GuardTests: ApodiniTests {
     }
     
     func testResetGuardOnSameComponent() throws {
-        struct TestSyncGuard: SyncGuard {
+        struct TestGuard: Guard {
             func check() {
                 XCTFail("Check must never be called!")
             }
@@ -228,7 +181,7 @@ final class GuardTests: ApodiniTests {
         struct TestWebService: WebService {
             var content: some Component {
                 Text("Hello")
-                    .guard(TestSyncGuard())
+                    .guard(TestGuard())
                     .resetGuards()
             }
 
@@ -252,7 +205,7 @@ final class GuardTests: ApodiniTests {
     }
     
     func testResetGuardOnSameComponentWithNoEffect() throws {
-        struct TestSyncGuard: SyncGuard {
+        struct TestGuard: Guard {
             func check() {
                 guard let guardExpectation = GuardTests.guardExpectation else {
                     fatalError("The test expectation must be set before testing `TestGuard`")
@@ -261,13 +214,13 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        GuardTests.guardExpectation = self.expectation(description: "TestSyncGuard is executed")
+        GuardTests.guardExpectation = self.expectation(description: "TestGuard is executed")
         
         struct TestWebService: WebService {
             var content: some Component {
                 Text("Hello")
                     .resetGuards()
-                    .guard(TestSyncGuard())
+                    .guard(TestGuard())
             }
             
             var configuration: Configuration {
@@ -291,7 +244,7 @@ final class GuardTests: ApodiniTests {
     }
 
     func testGuardMetadata() throws {
-        struct MetadataGuard: SyncGuard {
+        struct MetadataGuard: Guard {
             static var metadataGuardExpectation: XCTestExpectation?
 
             let order: Int
@@ -301,7 +254,7 @@ final class GuardTests: ApodiniTests {
             }
         }
 
-        struct ModifierGuard: SyncGuard {
+        struct ModifierGuard: Guard {
             static var modifierGuardExpectation: XCTestExpectation?
 
             let order: Int
@@ -347,7 +300,7 @@ final class GuardTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 
         handler.accept(visitor)
-        let context = visitor.currentNode.export()
+        _ = visitor.currentNode.export()
 
         modelBuilder.finishedRegistration()
 

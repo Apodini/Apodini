@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 #              
 
-FROM swift:amazonlinux2
+FROM swiftlang/swift:nightly-5.5-amazonlinux2
 
 ARG USER_ID
 ARG GROUP_ID

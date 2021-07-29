@@ -121,7 +121,6 @@ struct AWS_RandomNumberGenerator: InvocableHandler, HandlerWithDeploymentOptions
     }
 }
 
-
 struct AWS_Greeter: Handler {
     @Apodini.Environment(\.RHI) private var RHI
     

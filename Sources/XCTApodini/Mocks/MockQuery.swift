@@ -26,6 +26,7 @@ public func mockQuery<Value: Encodable, H: Handler>(
     let exporter = MockExporter<String>(queued: parameterValues)
     
     var delegate = Delegate(handler, .required)
+    delegate.activate()
     
     let request = "Mock Request"
     
@@ -35,7 +36,7 @@ public func mockQuery<Value: Encodable, H: Handler>(
                                                                    with: DefaultRequestBasis(base: request),
                                                                    with: app.eventLoopGroup.next())
                                                     .insertDefaults(with: endpoint[DefaultValueStore.self])
-                                                    .evaluate(on: &delegate, final ? .end : .open)
+                                                    .evaluate(on: delegate, final ? .end : .open)
                                                     .wait()
     
     return try XCTUnwrap(response.typed(value))

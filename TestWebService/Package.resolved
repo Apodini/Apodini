@@ -119,15 +119,6 @@
         }
       },
       {
-        "package": "OpenCombine",
-        "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
-        "state": {
-          "branch": null,
-          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
-          "version": "0.12.0"
-        }
-      },
-      {
         "package": "RichJSONParser",
         "repositoryURL": "https://github.com/omochi/RichJSONParser.git",
         "state": {
@@ -321,8 +312,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "2ada54b7ce56cc6934cd2c0207bef2305bfbd7a1",
-          "version": "4.48.2"
+          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
+          "version": "4.47.2"
         }
       },
       {
