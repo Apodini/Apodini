@@ -2,6 +2,16 @@
 
 Connect Apodini project to a database system.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 Apodini uses [Fluent](https://docs.vapor.codes/4.0/fluent/overview/) provide easy access to the database, including the creation of model types which represent data structures. These models are then used to perform create, read, update, and delete operations instead of writing raw queries.

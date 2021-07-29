@@ -2,6 +2,16 @@
 
 Show how to create a typical test class for an Apodini web service.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 The following example shows you a typical test class used to cite unit test for an Apodini web service. We subclass from `XCTApdiniTest` or `XCTApodiniDatabaseTest` to already get access to an Apodini app instance in the unit tests and get convenience methods to access the database and add migrations `.addMigrations()` for `XCTApodiniDatabaseTest`.

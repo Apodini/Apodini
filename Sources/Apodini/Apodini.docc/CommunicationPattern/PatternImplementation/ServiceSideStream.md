@@ -2,6 +2,16 @@
 
 Provide a code example of service-side stream.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 A service-side stream sends multiple service-messages after one client-message. In order to do that service-side stream `Handler`s can observe an `ObservableObject` using the `@ObservedObject` property wrapper. Every time one of the properties annotated with `@ObservedObject` changes the `Handler` is evaluated.

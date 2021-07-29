@@ -2,6 +2,16 @@
 
 Extensive configuration options for Apodini Exporters.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 The `configuration` variable of the `WebService` allows developers to specify various settings of the Apodini web service. The probably most important one is the configuration of the Exporters, so what interfaces of the declaratively defined web service are exposed. Of course, the DSL of Apodini should also allow the developer to configure the exporters themselves, so for example what Encoding/Decoding strategy should be used by the exporter.

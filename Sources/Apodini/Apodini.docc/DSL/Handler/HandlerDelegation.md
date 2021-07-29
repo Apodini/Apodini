@@ -1,6 +1,18 @@
 # Delegating Handlers
 
-Defining reusable and assertive `Handler`s
+Defining reusable and assertive `Handler`s.
+
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
+## Overview
 
 In some situations, putting all of your application logic into a single `Handler` is not practical. There might be a certain part of this logic that is reusable and required in multiple `Handler`s. You might not want to initialize certain objects before you have done some assertions. Or there is just so much going on in your `Handler` that it becomes difficult to read. In all of these situations you need a `Delegate`.
 

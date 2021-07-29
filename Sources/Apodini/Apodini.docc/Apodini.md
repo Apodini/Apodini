@@ -2,6 +2,16 @@
 
 A declarative, composable framework to build web services using Swift.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 Apodini is an open source server side Swift framework completely written in Swift.
@@ -31,13 +41,3 @@ It also works with an ecosystem of server-side Swift frameworks that including [
 - <doc:PushNotifications>
 - <doc:Jobs>
 - <doc:ProtocolBuffers>
-
-<!--
-                  
-This source file is part of the Apodini open source project
-
-SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
-
-SPDX-License-Identifier: MIT
-             
--->

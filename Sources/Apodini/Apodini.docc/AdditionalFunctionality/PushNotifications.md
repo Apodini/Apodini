@@ -2,6 +2,16 @@
 
 A guide to use push notifications in Apodini.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 The `NotificationCenter` can handle the registration and sending of **push notifications** to Apple Push Notification Service (APNS) and Firebase Cloud Messaging (FCM). APNS can send out push notifications to iOS, macOS and tvOS devices, while FCM handles messaging for iOS, Android, and Web Push.

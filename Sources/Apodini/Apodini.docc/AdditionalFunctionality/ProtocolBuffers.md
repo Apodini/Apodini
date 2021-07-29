@@ -2,6 +2,16 @@
 
 Describe how to export the webservice via IDL exporter.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 This file describes how the gRPC interface exporter and the protocol buffer IDL exporter are exporting the web service described in Apodini's DSL.

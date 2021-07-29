@@ -2,6 +2,16 @@
 
 Description of State property wrapper and its usage in Apodini.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 `@State` allows for the developer to keep a state across multiple events, e.g. multiple messages that are part of the same connection. `@State` variables require a default value to be defined by the developer (except the `wrappedValue` is of an optional type). The `wrappedValue` has a setter.

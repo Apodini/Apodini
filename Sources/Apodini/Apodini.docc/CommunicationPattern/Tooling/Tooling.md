@@ -2,6 +2,16 @@
 
 Description service structure for endpoints.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Component
 
 A service consists of multiple endpoints. Apodini provides a DSL that allows to define the service's structure using `Component`s. `Component`s have a recursive `content: some Component` property that is used to build a `Component`-stack. This stack is determined on startup and may not change during runtime. An endpoint is created where the `Component`'s `content` is `Never`. Such `Component`s are `Handler`s. Both, input- and output-type of an endpoint (i.e. `Handler`) are fixed at startup.

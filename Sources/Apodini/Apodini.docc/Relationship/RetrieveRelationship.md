@@ -3,6 +3,16 @@
 This proposal describes how relationship information can be generated from the DSL, introduces some concepts
 to give hints for relationship retrieval and adds mechanisms to manually define hints.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 * A **REST** Interface Exporter will use such relationship information to generate Hypermedia information.
