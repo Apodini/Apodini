@@ -26,7 +26,7 @@
 ///     can be defined by extending the appropriate Metadata Namespace: `ComponentMetadataNamespace`,
 ///     `HandlerMetadataNamespace`, `WebServiceMetadataNamespace` or `ContentMetadataNamespace`.
 public protocol MetadataDefinition: AnyMetadata {
-    /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata.
+    /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata value.
     associatedtype Key: OptionalContextKey
 
     /// The value which is to be stored.

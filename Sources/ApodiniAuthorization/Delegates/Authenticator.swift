@@ -128,7 +128,7 @@ struct AuthenticatorInitializer<Configuration: AuthorizationConfiguration>: Dele
         self.requirements = requirements
     }
 
-    func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Never> {
+    func instance<D: Handler>(for delegate: D) -> SomeHandler<Never> {
         SomeHandler(Authenticator(configuration, requirements, delegate))
     }
 }

@@ -16,6 +16,8 @@ import JWTKit
 public struct JWTVerifier<Element: JWTAuthenticatable>: AuthenticationVerifier {
     @Environment(\.jwtSigners)
     var signers
+    
+    public init() {}
 
     public func initializeAndVerify(for authenticationInfo: String) throws -> Element {
         try signers.verify(authenticationInfo, as: Element.self)

@@ -4,3 +4,4 @@
 
 @_exported import JWTKit
 @_exported import ApodiniAuthorization
+@_exported import ApodiniAuthorizationBearerScheme
