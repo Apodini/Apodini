@@ -24,5 +24,5 @@ public protocol AuthenticationVerifier {
     /// - Returns: Returns the instantiated and verified ``Element`` instance.
     /// - Throws: Throws an `ApodiniError` if anything gone wrong in the instantiating or verification process.
     ///     For example a respective ``Authenticatable`` might fail the password or signature check.
-    func initializeAndVerify(for authenticationInfo: AuthenticationInfo) throws -> Element
+    func initializeAndVerify(for authenticationInfo: AuthenticationInfo) async throws -> Element
 }

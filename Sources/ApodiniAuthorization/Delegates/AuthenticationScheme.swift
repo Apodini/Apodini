@@ -24,7 +24,7 @@ public protocol AuthenticationScheme {
     /// - Returns: The parsed ``AuthenticationInfo`` instance.
     /// - Throws: Throws an `ApodiniError` if encountering malformed input.
     ///     Any error thrown by this method will always be feed into `mapFailedAuthorization(failedWith:)`.
-    func deriveAuthenticationInfo() throws -> AuthenticationInfo?
+    func deriveAuthenticationInfo() async throws -> AuthenticationInfo?
 
     /// This method is used to map an generic `ApodiniError` encountered in the authentication and authorization process
     /// to a `ApodiniError` instance which potentially contains ``AuthenticationScheme`` specific options or `Information`s.

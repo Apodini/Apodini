@@ -63,7 +63,7 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
     func authenticationAndAuthorize(scheme: Configuration.Scheme) async throws -> H.Response {
         let maybeAuthenticationInfo: Configuration.Scheme.AuthenticationInfo?
         do {
-            maybeAuthenticationInfo = try scheme.deriveAuthenticationInfo()
+            maybeAuthenticationInfo = try await scheme.deriveAuthenticationInfo()
         } catch {
             throw error.apodiniError(options: .authorizationErrorReason(.invalidAuthenticationRequest))
         }
@@ -85,7 +85,7 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
 
         let instance: Configuration.Authenticatable
         do {
-            instance = try verifier.initializeAndVerify(for: authenticationInfo)
+            instance = try await verifier.initializeAndVerify(for: authenticationInfo)
         } catch {
             throw error.apodiniError(options: .authorizationErrorReason(.failedAuthentication))
         }
