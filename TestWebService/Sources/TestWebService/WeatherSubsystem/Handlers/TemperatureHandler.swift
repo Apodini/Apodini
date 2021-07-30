@@ -10,6 +10,8 @@ import Apodini
 import Foundation
 
 struct GetTemperature: Handler {
+    @Parameter var useKelvin: Bool = false
+    
     @Binding var date: Date
 
     @Location var location: Coordinates
@@ -17,7 +19,7 @@ struct GetTemperature: Handler {
     @Environment(\.temperatureService) var temperature
 
     func handle() throws -> Double {
-        try temperature(date, location)
+        try temperature(date, location) + (useKelvin ? 273.15 : 0.0)
     }
 }
 
