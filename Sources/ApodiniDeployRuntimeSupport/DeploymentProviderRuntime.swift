@@ -49,7 +49,7 @@ public protocol DeploymentProviderRuntime: AnyObject {
     /// The subcommand of `export-ws-structure` that should be used with this runtime.
     static var exportCommand: StructureExporter.Type { get }
     /// The subcommand of `startup` that should be used with this runtime.
-    static var startupCommand: ParsableCommand.Type { get }
+    static var startupCommand: DeploymentStartupCommand.Type { get }
     
     func configure(_ app: Apodini.Application) throws
     
@@ -77,14 +77,14 @@ public struct DeploymentStructureExporterStorageKey: StorageKey {
 
 /// A public storage key that is used to save/retrieve the `DeploymentStartupConfiguration` to/from the app;s storage.
 public struct DeploymentStartUpStorageKey: StorageKey {
-    public typealias Value = DeploymentStartupConfiguration
+    public typealias Value = DeploymentStartupCommand
 }
 
 /// When using the startup cli command for deployment providers, the CLI should save a struct conforming to this protocol using
 /// the `DeploymentStartUpStorageKey`. It contains the basic properties that are needed to initialize the deployment runtimes.
-public protocol DeploymentStartupConfiguration {
+public protocol DeploymentStartupCommand: ParsableCommand {
     /// The `URL` of the deployment structure json.
-    var fileUrl: URL { get }
+    var filePath: String { get }
     /// The id of the deployment node
     var nodeId: String { get }
     /// The type of `AnyDeployedSystem` that should is used by the deployment provider.
@@ -92,7 +92,7 @@ public protocol DeploymentStartupConfiguration {
     var deployedSystem: AnyDeployedSystem.Type { get }
 }
 
-extension DeploymentStartupConfiguration {
+extension DeploymentStartupCommand {
     /// The default value of `deployedSystem`.
     public var deployedSystem: AnyDeployedSystem.Type {
         DeployedSystem.self

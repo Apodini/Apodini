@@ -61,7 +61,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         LocalhostStructureExporterCommand<Service>.self
     }
     
-    public static var startupCommand: ParsableCommand.Type {
+    public static var startupCommand: DeploymentStartupCommand.Type {
         LocalhostStartupCommand<Service>.self
     }
 }
@@ -114,7 +114,7 @@ public struct LocalhostStructureExporterCommand<Service: WebService>: StructureE
     }
 }
 
-public struct LocalhostStartupCommand<Service: WebService>: ParsableCommand {
+public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "local",
                              abstract: "Start a web service - Localhost",
@@ -124,16 +124,16 @@ public struct LocalhostStartupCommand<Service: WebService>: ParsableCommand {
                              version: "0.0.1")
     }
     
-    @OptionGroup
-    var commonOptions: StartupCommand.CommonOptions
+    @Argument(help: "The location of the json containing the system structure")
+    public var filePath: String
+    
+    @Option(help: "The identifier of the deployment node")
+    public var nodeId: String
     
     public func run() throws {
         let app = Application()
-        let defaultConfig = StartupCommand.DefaultDeploymentStartupConfiguration(
-            URL(fileURLWithPath: commonOptions.fileUrl),
-            nodeId: commonOptions.nodeId
-        )
-        app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
+
+        app.storage.set(DeploymentStartUpStorageKey.self, to: self)
         try Service.start(app: app, webService: Service())
     }
     

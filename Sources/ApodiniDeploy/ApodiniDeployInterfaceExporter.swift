@@ -150,7 +150,7 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             deployedSystem = try DeployedSystem(decodingJSONAt: URL(fileURLWithPath: env[WellKnownEnvironmentVariables.fileUrl]!))
         } else if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
             // If no env variables found, check if the web service was started using the `deploy startup` command
-            configUrl = URL(fileURLWithPath: deploymentConfig.fileUrl.path)
+            configUrl = URL(fileURLWithPath: deploymentConfig.filePath)
             currentNodeId = deploymentConfig.nodeId
             
             deployedSystem = try deploymentConfig.deployedSystem.init(decodingJSONAt: configUrl)

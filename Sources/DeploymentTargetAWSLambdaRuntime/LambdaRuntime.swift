@@ -62,7 +62,7 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         LambdaStructureExporterCommand<Service>.self
     }
     
-    public static var startupCommand: ParsableCommand.Type {
+    public static var startupCommand: DeploymentStartupCommand.Type {
         LambdaStartupCommand<Service>.self
     }
 }
@@ -126,7 +126,7 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
     }
 }
 
-public struct LambdaStartupCommand<Service: WebService>: ParsableCommand {
+public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "aws",
                              abstract: "Start a web service - AWS Lambda",
@@ -136,16 +136,20 @@ public struct LambdaStartupCommand<Service: WebService>: ParsableCommand {
                              version: "0.0.1")
     }
 
-    @OptionGroup
-    var commonOptions: StartupCommand.CommonOptions
+    @ArgumentParser.Argument(help: "The location of the json containing the system structure")
+    public var filePath: String
+    
+    @ArgumentParser.Option(help: "The identifier of the deployment node")
+    public var nodeId: String
 
+    public var deployedSystem: AnyDeployedSystem.Type {
+        LambdaDeployedSystem.self
+    }
+    
     public func run() throws {
         let app = Application()
-        let defaultConfig = StartupCommand.DefaultDeploymentStartupConfiguration(
-            URL(fileURLWithPath: commonOptions.fileUrl),
-            nodeId: commonOptions.nodeId
-        )
-        app.storage.set(DeploymentStartUpStorageKey.self, to: defaultConfig)
+        
+        app.storage.set(DeploymentStartUpStorageKey.self, to: self)
         try Service.start(app: app, webService: Service())
     }
 

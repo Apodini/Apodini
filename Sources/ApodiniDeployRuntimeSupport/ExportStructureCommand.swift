@@ -84,15 +84,3 @@ public struct StartupCommand: ParsableCommand {
         return StartupCommand.self
     }
 }
-
-extension StartupCommand {
-    public struct DefaultDeploymentStartupConfiguration: DeploymentStartupConfiguration {
-        public var fileUrl: URL
-        public var nodeId: String
-        
-        public init(_ fileUrl: URL, nodeId: String) {
-            self.fileUrl = fileUrl
-            self.nodeId = nodeId
-        }
-    }
-}
