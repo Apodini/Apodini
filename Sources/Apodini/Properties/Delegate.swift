@@ -153,7 +153,7 @@ extension Delegate {
 extension Delegate {
     /// Change a `delegate`'s `ObservedObject` to observe another `value`.
     @discardableResult
-    public func setObservable<V: ObservableObject>(_ keypath: WritableKeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
+    public func setObservable<V: ObservableObject>(_ keypath: KeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
         guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
@@ -169,18 +169,18 @@ extension Delegate {
 extension Delegate {
     /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
-    public func environment<V>(_ keyPath: WritableKeyPath<Application, V>, _ value: V) -> Delegate {
+    public func environment<V>(_ keyPath: KeyPath<Application, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
     /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
-    public func environment<K, V>(_ keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
+    public func environment<K, V>(_ keyPath: KeyPath<K, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
     @discardableResult
-    private func environment<K, V>(at keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
+    private func environment<K, V>(at keyPath: KeyPath<K, V>, _ value: V) -> Delegate {
         guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
