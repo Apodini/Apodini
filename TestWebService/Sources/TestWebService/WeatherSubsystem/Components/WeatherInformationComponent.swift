@@ -18,5 +18,8 @@ struct WeatherInformationComponent: Component {
         Group("temperature") {
             GetTemperature(date: date, location: location)
         }
+        Group("danger") {
+            GetDanger(date: date, location: location)
+        }
     }
 }
