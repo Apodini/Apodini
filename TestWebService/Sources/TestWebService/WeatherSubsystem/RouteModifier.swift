@@ -18,7 +18,7 @@ extension Component {
 }
 
 struct TripWeatherRouteInitializer<R: ResponseTransformable>: DelegatingHandlerInitializer {
-    func instance<D>(for delegate: D) throws -> SomeHandler<R> where D : Handler {
+    func instance<D>(for delegate: D) throws -> SomeHandler<R> where D: Handler {
         SomeHandler(TripWeatherBuildingHandler(delegate: Delegate(delegate, .required)))
     }
 }
@@ -37,7 +37,7 @@ private struct TripWeatherBuildingHandler<H: Handler>: Handler {
     
     @Environment(\.routeService) var route
     
-    @Parameter var date: Date = Date()
+    @Parameter var date = Date()
     
     @Parameter var startLatitude: Double
     @Parameter var startLongitude: Double

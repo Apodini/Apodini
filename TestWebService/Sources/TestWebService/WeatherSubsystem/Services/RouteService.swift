@@ -42,20 +42,20 @@ func distance(between start: Coordinates, and end: Coordinates) -> Double {
 // https://stackoverflow.com/a/365853/9816338
 
 private func degreesToRadians(_ degrees: Double) -> Double {
-    degrees * Double.pi / 180.0;
+    degrees * Double.pi / 180.0
 }
 
 private func distanceInKmBetweenEarthCoordinates(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
-    let earthRadiusKm = 6371.0;
+    let earthRadiusKm = 6371.0
 
-    let dLat = degreesToRadians(lat2-lat1);
-    let dLon = degreesToRadians(lon2-lon1);
+    let dLat = degreesToRadians(lat2 - lat1)
+    let dLon = degreesToRadians(lon2 - lon1)
 
-    let lat1 = degreesToRadians(lat1);
-    let lat2 = degreesToRadians(lat2);
+    let lat1 = degreesToRadians(lat1)
+    let lat2 = degreesToRadians(lat2)
 
-    let a = sin(dLat / 2.0) * sin(dLat / 2.0) + sin(dLon / 2.0) * sin(dLon / 2.0) * cos(lat1) * cos(lat2);
-    let c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
+    let consta = sin(dLat / 2.0) * sin(dLat / 2.0) + sin(dLon / 2.0) * sin(dLon / 2.0) * cos(lat1) * cos(lat2)
+    let constc = 2.0 * atan2(sqrt(consta), sqrt(1.0 - consta))
     
-    return earthRadiusKm * c;
+    return earthRadiusKm * constc
 }

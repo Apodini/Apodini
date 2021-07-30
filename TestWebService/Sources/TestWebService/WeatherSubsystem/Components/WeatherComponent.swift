@@ -10,7 +10,7 @@ import Apodini
 import Foundation
 
 struct WeatherComponent: Component, EnvironmentAccessible {
-    @Parameter var date: Date = Date()
+    @Parameter var date = Date()
     @Parameter var latitude: Double
     @Parameter var longitude: Double
     

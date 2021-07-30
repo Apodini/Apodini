@@ -10,7 +10,7 @@ import Apodini
 import Foundation
 
 struct GetTemperature: Handler {
-    @Parameter var useKelvin: Bool = false
+    @Parameter var useKelvin = false
     
     @Binding var date: Date
 
