@@ -13,7 +13,7 @@ import ApodiniUtils
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
 /// A `Component`  consists of different other components as described by the `content` property.
-public protocol Component: ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
+public protocol Component: AnyMetadataBlock, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component
 
@@ -32,6 +32,18 @@ public extension Component {
     /// Components have an empty `AnyComponentOnlyMetadata` by default.
     var metadata: AnyComponentOnlyMetadata {
         Empty()
+    }
+}
+
+// MARK: AnyMetadataBlock
+public extension Component {
+    /// Returns the type erased metadata content of the ``Component``.
+    var blockContent: AnyMetadata {
+        self.metadata as! AnyMetadata
+    }
+    
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        blockContent.collectMetadata(visitor)
     }
 }
 
@@ -56,7 +68,7 @@ extension Component {
             // As stated above, this might be a Modifier and the Metadata of Modifiers can't be accessed.
             // So we only start parsing the metadata if in fact we know that it isn't a Modifier.
             if StandardModifierVisitor()(self) != true {
-                (metadata as! AnyMetadata).accept(visitor)
+                (metadata as! AnyMetadata).collectMetadata(visitor)
             }
 
             visitable.accept(visitor)
@@ -67,7 +79,7 @@ extension Component {
                 // Covering components which are not Handlers and don't conform to `SyntaxTreeVisitable`.
                 // Such Components are typically constructed by users.
                 // Executed before we enter the content below.
-                (metadata as! AnyMetadata).accept(visitor)
+                (metadata as! AnyMetadata).collectMetadata(visitor)
             }
 
             if Self.Content.self != Never.self {

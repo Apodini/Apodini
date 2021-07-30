@@ -12,7 +12,7 @@ import Foundation
 /// Types that can be returned from a `Handler`'s `handle` function should conform to `Content`.
 /// `Content` includes the conformance to `Encodable`. If the types implement the `Encodable` requirements the type doesn't need to provide additional
 /// implementation steps to conform to `ResponseTransformable`.
-public protocol Content: Encodable & ResponseTransformable, ContentMetadataNamespace {
+public protocol Content: Encodable & ResponseTransformable, AnyMetadataBlock, ContentMetadataNamespace {
     typealias Metadata = AnyContentMetadata
 
     @ContentMetadataBuilder
@@ -26,3 +26,15 @@ public extension Content {
         Empty()
     }
 }
+
+// MARK: AnyMetadataBlock
+public extension Content {
+    var blockContent: AnyMetadata {
+        Self.metadata
+    }
+    
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        blockContent.collectMetadata(visitor)
+    }
+}
+

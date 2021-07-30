@@ -15,7 +15,7 @@ import Apodini
 /// the ``Authenticatable`` instance and verify its correctness and/or integrity.
 ///
 /// In an ``AuthenticationScheme`` you can use any common ``Property`` similar as you can in a  ``Handler``.
-public protocol AuthenticationScheme {
+public protocol AuthenticationScheme: ComponentMetadataBlock {
     /// The result type of an ``AuthenticationScheme``.
     associatedtype AuthenticationInfo
 
@@ -57,5 +57,13 @@ public extension AuthenticationScheme {
     /// Default implementation which just forwards the `ApodiniError` without modifying it.
     func mapFailedAuthorization(failedWith error: ApodiniError) -> ApodiniError {
         error
+    }
+}
+
+// MARK: Metadata DSL
+public extension AuthenticationScheme {
+    /// Components have an empty `AnyComponentOnlyMetadata` by default.
+    var metadata: AnyComponentMetadata {
+        Empty()
     }
 }

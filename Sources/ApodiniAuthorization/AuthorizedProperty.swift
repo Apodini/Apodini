@@ -68,7 +68,7 @@ private extension Application {
         get {
             AuthorizationStateContainer()
         }
-        set {
+        set { // swiftlint:disable:this unused_setter_value
             fatalError("Can't write to \\.authorizationStateContainer key path")
         }
     }

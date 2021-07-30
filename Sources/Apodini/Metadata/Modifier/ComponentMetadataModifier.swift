@@ -41,7 +41,7 @@ public struct ComponentMetadataModifier<C: Component>: Modifier {
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        componentMetadata.accept(visitor)
+        componentMetadata.collectMetadata(visitor)
     }
 }
 

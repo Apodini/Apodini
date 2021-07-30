@@ -38,7 +38,7 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        handlerMetadata.accept(visitor)
+        handlerMetadata.collectMetadata(visitor)
     }
 }
 

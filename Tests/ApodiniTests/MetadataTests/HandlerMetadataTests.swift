@@ -52,7 +52,7 @@ private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefi
 }
 
 private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {
