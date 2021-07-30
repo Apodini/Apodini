@@ -13,8 +13,8 @@ import ApodiniDeployBuildSupport
 import ArgumentParser
 
 /// A protocol is used to define how the structure of the web service is retrieved and persisted.
-/// This can be used in a custom subcommand of `export-ws-structure` to compute
-/// the structure in a way that is suitable for each use case.
+/// This defines a custom subcommand of `export-ws-structure` and allows to compute
+/// the structure accounting for the needs of the deployment provider.
 public protocol StructureExporter: ParsableCommand {
     /// The filePath to which the structure is persisted to
     var filePath: String { get }
@@ -23,7 +23,6 @@ public protocol StructureExporter: ParsableCommand {
     /// Specifies how the id of the deployment node should be computed
     var nodeIdProvider: (Set<CollectedEndpointInfo>) -> String { get }
     
-//    init(fileUrl: URL, providerID: DeploymentProviderID)
     /// Defines how the structure is retrieved.
     /// This is called from `ApodiniDeployInterfaceExporter` when the web service is started.
     /// The service automatically quits after `retrieveStructure` is called.

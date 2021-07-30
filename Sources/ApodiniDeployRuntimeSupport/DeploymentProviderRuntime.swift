@@ -80,10 +80,12 @@ public struct DeploymentStartUpStorageKey: StorageKey {
     public typealias Value = DeploymentStartupCommand
 }
 
-/// When using the startup cli command for deployment providers, the CLI should save a struct conforming to this protocol using
-/// the `DeploymentStartUpStorageKey`. It contains the basic properties that are needed to initialize the deployment runtimes.
+/// This protocol specifies the properties of the deployment startup command of a deployment provider that needs to be
+/// set by `DeploymentProviderRuntime`. Since it conforms to `ParsableCommand` it also defines the specific startup command
+/// for a runtime. It contains basic properties that are needed to initialize the deployment runtime. In its `run` method, it should an instance
+/// of itself to the app storage using `DeploymentStartUpStorageKey`
 public protocol DeploymentStartupCommand: ParsableCommand {
-    /// The `URL` of the deployment structure json.
+    /// The file path of the deployment structure json.
     var filePath: String { get }
     /// The id of the deployment node
     var nodeId: String { get }
