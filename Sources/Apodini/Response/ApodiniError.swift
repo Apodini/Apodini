@@ -89,8 +89,8 @@ public struct ApodiniError: Error {
     ) -> ApodiniError {
         ApodiniError(
             type: type,
-            reason: reason ?? self.reason,
-            description: description ?? self.description,
+            reason: preserveOriginalReasoning(new: reason, previous: self.reason, "reason"),
+            description: preserveOriginalReasoning(new: description, previous: self.description, "description"),
             information: self.information.merge(with: information),
             PropertyOptionSet(lhs: self.options, rhs: options)
         )
@@ -114,11 +114,18 @@ public struct ApodiniError: Error {
         precondition(type == error.type, "When merging ApodiniErrors, the error types must match. \(error.type) can't override \(type).")
         return ApodiniError(
             type: type,
-            reason: reason ?? error.reason,
-            description: description ?? error.description,
+            reason: preserveOriginalReasoning(new: error.reason, previous: reason, "reason"),
+            description: preserveOriginalReasoning(new: error.description, previous: description, "description"),
             information: information.merge(with: error.information),
             PropertyOptionSet(lhs: options, rhs: error.options)
         )
+    }
+
+    private func preserveOriginalReasoning(new newMaybe: String?, previous previousMaybe: String?, _ name: String) -> String? {
+        guard let new = newMaybe, let previous = previousMaybe else {
+            return newMaybe ?? previousMaybe
+        }
+        return "\(new) (original \(name): \(previous)"
     }
 }
 

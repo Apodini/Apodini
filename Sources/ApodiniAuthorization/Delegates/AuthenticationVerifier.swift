@@ -15,7 +15,7 @@ public protocol AuthenticationVerifier {
     associatedtype Element: Authenticatable
 
     /// This method uses the ``AuthenticationInfo`` result received from the respective ``AuthenticationScheme``
-    /// to instantiate the ``Element`` instance. The instantiating process might includes calls to databases
+    /// to instantiate the ``Element`` instance. The instantiating process might include calls to databases
     /// to complete the ``Authenticatable`` state information.
     /// This method should also verify the correctness of the ``Authenticatable``. This includes password checks
     /// or verification of signatures of e.g. a token.

@@ -39,7 +39,7 @@ public protocol AuthenticationScheme {
     /// ```
     ///
     /// An ``AuthenticationScheme`` might also define custom `ApodiniError` options which can be parsed here,
-    /// inorder to support wire format specific features. An error containing such custom error options
+    /// in order to support wire format specific features. An error containing such custom error options
     /// might be thrown inside a custom ``AuthenticationVerifier`` implementation, or inside a ``AuthorizationRequirement``,
     /// or anywhere else in the `Handler` stack, if it includes the ``AuthorizationErrorReason`` option.
     ///

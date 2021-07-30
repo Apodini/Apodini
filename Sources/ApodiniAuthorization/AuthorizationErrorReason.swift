@@ -18,7 +18,7 @@ public enum AuthorizationErrorReason: PropertyOption, Equatable {
     case failedAuthorization
     /// Represents some custom, potentially user defined error reason, to be used if the others don't fit.
     /// A string based reason shall be supplied for debugging uses.
-    case custom(_ reason: String = "undefined")
+    case custom(_ reason: String)
 }
 
 extension PropertyOptionKey where PropertyNameSpace == ErrorOptionNameSpace, Option == AuthorizationErrorReason {

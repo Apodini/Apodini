@@ -2,7 +2,7 @@
 // Created by Andreas Bauer on 09.07.21.
 //
 
-/// Represents a type erase ``AuthorizationRequirement``
+/// Represents a type erased ``AuthorizationRequirement``
 public protocol AnyAuthorizationRequirement {
     /// Evaluates the ``AnyAuthorizationRequirement`` on a non fixed ``Authenticatable`` instance.
     ///
@@ -19,10 +19,10 @@ public protocol AnyAuthorizationRequirement {
 
 // MARK: AnyAuthorizationRequirement
 public extension AuthorizationRequirement {
-    /// Default implementation calling the typed evalute version.
-    func anyEvaluate<Element0: Authenticatable>(for element: Element0) throws -> RequirementResult {
+    /// Default implementation calling the typed evaluate version.
+    func anyEvaluate<E: Authenticatable>(for element: E) throws -> RequirementResult {
         guard let element = element as? Element else {
-            fatalError("Received invalid type \(Element0.self) when expecting \(Element.self)")
+            fatalError("Received invalid type \(E.self) when expecting \(Element.self)")
         }
 
         return try evaluate(for: element)

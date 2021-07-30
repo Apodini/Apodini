@@ -20,8 +20,8 @@
 /// condition = \.someString != <expression>
 /// ```
 ///
-/// ## Comparing Operators
-/// Comparing Operators (`>`, `>=`, `<`, `<=`) are available for KeyPaths of a ``Authenticatable`` type pointing to a `Comparable` property.
+/// ## Comparison Operators
+/// Comparison Operators (`>`, `>=`, `<`, `<=`) are available for KeyPaths of a ``Authenticatable`` type pointing to a `Comparable` property.
 ///
 /// ```swift
 /// let condition: AuthorizationCondition<Example>
@@ -36,7 +36,7 @@
 /// ```
 ///
 /// ## Logical Operators
-/// The typical `&&`, `||` and `!` logical operators cna be used on ``AuthorizationCondition`` instances.
+/// The typical `&&`, `||` and `!` logical operators can be used on ``AuthorizationCondition`` instances.
 /// Those can be arbitrarily nested.
 ///
 /// ```swift

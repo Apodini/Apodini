@@ -23,7 +23,7 @@ import Apodini
 /// }
 /// ```
 public struct Authorized<Element: Authenticatable>: DynamicProperty {
-    @Environment(\.wrapped.stateContainer)
+    @Environment(\.authorizationStateContainer)
     private var stateContainer
 
     @Throws(.unauthenticated, options: .authorizationErrorReason(.authenticationRequired))
@@ -53,23 +53,26 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
     }
 
     func store<H: Handler>(into delegate: Delegate<H>, instance: Element? = nil) -> Delegate<H> {
-        delegate.environment(\.wrapped.stateContainer, stateContainer.inserting(instance))
+        delegate.environment(\.authorizationStateContainer, stateContainer.inserting(instance))
     }
 }
 
 // MARK: Environment
 
 private extension Application {
-    class WrappedContainer {
-        var stateContainer = AuthorizationStateContainer()
-    }
-
-    var wrapped: WrappedContainer {
-        WrappedContainer()
+    var authorizationStateContainer: AuthorizationStateContainer {
+        get {
+            AuthorizationStateContainer()
+        }
+        set {
+            fatalError("Can't write to \\.authorizationStateContainer key path")
+        }
     }
 }
 
-/// The ``SomeAuthorizationStateContainer`` type is a type erasing wrapper around an ``AuthorizationStateContainer``
+
+/// An ``AuthorizationStateContainer`` manages all stored ``Authenticatable`` instances stored in the environment
+/// in the ``Application/authorizationStateContainer`` KeyPath.
 private struct AuthorizationStateContainer {
     let storedElements: [ObjectIdentifier: Authenticatable]
 
