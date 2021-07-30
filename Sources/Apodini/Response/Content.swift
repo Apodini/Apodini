@@ -29,12 +29,13 @@ public extension Content {
 
 // MARK: AnyMetadataBlock
 public extension Content {
+    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     var blockContent: AnyMetadata {
         Self.metadata
     }
-    
+
+    /// Collects metadata if this ``Content`` type is treated as an ``AnyMetadataBlock``
     func collectMetadata(_ visitor: SyntaxTreeVisitor) {
         blockContent.collectMetadata(visitor)
     }
 }
-

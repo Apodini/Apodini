@@ -9,6 +9,7 @@
 public protocol AnyMetadataArrayWrapper: AnyMetadataBlock {}
 
 public extension AnyMetadataArrayWrapper {
+    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     var blockContent: AnyMetadata {
         self
     }

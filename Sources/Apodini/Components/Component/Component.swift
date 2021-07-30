@@ -41,7 +41,8 @@ public extension Component {
     var blockContent: AnyMetadata {
         self.metadata as! AnyMetadata
     }
-    
+
+    /// Collects metadata if this ``Component`` is treated as an ``AnyMetadataBlock``
     func collectMetadata(_ visitor: SyntaxTreeVisitor) {
         blockContent.collectMetadata(visitor)
     }
