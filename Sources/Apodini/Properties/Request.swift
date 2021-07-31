@@ -8,6 +8,7 @@
 
 import Foundation
 import NIO
+import Logging
 
 /// A ``Request`` is a generalized wrapper around an ``InterfaceExporter``'s internal request type.
 ///
@@ -23,6 +24,9 @@ public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
+    
+    /// Metadata of the request (for Apodini Observe)
+    var loggingMetadata: Logger.Metadata { get }
 
     /// A function for obtaining the value for a ``Parameter`` from this request.
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element

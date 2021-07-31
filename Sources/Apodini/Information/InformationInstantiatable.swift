@@ -54,7 +54,6 @@ public extension InformationInstantiatable {
 // MARK: AnyInformation
 public extension InformationInstantiatable {
     /// Provides the type erased value as required by ``AnyInformation``
-
     var value: Any {
         rawValue
     }

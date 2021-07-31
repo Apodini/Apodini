@@ -51,5 +51,5 @@ public struct Connection {
     public var information: InformationSet { request.information }
     
     /// Holds the latest `Request`
-    var request: Request
+    public var request: Request
 }

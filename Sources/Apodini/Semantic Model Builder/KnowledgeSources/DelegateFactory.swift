@@ -8,15 +8,25 @@
 
 import Foundation
 
-/// A ``DelegateFactory`` allows for creating ``instance()``s of a ``Delegate``
-/// suitable for usage in an ``InterfaceExporter``.
-public struct DelegateFactory<H: Handler>: KnowledgeSource {
-    private let delegate: Delegate<H>
+public struct DelegateFactoryBasis<H: Handler>: KnowledgeSource {
+    public let delegate: Delegate<H>
     
     public init<B>(_ blackboard: B) throws where B: Blackboard {
         self.delegate = Delegate(blackboard[EndpointSource<H>].handler, .required)
     }
+}
+
+/// A ``DelegateFactory`` allows for creating ``instance()``s of a ``Delegate``
+/// suitable for usage in an ``InterfaceExporter``.
+public class DelegateFactory<H: Handler>: KnowledgeSource {
+    private let blackboard: Blackboard
     
+    private lazy var delegate: Delegate<H> = blackboard[DelegateFactoryBasis<H>.self].delegate
+    
+    required public init<B>(_ blackboard: B) throws where B: Blackboard {
+        self.blackboard = blackboard
+    }
+ 
     /// Creates one instance of the ``Delegate``.
     ///
     /// - Note: Use a new instance for each client-connection! Otherwise data may be shared between

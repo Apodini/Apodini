@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 import ApodiniUtils
+import Logging
 import _Concurrency
 
 // MARK: RequestBasis
@@ -144,8 +145,12 @@ public struct DecodingRequest<Input>: Request {
     let strategy: AnyDecodingStrategy<Input>
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
-        try strategy.strategy(for: parameter)
-            .decode(from: input)
+        let parameter = try strategy.strategy(for: parameter)
+                                .decode(from: input)
+        
+        // Get name of parameter and write it to parameterLoggingMetadata
+        
+        return parameter
     }
     
     public let eventLoop: EventLoop
@@ -165,4 +170,20 @@ public struct DecodingRequest<Input>: Request {
     public var information: InformationSet {
         basis.information
     }
+    
+    public var loggingMetadata: Logger.Metadata {
+        
+        basis.information.forEach { info in
+            //let test = info.value as! Authorization
+            //print(test.key)
+        }
+        
+        return [
+            "requestDescription": .string(basis.description),
+            "requestDebugDescription": .string(basis.debugDescription),
+            "remoteAddress": .string(basis.remoteAddress?.description ?? "unknown"),
+        ]
+    }
+    
+    @Boxed internal var parameterLoggingMetadata: Logger.Metadata = ["parameters":.dictionary(.init())]
 }

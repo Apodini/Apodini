@@ -30,6 +30,51 @@ public extension WebService {
 }
 
 extension WebService {
+    /// Overrides  the `main()` method of `ParsableCommand` that stores the values of property wrappers (eg. `@Environment`) in the `WebService` before parsing the CLI arguments and then restores the saved values after the parsing is finished
+    public static func main(_ arguments: [String]? = nil) {
+        let mirror = Mirror(reflecting: Self())
+        var propertyStore: [String: ArgumentParserStoreable] = [:]
+        
+        /// Backup of property wrapper values
+        for child in mirror.children {
+            if let property = child.value as? ArgumentParserStoreable {
+                guard let label = child.label else {
+                    fatalError("Label of the to be stored property couldn't be read!")
+                }
+                
+                /// Store the values of the wrapped properties in a dictionary
+                property.store(in: &propertyStore, keyedBy: label)
+            }
+        }
+        
+        /// Parsing of Command Line Arguments and restoring the values of the property wrappers
+        do {
+            /// Parse the CLI arguments
+            var command = try parseAsRoot(arguments)
+            
+            let mirror = Mirror(reflecting: command)
+            
+            /// Backup of property wrapper values
+            for child in mirror.children {
+                if let property = child.value as? ArgumentParserStoreable {
+                    guard let label = child.label else {
+                        fatalError("Label of the to be stored property couldn't be read!")
+                    }
+                    
+                    /// Store the values of the wrapped properties in a dictionary
+                    property.restore(from: propertyStore, keyedBy: label)
+                }
+            }
+            
+            /// Start the webservice
+            try command.run()
+        } catch {
+            exit(withError: error)
+        }
+    }
+}
+
+extension WebService {
     /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
     public mutating func run() throws {
         try Self.start(webService: self)
@@ -43,7 +88,7 @@ extension WebService {
     @discardableResult
     static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
-        LoggingSystem.bootstrap(StreamLogHandler.standardError)
+        //LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         start(app: app, webService: webService)
         

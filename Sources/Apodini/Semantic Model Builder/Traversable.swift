@@ -336,7 +336,7 @@ extension Properties: Traversable {
 
 extension Delegate: Traversable {
     func execute<Target>(_ operation: (Target, String) throws -> Void, using names: [String]) rethrows {
-        let delegate = storage?.value.delegate ?? delegateModel
+        let delegate = storage?.delegate ?? delegateModel
         
         // we set the optionality of all delegated parameters according to the delegates optionality
         if Target.self == AnyParameter.self {
@@ -354,10 +354,10 @@ extension Delegate: Traversable {
     }
 
     mutating func apply<Target>(_ mutation: (inout Target, String) throws -> Void, using names: [String]) rethrows {
-        var delegate = storage?.value.delegate ?? delegateModel
+        var delegate = storage?.delegate ?? delegateModel
         defer {
-            if let storage = self.storage {
-                storage.value.delegate = delegate
+            if var storage = self.storage {
+                storage.delegate = delegate
             } else {
                 delegateModel = delegate
             }

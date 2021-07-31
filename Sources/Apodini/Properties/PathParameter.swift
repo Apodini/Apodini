@@ -14,9 +14,9 @@ import ApodiniUtils
 
 /// A `@PathComponent` can be used in `Component`s to indicate that a part of a path is a parameter and can be read out in a `Handler`
 @propertyWrapper
-public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decodable {
-    var id = UUID()
-    var identifyingType: IdentifyingType?
+public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decodable, ArgumentParserStoreable {
+    @Boxed var id = UUID()
+    @Boxed var identifyingType: IdentifyingType?
     
     /// You can never access the wrapped value of a @PathParameter.
     /// Please use a `@Parameter` wrapped property within a `Handler` to access the path property.
@@ -59,5 +59,20 @@ extension PathParameter {
     /// A `Parameter` that can be used to pass the `PathParameter` to a `Handler` that contains a `@Parameter` and not a `@Binding`.
     public var parameter: Parameter<Element> {
         Parameter(from: id, identifying: identifyingType)
+    }
+}
+
+extension PathParameter {
+    public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
+        store[key] = self
+    }
+    
+    public func restore(from store: [String: ArgumentParserStoreable], keyedBy key: String) {
+        if let storedValues = store[key] as? PathParameter {
+            self.id = storedValues.id
+            self.identifyingType = storedValues.identifyingType
+        } else {
+            fatalError("Stored properties couldn't be read. Key=\(key)")
+        }
     }
 }
