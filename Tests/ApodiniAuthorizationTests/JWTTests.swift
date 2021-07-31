@@ -204,7 +204,7 @@ class JWTTests: XCTApodiniTest {
                 .typed(String.self)?.content
         )
 
-        // test fullyCorrectToken
+        // test tokenWithoutEmail
         runExpectAuthError(exporter, token: tokenWithoutEmail, expectedWWWAuthenticate: "Bearer error=invalid_token", reason: .failedAuthorization)
     }
 

@@ -12,13 +12,19 @@ import XCTest
 @_implementationOnly import XCTAssertCrash
 
 /// Asserts that an expression leads to a runtime failure.
+///
+/// - Parameters:
+///   - expression: The expression which should be evaluated and asserted to result in a runtime failure.
+///     Note, while the closure is throwing, a thrown Error is not considered a runtime failure.
+///     Encountering a thrown Swift Error is considered a failure.
+///   - message: The message should there be no runtime failure.
 public func XCTAssertRuntimeFailure<T>(
     _ expression: @escaping @autoclosure () throws -> T,
     _ message: @autoclosure () -> String = "XCTAssertRuntimeFailure didn't fail as expected!",
     file: StaticString = #filePath,
     line: UInt = #line) {
     XCTAssertCrash(
-        try! expression(),
+        XCTAssertNoThrow(try expression()),
         message(),
         file: file,
         line: line,

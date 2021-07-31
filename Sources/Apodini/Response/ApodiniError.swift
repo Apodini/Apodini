@@ -110,14 +110,17 @@ public struct ApodiniError: Error {
         callAsFunction(reason: reason, description: description, information: information, options: options)
     }
 
-    public func merge(with error: ApodiniError) -> ApodiniError {
-        precondition(type == error.type, "When merging ApodiniErrors, the error types must match. \(error.type) can't override \(type).")
-        return ApodiniError(
-            type: type,
-            reason: preserveOriginalReasoning(new: error.reason, previous: reason, "reason"),
-            description: preserveOriginalReasoning(new: error.description, previous: description, "description"),
-            information: information.merge(with: error.information),
-            PropertyOptionSet(lhs: options, rhs: error.options)
+    public func detailed(by error: Error) -> ApodiniError {
+        detailed(by: error.apodiniError)
+    }
+
+    public func detailed(by error: ApodiniError) -> ApodiniError {
+        ApodiniError(
+                type: type,
+                reason: preserveOriginalReasoning(new: reason, previous: error.reason, "reason"),
+                description: preserveOriginalReasoning(new: description, previous: error.description, "description"),
+                information: error.information.merge(with: information),
+                PropertyOptionSet(lhs: error.options, rhs: options)
         )
     }
 

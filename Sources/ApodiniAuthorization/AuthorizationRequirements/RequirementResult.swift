@@ -16,7 +16,7 @@ public enum RequirementResult {
     /// When evaluating ``AuthorizationRequirement`` evaluation will continue with the next requirement
     /// when encountering `undecided`. This is the fundamental difference to the other two cases.
     /// Although, should the final result of some ``AuthorizationRequirement`` be undecided, it is nonetheless
-    /// and acceptance state. Everything which is not explicitly rejected is accepcted.
+    /// an acceptance state. Everything which is not explicitly rejected is accepcted.
     ///
     /// Captures the ``Cause`` leading to the result. The ``Cause`` is only captured for debug purposes.
     case undecided(cause: @autoclosure () -> Cause = .unspecified)
