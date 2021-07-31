@@ -28,7 +28,6 @@ extension ApodiniDeployInterfaceExporter {
         let config = DeploymentConfig(defaultGrouping: self.exporterConfiguration.config.defaultGrouping, deploymentGroups: allDeploymentGroups)
         
         let deployedSystem = try structureExporter.retrieveStructure(Set(self.collectedEndpoints), config: config, app: self.app)
-        print(structureExporter.filePath)
         try deployedSystem.writeJSON(
             to: URL(fileURLWithPath: structureExporter.filePath),
             encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes]
