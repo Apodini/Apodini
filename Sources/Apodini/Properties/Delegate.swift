@@ -1,11 +1,10 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
-
+//
 import ApodiniUtils
 import Foundation
 
@@ -20,7 +19,7 @@ public struct Delegate<D> {
         var connection: Connection?
         var didActivate = false
         // swiftlint:disable:next weak_delegate
-        var delegate: D?
+        var delegate: D
         weak var observation: Observation?
         // swiftlint:disable:next discouraged_optional_collection
         var observables: [(AnyObservedObject, Observation)]?
@@ -33,13 +32,20 @@ public struct Delegate<D> {
         var environmentObject: [Any] = []
     }
     
+    struct InitialStorage {
+        // storage for values injected via .environment
+        var environment: [AnyKeyPath: Any] = [:]
+        // storage for values injected via .environmentObject
+        var environmentObject: [Any] = []
+    }
+    
     var delegateModel: D
     
     let optionality: Optionality
     
-    @Boxed var initialStorage = Storage()
+    var storage: Box<Storage>?
     
-    @Boxed var storage: Storage?
+    var initialStorage = Box(InitialStorage())
     
     /// Create a `Delegate` from the given struct `delegate`.
     /// - Parameter `delegate`: the wrapped instance
@@ -51,61 +57,59 @@ public struct Delegate<D> {
     
     /// Prepare the wrapped delegate `D` for usage.
     public func instance() throws -> D {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate' was called before activation.")
         }
         
         // if not done yet we activate the delegate before injection
-        if !store.didActivate {
-            store.didActivate = true
-            Apodini.activate(&store.delegate)
+        if !store.value.didActivate {
+            store.value.didActivate = true
+            Apodini.activate(&store.value.delegate)
         }
         
-        // we inject observedobjects, environment and environmentObject and invalidate all stores afterwards
-        store.observableObjectsSetters.forEach { closure in closure() }
-        store.observableObjectsSetters = []
-        injectAll(values: store.environmentObject, into: store.delegate)
-        store.environmentObject = []
-        injectAll(values: store.environment, into: store.delegate)
-        store.environment = [:]
+        // we inject observedObjects, environment and environmentObject and invalidate all stores afterwards
+        store.value.observableObjectsSetters.forEach { closure in closure() }
+        store.value.observableObjectsSetters = []
+        injectAll(values: store.value.environmentObject, into: store.value.delegate)
+        store.value.environmentObject = []
+        injectAll(values: store.value.environment, into: store.value.delegate)
+        store.value.environment = [:]
         
         
         // if not done yet (and if the ConnectionContext has not canceled the observation yet),
         // we now wire up the real observations with the fake observation we passed to the
         // ConnectionContext earlier
-        if store.observation != nil {
-            if store.observables == nil {
+        if store.value.observation != nil {
+            if store.value.observables == nil {
                 var observables = [(AnyObservedObject, Observation)]()
                 defer {
-                    store.observables = observables
+                    store.value.observables = observables
                 }
                 
-                for object in collectObservedObjects(from: store.delegate) {
+                for object in collectObservedObjects(from: store.value.delegate) {
                     let index = observables.count
-                    #warning("Weak storage isn't allowed here")
-                    //observables.append((object, object.register { [weak storage] triggerEvent in
-                    observables.append((object, object.register { triggerEvent in
-                        storage?.observation?.callback(TriggerEvent(triggerEvent.checkCancelled, id: .index(index, triggerEvent.identifier)))
+                    observables.append((object, object.register { [weak storage] triggerEvent in
+                        storage?.value.observation?.callback(TriggerEvent(triggerEvent.checkCancelled, id: .index(index, triggerEvent.identifier)))
                     }))
                 }
             }
         } else {
             // the delegate isn't observed anymore, thus we also drop the references
             // to all child-observations
-            for observable in store.observables ?? [] {
+            for observable in store.value.observables ?? [] {
                 observable.0.setChanged(to: false, reason: TriggerEvent())
             }
-            store.observables = []
+            store.value.observables = []
         }
         
-        guard let connection = store.connection else {
+        guard let connection = store.value.connection else {
             fatalError("'Delegate' was called before injection with connection.")
         }
         
         // finally we inject everything and return the prepared delegate
-        try connection.enterConnectionContext(with: store.delegate, executing: { _ in Void() })
+        try connection.enterConnectionContext(with: store.value.delegate, executing: { _ in Void() })
         
-        return store.delegate!
+        return store.value.delegate
     }
 }
 
@@ -141,14 +145,14 @@ extension Delegate {
     ///
     /// - Note: If the `Binding`'s initial value was a `Parameter`, this function changes the endpoint interface
     ///         at runtime to a certain degree. This has no impact on the framework or correctness of the endpoints
-    ///         interface specification, however, a client might wonder why specifiying a certain input has no effect.
+    ///         interface specification, however, a client might wonder why specifying a certain input has no effect.
     @discardableResult
     public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) -> Delegate {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
         
-        store.delegate![keyPath: keypath] = Binding.constant(value)
+        store.value.delegate[keyPath: keypath] = Binding.constant(value)
         return self
     }
 }
@@ -158,12 +162,12 @@ extension Delegate {
     /// Change a `delegate`'s `ObservedObject` to observe another `value`.
     @discardableResult
     public func setObservable<V: ObservableObject>(_ keypath: WritableKeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
         
-        store.observableObjectsSetters.append {
-            store.delegate![keyPath: keypath].wrappedValue = value
+        store.value.observableObjectsSetters.append {
+            store.value.delegate[keyPath: keypath].wrappedValue = value
         }
         
         return self
@@ -185,10 +189,10 @@ extension Delegate {
     
     @discardableResult
     private func environment<K, V>(at keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
-        if var store = storage {
-            store.environment[keyPath] = value
+        if let store = storage {
+            store.value.environment[keyPath] = value
         } else {
-            self.initialStorage.environment[keyPath] = value
+            self.initialStorage.value.environment[keyPath] = value
         }
         
         return self
@@ -199,10 +203,10 @@ extension Delegate {
     /// Inject a local `value` into the `delegate`'s `EnvironmentObject` properties that are of type `T`.
     @discardableResult
     public func environmentObject<T>(_ object: T) -> Delegate {
-        if var store = storage {
-            store.environmentObject.append(object)
+        if let store = storage {
+            store.value.environmentObject.append(object)
         } else {
-            self.initialStorage.environmentObject.append(object)
+            self.initialStorage.value.environmentObject.append(object)
         }
         
         return self
@@ -211,35 +215,35 @@ extension Delegate {
 
 
 // MARK: Property Conformance
-
 extension Delegate: Activatable {
     mutating func activate() {
-        self.storage = Storage(delegate: delegateModel)
-        self.storage?.environment.merge(self.initialStorage.environment) { (current, _) in current }
+        self.storage = Box(Storage(delegate: delegateModel))
+        self.storage?.value.environment.merge(self.initialStorage.value.environment) { (current, _) in current }
+        self.storage?.value.environmentObject.append(contentsOf: self.initialStorage.value.environmentObject)
     }
 }
 
 extension Delegate: KeyPathInjectable {
     func inject<V>(_ value: V, for keyPath: AnyKeyPath) {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate' was injected with connection before activation.")
         }
         if keyPath == \Application.connection {
             if let connection = value as? Connection {
-                store.connection = connection
+                store.value.connection = connection
             }
         } else {
-            store.environment[keyPath] = value
+            store.value.environment[keyPath] = value
         }
     }
 }
 
 extension Delegate: TypeInjectable {
     func inject<V>(_ value: V) {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate' was injected with connection before activation.")
         }
-        store.environmentObject.append(value)
+        store.value.environmentObject.append(value)
     }
 }
 
@@ -256,23 +260,23 @@ extension Delegate: AnyObservedObject {
             fatalError("'Delegate''s AnyObservedObject property was used before activation.")
         }
         
-        return store.changed
+        return store.value.changed
     }
     
     public func setChanged(to value: Bool, reason event: TriggerEvent) {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate''s AnyObservedObject property was used before activation.")
         }
         
-        guard store.observation != nil else {
-            for observable in store.observables ?? [] {
+        guard store.value.observation != nil else {
+            for observable in store.value.observables ?? [] {
                 observable.0.setChanged(to: false, reason: event)
             }
-            store.observables = []
+            store.value.observables = []
             return
         }
         
-        guard let observables = store.observables else {
+        guard let observables = store.value.observables else {
             fatalError("'Delegate''s 'changed' property was set while not prepared vor observing")
         }
         
@@ -283,19 +287,19 @@ extension Delegate: AnyObservedObject {
             break // system event...we don't have to alter a specific observable
         }
         
-        store.changed = value
+        store.value.changed = value
     }
 
     // When the framework wants to register the callback we just provide a new Observation.
     // We then have to wire up the callbacks later on, when we really start observing.
     public func register(_ callback: @escaping (TriggerEvent) -> Void) -> Observation {
-        guard var store = storage else {
+        guard let store = storage else {
             fatalError("'Delegate''s AnyObservedObject property was used before activation.")
         }
         
         let observation = Observation(callback)
 
-        store.observation = observation
+        store.value.observation = observation
         return observation
     }
 }

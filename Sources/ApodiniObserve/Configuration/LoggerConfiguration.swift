@@ -9,7 +9,7 @@ import Logging
 import Apodini
 
 /// A `Configuration` for the `Logger`.
-public final class LoggerConfiguration: Configuration, InterfaceExporter {
+public final class LoggerConfiguration: Configuration {
     internal let logLevel: Logger.Level
     internal let logHandlers: [LogHandler]
     
@@ -29,16 +29,78 @@ public final class LoggerConfiguration: Configuration, InterfaceExporter {
                 self.logHandlers
             )
         }
+        
+        /// Instanciate exporter
+        let loggerExporter = LoggerInterfaceExporter(app, self)
+        
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: loggerExporter)
+    }
+}
+
+public final class LoggerInterfaceExporter: InterfaceExporter, TruthAnchor {
+    public struct Metadata: EnvironmentAccessible {
+        public var value: BlackboardMetadata
+    }
+    
+    public struct BlackboardMetadata {
+        public let endpointName: String
+        public let endpointParameters: EndpointParameters
+        public let endpointParametersOther: EndpointParameters
+        public let operation: Apodini.Operation
+        public let absolutePath: [EndpointPath]
+        public let endpointPathComponents: EndpointPathComponents
+        public let endpointPathComponentsHTTP: EndpointPathComponentsHTTP
+        public let conext: Context
+        //public let version: Version
+        //public let relationship: RelationshipDestination
+    }
+    
+    let app: Apodini.Application
+    let exporterConfiguration: LoggerConfiguration
+    
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: LoggerConfiguration) {
+        self.app = app
+        self.exporterConfiguration = exporterConfiguration
     }
     
     public func export<H>(_ endpoint: Endpoint<H>) -> () where H : Handler {
-        <#code#>
+        self.exportOntoBlackboard(endpoint)
     }
     
     public func export<H>(blob endpoint: Endpoint<H>) -> () where H : Handler, H.Response.Content == Blob {
-        <#code#>
+        self.exportOntoBlackboard(endpoint)
+    }
+    
+    private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) -> () where H: Handler {
+        let factory = endpoint[DelegateFactoryBasis<H>.self]
+
+        let delegate = factory.delegate
+        
+        let blackboardMetadata = BlackboardMetadata(
+                                    endpointName: endpoint.description,
+                                    endpointParameters: endpoint[EndpointParameters.self],
+                                    endpointParametersOther: endpoint.parameters,
+                                    operation: endpoint[Operation.self],
+                                    absolutePath: endpoint.absolutePath,
+                                    endpointPathComponents: endpoint[EndpointPathComponents.self],
+                                    endpointPathComponentsHTTP: endpoint[EndpointPathComponentsHTTP.self],
+                                    conext: endpoint[Context.self]
+                                    
+                                    //version: endpoint[Version.self],
+                                    //relationship: endpoint[RelationshipSourceContextKey.self]
+                                )
+
+        delegate.environment(\Metadata.value, blackboardMetadata)
+        
+        print(endpoint)
+        
+        print("a")
     }
 }
+
+
 
 /// The storage key for Logging-related information.
 public struct LoggingStorageKey: StorageKey {
