@@ -8,6 +8,7 @@
 
 import Apodini
 import ApodiniExtension
+import ApodiniHTTPProtocol
 import Vapor
 import Foundation
 

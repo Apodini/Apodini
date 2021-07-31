@@ -38,13 +38,13 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
 
         // Collect the Metadata from potential `Delegates` declared in the `Handler`
-        var metadata: [AnyHandlerMetadata] = []
+        var metadata: [AnyMetadata] = []
         collectChildrenMetadata(from: handler, into: &metadata, ignoring: lastHandlerType)
         for entry in metadata {
-            entry.accept(self.visitor)
+            entry.collectMetadata(self.visitor)
         }
 
-        handler.metadata.accept(self.visitor)
+        handler.metadata.collectMetadata(self.visitor)
 
         self.queryInitializers()
         self.lastHandlerType = ObjectIdentifier(H.self)
@@ -163,17 +163,16 @@ extension StoredContextKeyEntry: Hashable {
 
 /// This protocol represents a ``Delegate`` instance which wraps some sort of ``Handler``.
 private protocol DelegateWithMetadata {
-    /// Collect the metadata from the wrapped ``Handler`` as well as from all ``Handler`` based
-    /// ``Delegates`` the wrapped ``Handler`` might contain.
+    /// Collect the metadata from the wrapped model of a ``Delegate`` as well as from all `Delegate``s it might contain.
     /// - Parameters:
-    ///   - metadata: The array of ``AnyHandlerMetadata`` the results should be collected into.
+    ///   - metadata: The array of ``AnyMetadata`` the results should be collected into.
     ///   - handlerType: The ObjectIdentifier of the ``Handler`` visited last. Any Delegates with that
     ///     type are ignored to avoid getting into an infinite loop.
-    func collectMetadata(into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?)
+    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?)
 }
 
-extension Delegate: DelegateWithMetadata where D: Handler {
-    func collectMetadata(into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?) {
+extension Delegate: DelegateWithMetadata where D: AnyMetadataBlock {
+    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
         if handlerType == ObjectIdentifier(D.self) {
             return
         }
@@ -183,11 +182,11 @@ extension Delegate: DelegateWithMetadata where D: Handler {
         collectChildrenMetadata(from: delegateModel, into: &metadata, ignoring: handlerType)
 
         // outer metadata always has higher precedence than inner metadata when reducing, thus APPEND
-        metadata.append(delegateModel.metadata)
+        metadata.append(delegateModel.blockContent)
     }
 }
 
-private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyHandlerMetadata], ignoring handlerType: ObjectIdentifier?) {
+private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
     // This is probably the part were its a bit weird how we set precedence for metadata reduction.
     // But we define that a property declared second has higher priority that the Delegate declared before,
     // similar how it is done in the Metadata Blocks itself.

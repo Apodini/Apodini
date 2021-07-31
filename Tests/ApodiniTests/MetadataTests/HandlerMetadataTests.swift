@@ -52,7 +52,7 @@ private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefi
 }
 
 private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {
@@ -260,7 +260,7 @@ final class HandlerMetadataTest: ApodiniTests {
 
         struct DynamicNameGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
             typealias Key = DelegatingHandlerContextKey
-            let initializer: Key.Entry = .init(DynamicNameGuardInitializer())
+            let initializer: Key.Value = [.init(DynamicNameGuardInitializer())]
         }
 
         struct SomeContextKey: OptionalContextKey {
@@ -270,7 +270,7 @@ final class HandlerMetadataTest: ApodiniTests {
         struct DynamicIntGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
             typealias Key = SomeContextKey
             var value = "asdf"
-            var initializer: DelegatingHandlerContextKey.Entry = .init(DynamicIntGuardInitializer())
+            var initializer: DelegatingHandlerContextKey.Value = [.init(DynamicIntGuardInitializer())]
         }
 
         struct TestHandler: Handler {

@@ -59,7 +59,7 @@ public struct Delegate<D> {
             Apodini.activate(&store.value.delegate)
         }
         
-        // we inject observedobjects, environment and environmentObject and invalidate all stores afterwards
+        // we inject observedObjects, environment and environmentObject and invalidate all stores afterwards
         store.value.observableObjectsSetters.forEach { closure in closure() }
         store.value.observableObjectsSetters = []
         injectAll(values: store.value.environmentObject, into: store.value.delegate)
@@ -137,7 +137,7 @@ extension Delegate {
     ///
     /// - Note: If the `Binding`'s initial value was a `Parameter`, this function changes the endpoint interface
     ///         at runtime to a certain degree. This has no impact on the framework or correctness of the endpoints
-    ///         interface specification, however, a client might wonder why specifiying a certain input has no effect.
+    ///         interface specification, however, a client might wonder why specifying a certain input has no effect.
     @discardableResult
     public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) -> Delegate {
         guard let store = storage else {

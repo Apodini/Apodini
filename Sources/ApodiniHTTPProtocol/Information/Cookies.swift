@@ -43,4 +43,8 @@ public struct Cookies: HTTPInformation {
     public init(_ value: [String: String]) {
         self.value = value
     }
+
+    public func merge(with information: Cookies) -> Cookies {
+        Cookies(value.merging(information.value, uniquingKeysWith: { _, new in new }))
+    }
 }

@@ -52,7 +52,7 @@ private struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefi
 
 
 private struct ReusableTestContentMetadata: ContentMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {
@@ -146,7 +146,7 @@ final class ContentMetadataTest: ApodiniTests {
     func testContentMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         TestMetadataContent.state = true
-        TestMetadataContent.metadata.accept(visitor)
+        TestMetadataContent.metadata.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 
@@ -161,7 +161,7 @@ final class ContentMetadataTest: ApodiniTests {
     func testContentMetadataFalse() {
         let visitor = SyntaxTreeVisitor()
         TestMetadataContent.state = false
-        TestMetadataContent.metadata.accept(visitor)
+        TestMetadataContent.metadata.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 
