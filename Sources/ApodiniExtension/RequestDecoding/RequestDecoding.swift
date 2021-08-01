@@ -91,7 +91,7 @@ extension DecodingStrategy {
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
     ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {
+    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: LoggingMetadataAccessible {
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
     }
     
@@ -103,7 +103,7 @@ extension DecodingStrategy {
     /// - Parameters:
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
+    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis & LoggingMetadataAccessible {
         self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
@@ -143,7 +143,7 @@ extension AsyncSequence {
 /// A ``RequestBasis`` based Apodini `Request` which uses a ``DecodingStrategy``
 /// as well as an instance of its ``DecodingStrategy/Input`` type to implement its
 /// ``DecodingRequest/retrieveParameter(_:)`` function.
-public struct DecodingRequest<Input>: Request {
+public struct DecodingRequest<Input: LoggingMetadataAccessible>: Request {
     let basis: RequestBasis
     
     let input: Input

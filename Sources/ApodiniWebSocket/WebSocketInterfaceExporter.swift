@@ -48,9 +48,6 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        //let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
-        //delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
-        
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }

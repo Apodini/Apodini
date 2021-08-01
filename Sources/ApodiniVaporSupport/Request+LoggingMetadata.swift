@@ -4,9 +4,10 @@
 //  Created by Philipp Zagar on 29.07.21.
 //
 
+import ApodiniExtension
 import Vapor
 
-extension Vapor.Request {
+extension Vapor.Request: LoggingMetadataAccessible {
     /// Logging Metadata
     public var loggingMetadata: Logger.Metadata {
         [

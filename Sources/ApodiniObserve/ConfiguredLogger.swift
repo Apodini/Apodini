@@ -227,7 +227,7 @@ extension ConfiguredLogger {
     private func getExporterMetadata() -> Logger.Metadata {
         var builtEndpointMetadata: Logger.Metadata = [:]
         
-        builtEndpointMetadata["type"] = .string(String(describing: exporterTypeMetadata.exporterType).components(separatedBy: ".")[1])
+        builtEndpointMetadata["type"] = .string(String(describing: exporterTypeMetadata.exporterType))
         builtEndpointMetadata["parameterNamespace"] = .array(exporterTypeMetadata.parameterNamespace.map({.string($0.description)}))
         
         return builtEndpointMetadata
