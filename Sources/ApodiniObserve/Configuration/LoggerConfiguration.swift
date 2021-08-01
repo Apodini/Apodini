@@ -51,7 +51,11 @@ public final class LoggerInterfaceExporter: InterfaceExporter, TruthAnchor {
         public let absolutePath: [EndpointPath]
         public let endpointPathComponents: EndpointPathComponents
         public let endpointPathComponentsHTTP: EndpointPathComponentsHTTP
-        public let conext: Context
+        public let context: Context
+        public let anyEndpointSource: AnyEndpointSource
+        public let handleReturnType: HandleReturnType
+        public let responseType: ResponseType
+        public let serviceType: ServiceType
         //public let version: Version
         //public let relationship: RelationshipDestination
     }
@@ -86,7 +90,11 @@ public final class LoggerInterfaceExporter: InterfaceExporter, TruthAnchor {
                                     absolutePath: endpoint.absolutePath,
                                     endpointPathComponents: endpoint[EndpointPathComponents.self],
                                     endpointPathComponentsHTTP: endpoint[EndpointPathComponentsHTTP.self],
-                                    conext: endpoint[Context.self]
+                                    context: endpoint[Context.self],
+                                    anyEndpointSource: endpoint[AnyEndpointSource.self],
+                                    handleReturnType: endpoint[HandleReturnType.self],
+                                    responseType: endpoint[ResponseType.self],
+                                    serviceType: endpoint[ServiceType.self]
                                     
                                     //version: endpoint[Version.self],
                                     //relationship: endpoint[RelationshipSourceContextKey.self]

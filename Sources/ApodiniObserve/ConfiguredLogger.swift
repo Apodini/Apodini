@@ -26,7 +26,7 @@ public struct ConfiguredLogger: DynamicProperty {
     var storage: Storage
     
     @Environment(\LoggerInterfaceExporter.Metadata.value)
-    var testStruct
+    var blackboardMetadata
     
     @State
     private var builtLogger: Logger?
