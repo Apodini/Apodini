@@ -27,13 +27,13 @@ public extension HandlerMetadataNamespace {
 /// }
 /// ```
 public struct ResetMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    public let initializer: DelegatingHandlerContextKey.Entry
+    public let initializer: DelegatingHandlerContextKey.Value
 
     /// Use a `DelegationFilter` to filter out `DelegatingHandlerInitializer`s.
     /// - Parameters:
     ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegationFilter``
     ///     is only used a single time, even when inserted multiple times.
     public init(using filter: DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) {
-        self.initializer = .init(AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)
+        self.initializer = [.init(AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)]
     }
 }

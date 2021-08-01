@@ -8,6 +8,7 @@
 
 import XCTApodini
 import ApodiniVaporSupport
+import ApodiniHTTPProtocol
 import Vapor
 @testable import Apodini
 import XCTVapor

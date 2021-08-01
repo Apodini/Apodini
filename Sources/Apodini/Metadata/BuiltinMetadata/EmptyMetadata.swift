@@ -49,7 +49,9 @@ public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
         fatalError("Cannot access the value of an empty metadata!")
     }
 
-    public func accept(_ visitor: SyntaxTreeVisitor) {}
+    public init() {}
+
+    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyComponentOnlyMetadata` is a `ComponentOnlyMetadataDefinition` which in fact doesn't hold any Metadata.
@@ -69,7 +71,9 @@ public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
         fatalError("Cannot access the value of an empty metadata!")
     }
 
-    public func accept(_ visitor: SyntaxTreeVisitor) {}
+    public init() {}
+
+    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyWebServiceMetadata` is a `AnyWebServiceMetadata` which in fact doesn't hold any Metadata.
@@ -89,7 +93,9 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
         fatalError("Cannot access the value of an empty metadata!")
     }
 
-    public func accept(_ visitor: SyntaxTreeVisitor) {}
+    public init() {}
+
+    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyComponentMetadata` is a `AnyComponentMetadata` which in fact doesn't hold any Metadata.
@@ -108,7 +114,9 @@ public struct EmptyComponentMetadata: ComponentMetadataDefinition {
         fatalError("Cannot access the value of an empty metadata!")
     }
 
-    public func accept(_ visitor: SyntaxTreeVisitor) {}
+    public init() {}
+
+    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyContentMetadata` is a `AnyContentMetadata` which in fact doesn't hold any Metadata.
@@ -128,5 +136,7 @@ public struct EmptyContentMetadata: ContentMetadataDefinition {
         fatalError("Cannot access the value of an empty metadata!")
     }
 
-    public func accept(_ visitor: SyntaxTreeVisitor) {}
+    public init() {}
+
+    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }

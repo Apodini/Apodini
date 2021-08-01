@@ -23,12 +23,12 @@ public extension TypedHandlerMetadataNamespace {
 /// }
 /// ```
 public struct GuardMetadata<H: Handler>: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    public let initializer: DelegatingHandlerContextKey.Entry
+    public let initializer: DelegatingHandlerContextKey.Value
 
     /// Use an asynchronous ``Guard`` to guard ``Handler``s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     public init<G: Guard>(by guard: G) {
-        self.initializer = .init(GuardingHandlerInitializer<G, H.Response>(guard: `guard`))
+        self.initializer = [.init(GuardingHandlerInitializer<G, H.Response>(guard: `guard`))]
     }
 }
 
@@ -54,10 +54,10 @@ public extension HandlerMetadataNamespace {
 /// }
 /// ```
 public struct ResetGuardsMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    public let initializer: DelegatingHandlerContextKey.Entry
+    public let initializer: DelegatingHandlerContextKey.Value
 
     /// Resets all guards for the modified ``Component``
     public init() {
-        self.initializer = .init(AnyDelegateFilter(filter: GuardFilter()))
+        self.initializer = [.init(AnyDelegateFilter(filter: GuardFilter()))]
     }
 }

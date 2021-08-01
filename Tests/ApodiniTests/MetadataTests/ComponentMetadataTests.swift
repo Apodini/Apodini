@@ -54,7 +54,7 @@ private struct ReusableTestComponentMetadata: ComponentMetadataBlock {
     let offset: Int
     let state: Bool
 
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(offset)
         Empty()
         Block {
@@ -190,7 +190,7 @@ final class ComponentMetadataTest: ApodiniTests {
     func testComponentMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         let component = TestMetadataComponent(state: true)
-        component.accept(visitor)
+        component.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 

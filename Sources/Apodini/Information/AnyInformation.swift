@@ -14,10 +14,24 @@ public protocol AnyInformation {
     /// Accepts a ``InformationSet`` instance which is used to collect the given ``AnyInformation``.
     /// - Parameter visitor: The ``InformationSet`` which should collect this instance.
     func collect(_ set: inout InformationSet)
+
+    /// Returns the untyped version of the ``AnyInformation`` instance. This method has no effect on ``Information``
+    /// instances and returns self. For ``InformationInstantiatable`` it returns the corresponding ``Information`` instance.
+    /// - Returns: The untyped ``AnyInformation``.
+    func anyUntyped() -> AnyInformation
+
+    /// Type erased version of the ``Information/merge(with:)`` and ``InformationInstantiatable/merge(with:)`` methods.
+    ///
+    /// Default implementations exists for both protocols.
+    ///
+    /// - Parameter information: The ``AnyInformation`` to merge with.
+    /// - Returns: The resulting ``AnyInformation``.
+    func anyMerge(with information: AnyInformation) -> AnyInformation
 }
 
 internal extension AnyInformation {
     /// Returns the type version of the ``AnyInformation`` instance.
+    ///
     /// - Parameter type: The ``AnyInformation`` type
     /// - Returns: Returns the casted ``AnyInformation`` instance.
     func typed<T: AnyInformation>(to type: T.Type = T.self) -> T {

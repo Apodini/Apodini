@@ -83,7 +83,7 @@ struct RESTEndpointHandler<H: Handler> {
                     
                     var information = response.information
                     if let contentType = blob.type?.description {
-                        information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                        information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
                     }
                     vaporResponse.headers = HTTPHeaders(information)
                     

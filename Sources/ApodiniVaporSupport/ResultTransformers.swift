@@ -8,6 +8,7 @@
 
 import Apodini
 import ApodiniExtension
+import ApodiniHTTPProtocol
 import Vapor
 
 public struct VaporResponseTransformer<H: Handler>: ResultTransformer {
@@ -49,7 +50,7 @@ public struct VaporBlobResponseTransformer: ResultTransformer {
         if let content = input.content {
             body = Vapor.Response.Body(buffer: content.byteBuffer)
             if let contentType = content.type?.description {
-                information = information.union([AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
             }
         } else {
             body = Vapor.Response.Body()

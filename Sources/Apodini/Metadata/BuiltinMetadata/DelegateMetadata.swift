@@ -25,7 +25,7 @@ public extension TypedHandlerMetadataNamespace {
 /// }
 /// ```
 public struct DelegateMetadata<H: Handler>: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    public let initializer: DelegatingHandlerContextKey.Entry
+    public let initializer: DelegatingHandlerContextKey.Value
 
     /// Creates a new Delegate metadata.
     /// - Parameters:
@@ -38,6 +38,6 @@ public struct DelegateMetadata<H: Handler>: HandlerMetadataDefinition, Definitio
     ///     the "outerst", as it should be the first to act once handle returns.
     public init<I: DelegatingHandlerInitializer>(by initializer: I, ensureInitializerTypeUniqueness: Bool = false, inverseOrder: Bool = false)
         where I.Response == H.Response {
-        self.initializer = .init(initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)
+        self.initializer = [.init(initializer, ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness, inverseOrder: inverseOrder)]
     }
 }
