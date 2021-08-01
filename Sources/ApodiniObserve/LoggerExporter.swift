@@ -16,12 +16,8 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         public struct BlackboardMetadata {
             public let endpointName: String
             public let endpointParameters: EndpointParameters
-            public let endpointParametersOther: EndpointParameters
-            public let endpointParametersById: EndpointParametersById
             public let operation: Apodini.Operation
-            public let absolutePath: [EndpointPath]
             public let endpointPathComponents: EndpointPathComponents
-            public let endpointPathComponentsHTTP: EndpointPathComponentsHTTP
             public let context: Context
             public let anyEndpointSource: AnyEndpointSource
             public let handleReturnType: HandleReturnType
@@ -58,12 +54,8 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
-            endpointParametersOther: endpoint.parameters,
-            endpointParametersById: endpoint[EndpointParametersById.self],
             operation: endpoint[Operation.self],
-            absolutePath: endpoint.absolutePath,
             endpointPathComponents: endpoint[EndpointPathComponents.self],
-            endpointPathComponentsHTTP: endpoint[EndpointPathComponentsHTTP.self],
             context: endpoint[Context.self],
             anyEndpointSource: endpoint[AnyEndpointSource.self],
             handleReturnType: endpoint[HandleReturnType.self],
