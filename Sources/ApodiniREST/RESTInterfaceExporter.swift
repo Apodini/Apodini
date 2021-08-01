@@ -83,8 +83,8 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
-        delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
+        //let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
+        //delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
         
         var pathBuilder = RESTPathBuilder()
         

@@ -12,6 +12,7 @@ import class Vapor.Application
 import class Vapor.Request
 import ApodiniExtension
 import ApodiniUtils
+import Logging
 
 public class EmptyRequest: RequestBasis {
     public var description: String {

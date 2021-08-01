@@ -29,8 +29,12 @@ public protocol RequestBasis {
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
-    /// Contains Logging Metadata of the underlying request (eg. Vapor.Request)
+    /// Contains Logging Metadata of the underlying raw request
     var loggingMetadata: Logger.Metadata { get }
+}
+
+extension RequestBasis {
+    public var loggingMetadata: Logger.Metadata { [:] }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -41,7 +45,6 @@ public struct DefaultRequestBasis: RequestBasis {
     
     public let remoteAddress: SocketAddress?
     public let information: InformationSet
-    public var loggingMetadata: Logger.Metadata
     
     public var description: String {
         _description ?? "Request(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
@@ -55,13 +58,11 @@ public struct DefaultRequestBasis: RequestBasis {
     public init(description: String? = nil,
                 debugDescription: String? = nil,
                 remoteAddress: SocketAddress? = nil,
-                information: InformationSet = [],
-                loggingMetadata: Logger.Metadata = [:]) {
+                information: InformationSet = []) {
         self._description = description
         self._debugDescription = debugDescription
         self.remoteAddress = remoteAddress
         self.information = information
-        self.loggingMetadata = loggingMetadata
     }
     
     /// Construct a ``DefaultRequestBasis`` from a given `remoteAddress` and `information`.
@@ -69,13 +70,11 @@ public struct DefaultRequestBasis: RequestBasis {
     /// ``DefaultRequestBasis/debugDescription`` properties.
     public init(base: Any,
                 remoteAddress: SocketAddress? = nil,
-                information: InformationSet = [],
-                loggingMetadata: Logger.Metadata = [:]) {
+                information: InformationSet = []) {
         self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
                   debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
                   remoteAddress: remoteAddress,
-                  information: information,
-                  loggingMetadata: loggingMetadata)
+                  information: information)
     }
 }
 
@@ -182,4 +181,9 @@ public struct DecodingRequest<Input>: Request {
     public var information: InformationSet {
         basis.information
     }
+}
+
+public protocol LoggingMetadataAccessible {
+    /// Contains Logging Metadata of the underlying raw request
+    var loggingMetadata: Logger.Metadata { get }
 }

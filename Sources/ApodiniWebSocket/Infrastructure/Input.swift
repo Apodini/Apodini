@@ -7,6 +7,8 @@
 //              
 
 import Foundation
+import ApodiniExtension
+@_implementationOnly import Logging
 
 /// A `ParameterDecoder` allows for decoding an element of given type `T`.
 protocol ParameterDecoder {
@@ -20,7 +22,7 @@ protocol ParameterDecoder {
 }
 
 /// A stateful abstraction for representing validatable input.
-protocol Input {
+protocol Input: LoggingMetadataAccessible {
     /// Update the value for the given `parameter` using the given `decoder` and validate this new value.
     mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
     /// Check the complete `Input` for validity after all parameters have been updated.
@@ -89,6 +91,10 @@ enum InputCheckResult {
 /// An implementation of `Input` that accumulates results from given `InputParameter`s.
 struct SomeInput: Input {
     private(set) var parameters: [String: InputParameter]
+    
+    var loggingMetadata: Logger.Metadata {
+        ["test":.string("crazyy")]
+    }
     
     init(parameters: [String: InputParameter]) {
         self.parameters = parameters

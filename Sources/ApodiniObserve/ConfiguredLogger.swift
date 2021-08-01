@@ -8,8 +8,8 @@
 import Foundation
 import Logging
 import Apodini
+import ApodiniHTTPProtocol
 import ApodiniUtils
-import ApodiniVaporSupport
 
 @propertyWrapper
 public struct ConfiguredLogger: DynamicProperty {
@@ -39,7 +39,8 @@ public struct ConfiguredLogger: DynamicProperty {
     public var wrappedValue: Logger {
         get {
             if builtLogger == nil {
-                builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName)")
+                // org.apodini.observe.<Handler>.<Exporter>
+                builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
                 
                 // Identifies the current logger instance -> stays consitent for the lifetime of the associated handler
                 builtLogger?[metadataKey: "logger-uuid"] = .string(UUID().description)
@@ -64,6 +65,9 @@ public struct ConfiguredLogger: DynamicProperty {
                 
                 // Write endpoint metadata
                 builtLogger?[metadataKey: "endpoint"] = .dictionary(self.getEndpointMetadata())
+                
+                // Write exporter metadata
+                builtLogger?[metadataKey: "exporter"] = .dictionary(self.getExporterMetadata())
                 
                 
                 // Set log level - configured either by user in the property wrapper, a CLI argument/configuration in Configuration of WebService (for all loggers, set a storage entry?) or default (which is .info for the StreamLogHandler - set by the Logging Backend, so the struct implementing the LogHandler)
@@ -107,21 +111,18 @@ public struct ConfiguredLogger: DynamicProperty {
                  /// If Websocket -> Need to check if new parameters are passed -> Parse them again if the count doesn't match
                  */
                 
-                // Reevaluate logging metadata since parameters could have changed
-                let request = connection.request
-                let loggingMetadata = request.loggingMetadata
-                
-                // Not very pretty
-                //if (loggingMetadata["exporter"] ?? "") == "WebSocketInterfaceExporter" {
-                //    builtLogger?[metadataKey: "parameters"] = loggingMetadata["parameters"]
-                //}
-                
-                // TODO: Check if the exporter is WebSocketInterfaceExporter, only then trigger request and connectionState parsing again
-                // Write request metadata
-                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request, metadata: loggingMetadata))
-                
-                // Write connection state
-                builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
+                // Not pretty, but otherwise ApodiniObserve would need to depend on Websocket
+                if String(describing: exporterTypeMetadata.exporterType).components(separatedBy: ".")[1] == "WebSocketInterfaceExporter" {
+                    // Reevaluate logging metadata since parameters could have changed
+                    let request = connection.request
+                    let loggingMetadata = request.loggingMetadata
+                    
+                    // Write request metadata
+                    builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request, metadata: loggingMetadata))
+                    
+                    // Write connection state
+                    builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
+                }
             }
             
             return builtLogger!
@@ -219,6 +220,15 @@ extension ConfiguredLogger {
         builtEndpointMetadata["handlerType"] = .string(String(describing: self.blackboardMetadata.anyEndpointSource.handlerType))
         builtEndpointMetadata["handlerReturnType"] = .string(String(describing: self.blackboardMetadata.handleReturnType.type))
         builtEndpointMetadata["serviceType"] = .string(self.blackboardMetadata.serviceType.rawValue)
+        
+        return builtEndpointMetadata
+    }
+    
+    private func getExporterMetadata() -> Logger.Metadata {
+        var builtEndpointMetadata: Logger.Metadata = [:]
+        
+        builtEndpointMetadata["type"] = .string(String(describing: exporterTypeMetadata.exporterType).components(separatedBy: ".")[1])
+        builtEndpointMetadata["parameterNamespace"] = .array(exporterTypeMetadata.parameterNamespace.map({.string($0.description)}))
         
         return builtEndpointMetadata
     }

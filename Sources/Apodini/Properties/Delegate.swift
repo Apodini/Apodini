@@ -218,6 +218,7 @@ extension Delegate {
 extension Delegate: Activatable {
     mutating func activate() {
         self.storage = Box(Storage(delegate: delegateModel))
+        
         self.storage?.value.environment.merge(self.initialStorage.value.environment) { (current, _) in current }
         self.storage?.value.environmentObject.append(contentsOf: self.initialStorage.value.environmentObject)
     }

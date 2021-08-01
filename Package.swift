@@ -132,7 +132,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "_NIOConcurrency", package: "swift-nio")
+                .product(name: "_NIOConcurrency", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log")
             ],
             swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
@@ -186,8 +187,10 @@ let package = Package(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
 
@@ -312,7 +315,8 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "Logging", package: "swift-log")
             ],
             swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),
@@ -568,6 +572,7 @@ let package = Package(
             name: "ApodiniObserve",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniUtils"),
                 // Do we actually need NIO here?
                 .product(name: "NIO", package: "swift-nio"),

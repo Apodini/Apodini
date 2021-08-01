@@ -48,8 +48,8 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     }
 
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
-        delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
+        //let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
+        //delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
         
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
@@ -65,7 +65,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let transformer = Transformer<H>()
         
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
         
         self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,

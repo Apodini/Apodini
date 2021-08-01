@@ -104,14 +104,14 @@ extension Vapor.Request: WithEventLoop { }
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H>.self].instance(),
+        ConnectionContext(delegate: self[DelegateFactory<H, IE>.self].instance(),
                           strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }
     
     /// Create a ``ConnectionContext`` for any object that can provide a fitting strategy for decoding its ``EndpointDecodingStrategyProvider/Input``.
     public func createConnectionContext<IE: EndpointDecodingStrategyProvider>(for exporter: IE) -> ConnectionContext<IE.Input, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H>.self].instance(),
+        ConnectionContext(delegate: self[DelegateFactory<H, RESTInterfaceExporter>.self].instance(),
                           strategy: exporter.strategy.applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }

@@ -13,7 +13,7 @@ import ApodiniExtension
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler<H: Handler>(factory: DelegateFactory<H>,
+    func createUnaryHandler<H: Handler>(factory: DelegateFactory<H, GRPCInterfaceExporter>,
                                         strategy: AnyDecodingStrategy<GRPCMessage>,
                                         defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
@@ -76,7 +76,7 @@ extension GRPCService {
         ]
 
         vaporApp.on(.POST, path) { request in
-            self.createUnaryHandler(factory: endpoint[DelegateFactory<H>.self],
+            self.createUnaryHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                                     strategy: strategy,
                                     defaults: endpoint[DefaultValueStore.self])(request)
         }

@@ -12,13 +12,13 @@ public struct DelegateFactoryBasis<H: Handler>: KnowledgeSource {
     public let delegate: Delegate<H>
     
     public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.delegate = Delegate(blackboard[EndpointSource<H>].handler, .required)
+        self.delegate = Delegate(blackboard[EndpointSource<H>.self].handler, .required)
     }
 }
 
 /// A ``DelegateFactory`` allows for creating ``instance()``s of a ``Delegate``
 /// suitable for usage in an ``InterfaceExporter``.
-public class DelegateFactory<H: Handler>: KnowledgeSource {
+public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource {
     private let blackboard: Blackboard
     
     private lazy var delegate: Delegate<H> = blackboard[DelegateFactoryBasis<H>.self].delegate
@@ -26,7 +26,7 @@ public class DelegateFactory<H: Handler>: KnowledgeSource {
     required public init<B>(_ blackboard: B) throws where B: Blackboard {
         self.blackboard = blackboard
     }
- 
+    
     /// Creates one instance of the ``Delegate``.
     ///
     /// - Note: Use a new instance for each client-connection! Otherwise data may be shared between
@@ -34,6 +34,13 @@ public class DelegateFactory<H: Handler>: KnowledgeSource {
     public func instance() -> Delegate<H> {
         var delegate = self.delegate
         delegate.activate()
+        delegate.environment(
+            \ExporterTypeMetadata.value,
+             ExporterTypeMetadata.ExporterTypeMetadata(
+                exporterType: I.self,
+                parameterNamespace: I.parameterNamespace
+             )
+        )
         return delegate
     }
 }

@@ -14,7 +14,7 @@ import ApodiniExtension
 // MARK: Client streaming request handler
 extension GRPCService {
     private func drainBody<H: Handler>(from request: Vapor.Request,
-                                       factory: DelegateFactory<H>,
+                                       factory: DelegateFactory<H, GRPCInterfaceExporter>,
                                        strategy: AnyDecodingStrategy<GRPCMessage>,
                                        defaults: DefaultValueStore,
                                        promise: EventLoopPromise<Vapor.Response>) {
@@ -88,7 +88,7 @@ extension GRPCService {
     }
 
     func createClientStreamingHandler<H: Handler>(
-        factory: DelegateFactory<H>,
+        factory: DelegateFactory<H, GRPCInterfaceExporter>,
         strategy: AnyDecodingStrategy<GRPCMessage>,
         defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
@@ -124,7 +124,7 @@ extension GRPCService {
         ]
 
         vaporApp.on(.POST, path) { request in
-            self.createClientStreamingHandler(factory: endpoint[DelegateFactory<H>.self],
+            self.createClientStreamingHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                                               strategy: strategy,
                                               defaults: endpoint[DefaultValueStore.self])(request)
         }

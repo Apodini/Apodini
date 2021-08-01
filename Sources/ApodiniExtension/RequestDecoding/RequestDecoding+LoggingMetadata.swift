@@ -6,7 +6,7 @@
 
 import Logging
 
-extension DecodingRequest {
+extension DecodingRequest: LoggingMetadataAccessible {
     public var loggingMetadata: Logger.Metadata {
         [
             "parameters": .dictionary(self.parameterLoggingMetadata)
