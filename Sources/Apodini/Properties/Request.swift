@@ -31,3 +31,9 @@ public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     /// A function for obtaining the value for a ``Parameter`` from this request.
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
 }
+
+extension Request {
+    var loggingMetadata: Logger.Metadata {
+        [:]
+    }
+}

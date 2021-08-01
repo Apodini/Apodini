@@ -69,6 +69,19 @@ public extension InterfaceExporter {
     }
 }
 
+public struct ExporterTypeMetadata: EnvironmentAccessible {
+    public struct ExporterTypeMetadata {
+        // Any.Type since InterfaceExporter has associated type requirements
+        public let exporterType: Any.Type
+        
+        // Has to be implemented manually since it's internal otherwise?
+        public init(exporterType: Any.Type) {
+            self.exporterType = exporterType
+        }
+    }
+    
+    public var value: ExporterTypeMetadata
+}
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {

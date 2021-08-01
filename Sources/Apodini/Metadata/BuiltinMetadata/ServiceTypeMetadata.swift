@@ -10,7 +10,7 @@ import Foundation
 
 /// Used to explicitly define the communicational
 /// pattern that is expressed by a `Handler`.
-public enum ServiceType {
+public enum ServiceType: String {
     /// Simple request-response
     case unary
     /// Client-side streaming, service-side unary

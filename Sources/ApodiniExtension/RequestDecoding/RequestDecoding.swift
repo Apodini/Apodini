@@ -29,6 +29,8 @@ public protocol RequestBasis {
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
+    /// Contains Logging Metadata of the underlying request (eg. Vapor.Request)
+    var loggingMetadata: Logger.Metadata { get }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -39,6 +41,7 @@ public struct DefaultRequestBasis: RequestBasis {
     
     public let remoteAddress: SocketAddress?
     public let information: InformationSet
+    public var loggingMetadata: Logger.Metadata
     
     public var description: String {
         _description ?? "Request(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
@@ -52,11 +55,13 @@ public struct DefaultRequestBasis: RequestBasis {
     public init(description: String? = nil,
                 debugDescription: String? = nil,
                 remoteAddress: SocketAddress? = nil,
-                information: InformationSet = []) {
+                information: InformationSet = [],
+                loggingMetadata: Logger.Metadata = [:]) {
         self._description = description
         self._debugDescription = debugDescription
         self.remoteAddress = remoteAddress
         self.information = information
+        self.loggingMetadata = loggingMetadata
     }
     
     /// Construct a ``DefaultRequestBasis`` from a given `remoteAddress` and `information`.
@@ -64,11 +69,13 @@ public struct DefaultRequestBasis: RequestBasis {
     /// ``DefaultRequestBasis/debugDescription`` properties.
     public init(base: Any,
                 remoteAddress: SocketAddress? = nil,
-                information: InformationSet = []) {
+                information: InformationSet = [],
+                loggingMetadata: Logger.Metadata = [:]) {
         self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
                   debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
                   remoteAddress: remoteAddress,
-                  information: information)
+                  information: information,
+                  loggingMetadata: loggingMetadata)
     }
 }
 
@@ -145,15 +152,20 @@ public struct DecodingRequest<Input>: Request {
     let strategy: AnyDecodingStrategy<Input>
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
+        let parameterId = parameter.id
         let parameter = try strategy.strategy(for: parameter)
                                 .decode(from: input)
         
-        // Get name of parameter and write it to parameterLoggingMetadata
+        // If parameter doesn't exist (eg. default value) exception is thrown, so the code segment below isn't reached at all (for REST)
+        // For Websocket it's different, no exception is thrown and the code block below is executed with a default parameter value defined in the handler
+        self.parameterLoggingMetadata[parameterId.uuidString] = Logger.MetadataValue.convertToMetadata(parameter: parameter)
         
         return parameter
     }
     
     public let eventLoop: EventLoop
+    
+    @Boxed internal var parameterLoggingMetadata: Logger.Metadata = [:]
     
     public var description: String {
         basis.description
@@ -170,20 +182,4 @@ public struct DecodingRequest<Input>: Request {
     public var information: InformationSet {
         basis.information
     }
-    
-    public var loggingMetadata: Logger.Metadata {
-        
-        basis.information.forEach { info in
-            //let test = info.value as! Authorization
-            //print(test.key)
-        }
-        
-        return [
-            "requestDescription": .string(basis.description),
-            "requestDebugDescription": .string(basis.debugDescription),
-            "remoteAddress": .string(basis.remoteAddress?.description ?? "unknown"),
-        ]
-    }
-    
-    @Boxed internal var parameterLoggingMetadata: Logger.Metadata = ["parameters":.dictionary(.init())]
 }

@@ -83,6 +83,9 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
+        delegate.environment(\ExporterTypeMetadata.value, ExporterTypeMetadata.ExporterTypeMetadata(exporterType: Self.self))
+        
         var pathBuilder = RESTPathBuilder()
         
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
@@ -149,7 +152,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
     }
 }
-
 
 extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
