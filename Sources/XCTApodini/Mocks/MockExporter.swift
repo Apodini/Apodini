@@ -13,8 +13,27 @@ import class Vapor.Request
 import ApodiniExtension
 import ApodiniUtils
 
+public class EmptyRequest: RequestBasis {
+    public var description: String {
+        String(describing: self)
+    }
+    public var debugDescription: String {
+        description
+    }
+    public var remoteAddress: SocketAddress?
+
+    public var information: InformationSet
+
+    public var parameters: [Any??]
+
+    public init(information: AnyInformation..., parameters: Any??...) {
+        self.information = InformationSet(information)
+        self.parameters = parameters
+    }
+}
+
 open class MockExporter<Request>: LegacyInterfaceExporter {
-    struct EndpointRepresentation<R> {
+    struct EndpointRepresentation {
         let endpoint: AnyEndpoint
         let evaluateCallback: (_ request: Request, _ parameters: [Any??], _ app: Apodini.Application) throws -> Response<AnyEncodable>
 
@@ -30,7 +49,7 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
     let onExport: (AnyEndpoint) -> Void
     let onFinished: (WebServiceModel) -> Void
 
-    var endpoints: [EndpointRepresentation<Request>] = []
+    var endpoints: [EndpointRepresentation] = []
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter
     public init(queued parameterValues: Any??...,
@@ -94,14 +113,18 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
         }
     }
 
+    public func requestThrowing(on index: Int, request: Request, with app: Apodini.Application, parameters: Any??...) throws
+            -> Response<AnyEncodable> {
+        let executable = endpoints[index].evaluateCallback
+        return try executable(request, parameters, app)
+    }
+
     public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: Request) throws -> Type?? {
-        guard let first = parameterValues.first else {
-            Apodini.Application.logger.warning("MockExporter failed to retrieve next parameter for '\(parameter.description)'. Queue is empty")
+        guard let next = nextParameter(request: request) else {
             return nil // non existence
         }
-        parameterValues.removeFirst()
 
-        guard let value = first else {
+        guard let value = next else {
             return nil // non existence
         }
         guard let unwrapped = value else {
@@ -109,9 +132,20 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
         }
 
         guard let casted = unwrapped as? Type else {
-            fatalError("MockExporter: Could not cast value \(String(describing: first)) to type \(Type?.self) for '\(parameter.description)'")
+            fatalError("MockExporter: Could not cast value \(String(describing: next)) to type \(Type?.self) for '\(parameter.description)'")
         }
         return casted
+    }
+
+    private func nextParameter(request: Request) -> Any??? {
+        if let emptyRequest = request as? EmptyRequest,
+            !emptyRequest.parameters.isEmpty {
+            return emptyRequest.parameters.removeFirst()
+        } else if !parameterValues.isEmpty {
+            return parameterValues.removeFirst()
+        }
+
+        return nil
     }
 }
 #endif

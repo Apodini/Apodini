@@ -7,6 +7,7 @@
 //              
 
 import Apodini
+import ApodiniHTTPProtocol
 import Vapor
 
 

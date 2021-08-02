@@ -30,6 +30,6 @@ struct StandardContentMetadataVisitor: ContentMetadataVisitor {
     let visitor: SyntaxTreeVisitor
 
     func callAsFunction<T: Content>(_ type: T.Type) {
-        type.metadata.accept(visitor)
+        type.metadata.collectMetadata(visitor)
     }
 }

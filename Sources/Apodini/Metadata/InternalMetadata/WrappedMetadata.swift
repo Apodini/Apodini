@@ -13,8 +13,8 @@ struct WrappedHandlerMetadataDefinition<Metadata: HandlerMetadataDefinition>: An
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -25,8 +25,8 @@ struct WrappedComponentOnlyMetadataDefinition<Metadata: ComponentOnlyMetadataDef
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -37,8 +37,8 @@ struct WrappedWebServiceMetadataDefinition<Metadata: WebServiceMetadataDefinitio
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -49,8 +49,8 @@ struct WrappedComponentMetadataDefinition<Metadata: ComponentMetadataDefinition>
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -61,7 +61,7 @@ struct WrappedContentMetadataDefinition<Metadata: ContentMetadataDefinition>: An
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }

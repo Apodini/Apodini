@@ -6,5 +6,5 @@
 // SPDX-License-Identifier: MIT
 //              
 
-// exports the ApodiniVaporSupport package to allow for easy access to the information API
-@_exported import ApodiniVaporSupport
+// exports the ApodiniHTTPProtocol package to allow for easy access to the information API
+@_exported import ApodiniHTTPProtocol
