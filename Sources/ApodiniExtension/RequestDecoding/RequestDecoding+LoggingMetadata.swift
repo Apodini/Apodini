@@ -11,7 +11,7 @@ extension DecodingRequest: LoggingMetadataAccessible {
         [
             "parameters": .dictionary(self.parameterLoggingMetadata)
         ]
-        .merging(self.basis.loggingMetadata) { (_, new) in new }
-        .merging(self.input.loggingMetadata) { (_, new) in new }
+        .merging(self.basis.loggingMetadata) { _, new in new }
+        .merging(self.input.loggingMetadata) { _, new in new }
     }
 }

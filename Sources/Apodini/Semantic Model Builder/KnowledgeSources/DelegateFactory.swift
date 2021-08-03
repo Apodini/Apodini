@@ -23,7 +23,7 @@ public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource 
     
     private lazy var delegate: Delegate<H> = blackboard[DelegateFactoryBasis<H>.self].delegate
     
-    required public init<B>(_ blackboard: B) throws where B: Blackboard {
+    public required init<B>(_ blackboard: B) throws where B: Blackboard {
         self.blackboard = blackboard
     }
     
@@ -36,7 +36,7 @@ public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource 
         delegate.activate()
         delegate.environment(
             \ExporterTypeMetadata.value,
-             ExporterTypeMetadata.ExporterTypeMetadata(
+            ExporterTypeMetadata.ExporterTypeMetadata(
                 exporterType: I.self,
                 parameterNamespace: I.parameterNamespace
              )

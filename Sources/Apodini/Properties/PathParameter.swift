@@ -14,7 +14,7 @@ import ApodiniUtils
 
 /// A `@PathComponent` can be used in `Component`s to indicate that a part of a path is a parameter and can be read out in a `Handler`
 @propertyWrapper
-public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decodable, ArgumentParserStoreable {
+public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decodable {
     @Boxed var id = UUID()
     @Boxed var identifyingType: IdentifyingType?
     
@@ -62,7 +62,8 @@ extension PathParameter {
     }
 }
 
-extension PathParameter {
+/// Since ``PathParameter`` is now allowed in the ``WebService``, the property values have to be backed up and then restored since the ArgumentParser doesn't cache those values
+extension PathParameter: ArgumentParserStoreable {
     public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
         store[key] = self
     }

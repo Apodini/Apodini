@@ -38,16 +38,16 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         self.exporterConfiguration = exporterConfiguration
     }
     
-    public func export<H>(_ endpoint: Endpoint<H>) -> () where H : Handler {
+    public func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
         self.exportOntoBlackboard(endpoint)
     }
     
-    public func export<H>(blob endpoint: Endpoint<H>) -> () where H : Handler, H.Response.Content == Blob {
+    public func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         self.exportOntoBlackboard(endpoint)
     }
     
     /// Writes information from the ``Blackboard`` into the ``Envionment`` of the ``Delegate`` so it is accessible from the ``ConfiguredLogger`` via the ``Envionment`` property wrapper
-    private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) -> () where H: Handler {
+    private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
         // Information which is required for the LoggingMetadata of the ConfiguredLogger

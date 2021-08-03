@@ -13,7 +13,7 @@ import ApodiniUtils
 /// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
 /// Use `Delegate.environment(_:, _:)` to inject a value locally, or define a global default
 /// using `EnvironmentValue`.
-public struct Environment<Key: EnvironmentAccessible, Value>: Property, ArgumentParserStoreable {
+public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     private struct Storage {
         var changed: Bool
         weak var ownObservation: Observation?
@@ -28,7 +28,7 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property, Argument
     
     // only used if Value is ObservableObject
     private var storage: Box<Storage>?
-    @Boxed private var observe: Bool = false
+    @Boxed private var observe = false
     
     @LocalEnvironment private var localEnvironment: Value?
     
@@ -97,7 +97,8 @@ extension Environment: Decodable {
     }
 }
 
-extension Environment {
+/// Since ``Environment`` is now allowed in the ``WebService``, the property values have to be backed up and then restored since the ArgumentParser doesn't cache those values
+extension Environment: ArgumentParserStoreable {
     public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
         store[key] = self
     }

@@ -7,6 +7,7 @@
 import Foundation
 import Logging
 
+/// Extends the ``Logger.MetadataValue`` struct of swift-log to allow for easy encoding of ``Codable`` object to ``Logger.MetadataValue``
 public extension Logger.MetadataValue {
     /// An intermediate representation to encode every `Codable` object as a `Logger.Metadata` object
     enum IntermediateRepresentation: Decodable, Encodable {
@@ -36,11 +37,14 @@ public extension Logger.MetadataValue {
             } else if let dictionary = try? container.decode([String: IntermediateRepresentation].self) {
                 self = .dictionary(dictionary)
             } else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Encountered unexpected JSON values"))
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(codingPath: decoder.codingPath,
+                                          debugDescription: "Encountered unexpected JSON values")
+                )
             }
         }
         
-        /// The actual metadata
+        /// A computed property to get the converted ``Logger.MetadataValue``
         var metadata: Logger.MetadataValue {
             switch self {
             case .null:
@@ -61,6 +65,7 @@ public extension Logger.MetadataValue {
         }
     }
     
+    /// Converts a ``Codable`` object to ``Logger.MetadataValue``
     static func convertToMetadata<Element: Codable>(parameter: Element) -> Logger.MetadataValue {
         do {
             let encodedParameter = try parameter.encodeToJSON()
@@ -71,9 +76,8 @@ public extension Logger.MetadataValue {
             }
             
             let intermediateRepresentation = try JSONDecoder().decode(IntermediateRepresentation.self, from: encodedParameter)
-            let metadataParameter = intermediateRepresentation.metadata
             
-            return metadataParameter
+            return intermediateRepresentation.metadata
         } catch {
             return .string("Error during encoding of the parameter")
         }

@@ -34,7 +34,14 @@ public protocol RequestBasis {
 }
 
 extension RequestBasis {
+    /// A default implementation of  `loggingMetadata` of the ``RequestBasis``
     public var loggingMetadata: Logger.Metadata { [:] }
+}
+
+/// A procol that allows access to ``Logger.Metadata`` of a ``DecodingRequest`` or ``DecodingRequest/Input``
+public protocol LoggingMetadataAccessible {
+    /// Contains Logging Metadata of the underlying raw request
+    var loggingMetadata: Logger.Metadata { get }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -91,7 +98,7 @@ extension DecodingStrategy {
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
     ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: LoggingMetadataAccessible {
+    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: LoggingMetadataAccessible {    // swiftlint:disable:this line_length
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
     }
     
@@ -103,7 +110,7 @@ extension DecodingStrategy {
     /// - Parameters:
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis & LoggingMetadataAccessible {
+    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis & LoggingMetadataAccessible {       // swiftlint:disable:this line_length
         self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
@@ -181,9 +188,4 @@ public struct DecodingRequest<Input: LoggingMetadataAccessible>: Request {
     public var information: InformationSet {
         basis.information
     }
-}
-
-public protocol LoggingMetadataAccessible {
-    /// Contains Logging Metadata of the underlying raw request
-    var loggingMetadata: Logger.Metadata { get }
 }

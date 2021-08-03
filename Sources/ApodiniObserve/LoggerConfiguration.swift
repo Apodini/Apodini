@@ -52,7 +52,7 @@ public final class LoggerConfiguration: Configuration {
         app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
         
         // Bootstrap the logging system
-        LoggingSystem.bootstrap { label in
+        LoggingSystem.bootstrap { _ in
             MultiplexLogHandler(
                 self.logHandlers
             )
