@@ -65,12 +65,7 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
 
 private extension Application {
     var authorizationStateContainer: AuthorizationStateContainer {
-        get {
-            AuthorizationStateContainer()
-        }
-        set { // swiftlint:disable:this unused_setter_value
-            fatalError("Can't write to \\.authorizationStateContainer key path")
-        }
+        AuthorizationStateContainer()
     }
 }
 
