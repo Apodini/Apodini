@@ -10,6 +10,7 @@
 import Foundation
 import class Vapor.Application
 import class Vapor.Request
+import Apodini
 import ApodiniExtension
 import ApodiniUtils
 import Logging

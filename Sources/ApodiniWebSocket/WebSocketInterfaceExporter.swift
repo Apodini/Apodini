@@ -68,14 +68,20 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
                     defaultInput: SomeInput,
                     output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
-            
             // We need a new `Delegate` for each connection
             let delegate = factory.instance()
             
             let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
-                (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
+                (DefaultRequestBasis(
+                    base: someInput,
+                    remoteAddress: request.remoteAddress,
+                    information: request.information.merge(
+                        with: [
+                            LoggingMetadataInformation(key: .init("parametersValid"), metadataValue: .string(someInput.parametersValid))
+                        ]
+                    )), someInput)
             }
             .decode(using: decodingStrategy, with: eventLoop)
             .insertDefaults(with: defaultValueStore)

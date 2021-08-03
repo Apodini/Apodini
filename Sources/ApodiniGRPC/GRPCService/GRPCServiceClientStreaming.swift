@@ -43,7 +43,11 @@ extension GRPCService {
                     // See `getMessages` internal comments for more details.
                     .filter(\.didCollectAllFragments)
                     .forEach({ message in
-                        let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                        let basis = DefaultRequestBasis(
+                            base: message,
+                            remoteAddress: message.remoteAddress,
+                            information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                        )
                         
                         let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                             .decodeRequest(from: message, with: basis, with: request.eventLoop)
@@ -61,7 +65,11 @@ extension GRPCService {
                 // and set the final flag
                 let message = lastMessage ?? GRPCMessage.defaultMessage
                 
-                let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                let basis = DefaultRequestBasis(
+                    base: message,
+                    remoteAddress: message.remoteAddress,
+                    information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                )
                 
                 let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                     .decodeRequest(from: message, with: basis, with: request.eventLoop)
@@ -128,5 +136,14 @@ extension GRPCService {
                                               strategy: strategy,
                                               defaults: endpoint[DefaultValueStore.self])(request)
         }
+    }
+    
+    static func getLoggingMetadataInformation(_ message: GRPCMessage) -> [LoggingMetadataInformation] {
+        [
+            LoggingMetadataInformation(key: .init("data"), metadataValue: message.data.count <= 32_768 ? .string(message.data.base64EncodedString()) : .string("\(message.data.base64EncodedString().prefix(32_715))... (Further bytes omitted since data too large!)")),
+            LoggingMetadataInformation(key: .init("dataLength"), metadataValue: .string(message.length.description)),
+            LoggingMetadataInformation(key: .init("compression"), metadataValue: .string(message.compressed.description)),
+            LoggingMetadataInformation(key: .init("didCollectAllFragments"), metadataValue: .string(message.didCollectAllFragments.description))
+        ]
     }
 }

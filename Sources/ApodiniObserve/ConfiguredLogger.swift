@@ -171,6 +171,7 @@ extension ConfiguredLogger {
     }
     
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
+        // TODO: Probably problematic since the types aren'T really set, all is just of type AnyHTTPInformation
         informationSet.reduce(into: [:]) { partialResult, info in
             if let auth = info as? Authorization {
                 // Since this is confidential data, we just log the authorization type

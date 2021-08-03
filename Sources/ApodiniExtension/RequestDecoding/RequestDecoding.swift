@@ -29,19 +29,12 @@ public protocol RequestBasis {
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
-    /// Contains Logging Metadata of the underlying raw request
+    /// Logging metadata
     var loggingMetadata: Logger.Metadata { get }
 }
 
-extension RequestBasis {
-    /// A default implementation of  `loggingMetadata` of the ``RequestBasis``
-    public var loggingMetadata: Logger.Metadata { [:] }
-}
-
-/// A procol that allows access to ``Logger.Metadata`` of a ``DecodingRequest`` or ``DecodingRequest/Input``
-public protocol LoggingMetadataAccessible {
-    /// Contains Logging Metadata of the underlying raw request
-    var loggingMetadata: Logger.Metadata { get }
+public extension RequestBasis {
+    var loggingMetadata: Logger.Metadata { [:] }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -85,7 +78,6 @@ public struct DefaultRequestBasis: RequestBasis {
     }
 }
 
-
 // MARK: Request Decoding
 
 extension DecodingStrategy {
@@ -98,7 +90,7 @@ extension DecodingStrategy {
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
     ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: LoggingMetadataAccessible {    // swiftlint:disable:this line_length
+    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {    // swiftlint:disable:this line_length
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
     }
     
@@ -110,7 +102,7 @@ extension DecodingStrategy {
     /// - Parameters:
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis & LoggingMetadataAccessible {       // swiftlint:disable:this line_length
+    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {       // swiftlint:disable:this line_length
         self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
@@ -126,7 +118,7 @@ extension AsyncSequence {
     ///     contained in the second element of each value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
-        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
+    -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
         self.map { requestBasis, input in
             strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
         }
@@ -150,7 +142,7 @@ extension AsyncSequence {
 /// A ``RequestBasis`` based Apodini `Request` which uses a ``DecodingStrategy``
 /// as well as an instance of its ``DecodingStrategy/Input`` type to implement its
 /// ``DecodingRequest/retrieveParameter(_:)`` function.
-public struct DecodingRequest<Input: LoggingMetadataAccessible>: Request {
+public struct DecodingRequest<Input>: Request {
     let basis: RequestBasis
     
     let input: Input

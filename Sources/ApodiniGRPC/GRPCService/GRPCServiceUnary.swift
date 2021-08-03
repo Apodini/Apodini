@@ -35,7 +35,11 @@ extension GRPCService {
                 // should be one at max (so we discard potential following messages).
                 let message = self.getMessages(from: data, remoteAddress: request.remoteAddress).first ?? GRPCMessage.defaultMessage
 
-                let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                let basis = DefaultRequestBasis(
+                    base: message,
+                    remoteAddress: message.remoteAddress,
+                    information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                )
                 
                 let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                     .decodeRequest(from: message, with: basis, with: request.eventLoop)

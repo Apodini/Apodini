@@ -24,16 +24,14 @@ public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
 
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
-    
-    /// Metadata of the request (for Apodini Observe)
-    var loggingMetadata: Logger.Metadata { get }
 
     /// A function for obtaining the value for a ``Parameter`` from this request.
     func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element
+    
+    var loggingMetadata: Logger.Metadata { get }
 }
 
-extension Request {
-    var loggingMetadata: Logger.Metadata {
-        [:]
-    }
+/// Default implementation of ``LoggingMetadataAccessible``
+public extension Request {
+    var loggingMetadata: Logger.Metadata { [:] }
 }

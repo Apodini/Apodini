@@ -14,6 +14,7 @@ public protocol HTTPHeaderInformationClass: InformationClass {
 }
 
 extension AnyHTTPInformation: HTTPHeaderInformationClass {}
+
 public extension HTTPHeaderInformationClass where Self == AnyHTTPInformation {
     /// Returns the HTTP header as a tuple.
     var entry: (header: String, value: String) {

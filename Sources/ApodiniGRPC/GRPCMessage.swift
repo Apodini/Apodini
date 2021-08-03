@@ -13,7 +13,7 @@ import ApodiniExtension
 import Logging
 
 /// gRPC message
-public final class GRPCMessage: LoggingMetadataAccessible {
+public final class GRPCMessage {
     /// Default message that can be used to call handlers in cases
     /// where no input message was provided.
     /// Content is empty, length is zero, and the compressed flag is not set.
@@ -26,7 +26,7 @@ public final class GRPCMessage: LoggingMetadataAccessible {
     
     public var loggingMetadata: Logger.Metadata {
         [
-            "data": self.data.count <= 32_768 ? .string(self.data.base64EncodedString()) : .string("\(self.data.base64EncodedString().prefix(32_700))... (Further bytes omitted since data too large!)"),
+            "data": self.data.count <= 32_768 ? .string(self.data.base64EncodedString()) : .string("\(self.data.base64EncodedString().prefix(32_715))... (Further bytes omitted since data too large!)"),
             "length": .string(self.length.description),
             "compressed": .string(self.compressed.description)
         ]

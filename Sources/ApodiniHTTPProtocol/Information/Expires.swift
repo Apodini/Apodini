@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 
 
-// MARK: ETag
+// MARK: Expires
 /// An `HTTPInformation` carrying information about the expiration date of resources
 public struct Expires: HTTPInformation {
     fileprivate static let dateFormatter: DateFormatter = {

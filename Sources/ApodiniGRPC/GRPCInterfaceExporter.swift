@@ -9,9 +9,9 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniExtension
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
-import ApodiniExtension
 
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {
