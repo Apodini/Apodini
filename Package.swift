@@ -574,8 +574,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniUtils"),
-                // Do we actually need NIO here?
-                .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
             ]
         )

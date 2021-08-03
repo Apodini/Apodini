@@ -64,10 +64,10 @@ public struct ConfiguredLogger: DynamicProperty {
                 builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request, metadata: loggingMetadata))
                 
                 // Write endpoint metadata
-                builtLogger?[metadataKey: "endpoint"] = .dictionary(self.getEndpointMetadata())
+                builtLogger?[metadataKey: "endpoint"] = .dictionary(self.endpointMetadata)
                 
                 // Write exporter metadata
-                builtLogger?[metadataKey: "exporter"] = .dictionary(self.getExporterMetadata())
+                builtLogger?[metadataKey: "exporter"] = .dictionary(self.exporterMetadata)
                 
                 
                 // Set log level - configured either by user in the property wrapper, a CLI argument/configuration in Configuration of WebService (for all loggers, set a storage entry?) or default (which is .info for the StreamLogHandler - set by the Logging Backend, so the struct implementing the LogHandler)
@@ -111,8 +111,8 @@ public struct ConfiguredLogger: DynamicProperty {
                  /// If Websocket -> Need to check if new parameters are passed -> Parse them again if the count doesn't match
                  */
                 
-                // Not pretty, but otherwise ApodiniObserve would need to depend on Websocket
-                if String(describing: exporterTypeMetadata.exporterType).components(separatedBy: ".")[1] == "WebSocketInterfaceExporter" {
+                // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
+                if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
                     // Reevaluate logging metadata since parameters could have changed
                     let request = connection.request
                     let loggingMetadata = request.loggingMetadata
@@ -148,26 +148,50 @@ public struct ConfiguredLogger: DynamicProperty {
 }
 
 extension ConfiguredLogger {
+    private var endpointMetadata: Logger.Metadata {
+        [
+            "name": .string(self.blackboardMetadata.endpointName),
+            "parameters": .array(self.blackboardMetadata.endpointParameters.map({ parameter in
+                .string(parameter.description)
+            })),
+            "operation": .string(self.blackboardMetadata.operation.description),
+            "endpointPath": .string(self.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
+                partialResult.append(contentsOf: endpointPath.description)
+            })),
+            "version": .string(self.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
+            "handlerType": .string(String(describing: self.blackboardMetadata.anyEndpointSource.handlerType)),
+            "handlerReturnType": .string(String(describing: self.blackboardMetadata.handleReturnType.type)),
+            "serviceType": .string(self.blackboardMetadata.serviceType.rawValue)
+        ]
+    }
+    
+    private var exporterMetadata: Logger.Metadata {
+        [
+            "type": .string(String(describing: exporterTypeMetadata.exporterType)),
+            "parameterNamespace": .array(exporterTypeMetadata.parameterNamespace.map({.string($0.description)}))
+        ]
+    }
+    
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
-            if let auth = info.value as? Authorization {
+            if let auth = info as? Authorization {
                 // Since this is confidential data, we just log the authorization type
                 partialResult[Authorization.header] = .string(auth.type)
-            } else if let cookies = info.value as? Cookies {
+            } else if let cookies = info as? Cookies {
                 partialResult[Cookies.header] = .dictionary(
                     cookies.value.reduce(into: [:]) { partialResult, cookie in
                         partialResult[cookie.key] = .string(cookie.value)
                     }
                 )
-            } else if let etag = info.value as? ETag {
+            } else if let etag = info as? ETag {
                 partialResult[ETag.header] = .string(etag.rawValue)
-            } else if let expires = info.value as? Expires {
+            } else if let expires = info as? Expires {
                 partialResult[Expires.header] = .string(expires.rawValue)
-            } else if let redirectTo = info.value as? RedirectTo {
+            } else if let redirectTo = info as? RedirectTo {
                 partialResult[RedirectTo.header] = .string(redirectTo.rawValue)
             }
             // Since we just use HTTP Headers as Information at the moment, stick to those HTTP Headers
-            else if let anyHTTPInformation = info.value as? AnyHTTPInformation {
+            else if let anyHTTPInformation = info as? AnyHTTPInformation {
                 partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
             }
         }
@@ -176,8 +200,9 @@ extension ConfiguredLogger {
     private func getRequestMetadata(from request: Request, metadata requestMetadata: Logger.Metadata) -> Logger.Metadata {
         var builtRequestMetadata: Logger.Metadata = ["parameters":.dictionary(.init())]
         
-        builtRequestMetadata["description"] = .string(request.description)
-        builtRequestMetadata["debugDescription"] = .string(request.debugDescription)
+        // Limit size since eg. the description of the WebSocket exporter contains the request parameters
+        builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
+        builtRequestMetadata["debugDescription"] = .string(request.debugDescription.count < 32_768 ? request.debugDescription : "\(request.debugDescription.prefix(32_715))... (further bytes omitted since description too large!")
         
         // Leave out the parameters key since those need special treatment
         requestMetadata
@@ -191,7 +216,6 @@ extension ConfiguredLogger {
             return builtRequestMetadata
         }
         
-        // Map parameter ID to actual parameter name
         for metadata in parameterMetadata {
             guard let parameterName = self.blackboardMetadata.endpointParameters.filter({ $0.id.uuidString == metadata.key }).first?.name else {
                 continue
@@ -203,33 +227,5 @@ extension ConfiguredLogger {
         }
         
         return builtRequestMetadata
-    }
-    
-    private func getEndpointMetadata() -> Logger.Metadata {
-        var builtEndpointMetadata: Logger.Metadata = [:]
-        
-        builtEndpointMetadata["name"] = .string(self.blackboardMetadata.endpointName)
-        builtEndpointMetadata["parameters"] = .array(self.blackboardMetadata.endpointParameters.map({ parameter in
-            .string(parameter.description)
-        }))
-        builtEndpointMetadata["operation"] = .string(self.blackboardMetadata.operation.description)
-        builtEndpointMetadata["endpointPath"] = .string(self.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-            partialResult.append(contentsOf: endpointPath.description)
-        }))
-        builtEndpointMetadata["version"] = .string(self.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown")
-        builtEndpointMetadata["handlerType"] = .string(String(describing: self.blackboardMetadata.anyEndpointSource.handlerType))
-        builtEndpointMetadata["handlerReturnType"] = .string(String(describing: self.blackboardMetadata.handleReturnType.type))
-        builtEndpointMetadata["serviceType"] = .string(self.blackboardMetadata.serviceType.rawValue)
-        
-        return builtEndpointMetadata
-    }
-    
-    private func getExporterMetadata() -> Logger.Metadata {
-        var builtEndpointMetadata: Logger.Metadata = [:]
-        
-        builtEndpointMetadata["type"] = .string(String(describing: exporterTypeMetadata.exporterType))
-        builtEndpointMetadata["parameterNamespace"] = .array(exporterTypeMetadata.parameterNamespace.map({.string($0.description)}))
-        
-        return builtEndpointMetadata
     }
 }
