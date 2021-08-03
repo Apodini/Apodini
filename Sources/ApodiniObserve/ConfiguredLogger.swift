@@ -43,7 +43,7 @@ public struct ConfiguredLogger: DynamicProperty {
                 builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
                 
                 // Identifies the current logger instance -> stays consitent for the lifetime of the associated handler
-                builtLogger?[metadataKey: "logger-uuid"] = .string(UUID().description)
+                builtLogger?[metadataKey: "logger-uuid"] = .string(self.id.uuidString)
                 
                 let request = connection.request
                 let loggingMetadata = request.loggingMetadata
@@ -107,10 +107,6 @@ public struct ConfiguredLogger: DynamicProperty {
                     #endif
                 }
             } else {
-                /*
-                 /// If Websocket -> Need to check if new parameters are passed -> Parse them again if the count doesn't match
-                 */
-                
                 // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
                 if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
                     // Reevaluate logging metadata since parameters could have changed
