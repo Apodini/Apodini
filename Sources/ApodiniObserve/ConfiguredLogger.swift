@@ -192,6 +192,12 @@ extension ConfiguredLogger {
             // Since we just use HTTP Headers as Information at the moment, stick to those HTTP Headers
             else if let anyHTTPInformation = info as? AnyHTTPInformation {
                 partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
+                
+                let test = anyHTTPInformation.typed(Authorization.self)
+                if let authType = test?.type {
+                    // do something, do that for all HTTP types
+                    // then differentiate for the metadata type (just one)
+                }
             }
         }
     }
