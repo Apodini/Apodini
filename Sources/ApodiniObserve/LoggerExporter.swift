@@ -8,6 +8,7 @@ import Foundation
 import Logging
 import Apodini
 import ApodiniExtension
+import ApodiniUtils
 
 /// An ``IntefaceExporter``that writes information from the ``Blackboard`` to the ``Environment`` of the ``Delegate``
 public final class LoggerExporter: InterfaceExporter, TruthAnchor {
@@ -16,6 +17,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         public struct BlackboardMetadata {
             public let endpointName: String
             public let endpointParameters: EndpointParameters
+            let parameters: [ParameterRetriever]
             public let operation: Apodini.Operation
             public let endpointPathComponents: EndpointPathComponents
             public let context: Context
@@ -54,6 +56,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
+            parameters: endpoint[All<ParameterRetriever>.self].elements.map { $0.1 },
             operation: endpoint[Operation.self],
             endpointPathComponents: endpoint[EndpointPathComponents.self],
             context: endpoint[Context.self],
@@ -64,5 +67,19 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         )
         
         delegate.environment(\BlackboardMetadata.value, blackboardMetadata)
+    }
+}
+
+// MARK: ParameterRetriever
+
+/// A type-erased protocol implemented by `Parameter`. It allows ``ConfiguredLogger`` to
+/// access input-values from a `Request` in an untyped manner.
+protocol ParameterRetriever {
+    func retrieveParameter(from request: Request) throws -> AnyEncodable
+}
+
+extension Parameter: ParameterRetriever {
+    func retrieveParameter(from request: Request) throws -> AnyEncodable {
+        AnyEncodable(try request.retrieveParameter(self))
     }
 }
