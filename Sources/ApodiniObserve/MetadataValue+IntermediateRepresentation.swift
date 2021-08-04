@@ -66,7 +66,7 @@ public extension Logger.MetadataValue {
     }
     
     /// Converts a ``Codable`` object to ``Logger.MetadataValue``
-    static func convertToMetadata<Element: Codable>(parameter: Element) -> Logger.MetadataValue {
+    static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
         do {
             let encodedParameter = try parameter.encodeToJSON()
             

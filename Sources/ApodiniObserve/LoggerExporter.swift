@@ -15,16 +15,17 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
     /// Contains all the necessary information from the ``Blackboard``, then accessed via the ``Environment`` property wrapper of the ``ConfiguredLogger``
     public struct BlackboardMetadata: EnvironmentAccessible {
         public struct BlackboardMetadata {
-            public let endpointName: String
-            public let endpointParameters: EndpointParameters
+            let endpointName: String
+            let endpointParameters: EndpointParameters
             let parameters: [ParameterRetriever]
-            public let operation: Apodini.Operation
-            public let endpointPathComponents: EndpointPathComponents
-            public let context: Context
-            public let anyEndpointSource: AnyEndpointSource
-            public let handleReturnType: HandleReturnType
-            public let responseType: ResponseType
-            public let serviceType: ServiceType
+            let parameterTupels: [(String, ParameterRetriever)]
+            let operation: Apodini.Operation
+            let endpointPathComponents: EndpointPathComponents
+            let context: Context
+            let anyEndpointSource: AnyEndpointSource
+            let handleReturnType: HandleReturnType
+            let responseType: ResponseType
+            let serviceType: ServiceType
         }
         
         public var value: BlackboardMetadata
@@ -57,6 +58,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
             parameters: endpoint[All<ParameterRetriever>.self].elements.map { $0.1 },
+            parameterTupels: endpoint[All<ParameterRetriever>.self].elements,
             operation: endpoint[Operation.self],
             endpointPathComponents: endpoint[EndpointPathComponents.self],
             context: endpoint[Context.self],

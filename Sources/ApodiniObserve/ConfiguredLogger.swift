@@ -8,6 +8,7 @@
 import Foundation
 import Logging
 import Apodini
+import ApodiniExtension
 import ApodiniHTTPProtocol
 import ApodiniUtils
 
@@ -43,12 +44,6 @@ public struct ConfiguredLogger: DynamicProperty {
     private let logLevel: Logger.Level?
     
     public var wrappedValue: Logger {
-        let parameterValues = blackboardMetadata.parameters.compactMap { parameter in
-            try? parameter.retrieveParameter(from: connection.request)
-        }
-        // TODO: use new `parameterValues` + remove old parameter-retrieval related code!
-        
-        
         if builtLogger == nil {
             // org.apodini.observe.<Handler>.<Exporter>
             builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
@@ -72,7 +67,8 @@ public struct ConfiguredLogger: DynamicProperty {
             builtLogger?[metadataKey: "information"] = .dictionary(self.getInformationMetadata(from: connection.information))
             
             // Write request metadata
-            builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request, metadata: loggingMetadata))
+            builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request)
+                                                                .merging(self.getRawRequestMetadata(from: connection.information)) { (_, new) in new } )
             
             // Write endpoint metadata
             builtLogger?[metadataKey: "endpoint"] = .dictionary(self.endpointMetadata)
@@ -120,13 +116,14 @@ public struct ConfiguredLogger: DynamicProperty {
             if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
                 // Reevaluate logging metadata since parameters could have changed
                 let request = connection.request
-                let loggingMetadata = request.loggingMetadata
                 
                 // Write request metadata
-                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request, metadata: loggingMetadata))
+                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request))
                 
                 // Write connection state
                 builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
+                
+                // TODO: Maybe need to refresh more stuff here
             }
         }
         
@@ -155,8 +152,9 @@ extension ConfiguredLogger {
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.blackboardMetadata.endpointName),
+            // Maybe do someting more with the endpoint parameter infos
             "parameters": .array(self.blackboardMetadata.endpointParameters.map { parameter in
-                .string(parameter.description)
+                    .string("\(parameter.description) \(parameter.description)")
             }),
             "operation": .string(self.blackboardMetadata.operation.description),
             "endpointPath": .string(self.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
@@ -177,66 +175,53 @@ extension ConfiguredLogger {
     }
     
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
-        // TODO: Probably problematic since the types aren'T really set, all is just of type AnyHTTPInformation
         informationSet.reduce(into: [:]) { partialResult, info in
-            if let auth = info as? Authorization {
-                // Since this is confidential data, we just log the authorization type
-                partialResult[Authorization.header] = .string(auth.type)
-            } else if let cookies = info as? Cookies {
-                partialResult[Cookies.header] = .dictionary(
-                    cookies.value.reduce(into: [:]) { partialResult, cookie in
-                        partialResult[cookie.key] = .string(cookie.value)
-                    }
-                )
-            } else if let etag = info as? ETag {
-                partialResult[ETag.header] = .string(etag.rawValue)
-            } else if let expires = info as? Expires {
-                partialResult[Expires.header] = .string(expires.rawValue)
-            } else if let redirectTo = info as? RedirectTo {
-                partialResult[RedirectTo.header] = .string(redirectTo.rawValue)
-            }
-            // Since we just use HTTP Headers as Information at the moment, stick to those HTTP Headers
-            else if let anyHTTPInformation = info as? AnyHTTPInformation {
-                partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
-                
-                let test = anyHTTPInformation.typed(Authorization.self)
-                if let authType = test?.type {
-                    // do something, do that for all HTTP types
-                    // then differentiate for the metadata type (just one)
+            if let anyHTTPInformation = info as? AnyHTTPInformation {
+                if let auth = anyHTTPInformation.typed(Authorization.self) {
+                    partialResult[Authorization.header] = .string(auth.type)
+                } else if let cookies = anyHTTPInformation.typed(Cookies.self) {
+                    partialResult[Cookies.header] = .dictionary(
+                        cookies.value.reduce(into: [:]) { partialResult, cookie in
+                            partialResult[cookie.key] = .string(cookie.value)
+                        }
+                    )
+                } else if let etag = anyHTTPInformation.typed(ETag.self) {
+                    partialResult[ETag.header] = .string(etag.rawValue)
+                } else if let expires = anyHTTPInformation.typed(Expires.self) {
+                    partialResult[Expires.header] = .string(expires.rawValue)
+                } else if let redirectTo = anyHTTPInformation.typed(RedirectTo.self) {
+                    partialResult[RedirectTo.header] = .string(redirectTo.rawValue)
+                } else {
+                    partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
                 }
             }
         }
     }
     
-    private func getRequestMetadata(from request: Request, metadata requestMetadata: Logger.Metadata) -> Logger.Metadata {
-        var builtRequestMetadata: Logger.Metadata = ["parameters": .dictionary(.init())]
+    private func getRawRequestMetadata(from informationSet: InformationSet) -> Logger.Metadata {
+        informationSet.reduce(into: [:]) { partialResult, info in
+            if let metadataInformation = info as? LoggingMetadataInformation {
+                partialResult[metadataInformation.key.key] = metadataInformation.metadataValue
+            }
+        }
+    }
+    
+    private func getRequestMetadata(from request: Request) -> Logger.Metadata {
+        var builtRequestMetadata: Logger.Metadata = [:]
         
         // Limit size since eg. the description of the WebSocket exporter contains the request parameters
         builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
         builtRequestMetadata["debugDescription"] = .string(request.debugDescription.count < 32_768 ? request.debugDescription : "\(request.debugDescription.prefix(32_715))... (further bytes omitted since description too large!")
         
-        // Leave out the parameters key since those need special treatment
-        requestMetadata
-            .filter { key, _ in
-                key != "parameters"
+        let parameterMetadata = blackboardMetadata.parameterTupels.reduce(into: Logger.Metadata(), { partialResult, parameter in
+            if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
+                partialResult[String(parameter.0.dropFirst())] = Logger.MetadataValue.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
+            } else {
+                partialResult[String(parameter.0.dropFirst())] = .string("nil")
             }
-            .forEach { key, value in
-                builtRequestMetadata[key] = value
-            }
+        })
         
-        guard let parameterMetadata = requestMetadata["parameters"]?.metadataDictionary else {
-            return builtRequestMetadata
-        }
-        
-        for metadata in parameterMetadata {
-            guard let parameterName = self.blackboardMetadata.endpointParameters.first(where: { $0.id.uuidString == metadata.key })?.name else {
-                continue
-            }
-            
-            builtRequestMetadata["parameters"] = .dictionary(
-                builtRequestMetadata["parameters"]!.metadataDictionary.merging([parameterName: metadata.value]) { _, new in new }
-            )
-        }
+        builtRequestMetadata["parameters"] = .dictionary(parameterMetadata)
         
         return builtRequestMetadata
     }

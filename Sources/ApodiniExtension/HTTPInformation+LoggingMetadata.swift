@@ -19,7 +19,7 @@ public struct LoggingMetadataInformation: Information {
     
     public let key: LoggingMetadataKey
     public var value: String
-    let metadataValue: Logger.MetadataValue
+    public let metadataValue: Logger.MetadataValue
     
     public var header: String {
         key.key
@@ -45,6 +45,17 @@ public struct LoggingMetadataInformation: Information {
     }
 }
 
+/// The `DynamicInformationKey` identifying any `LoggingMetadataInformation` instances.
+public struct LoggingMetadataKey: InformationKey {
+    public typealias RawValue = String
+
+    public var key: String
+
+    public init(_ key: String) {
+        self.key = key
+    }
+}
+
 extension Logger.MetadataValue: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
@@ -59,16 +70,5 @@ extension Logger.MetadataValue: Encodable {
         case let .array(array):
             try container.encode(array)
         }
-    }
-}
-
-/// The `DynamicInformationKey` identifying any `LoggingMetadataInformation` instances.
-public struct LoggingMetadataKey: InformationKey {
-    public typealias RawValue = String
-
-    public var key: String
-
-    public init(_ key: String) {
-        self.key = key
     }
 }

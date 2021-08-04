@@ -10,9 +10,9 @@ import Logging
 extension DecodingRequest {
     public var loggingMetadata: Logger.Metadata {
         [
-            "parameters": .dictionary(self.parameterLoggingMetadata)
+            : //"parameters": .dictionary(self.parameterLoggingMetadata)
         ]
-        .merging(self.basis.loggingMetadata) { _, new in new }
+        //.merging(self.basis.loggingMetadata) { _, new in new }
         //.merging(self.input.loggingMetadata) { _, new in new }
     }
 }
