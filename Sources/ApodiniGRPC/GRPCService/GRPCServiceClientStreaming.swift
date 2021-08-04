@@ -21,7 +21,7 @@ extension GRPCService {
         let delegate = factory.instance()
         
         var lastMessage: GRPCMessage?
-        request.body.drain { (bodyStream: BodyStreamResult) in
+        request.body.drain { (bodyStream: BodyStreamResult) in      // swiftlint:disable:this closure_body_length
             switch bodyStream {
             case let .buffer(byteBuffer):
                 guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {

@@ -53,7 +53,6 @@ public struct ConfiguredLogger: DynamicProperty {
             builtLogger?[metadataKey: "logger-uuid"] = .string(self.id.uuidString)
             
             let request = connection.request
-            let loggingMetadata = request.loggingMetadata
             
             // Write remote address
             builtLogger?[metadataKey: "remoteAddress"] = .string(connection.remoteAddress?.description ?? "unknown")
@@ -69,7 +68,7 @@ public struct ConfiguredLogger: DynamicProperty {
             
             // Write request metadata
             builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request)
-                                                                .merging(self.getRawRequestMetadata(from: connection.information)) { (_, new) in new } )
+                                                                .merging(self.getRawRequestMetadata(from: connection.information)) { _, new in new })
             
             // Write endpoint metadata
             builtLogger?[metadataKey: "endpoint"] = .dictionary(self.endpointMetadata)
@@ -84,7 +83,7 @@ public struct ConfiguredLogger: DynamicProperty {
                 // If logging level is configured gloally
                 if let globalConfiguredLogLevel = storage.get(LoggerConfiguration.LoggingStorageKey.self)?.configuration.logLevel {
                     if logLevel < globalConfiguredLogLevel {
-                        print("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(String(describing: loggingMetadata["endpoint"])) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
+                        print("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
                     }
                 // If logging level is automatically set to a default value
                 } else {
@@ -96,7 +95,7 @@ public struct ConfiguredLogger: DynamicProperty {
                     #endif
                     
                     if logLevel < globalLogLevel {
-                        print("The global default logging level is \(globalLogLevel.rawValue) but Handler \(String(describing: loggingMetadata["endpoint"])) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
+                        print("The global default logging level is \(globalLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
                     }
                 }
             }

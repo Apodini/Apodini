@@ -24,7 +24,7 @@ public struct All<T>: HandlerKnowledgeSource {
     /// but may be overridden using e.g. ``DynamicProperty/namingStrategy(_:)-5rml4``
     public let elements: [(String, T)]
     
-    public init<H, B>(from handler: H, _ blackboard: B) throws where H : Handler, B : Blackboard {
+    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
         self.elements = getAll(of: T.self, from: handler)
     }
 }

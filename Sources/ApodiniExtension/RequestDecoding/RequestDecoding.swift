@@ -29,12 +29,6 @@ public protocol RequestBasis {
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
     var information: InformationSet { get }
-    /// Logging metadata
-    var loggingMetadata: Logger.Metadata { get }
-}
-
-public extension RequestBasis {
-    var loggingMetadata: Logger.Metadata { [:] }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from

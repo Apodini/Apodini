@@ -23,14 +23,6 @@ public final class GRPCMessage {
     var length: Int
     var compressed: Bool
     let remoteAddress: SocketAddress?
-    
-    public var loggingMetadata: Logger.Metadata {
-        [
-            "data": self.data.count <= 32_768 ? .string(self.data.base64EncodedString()) : .string("\(self.data.base64EncodedString().prefix(32_715))... (Further bytes omitted since data too large!)"),
-            "length": .string(self.length.description),
-            "compressed": .string(self.compressed.description)
-        ]
-    }
 
     init(from data: Data, length: Int, compressed: Bool, remoteAddress: SocketAddress?) {
         self.data = data

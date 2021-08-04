@@ -92,12 +92,6 @@ enum InputCheckResult {
 struct SomeInput: Input {
     private(set) var parameters: [String: InputParameter]
     
-    var loggingMetadata: Logger.Metadata {
-        [
-            "parametersValid": .string(self.parametersValid)
-        ]
-    }
-    
     var parametersValid: String {
         switch self.check() {
         case .ok:
