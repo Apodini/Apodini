@@ -152,9 +152,9 @@ extension ConfiguredLogger {
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.blackboardMetadata.endpointName),
-            // Maybe do someting more with the endpoint parameter infos
+            // TODO: Maybe do someting more with the endpoint parameter infos
             "parameters": .array(self.blackboardMetadata.endpointParameters.map { parameter in
-                    .string("\(parameter.description) \(parameter.description)")
+                    .string(parameter.description)
             }),
             "operation": .string(self.blackboardMetadata.operation.description),
             "endpointPath": .string(self.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
