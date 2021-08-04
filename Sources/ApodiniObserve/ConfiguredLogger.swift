@@ -13,7 +13,7 @@ import ApodiniUtils
 
 @propertyWrapper
 /// A ``DynamicProperty`` that allows logging of an associated handler
-/// Can be configured with a certain logLevel, so what messages should actuall be logged and which shouldn't
+/// Can be configured with a certain logLevel, so what messages should actually be logged and which shouldn't
 /// Automatically attaches metadata from the handler to the built logger so the developer gets easy insights into the system
 public struct ConfiguredLogger: DynamicProperty {
     /// The ``Connection`` of the associated handler
@@ -43,6 +43,12 @@ public struct ConfiguredLogger: DynamicProperty {
     private let logLevel: Logger.Level?
     
     public var wrappedValue: Logger {
+        let parameterValues = blackboardMetadata.parameters.compactMap { parameter in
+            try? parameter.retrieveParameter(from: connection.request)
+        }
+        // TODO: use new `parameterValues` + remove old parameter-retrieval related code!
+        
+        
         if builtLogger == nil {
             // org.apodini.observe.<Handler>.<Exporter>
             builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
