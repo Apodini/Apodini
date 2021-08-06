@@ -24,7 +24,7 @@ final class DeltaInterfaceExporter: InterfaceExporter {
         self.deltaConfiguration = configuration
         document = Document()
         
-        logger = Logger(label: "org.apodini.\(Self.self)")
+        logger = Logger(label: "org.apodini.migrator")
         
         setServerPath()
     }
@@ -81,7 +81,8 @@ final class DeltaInterfaceExporter: InterfaceExporter {
     public func finishedExporting(_ webService: WebServiceModel) {
         if let documentPath = deltaConfiguration.absolutePath {
             do {
-                try document.export(at: documentPath + "/" + "delta_document.json")
+                try document.export(at: documentPath)
+                logger.info("Delta document successfully exported at \(documentPath)")
             } catch {
                 logger.error("Error encountered while exporting `DeltaDocument` at \(documentPath): \(error)")
             }
