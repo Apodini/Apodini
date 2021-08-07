@@ -12,8 +12,8 @@ import ApodiniMigratorShared
 
 /// Represents distinct cases of export paths
 public enum ExportPath {
-    /// Exports a content in a file at `path`
-    case file(_ path: String)
+    /// Exports a content in a file at `directoryPath`
+    case file(_ directoryPath: String)
     /// Serves a content at a route of the web service at `path`
     case endpoint(_ path: String)
 }

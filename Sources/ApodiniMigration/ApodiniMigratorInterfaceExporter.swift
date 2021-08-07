@@ -122,6 +122,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         case let .file(path):
             do {
                 try document.export(at: path, outputFormat: outputFormat)
+                logger.info("Document exported at \(path)/\(document.fileName).\(outputFormat.rawValue)")
             } catch {
                 logger.error("Document export failed with error: \(error)")
             }
@@ -129,6 +130,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         case let .endpoint(path):
             let content = outputFormat == .json ? document.json : document.yaml
             serve(content: content, at: path)
+            logger.info("Document served at \(path) in \(outputFormat.rawValue) format")
         }
     }
 
@@ -154,9 +156,11 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         switch exportPath {
         case let .file(path):
             try migrationGuide.write(at: Path(path), outputFormat: outputFormat, fileName: "migration_guide")
+            logger.info("Migration guide exported at \(path)/migration_guide.\(outputFormat.rawValue)")
         case let .endpoint(path):
             let content = outputFormat == .json ? migrationGuide.json : migrationGuide.yaml
             serve(content: content, at: path)
+            logger.info("Migration guide served at \(path) in \(outputFormat.rawValue) format")
         }
     }
     
