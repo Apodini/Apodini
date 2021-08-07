@@ -114,16 +114,11 @@ public struct ConfiguredLogger: DynamicProperty {
         } else {
             // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
             if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
-                // Reevaluate logging metadata since parameters could have changed
-                let request = connection.request
-                
-                // Write request metadata
-                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request))
-                
                 // Write connection state
                 builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
                 
-                // TODO: Maybe need to refresh more stuff here
+                // Write request metadata
+                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request))
             }
         }
         
@@ -152,7 +147,6 @@ extension ConfiguredLogger {
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.blackboardMetadata.endpointName),
-            // TODO: Maybe do someting more with the endpoint parameter infos
             "parameters": .array(self.blackboardMetadata.endpointParameters.map { parameter in
                     .string(parameter.description)
             }),

@@ -47,12 +47,6 @@ public extension WithRequest {
     var information: InformationSet {
         request.information
     }
-    
-    /// The default implementation of ``WithRequest`` for ``loggingMetadata``
-    /// forwards the call to the underlying `Request`.
-    var loggingMetadata: Logger.Metadata {
-        request.loggingMetadata
-    }
 
     /// The default implementation of ``WithRequest`` for the ``retrieveParameter(_:)``
     /// function forwards the call to the underlying `Request`.

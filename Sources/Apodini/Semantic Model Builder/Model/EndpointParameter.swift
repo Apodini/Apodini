@@ -153,18 +153,25 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         self.options = options
         self.necessity = necessity
         self.defaultValue = defaultValue
-
-        // If somebody wants to make this more fancy, one could add options into the @Parameter initializer
-        var description = "@Parameter var \(name): \(Type.self)"
+        
+        let httpOption = options.option(for: PropertyOptionKey.http)
+        var description = "@Parameter"
+        
+        if let httpOption = httpOption {
+            description += "(.http(.\(httpOption))"
+        }
+        
+        description += " var \(name): \(Type.self)"
+        
         if nilIsValidValue {
             description += "?"
         }
         if let defaultValue = defaultValue {
             description += " = \(defaultValue())"
         }
+        
         self.description = description
 
-        let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
         case .path:
             precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
