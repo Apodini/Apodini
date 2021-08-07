@@ -84,7 +84,7 @@ extension DecodingStrategy {
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
     ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {    // swiftlint:disable:this line_length
+    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
     }
     
@@ -96,7 +96,7 @@ extension DecodingStrategy {
     /// - Parameters:
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {       // swiftlint:disable:this line_length
+    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
         self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
