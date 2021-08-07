@@ -144,20 +144,11 @@ public struct DecodingRequest<Input>: Request {
     let strategy: AnyDecodingStrategy<Input>
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
-        //let parameterId = parameter.id
-        let parameter = try strategy.strategy(for: parameter)
+        try strategy.strategy(for: parameter)
                                 .decode(from: input)
-        
-        // If parameter doesn't exist (eg. default value) exception is thrown, so the code segment below isn't reached at all (for REST)
-        // For Websocket it's different, no exception is thrown and the code block below is executed with a default parameter value defined in the handler
-        //self.parameterLoggingMetadata[parameterId.uuidString] = Logger.MetadataValue.convertToMetadata(parameter: parameter)
-        
-        return parameter
     }
     
     public let eventLoop: EventLoop
-    
-    //@Boxed internal var parameterLoggingMetadata: Logger.Metadata = [:]
     
     public var description: String {
         basis.description

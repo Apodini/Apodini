@@ -44,7 +44,7 @@ public class ConnectionContext<Input, H: Handler> {
         self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
-    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returnes the value for all
+    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returns the value for all
     /// decoded input parameters based on the parameter's id.
     public func handleAndReturnParameters(
         request: Input,

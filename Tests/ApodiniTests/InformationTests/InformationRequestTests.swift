@@ -47,6 +47,14 @@ final class InformationRequestTests: XCTApodiniTest {
                 on: app.eventLoopGroup.next()
             )
             
+            let countLoggingMetadataInformation = firstRequest
+                .information
+                .reduce(into: 0) { partialResult, info in
+                    if let _ = info as? LoggingMetadataInformation {
+                        partialResult += 1
+                    }
+                }
+            
             let numberOfHeaders: Int = try XCTUnwrap(
                 try context.handle(request: firstRequest)
                     .wait()
@@ -54,7 +62,7 @@ final class InformationRequestTests: XCTApodiniTest {
                     .content
             )
             
-            XCTAssertEqual(numberOfHeaders, header.count)
+            XCTAssertEqual(numberOfHeaders - countLoggingMetadataInformation, header.count)
         }
         
         
