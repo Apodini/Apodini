@@ -12,7 +12,6 @@ import ApodiniMigratorCompare
 import ApodiniMigratorShared
 import Logging
 
-@_implementationOnly import PathKit
 @_implementationOnly import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
@@ -121,8 +120,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         switch config.exportPath {
         case let .file(path):
             do {
-                try document.export(at: path, outputFormat: outputFormat)
-                logger.info("Document exported at \(path)/\(document.fileName).\(outputFormat.rawValue)")
+                let filePath = try document.write(at: path, outputFormat: outputFormat, fileName: document.fileName)
+                logger.info("Document exported at \(filePath)")
             } catch {
                 logger.error("Document export failed with error: \(error)")
             }
@@ -155,8 +154,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, outputFormat: OutputFormat) throws {
         switch exportPath {
         case let .file(path):
-            try migrationGuide.write(at: Path(path), outputFormat: outputFormat, fileName: "migration_guide")
-            logger.info("Migration guide exported at \(path)/migration_guide.\(outputFormat.rawValue)")
+            let filePath = try migrationGuide.write(at: path, outputFormat: outputFormat, fileName: "migration_guide")
+            logger.info("Migration guide exported at \(filePath)")
         case let .endpoint(path):
             let content = outputFormat == .json ? migrationGuide.json : migrationGuide.yaml
             serve(content: content, at: path)
