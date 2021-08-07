@@ -10,7 +10,6 @@ import Foundation
 import NIO
 import Apodini
 import ApodiniExtension
-import Logging
 
 /// gRPC message
 public final class GRPCMessage {

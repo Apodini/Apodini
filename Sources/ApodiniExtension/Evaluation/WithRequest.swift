@@ -7,7 +7,6 @@
 //              
 
 import Apodini
-import Logging
 
 /// ``WithRequest`` implements Apodini's `Request` protocol by
 /// forwarding the access to an underlying `Request`.

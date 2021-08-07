@@ -101,8 +101,7 @@ let package = Package(
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Vapor", package: "vapor"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Vapor", package: "vapor")
             ]
         ),
         
@@ -189,8 +188,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ProtobufferCoding"),
-                .product(name: "Logging", package: "swift-log")
+                .target(name: "ProtobufferCoding")
             ]
         ),
 
@@ -315,8 +313,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Runtime", package: "Runtime")
             ],
             swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
         ),

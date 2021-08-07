@@ -11,7 +11,6 @@ import Logging
 import Apodini
 import ApodiniExtension
 import ApodiniHTTPProtocol
-import ApodiniUtils
 
 @propertyWrapper
 /// A ``DynamicProperty`` that allows logging of an associated handler

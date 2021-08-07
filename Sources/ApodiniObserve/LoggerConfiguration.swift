@@ -6,10 +6,8 @@
 // SPDX-License-Identifier: MIT
 // 
 
-import Foundation
 import Logging
 import Apodini
-import ApodiniExtension
 
 /// A ``Configuration`` for the ``Logger``.
 public final class LoggerConfiguration: Configuration {

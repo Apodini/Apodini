@@ -9,7 +9,6 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-import Logging
 import _Concurrency
 
 // MARK: RequestBasis
@@ -112,7 +111,7 @@ extension AsyncSequence {
     ///     contained in the second element of each value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
-    -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
+        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
         self.map { requestBasis, input in
             strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
         }
@@ -145,7 +144,7 @@ public struct DecodingRequest<Input>: Request {
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
         try strategy.strategy(for: parameter)
-                                .decode(from: input)
+            .decode(from: input)
     }
     
     public let eventLoop: EventLoop

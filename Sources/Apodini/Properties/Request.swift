@@ -8,7 +8,6 @@
 
 import Foundation
 import NIO
-import Logging
 
 /// A ``Request`` is a generalized wrapper around an ``InterfaceExporter``'s internal request type.
 ///
