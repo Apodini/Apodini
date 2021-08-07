@@ -11,6 +11,7 @@ import ApodiniGRPC
 import ApodiniProtobuffer
 import ApodiniOpenAPI
 import ApodiniWebSocket
+import ApodiniMigration
 
 
 @main
@@ -45,5 +46,10 @@ struct TestWebService: Apodini.WebService {
         }
         
         WebSocket()
+        
+        MigratorConfiguration(
+            documentConfig: .export(at: .endpoint("api-document"), as: .yaml),
+            migrationGuideConfig: .none
+        )
     }
 }

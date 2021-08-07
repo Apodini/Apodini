@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "ApodiniMigrator",
+        "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
+        "state": {
+          "branch": null,
+          "revision": "6d44b61c0db3d1f48f30a6df8e4dc9efd683e364",
+          "version": null
+        }
+      },
+      {
         "package": "AssociatedTypeRequirementsKit",
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
