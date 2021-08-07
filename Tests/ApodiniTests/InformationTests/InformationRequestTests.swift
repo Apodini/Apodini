@@ -50,7 +50,7 @@ final class InformationRequestTests: XCTApodiniTest {
             let countLoggingMetadataInformation = firstRequest
                 .information
                 .reduce(into: 0) { partialResult, info in
-                    if let _ = info as? LoggingMetadataInformation {
+                    if (info as? LoggingMetadataInformation) != nil {
                         partialResult += 1
                     }
                 }
