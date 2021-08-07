@@ -6,13 +6,13 @@
 //
 
 import Foundation
-import ApodiniMigrator
+import ApodiniMigratorCore
 import Apodini
 import Logging
 
 // MARK: - ApodiniMigrator.Parameter
-extension ApodiniMigrator.Parameter {
-    static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigrator.Parameter {
+extension ApodiniMigratorCore.Parameter {
+    static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
         if parameter.propertyType == MimeType.self {
             let codingKeys = MimeType.CodingKeys.self
@@ -56,13 +56,13 @@ extension ApodiniMigrator.Parameter {
 
 // MARK: - Array
 extension Array where Element == Apodini.AnyEndpointParameter {
-    func migratorParameters<H: Handler>(of handler: H.Type, with logger: Logger) -> [ApodiniMigrator.Parameter] {
-        map { ApodiniMigrator.Parameter.of(H.self, from: $0, with: logger) }
+    func migratorParameters<H: Handler>(of handler: H.Type, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
+        map { ApodiniMigratorCore.Parameter.of(H.self, from: $0, with: logger) }
     }
 }
 
 // MARK: - ApodiniMigrator.Operation
-extension ApodiniMigrator.Operation {
+extension ApodiniMigratorCore.Operation {
     init(_ from: Apodini.Operation) {
         switch from {
         case .create: self = .create
@@ -74,7 +74,7 @@ extension ApodiniMigrator.Operation {
 }
 
 // MARK: - ApodiniMigrator.ParameterType
-extension ApodiniMigrator.ParameterType {
+extension ApodiniMigratorCore.ParameterType {
     init(_ from: Apodini.ParameterType) {
         switch from {
         case .lightweight: self = .lightweight
@@ -85,7 +85,7 @@ extension ApodiniMigrator.ParameterType {
 }
 
 // MARK: - ApodiniMigrator.Version
-extension ApodiniMigrator.Version {
+extension ApodiniMigratorCore.Version {
     init(_ from: Apodini.Version) {
         self.init(
             prefix: from.prefix,

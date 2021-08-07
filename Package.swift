@@ -23,7 +23,7 @@ let package = Package(
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
-        .library(name: "ApodiniDelta", targets: ["ApodiniDelta"]),
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
         // Deploy
         .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
@@ -83,7 +83,7 @@ let package = Package(
         
         
         // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("792f83f6770b6df1ef0cfbe47f5116a1c92d23b7"))
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("9c51cd122c497737ff59a84c9ed1ca775bf2c28c"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -320,7 +320,7 @@ let package = Package(
         ),
         
         .target(
-            name: "ApodiniDelta",
+            name: "ApodiniMigration",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
