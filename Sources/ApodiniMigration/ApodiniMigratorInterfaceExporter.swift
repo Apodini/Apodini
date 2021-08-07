@@ -118,7 +118,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         let config = configuration.documentConfig
         let outputFormat = config.outputFormat
         switch config.exportPath {
-        case let .file(path):
+        case let .directory(path):
             do {
                 let filePath = try document.write(at: path, outputFormat: outputFormat, fileName: document.fileName)
                 logger.info("Document exported at \(filePath)")
@@ -153,7 +153,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     
     private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, outputFormat: OutputFormat) throws {
         switch exportPath {
-        case let .file(path):
+        case let .directory(path):
             let filePath = try migrationGuide.write(at: path, outputFormat: outputFormat, fileName: "migration_guide")
             logger.info("Migration guide exported at \(filePath)")
         case let .endpoint(path):

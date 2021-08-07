@@ -12,8 +12,8 @@ import ApodiniMigratorShared
 
 /// Represents distinct cases of export paths
 public enum ExportPath {
-    /// Exports a content in a file at `directoryPath`
-    case file(_ directoryPath: String)
+    /// ExportPath at a local directory in `path`
+    case directory(_ path: String)
     /// Serves a content at a route of the web service at `path`
     case endpoint(_ path: String)
 }
@@ -37,10 +37,10 @@ public struct DocumentConfiguration {
 public enum MigrationGuideConfiguration {
     /// `none` strategy, to be used for the initial API version
     case none
-    /// Compares an *old document* at `documentPath`, and exports the generated migration guide at `exportAt` as `asFormat`
-    case compare(documentPath: String, exportAt: ExportPath, asFormat: OutputFormat)
-    /// Reads the migration guide from `fromPath` and exports it at `exportAt` as `asFormat`
-    case read(fromPath: String, exportAt: ExportPath, asFormat: OutputFormat)
+    /// Compares an *old document* at `documentPath`, and exports the generated migration guide at `exportAt` `as` the specified output format
+    case compare(documentPath: String, exportAt: ExportPath, as: OutputFormat)
+    /// Reads the migration guide from `fromPath` and exports it at `exportAt` `as` the specified output format
+    case read(fromPath: String, exportAt: ExportPath, as: OutputFormat)
 }
 
 /// A configuration to handle migration tasks between two subsequent versions of an Apodini Web Service
