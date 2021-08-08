@@ -88,7 +88,12 @@ extension WebService {
     static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
 
-        start(app: app, webService: webService)
+        var webServiceCopy = webService
+        /// Inject the `Application` instance to allow access to `@Environment` in the property wrapper
+        Apodini.inject(app: app, to: &webServiceCopy)
+        Apodini.activate(&webServiceCopy)
+        
+        start(app: app, webService: webServiceCopy)
         
         guard waitForCompletion else {
             try app.boot()

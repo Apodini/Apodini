@@ -26,6 +26,10 @@ public struct ConfiguredLogger: DynamicProperty {
     @Environment(\.storage)
     var storage: Storage
     
+    /// The ``Logger`` of the ``Application``
+    @Environment(\.logger)
+    var logger: Logger
+    
     /// Metadata from the ``Blackboard`` that is injected into the environment of the ``Handler``via a ``Delegate``
     @Environment(\LoggerExporter.BlackboardMetadata.value)
     var blackboardMetadata
@@ -82,7 +86,7 @@ public struct ConfiguredLogger: DynamicProperty {
                 // If logging level is configured gloally
                 if let globalConfiguredLogLevel = storage.get(LoggerConfiguration.LoggingStorageKey.self)?.configuration.logLevel {
                     if logLevel < globalConfiguredLogLevel {
-                        print("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
+                        logger.warning("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
                     }
                 // If logging level is automatically set to a default value
                 } else {
@@ -94,7 +98,7 @@ public struct ConfiguredLogger: DynamicProperty {
                     #endif
                     
                     if logLevel < globalLogLevel {
-                        print("The global default logging level is \(globalLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
+                        logger.warning("The global default logging level is \(globalLogLevel.rawValue) but Handler \(self.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
                     }
                 }
             }

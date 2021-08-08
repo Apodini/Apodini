@@ -30,13 +30,22 @@ public final class LoggerConfiguration: Configuration {
         }
     }
     
-    internal let logLevel: Logger.Level
-    internal let logHandlers: [LogHandler]
+    let logLevel: Logger.Level
+    let logHandlers: [(String) -> LogHandler]
+    let configureLogHandlers: () -> Void
     
     /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers`
-    public init(logLevel: Logger.Level, logHandlers: LogHandler...) {
+    public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
+        self.configureLogHandlers = {}
+    }
+    
+    /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers`
+    public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level, configureLogHandlers: @escaping () -> Void) {
+        self.logLevel = logLevel
+        self.logHandlers = logHandlers
+        self.configureLogHandlers = configureLogHandlers
     }
     
     /// Configure application
@@ -47,13 +56,18 @@ public final class LoggerConfiguration: Configuration {
         // Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: loggerExporter)
         
-        // Write configuration to the storage
+        // Write configuration to the storag
         app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
         
+        // Execute configuration function of LogHandlers
+        self.configureLogHandlers()
+        
         // Bootstrap the logging system
-        LoggingSystem.bootstrap { _ in
+        LoggingSystem.bootstrap { label in
             MultiplexLogHandler(
-                self.logHandlers
+                self.logHandlers.map{ logHandler in
+                    logHandler(label)
+                }
             )
         }
     }
