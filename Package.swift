@@ -83,7 +83,7 @@ let package = Package(
         
         
         // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("00f767a4b438ecd6f3a3eaa700bd45051a52ef57"))
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("83b2d8ba3b3a58e168d6a3f1c4de8645e8ed0354"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
