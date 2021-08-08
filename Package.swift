@@ -45,7 +45,10 @@ let package = Package(
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        
+        // Observe
+        .library(name: "ApodiniObserve", targets: ["ApodiniObserve"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -89,7 +92,12 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Apodini Authorization
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
+        
+        // Apodini Observe
+        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.1.0")),
+        .package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
+        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -554,6 +562,25 @@ let package = Package(
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        
+        //
+        // MARK: Observe
+        //
+        
+        .target(
+            name: "ApodiniObserve",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
             ]
         )
     ]
