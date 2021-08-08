@@ -47,6 +47,8 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decod
     /// - Parameter type: The type the PathParameter value identifies.
     public init<Type: Encodable & Identifiable>(identifying type: Type.Type = Type.self) where Element == Type.ID {
         self.init()
+        // Need to set the property wrapper not directly but explicitly wrapping it inside a Boxed class
+        // Seems to be a Swift 5.5 compiler bug somehow related to https://bugs.swift.org/browse/SR-14675 (but it should have been fixed already, but doesn't seems like it)
         self._identifyingType = Boxed(wrappedValue: IdentifyingType(identifying: type))
     }
     
