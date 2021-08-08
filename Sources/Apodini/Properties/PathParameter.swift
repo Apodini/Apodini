@@ -47,7 +47,7 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decod
     /// - Parameter type: The type the PathParameter value identifies.
     public init<Type: Encodable & Identifiable>(identifying type: Type.Type = Type.self) where Element == Type.ID {
         self.init()
-        self.identifyingType = IdentifyingType(identifying: type)
+        self._identifyingType = Boxed(wrappedValue: IdentifyingType(identifying: type))
     }
     
     /// Required because `WebService` conform to `ParsableCommand` which conforms to `Decodable`
