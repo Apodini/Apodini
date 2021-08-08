@@ -22,6 +22,8 @@ public struct Histogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProp
     let buckets: Buckets
     let labels: U.Type
     
+    let prometheusLabelSanitizer: PrometheusLabelSanitizer
+    
     // Workaround with optional since else we can't access self.storage in the initializor
     var prometheus: PrometheusClient? = nil
     
@@ -35,6 +37,8 @@ public struct Histogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProp
         self.helpText = helpText
         self.buckets = buckets
         self.labels = labels
+        
+        self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
         
         if let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus {
             self.prometheus = prometheus
@@ -58,7 +62,7 @@ public struct Histogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProp
 
         return prometheus.createHistogram(
             forType: self.type,
-            named: self.label,
+            named: self.prometheusLabelSanitizer.sanitize(self.label),
             helpText: self.helpText,
             buckets: self.buckets,
             labels: self.labels

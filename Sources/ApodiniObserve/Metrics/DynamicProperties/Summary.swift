@@ -23,6 +23,8 @@ public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty
     let quantiles: [Double]
     let labels: U.Type
     
+    let prometheusLabelSanitizer: PrometheusLabelSanitizer
+    
     // Workaround with optional since else we can't access self.storage in the initializor
     var prometheus: PrometheusClient? = nil
     
@@ -38,6 +40,8 @@ public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty
         self.capacity = capacity
         self.quantiles = quantiles
         self.labels = labels
+        
+        self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
         
         if let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus {
             self.prometheus = prometheus
@@ -61,7 +65,7 @@ public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty
         
         return prometheus.createSummary(
             forType: self.type,
-            named: self.label,
+            named: self.prometheusLabelSanitizer.sanitize(self.label),
             helpText: self.helpText,
             capacity: self.capacity,
             quantiles: self.quantiles,

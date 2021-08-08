@@ -22,6 +22,8 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
     let initialValue: T
     let withLabelType: U.Type
     
+    let prometheusLabelSanitizer: PrometheusLabelSanitizer
+    
     // Workaround with optional since else we can't access self.storage in the initializor
     var prometheus: PrometheusClient? = nil
     
@@ -35,6 +37,8 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
         self.helpText = helpText
         self.initialValue = initialValue
         self.withLabelType = withLabelType
+        
+        self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
         
         if let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus {
             self.prometheus = prometheus
@@ -58,7 +62,7 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
 
         return prometheus.createCounter(
             forType: self.type,
-            named: self.label,
+            named: self.prometheusLabelSanitizer.sanitize(self.label),
             helpText: self.helpText,
             initialValue: self.initialValue,
             withLabelType: self.withLabelType
