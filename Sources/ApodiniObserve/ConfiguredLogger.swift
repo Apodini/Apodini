@@ -46,11 +46,18 @@ public struct ConfiguredLogger: DynamicProperty {
     private let id: UUID
     /// The logLevel (deciding over what messages should be logged), can be configured via multiple configuration possibilities and prioritizations
     private let logLevel: Logger.Level?
+    /// A user-defined label of the built ``Logger``, else a standard default value
+    private let label: String?
     
     public var wrappedValue: Logger {
         if builtLogger == nil {
-            // org.apodini.observe.<Handler>.<Exporter>
-            builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
+            if let label = label {
+                // User-defined label of logger
+                builtLogger = .init(label: "org.apodini.observe.\(label)")
+            } else {
+                // org.apodini.observe.<Handler>.<Exporter>
+                builtLogger = .init(label: "org.apodini.observe.\(self.blackboardMetadata.endpointName).\(String(describing: self.exporterTypeMetadata.exporterType))")
+            }
             
             // Stays consitent over the lifetime of the associated handler
             builtLogger?[metadataKey: "logger-uuid"] = .string(self.id.uuidString)
@@ -129,20 +136,20 @@ public struct ConfiguredLogger: DynamicProperty {
     }
     
     /// Private initializer
-    private init(id: UUID = UUID(), logLevel: Logger.Level? = nil) {
+    private init(id: UUID, logLevel: Logger.Level? = nil, label: String? = nil) {
         self.id = id
         self.logLevel = logLevel
+        self.label = label
     }
     
-    /// Creates a new `@ConfiguredLogger` without any arguments
-    public init() {
-        // We need to pass any argument otherwise we would call the same initializer again resulting in an infinite loop
-        self.init(id: UUID())
+    /// Creates a new `@ConfiguredLogger` and specifies a `Logger.Level`
+    public init(id: UUID = UUID(), logLevel: Logger.Level) {
+        self.init(id: id, logLevel: logLevel, label: nil)
     }
     
-    /// Creates a new `@ConfiguredLogger` and specify a `Logger.Level`
-    public init(logLevel: Logger.Level) {
-        self.init(id: UUID(), logLevel: logLevel)
+    /// Creates a new `@ConfiguredLogger` and specifies a `Logger.Level`and a label of the `Logger`
+    public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil) {
+        self.init(id: id, logLevel: logLevel, label: label)
     }
 }
 
