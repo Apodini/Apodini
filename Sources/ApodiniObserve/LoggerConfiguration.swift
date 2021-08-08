@@ -65,7 +65,7 @@ public final class LoggerConfiguration: Configuration {
         // Bootstrap the logging system
         LoggingSystem.bootstrap { label in
             MultiplexLogHandler(
-                self.logHandlers.map{ logHandler in
+                self.logHandlers.map { logHandler in
                     logHandler(label)
                 }
             )
