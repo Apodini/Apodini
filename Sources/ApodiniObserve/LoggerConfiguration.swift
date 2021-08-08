@@ -16,8 +16,7 @@ public final class LoggerConfiguration: Configuration {
         public typealias Value = LoggingStorageValue
     }
 
-    /// The enclosing storage entity for OpenAPI-related information.
-    /// Commented out conformance to EnvironmentAccessible since the config is accessed via the storage
+    /// The value key for Logging-related information.
     public struct LoggingStorageValue {
         /// The application `Logger`
         public let logger: Logger
@@ -41,7 +40,7 @@ public final class LoggerConfiguration: Configuration {
         self.configureLogHandlers = {}
     }
     
-    /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers`
+    /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers` as well as a closure to configure the `logHandlers`
     public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level, configureLogHandlers: @escaping () -> Void) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
@@ -56,7 +55,7 @@ public final class LoggerConfiguration: Configuration {
         // Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: loggerExporter)
         
-        // Write configuration to the storag
+        // Write configuration to the storage
         app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
         
         // Execute configuration function of LogHandlers
