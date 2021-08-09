@@ -11,6 +11,8 @@ import Metrics
 import Prometheus
 
 @propertyWrapper
+/// A wrapped version of the ``PromSummary`` of SwiftPrometheus
+/// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)

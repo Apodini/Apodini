@@ -14,13 +14,15 @@ import Metrics
 public struct MetricsTimer: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]
+    let displayUnit: TimeUnit
     
-    public init(label: String, dimensions: [(String, String)]) {
+    public init(label: String, dimensions: [(String, String)], preferredDisplayUnit displayUnit: TimeUnit = TimeUnit.milliseconds) {
         self.label = label
         self.dimensions = dimensions
+        self.displayUnit = displayUnit
     }
     
     public var wrappedValue: Metrics.Timer {
-        .init(label: self.label, dimensions: self.dimensions)
+        .init(label: self.label, dimensions: self.dimensions, preferredDisplayUnit: self.displayUnit)
     }
 }

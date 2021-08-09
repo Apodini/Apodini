@@ -11,6 +11,8 @@ import Metrics
 import Prometheus
 
 @propertyWrapper
+/// A wrapped version of the ``PromGauge`` of SwiftPrometheus
+/// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct Gauge<T: DoubleRepresentable, U: MetricLabels>: DynamicProperty {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)

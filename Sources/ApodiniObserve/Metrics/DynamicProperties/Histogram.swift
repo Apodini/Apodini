@@ -11,6 +11,8 @@ import Metrics
 import Prometheus
 
 @propertyWrapper
+/// A wrapped version of the ``PromHistogram`` of SwiftPrometheus
+/// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct Histogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProperty {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)

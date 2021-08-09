@@ -11,6 +11,8 @@ import Metrics
 import Prometheus
 
 @propertyWrapper
+/// A wrapped version of the ``PromCounter`` of SwiftPrometheus
+/// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)
