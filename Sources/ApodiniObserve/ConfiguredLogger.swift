@@ -30,7 +30,7 @@ public struct ConfiguredLogger: DynamicProperty {
     @Environment(\.logger)
     var logger: Logger
     
-    /// Metadata from the ``Blackboard`` that is injected into the environment of the ``Handler``via a ``Delegate``
+    /// Metadata from the ``Blackboard`` that is injected into the environment of the ``Handler`` via a ``Delegate``
     @Environment(\LoggerExporter.BlackboardMetadata.value)
     var blackboardMetadata
     
