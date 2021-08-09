@@ -24,9 +24,6 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    // Workaround with optional since else we can't access self.storage in the initializor
-    var prometheus: PrometheusClient? = nil
-    
     public init(_ label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
@@ -39,27 +36,19 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
         self.withLabelType = withLabelType
         
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
-        
-        if let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus {
-            self.prometheus = prometheus
-        } else {
-            guard let prometheus = try? MetricsSystem.prometheus() else {
-                fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
-            }
-            
-            self.prometheus = prometheus
-        }
     }
     
-    public init(_ label: String) {
+    public init(_ label: String) where T == Int64, U == DimensionLabels {
+        // Need to pass one additional value to not result in infinite recursion
         self.init(label, helpText: nil)
     }
     
     public var wrappedValue: PromCounter<T, U> {
-        guard let prometheus = self.prometheus else {
-            fatalError(MetricsError.metricAccessedBeforeBeeingInitialized.rawValue)
+        guard let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus else {
+            fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
         }
-
+        
+        // No need to cache the created Metric since the `createCounter()` does exactly that
         return prometheus.createCounter(
             forType: self.type,
             named: self.prometheusLabelSanitizer.sanitize(self.label),

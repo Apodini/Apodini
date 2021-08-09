@@ -10,6 +10,7 @@ import Apodini
 import Metrics
 
 @propertyWrapper
+/// A wrapped version of the ``Metrics.Counter`` of swift-metrics
 public struct MetricsCounter: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]

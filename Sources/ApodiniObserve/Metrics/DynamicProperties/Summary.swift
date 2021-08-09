@@ -25,15 +25,12 @@ public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    // Workaround with optional since else we can't access self.storage in the initializor
-    var prometheus: PrometheusClient? = nil
-    
     public init(_ label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 capacity: Int = Prometheus.defaultSummaryCapacity,
                 quantiles: [Double] = Prometheus.defaultQuantiles,
-                labels: U.Type = DimensionHistogramLabels.self as! U.Type) {
+                labels: U.Type = DimensionSummaryLabels.self as! U.Type) {
         self.label = label
         self.type = type
         self.helpText = helpText
@@ -42,27 +39,19 @@ public struct Summary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty
         self.labels = labels
         
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
-        
-        if let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus {
-            self.prometheus = prometheus
-        } else {
-            guard let prometheus = try? MetricsSystem.prometheus() else {
-                fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
-            }
-            
-            self.prometheus = prometheus
-        }
     }
     
-    public init(_ label: String) {
+    public init(_ label: String) where T == Int64, U == DimensionSummaryLabels {
+        // Need to pass one additional value to not result in infinite recursion
         self.init(label, helpText: nil)
     }
     
     public var wrappedValue: PromSummary<T, U> {
-        guard let prometheus = self.prometheus else {
-            fatalError(MetricsError.metricAccessedBeforeBeeingInitialized.rawValue)
+        guard let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus else {
+            fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
         }
         
+        // No need to cache the created Metric since the `createSummary()` does exactly that
         return prometheus.createSummary(
             forType: self.type,
             named: self.prometheusLabelSanitizer.sanitize(self.label),
