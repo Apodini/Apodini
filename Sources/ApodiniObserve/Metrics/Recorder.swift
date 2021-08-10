@@ -89,6 +89,11 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: Recorder {
     @Environment(\.storage)
     private var storage: Storage
     
+    // We have access to the connection here
+    
+    // To provide the user (who develops the before and after functions) some kind of data, maybe get the parameters via blackboard and write it to storage of delegate (like with the logger)
+    // Other kinds of data that could be used by the user? Auth related stuff, Information, ExporterType, Handler name, Parameters,
+    
     let handler: Delegate<D>
     let recorder: Delegate<R>
     
