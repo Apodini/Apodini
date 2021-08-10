@@ -35,7 +35,7 @@ public struct ConfiguredLogger: DynamicProperty {
     var blackboardMetadata
     
     /// Metadata regarding the ``Exporter``type
-    @Environment(\ExporterTypeMetadata.value)
+    @Environment(\ExporterTypeLoggerMetadata.value)
     var exporterTypeMetadata
     
     /// Property that holds the built ``Logger`` instance
@@ -122,17 +122,31 @@ public struct ConfiguredLogger: DynamicProperty {
                 #endif
             }
         } else {
-            // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
-            if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
+            
+            /*
+            #if canImport(ApodiniWebSocket)
+            if exporterTypeMetadata.exporterType == ApodiniWebSocket.WebSocket.ExporterConfiguration.exporterType {
                 // Write connection state
                 builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
                 
                 // Write request metadata
                 builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request))
             }
+            #endif
+             */
+            
+            
+            // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
+            //if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
+                
+            //}
         }
         
-        return builtLogger!
+        guard let builtLogger = builtLogger else {
+            fatalError("Logger isn't built")
+        }
+        
+        return builtLogger
     }
     
     /// Private initializer
@@ -217,7 +231,7 @@ extension ConfiguredLogger {
         builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
         builtRequestMetadata["debugDescription"] = .string(request.debugDescription.count < 32_768 ? request.debugDescription : "\(request.debugDescription.prefix(32_715))... (further bytes omitted since description too large!")
         
-        let parameterMetadata = blackboardMetadata.parameterTupels.reduce(into: Logger.Metadata(), { partialResult, parameter in
+        let parameterMetadata = blackboardMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
             if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
                 partialResult[String(parameter.0.dropFirst())] = Logger.MetadataValue.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
             } else {

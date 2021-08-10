@@ -35,8 +35,8 @@ public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource 
         var delegate = self.delegate
         delegate.activate()
         delegate.environment(
-            \ExporterTypeMetadata.value,
-            ExporterTypeMetadata.ExporterTypeMetadata(
+            \ExporterTypeLoggerMetadata.value,
+            ExporterTypeLoggerMetadata.ExporterTypeLoggerMetadata(
                 exporterType: I.self,
                 parameterNamespace: I.parameterNamespace
              )

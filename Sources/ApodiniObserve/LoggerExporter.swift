@@ -16,8 +16,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         public struct BlackboardMetadata {
             let endpointName: String
             let endpointParameters: EndpointParameters
-            let parameters: [ParameterRetriever]
-            let parameterTupels: [(String, ParameterRetriever)]
+            let parameters: [(String, ParameterRetriever)]
             let operation: Apodini.Operation
             let endpointPathComponents: EndpointPathComponents
             let context: Context
@@ -30,7 +29,6 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         public var value: BlackboardMetadata
     }
     
-    // Not sure if those are maybe needed?
     let app: Apodini.Application
     let exporterConfiguration: LoggerConfiguration
     
@@ -56,8 +54,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
-            parameters: endpoint[All<ParameterRetriever>.self].elements.map { $0.1 },
-            parameterTupels: endpoint[All<ParameterRetriever>.self].elements,
+            parameters: endpoint[All<ParameterRetriever>.self].elements,
             operation: endpoint[Operation.self],
             endpointPathComponents: endpoint[EndpointPathComponents.self],
             context: endpoint[Context.self],

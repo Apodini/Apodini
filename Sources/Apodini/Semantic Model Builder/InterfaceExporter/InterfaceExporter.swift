@@ -69,8 +69,8 @@ public extension InterfaceExporter {
     }
 }
 
-public struct ExporterTypeMetadata: EnvironmentAccessible {
-    public struct ExporterTypeMetadata {
+public struct ExporterTypeLoggerMetadata: EnvironmentAccessible {
+    public struct ExporterTypeLoggerMetadata {
         public let exporterType: Any.Type
         public let parameterNamespace: [ParameterNamespace]
     
@@ -80,7 +80,7 @@ public struct ExporterTypeMetadata: EnvironmentAccessible {
         }
     }
     
-    public var value: ExporterTypeMetadata
+    public var value: ExporterTypeLoggerMetadata
 }
 
 // MARK: Interface Exporter Visitor

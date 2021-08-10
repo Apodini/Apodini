@@ -9,12 +9,17 @@
 import Apodini
 
 extension WebSocket {
-    /// /// Configuration of the `WebSocketInterfaceExporter`
+    /// Configuration of the `WebSocketInterfaceExporter`
     public struct ExporterConfiguration {
+        public static let exporterType: Any.Type = WebSocketInterfaceExporter.self
         let path: String
         
         init(path: String = "apodini/websocket") {
             self.path = path
         }
+    }
+    
+    public struct ExporterType {
+        public static let exporterType: Any.Type = WebSocketInterfaceExporter.self
     }
 }
