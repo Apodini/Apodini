@@ -14,30 +14,78 @@ SPDX-License-Identifier: MIT
 
 ## Overview
 
-Apodini is an open source server side Swift framework completely written in Swift.
+Apodini is an open source server side Swift framework completely written in Swift. It brings the declarative nature of SwiftUI to the server.
 
-This framework is part of a research project at the TUM Research Group for Applied Software Engineering.
+```swift
+import Apodini
+import ApodiniHTTP
 
-It defines an **internal DSL** and other high level APIs on top of [SwiftNIO](https://github.com/apple/swift-nio) and [Vapor](https://vapor.codes).
+struct Greeter: Handler {
+    @Parameter var name: String?
 
-> Tip: Learn more about DSL components in Apodini: <doc:DSLComponents>
+    func handle() -> String {
+        "Hello, \(name ?? "World")!"
+    }
+}
 
-It also works with an ecosystem of server-side Swift frameworks that including [Fluent](https://docs.vapor.codes/4.0/fluent/overview/), an object–relational mapping framework which provides an easy-to-use interface for your database.
+struct HelloWorld: WebService {
+    var configuration: Configuration {
+        HTTP()
+    }
 
-> Tip: Apodini also provide simplified error handling: ``ApodiniError``.
+    var content: some Component {
+        Greeter()
+    }
+}
+
+HelloWorld.main()
+```
+
+Apodini is all about understandable and reusable code. However, two things make it really special:
+
+* Thanks to its **declarative API**, the framework has insight into your code. This enables powerful automations with little runtime overhead.
+* Apodini is not just about HTTP. It's **middleware-agnostic**. The protocols used for exporting your application logic are just a matter of configuration!
+
+Apodini is a high level framework based on [SwiftNIO](https://github.com/apple/swift-nio). Its API makes use of the latest Swift language features such as result builders, property wrappers, and `async`/`await`. But don't worry, it also integrates well with the ecosystem of libraries around the [Vapor](https://vapor.codes) framework. Actually, many components - such as `ApodiniHTTP` are even based on Vapor itself!
 
 ## Topics
 
-### Essentials
+### Getting Started
+
+Already convinced? Then check out our guides to Getting Started with Apodini!
 
 - <doc:Installation>
 - <doc:HelloWorld>
-- <doc:UnitTesting>
-- <doc:CommunicationPattern>
 
-### Additional Functionalities
+### Basics
+
+If you want to get a bit more details first or need some support in building your first web service, here are some helpful resources for you.
+
+
+- <doc:DSLComponents>
+- <doc:UnitTesting>
+- <doc:Jobs>
+
+### Ecosystem
+
+Here are some links to internal and external packages you might find helpful when building your web service.
 
 - <doc:DatabaseConnection>
 - <doc:PushNotifications>
-- <doc:Jobs>
+
+### Advanced
+
+Here you can find more advanced resources. You might even find internal documentation there.
+
+- <doc:BuildingExporters>
+- <doc:HandlerDelegation>
+- <doc:CommunicationPattern>
 - <doc:ProtocolBuffers>
+- <doc:ExporterConfiguration>
+- <doc:RetrieveRelationship>
+
+### About
+
+If you are more interested in Apodini's origin, meta-reasoning and related scientific work, this are the resources for you.
+
+- <doc:About>

@@ -37,7 +37,7 @@ public protocol InformationInstantiatable: AnyInformation {
     /// - Parameter value: The value ``Value``.
     init(_ value: Value)
 
-    /// Enables developers to directly access properties of the ``value``
+    /// Enables developers to directly access properties of the `value`
     /// property using the ``InformationInstantiatable``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Member { get }
 }

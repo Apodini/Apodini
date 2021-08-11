@@ -166,4 +166,4 @@ extension Component {
 - ``Response``
 - ``ResponseTransformer``
 - ``ResponseTransformingHandlerInitializer``
-- ``SyncGuard``
+- ``Guard``

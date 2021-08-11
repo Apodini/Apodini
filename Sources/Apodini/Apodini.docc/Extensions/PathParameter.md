@@ -21,16 +21,17 @@ This code snippet provides an example of `PathParameter` property wrapper in a `
 ### Define a Handler with @Binding property.
 
 ```swift
-struct GetRandom: Handler {
+struct GetName: Handler {
     @Binding var name: String
     
     func handle() -> String {
-        return "random \(name)"
+        return "The name is \(name)!"
     }
 }
 ```
 
-With `@Binding` property we can reuse ``Handler``in different contexts.
+With the ``Binding`` property we can reuse ``Handler``s in different contexts. One option is
+to fill the ``Binding`` with a ``PathParameter``.
 
 ### Use PathParameter to Access Input Data
 
@@ -41,20 +42,24 @@ struct ExampleComponent: Component {
     var content: some Component {
         Group("names") {
             Group($name) {
-                GetRandom(name: $name)
+                GetName(name: $name)
+            }
+            Group("vips") {
+                Group("founders", "Apple") {
+                    GetName(name: .constant("Steve Jobs"))
+                }
             }
         }
     }
 }
 ```
-> Tip: Use ``Group`` to add path component to the URL.
+> Tip: Use ``Group`` to add path components to the URL.
 
 ### Register Component to the WebService
 
 ```swift
 import Apodini
 import ApodiniREST
-import ApodiniOpenAPI
 
 struct ExampleServer: WebService {
     var content: some Component {
@@ -66,7 +71,7 @@ struct ExampleServer: WebService {
     }
 }
 
-try XpenseServer.main()
+ExampleServer.main()
 ```
 
 ## Topics

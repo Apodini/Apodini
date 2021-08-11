@@ -142,7 +142,7 @@ struct MessageStream: Handler {
 
 ### Tooling
 
-- <doc:Parameter>
-- <doc:State>
-- <doc:ObservedObject>
-- <doc:Environment>
+- <doc:MeaningOfParameter>
+- <doc:MeaningOfState>
+- <doc:MeaningOfObservedObject>
+- <doc:MeaningOfEnvironment>

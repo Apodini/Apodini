@@ -19,7 +19,7 @@ Let's take a look to the simple usage of Apodini framework:
 
 ```swift
 import Apodini
-import ApodiniREST
+import ApodiniHTTP
 
 struct Greeter: Handler {
     @Parameter var country: String?
@@ -31,7 +31,7 @@ struct Greeter: Handler {
 
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        REST()
+        HTTP()
     }
 
     var content: some Component {
@@ -44,15 +44,15 @@ HelloWorld.main()
 
 ### Import Package
 
-It is required to import `Apodini` and `ApodiniREST`:
+We need to import `Apodini` and at least one package providing a ``Configuration`` which bootstraps an ``InterfaceExporter``. In our example, this package is `ApodiniHTTP`:
 ```swift
 import Apodini
-import ApodiniREST
+import ApodiniHTTP
 ```
-It allows us to use the Apodini core functionalities and interface exporter for REST API.
+By choosing `ApodiniHTTP`, we decide that our application-logic should be accessible using the HTTP protocol stack.
 
 
-### Create Simple Handler
+### Create a Simple Handler
 
 We create our first `Handler` instance:
 ```swift
@@ -64,13 +64,13 @@ struct Greeter: Handler {
     }
 }
 ```
-A `Handler` is a `Component` within Apodini which exposes user-facing functionality. It always comes with a ``Handler/handle()-1xtna``function which is called every time a request reaches it.
+A ``Handler`` is a ``Component`` within Apodini which exposes user-facing functionality. It always comes with a ``Handler/handle()-1xtna`` function which is called every time a request reaches it.
 
-> Tip: Practical usage of handlers: <doc:HandlerDelegation>.
+Our `Greeter` defines a ``Parameter`` called `country`. The parameter must be of type `String?`. Since that is an optional type, it can also be omitted from the request.
 
-Here, `Greeter` serves to handle an input data `country` as ``Parameter`` and respond with a `String` return type.
+> Tip: See also: ``PathParameter`` express parameters that are exposed as part of the endpoint identifier (e.g. the HTTP URL).
 
-> Tip: See also: ``PathParameter`` express parameters that are exposed as part of the HTTP URL.
+The ``Handler/handle()-1xtna`` function uses the ``Parameter`` to generate a response. In our case, this response is also of type `String`.
 
 ### Define Web Services
 
@@ -78,7 +78,7 @@ The following block includes the configuration and content of an Apodini web ser
 ```swift
 struct HelloWorld: WebService {
     var configuration: Configuration {
-        REST()
+        HTTP()
     }
 
     var content: some Component {
@@ -86,12 +86,12 @@ struct HelloWorld: WebService {
     }
 }
 ```
-Each Apodini project consist of a `WebService` instance which describes the Web API.
-It includes the `configuration` to configure services into Apodini project and `content` to define the structure of the web service.
-Those components could be a collection of other `Component` instances or of `Handler` type.
-In this case, we use REST configuration and put our `Greeter` handler.
+Each Apodini project consist of a ``WebService`` instance which describes the Web API.
+It includes the `configuration` and `content` to define the structure of the web service.
+Those components could be a collection of other ``Component`` instances or of ``Handler`` type.
+In this case, we use the `HTTP` configuration and put our `Greeter` Handler at the root of our web service.
 
-> Tip: Learn more on exporters configuration: <doc:ExporterConfiguration>.
+<!-- TODO: more usage-focused guide | Tip: Learn more on exporters configuration: <doc:ExporterConfiguration>.  -->
 
 ### Execute Apodini Web Service
 
@@ -106,27 +106,28 @@ Now you can send a request to see your new server in action!
 
 Visit [http://localhost:8080/v1](http://localhost:8080/v1) will return:
 ```swift
-Hello, World!
+"Hello, World!"
 ```
 or [http://localhost:8080/v1?country=Italy](http://localhost:8080/v1?country=Italy):
 ```swift
-Hello, Italy!
+"Hello, Italy!"
 ```
+
+Note that you don't just see `Hello, World!`, but `"Hello, World!"` as a string. That is because - by default - `ApodiniHTTP` encodes/decodes data as JSON.
+
 
 ## Topics
 
-### Delegate Handlers
-
-- <doc:HandlerDelegation>
-
-### Web Service Configuration
-- <doc:ExporterConfiguration>
-- ``EnvironmentObject``
-
-### Protocols
+### Web Service Elements
 
 - ``Component``
 - ``Handler``
 - ``WebService``
 - ``Configuration``
+- ``InterfaceExporter``
+
+### Handler Properties
+- ``Property``
 - ``Parameter``
+- ``PathParameter``
+- ``Environment``
