@@ -23,7 +23,7 @@ public struct ExportStructureCommand: ParsableCommand {
         public var filePath: String = "service-structure.json"
         
         @Option(help: "The identifier of the deployment provider")
-        public var identifier: String = "de.lukaskollmer.ApodiniDeploymentProvider.Localhost"
+        public var identifier: String = "de.tum.in.ase.apodini.deploy"
         
         public init() {}
     }
@@ -31,15 +31,15 @@ public struct ExportStructureCommand: ParsableCommand {
     public static var configuration = CommandConfiguration(
         commandName: "export-ws-structure",
         abstract: "Export web service structure",
-        discussion: """
-                    Exports an Apodini web service structure
-                    """,
-        version: "0.0.1",
-        subcommands: []
+        discussion: "Exports an Apodini web service structure",
+        version: "0.3.0"
     )
     
     public func run() throws {
-        print("Export ws structure")
+        ExportStructureCommand.helpMessage(columns: nil)
+        ExportStructureCommand.exit(withError:
+                                    ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
+        )
     }
     
     public static func withSubcommands(_ commands: [ParsableCommand.Type]) -> ExportStructureCommand.Type {
@@ -64,18 +64,16 @@ public struct StartupCommand: ParsableCommand {
     public static var configuration = CommandConfiguration(
         commandName: "startup",
         abstract: "Startup command for a node of a deployment system",
-        discussion: """
-                    Starts up a node a deployment system
-                    """,
-        version: "0.0.1",
-        subcommands: []
+        discussion: "Starts up a node a deployment system",
+        version: "0.3.0"
     )
 
     public init() {}
     
     public func run() throws {
-        fatalError(
-            "Error: Should not be called directly. Use the startup command in the DeploymentProviderRuntime protocol."
+        StartupCommand.helpMessage(columns: nil)
+        StartupCommand.exit(withError:
+                                    ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
         )
     }
     

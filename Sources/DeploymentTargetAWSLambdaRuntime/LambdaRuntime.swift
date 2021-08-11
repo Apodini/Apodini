@@ -70,12 +70,12 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
 
 public struct LambdaStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(commandName: "aws",
-                             abstract: "Export web service structure - AWS",
-                             discussion: """
-                                    Exports an Apodini web service structure for localhost deployment
-                                  """,
-                             version: "0.0.1")
+        CommandConfiguration(
+            commandName: "aws",
+            abstract: "Export web service structure - AWS",
+            discussion: "Exports an Apodini web service structure for localhost deployment",
+            version: "0.0.1"
+        )
     }
     
     @ArgumentParser.Argument(help: "The location of the json file")
@@ -128,12 +128,12 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
 
 public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(commandName: "aws",
-                             abstract: "Start a web service - AWS Lambda",
-                             discussion: """
-                                    Starts up an Apodini web service for the aws lambda deployment
-                                  """,
-                             version: "0.0.1")
+        CommandConfiguration(
+            commandName: "aws",
+            abstract: "Start a web service - AWS Lambda",
+            discussion: "Starts up an Apodini web service for the aws lambda deployment",
+            version: "0.0.1"
+        )
     }
 
     @ArgumentParser.Argument(help: "The location of the json containing the system structure")

@@ -68,24 +68,22 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
 
 public struct LocalhostStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(commandName: "local",
-                             abstract: "Export web service structure - Localhost",
-                             discussion: """
-                                    Exports an Apodini web service structure for the localhost deployment
-                                  """,
-                             version: "0.0.1")
+        CommandConfiguration(
+            commandName: "local",
+            abstract: "Export web service structure - Localhost",
+            discussion: "Exports an Apodini web service structure for the localhost deployment",
+            version: "0.3.0"
+        )
     }
     
     @Argument(help: "The location of the json file")
-    public var filePath: String = "service-structure.json"
+    public var filePath: String
     
     @Option(help: "The identifier of the deployment provider")
-    public var identifier: String = "de.lukaskollmer.ApodiniDeploymentProvider.Localhost"
+    public var identifier: String
     
     @Option(help: "The port number for the first-launched child process")
-    var endpointProcessesBasePort: Int = 5000
-    
-    public init() {}
+    public var endpointProcessesBasePort: Int
     
     public func run() throws {
         let app = Application()
@@ -112,16 +110,18 @@ public struct LocalhostStructureExporterCommand<Service: WebService>: StructureE
 
         return defaultSystem
     }
+    
+    public init() {}
 }
 
 public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(commandName: "local",
-                             abstract: "Start a web service - Localhost",
-                             discussion: """
-                                    Starts up an Apodini web service for the localhost deployment
-                                  """,
-                             version: "0.0.1")
+        CommandConfiguration(
+            commandName: "local",
+            abstract: "Start a web service - Localhost",
+            discussion: "Starts up an Apodini web service for the localhost deployment",
+            version: "0.3.0"
+        )
     }
     
     @Argument(help: "The location of the json containing the system structure")

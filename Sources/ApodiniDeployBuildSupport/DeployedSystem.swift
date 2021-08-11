@@ -47,7 +47,6 @@ public struct DeployedSystem: AnyDeployedSystem {
     /// Additional, deployment provider specific data
     public var userInfo: Data
     
-    
     public init<T: Encodable>(
         deploymentProviderId: DeploymentProviderID,
         nodes: Set<DeployedSystemNode>,
@@ -59,11 +58,6 @@ public struct DeployedSystem: AnyDeployedSystem {
         self.userInfo = try JSONEncoder().encode(userInfo)
         try nodes.assertHandlersLimitedToSingleNode()
     }
-//    
-//    
-//    public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
-//        try? T(decodingJSON: userInfo)
-//    }
 }
 
 

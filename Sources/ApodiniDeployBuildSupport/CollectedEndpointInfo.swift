@@ -9,7 +9,6 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-import OpenAPIKit
 
 
 /// Well-known environment variables, i.e. environment variables which are read by Apodini and used when performing certain tasks.

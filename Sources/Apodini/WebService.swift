@@ -49,7 +49,17 @@ extension WebService {
     public static func start(waitForCompletion: Bool = true, app: Application = Application(), webService: Self = Self()) throws -> Application {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        start(app: app, webService: webService)
+        /// Configure application and instanciate exporters
+        webService.configuration.configure(app)
+        
+        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
+        if app.http.address == nil {
+            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
+        }
+        
+        webService.register(
+            SemanticModelBuilder(app)
+        )
         
         guard waitForCompletion else {
             try app.boot()
@@ -63,26 +73,6 @@ extension WebService {
         try app.run()
         return app
     }
-    
-
-     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
-     /// - Parameters:
-     ///    - app: The app instance that should be injected in the Apodini `WebService`
-     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
-    static func start(app: Application, webService: Self = Self()) {
-        /// Configure application and instanciate exporters
-        webService.configuration.configure(app)
-        
-        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
-        if app.http.address == nil {
-            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
-        }
-        
-        webService.register(
-            SemanticModelBuilder(app)
-        )
-    }
-    
     
     /// The current version of the `WebService`
     public var version: Version {

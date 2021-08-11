@@ -451,7 +451,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit")

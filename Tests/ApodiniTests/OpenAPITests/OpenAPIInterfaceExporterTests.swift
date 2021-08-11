@@ -35,7 +35,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
         }
 
-        TestWebService.start(app: app)
+        try TestWebService.start(app: app)
 
         try app.vapor.app.test(.GET, "\(OpenAPI.ConfigurationDefaults.outputEndpoint)") { res in
             XCTAssertEqual(res.status, .ok)
@@ -77,7 +77,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
         }
 
-        TestWebService.start(app: app)
+        try TestWebService.start(app: app)
 
         try app.vapor.app.test(.GET, configuredOutputEndpoint) { res in
             XCTAssertEqual(res.status, .ok)

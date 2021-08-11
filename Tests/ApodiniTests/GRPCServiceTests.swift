@@ -17,7 +17,7 @@ final class GRPCServiceTests: ApodiniTests {
     
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
         let app = Application()
-        S.start(app: app)
+        try S.start(app: app)
         defer { app.shutdown() }
         
         try app.vapor.app.test(.POST, path, headers: ["content-type": GRPCService.grpcproto.description]) { res in

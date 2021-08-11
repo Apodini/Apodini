@@ -9,12 +9,9 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-import ApodiniOpenAPI
 import ApodiniDeployRuntimeSupport
 import ApodiniDeployBuildSupport
 @_implementationOnly import Vapor
-import OpenAPIKit
-
 
 extension ApodiniDeployInterfaceExporter {
     func exportDeployedSystemIfNeeded() throws {

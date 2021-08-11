@@ -21,14 +21,16 @@ public struct ApodiniDeployCommand: ParsableCommand {
         discussion: """
              Offers utilities for the deployment of an Apodini web service
              """,
-        version: "0.0.1",
-        subcommands: []
+        version: "0.3.0"
     )
     
     public init() {}
     
     public func run() throws {
-        print("deploy")
+        ApodiniDeployCommand.helpMessage(columns: nil)
+        ApodiniDeployCommand.exit(withError:
+                                    ApodiniDeployError(message: "Calling this command directly is not supported.")
+        )
     }
     
     public static func withSubcommands(_ commands: ParsableCommand.Type...) -> Self.Type {
