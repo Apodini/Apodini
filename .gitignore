@@ -13,6 +13,8 @@
 .swiftpm
 .build/
 
+.idea
+
 # Xcode User settings
 xcuserdata/
 

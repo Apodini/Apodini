@@ -99,7 +99,7 @@ extension WebService {
     }
     
     func visit(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+        metadata.collectMetadata(visitor)
 
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)

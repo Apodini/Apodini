@@ -7,7 +7,7 @@
 //              
 
 @testable import Apodini
-import ApodiniVaporSupport
+import ApodiniHTTPProtocol
 import XCTApodini
 
 
@@ -130,6 +130,21 @@ final class InformationTests: XCTestCase {
         XCTAssertEqual(cookies["name2"], "value2")
         XCTAssertEqual(cookies["name3"], "value3")
     }
+
+    func testInformationMergingCookies() throws {
+        let cookiesBase = Cookies(["name": "value", "name3": "value3"])
+        let cookiesOverride = Cookies(["name2": "value2", "name3": "value3,3"])
+
+        let set0 = InformationSet([cookiesBase])
+
+        let resultSet = set0.merge(with: [cookiesOverride])
+        let result = try XCTUnwrap(resultSet[Cookies.self])
+
+        XCTAssertEqual(result.count, 3)
+        XCTAssertEqual(result["name"], "value")
+        XCTAssertEqual(result["name2"], "value2")
+        XCTAssertEqual(result["name3"], "value3,3")
+    }
     
     func testInformationParsingETag() throws {
         let weakETag = try XCTUnwrap(
@@ -173,5 +188,27 @@ final class InformationTests: XCTestCase {
                 .typed(RedirectTo.self)
         )
         XCTAssertEqual(redirectTo.value.absoluteString, "https://ase.in.tum.de/schmiedmayer")
+    }
+
+    func testInformationMergingWWWAuthenticate() throws {
+        let basic = WWWAuthenticate(.init(scheme: "Basic", parameters: .init(key: "realm", value: "My \"Test\" Realm")))
+        let bearer = WWWAuthenticate(.init(scheme: "Bearer", parameters: .init(key: "realm", value: "MyTestRealm")))
+        let bearerWithError = WWWAuthenticate(.init(scheme: "Bearer", parameters: .init(key: "error", value: "invalid_request")))
+
+        var set = InformationSet([basic])
+
+        set = set.merge(with: [bearer])
+
+        XCTAssertEqual(
+            try XCTUnwrap(set[httpHeader: WWWAuthenticate.header]),
+            "Basic realm=\"My \\\"Test\\\" Realm\", Bearer realm=MyTestRealm"
+        )
+
+        set = set.merge(with: [bearerWithError])
+
+        XCTAssertEqual(
+            try XCTUnwrap(set[httpHeader: WWWAuthenticate.header]),
+            "Basic realm=\"My \\\"Test\\\" Realm\", Bearer error=invalid_request"
+        )
     }
 }

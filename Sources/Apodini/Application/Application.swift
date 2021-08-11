@@ -55,7 +55,7 @@ public final class Application {
     private static var latestApplicationLogger: Logger?
     /// A global logger that can be used when no  `Application` instance is available.
     ///
-    /// - Note: In `Handler`s you shpuld rely on the `Logger` injected in the `@Environment`.
+    /// - Note: In `Handler`s you should rely on the `Logger` injected in the `@Environment`.
     public static var logger: Logger {
         latestApplicationLogger ?? {
             var newLogger = Logger(label: "Pre-startup")
@@ -80,7 +80,7 @@ public final class Application {
     private var isBooted: Bool
     private var signalSources: [DispatchSourceSignal] = []
 
-    /// Keeps track of all application lifecylce handlers
+    /// Keeps track of all application lifecycle handlers
     public struct Lifecycle {
         var handlers: [LifecycleHandler]
         init() {
@@ -93,7 +93,7 @@ public final class Application {
         }
     }
 
-    /// Keeps track of the application lifecylce
+    /// Keeps track of the application lifecycle
     public var lifecycle: Lifecycle
 
     /// Keeps track of shared locks

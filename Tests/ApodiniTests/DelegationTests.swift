@@ -283,6 +283,7 @@ final class DelegationTests: ApodiniTests {
     struct NestedEnvironmentDelegate {
         @EnvironmentObject var number: Int
         @Apodini.Environment(\EnvKey.name) var string: String
+        @Apodini.Environment(\.testName) var testString: String
     }
     
     struct DelegatingEnvironmentDelegate {
@@ -290,7 +291,7 @@ final class DelegationTests: ApodiniTests {
         
         func evaluate() throws -> String {
             let nested = try nestedD.instance()
-            return "\(nested.string):\(nested.number)"
+            return "\(nested.string):\(nested.testString):\(nested.number)"
         }
     }
     
@@ -304,11 +305,12 @@ final class DelegationTests: ApodiniTests {
         
         envD
             .environment(\EnvKey.name, "Max")
+            .environment(\.testName, "Paul")
             .environmentObject(1)
         
         let prepared = try envD.instance()
         
-        XCTAssertEqual(try prepared.evaluate(), "Max:1")
+        XCTAssertEqual(try prepared.evaluate(), "Max:Paul:1")
     }
     
     func testSetters() throws {
@@ -585,6 +587,12 @@ final class DelegationTests: ApodiniTests {
         )
 
         XCTAssertEqual(TestStore.collectedIds, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12])
+    }
+}
+
+private extension Apodini.Application {
+    var testName: String {
+        ""
     }
 }
 
