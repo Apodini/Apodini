@@ -139,7 +139,9 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
             providerCommand: "local",
             additionalCommands: [
                 "--identifier",
-                StaticDeploymentProvider.identifier.rawValue
+                StaticDeploymentProvider.identifier.rawValue,
+                "--endpoint-processes-base-port",
+                "5000"
             ], as: LocalhostDeployedSystem.self)
         
         let exportedEndpoints = deployedSystem.nodes
