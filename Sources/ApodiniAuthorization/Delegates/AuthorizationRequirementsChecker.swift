@@ -26,7 +26,7 @@ struct AuthorizationRequirementsChecker<H: Handler, Element: Authenticatable>: H
     @Throws(.forbidden, options: .authorizationErrorReason(.failedAuthorization))
     var failedAuthorization
 
-    let authenticatable: Authorized<Element> = .init()
+    @Authorized(Element.self) var authenticatable
 
     init(type: AuthorizationType, _ requirements: AuthorizationRequirements<Element>, _ handler: H) {
         self.type = type
