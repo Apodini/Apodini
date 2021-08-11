@@ -53,7 +53,7 @@ internal extension Delegate where D: Handler {
         try await _Internal.evaluate(delegate: self, using: request, with: state)
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
         promise.completeWithAsync {
@@ -63,14 +63,14 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         let result: D.Response = try await self.evaluate(using: request, with: state)
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(_ trigger: TriggerEvent,
+                  using request: Request,
+                  with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
         promise.completeWithAsync {
@@ -80,9 +80,9 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(_ trigger: TriggerEvent,
+                  using request: Request,
+                  with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
         
         guard !trigger.cancelled else {
