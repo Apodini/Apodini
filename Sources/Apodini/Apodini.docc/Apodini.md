@@ -32,12 +32,12 @@ It also works with an ecosystem of server-side Swift frameworks that including [
 
 - <doc:Installation>
 - <doc:HelloWorld>
-- <doc:DatabaseConnection>
 - <doc:UnitTesting>
 - <doc:CommunicationPattern>
 
 ### Additional Functionalities
 
+- <doc:DatabaseConnection>
 - <doc:PushNotifications>
 - <doc:Jobs>
 - <doc:ProtocolBuffers>
