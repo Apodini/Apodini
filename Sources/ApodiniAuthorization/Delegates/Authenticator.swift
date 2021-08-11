@@ -28,7 +28,7 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
     @Throws(.forbidden, options: .authorizationErrorReason(.failedAuthorization))
     var failedAuthorization
 
-    let authenticatable: Authorized<Configuration.Authenticatable> = .init()
+    @Authorized(Configuration.Authenticatable.self) var authenticatable
 
     init(_ configuration: Configuration, _ requirements: AuthorizationRequirements<Configuration.Authenticatable>, _ handler: H) {
         self.type = configuration.type
