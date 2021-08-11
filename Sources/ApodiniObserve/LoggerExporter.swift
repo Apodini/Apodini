@@ -24,6 +24,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
             let handleReturnType: HandleReturnType
             let responseType: ResponseType
             let serviceType: ServiceType
+            let communicationalPattern: CommunicationalPattern
         }
         
         public var value: BlackboardMetadata
@@ -61,7 +62,8 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
             anyEndpointSource: endpoint[AnyEndpointSource.self],
             handleReturnType: endpoint[HandleReturnType.self],
             responseType: endpoint[ResponseType.self],
-            serviceType: endpoint[ServiceType.self]
+            serviceType: endpoint[ServiceType.self],
+            communicationalPattern: endpoint[CommunicationalPattern.self]
         )
         
         delegate.environment(\BlackboardMetadata.value, blackboardMetadata)

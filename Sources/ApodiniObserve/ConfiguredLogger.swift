@@ -122,24 +122,18 @@ public struct ConfiguredLogger: DynamicProperty {
                 #endif
             }
         } else {
-            
-            /*
-            #if canImport(ApodiniWebSocket)
-            if exporterTypeMetadata.exporterType == ApodiniWebSocket.WebSocket.ExporterConfiguration.exporterType {
+            // Connection stays open since these communicational patterns allow for any amount of client messages
+            switch self.blackboardMetadata.communicationalPattern {
+            case .clientSideStream: fallthrough
+            case .bidirectionalStream:
                 // Write connection state
                 builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
                 
                 // Write request metadata
-                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request))
+                builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request)
+                                                                    .merging(self.getRawRequestMetadata(from: connection.information)) { _, new in new })
+            default: break
             }
-            #endif
-             */
-            
-            
-            // Not pretty, but otherwise ApodiniObserve would need to depend on ApodiniWebsocket
-            //if String(describing: exporterTypeMetadata.exporterType) == "WebSocketInterfaceExporter" {
-                
-            //}
         }
         
         guard let builtLogger = builtLogger else {
@@ -172,7 +166,7 @@ extension ConfiguredLogger {
         [
             "name": .string(self.blackboardMetadata.endpointName),
             "parameters": .array(self.blackboardMetadata.endpointParameters.map { parameter in
-                    .string(parameter.description)
+                    .string(parameter.debugDescription)
             }),
             "operation": .string(self.blackboardMetadata.operation.description),
             "endpointPath": .string(self.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
@@ -181,7 +175,8 @@ extension ConfiguredLogger {
             "version": .string(self.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
             "handlerType": .string(String(describing: self.blackboardMetadata.anyEndpointSource.handlerType)),
             "handlerReturnType": .string(String(describing: self.blackboardMetadata.handleReturnType.type)),
-            "serviceType": .string(self.blackboardMetadata.serviceType.rawValue)
+            "serviceType": .string(self.blackboardMetadata.serviceType.rawValue),
+            "communicationalPattern": .string(self.blackboardMetadata.communicationalPattern.rawValue)
         ]
     }
     
