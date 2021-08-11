@@ -73,24 +73,23 @@ public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
 }
 
 public struct LambdaDeployedSystem: AnyDeployedSystem {
-    public var userInfo: Data
-    
     public var nodes: Set<DeployedSystemNode>
     
     public var deploymentProviderId: DeploymentProviderID
     
     public var openApiDocument: OpenAPI.Document
     
-    public init<T: Encodable>(
+    public var context: LambdaDeployedSystemContext
+    
+    public init(
         deploymentProviderId: DeploymentProviderID,
         nodes: Set<DeployedSystemNode>,
-        userInfo: T?,
-        userInfoType: T.Type = T.self,
+        context: LambdaDeployedSystemContext,
         openApiDocument: OpenAPI.Document
     ) throws {
         self.deploymentProviderId = deploymentProviderId
         self.nodes = nodes
-        self.userInfo = try JSONEncoder().encode(userInfo)
+        self.context = context
         self.openApiDocument = openApiDocument
         
         try nodes.assertHandlersLimitedToSingleNode()

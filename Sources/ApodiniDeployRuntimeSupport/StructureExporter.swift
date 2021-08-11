@@ -123,9 +123,7 @@ extension StructureExporter {
         
         return try DeployedSystem(
             deploymentProviderId: DeploymentProviderID(rawValue: self.identifier),
-            nodes: nodes,
-            userInfo: nil,
-            userInfoType: Null.self
+            nodes: nodes
         )
     }
 }

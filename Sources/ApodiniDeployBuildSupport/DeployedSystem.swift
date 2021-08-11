@@ -20,16 +20,6 @@ public protocol AnyDeployedSystem: Codable {
     
     /// The nodes the system consists of
     var nodes: Set<DeployedSystemNode> { get }
-    
-    /// Additional, deployment provider specific data
-    var userInfo: Data { get set }
-}
-
-extension AnyDeployedSystem {
-    /// Returns the userInfo as the given type.
-    public func readUserInfo<T: Decodable>(as _: T.Type) -> T? {
-        try? T(decodingJSON: userInfo)
-    }
 }
 
 /// The structure of a deployed system.
@@ -43,19 +33,13 @@ public struct DeployedSystem: AnyDeployedSystem {
     
     /// The nodes the system consists of
     public var nodes: Set<DeployedSystemNode>
-    
-    /// Additional, deployment provider specific data
-    public var userInfo: Data
-    
-    public init<T: Encodable>(
+
+    public init(
         deploymentProviderId: DeploymentProviderID,
-        nodes: Set<DeployedSystemNode>,
-        userInfo: T?,
-        userInfoType: T.Type = T.self
+        nodes: Set<DeployedSystemNode>
     ) throws {
         self.deploymentProviderId = deploymentProviderId
         self.nodes = nodes
-        self.userInfo = try JSONEncoder().encode(userInfo)
         try nodes.assertHandlersLimitedToSingleNode()
     }
 }

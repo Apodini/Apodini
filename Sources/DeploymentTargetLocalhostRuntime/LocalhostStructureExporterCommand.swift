@@ -12,6 +12,7 @@ import ApodiniDeployRuntimeSupport
 import DeploymentTargetLocalhostCommon
 import ArgumentParser
 import ApodiniOpenAPI
+import DeploymentTargetAWSLambdaCommon
 
 public struct LocalhostStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
@@ -47,15 +48,15 @@ public struct LocalhostStructureExporterCommand<Service: WebService>: StructureE
         guard let openApiDocument = app.storage.get(OpenAPI.StorageKey.self)?.document else {
             throw ApodiniDeployRuntimeSupportError(message: "Unable to get OpenAPI document")
         }
+        let defaultSystem = try self.retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
         
-        var defaultSystem = try self.retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
-        
-        defaultSystem.userInfo = try openApiDocument.encodeToJSON()
-        defaultSystem.nodes = Set(try defaultSystem.nodes.enumerated().map { idx, node in
-            try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
-        })
-
-        return defaultSystem
+        return LocalhostDeployedSystem(
+            deploymentProviderId: DeploymentProviderID(self.identifier),
+            nodes: Set(try defaultSystem.nodes.enumerated().map { idx, node in
+                try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
+            }),
+            openApiDocument: openApiDocument
+        )
     }
     
     public init() {}

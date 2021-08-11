@@ -68,7 +68,7 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
         let awsSystem = try LambdaDeployedSystem(
             deploymentProviderId: DeploymentProviderID(rawValue: self.identifier),
             nodes: defaultSystem.nodes,
-            userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId),
+            context: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId),
             openApiDocument: openApiDocument
         )
         return awsSystem

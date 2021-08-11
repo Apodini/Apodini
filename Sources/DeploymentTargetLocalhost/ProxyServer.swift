@@ -23,7 +23,7 @@ class ProxyServer {
     fileprivate let app: Vapor.Application
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     
-    init(openApiDocument: OpenAPI.Document, deployedSystem: DeployedSystem) throws {
+    init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem) throws {
         let environmentName = try Vapor.Environment.detect().name
         var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
         try LoggingSystem.bootstrap(from: &env)

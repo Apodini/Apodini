@@ -86,7 +86,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 "--endpoint-processes-base-port",
                 "\(self.endpointProcessesBasePort)"
             ],
-            as: DeployedSystem.self
+            as: LocalhostDeployedSystem.self
         )
 
         for node in deployedSystem.nodes {
@@ -129,13 +129,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         
         logger.notice("Starting proxy server")
         do {
-            guard let openApiDocument = deployedSystem
-                    .readUserInfo(as: OpenAPIKit.OpenAPI.Document.self) else {
-                fatalError("No open api document found.")
-            }
-            
             let proxyServer = try ProxyServer(
-                openApiDocument: openApiDocument,
+                openApiDocument: deployedSystem.openApiDocument,
                 deployedSystem: deployedSystem
             )
             try proxyServer.run(port: self.port)

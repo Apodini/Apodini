@@ -30,10 +30,10 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
-        guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
+        guard let lambdaDeploymentContext = (deployedSystem as? LambdaDeployedSystem)?.context else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: Self.identifier,
-                message: "Unable to read userInfo"
+                message: "Unable to find `LambdaDeployedSystem`"
             )
         }
         self.lambdaDeploymentContext = lambdaDeploymentContext

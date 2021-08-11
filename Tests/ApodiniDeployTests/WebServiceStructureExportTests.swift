@@ -66,7 +66,6 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
                 "--aws-region",
                 "eu-central-1"
             ], as: LambdaDeployedSystem.self)
-        XCTAssertNotNil(deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self))
         
         let exportedEndpoints = deployedSystem.nodes
             .flatMap { $0.exportedEndpoints }
@@ -141,10 +140,7 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
             additionalCommands: [
                 "--identifier",
                 StaticDeploymentProvider.identifier.rawValue
-            ], as: DeployedSystem.self)
-        
-        XCTAssert(!deployedSystem.userInfo.isEmpty)
-        XCTAssertNotNil(deployedSystem.readUserInfo(as: OpenAPIKit.OpenAPI.Document.self))
+            ], as: LocalhostDeployedSystem.self)
         
         let exportedEndpoints = deployedSystem.nodes
             .flatMap { $0.exportedEndpoints }
