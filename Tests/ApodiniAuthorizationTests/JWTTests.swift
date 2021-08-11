@@ -60,7 +60,7 @@ class JWTTests: XCTApodiniTest {
     }
 
     struct OptionallyAuthorizedHandler: Handler {
-        var token = Authorized<ExampleJWTToken>()
+        @Authorized(ExampleJWTToken.self) var token
 
         func handle() throws -> String {
             guard token.isAuthorized else {

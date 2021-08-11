@@ -44,7 +44,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
     }
 
     struct EmptyHandler: Handler {
-        var user = Authorized(MockCredentials<Int>.self)
+        @Authorized(MockCredentials<Int>.self) var user
 
         func handle() throws -> String {
             let instance = try user()
@@ -59,7 +59,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
     }
 
     struct ExampleHandler: Handler {
-        var user = Authorized(MockCredentials<Int>.self)
+        @Authorized(MockCredentials<Int>.self) var user
 
         func handle() throws -> String {
             let instance = try user()
@@ -97,7 +97,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
         @Throws(.unauthenticated, options: .bearerErrorResponse(.init(.invalidToken)))
         var invalidToken
 
-        var token = Authorized(MockToken.self)
+        @Authorized(MockToken.self) var token
 
         func handle() throws -> String {
             let instance = try token()
@@ -150,7 +150,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
     }
 
     struct HandlerWithOptionalAuth: Handler {
-        var token = Authorized<MockToken>()
+        @Authorized(MockToken.self) var token
 
         func handle() throws -> String {
             _ = try token()
