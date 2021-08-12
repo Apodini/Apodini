@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniUtils
 import ApodiniExtension
+import ApodiniLoggingSupport
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import Vapor
@@ -62,20 +63,26 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let transformer = Transformer<H>()
         
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
         
         self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
                     output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
-            
             // We need a new `Delegate` for each connection
             let delegate = factory.instance()
             
             let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
-                (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
+                (DefaultRequestBasis(
+                    base: someInput,
+                    remoteAddress: request.remoteAddress,
+                    information: request.information.merge(
+                        with: [
+                            LoggingMetadataInformation(key: .init("parametersValid"), rawValue: .string(someInput.parametersValid))
+                        ]
+                    )), someInput)
             }
             .decode(using: decodingStrategy, with: eventLoop)
             .insertDefaults(with: defaultValueStore)

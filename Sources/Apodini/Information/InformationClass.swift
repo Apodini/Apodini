@@ -56,4 +56,12 @@
 ///     // operate on the tuple
 /// }
 /// ```
-public protocol InformationClass {}
+public protocol InformationClass {
+    /// Declares if the ``Information`` could contain sensitive information, eg. ``ApodiniHTTP.Authorization``
+    var sensitive: Bool { get }
+}
+
+public extension InformationClass {
+    /// Set default to false, since most ``Information`` types won't contain sensitive information
+    var sensitive: Bool { false }
+}

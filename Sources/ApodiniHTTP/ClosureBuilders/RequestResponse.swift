@@ -22,7 +22,7 @@ extension Exporter {
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
             
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: Vapor.Request) in
             let delegate = factory.instance()
@@ -45,7 +45,7 @@ extension Exporter {
         
         let transformer = VaporBlobResponseTransformer()
             
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: Vapor.Request) in
             let delegate = factory.instance()

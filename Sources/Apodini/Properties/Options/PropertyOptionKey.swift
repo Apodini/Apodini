@@ -27,11 +27,20 @@ public class AnyPropertyOptionKey: Equatable, Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(self))
     }
+    
+    var propertyOptionType: String {
+        fatalError("AnyPropertyOptionKey.propertyOptionType not implemented!")
+    }
 }
 
 
 /// A `PropertyOptionKey` can be associated with a `PropertyNameSpace` and and store an `Option` that is associated with the `PropertyOptionKey` within the `PropertyNameSpace`.
 public class PropertyOptionKey<PropertyNameSpace, Option: PropertyOption>: AnyPropertyOptionKey {
+    override var propertyOptionType: String {
+        let test = String(describing: Option.self)
+        return test
+    }
+    
     /// Initialize an empty `PropertyOptionKey`
     override public init() {}
 

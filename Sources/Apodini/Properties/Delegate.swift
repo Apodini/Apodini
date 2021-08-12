@@ -1,11 +1,10 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
-
+//
 import ApodiniUtils
 import Foundation
 
@@ -33,11 +32,20 @@ public struct Delegate<D> {
         var environmentObject: [Any] = []
     }
     
+    struct InitialStorage {
+        // storage for values injected via .environment
+        var environment: [AnyKeyPath: Any] = [:]
+        // storage for values injected via .environmentObject
+        var environmentObject: [Any] = []
+    }
+    
     var delegateModel: D
     
     let optionality: Optionality
     
     var storage: Box<Storage>?
+    
+    var initialStorage = Box(InitialStorage())
     
     /// Create a `Delegate` from the given struct `delegate`.
     /// - Parameter `delegate`: the wrapped instance
@@ -181,11 +189,12 @@ extension Delegate {
     
     @discardableResult
     private func environment<K, V>(at keyPath: KeyPath<K, V>, _ value: V) -> Delegate {
-        guard let store = storage else {
-            fatalError("'Delegate' was manipulated before activation.")
+        if let store = storage {
+            store.value.environment[keyPath] = value
+        } else {
+            self.initialStorage.value.environment[keyPath] = value
         }
         
-        store.value.environment[keyPath] = value
         return self
     }
 }
@@ -194,21 +203,24 @@ extension Delegate {
     /// Inject a local `value` into the `delegate`'s `EnvironmentObject` properties that are of type `T`.
     @discardableResult
     public func environmentObject<T>(_ object: T) -> Delegate {
-        guard let store = storage else {
-            fatalError("'Delegate' was manipulated before activation.")
+        if let store = storage {
+            store.value.environmentObject.append(object)
+        } else {
+            self.initialStorage.value.environmentObject.append(object)
         }
         
-        store.value.environmentObject.append(object)
         return self
     }
 }
 
 
 // MARK: Property Conformance
-
 extension Delegate: Activatable {
     mutating func activate() {
         self.storage = Box(Storage(delegate: delegateModel))
+        
+        self.storage?.value.environment.merge(self.initialStorage.value.environment) { current, _ in current }
+        self.storage?.value.environmentObject.append(contentsOf: self.initialStorage.value.environmentObject)
     }
 }
 

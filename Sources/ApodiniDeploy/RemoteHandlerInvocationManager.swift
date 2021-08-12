@@ -282,7 +282,7 @@ extension Endpoint {
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        let delegate = self[DelegateFactory<H>.self].instance()
+        let delegate = self[DelegateFactory<H, ApodiniDeployInterfaceExporter>.self].instance()
         
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
             .applied(to: self)

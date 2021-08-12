@@ -30,6 +30,50 @@ public extension WebService {
 }
 
 extension WebService {
+    /// Overrides  the `main()` method of `ParsableCommand`
+    /// Store the values of wrapped properties in the `WebService` (eg. `@Environment`)  before parsing the CLI arguments and then restore the saved values after the parsing is finished
+    public static func main(_ arguments: [String]? = nil) {     // swiftlint:disable:this discouraged_optional_collection
+        let mirror = Mirror(reflecting: Self())
+        var propertyStore: [String: ArgumentParserStoreable] = [:]
+        
+        // Backup of property wrapper values
+        for child in mirror.children {
+            if let property = child.value as? ArgumentParserStoreable {
+                guard let label = child.label else {
+                    fatalError("Label of the to be stored property couldn't be read!")
+                }
+                
+                property.store(in: &propertyStore, keyedBy: label)
+            }
+        }
+        
+        // Parsing of Command Line Arguments and restoring the values of the property wrappers
+        do {
+            // Parse the CLI arguments
+            var command = try parseAsRoot(arguments)
+            
+            let mirror = Mirror(reflecting: command)
+            
+            // Restore property wrapper values
+            for child in mirror.children {
+                if let property = child.value as? ArgumentParserStoreable {
+                    guard let label = child.label else {
+                        fatalError("Label of the to be stored property couldn't be read!")
+                    }
+                    
+                    property.restore(from: propertyStore, keyedBy: label)
+                }
+            }
+            
+            // Start the webservice
+            try command.run()
+        } catch {
+            exit(withError: error)
+        }
+    }
+}
+
+extension WebService {
     /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
     public mutating func run() throws {
         try Self.start(webService: self)
@@ -43,9 +87,13 @@ extension WebService {
     @discardableResult
     static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
-        LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        start(app: app, webService: webService)
+        var webServiceCopy = webService
+        /// Inject the `Application` instance to allow access to `@Environment` in the property wrapper
+        Apodini.inject(app: app, to: &webServiceCopy)
+        Apodini.activate(&webServiceCopy)
+        
+        start(app: app, webService: webServiceCopy)
         
         guard waitForCompletion else {
             try app.boot()
@@ -66,7 +114,7 @@ extension WebService {
      ///    - app: The app instance that should be injected in the Apodini `WebService`
      ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
     static func start(app: Application, webService: Self = Self()) {
-        /// Configure application and instanciate exporters
+        // Configure application and instanciate exporters
         webService.configuration.configure(app)
         
         // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.

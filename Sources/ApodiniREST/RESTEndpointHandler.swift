@@ -19,7 +19,7 @@ struct RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
-    let delegateFactory: DelegateFactory<H>
+    let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     
     private let strategy: AnyDecodingStrategy<Vapor.Request>
     
@@ -45,7 +45,7 @@ struct RESTEndpointHandler<H: Handler> {
         ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
-        self.delegateFactory = endpoint[DelegateFactory<H>.self]
+        self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }
     
     

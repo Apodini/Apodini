@@ -8,16 +8,16 @@
 
 import Apodini
 
-/// The ``Authorized`` `DynamicProperty` can be used to access the ``Authenticatable``
-/// instance created through a authorization Metadata.
+/// The ``Authorized`` property wrapper can be used to access the ``Authenticatable``
+/// instance created through an authorization Metadata.
 ///
 /// Given the example of an `ExampleUser` ``Authenticatable``, the following code may be used to
 /// access the authenticated and authorized instance.
 /// ```swift
 /// struct ExampleHandler: Handler {
-///     var authorizedUser = Authorized<ExampleUser>()
+///     @Authorized(ExampleUser.self) var authorizedUser
 ///
-///     func handle() -> String {
+///     func handle() throws -> String {
 ///         // you might want to use `authorizedUser.isAuthorized` if using optional authorization
 ///
 ///         let user = try authorizedUser()
@@ -26,7 +26,15 @@ import Apodini
 ///     }
 /// }
 /// ```
+@propertyWrapper
 public struct Authorized<Element: Authenticatable>: DynamicProperty {
+    public var wrappedValue = AuthorizedAuthenticatable<Element>()
+
+    public init(_: Element.Type = Element.self) {}
+}
+
+/// The wrapped value of the ``Authorized`` property wrapper. See according docs.
+public struct AuthorizedAuthenticatable<Element: Authenticatable>: DynamicProperty {
     @Environment(\.authorizationStateContainer)
     private var stateContainer
 
@@ -38,8 +46,6 @@ public struct Authorized<Element: Authenticatable>: DynamicProperty {
     public var isAuthorized: Bool {
         stateContainer.contains(element: Element.self)
     }
-
-    public init(_: Element.Type = Element.self) {}
 
     /// Returns the ``Authenticatable`` instance.
     /// - Returns: The ``Authenticatable`` instance.
