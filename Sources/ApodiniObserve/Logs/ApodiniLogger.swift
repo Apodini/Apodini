@@ -191,26 +191,6 @@ extension ApodiniLogger {
     
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
-            /*
-            if let anyHTTPInformation = info as? AnyHTTPInformation {
-                if let auth = anyHTTPInformation.typed(Authorization.self) {
-                    partialResult[Authorization.header] = .string(auth.type)
-                } else if let cookies = anyHTTPInformation.typed(Cookies.self) {
-                    partialResult[Cookies.header] = .dictionary(
-                        cookies.value.reduce(into: [:]) { partialResult, cookie in
-                            partialResult[cookie.key] = .string(cookie.value)
-                        }
-                    )
-                } else if let etag = anyHTTPInformation.typed(ETag.self) {
-                    partialResult[ETag.header] = .string(etag.rawValue)
-                } else if let expires = anyHTTPInformation.typed(Expires.self) {
-                    partialResult[Expires.header] = .string(expires.rawValue)
-                } else if let redirectTo = anyHTTPInformation.typed(RedirectTo.self) {
-                    partialResult[RedirectTo.header] = .string(redirectTo.rawValue)
-                } else {
-                    partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
-                }
-            }*/
             if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
                    !stringKeyedStringInformation.sensitive {
                 partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
@@ -236,7 +216,7 @@ extension ApodiniLogger {
         
         let parameterMetadata = blackboardMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
             if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
-                partialResult[String(parameter.0.dropFirst())] = Logger.MetadataValue.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
+                partialResult[String(parameter.0.dropFirst())] = Self.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
             } else {
                 partialResult[String(parameter.0.dropFirst())] = .string("nil")
             }
@@ -245,5 +225,21 @@ extension ApodiniLogger {
         builtRequestMetadata["parameters"] = .dictionary(parameterMetadata)
         
         return builtRequestMetadata
+    }
+    
+    /// Converts a ``Codable`` parameter to ``Logger.MetadataValue``
+    private static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
+        do {
+            let encodedParameter = try parameter.encodeToJSON()
+            
+            // If parameter is too large, cut if after 8kb
+            if encodedParameter.count > 8_192 {
+                return .string("\(encodedParameter.description.prefix(8_100))... (Further bytes omitted since parameter too large!)")
+            }
+            
+            return try JSONDecoder().decode(Logger.MetadataValue.self, from: encodedParameter)
+        } catch {
+            return .string("Error during encoding of the parameter")
+        }
     }
 }
