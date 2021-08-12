@@ -10,7 +10,6 @@ import Foundation
 import Logging
 import Apodini
 import ApodiniExtension
-import ApodiniHTTPProtocol
 import ApodiniLoggingSupport
 
 @propertyWrapper

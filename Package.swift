@@ -574,7 +574,6 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log")
