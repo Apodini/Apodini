@@ -1,3 +1,7 @@
+# WebSocket Interface Exporter
+
+The WebSocket exporter uses a custom **JSON** based protocol on top of WebSocket's **text** messages. This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel. The Apodini service listens on `/apodini/websocket` for clients that want to communicate via the WebSocket Interface Exporter.
+
 <!--
                   
 This source file is part of the Apodini open source project
@@ -8,15 +12,11 @@ SPDX-License-Identifier: MIT
              
 -->
 
-![document type: documentation](https://apodini.github.io/resources/markdown-labels/document_type_documentation.svg)
-
-# WebSocket Interface Exporter
-
-The WebSocket exporter uses a custom **JSON** based protocol on top of WebSocket's **text** messages. This protocol can handle multiple concurrent connections on the same or different endpoints over one WebSocket channel. The Apodini service listens on `/apodini/websocket` for clients that want to communicate via the WebSocket Interface Exporter.
+## Overview
 
 The protocol features five types of messages:
 
-## `OpenContextMessage`
+### `OpenContextMessage`
 
 Opens a new context (wich is identified by a `<UUID>`) on a virtual endpoint (which is identified by the `<identifier>`). This message is sent by the client.
 ```json
@@ -47,7 +47,7 @@ var testService: some Component {
 ```
 The `Text` would be available under `""`, `UserHandler` under `"user.:userId:"` and `StatefulUserHandler` would be identified by `"user.:userId:.stream"`.
 
-## `CloseContextMessage`
+### `CloseContextMessage`
 
 Closes the context with the given `<UUID>`. This message-type must be sent by both, client and server. Sending this message means _'I am not going to send another message on this context'_.
 ```json
@@ -56,7 +56,7 @@ Closes the context with the given `<UUID>`. This message-type must be sent by bo
 }
 ```
 
-## `ClientMessage`
+### `ClientMessage`
 
 Sends input for a `Handler` to a specific `context`. The `parameters` must fit the input required by the `context`'s `endpoint` in it's current state. This message-type is only used by the client.
 ```json
@@ -96,7 +96,7 @@ The valid client message for this `Handler` would be:
 ```
 Of course, you can use anything that is `Codable` as a parameter.
 
-### Necessity and Nullability
+#### Necessity and Nullability
 
 Some `@Parameter`s are not required, e.g. for the following two, the client doesn't have to provide a value explicitly:
 ```swift
@@ -106,7 +106,7 @@ Some `@Parameter`s are not required, e.g. for the following two, the client does
 
 Note that one could set `surname` to JSON's `null` explicitly, whereas that would result in an error for `superPowers`.
 
-### Mutability
+#### Mutability
 
 Let's take a look at this modified handler, which accepts multiple inputs and returns a new `User` instance for each of them:
 
@@ -194,7 +194,7 @@ Input values are cached, thus the client can omit values if it doesn't want to c
 }
 ```
 
-## `ServiceMessage`
+### `ServiceMessage`
 
 Sends output of a `Handler` to a speficic `context`. The `content`'s type is the same as the `Encodable` that is returned by the `Handler`'s `handle()` function. This message-type is only used by the server.
 
@@ -224,7 +224,7 @@ struct User: Apodini.Content {
 ```
 
 
-## `ErrorMessage`
+### `ErrorMessage`
 
 Sends an error-message to a speficic `context`. This message-type is only used by the server.
 
@@ -238,7 +238,7 @@ If a `Handler` throws anything that is not an `ApodiniError`, this error is tran
 
 Note that the error message of an `ApodiniError` changes when switching to production. The `description` is only exposed to the client in `DEBUG` mode.
 
-### `WebSocketConnectionConsequence`
+#### `WebSocketConnectionConsequence`
 
 When throwing an `ApodiniError` you can specify what consequence this has for the associated `context` and WebSocket connection. There are three options: `.none`, `.closeContext` and `.closeChannel`. In any case the `ErrorMessage` is sent before the context is closed or the channel is closed.
 
@@ -262,7 +262,7 @@ struct UserHandler: Handler {
 }
 ```
 
-### `WebSocketErrorCode`
+#### `WebSocketErrorCode`
 
 This option is only relevant if the `WebSocketConnectionConsequence` is `.closeChannel`.
 
@@ -273,7 +273,7 @@ You can use any of the standard WebSocket error codes or even custom ones:
     var reservedIdError: ApodiniError
 ```
 
-### Defaults by `ErrorType`
+#### Defaults by `ErrorType`
 
 |                    | `WebSocketConnectionConsequence` | `WebSocketErrorCode`           |
 |--------------------|----------------------------------|--------------------------------|

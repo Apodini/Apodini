@@ -61,28 +61,34 @@ Already convinced? Then check out our guides to Getting Started with Apodini!
 
 If you want to get a bit more details first or need some support in building your first web service, here are some helpful resources for you.
 
-
-- <doc:DSLComponents>
+- <doc:BuildingBlocks>
+<!-- TODO: metadata -->
+- <doc:AllAboutReuse>
+<!-- TODO: Configuration with Swift Argument Parser -->
+<!-- TODO: stateful handlers -->
+<!-- TODO: middlware-specific content: Information API -->
 - <doc:UnitTesting>
-- <doc:Jobs>
 
 ### Ecosystem
 
 Here are some links to internal and external packages you might find helpful when building your web service.
 
+<!-- TODO: Authentication -->
 - <doc:DatabaseConnection>
 - <doc:PushNotifications>
+- <doc:Jobs>
 
 ### Advanced
 
 Here you can find more advanced resources. You might even find internal documentation there.
 
-- <doc:BuildingExporters>
+- <doc:BuildingExporters> <!-- TODO: -->
 - <doc:HandlerDelegation>
 - <doc:CommunicationPattern>
 - <doc:ProtocolBuffers>
 - <doc:ExporterConfiguration>
 - <doc:RetrieveRelationship>
+- <doc:DSLComponents>
 
 ### About
 
