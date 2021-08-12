@@ -191,6 +191,7 @@ extension ApodiniLogger {
     
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
+            /*
             if let anyHTTPInformation = info as? AnyHTTPInformation {
                 if let auth = anyHTTPInformation.typed(Authorization.self) {
                     partialResult[Authorization.header] = .string(auth.type)
@@ -209,6 +210,10 @@ extension ApodiniLogger {
                 } else {
                     partialResult[anyHTTPInformation.key.key] = .string(anyHTTPInformation.value)
                 }
+            }*/
+            if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
+                   !stringKeyedStringInformation.sensitive {
+                partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
             }
         }
     }
@@ -218,9 +223,6 @@ extension ApodiniLogger {
             if let loggingMetadataInformation = info as? LoggingMetadataInformationClass,
                !loggingMetadataInformation.sensitive {
                 partialResult[loggingMetadataInformation.entry.key] = loggingMetadataInformation.entry.value as? Logger.MetadataValue
-            } else if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
-                      !stringKeyedStringInformation.sensitive {
-                partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
             }
         }
     }
