@@ -14,6 +14,17 @@ import ArgumentParser
 import ApodiniOpenAPI
 import DeploymentTargetAWSLambdaCommon
 
+/// The default `StructureExporter` of the localhost deployment provider. This command is responsible for
+/// exporting the web service structure in a way that is understandable by the `LocalhostDeploymentProvider`.
+/// These commands are added to Apodini by default.
+/// The user should only added this command manually if he uses a custom `CommandConfiguration` in his web service.
+/// The command needs to be added following this pattern for the providers to work:
+///  `ApodiniDeployCommand.withSubcommands(
+///         `ExportStructureCommand.withSubcommands(
+///             `LocalhostStructureExporterCommand.self`,
+///         `    ... any other exporter commands you want to use
+///          `)`
+///  `)`
 public struct LocalhostStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(

@@ -12,6 +12,17 @@ import Apodini
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 
+/// The default `DeploymentStartupCommand` of the localhost deployment provider. This command is responsible for
+/// starting the web service on a deployment node taking into account the specifications given by`LambdaDeploymentProvider`.
+/// These commands are added to Apodini by default.
+/// The user should only added this command manually if he uses a custom `CommandConfiguration` in his web service.
+/// The command needs to be added following this pattern for the providers to work:
+///  `ApodiniDeployCommand.withSubcommands(
+///         `StartupCommand.withSubcommands(
+///             `LambdaStartupCommand.self`,
+///         `    ... any other startup commands you want to use
+///          `)`
+///  `)`
 public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
