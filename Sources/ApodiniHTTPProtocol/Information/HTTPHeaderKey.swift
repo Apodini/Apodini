@@ -9,16 +9,14 @@
 import Apodini
 
 /// The ``InformationClass`` identifying any ``Information`` which holds HTTP Header information.
-public protocol HTTPHeaderInformationClass: InformationClass {
-    var entry: (header: String, value: String) { get }
-}
+public protocol HTTPHeaderInformationClass: StringKeyedStringInformationClass {}
 
 extension AnyHTTPInformation: HTTPHeaderInformationClass {}
 
 public extension HTTPHeaderInformationClass where Self == AnyHTTPInformation {
     /// Returns the HTTP header as a tuple.
-    var entry: (header: String, value: String) {
-        (header: self.key.key, value: self.value)
+    var entry: (key: String, value: String) {
+        (key: self.key.key, value: self.value)
     }
 }
 

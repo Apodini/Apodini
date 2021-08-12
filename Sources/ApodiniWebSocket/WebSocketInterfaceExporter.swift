@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniUtils
 import ApodiniExtension
+import ApodiniLoggingSupport
 import ApodiniVaporSupport
 import NIOWebSocket
 @_implementationOnly import Vapor
@@ -79,7 +80,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
                     remoteAddress: request.remoteAddress,
                     information: request.information.merge(
                         with: [
-                            LoggingMetadataInformation(key: .init("parametersValid"), metadataValue: .string(someInput.parametersValid))
+                            LoggingMetadataInformation(key: .init("parametersValid"), rawValue: .string(someInput.parametersValid))
                         ]
                     )), someInput)
             }

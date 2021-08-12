@@ -11,7 +11,7 @@ import ApodiniUtils
 
 /// An ``IntefaceExporter``that writes information from the ``Blackboard`` to the ``Environment`` of the ``Delegate``
 public final class LoggerExporter: InterfaceExporter, TruthAnchor {
-    /// Contains all the necessary information from the ``Blackboard``, then accessed via the ``Environment`` property wrapper of the ``ConfiguredLogger``
+    /// Contains all the necessary information from the ``Blackboard``, then accessed via the ``Environment`` property wrapper of the ``ApodiniLogger``
     public struct BlackboardMetadata: EnvironmentAccessible {
         public struct BlackboardMetadata {
             let endpointName: String
@@ -47,11 +47,11 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         self.exportOntoBlackboard(endpoint)
     }
     
-    /// Writes information from the ``Blackboard`` into the ``Envionment`` of the ``Delegate`` so it is accessible from the ``ConfiguredLogger`` via the ``Envionment`` property wrapper
+    /// Writes information from the ``Blackboard`` into the ``Envionment`` of the ``Delegate`` so it is accessible from the ``ApodiniLogger`` via the ``Envionment`` property wrapper
     private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
-        // Information which is required for the LoggingMetadata of the ConfiguredLogger
+        // Information which is required for the LoggingMetadata of the ApodiniLogger
         let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
@@ -72,7 +72,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
 
 // MARK: ParameterRetriever
 
-/// A type-erased protocol implemented by `Parameter`. It allows ``ConfiguredLogger`` to
+/// A type-erased protocol implemented by `Parameter`. It allows ``ApodiniLogger`` to
 /// access input-values from a `Request` in an untyped manner.
 protocol ParameterRetriever {
     func retrieveParameter(from request: Request) throws -> AnyEncodable

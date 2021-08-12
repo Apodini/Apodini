@@ -47,7 +47,8 @@ let package = Package(
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         //Observe
-        .library(name: "ApodiniObserve", targets: ["ApodiniObserve"])
+        .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
+        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -188,6 +189,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding")
             ]
         ),
@@ -299,6 +301,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
@@ -310,6 +313,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
@@ -571,7 +575,16 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniLoggingSupport",
+            dependencies: [
+                .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
             ]
         )

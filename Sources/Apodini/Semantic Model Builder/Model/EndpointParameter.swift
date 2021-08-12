@@ -168,9 +168,10 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         
         self.debugDescription = """
         @Parameter(\
-        \(self.options.map{ key, value in
+        \(self.options.map { key, value in
             "\(key.propertyOptionType) = .\(value)"
-        }.joined(separator: ", "))\
+        }
+        .joined(separator: ", "))\
         ) \
         \(description.components(separatedBy: "@Parameter ")[1])
         """

@@ -12,7 +12,7 @@ import Logging
 /// Extends the ``Logger.MetadataValue`` struct of swift-log to allow for easy encoding of ``Codable`` object to ``Logger.MetadataValue``
 public extension Logger.MetadataValue {
     /// An intermediate representation to encode every `Codable` object as a `Logger.Metadata` object
-    enum IntermediateRepresentation: Decodable, Encodable {
+    enum IntermediateRepresentation: Codable {
         case null
         case bool(Bool)
         case int(Int)
@@ -67,6 +67,49 @@ public extension Logger.MetadataValue {
         }
     }
     
+    
+}
+
+/*
+/// Make `Logger.MetadataValue` conform to `Encodable` and `Decodable`, so it can be sent to Logstash
+extension Logger.MetadataValue: Codable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        switch self {
+        case let .string(string):
+            try container.encode(string)
+        case let .stringConvertible(stringConvertible):
+            try container.encode(stringConvertible.description)
+        case let .dictionary(dictionary):
+            try container.encode(dictionary)
+        case let .array(array):
+            try container.encode(array)
+        }
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if container.decodeNil() {
+            self = .string("null")
+        } else if let string = try? container.decode(String.self) {
+            self = .string(string)
+        } else if let array = try? container.decode([Logger.MetadataValue].self) {
+            self = .array(array)
+        } else if let dictionary = try? container.decode(Logger.Metadata.self) {
+            self = .dictionary(dictionary)
+        } else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: decoder.codingPath,
+                                      debugDescription: "Encountered unexpected JSON values")
+            )
+        }
+    }
+}
+ */
+ 
+extension Logger.MetadataValue {
     /// Converts a ``Codable`` object to ``Logger.MetadataValue``
     static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
         do {
@@ -77,11 +120,10 @@ public extension Logger.MetadataValue {
                 return .string("\(encodedParameter.description.prefix(8_100))... (Further bytes omitted since parameter too large!)")
             }
             
-            let intermediateRepresentation = try JSONDecoder().decode(IntermediateRepresentation.self, from: encodedParameter)
-            
-            return intermediateRepresentation.metadata
+            return try JSONDecoder().decode(Logger.MetadataValue.self, from: encodedParameter)
         } catch {
             return .string("Error during encoding of the parameter")
         }
     }
 }
+

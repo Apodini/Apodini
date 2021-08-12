@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniExtension
 import ApodiniHTTPProtocol
+import ApodiniLoggingSupport
 import Vapor
 import Foundation
 
@@ -20,16 +21,18 @@ extension Vapor.Request: RequestBasis {
     public var information: InformationSet {
         InformationSet(headers.map { key, rawValue in
             AnyHTTPInformation(key: key, rawValue: rawValue)
-        }).merge(with:
-            [
-                LoggingMetadataInformation(key: .init("VaporRequestDescription"), metadataValue: .string(self.description)),
-                LoggingMetadataInformation(key: .init("HTTPBody"), metadataValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
-                LoggingMetadataInformation(key: .init("HTTPContentType"), metadataValue: .string(self.content.contentType?.description ?? "unknown")),
-                LoggingMetadataInformation(key: .init("hasSession"), metadataValue: .string(self.hasSession.description)),
-                LoggingMetadataInformation(key: .init("route"), metadataValue: .string(self.route?.description ?? "unknown")),
-                LoggingMetadataInformation(key: .init("HTTPVersion"), metadataValue: .string(self.version.description)),
-                LoggingMetadataInformation(key: .init("url"), metadataValue: .string(self.url.description))
-            ]
-        )
+        }).merge(with: self.loggingMetadata)
+    }
+    
+    var loggingMetadata: [LoggingMetadataInformation] {
+         [
+            LoggingMetadataInformation(key: .init("VaporRequestDescription"), rawValue: .string(self.description)),
+            LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
+            LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
+            LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),
+            LoggingMetadataInformation(key: .init("route"), rawValue: .string(self.route?.description ?? "unknown")),
+            LoggingMetadataInformation(key: .init("HTTPVersion"), rawValue: .string(self.version.description)),
+            LoggingMetadataInformation(key: .init("url"), rawValue: .string(self.url.description))
+         ]
     }
 }

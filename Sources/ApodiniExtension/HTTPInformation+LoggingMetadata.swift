@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import Logging
 
+/*
 public struct LoggingMetadataInformation: Information {
     private static var jsonEncoder: JSONEncoder {
         let encoder = JSONEncoder()
@@ -72,3 +73,4 @@ extension Logger.MetadataValue: Encodable {
         }
     }
 }
+*/

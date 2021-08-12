@@ -11,12 +11,13 @@ import Logging
 import Apodini
 import ApodiniExtension
 import ApodiniHTTPProtocol
+import ApodiniLoggingSupport
 
 @propertyWrapper
 /// A ``DynamicProperty`` that allows logging of an associated handler
 /// Can be configured with a certain logLevel, so what messages should actually be logged and which shouldn't
 /// Automatically attaches metadata from the handler to the built logger so the developer gets easy insights into the system
-public struct ConfiguredLogger: DynamicProperty {
+public struct ApodiniLogger: DynamicProperty {
     /// The ``Connection`` of the associated handler
     /// The actual ``Request`` resides here
     @Environment(\.connection)
@@ -124,14 +125,15 @@ public struct ConfiguredLogger: DynamicProperty {
         } else {
             // Connection stays open since these communicational patterns allow for any amount of client messages
             switch self.blackboardMetadata.communicationalPattern {
-            case .clientSideStream: fallthrough
-            case .bidirectionalStream:
+            case .clientSideStream, .bidirectionalStream:
                 // Write connection state
                 builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
                 
                 // Write request metadata
                 builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request)
-                                                                    .merging(self.getRawRequestMetadata(from: connection.information)) { _, new in new })
+                                                                    .merging(
+                                                                        self.getRawRequestMetadata(from: connection.information)
+                                                                    ) { _, new in new })
             default: break
             }
         }
@@ -150,18 +152,18 @@ public struct ConfiguredLogger: DynamicProperty {
         self.label = label
     }
     
-    /// Creates a new `@ConfiguredLogger` and specifies a `Logger.Level`
+    /// Creates a new `@ApodiniLogger` and specifies a `Logger.Level`
     public init(id: UUID = UUID(), logLevel: Logger.Level) {
         self.init(id: id, logLevel: logLevel, label: nil)
     }
     
-    /// Creates a new `@ConfiguredLogger` and specifies a `Logger.Level`and a label of the `Logger`
+    /// Creates a new `@ApodiniLogger` and specifies a `Logger.Level`and a label of the `Logger`
     public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil) {
         self.init(id: id, logLevel: logLevel, label: label)
     }
 }
 
-extension ConfiguredLogger {
+extension ApodiniLogger {
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.blackboardMetadata.endpointName),
@@ -213,8 +215,12 @@ extension ConfiguredLogger {
     
     private func getRawRequestMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
-            if let metadataInformation = info as? LoggingMetadataInformation {
-                partialResult[metadataInformation.key.key] = metadataInformation.metadataValue
+            if let loggingMetadataInformation = info as? LoggingMetadataInformationClass,
+               !loggingMetadataInformation.sensitive {
+                partialResult[loggingMetadataInformation.entry.key] = loggingMetadataInformation.entry.value as? Logger.MetadataValue
+            } else if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
+                      !stringKeyedStringInformation.sensitive {
+                partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
             }
         }
     }

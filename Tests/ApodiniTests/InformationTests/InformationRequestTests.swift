@@ -8,6 +8,7 @@
 
 @testable import Apodini
 @testable import ApodiniREST
+import ApodiniLoggingSupport
 import XCTApodini
 import Vapor
 
