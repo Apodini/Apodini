@@ -68,7 +68,7 @@ extension Logger.MetadataValue {
     
     /// Converts a ``Data`` element to ``Logger.MetadataValue``
     public static func convertToMetadata(data: Data) throws -> Logger.MetadataValue {
-        return try Self.jsonDecoder.decode(Logger.MetadataValue.self, from: data)
+        try Self.jsonDecoder.decode(Logger.MetadataValue.self, from: data)
     }
     
     /// Converts ``Logger.MetadataValue`` to ``Data``

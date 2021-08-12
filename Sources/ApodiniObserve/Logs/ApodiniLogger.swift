@@ -63,21 +63,15 @@ public struct ApodiniLogger: DynamicProperty {
             
             let request = connection.request
             
-            // Write remote address
-            builtLogger?[metadataKey: "remoteAddress"] = .string(connection.remoteAddress?.description ?? "unknown")
-            
-            // Write event loop
-            builtLogger?[metadataKey: "connectionEventLoop"] = .string(connection.eventLoop.description)
-            
-            // Write connection state
-            builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
-            
-            // Write information metadata
-            builtLogger?[metadataKey: "information"] = .dictionary(self.getInformationMetadata(from: connection.information))
+            // Write connection metadata
+            builtLogger?[metadataKey: "connection"] = .dictionary(self.connectionMetadata)
             
             // Write request metadata
             builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: request)
                                                                 .merging(self.getRawRequestMetadata(from: connection.information)) { _, new in new })
+            
+            // Write information metadata
+            builtLogger?[metadataKey: "information"] = .dictionary(self.getInformationMetadata(from: connection.information))
             
             // Write endpoint metadata
             builtLogger?[metadataKey: "endpoint"] = .dictionary(self.endpointMetadata)
@@ -124,8 +118,8 @@ public struct ApodiniLogger: DynamicProperty {
             // Connection stays open since these communicational patterns allow for any amount of client messages
             switch self.blackboardMetadata.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
-                // Write connection state
-                builtLogger?[metadataKey: "connectionState"] = .string(connection.state.rawValue)
+                // Write connection metadata
+                builtLogger?[metadataKey: "connection"] = .dictionary(self.connectionMetadata)
                 
                 // Write request metadata
                 builtLogger?[metadataKey: "request"] = .dictionary(self.getRequestMetadata(from: connection.request)
@@ -182,8 +176,16 @@ private extension ApodiniLogger {
     
     private var exporterMetadata: Logger.Metadata {
         [
-            "type": .string(String(describing: exporterTypeMetadata.exporterType)),
-            "parameterNamespace": .array(exporterTypeMetadata.parameterNamespace.map { .string($0.description) })
+            "type": .string(String(describing: self.exporterTypeMetadata.exporterType)),
+            "parameterNamespace": .array(self.exporterTypeMetadata.parameterNamespace.map { .string($0.description) })
+        ]
+    }
+    
+    private var connectionMetadata: Logger.Metadata {
+        [
+            "remoteAddress": .string(self.connection.remoteAddress?.description ?? "unknown"),
+            "state": .string(connection.state.rawValue),
+            "eventLoop": .string(self.connection.eventLoop.description)
         ]
     }
     

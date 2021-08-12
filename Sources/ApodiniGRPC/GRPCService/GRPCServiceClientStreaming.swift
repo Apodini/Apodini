@@ -139,7 +139,7 @@ extension GRPCService {
         }
     }
     
-    static func getLoggingMetadataInformation(_ message: GRPCMessage) -> [AnyInformation] {
+    static func getLoggingMetadataInformation(_ message: GRPCMessage) -> [LoggingMetadataInformation] {
          [
             LoggingMetadataInformation(key: .init("data"), rawValue: message.data.count <= 32_768 ? .string(message.data.base64EncodedString()) : .string("\(message.data.base64EncodedString().prefix(32_715))... (Further bytes omitted since data too large!)")),
             LoggingMetadataInformation(key: .init("dataLength"), rawValue: .string(message.length.description)),
