@@ -139,7 +139,7 @@ public struct ApodiniLogger: DynamicProperty {
         }
         
         guard let builtLogger = builtLogger else {
-            fatalError("Logger isn't built")
+            fatalError("The ApodiniLogger isn't built correctly!")
         }
         
         return builtLogger
