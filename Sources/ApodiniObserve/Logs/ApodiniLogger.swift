@@ -7,10 +7,9 @@
 // 
 
 import Foundation
-import Logging
 import Apodini
-import ApodiniExtension
 import ApodiniLoggingSupport
+import Logging
 
 @propertyWrapper
 /// A ``DynamicProperty`` that allows logging of an associated handler
@@ -162,7 +161,7 @@ public struct ApodiniLogger: DynamicProperty {
     }
 }
 
-extension ApodiniLogger {
+private extension ApodiniLogger {
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.blackboardMetadata.endpointName),
@@ -225,7 +224,9 @@ extension ApodiniLogger {
         
         return builtRequestMetadata
     }
-    
+}
+
+private extension ApodiniLogger {
     /// Converts a ``Codable`` parameter to ``Logger.MetadataValue``
     private static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
         do {
@@ -236,9 +237,9 @@ extension ApodiniLogger {
                 return .string("\(encodedParameter.description.prefix(8_100))... (Further bytes omitted since parameter too large!)")
             }
             
-            return try JSONDecoder().decode(Logger.MetadataValue.self, from: encodedParameter)
+            return try Logger.MetadataValue.convertToMetadata(data: encodedParameter)
         } catch {
-            return .string("Error during encoding of the parameter")
+            return .string("Error during encoding of a parameter to Logger.MetadataValue")
         }
     }
 }

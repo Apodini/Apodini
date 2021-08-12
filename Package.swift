@@ -48,7 +48,7 @@ let package = Package(
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         //Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
-        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),

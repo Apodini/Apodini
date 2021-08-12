@@ -45,3 +45,34 @@ extension Logger.MetadataValue: Codable {
         }
     }
 }
+
+extension Logger.MetadataValue {
+    private static let jsonEncoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dataEncodingStrategy = .deferredToData
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys]
+        encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: "+inf", negativeInfinity: "-inf", nan: "NaN")
+        return encoder
+    }()
+    
+    private static let jsonDecoder: JSONDecoder = {
+        JSONDecoder()
+    }()
+    
+    /// Converts a ``Codable`` element to ``Logger.MetadataValue``
+    public static func convertToMetadata(encodableElement: Encodable) throws -> Logger.MetadataValue {
+        let encodedElement = try encodableElement.encodeToJSON(outputFormatting: .withoutEscapingSlashes)
+        return try Self.convertToMetadata(data: encodedElement)
+    }
+    
+    /// Converts a ``Data`` element to ``Logger.MetadataValue``
+    public static func convertToMetadata(data: Data) throws -> Logger.MetadataValue {
+        return try Self.jsonDecoder.decode(Logger.MetadataValue.self, from: data)
+    }
+    
+    /// Converts ``Logger.MetadataValue`` to ``Data``
+    public static func convertFromMetadata(_ metadata: Logger.MetadataValue) throws -> Data {
+        try Self.jsonEncoder.encode(metadata)
+    }
+}

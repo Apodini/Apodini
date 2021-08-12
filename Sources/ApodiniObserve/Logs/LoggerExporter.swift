@@ -7,6 +7,7 @@
 // 
 
 import Apodini
+import ApodiniExtension
 import ApodiniUtils
 
 /// An ``IntefaceExporter``that writes information from the ``Blackboard`` to the ``Environment`` of the ``Delegate``
