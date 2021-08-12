@@ -29,6 +29,5 @@ extension ApodiniDeployInterfaceExporter {
             to: URL(fileURLWithPath: structureExporter.filePath),
             encoderOutputFormatting: [.prettyPrinted, .withoutEscapingSlashes]
         )
-        exit(EXIT_SUCCESS)
     }
 }

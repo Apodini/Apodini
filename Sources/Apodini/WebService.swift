@@ -41,12 +41,16 @@ extension WebService {
     
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
-    ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
+    ///    - mode: The `WebServiceExecutionMode` in which the web service is executed in. Defaults to `.run`, meaning the web service is ran normally and able to handle requests.
     ///    - app: The instanciated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
-    public static func start(waitForCompletion: Bool = true, app: Application = Application(), webService: Self = Self()) throws -> Application {
+    public static func start(
+        mode: WebServiceExecutionMode = .run,
+        app: Application = Application(),
+        webService: Self = Self()
+    ) throws -> Application {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
         /// Configure application and instanciate exporters
@@ -60,10 +64,14 @@ extension WebService {
         webService.register(
             SemanticModelBuilder(app)
         )
-        
-        guard waitForCompletion else {
+        switch mode {
+        case .startup:
+            return app
+        case .boot:
             try app.boot()
             return app
+        case .run:
+            break
         }
 
         defer {
@@ -100,4 +108,17 @@ extension WebService {
             }.accept(visitor)
         }
     }
+}
+
+/// Specifies the mode in which the web service is executed in.
+public enum WebServiceExecutionMode {
+    /// Boots and starts the web service as one would normally do. This is default.
+    case run
+    /// This only starts the web service. This means it runs the configurations and iterates through the exporters.
+    /// This does not boot the web service. It exists afterwards.
+    case startup
+    /// This starts and boots the web service. It runs configurations and the semantic model builder. It also boots the web service.
+    /// This means that the corresponding life cycle methods are called and the `boot` method of `Vapor.App` is executed.
+    /// The web service exists afterwards
+    case boot
 }

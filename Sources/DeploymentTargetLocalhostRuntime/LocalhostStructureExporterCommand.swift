@@ -48,7 +48,7 @@ public struct LocalhostStructureExporterCommand<Service: WebService>: StructureE
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .startup, app: app, webService: Service())
     }
     
     public func retrieveStructure(
