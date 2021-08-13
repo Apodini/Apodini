@@ -65,7 +65,7 @@ If you want to get a bit more details first or need some support in building you
 <!-- TODO: metadata -->
 - <doc:AllAboutReuse>
 <!-- TODO: Configuration with Swift Argument Parser -->
-<!-- TODO: stateful handlers -->
+- <doc:StatefulHandlers>
 <!-- TODO: middlware-specific content: Information API -->
 - <doc:UnitTesting>
 

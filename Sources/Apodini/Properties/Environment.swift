@@ -11,7 +11,7 @@ import ApodiniUtils
 
 /// A property wrapper to inject pre-defined values  to a ``Component``.
 ///
-/// If ``Value`` is an ``ObservableObject``, ``Environment`` observes its value
+/// If `Value` is an ``ObservableObject``, ``Environment`` observes its value
 /// just as ``ObservedObject``. Use ``Delegate/environment(_:_:)-mc6t`` to
 ///  inject a value locally, or define a global default using ``EnvironmentValue``.
 @propertyWrapper
