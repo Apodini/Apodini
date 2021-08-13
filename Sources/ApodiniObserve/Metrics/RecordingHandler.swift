@@ -15,36 +15,29 @@ public protocol MetricsRecorder {
     associatedtype Key: Hashable
     associatedtype Value
     
-    /// Executed before handler is executed
-    var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void] { get }
-    /// Executed after handler is executed
-    var after: [(ObserveMetadata.Value, Logger.Metadata, Dictionary<Key, Value>) -> Void] { get }
-}
-
-public struct DefaultRecoder: MetricsRecorder {
-    public var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.beforeTime]
-    public var after: [(ObserveMetadata.Value, Logger.Metadata, Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.afterTime]
-}
-
-public enum DefaultRecordingClosures {
-    public struct Defaults {
-        static let beforeTime: (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
-            let counter = Metrics.Counter(label: "asdf")
-            counter.increment()
-            dictionary[.init("test")] = "bla"
-        }
-        
-        static let afterTime: (ObserveMetadata.Value, Logger.Metadata, Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
-            print(dictionary["test"])
-            dictionary[.init("test2")] = "bla"
-        }
-    }
+    typealias BeforeRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void
+    typealias AfterRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Dictionary<Key, Value>) -> Void
+    typealias AfterExceptionRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Error, Dictionary<Key, Value>) -> Void
     
-    case requestCount
-    case responseTime
-    case failureRate
-    case all
+    /// Executed before handler is executed
+    var before: [BeforeRecordingClosure] { get }
+    /// Executed after handler is executed (even if an exception is thrown)
+    var after: [AfterRecordingClosure] { get }
+    /// Executed only after handler is executed and an exception is thrown
+    var afterException: [AfterExceptionRecordingClosure] { get }
+    
+    init(before: [BeforeRecordingClosure],
+         after: [AfterRecordingClosure],
+         afterException: [AfterExceptionRecordingClosure])
 }
+
+/*
+public struct DefaultRecoderTest: MetricsRecorder {
+    public var before = [DefaultRecordingClosures.Defaults.beforeResponseTime]
+    public var after = [DefaultRecordingClosures.Defaults.afterResponseTime]
+    public var afterException = [DefaultRecordingClosures.Defaults.afterExceptionFailureRate]
+}
+ */
 
 extension Component {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
@@ -54,8 +47,16 @@ extension Component {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
     
-    public func record() -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultRecoder, Never>> {
-        self.delegated(by: RecordingHandlerInitializer(recorder: DefaultRecoder()))
+    public func record() -> DelegationModifier<Self, RecordingHandlerInitializer<MetricsRecorderDefault, Never>> {
+        let closures = DefaultRecordingClosures.buildDefaultMetricsRecorder(
+            defaultRecorders: DefaultRecordingClosures.ResponseTime.self,
+            DefaultRecordingClosures.RequestCounter.self,
+            DefaultRecordingClosures.ErrorRate.self
+        )
+        
+        let metricsRecorder = MetricsRecorderDefault(before: closures.0, after: closures.1, afterException: closures.2)
+        
+        return self.delegated(by: RecordingHandlerInitializer(recorder: metricsRecorder))
     }
 }
 
@@ -94,13 +95,22 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
     let recorder: Delegate<R>
     
     func handle() async throws -> D.Response {
+        let recorderInstance = try recorder.instance()
         var dictionary = Dictionary<R.Key, R.Value>()
         
-        try recorder.instance().before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
-        let result = try await handler.instance().handle()
-        try recorder.instance().after.forEach { $0(observeMetadata, loggingMetadata, dictionary) }
+        recorderInstance.before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
+        defer {
+            recorderInstance.after.forEach { $0(observeMetadata, loggingMetadata, dictionary) }
+        }
         
-        return result
+        do {
+            return try await handler.instance().handle()
+        } catch {
+            recorderInstance.afterException.forEach { $0(observeMetadata, loggingMetadata, error, dictionary) }
+            
+            throw error
+        }
+        
     }
 }
 
