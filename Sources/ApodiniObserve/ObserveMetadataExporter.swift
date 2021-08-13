@@ -11,10 +11,10 @@ import ApodiniExtension
 import ApodiniUtils
 
 /// An ``IntefaceExporter``that writes information from the ``Blackboard`` to the ``Environment`` of the ``Delegate``
-public final class LoggerExporter: InterfaceExporter, TruthAnchor {
+public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
     /// Contains all the necessary information from the ``Blackboard``, then accessed via the ``Environment`` property wrapper of the ``ApodiniLogger``
-    public struct BlackboardMetadata: EnvironmentAccessible {
-        public struct BlackboardMetadata {
+    public struct BlackboardObserveMetadata: EnvironmentAccessible {
+        public struct BlackboardObserveMetadata {
             let endpointName: String
             let endpointParameters: EndpointParameters
             let parameters: [(String, ParameterRetriever)]
@@ -28,7 +28,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
             let communicationalPattern: CommunicationalPattern
         }
         
-        public var value: BlackboardMetadata
+        public var value: BlackboardObserveMetadata
     }
     
     let app: Apodini.Application
@@ -53,7 +53,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
         // Information which is required for the LoggingMetadata of the ApodiniLogger
-        let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
+        let blackboardMetadata = BlackboardObserveMetadata.BlackboardObserveMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
             parameters: endpoint[All<ParameterRetriever>.self].elements,
@@ -67,7 +67,7 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
             communicationalPattern: endpoint[CommunicationalPattern.self]
         )
         
-        delegate.environment(\BlackboardMetadata.value, blackboardMetadata)
+        delegate.environment(\BlackboardObserveMetadata.value, blackboardMetadata)
     }
 }
 

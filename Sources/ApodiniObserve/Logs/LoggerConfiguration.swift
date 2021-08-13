@@ -50,7 +50,7 @@ public final class LoggerConfiguration: Configuration {
     /// Configure application
     public func configure(_ app: Application) {
         // Instanciate exporter
-        let loggerExporter = LoggerExporter(app, self)
+        let loggerExporter = ObserveMetadataExporter(app, self)
         
         // Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: loggerExporter)

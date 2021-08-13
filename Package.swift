@@ -48,7 +48,8 @@ let package = Package(
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         //Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
-        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"])
+        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniObserveMetricsPrometheus", targets: ["ApodiniObserveMetricsPrometheus"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -583,8 +584,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
-                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
+                .product(name: "SystemMetrics", package: "swift-metrics-extras")
             ]
         ),
         
@@ -593,6 +593,16 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserveMetricsPrometheus",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
             ]
         )
     ]

@@ -11,7 +11,7 @@ import Metrics
 
 @propertyWrapper
 /// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
-public struct MetricsGauge: DynamicProperty {
+public struct Gauge: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]
     

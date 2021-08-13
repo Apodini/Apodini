@@ -11,7 +11,7 @@ import Metrics
 
 @propertyWrapper
 /// A wrapped version of the ``Metrics.Timer`` of swift-metrics
-public struct MetricsTimer: DynamicProperty {
+public struct Timer: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]
     let displayUnit: TimeUnit

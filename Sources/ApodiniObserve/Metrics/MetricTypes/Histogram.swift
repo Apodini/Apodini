@@ -10,19 +10,17 @@ import Apodini
 import Metrics
 
 @propertyWrapper
-/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics
-public struct MetricsRecorder: DynamicProperty {
+/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics used as a Histrogram
+public struct Histogram: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]
-    let aggregate: Bool
     
-    public init(label: String, dimensions: [(String, String)], aggregate: Bool) {
+    public init(label: String, dimensions: [(String, String)]) {
         self.label = label
         self.dimensions = dimensions
-        self.aggregate = aggregate
     }
     
     public var wrappedValue: Metrics.Recorder {
-        .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
+        .init(label: self.label, dimensions: self.dimensions)
     }
 }

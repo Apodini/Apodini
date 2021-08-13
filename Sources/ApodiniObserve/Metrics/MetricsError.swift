@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-enum MetricsError: String {
+public enum MetricsError: String {
     case prometheusNotYetBootstrapped = """
     Metric Type was created without bootstrapping the MetricsSystem first
     """

@@ -7,14 +7,18 @@
 //
 
 import Apodini
-import Prometheus
+import Metrics
+import Logging
 
 /// A `Recorder` can be used to specify what metrics schould be recorded from `Component`s
-public protocol Recorder {
+public protocol MetricsRecorder {
+    associatedtype Key: Hashable
+    associatedtype Value
+    
     /// Executed before handler is executed
-    var before: [(PrometheusClient, String) -> Void] { get }
+    var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void] { get }
     /// Executed after handler is executed
-    var after: [(PrometheusClient, String) -> Void] { get }
+    var after: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void] { get }
     
     //init(before: @escaping (PrometheusClient, String) -> Void, after: @escaping (PrometheusClient, String) -> Void)
     
@@ -35,19 +39,22 @@ public extension Recorder {
 }
  */
 
-public struct DefaultRecoder: Recorder {
-    public var before: [(PrometheusClient, String) -> Void] = [DefaultRecordingClosures.Defaults.beforeTime]
-    public var after: [(PrometheusClient, String) -> Void] = [DefaultRecordingClosures.Defaults.afterTime]
+public struct DefaultRecoder: MetricsRecorder {
+    public var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.beforeTime]
+    public var after: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.afterTime]
 }
 
 public enum DefaultRecordingClosures {
     public struct Defaults {
-        static let beforeTime: (PrometheusClient, String) -> Void = { prometheus, handlerName in
-            prometheus.createSummary(forType: Int64.self, named: handlerName).recordNanoseconds(1)
+        static let beforeTime: (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
+            let counter = Metrics.Counter(label: "asdf")
+            counter.increment()
+            dictionary[.init("test")] = "bla"
         }
         
-        static let afterTime: (PrometheusClient, String) -> Void = { prometheus, handlerName in
-            prometheus.createSummary(forType: Int64.self, named: handlerName).recordNanoseconds(1)
+        static let afterTime: (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
+            print(dictionary["test"])
+            dictionary[.init("test2")] = "bla"
         }
     }
     
@@ -61,7 +68,7 @@ extension Component {
     /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
-    public func record<R: Recorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Never>> {
+    public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Never>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
     
@@ -79,12 +86,12 @@ extension Handler {
     /// Use an asynchronous `Guard` to guard a `Handler` by inspecting incoming requests
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
-    public func record<R: Recorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Response>> {
+    public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Response>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
 }
 
-internal struct RecordingHandler<D, R>: Handler where D: Handler, R: Recorder {
+internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsRecorder {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)
     private var storage: Storage
@@ -92,6 +99,14 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: Recorder {
     /// The ``Connection``
     @Environment(\.connection)
     private var connection: Connection
+    
+    /// Metadata from ``BlackBoard`` and data regarding the ``Exporter`` that is injected into the environment of the ``Handler``
+    @ObserveMetadata
+    private var observeMetadata
+    
+    /// Logging metadata
+    @LoggingMetadata
+    private var loggingMetadata
     
     // We have access to the connection here
     
@@ -102,23 +117,17 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: Recorder {
     let recorder: Delegate<R>
     
     func handle() async throws -> D.Response {
-        guard let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus else {
-            fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
-        }
+        var dictionary = Dictionary<R.Key, R.Value>()
         
-        let handlerInstance = try handler.instance()
-        let handlerName = String(describing: type(of: handlerInstance))
-        
-        try recorder.instance().before.forEach { $0(prometheus, handlerName) }
-        let result = try await handlerInstance.handle()
-        try recorder.instance().after.forEach { $0(prometheus, handlerName) }
+        try recorder.instance().before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
+        let result = try await handler.instance().handle()
+        try recorder.instance().after.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
         
         return result
     }
 }
 
-
-public struct RecordingHandlerInitializer<R: Recorder, T: ResponseTransformable>: DelegatingHandlerInitializer {
+public struct RecordingHandlerInitializer<R: MetricsRecorder, T: ResponseTransformable>: DelegatingHandlerInitializer {
     public typealias Response = T
     
     let recorder: R

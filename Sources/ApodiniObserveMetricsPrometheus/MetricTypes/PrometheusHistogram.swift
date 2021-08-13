@@ -7,13 +7,14 @@
 //
 
 import Apodini
+import ApodiniObserve
 import Metrics
 import Prometheus
 
 @propertyWrapper
-/// A wrapped version of the ``PromCounter`` of SwiftPrometheus
+/// A wrapped version of the ``PromHistogram`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
-public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
+public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProperty {
     /// The ``Storage`` of the ``Application``
     @Environment(\.storage)
     var storage: Storage
@@ -21,42 +22,42 @@ public struct Counter<T: Numeric, U: MetricLabels>: DynamicProperty {
     let label: String
     let type: T.Type
     let helpText: String?
-    let initialValue: T
-    let withLabelType: U.Type
+    let buckets: Buckets
+    let labels: U.Type
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
     public init(_ label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
-                initialValue: T = 0,
-                withLabelType: U.Type = DimensionLabels.self as! U.Type) {
+                buckets: Buckets = .defaultBuckets,
+                labels: U.Type = DimensionHistogramLabels.self as! U.Type) {
         self.label = label
         self.type = type
         self.helpText = helpText
-        self.initialValue = initialValue
-        self.withLabelType = withLabelType
+        self.buckets = buckets
+        self.labels = labels
         
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ label: String) where T == Int64, U == DimensionLabels {
+    public init(_ label: String) where T == Int64, U == DimensionHistogramLabels {
         // Need to pass one additional value to not result in infinite recursion
         self.init(label, helpText: nil)
     }
     
-    public var wrappedValue: PromCounter<T, U> {
-        guard let prometheus = self.storage.get(MetricsConfiguration.MetricsStorageKey.self)?.prometheus else {
+    public var wrappedValue: PromHistogram<T, U> {
+        guard let prometheus = try? MetricsSystem.prometheus() else {
             fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
         }
-        
-        // No need to cache the created Metric since the `createCounter()` does exactly that
-        return prometheus.createCounter(
+
+        // No need to cache the created Metric since the `createHistogram()` does exactly that
+        return prometheus.createHistogram(
             forType: self.type,
             named: self.prometheusLabelSanitizer.sanitize(self.label),
             helpText: self.helpText,
-            initialValue: self.initialValue,
-            withLabelType: self.withLabelType
+            buckets: self.buckets,
+            labels: self.labels
         )
     }
 }
