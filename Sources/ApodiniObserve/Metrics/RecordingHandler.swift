@@ -18,30 +18,12 @@ public protocol MetricsRecorder {
     /// Executed before handler is executed
     var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void] { get }
     /// Executed after handler is executed
-    var after: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void] { get }
-    
-    //init(before: @escaping (PrometheusClient, String) -> Void, after: @escaping (PrometheusClient, String) -> Void)
-    
-    //init(before: [(PrometheusClient, String) -> Void], after: [(PrometheusClient, String) -> Void])
+    var after: [(ObserveMetadata.Value, Logger.Metadata, Dictionary<Key, Value>) -> Void] { get }
 }
-
-/*
-public extension Recorder {
-    init(before: @escaping (PrometheusClient) -> Void, after: @escaping (PrometheusClient) -> Void) {
-        self.before.append(before)
-        self.after.append(after)
-    }
-    
-    init(before: [(PrometheusClient) -> Void], after: [(PrometheusClient) -> Void]) {
-        self.before = before
-        self.after = after
-    }
-}
- */
 
 public struct DefaultRecoder: MetricsRecorder {
     public var before: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.beforeTime]
-    public var after: [(ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.afterTime]
+    public var after: [(ObserveMetadata.Value, Logger.Metadata, Dictionary<String, String>) -> Void] = [DefaultRecordingClosures.Defaults.afterTime]
 }
 
 public enum DefaultRecordingClosures {
@@ -52,7 +34,7 @@ public enum DefaultRecordingClosures {
             dictionary[.init("test")] = "bla"
         }
         
-        static let afterTime: (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
+        static let afterTime: (ObserveMetadata.Value, Logger.Metadata, Dictionary<String, String>) -> Void = { observeMetadata, loggerMetadata, dictionary in
             print(dictionary["test"])
             dictionary[.init("test2")] = "bla"
         }
@@ -75,11 +57,6 @@ extension Component {
     public func record() -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultRecoder, Never>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: DefaultRecoder()))
     }
-
-    /// Resets all guards for the modified `Component`
-    //public func resetGuards() -> DelegationFilterModifier<Self> {
-    //    self.reset(using: GuardFilter())
-    //}
 }
 
 extension Handler {
@@ -121,7 +98,7 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
         
         try recorder.instance().before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
         let result = try await handler.instance().handle()
-        try recorder.instance().after.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
+        try recorder.instance().after.forEach { $0(observeMetadata, loggingMetadata, dictionary) }
         
         return result
     }

@@ -10,7 +10,7 @@ import ApodiniObserve
 
 public extension MetricsConfiguration {
     convenience init(prometheusHandlerConfiguration: MetricPullHandlerConfiguration = .defaultPrometheus,
-                systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
+                     systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
         self.init(handlerConfiguration: prometheusHandlerConfiguration, systemMetricsConfiguration: systemMetricsConfiguration)
     }
 }

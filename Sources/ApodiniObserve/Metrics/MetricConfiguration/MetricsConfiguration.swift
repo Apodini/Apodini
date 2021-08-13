@@ -15,10 +15,15 @@ import SystemMetrics
 public class MetricsConfiguration: Configuration {
     let metricHandlerConfigurations: [MetricHandlerConfiguration]
     let systemMetricsConfiguration: SystemMetricsConfiguration
+    public static var factories: [MetricsFactory] = []
     
     public init(handlerConfiguration: MetricHandlerConfiguration..., systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
         self.metricHandlerConfigurations = handlerConfiguration
         self.systemMetricsConfiguration = systemMetricsConfiguration
+        
+        Self.factories = handlerConfiguration.map { metricsHandler in
+            metricsHandler.factory
+        }
     }
     
     public func configure(_ app: Application) {
