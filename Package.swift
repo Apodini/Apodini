@@ -44,8 +44,10 @@ let package = Package(
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
+        .executable(name: "DeploymentTargetIoT", targets: ["DeploymentTargetIoT"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        .library(name: "DeploymentTargetIoTRuntime", targets: ["DeploymentTargetIoTRuntime"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -89,7 +91,10 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Apodini Authorization
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
+        
+        // Iot deployment
+        .package(name: "swift-device-discovery", url: "https://github.com/hendesi/SwiftDeviceDiscovery.git", .branch("master"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -518,7 +523,8 @@ let package = Package(
             name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
 
@@ -554,6 +560,30 @@ let package = Package(
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        .executableTarget(
+            name: "DeploymentTargetIoT",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "SwiftDeviceDiscovery", package: "swift-device-discovery"),
+                .target(name: "DeploymentTargetIoTCommon"),
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "Apodini")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetIoTRuntime",
+            dependencies: [
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "DeploymentTargetIoTCommon")
+            ]
+        ),
+        .target(
+            name: "DeploymentTargetIoTCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport")
             ]
         )
     ]

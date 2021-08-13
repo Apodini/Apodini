@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# save path of file
+fileDir=$1
+
+# Clone the repository and go to the directory
+function cloneAndBuildRepo() {
+    echo "Cloning repository"
+    git clone https://github.com/Apodini/Swift-NIO-LIFX-Impl
+    cd Swift-NIO-LIFX-Impl
+    buildAndRunRepo
+}
+
+# Builds and runs the swift package
+function buildAndRunRepo() {
+    echo "Building and running the package"
+    swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug swift-lifx-discovery $fileDir
+    exit 0
+}
+echo "#####################################"
+echo "#Setting up Swift-NIO-LIFX Discovery#"
+echo "#####################################"
+
+echo "Searching for Swift-NIO-LIFX-Impl directory. This might take a while."
+# Searchs recursively the root directory for the repository and saves the first entry if it finds any
+DIR=$(find / -type d -name "Swift-NIO-LIFX-Impl" 2>/dev/null | head -n 1)
+
+if [$DIR == ""]
+then
+    # If there is no repo present, clone it from remote.
+    echo "Nothing found"
+    cloneAndBuildRepo
+else
+    # Found one, so head there and build + run the package
+    echo "Found $DIR"
+    cd $DIR
+    # make sure we have the most recent version
+    git pull
+    buildAndRunRepo
+fi

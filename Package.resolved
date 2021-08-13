@@ -317,6 +317,33 @@
         }
       },
       {
+        "package": "swift-nio-ip",
+        "repositoryURL": "https://github.com/PSchmiedmayer/Swift-NIO-IP.git",
+        "state": {
+          "branch": null,
+          "revision": "598f56ec73fba0630a1b49c6ff97ac2e2d565a9e",
+          "version": "0.0.1"
+        }
+      },
+      {
+        "package": "swift-nio-lifx",
+        "repositoryURL": "https://github.com/PSchmiedmayer/Swift-NIO-LIFX.git",
+        "state": {
+          "branch": "develop",
+          "revision": "71f133b3fbcab24802272cad64edbdc843ba9850",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-nio-ssh",
+        "repositoryURL": "https://github.com/apple/swift-nio-ssh",
+        "state": {
+          "branch": null,
+          "revision": "bc1a91daf3ae35134fbca5655ed221668d0369d3",
+          "version": "0.3.0"
+        }
+      },
+      {
         "package": "swift-nio-ssl",
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
@@ -332,6 +359,15 @@
           "branch": null,
           "revision": "39587bceccda72780e2a8a8c5e857e42a9df2fa8",
           "version": "1.11.0"
+        }
+      },
+      {
+        "package": "swift-device-discovery",
+        "repositoryURL": "https://github.com/hendesi/SwiftDeviceDiscovery.git",
+        "state": {
+          "branch": "master",
+          "revision": "b3de5f6b94032a40a15016bf9351e53461eec925",
+          "version": null
         }
       },
       {

@@ -140,7 +140,8 @@ extension CollectedEndpointInfo {
 }
 
 extension Sequence where Element == CollectedEndpointInfo {
-    func convert() -> Set<ExportedEndpoint> {
+    /// Converts a sequence of `CollectedEndpointInfo` to a Set of `ExportedEndpoint`.
+    public func convert() -> Set<ExportedEndpoint> {
         Set(
             map { $0.convert() }
         )
