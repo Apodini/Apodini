@@ -199,7 +199,7 @@ private struct TestWebService: Apodini.WebService {
 
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
-        try TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/f") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "F")
@@ -207,7 +207,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassing() throws {
-        try TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(
             .GET,
             "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
@@ -218,7 +218,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
-        try TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LuKAs!")
@@ -226,7 +226,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testParametersStorageObjectBasedParameterPassing() throws {
-        try TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(Int.self), 12)

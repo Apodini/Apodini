@@ -38,11 +38,11 @@ public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCom
     @Option(help: "The identifier of the deployment node")
     public var nodeId: String
     
+    
     public func run() throws {
         let app = Application()
-
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .run, app: app)
     }
     
     public init() {}

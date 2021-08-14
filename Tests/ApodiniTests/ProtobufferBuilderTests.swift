@@ -14,8 +14,8 @@ import XCTVapor
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
-        try S.start(app: app)
-        defer { app.shutdown() }
+        S().start(app: app)
+        defer { app.shutdown() } // This might in fact not be necessary
         
         try app.vapor.app.test(.GET, "apodini/proto") { res in
             XCTAssertEqual(res.body.string, expectation)

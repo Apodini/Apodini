@@ -32,7 +32,7 @@ public extension WebService {
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
     public mutating func run() throws {
-        try Self.start(webService: self)
+        try Self.start(mode: .run, webService: self)
     }
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
@@ -47,23 +47,14 @@ extension WebService {
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     public static func start(
-        mode: WebServiceExecutionMode = .run,
+        mode: WebServiceExecutionMode,// = .run,
         app: Application = Application(),
         webService: Self = Self()
     ) throws -> Application {
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
-
-        /// Configure application and instanciate exporters
-        webService.configuration.configure(app)
         
-        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
-        if app.http.address == nil {
-            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
-        }
+        webService.start(app: app)
         
-        webService.register(
-            SemanticModelBuilder(app)
-        )
         switch mode {
         case .startup:
             return app
@@ -71,16 +62,26 @@ extension WebService {
             try app.boot()
             return app
         case .run:
-            break
+            defer { app.shutdown() }
+            try app.run()
+            return app
         }
-
-        defer {
-            app.shutdown()
-        }
-
-        try app.run()
-        return app
     }
+    
+    
+    /// Start up a web service using the specified application. Does not boot or run the web service. Intended primarily for testing purposes.
+    func start(app: Application) {
+        /// Configure application and instanciate exporters
+        self.configuration.configure(app)
+        
+        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
+        if app.http.address == nil {
+            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
+        }
+        
+        self.register(SemanticModelBuilder(app))
+    }
+    
     
     /// The current version of the `WebService`
     public var version: Version {
@@ -109,6 +110,7 @@ extension WebService {
         }
     }
 }
+
 
 /// Specifies the mode in which the web service is executed in.
 public enum WebServiceExecutionMode {

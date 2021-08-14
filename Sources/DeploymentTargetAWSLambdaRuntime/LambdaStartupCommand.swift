@@ -45,9 +45,8 @@ public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupComman
     
     public func run() throws {
         let app = Application()
-        
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .run, app: app)
     }
 
     public init() {}

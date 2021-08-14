@@ -17,8 +17,8 @@ final class GRPCServiceTests: ApodiniTests {
     
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
         let app = Application()
-        try S.start(app: app)
-        defer { app.shutdown() }
+        S().start(app: app)
+        defer { app.shutdown() } // This might in fact not be necessary
         
         try app.vapor.app.test(.POST, path, headers: ["content-type": GRPCService.grpcproto.description]) { res in
             XCTAssertGreaterThanOrEqual(res.status.code, 200)
