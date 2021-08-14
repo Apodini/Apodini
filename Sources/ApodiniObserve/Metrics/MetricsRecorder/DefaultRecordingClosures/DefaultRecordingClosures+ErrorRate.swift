@@ -9,6 +9,7 @@
 import Metrics
 
 public extension DefaultRecordingClosures {
+    /// Records the error rate of a ``Handler``
     struct ErrorRate: DefaultRecorder {
         public static let before: BeforeRecordingClosure = { _,_,_ in }
         

@@ -8,38 +8,6 @@
 
 import Logging
 
-public enum DefaultRecordingClosures {
-    static func buildDefaultMetricsRecorder(defaultRecorders: DefaultRecorder.Type...)
-    -> ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
-        (
-            defaultRecorders.compactMap { defaultRecorder in
-                defaultRecorder.before
-            },
-            defaultRecorders.compactMap { defaultRecorder in
-                defaultRecorder.after
-            },
-            defaultRecorders.compactMap { defaultRecorder in
-                defaultRecorder.afterException
-            }
-        )
-    }
-    
-    /// Builds the default `dimensions` of the different Metric types
-    static let defaultDimensions: (ObserveMetadata.Value) -> [(String, String)] = { observeMetadata in
-        [
-            ("endpoint", observeMetadata.0.endpointName),
-            ("handlerType", "\(observeMetadata.0.anyEndpointSource.handlerType)"),
-            ("endpointPath", observeMetadata.0.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-                partialResult.append(contentsOf: endpointPath.description)
-            })),
-            ("exporter", "\(observeMetadata.1.exporterType)"),
-            ("operation", observeMetadata.0.operation.rawValue),
-            ("communicationalPattern", observeMetadata.0.communicationalPattern.rawValue),
-            ("responseType", "\(observeMetadata.0.responseType.type)")
-        ]
-    }
-}
-
 /// A ``DefaultRecorder`` requires to implement default closures that are executed before and after a ``Handler`` is called
 public protocol DefaultRecorder {
     typealias Key = String
