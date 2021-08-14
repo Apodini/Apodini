@@ -28,7 +28,7 @@ public protocol LifecycleHandler {
     /// server is shutting down
     func shutdown(_ application: Application)
     /// Allows interested parties to apply changes to the web service's endpoints.
-    /// This function is primarily intended to enable components that integrate with Apodini the ability to "disable" individual endpoints
+    /// This function is primarily intended to give components that integrate with Apodini the ability to "disable" individual endpoints
     /// (e.g. by returning, for these specific endpoints, an empty array).
     /// This function is called once for every endpoint-interfaceExporter combination.
     func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint]
