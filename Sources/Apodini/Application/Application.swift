@@ -27,9 +27,13 @@ public protocol LifecycleHandler {
     func didBoot(_ application: Application) throws
     /// server is shutting down
     func shutdown(_ application: Application)
-    /// Allows to perform custom actions on the endpoints of the web service
-    func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint]
+    /// Allows interested parties to apply changes to the web service's endpoints.
+    /// This function is primarily intended to enable components that integrate with Apodini the ability to "disable" individual endpoints
+    /// (e.g. by returning, for these specific endpoints, an empty array).
+    /// This function is called once for every endpoint-interfaceExporter combination.
+    func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint]
 }
+
 
 extension LifecycleHandler {
     /// server will boot
@@ -38,17 +42,12 @@ extension LifecycleHandler {
     public func didBoot(_ application: Application) throws { }
     /// server is shutting down
     public func shutdown(_ application: Application) { }
-    /// Allows to perform custom actions on the endpoints of the web service
-    public func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint] {
-        endpoints
+    
+    public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
+        [endpoint]
     }
 }
 
-extension Application {
-    func map<T>(transform: (Application) -> T ) -> T {
-        transform(self)
-    }
-}
 
 /// Configuration and state of the application
 public final class Application {
