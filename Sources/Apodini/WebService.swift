@@ -47,7 +47,7 @@ extension WebService {
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     public static func start(
-        mode: WebServiceExecutionMode,// = .run,
+        mode: WebServiceExecutionMode,
         app: Application = Application(),
         webService: Self = Self()
     ) throws -> Application {
