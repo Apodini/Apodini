@@ -114,13 +114,12 @@ extension WebService {
 
 /// Specifies the mode in which the web service is executed in.
 public enum WebServiceExecutionMode {
-    /// Boots and starts the web service as one would normally do. This is default.
+    /// Runs the configurations and the semantic model builder. It also boots the web service.
+    /// Enters the runloop afterwards.
     case run
-    /// This only starts the web service. This means it runs the configurations and iterates through the exporters.
-    /// This does not boot the web service. It exists afterwards.
+    /// Runs the configurations and the semantic model builder. It exits afterwards.
     case startup
-    /// This starts and boots the web service. It runs configurations and the semantic model builder. It also boots the web service.
-    /// This means that the corresponding life cycle methods are called and the `boot` method of `Vapor.App` is executed.
-    /// The web service exists afterwards
+    /// Runs the configurations and the semantic model builder and boots the web service.
+    /// It exits afterwards.
     case boot
 }
