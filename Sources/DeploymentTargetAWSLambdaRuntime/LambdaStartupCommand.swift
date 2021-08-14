@@ -26,7 +26,7 @@ import DeploymentTargetAWSLambdaCommon
 public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public static var configuration: CommandConfiguration {
         CommandConfiguration(
-            commandName: "aws",
+            commandName: "aws-lambda",
             abstract: "Start a web service - AWS Lambda",
             discussion: "Starts up an Apodini web service for the aws lambda deployment",
             version: "0.0.1"
@@ -36,18 +36,18 @@ public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupComman
     @ArgumentParser.Argument(help: "The location of the json containing the system structure")
     public var filePath: String
     
-    @ArgumentParser.Option(help: "The identifier of the deployment node")
+    @ArgumentParser.Argument(help: "The identifier of the deployment node")
     public var nodeId: String
 
-    public var deployedSystem: AnyDeployedSystem.Type {
+    public var deployedSystemType: AnyDeployedSystem.Type {
         LambdaDeployedSystem.self
     }
+    
+    public init() {}
     
     public func run() throws {
         let app = Application()
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
         try Service.start(mode: .run, app: app)
     }
-
-    public init() {}
 }

@@ -33,7 +33,7 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         guard let lambdaDeploymentContext = (deployedSystem as? LambdaDeployedSystem)?.context else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: Self.identifier,
-                message: "Unable to find `LambdaDeployedSystem`"
+                message: "Unable to find '\(LambdaDeployedSystem.self)'"
             )
         }
         self.lambdaDeploymentContext = lambdaDeploymentContext
@@ -41,7 +41,6 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     
     
     public func configure(_ app: Apodini.Application) throws {
-        print("-[\(Self.self) \(#function)] env", ProcessInfo.processInfo.environment)
         app.vapor.app.servers.use(.lambda)
     }
     

@@ -90,13 +90,6 @@ public protocol DeploymentStartupCommand: ParsableCommand {
     /// The id of the deployment node
     var nodeId: String { get }
     /// The type of `AnyDeployedSystem` that should is used by the deployment provider.
-    /// To this type the json at `fileUrl` will be decoded to. Defaults to `DeployedSystem.self`
-    var deployedSystem: AnyDeployedSystem.Type { get }
-}
-
-extension DeploymentStartupCommand {
-    /// The default value of `deployedSystem`.
-    public var deployedSystem: AnyDeployedSystem.Type {
-        DeployedSystem.self
-    }
+    /// To this type the json at `fileUrl` will be decoded to. You can use `DeployedSystem` if you don't need to define a custom type.
+    var deployedSystemType: AnyDeployedSystem.Type { get }
 }
