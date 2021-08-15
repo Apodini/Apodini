@@ -119,8 +119,7 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
         
         .target(
@@ -130,8 +129,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "_NIOConcurrency", package: "swift-nio")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -151,8 +149,7 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -310,8 +307,7 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         // MARK: Apodini Authorization
