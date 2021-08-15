@@ -142,7 +142,9 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             // check if any startup data are available
             currentNodeId = deploymentConfig.nodeId
             let configUrl = URL(fileURLWithPath: deploymentConfig.filePath)
+            // swiftlint:disable:next identifier_name
             let DeployedSystemStructureType = deploymentConfig.deployedSystemType
+            // swiftlint:disable:next explicit_init
             deployedSystem = try DeployedSystemStructureType.init(decodingJSONAt: configUrl)
         } else {
             // If no startup data are available, web service was started without deployment. Just return, there's nothing to do.

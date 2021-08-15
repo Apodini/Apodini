@@ -13,7 +13,6 @@ import ApodiniHTTPProtocol
 import ApodiniAuthorization
 import ApodiniAuthorizationBasicScheme
 import ApodiniAuthorizationBearerScheme
-import ApodiniTests
 
 class ApodiniAuthorizationTests: XCTApodiniTest {
     struct TestWebService: WebService {

@@ -42,7 +42,7 @@ extension LifecycleHandler {
     public func didBoot(_ application: Application) throws { }
     /// server is shutting down
     public func shutdown(_ application: Application) { }
-    
+    /// Allows interested parties to apply changes to the web service's endpoints.
     public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
         [endpoint]
     }
