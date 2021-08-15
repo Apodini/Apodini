@@ -23,7 +23,7 @@ extension Vapor.Application {
             try app.boot()
         }
 
-        func shutdown(_ application: Apodini.Application) {
+        func shutdown(_ application: Apodini.Application) throws {
             app.server.shutdown()
             app.shutdown()
         }
