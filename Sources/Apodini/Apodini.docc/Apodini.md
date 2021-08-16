@@ -73,16 +73,16 @@ If you want to get a bit more details first or need some support in building you
 
 Here are some links to internal and external packages you might find helpful when building your web service.
 
-<!-- TODO: Authentication -->
 - <doc:DatabaseConnection>
 - <doc:PushNotifications>
 - <doc:Jobs>
+<!-- TODO: Authentication -->
 
 ### Advanced
 
 Here you can find more advanced resources. You might even find internal documentation there.
 
-- <doc:BuildingExporters> <!-- TODO: -->
+- <doc:BuildingExporters>
 - <doc:HandlerDelegation>
 - <doc:CommunicationPattern>
 - <doc:ProtocolBuffers>

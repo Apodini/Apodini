@@ -140,6 +140,8 @@ Now, the `name` parameter is called `country` for all exporters. Furthermore, it
 
 The output of your ``Handler`` is defined by the ``Handler/handle()-3440f``'s response type. That must be of type ``Content``, i.e. `Encodable`. ``Handler/handle()-3440f`` can be `async`, but if you have to work with NIO's `EventLoopFuture`s, you can also return those.
 
+> Tip: If you want to return raw data on a single endpoint, e.g. for file-hosting, you can use the ``Blob`` ``Content`` type.
+
 #### Working with the Environment
 
 Often, the client's input is not enough to calculate a response. In that cases we use ``Environment``. It allows you to gain access to e.g. service classes. Items on the ``Environment`` are identified by `KeyPath`s. Usually, we store them on the ``Application``.
@@ -241,6 +243,7 @@ Here you can find information on ``InterfaceExporter``s you can use to build you
 - ``Environment``
 - ``PropertyOption``
 - ``Content``
+- ``Blob``
 - ``EnvironmentValue``
 - ``Storage``
 - ``Application``
