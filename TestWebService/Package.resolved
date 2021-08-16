@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
           "branch": null,
-          "revision": "cfe8bcd58f74ffecb4f536d8237de146b634ecd3",
-          "version": "4.2.6"
+          "revision": "75ea3b627d88221440b878e5dfccc73fd06842ed",
+          "version": "4.2.7"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/MihaelIsaev/FCM.git",
         "state": {
           "branch": null,
-          "revision": "54a380a67a5ecbaf780c1f071048fe867c9ce18a",
-          "version": "2.11.0"
+          "revision": "5d35a93bde97fd34879bf1f7ca198f4efacd8eca",
+          "version": "2.11.1"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "2eddf6fda3f1ca114f96e0cf82875fefab342343",
-          "version": "1.13.0"
+          "revision": "d6a88fd66c594d655f5f21dd0fbea23b277dc3a8",
+          "version": "1.14.0"
         }
       },
       {
@@ -159,8 +159,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "56f009db6ba3f8f2acdcfe91ecd4ba1b3478c868",
-          "version": "5.4.0"
+          "revision": "98c7f11f9e66480984340950e7d0241c7456ac8e",
+          "version": "5.5.0"
         }
       },
       {
@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "986d191f94cec88f6350056da59c2e59e83d1229",
-          "version": "0.4.3"
+          "revision": "83b23d940471b313427da226196661856f6ba3e0",
+          "version": "0.4.4"
         }
       },
       {
@@ -222,8 +222,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "3426dba9ee5c9f8e4981b0fc9d39a818d36eec28",
-          "version": "0.0.4"
+          "revision": "0959ba76a1d4a98fd11163aa83fd49c25b93bfae",
+          "version": "0.0.5"
         }
       },
       {
@@ -267,8 +267,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "d79e33308b0ac83326b0ead0ea6446e604b8162d",
-          "version": "2.30.0"
+          "revision": "9a992ee3de1f8da9f2968fc96b26714834f3105f",
+          "version": "2.31.1"
         }
       },
       {
@@ -312,8 +312,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "f94f0bff47c1c07df6e404e889f5c71c4270a9ea",
-          "version": "4.47.2"
+          "revision": "45d0b3943d9ed2637cb8f7c4fcd4676fc917df9b",
+          "version": "4.48.3"
         }
       },
       {
