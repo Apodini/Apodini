@@ -2,7 +2,7 @@ import Foundation
 import DeviceDiscovery
 import ApodiniUtils
 
-enum IoTUtilities {
+public enum IoTContext {
     static let resourceDirectory = ConfigurationProperty("key_resourceDir")
     static let deploymentDirectory = ConfigurationProperty("key_deployDir")
     static let logger = ConfigurationProperty("key_logger")
@@ -16,7 +16,7 @@ enum IoTUtilities {
             .appendingPathComponent("Resources", isDirectory: true)
     }
 
-    static func copyResourcesToRemote(_ device: Device, origin: String, destination: String) throws {
+    public static func copyResourcesToRemote(_ device: Device, origin: String, destination: String) throws {
         let task = Task(executableUrl: Self._findExecutable("rsync"),
                         arguments: [
                             "-avz",
@@ -30,7 +30,7 @@ enum IoTUtilities {
         try task.launchSyncAndAssertSuccess()
     }
 
-    static func rsyncHostname(_ device: Device, path: String) -> String {
+    public static func rsyncHostname(_ device: Device, path: String) -> String {
         "\(device.username)@\(device.ipv4Address!):\(path)"
     }
 
@@ -43,7 +43,7 @@ enum IoTUtilities {
     
     /// Due to Swift nio ssh being asynchronous by default, we don't have a convenient way to execute synchronous calls on remote.
     /// This is why (at least for now) we use Apodini's `Task` to execute single commands synchronously.
-    static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true) throws {
+    public static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true) throws {
         let task = Task(
             executableUrl: Self._findExecutable("ssh"),
             arguments: [
@@ -62,5 +62,15 @@ enum IoTUtilities {
 }
 
 public struct IoTDeploymentError: Swift.Error {
-    let description: String
+    public let description: String
+    
+    public init(description: String) {
+        self.description = description
+    }
+}
+
+extension Dictionary {
+    static func +(lhs: [Key: Value], rhs: [Key: Value]) -> [Key: Value] {
+        lhs.merging(rhs) { $1 }
+    }
 }

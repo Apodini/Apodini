@@ -13,119 +13,86 @@ import ApodiniUtils
 import Logging
 import DeploymentTargetIoTCommon
 
-@main
-struct IoTDeploymentCLI: ParsableCommand {
-    static var configuration: CommandConfiguration {
-        CommandConfiguration(
-            abstract: "IoT Apodini deployment provider",
-            discussion: """
-            Deploys an Apodini web service to devices in the local network, mapping the deployed system's nodes to independent processes.
-            """,
-            version: "0.0.1"
-        )
-    }
-    
-    @Option(help: "The path to the configuration file that contains infos to the searchable types, such as usernames and passwords")
-    var configurationFilePath: String = ""
 
-    @Option(help: "The type ids that should be searched for")
-    var types: [String] = ["_workstation._tcp."]
-
-    @Argument(help: "Directory containing the Package.swift with the to-be-deployed web service's target")
-    var inputPackageDir: String = "/Users/felice/Documents/ApodiniDemoWebService"
-
-    @Option(help: "Name of the web service's SPM target/product")
-    var productName: String = "TestWebService"
-
-    @Option(help: "Remote directory of deployment")
-    var deploymentDir: String = "/usr/deployment"
-    
-    @Flag(help: "If set, the deployment provider listens for changes in the the working directory and automatically redeploys changes to the affected nodes.")
-    var automaticRedeployment = false
-    
-    @Flag(help:
-            """
-            **Only if automaticRedeployment is activated** - Can be set to override the current deployment when a new change occurs
-            """
-    )
-    var overrideDeployment = false
-
-    mutating func run() throws {
-        var provider = IoTDeploymentProvider(
-            searchableTypes: types,
-            productName: productName,
-            packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
-            deploymentDir: URL(string: deploymentDir)!,
-            configurationFilePath: URL(fileURLWithPath: inputPackageDir).absoluteURL,
-            automaticRedeployment: true
-        )
-        try provider.run()
-    }
-}
-
-
-struct IoTDeploymentProvider: DeploymentProvider {
-    
-    enum DeploymentMode {
-        case inital
-        case re
-    }
-    
-    static var identifier: DeploymentProviderID {
+public struct IoTDeploymentProvider: DeploymentProvider {
+    public static var identifier: DeploymentProviderID {
         iotDeploymentProviderId
     }
     
-    let searchableTypes: [String]
-    let productName: String
-    let packageRootDir: URL
-    let deploymentDir: URL
-    let configurationFilePath: URL
+    public let searchableTypes: [String]
+    public let productName: String
+    public let packageRootDir: URL
+    public let deploymentDir: URL
+    public let configurationFilePath: URL
     
-    let automaticRedeployment: Bool
+    public let automaticRedeployment: Bool
     
     // Remove later
-    let dryRun: Bool = true
+    public let dryRun: Bool = true
 
-    var target: DeploymentProviderTarget {
+    public var target: DeploymentProviderTarget {
         .spmTarget(packageUrl: packageRootDir, targetName: productName)
     }
     
     private var isRunning = false
 
     private let fileManager = FileManager.default
-    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     
     
+    private var actionsDict: [ActionIdentifier: (AnyOption<DeploymentOptionsNamespace>, PostDiscoveryAction.Type)] = [:]
+    private let additionalConfiguration: [ConfigurationProperty: Any]
     
+    internal let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     internal static let logger = Logger(label: "DeploymentTargetIoT")
     
-    var logger: Logger {
+    public var logger: Logger {
         Self.logger
     }
     
-    var currentDeployedSystem: DeployedSystem? = nil
-    var results: [DiscoveryResult] = []
+    public var currentDeployedSystem: DeployedSystem? = nil
+    public var results: [DiscoveryResult] = []
+
     
-    
-    
-    
-    init(
+    public init(
         searchableTypes: [String],
         productName: String,
-        packageRootDir: URL,
-        deploymentDir: URL,
-        configurationFilePath: URL,
-        automaticRedeployment: Bool
+        packageRootDir: String,
+        deploymentDir: String,
+        configurationFilePath: String,
+        automaticRedeployment: Bool,
+        additionalConfiguration: [ConfigurationProperty: Any] = [:]
     ) {
         self.searchableTypes = searchableTypes
         self.productName = productName
-        self.packageRootDir = packageRootDir
-        self.deploymentDir = deploymentDir
-        self.configurationFilePath = configurationFilePath
+        self.packageRootDir = URL(fileURLWithPath: packageRootDir)
+        self.deploymentDir = URL(string: deploymentDir)!
+        self.configurationFilePath = URL(fileURLWithPath: configurationFilePath)
         self.automaticRedeployment = automaticRedeployment
+        self.additionalConfiguration = additionalConfiguration
+    }
+    
+    public enum RegistrationScope {
+        case all
+        case some([String])
+        case one(String)
     }
 
-    mutating func run(_ mode: DeploymentMode = .inital) throws {
+    public mutating func registerAction(
+        scope: RegistrationScope,
+        action: PostDiscoveryAction.Type,
+        option: AnyOption<DeploymentOptionsNamespace>
+    ) {
+        switch scope {
+        case .all:
+            self.searchableTypes.forEach { actionsDict[ActionIdentifier($0)] = (option, action) }
+        case .some(let array):
+            array.forEach { actionsDict[ActionIdentifier($0)] = (option, action) }
+        case .one(let type):
+            actionsDict[ActionIdentifier(type)] = (option, action)
+        }
+    }
+
+    public mutating func run() throws {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
 
@@ -197,28 +164,30 @@ struct IoTDeploymentProvider: DeploymentProvider {
     private mutating func setup(for type: String) -> DeviceDiscovery {
         let (username, password): (String, String)
         if dryRun {
-            username = IoTUtilities.defaultUsername
-            password = IoTUtilities.defaultPassword
+            username = IoTContext.defaultUsername
+            password = IoTContext.defaultPassword
         } else {
             (username, password) = readUsernameAndPassword(type)
         }
         
         let discovery = DeviceDiscovery(DeviceIdentifier(type), domain: .local)
-        discovery.actions = [CreateDeploymentDirectoryAction.self, LIFXDeviceDiscoveryAction.self]
-        discovery.configuration = [
+        discovery.actions = [CreateDeploymentDirectoryAction.self] + actionsDict.filter { $0.key.rawValue == type }.compactMap { $1.1 }
+        
+        let config: [ConfigurationProperty: Any] = [
             .username: username,
             .password: password,
             .runPostActions: true,
-            IoTUtilities.resourceDirectory: IoTUtilities.resourceURL,
-            IoTUtilities.deploymentDirectory: self.deploymentDir,
-            IoTUtilities.logger: self.logger
-        ]
+            IoTContext.deploymentDirectory: self.deploymentDir,
+            IoTContext.logger: self.logger
+        ] + additionalConfiguration
+        discovery.configuration = .init(from: config)
+        
         return discovery
     }
     
     private func run(on node: DeployedSystemNode, device: Device, modelFileUrl: URL) throws {
         let handlerIds: String = node.exportedEndpoints.compactMap { $0.handlerId.rawValue }.joined(separator: ",")
-        try IoTUtilities.runTaskOnRemote(
+        try IoTContext.runTaskOnRemote(
             "swift run \(productName) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --handler-ids \(handlerIds)",
             workingDir: self.deploymentDir.path,
             device: device
@@ -252,20 +221,20 @@ struct IoTDeploymentProvider: DeploymentProvider {
         let remoteFilePath = deploymentDir.appendingPathComponent(modelFileName, isDirectory: false)
         
         let deviceIds: String = postActions.map { $0.identifier.rawValue }.joined(separator: ",")
-        try IoTUtilities.runTaskOnRemote(
+        try IoTContext.runTaskOnRemote(
             "swift run \(productName) deploy export-ws-structure iot \(modelFileName) --device-ids \(deviceIds))",
             workingDir: self.deploymentDir.path,
             device: device
         )
-        try IoTUtilities.copyResourcesToRemote(
+        try IoTContext.copyResourcesToRemote(
             device,
-            origin: IoTUtilities.rsyncHostname(device, path: remoteFilePath.path),
-            destination: IoTUtilities.resourceURL.path
+            origin: IoTContext.rsyncHostname(device, path: remoteFilePath.path),
+            destination: IoTContext.resourceURL.path
         )
         let data = try Data(contentsOf: remoteFilePath, options: [])
         let deployedSystem = try JSONDecoder().decode(DeployedSystem.self, from: data)
         
-        try FileManager.default.removeItem(at: IoTUtilities.resourceURL.appendingPathComponent(modelFileName, isDirectory: false))
+        try FileManager.default.removeItem(at: IoTContext.resourceURL.appendingPathComponent(modelFileName, isDirectory: false))
         
         return (remoteFilePath, deployedSystem)
     }
@@ -285,14 +254,14 @@ struct IoTDeploymentProvider: DeploymentProvider {
         if fileManager.directoryExists(atUrl: packageRootDir.appendingPathComponent(".build")) {
             try fileManager.removeItem(at: packageRootDir.appendingPathComponent(".build"))
         }
-        try IoTUtilities.copyResourcesToRemote(
+        try IoTContext.copyResourcesToRemote(
             result.device,
             origin: packageRootDir.path,
-            destination: IoTUtilities.rsyncHostname(result.device, path: self.deploymentDir.path))
+            destination: IoTContext.rsyncHostname(result.device, path: self.deploymentDir.path))
     }
 
     private func buildPackage(on device: Device) throws {
-        try IoTUtilities.runTaskOnRemote(
+        try IoTContext.runTaskOnRemote(
             "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none --package-path \(self.deploymentDir.path) -c debug --productName \(self.productName)",
             workingDir: self.deploymentDir.path,
             device: device
@@ -300,7 +269,7 @@ struct IoTDeploymentProvider: DeploymentProvider {
     }
     
     private func cleanup(on device: Device) throws {
-        try IoTUtilities.runTaskOnRemote(
+        try IoTContext.runTaskOnRemote(
             "sudo rm -drf \(self.deploymentDir.path)",
             workingDir: self.deploymentDir.path,
             device: device,
@@ -336,6 +305,14 @@ struct IoTDeploymentProvider: DeploymentProvider {
         return (username!, String(cString: passw!))
      }
 }
+
+public extension String {
+    func asFileUrl(_ isDir: Bool = false) -> URL {
+        URL(fileURLWithPath: self, isDirectory: isDir)
+    }
+}
+
+
 
 // MARK: - Uncomment when SSHClient allows synchronous calls
 //private func run(on node: DeployedSystemNode, client: SSHClient?, modelFileUrl: URL) throws {

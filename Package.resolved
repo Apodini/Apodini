@@ -335,6 +335,15 @@
         }
       },
       {
+        "package": "swift-nio-lifx-impl",
+        "repositoryURL": "https://github.com/Apodini/Swift-NIO-LIFX-Impl",
+        "state": {
+          "branch": "develop",
+          "revision": "9a686eb2c1a8d5e71562e69098284ef907ff50ea",
+          "version": null
+        }
+      },
+      {
         "package": "swift-nio-ssh",
         "repositoryURL": "https://github.com/apple/swift-nio-ssh",
         "state": {

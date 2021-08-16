@@ -44,7 +44,11 @@ let package = Package(
         .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
-        .executable(name: "DeploymentTargetIoT", targets: ["DeploymentTargetIoT"]),
+        
+        .library(name: "DeploymentTargetIoT", targets: ["DeploymentTargetIoT"]),
+        .library(name: "LifxIoTDeploymentOption", targets: ["LifxIoTDeploymentOption"]),
+        .executable(name: "LifxIoTDeploymentTarget", targets: ["LifxIoTDeploymentTarget"]),
+        
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
         .library(name: "DeploymentTargetIoTRuntime", targets: ["DeploymentTargetIoTRuntime"])
@@ -94,7 +98,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Iot deployment
-        .package(name: "swift-device-discovery", url: "https://github.com/hendesi/SwiftDeviceDiscovery.git", .branch("master"))
+        .package(name: "swift-device-discovery", url: "https://github.com/hendesi/SwiftDeviceDiscovery.git", .branch("master")),
+        .package(name: "swift-nio-lifx-impl", url: "https://github.com/Apodini/Swift-NIO-LIFX-Impl", .branch("develop"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -562,7 +567,7 @@ let package = Package(
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         ),
-        .executableTarget(
+        .target(
             name: "DeploymentTargetIoT",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -584,6 +589,21 @@ let package = Package(
             name: "DeploymentTargetIoTCommon",
             dependencies: [
                 .target(name: "ApodiniDeployBuildSupport")
+            ]
+        ),
+        .executableTarget(
+            name: "LifxIoTDeploymentTarget",
+            dependencies: [
+                .target(name: "DeploymentTargetIoT"),
+                .target(name: "LifxIoTDeploymentOption"),
+                .product(name: "LifxDiscoveryActions", package: "swift-nio-lifx-impl")
+            ]
+        ),
+        .target(
+            name: "LifxIoTDeploymentOption",
+            dependencies: [
+                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "DeploymentTargetIoTRuntime")
             ]
         )
     ]

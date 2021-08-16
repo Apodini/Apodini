@@ -6,7 +6,7 @@ import ApodiniUtils
 
 /// A simple `PostDiscoveryAction` to create the deployment directory on the raspberry pi
 struct CreateDeploymentDirectoryAction: PostDiscoveryAction {
-    @Configuration(IoTUtilities.deploymentDirectory)
+    @Configuration(IoTContext.deploymentDirectory)
     var deploymentDir: URL
 
     static var identifier = ActionIdentifier(rawValue: "createDeploymentDir")
