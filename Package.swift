@@ -511,7 +511,8 @@ let package = Package(
             name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI")
             ]
         ),
 
