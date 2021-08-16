@@ -52,7 +52,7 @@ private struct GenericTestStringComponentOnlyMetadata<C: Component>: ComponentOn
 
 
 private struct ReusableTestComponentOnlyMetadata: ComponentOnlyMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {

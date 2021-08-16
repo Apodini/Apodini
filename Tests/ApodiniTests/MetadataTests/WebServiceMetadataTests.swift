@@ -52,7 +52,7 @@ private struct GenericTestStringWebServiceMetadata<W: WebService>: WebServiceMet
 
 
 private struct ReusableTestWebServiceMetadata: WebServiceMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {

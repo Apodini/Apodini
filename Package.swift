@@ -28,8 +28,16 @@ let package = Package(
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
+        .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+
+        // Authorization
+        .library(name: "ApodiniAuthorization", targets: ["ApodiniAuthorization"]),
+        .library(name: "ApodiniAuthorizationBasicScheme", targets: ["ApodiniAuthorizationBasicScheme"]),
+        .library(name: "ApodiniAuthorizationBearerScheme", targets: ["ApodiniAuthorizationBearerScheme"]),
+        .library(name: "ApodiniAuthorizationJWT", targets: ["ApodiniAuthorizationJWT"]),
+
         // Deploy
         .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
@@ -78,7 +86,10 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
         // testing runtime crashes
-        .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0")
+        .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
+
+        // Apodini Authorization
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -108,8 +119,7 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
         
         .target(
@@ -119,8 +129,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "_NIOConcurrency", package: "swift-nio")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -140,8 +149,7 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -247,6 +255,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport")
             ]
         ),
@@ -256,6 +265,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport")
             ]
         ),
@@ -269,10 +279,19 @@ let package = Package(
         ),
 
         .target(
+            name: "ApodiniHTTPProtocol",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "NIOHTTP1", package: "swift-nio")
+            ]
+        ),
+
+        .target(
             name: "ApodiniVaporSupport",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
@@ -288,8 +307,56 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
+        ),
+
+        // MARK: Apodini Authorization
+
+        .target(
+            name: "ApodiniAuthorization",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationBasicScheme",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniAuthorization")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationBearerScheme",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniAuthorization")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationJWT",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .product(name: "JWTKit", package: "jwt-kit")
+            ]
+        ),
+
+        .testTarget(
+            name: "ApodiniAuthorizationTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
+                .target(name: "XCTApodini")
+            ]
         ),
 
         // ProtobufferCoding
@@ -357,6 +424,7 @@ let package = Package(
             name: "ApodiniVaporSupportTests",
             dependencies: [
                 .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "XCTVapor", package: "vapor")
             ]

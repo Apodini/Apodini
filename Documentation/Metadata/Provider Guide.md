@@ -290,7 +290,7 @@ struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandle
     
     var value: String
   
-    var initializer: DelegatingHandlerContextKey.Entry = .init(FooBarDelegatingHandlerInitializer())
+    var initializer: DelegatingHandlerContextKey.Value = [.init(FooBarDelegatingHandlerInitializer())]
     
     init(foo: String) {
         self.value = foo
@@ -311,7 +311,7 @@ an instance of the discussed `DelegatingHandlerInitializer`.
 
 ```swift
 struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandlerKey {
-    var initializer: Key.Entry = .init(FooBarDelegatingHandlerInitializer())
+    var initializer: Key.Value = [.init(FooBarDelegatingHandlerInitializer())]
   
     init() {
       // ...

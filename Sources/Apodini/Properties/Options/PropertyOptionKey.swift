@@ -32,7 +32,7 @@ public class AnyPropertyOptionKey: Equatable, Hashable {
 
 /// A `PropertyOptionKey` can be associated with a `PropertyNameSpace` and and store an `Option` that is associated with the `PropertyOptionKey` within the `PropertyNameSpace`.
 public class PropertyOptionKey<PropertyNameSpace, Option: PropertyOption>: AnyPropertyOptionKey {
-    /// Initalize an empty `PropertyOptionKey`
+    /// Initialize an empty `PropertyOptionKey`
     override public init() {}
 
     override func combine(lhs: Any, rhs: Any) -> Any {

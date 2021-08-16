@@ -16,6 +16,8 @@ on:
 jobs:
   createPR:
     name: Create Pull Request
+    container:
+      image: swiftlang/swift:nightly-5.5-focal
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

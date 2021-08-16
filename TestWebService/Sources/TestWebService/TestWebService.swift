@@ -29,6 +29,7 @@ struct TestWebService: Apodini.WebService {
         RandomComponent(greeterRelationship: greeterRelationship)
         SwiftComponent()
         UserComponent(greeterRelationship: greeterRelationship)
+        WeatherComponent()
     }
     
     var configuration: Configuration {

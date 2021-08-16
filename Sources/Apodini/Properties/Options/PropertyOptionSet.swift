@@ -60,4 +60,16 @@ extension PropertyOptionSet {
             }
         }
     }
+
+    init(lhs: PropertyOptionSet<Property>, rhs: PropertyOptionSet<Property>) {
+        self.options = lhs.options
+
+        for (key, value) in rhs.options {
+            if let lhsOption = options[key] {
+                options[key] = key.combine(lhs: lhsOption, rhs: value)
+            } else {
+                options[key] = value
+            }
+        }
+    }
 }

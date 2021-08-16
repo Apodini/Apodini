@@ -26,7 +26,7 @@
 ///     can be defined by extending the appropriate Metadata Namespace: `ComponentMetadataNamespace`,
 ///     `HandlerMetadataNamespace`, `WebServiceMetadataNamespace` or `ContentMetadataNamespace`.
 public protocol MetadataDefinition: AnyMetadata {
-    /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata.
+    /// Either a `OptionalContextKey` or `ContextKey` used to store and identify the Metadata value.
     associatedtype Key: OptionalContextKey
 
     /// The value which is to be stored.
@@ -48,7 +48,7 @@ public extension MetadataDefinition {
 // MARK: SyntaxTreeVisitor
 public extension MetadataDefinition {
     /// Default implementation to add the encapsulated value to the current `Context`.
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(Key.self, value: value, scope: Self.scope)
 
         if let metadataWithDelegatingHandler = self as? AnyDefinitionWithDynamicDelegatingHandler {

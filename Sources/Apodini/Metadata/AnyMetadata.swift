@@ -26,7 +26,7 @@ public protocol AnyMetadata {
     /// or add the parsed Metadata to the visitor.
     ///
     /// - Parameter visitor: The `SyntaxTreeVisitor` parsing the Metadata tree.
-    func accept(_ visitor: SyntaxTreeVisitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor)
 }
 
 /// `AnyHandlerMetadata` represents arbitrary Metadata that can be declared on `Handler`s.
