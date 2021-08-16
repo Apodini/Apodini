@@ -17,14 +17,12 @@ extension Component {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
     
-    /*
-    public func record(_ recordingTypes: DefaultRecordingTypes) -> DelegationModifier<Self, RecordingHandlerInitializer<OpenMetricsRecorder, Never>> {
-        let closures = DefaultRecordingClosures.buildDefaultRecordingClosures(recordingTypes)
-        let metricsRecorder = OpenMetricsRecorder(before: closures.0, after: closures.1, afterException: closures.2)
-        
-        return self.delegated(by: RecordingHandlerInitializer(recorder: metricsRecorder))
+    // We could also make the record function more powerful (eg. change the parameter type etc.) to spare the protocol magic
+    // What if we define everything on DefaultMetricsRecorder? (s0 .all, + etc). But this wouldn't allow the combination diff recorders via + anymore
+    public func record(_ recorder: DefaultMetricsRecorder = .all) -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Never>> {
+        self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
-     */
+    
 }
 
 extension Handler {
@@ -32,6 +30,10 @@ extension Handler {
     /// - Parameter guard: The `Guard` used to inspecting incoming requests
     /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
     public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Response>> {
+        self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
+    }
+    
+    public func record(_ recorder: DefaultMetricsRecorder = .all) -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Response>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
 }
@@ -51,6 +53,9 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
     func handle() async throws -> D.Response {
         let recorderInstance = try recorder.instance()
         var dictionary = Dictionary<R.Key, R.Value>()
+        
+        // TODO: Implement something that logs the incoming request
+        // Maybe even pass the logger via the closures and provide a default closure that logs the information
         
         recorderInstance.before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
         defer {

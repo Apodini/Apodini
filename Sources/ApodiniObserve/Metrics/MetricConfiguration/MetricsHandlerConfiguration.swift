@@ -28,6 +28,10 @@ public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
 
 public struct MetricPushHandlerConfiguration: MetricHandlerConfiguration {
     public let factory: MetricsFactory
+    
+    public init(factory: MetricsFactory) {
+        self.factory = factory
+    }
 }
 
 public enum SystemMetricsConfiguration {

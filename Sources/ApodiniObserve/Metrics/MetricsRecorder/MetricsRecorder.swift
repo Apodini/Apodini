@@ -27,10 +27,18 @@ public protocol MetricsRecorder {
     /// Ability to add multiple ``MetricsRecorder`` together
     static func +<M: MetricsRecorder>(left: Self, right: M) -> Self where Self.Key == M.Key, Self.Value == M.Value
     
+    /// Standard initializer (needed for + concat)
     init(before: [BeforeRecordingClosure], after: [AfterRecordingClosure], afterException: [AfterExceptionRecordingClosure])
 }
 
-public extension MetricsRecorder where Self == OpenMetricsRecorder {
+/*
+public extension MetricsRecorder {
+    var after: [AfterRecordingClosure] { [] }
+    var afterException: [AfterExceptionRecordingClosure] { [] }
+}
+ */
+
+public extension MetricsRecorder where Self == DefaultMetricsRecorder {
     static var all: Self {
         let closures = DefaultRecordingClosures.all
         return Self(before: closures.0, after: closures.1, afterException: closures.2)
@@ -75,9 +83,7 @@ public extension MetricsRecorder {
     }
 }
 
-
-// Maybe just expose this to the developer and make MetricsRecorder internal?
-open class OpenMetricsRecorder: MetricsRecorder {
+public struct DefaultMetricsRecorder: MetricsRecorder {
     public typealias Key = String
     public typealias Value = String
     
@@ -87,7 +93,7 @@ open class OpenMetricsRecorder: MetricsRecorder {
     
     public var afterException: [AfterExceptionRecordingClosure]
     
-    required public init(before: [BeforeRecordingClosure] = [], after: [AfterRecordingClosure] = [], afterException: [AfterExceptionRecordingClosure] = []) {
+    public init(before: [BeforeRecordingClosure] = [], after: [AfterRecordingClosure] = [], afterException: [AfterExceptionRecordingClosure] = []) {
         self.before = before
         self.after = after
         self.afterException = afterException

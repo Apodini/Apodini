@@ -26,6 +26,7 @@ extension Logger.MetadataValue: Codable {
         }
     }
     
+    // TODO: Still got a bug here, maybe switch back to intermediate representation
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         

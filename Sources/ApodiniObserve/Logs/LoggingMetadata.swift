@@ -152,7 +152,7 @@ private extension LoggingMetadata {
             
             return try Logger.MetadataValue.convertToMetadata(data: encodedParameter)
         } catch {
-            return .string("Error during encoding of a parameter to Logger.MetadataValue")
+            return .string("Error during encoding of a parameter to Logger.MetadataValue - \(error)")
         }
     }
 }
