@@ -89,7 +89,7 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .startup, app: app, webService: Service())
     }
     
     public func retrieveStructure(
@@ -133,7 +133,6 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
                 )
             }
             .toSet()
-        
         return try DeployedSystem(
             deploymentProviderId: iotDeploymentProviderId,
             nodes: nodes
@@ -142,6 +141,10 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
 }
 
 public struct IoTStartupCommand<Service: WebService>: DeploymentStartupCommand {
+    public var deployedSystemType: AnyDeployedSystem.Type {
+        DeployedSystem.self
+    }
+    
     public static var configuration: CommandConfiguration {
         CommandConfiguration(commandName: "iot",
                              abstract: "Start a web service - IoT",
@@ -168,7 +171,7 @@ public struct IoTStartupCommand<Service: WebService>: DeploymentStartupCommand {
         app.lifecycle.use(lifeCycleHandler)
         
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .run, app: app, webService: Service())
     }
     
     public init() {}

@@ -97,7 +97,6 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     "startup",
                     "local",
                     modelFileUrl.path,
-                    "--node-id",
                     node.id
                 ],
                 launchInCurrentProcessGroup: true

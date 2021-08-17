@@ -90,9 +90,11 @@ public struct CollectedEndpointInfo: Hashable, Equatable {
     public let endpoint: AnyEndpoint
     public let deploymentOptions: DeploymentOptions
     
-    public init(handlerType: HandlerTypeIdentifier,
-                endpoint: AnyEndpoint,
-                deploymentOptions: DeploymentOptions) {
+    public init(
+        handlerType: HandlerTypeIdentifier,
+        endpoint: AnyEndpoint,
+        deploymentOptions: DeploymentOptions
+    ) {
         self.handlerType = handlerType
         self.endpoint = endpoint
         self.deploymentOptions = deploymentOptions

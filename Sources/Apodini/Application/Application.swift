@@ -21,34 +21,29 @@ import Dispatch
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
-    /// server will boot
-    func willBoot(_ application: Application) throws
     /// server did boot
     func didBoot(_ application: Application) throws
     /// server is shutting down
-    func shutdown(_ application: Application)
-    /// Allows to perform custom actions on the endpoints of the web service
-    func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint]
+    func shutdown(_ application: Application) throws
+    /// Allows interested parties to apply changes to the web service's endpoints.
+    /// This function is primarily intended to give components that integrate with Apodini the ability to "disable" individual endpoints
+    /// (e.g. by returning, for these specific endpoints, an empty array).
+    /// This function is called once for every endpoint-interfaceExporter combination.
+    func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint]
 }
 
+
 extension LifecycleHandler {
-    /// server will boot
-    public func willBoot(_ application: Application) throws { }
     /// server did boot
     public func didBoot(_ application: Application) throws { }
     /// server is shutting down
-    public func shutdown(_ application: Application) { }
-    /// Allows to perform custom actions on the endpoints of the web service
-    public func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint] {
-        endpoints
+    public func shutdown(_ application: Application) throws { }
+    /// Allows interested parties to apply changes to the web service's endpoints.
+    public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
+        [endpoint]
     }
 }
 
-extension Application {
-    func map<T>(transform: (Application) -> T ) -> T {
-        transform(self)
-    }
-}
 
 /// Configuration and state of the application
 public final class Application {
@@ -201,7 +196,6 @@ public final class Application {
             return
         }
         self.isBooted = true
-        try self.lifecycle.handlers.forEach { try $0.willBoot(self) }
         try self.lifecycle.handlers.forEach { try $0.didBoot(self) }
     }
 
@@ -212,7 +206,11 @@ public final class Application {
         self.logger.debug("Application shutting down [pid=\(getpid())]")
 
         self.logger.trace("Shutting down providers")
-        self.lifecycle.handlers.forEach { $0.shutdown(self) }
+        do {
+            try self.lifecycle.handlers.forEach { try $0.shutdown(self) }
+        } catch {
+            self.logger.error("Error during lifecycle-shutdown: \(error)")
+        }
         self.lifecycle.handlers = []
 
         self.logger.trace("Clearing Application storage")

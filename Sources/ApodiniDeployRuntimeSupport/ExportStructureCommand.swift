@@ -38,7 +38,7 @@ public struct ExportStructureCommand: ParsableCommand {
     public func run() throws {
         ExportStructureCommand.helpMessage(columns: nil)
         ExportStructureCommand.exit(withError:
-                                    ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
+            ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
         )
     }
     
@@ -73,7 +73,7 @@ public struct StartupCommand: ParsableCommand {
     public func run() throws {
         StartupCommand.helpMessage(columns: nil)
         StartupCommand.exit(withError:
-                                    ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
+            ApodiniDeployRuntimeSupportError(message: "Calling this command directly is not supported.")
         )
     }
     

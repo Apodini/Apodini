@@ -135,27 +135,19 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     private func performDeploymentRelatedActions() throws {
         try self.exportDeployedSystemIfNeeded()
         
-        let env = ProcessInfo.processInfo.environment
-        
-        let configUrl: URL
         let currentNodeId: String
-        
         let deployedSystem: AnyDeployedSystem
         
-        // The aws deployment provider still uses env variables,
-        // so first check if there are any present
-        if env[WellKnownEnvironmentVariables.fileUrl] != nil,
-           env[WellKnownEnvironmentVariables.currentNodeId] != nil {
-            currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId]!
-            deployedSystem = try DeployedSystem(decodingJSONAt: URL(fileURLWithPath: env[WellKnownEnvironmentVariables.fileUrl]!))
-        } else if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
-            // If no env variables found, check if the web service was started using the `deploy startup` command
-            configUrl = URL(fileURLWithPath: deploymentConfig.filePath)
+        if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
+            // check if any startup data are available
             currentNodeId = deploymentConfig.nodeId
-            
-            deployedSystem = try deploymentConfig.deployedSystem.init(decodingJSONAt: configUrl)
+            let configUrl = URL(fileURLWithPath: deploymentConfig.filePath)
+            // swiftlint:disable:next identifier_name
+            let DeployedSystemStructureType = deploymentConfig.deployedSystemType
+            // swiftlint:disable:next explicit_init
+            deployedSystem = try DeployedSystemStructureType.init(decodingJSONAt: configUrl)
         } else {
-            // If both are no there, web service was started without deployment. Just return, there's nothing to do.
+            // If no startup data are available, web service was started without deployment. Just return, there's nothing to do.
             return
         }
         

@@ -54,9 +54,7 @@ protocol _AnyEndpoint: AnyEndpoint {
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     private let blackboard: Blackboard
     
-    init(
-        blackboard: Blackboard
-    ) {
+    init(blackboard: Blackboard) {
         self.blackboard = blackboard
     }
     

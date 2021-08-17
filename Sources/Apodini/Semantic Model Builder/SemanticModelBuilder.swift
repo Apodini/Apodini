@@ -39,16 +39,13 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
         // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
         // the web service even when accessed from an `Endpoint`.
-        collectedEndpoints.append(Endpoint<H>(
-            blackboard: localBlackboard
-        ))
+        collectedEndpoints.append(Endpoint<H>(blackboard: localBlackboard))
     }
 
     func finishedRegistration() {
         if app.interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
-
         app.interfaceExporters.acceptAll(self)
     }
 
@@ -56,36 +53,21 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         call(exporter: exporter)
         exporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
     }
-    
-    private func performLifeCyleActions() throws {
-        let firstEndpoints = (try app.lifecycle.handlers.first?.filter(self.collectedEndpoints, app: app) ?? []).compactMap { $0 as? _AnyEndpoint }
-        self.collectedEndpoints = try app.lifecycle.handlers
-            .map { handler in
-                try handler.filter(self.collectedEndpoints, app: self.app)
-            }
-            .compactMap {
-                $0 as? [_AnyEndpoint]
-            }
-            .reduce(firstEndpoints, { result, element in
-                result.intersection(element)
-            })
-    }
 
     private func call<I: InterfaceExporter>(exporter: I) {
+        let endpoints: [_AnyEndpoint]
         do {
-            try self.performLifeCyleActions()
+            endpoints = try app.lifecycle.handlers.reduce(self.collectedEndpoints) { endpoints, lifecycleHandler in
+                try endpoints.flatMap { try lifecycleHandler.map(endpoint: $0, app: self.app, for: exporter) as! [_AnyEndpoint] }
+            }
         } catch {
-            fatalError(
-                "An error \(error) occurred while performing life cycle action 'filter'."
-            )
+            fatalError("Error during lifecycle-endpoint-filtering: \(error)")
         }
-        
-        for endpoint in collectedEndpoints {
+        for endpoint in endpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
             // which will result in the default namespace being used
             endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : .global)
-
             endpoint.exportEndpoint(on: exporter)
         }
     }
@@ -128,16 +110,6 @@ extension Handler {
             return identifier
         } else {
             return nil
-        }
-    }
-}
-
-extension Array where Element == _AnyEndpoint {
-    func intersection(_ other: [Element]) -> [Element] {
-        filter { element in
-            other.contains(where: { otherElement in
-                element[AnyHandlerIdentifier.self] == otherElement[AnyHandlerIdentifier.self]
-            })
         }
     }
 }

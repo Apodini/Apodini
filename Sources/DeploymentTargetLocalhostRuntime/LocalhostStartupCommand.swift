@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ApodiniDeployRuntimeSupport
 import ArgumentParser
+import DeploymentTargetLocalhostCommon
 
 /// The default `DeploymentStartupCommand` of the localhost deployment provider. This command is responsible for
 /// starting the web service on a deployment node taking into account the specifications given by`LocalhostDeploymentProvider`.
@@ -35,14 +36,18 @@ public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCom
     @Argument(help: "The location of the json containing the system structure")
     public var filePath: String
     
-    @Option(help: "The identifier of the deployment node")
+    @Argument(help: "The identifier of the deployment node")
     public var nodeId: String
+    
+    public var deployedSystemType: AnyDeployedSystem.Type {
+        LocalhostDeployedSystem.self
+    }
+    
     
     public func run() throws {
         let app = Application()
-
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(app: app, webService: Service())
+        try Service.start(mode: .run, app: app)
     }
     
     public init() {}

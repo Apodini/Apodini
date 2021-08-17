@@ -160,7 +160,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent) deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)

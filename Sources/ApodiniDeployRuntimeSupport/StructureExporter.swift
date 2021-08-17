@@ -93,7 +93,7 @@ extension StructureExporter {
         nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
             try DeployedSystemNode(
                 id: deploymentGroup.id,
-                exportedEndpoints: endpoints.convert(),
+                exportedEndpoints: Set(endpoints.map(ExportedEndpoint.init)),
                 userInfo: nil,
                 userInfoType: Null.self
             )
@@ -104,7 +104,7 @@ extension StructureExporter {
             nodes += try remainingEndpoints.map { endpoint in
                 try DeployedSystemNode(
                     id: nodeIdProvider([endpoint]),
-                    exportedEndpoints: [endpoint.convert()],
+                    exportedEndpoints: [ExportedEndpoint(endpoint)],
                     userInfo: nil,
                     userInfoType: Null.self
                 )
@@ -112,7 +112,7 @@ extension StructureExporter {
         case .singleNode:
             nodes.insert(try DeployedSystemNode(
                 id: nodeIdProvider(remainingEndpoints),
-                exportedEndpoints: remainingEndpoints.convert(),
+                exportedEndpoints: Set(remainingEndpoints.map(ExportedEndpoint.init)),
                 userInfo: nil,
                 userInfoType: Null.self
             ))
@@ -128,12 +128,12 @@ extension StructureExporter {
     }
 }
 
-extension CollectedEndpointInfo {
-    func convert() -> ExportedEndpoint {
-        ExportedEndpoint(
-            handlerType: self.handlerType,
-            handlerId: endpoint[AnyHandlerIdentifier.self],
-            deploymentOptions: self.deploymentOptions,
+extension ExportedEndpoint {
+    init(_ collectedEndpointInfo: CollectedEndpointInfo) {
+        self.init(
+            handlerType: collectedEndpointInfo.handlerType,
+            handlerId: collectedEndpointInfo.endpoint[AnyHandlerIdentifier.self],
+            deploymentOptions: collectedEndpointInfo.deploymentOptions,
             userInfo: [:]
         )
     }
@@ -143,7 +143,7 @@ extension Sequence where Element == CollectedEndpointInfo {
     /// Converts a sequence of `CollectedEndpointInfo` to a Set of `ExportedEndpoint`.
     public func convert() -> Set<ExportedEndpoint> {
         Set(
-            map { $0.convert() }
+            map { ExportedEndpoint($0) }
         )
     }
 }

@@ -91,7 +91,7 @@ extension Application {
         }
 
         struct Lifecycle: LifecycleHandler {
-            func shutdown(_ application: Application) {
+            func shutdown(_ application: Application) throws {
                 application.databases.shutdown()
             }
         }
