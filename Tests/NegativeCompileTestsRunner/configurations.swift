@@ -13,7 +13,8 @@ let configurations: TestRunnerConfiguration = [
     .target(
         name: "ApodiniNegativeCompileTests",
         configurations: [
-            .testCase("Metadata")
+            // linux platform is disabled for now. Compiler crashes randomly with segfault
+            .testCase("Metadata", .exclude(.linux))
         ]
     )
 ]
