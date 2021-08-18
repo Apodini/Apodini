@@ -39,16 +39,13 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
         // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
         // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
         // the web service even when accessed from an `Endpoint`.
-        collectedEndpoints.append(Endpoint<H>(
-            blackboard: localBlackboard
-        ))
+        collectedEndpoints.append(Endpoint<H>(blackboard: localBlackboard))
     }
 
     func finishedRegistration() {
         if app.interfaceExporters.isEmpty {
             app.logger.warning("There aren't any Interface Exporters registered!")
         }
-
         app.interfaceExporters.acceptAll(self)
     }
 
@@ -58,12 +55,19 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     private func call<I: InterfaceExporter>(exporter: I) {
-        for endpoint in collectedEndpoints {
+        let endpoints: [_AnyEndpoint]
+        do {
+            endpoints = try app.lifecycle.handlers.reduce(self.collectedEndpoints) { endpoints, lifecycleHandler in
+                try endpoints.flatMap { try lifecycleHandler.map(endpoint: $0, app: self.app, for: exporter) as! [_AnyEndpoint] }
+            }
+        } catch {
+            fatalError("Error during lifecycle-endpoint-filtering: \(error)")
+        }
+        for endpoint in endpoints {
             // before we run unnecessary export steps, we first verify that the Endpoint is indeed valid
             // in the case of not allowing lenient namespace definitions we just pass a empty array
             // which will result in the default namespace being used
             endpoint.parameterNameCollisionCheck(in: allowLenientParameterNamespaces ? I.parameterNamespace : .global)
-
             endpoint.exportEndpoint(on: exporter)
         }
     }

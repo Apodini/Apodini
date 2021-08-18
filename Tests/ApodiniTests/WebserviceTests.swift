@@ -22,7 +22,7 @@ final class WebserviceTests: XCTestCase {
             }
         }
 
-        let app = try TestWebService.start(waitForCompletion: false)
+        let app = try TestWebService.start(mode: .boot)
         app.shutdown()
     }
 }

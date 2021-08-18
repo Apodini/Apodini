@@ -75,36 +75,31 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         let executableUrl = try buildWebService()
         logger.notice("Target executable url: \(executableUrl.path)")
         
-        logger.notice("Invoking target to generate web service structure")
-        let wsStructure = try readWebServiceStructure()
-        
-        
-        let nodes = Set(try computeDefaultDeployedSystemNodes(from: wsStructure).enumerated().map { idx, node in
-            try node.withUserInfo(LocalhostLaunchInfo(port: self.endpointProcessesBasePort + idx))
-        })
-        
-        let deployedSystem = try DeployedSystem(
-            deploymentProviderId: Self.identifier,
-            nodes: nodes,
-            userInfo: nil,
-            userInfoType: Null.self
+        logger.notice("Invoking target with arguments to generate web service structure")
+
+        let (modelFileUrl, deployedSystem) = try retrieveSystemStructure(
+            executableUrl,
+            providerCommand: "local",
+            additionalCommands: [
+                "--identifier",
+                Self.identifier.rawValue,
+                "--endpoint-processes-base-port",
+                "\(self.endpointProcessesBasePort)"
+            ],
+            as: LocalhostDeployedSystem.self
         )
-        
-        let deployedSystemFileUrl = fileManager.getTemporaryFileUrl(fileExtension: "json")
-        try deployedSystem.writeJSON(to: deployedSystemFileUrl)
-        
+
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                launchInCurrentProcessGroup: true,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
-                    WellKnownEnvironmentVariables.fileUrl:
-                        deployedSystemFileUrl.path,
-                    WellKnownEnvironmentVariables.currentNodeId:
-                        node.id
-                ]
+                arguments: [
+                    "deploy",
+                    "startup",
+                    "local",
+                    modelFileUrl.path,
+                    node.id
+                ],
+                launchInCurrentProcessGroup: true
             )
             func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {
@@ -134,7 +129,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         logger.notice("Starting proxy server")
         do {
             let proxyServer = try ProxyServer(
-                openApiDocument: wsStructure.openApiDocument,
+                openApiDocument: deployedSystem.openApiDocument,
                 deployedSystem: deployedSystem
             )
             try proxyServer.run(port: self.port)

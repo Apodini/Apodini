@@ -447,10 +447,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .target(name: "ApodiniDeployRuntimeSupport")
             ]
         ),
         
@@ -460,8 +458,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .target(
@@ -514,7 +511,8 @@ let package = Package(
             name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI")
             ]
         ),
 
@@ -549,6 +547,7 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         )

@@ -50,9 +50,8 @@ extension Application {
         }
 
         struct LifecycleHandler: Apodini.LifecycleHandler {
-            func shutdown(_ application: Application) {
-                // swiftlint:disable force_try
-                try! application.threadPool.syncShutdownGracefully()
+            func shutdown(_ application: Application) throws {
+                try application.threadPool.syncShutdownGracefully()
             }
         }
 

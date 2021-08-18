@@ -125,7 +125,7 @@ class JWTTests: XCTApodiniTest {
         exporter = MockExporter<EmptyRequest>()
         app.registerExporter(exporter: exporter)
 
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
     }
 
     func runExpectAuthError(
