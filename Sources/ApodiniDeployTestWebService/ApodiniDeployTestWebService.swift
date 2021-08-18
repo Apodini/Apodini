@@ -61,6 +61,8 @@ struct WebService: Apodini.WebService {
                 ]
             )
         )
+        SingleCommandConfiguration()
+        MultipleCommandConfiguration()
     }
 
     var metadata: Metadata {

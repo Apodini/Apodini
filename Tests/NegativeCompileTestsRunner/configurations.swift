@@ -13,9 +13,7 @@ let configurations: TestRunnerConfiguration = [
     .target(
         name: "ApodiniNegativeCompileTests",
         configurations: [
-            // Linux has issues compiling malformed resultBuilders, resulting in one compiler error
-            // "failed to produce diagnostic for expression; please file a bug report" for the whole block
-            // when too many errors occurred inside. Therefore linux platform is excluded.
+            // linux platform is disabled for now. Compiler crashes randomly with segfault
             .testCase("Metadata", runningOn: .exclude(.linux))
         ]
     )

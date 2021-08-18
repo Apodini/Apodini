@@ -522,7 +522,6 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .target(name: "ApodiniOpenAPI")
             ]
         ),

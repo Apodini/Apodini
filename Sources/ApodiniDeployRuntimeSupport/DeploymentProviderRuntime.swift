@@ -83,7 +83,7 @@ public struct DeploymentStartUpStorageKey: StorageKey {
 /// This protocol specifies the properties of the deployment startup command of a deployment provider that needs to be
 /// set by `DeploymentProviderRuntime`. Since it conforms to `ParsableCommand` it also defines the specific startup command
 /// for a runtime. It contains basic properties that are needed to initialize the deployment runtime. In its `run` method, it should add an instance
-/// of itself to the app storage using `DeploymentStartUpStorageKey`
+/// of itself to the app storage using `DeploymentStartUpStorageKey`.
 public protocol DeploymentStartupCommand: ParsableCommand {
     /// The file path of the deployment structure json.
     var filePath: String { get }
