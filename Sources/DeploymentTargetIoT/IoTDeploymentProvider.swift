@@ -205,7 +205,8 @@ public struct IoTDeploymentProvider: DeploymentProvider {
             additionalCommands:
                 [
                     "--device-ids",
-                    postDiscoveryActions.map { $0.identifier.rawValue }.joined(separator: ",")
+                    actionsDict.map { _, value in value.0.key.rawValue }.joined(separator: ",")
+//                    postDiscoveryActions.map { $0.identifier.rawValue }.joined(separator: ",")
                 ],
             as: DeployedSystem.self
         )

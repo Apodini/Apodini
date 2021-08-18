@@ -10,6 +10,7 @@ import DeploymentTargetIoT
 import ArgumentParser
 import LifxDiscoveryActions
 import LifxIoTDeploymentOption
+import DeploymentTargetIoTCommon
 
 @main
 struct LifxDeployer: ParsableCommand {

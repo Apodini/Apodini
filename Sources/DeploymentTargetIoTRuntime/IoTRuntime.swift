@@ -67,12 +67,12 @@ public class IoTRuntime<Service: WebService>: DeploymentProviderRuntime {
 
 public struct IoTStructureExporterCommand<Service: WebService>: StructureExporter {
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(commandName: "iot",
-                             abstract: "Export web service structure - IoT",
-                             discussion: """
-                                    Exports an Apodini web service structure for the IoT deployment
-                                  """,
-                             version: "0.0.1")
+        CommandConfiguration(
+            commandName: "iot",
+            abstract: "Export web service structure - IoT",
+            discussion: "Exports an Apodini web service structure for the IoT deployment",
+            version: "0.0.1"
+        )
     }
     
     @Option
@@ -89,15 +89,16 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
-        try Service.start(mode: .startup, app: app, webService: Service())
+        try Service.start(mode: .boot, app: app, webService: Service())
     }
     
-    public func retrieveStructure(
-        _ endpoints: Set<CollectedEndpointInfo>,
-        config: DeploymentConfig,
-        app: Application
-    ) throws -> DeployedSystem {
+    public func retrieveStructure(_ endpoints: Set<CollectedEndpointInfo>, config: DeploymentConfig, app: Application) throws -> AnyDeployedSystem {
         let deviceIds = deviceIds.split(separator: ",").map { String($0) }
+        print(deviceIds)
+        let optionKeys = deviceIds.map { _ in
+            OptionKey<IoTDeploymentOptionsInnerNamespace, DeploymentDevice>(key: "deploymentDevice")
+        }
+        
         let iotDeploymentGroups = deviceIds.map { id -> DeploymentGroup in
             // find explictly declared deployment groups
             let possibleDeploymentGroups = config.deploymentGroups.filter { $0.id == id }
@@ -188,38 +189,5 @@ struct IoTLifeCycleHandler: LifecycleHandler {
     
     func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint] {
         endpoints.filter { handlerIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
-    }
-}
-
-public struct IoTDeploymentOptionsInnerNamespace: InnerNamespace {
-    public typealias OuterNS = DeploymentOptionsNamespace
-    public static let identifier: String = "org.apodini.deploy.iot"
-}
-
-public struct DeploymentDevice: OptionValue, RawRepresentable {
-    public let rawValue: String
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public func reduce(with other: DeploymentDevice) -> DeploymentDevice {
-        print("reduce \(self) with \(other)")
-        return self
-    }
-}
-
-public extension OptionKey where InnerNS == IoTDeploymentOptionsInnerNamespace, Value == DeploymentDevice {
-    /// The option key used to specify a deployment device option
-    static let device = OptionKeyWithDefaultValue<IoTDeploymentOptionsInnerNamespace, DeploymentDevice>(
-        key: "deploymentDevice",
-        defaultValue: DeploymentDevice(rawValue: "")
-    )
-}
-
-public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
-    /// An option for specifying the deployment device
-    static func device(_ deploymentDevice: DeploymentDevice) -> AnyDeploymentOption {
-        ResolvedOption(key: .device, value: deploymentDevice)
     }
 }

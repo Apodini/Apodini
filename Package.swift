@@ -591,6 +591,7 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetIoT"),
                 .target(name: "LifxIoTDeploymentOption"),
+                .target(name: "DeploymentTargetIoTCommon"),
                 .product(name: "LifxDiscoveryActions", package: "swift-nio-lifx-impl")
             ]
         ),
@@ -598,7 +599,7 @@ let package = Package(
             name: "LifxIoTDeploymentOption",
             dependencies: [
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "DeploymentTargetIoTRuntime")
+                .target(name: "DeploymentTargetIoTCommon")
             ]
         )
     ]
