@@ -8,27 +8,32 @@
 
 import Foundation
 import Vapor
+import ArgumentParser
 import Apodini
 import ApodiniVaporSupport
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
 import VaporAWSLambdaRuntime
+import ApodiniOpenAPI
+import OpenAPIKit
 
 
-public class LambdaRuntime: DeploymentProviderRuntime {
-    public static let identifier = lambdaDeploymentProviderId
+public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
+    public static var identifier: DeploymentProviderID {
+        lambdaDeploymentProviderId
+    }
     
-    public let deployedSystem: DeployedSystem
-    public let currentNodeId: DeployedSystem.Node.ID
+    public let deployedSystem: AnyDeployedSystem
+    public let currentNodeId: DeployedSystemNode.ID
     private let lambdaDeploymentContext: LambdaDeployedSystemContext
     
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws {
+    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
-        guard let lambdaDeploymentContext = deployedSystem.readUserInfo(as: LambdaDeployedSystemContext.self) else {
+        guard let lambdaDeploymentContext = (deployedSystem as? LambdaDeployedSystem)?.context else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: Self.identifier,
-                message: "Unable to read userInfo"
+                message: "Unable to find '\(LambdaDeployedSystem.self)'"
             )
         }
         self.lambdaDeploymentContext = lambdaDeploymentContext
@@ -36,7 +41,6 @@ public class LambdaRuntime: DeploymentProviderRuntime {
     
     
     public func configure(_ app: Apodini.Application) throws {
-        print("-[\(Self.self) \(#function)] env", ProcessInfo.processInfo.environment)
         app.vapor.app.servers.use(.lambda)
     }
     
@@ -51,5 +55,13 @@ public class LambdaRuntime: DeploymentProviderRuntime {
             )
         }
         return .invokeDefault(url: url)
+    }
+    
+    public static var exportCommand: StructureExporter.Type {
+        LambdaStructureExporterCommand<Service>.self
+    }
+    
+    public static var startupCommand: DeploymentStartupCommand.Type {
+        LambdaStartupCommand<Service>.self
     }
 }
