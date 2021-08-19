@@ -78,6 +78,7 @@ extension WebService {
     public mutating func run() throws {
         try Self.start(mode: .run, webService: self)
     }
+    
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: Self().configuration._commands)
@@ -96,7 +97,7 @@ extension WebService {
         webService: Self = Self()
     ) throws -> Application {
         var webServiceCopy = webService
-        /// Inject the `Application` instance to allow access to `@Environment` in the property wrapper
+        /// Inject the `Application` instance to allow access to it via the `@Environment` property wrapper
         Apodini.inject(app: app, to: &webServiceCopy)
         Apodini.activate(&webServiceCopy)
         
