@@ -18,7 +18,7 @@ public enum WellKnownEnvironmentVariables {
     /// This environment variable is only set of the web service is running as part of a managed deployment.
     public static let currentNodeId = "AD_CURRENT_NODE_ID"
     
-    /// Key for an environment variable specifying the execution mode of ApodiniDeploy, ether dump the WebService's model structur or launch the WebService with custom config
+    /// Key for an environment variable specifying the execution mode of ApodiniDeploy, ether dump the WebService's model structure or launch the WebService with custom config
     public static let executionMode = "AD_EXECUTION_MODE"
     
     /// Key for an environment variable specifying the url of the directory used for ApodiniDeploy, either the outputURL or configURL
