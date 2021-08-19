@@ -10,13 +10,13 @@ import Apodini
 import Logging
 
 /// The ``InformationClass`` identifying any ``Information`` which holds Logging Metadata information.
-public protocol LoggingMetadataInformationClass: StringKeyedCodableInformationClass {}
+public protocol LoggingMetadataInformationClass: StringKeyedEncodableInformationClass {}
 
 extension LoggingMetadataInformation: LoggingMetadataInformationClass {}
 
 public extension LoggingMetadataInformationClass where Self == LoggingMetadataInformation {
     /// Returns the Logging Metadata as a tuple.
-    var entry: (key: String, value: Codable) {
+    var entry: (key: String, value: Encodable) {
         (key: self.key.key, value: self.value)
     }
 }
