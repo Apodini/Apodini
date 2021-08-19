@@ -47,6 +47,29 @@ class AuthorizationRequirementsTests: XCTApodiniTest {
         XCTAssertEqual(try condition.evaluate(for: StringAuthenticatable("TEST")), .fulfilled())
     }
 
+    func testVerifyOverloads() throws {
+        @AuthorizationRequirementsBuilder<StringAuthenticatable>
+        var condition0: AuthorizationRequirements<StringAuthenticatable> {
+            Verify(isPresent: \.someStringOptional)
+            Verify(that: \.someBool)
+        }
+
+        XCTAssertEqual(try condition0.evaluate(for: StringAuthenticatable("asdf")), .rejected())
+        XCTAssertEqual(try condition0.evaluate(for: StringAuthenticatable(optional: "some Value", bool: false)), .rejected())
+        XCTAssertEqual(try condition0.evaluate(for: StringAuthenticatable(optional: "some Value", bool: true)), .undecided())
+
+
+        @AuthorizationRequirementsBuilder<StringAuthenticatable>
+        var condition1: AuthorizationRequirements<StringAuthenticatable> {
+            Verify(notPresent: \.someStringOptional)
+            Verify(not: \.someBool)
+        }
+
+        XCTAssertEqual(try condition1.evaluate(for: StringAuthenticatable("asdf")), .undecided())
+        XCTAssertEqual(try condition1.evaluate(for: StringAuthenticatable(optional: "some Value", bool: false)), .rejected())
+        XCTAssertEqual(try condition1.evaluate(for: StringAuthenticatable(optional: "some Value", bool: true)), .rejected())
+    }
+
     func testAlwaysAllow() throws {
         @AuthorizationRequirementsBuilder<StringAuthenticatable>
         var condition: AuthorizationRequirements<StringAuthenticatable> {
@@ -80,6 +103,7 @@ class AuthorizationRequirementsTests: XCTApodiniTest {
                 case true:
                     Deny(ifNil: \.someStringOptional)
                 case false:
+                    // bVerify(isNil: \.someStringOptional) // same thing as below, just testing a different init
                     Allow(ifNil: \.someStringOptional)
                 }
 
