@@ -23,10 +23,10 @@ private struct TestWebService: Apodini.WebService {
     var content: some Component {
         Text("")
             .identified(by: Self.handler1Id)
-            .deploymentOptions(
-                .memory(.mb(128)),
-                .timeout(.seconds(12))
-            )
+            .metadata {
+                Memory(.mb(128))
+                Timeout(.seconds(12))
+            }
         Group("a") {
             Text("")
                 .operation(.read)
@@ -34,21 +34,17 @@ private struct TestWebService: Apodini.WebService {
             Text("")
                 .operation(.create)
                 .identified(by: Self.handler3Id)
-                .deploymentOptions(
-                    .memory(.mb(70))
-                )
+                .metadata(Memory(.mb(70)))
             Group("b") {
                 Text("")
                     .operation(.read)
                     .identified(by: Self.handler4Id)
-                    .deploymentOptions(.memory(.mb(70)))
+                    .metadata(Memory(.mb(70)))
                 Text("")
                     .operation(.create)
                     .identified(by: Self.handler5Id)
-                    .deploymentOptions(.memory(.mb(180)))
-            }.deploymentOptions(
-                .memory(.mb(150))
-            )
+                    .metadata(Memory(.mb(180)))
+            }.metadata(Memory(.mb(150)))
         }
     }
     
@@ -59,7 +55,7 @@ private struct TestWebService: Apodini.WebService {
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
-        #if os(Linux)
+        #if os(Linux) // TODO check if this can be removed!
         throw XCTSkip("Skipped testHandlerCollection on Linux due to some undiscovered issues on focal nightly and xenial 5.4.2 builds")
         #endif
 
@@ -80,38 +76,36 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler1Id))),
-                    deploymentOptions: DeploymentOptions([
-                        ResolvedOption(key: .memorySize, value: .mb(128)),
-                        ResolvedOption(key: .timeout, value: .seconds(12))
-                    ])
+                    deploymentOptions: .init()
+                        .addingOption(.mb(128), for: .memorySize)
+                        .addingOption(.seconds(12), for: .timeoutValue)
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
-                        (AnyHandlerIdentifier.self, TestWebService.handler2Id))),
-                    deploymentOptions: DeploymentOptions([])
+                        (AnyHandlerIdentifier.self, TestWebService.handler2Id)))
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler3Id))),
-                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(70)))
+                    deploymentOptions: .init(.mb(70), for: .memorySize)
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler4Id))),
-                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(150)))
+                    deploymentOptions: .init(.mb(150), for: .memorySize)
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler5Id))),
-                    deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(180)))
+                    deploymentOptions: .init(.mb(180), for: .memorySize)
                 )
             ]
             

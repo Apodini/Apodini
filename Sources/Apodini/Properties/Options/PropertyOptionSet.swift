@@ -10,14 +10,18 @@ import Foundation
 
 
 /// A `PropertyOptionSet` collects different type erased `PropertyOptionKey`s.
-struct PropertyOptionSet<Property> {
+public struct PropertyOptionSet<Property> {
     private var options: [AnyPropertyOptionKey: Any]
 
-    init() {
+    public var count: Int {
+        options.count
+    }
+
+    public init() {
         options = [:]
     }
 
-    init(_ options: [AnyPropertyOption<Property>]) {
+    internal init(_ options: [AnyPropertyOption<Property>]) {
         var combined: [AnyPropertyOptionKey: Any] = [:]
         for option in options {
             if let lhs = combined[option.key] {
@@ -30,25 +34,48 @@ struct PropertyOptionSet<Property> {
         self.options = combined
     }
 
+    /// Initializes a new ``PropertyOptionSet`` by providing a Option value and the corresponding key.
+    /// - Parameters:
+    ///   - option: The option value.
+    ///   - key: The corresponding option value in the given namespace.
+    public init<Option>(_ option: Option, for key: PropertyOptionKey<Property, Option>) {
+        self.init()
+        self.addOption(option, for: key)
+    }
 
-    func option<Option>(for key: PropertyOptionKey<Property, Option>) -> Option? {
+
+    public func option<Option>(for key: PropertyOptionKey<Property, Option>) -> Option? {
         guard let option = options[key] as? Option else {
             return nil
         }
         
         return option
     }
+
+    public func option<Option: PropertyOptionWithDefault>(for key: PropertyOptionKey<Property, Option>) -> Option {
+        guard let option = options[key] as? Option else {
+            return Option.defaultValue
+        }
+
+        return option
+    }
     
-    mutating func addOption<Option>(_ option: Option, for key: PropertyOptionKey<Property, Option>) {
+    public mutating func addOption<Option>(_ option: Option, for key: PropertyOptionKey<Property, Option>) {
         if let lhs = options[key] {
             options[key] = key.combine(lhs: lhs, rhs: option)
         } else {
             options[key] = option
         }
     }
+
+    public func addingOption<Option>(_ option: Option, for key: PropertyOptionKey<Property, Option>) -> PropertyOptionSet<Property> {
+        var instance = self
+        instance.addOption(option, for: key)
+        return instance
+    }
 }
 
-extension PropertyOptionSet {
+public extension PropertyOptionSet {
     init(lhs: PropertyOptionSet<Property>, rhs: [AnyPropertyOption<Property>]) {
         self.options = lhs.options
 
@@ -64,7 +91,11 @@ extension PropertyOptionSet {
     init(lhs: PropertyOptionSet<Property>, rhs: PropertyOptionSet<Property>) {
         self.options = lhs.options
 
-        for (key, value) in rhs.options {
+        self.merge(withRHS: rhs)
+    }
+
+    mutating func merge(withRHS optionSet: PropertyOptionSet<Property>) {
+        for (key, value) in optionSet.options {
             if let lhsOption = options[key] {
                 options[key] = key.combine(lhs: lhsOption, rhs: value)
             } else {

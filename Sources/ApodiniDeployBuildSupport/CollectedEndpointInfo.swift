@@ -54,22 +54,30 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public let handlerType: HandlerTypeIdentifier
     /// Identifier of the  handler this endpoint was generated for
     public let handlerId: AnyHandlerIdentifier
-    /// The endpoint's handler's deployment options
-    public let deploymentOptions: DeploymentOptions
-    /// Additional information about this endpoint
-    public let userInfo: [String: Data]
-    
-    
-    public init(
-        handlerType: HandlerTypeIdentifier,
-        handlerId: AnyHandlerIdentifier,
-        deploymentOptions: DeploymentOptions,
-        userInfo: [String: Data] = [:]
-    ) {
+    public private(set) var userInfo: Data?
+
+    public init(handlerType: HandlerTypeIdentifier, handlerId: AnyHandlerIdentifier, data: Data?) {
         self.handlerType = handlerType
         self.handlerId = handlerId
-        self.deploymentOptions = deploymentOptions
-        self.userInfo = userInfo
+        self.userInfo = data
+    }
+
+    public init(handlerType: HandlerTypeIdentifier, handlerId: AnyHandlerIdentifier) {
+        self.init(handlerType: handlerType, handlerId: handlerId, data: nil)
+    }
+    
+    public init<T: Encodable>(handlerType: HandlerTypeIdentifier, handlerId: AnyHandlerIdentifier, userInfo: T) throws {
+        self.handlerType = handlerType
+        self.handlerId = handlerId
+        try setUserInfo(userInfo)
+    }
+
+    public mutating func setUserInfo<T: Encodable>(_ value: T?) throws {
+        self.userInfo = try value.map { try $0.encodeToJSON() }
+    }
+
+    public func readUserInfo<T: Decodable>(as _: T.Type) throws -> T? {
+        try userInfo.flatMap { try T(decodingJSON: $0) }
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -85,32 +93,27 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
 /// - Note: This type's `Hashable`  implementation ignores deployment options.
 /// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
 ///         and will only work if all deployment options of both objects being compared are reducible.
-public struct CollectedEndpointInfo: Hashable, Equatable {
+public struct CollectedEndpointInfo: Hashable {
     public let handlerType: HandlerTypeIdentifier
     public let endpoint: AnyEndpoint
-    public let deploymentOptions: DeploymentOptions
+    public let deploymentOptions: PropertyOptionSet<DeploymentOptionNamespace>
     
     public init(
         handlerType: HandlerTypeIdentifier,
         endpoint: AnyEndpoint,
-        deploymentOptions: DeploymentOptions
+        deploymentOptions: PropertyOptionSet<DeploymentOptionNamespace> = .init()
     ) {
         self.handlerType = handlerType
         self.endpoint = endpoint
         self.deploymentOptions = deploymentOptions
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(endpoint[AnyHandlerIdentifier.self])
     }
-    
+
     public static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
         lhs.handlerType == rhs.handlerType
             && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
-            && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
-                rhs.deploymentOptions.reduced().options,
-                computeHash: { option, hasher in hasher.combine(option) },
-                areEqual: { lhs, rhs in lhs.testEqual(rhs) }
-            )
     }
 }

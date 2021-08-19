@@ -32,10 +32,10 @@ struct WebService: Apodini.WebService {
         }.formDeploymentGroup(withId: "group_aws_rand2")
         Group("aws_greet") {
             AWS_Greeter()
-                .deploymentOptions(
-                    .memory(.mb(175)),
-                    .timeout(.seconds(12))
-                )
+                .metadata {
+                    Memory(.mb(175))
+                    Timeout(.seconds(12))
+                }
         }
         Group("lh_textmut") {
             LH_TextMut()
