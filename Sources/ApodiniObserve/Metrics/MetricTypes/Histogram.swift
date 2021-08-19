@@ -9,8 +9,8 @@
 import Apodini
 import Metrics
 
-@propertyWrapper
 /// A wrapped version of the ``Metrics.Recorder`` of swift-metrics used as a Histrogram
+@propertyWrapper
 public struct Histogram: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]

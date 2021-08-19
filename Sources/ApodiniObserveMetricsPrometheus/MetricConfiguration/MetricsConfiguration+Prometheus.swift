@@ -8,7 +8,9 @@
 
 import ApodiniObserve
 
+/// Extension that allows for easier setup of the ``MetricsConfiguration`` for a Prometheus backend
 public extension MetricsConfiguration {
+    /// Convencience init for a Prometheus backend
     convenience init(prometheusHandlerConfiguration: MetricPullHandlerConfiguration = .defaultPrometheus,
                      systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
         self.init(handlerConfiguration: prometheusHandlerConfiguration, systemMetricsConfiguration: systemMetricsConfiguration)

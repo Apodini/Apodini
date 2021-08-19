@@ -10,13 +10,19 @@ import Metrics
 import SystemMetrics
 import NIO
 
+/// Base protocol for a configuration of a ``MetricsHandler`` via ``ApodiniObserve``
 public protocol MetricHandlerConfiguration {
+    /// The factory which creates the ``MetricsHandler``
     var factory: MetricsFactory { get }
 }
 
+/// A ``MetricHandlerConfiguration``for pull based ``MetricsHandler``, so for example Prometheus
 public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
+    /// The factory which creates the ``MetricsHandler``
     public let factory: MetricsFactory
+    /// The web endpoint where the metrics can be pulled from
     public let endpoint: String
+    /// This closure collects the metrics data from the ``MetricsHandler`` asynchronous
     public let collect: (EventLoopPromise<String>) -> EventLoopFuture<String>
     
     public init(factory: MetricsFactory, endpoint: String, collect: @escaping (EventLoopPromise<String>) -> EventLoopFuture<String>) {
@@ -26,7 +32,9 @@ public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
     }
 }
 
+/// A ``MetricHandlerConfiguration``for push based ``MetricsHandler``
 public struct MetricPushHandlerConfiguration: MetricHandlerConfiguration {
+    /// The factory which creates the ``MetricsHandler``
     public let factory: MetricsFactory
     
     public init(factory: MetricsFactory) {
@@ -34,10 +42,14 @@ public struct MetricPushHandlerConfiguration: MetricHandlerConfiguration {
     }
 }
 
+/// Used to configure a ``SystemMetricsConfiguration`` via ``ApodiniObserve``
 public enum SystemMetricsConfiguration {
-    case on(configuration: SystemMetrics.Configuration)
+    /// System metrics will be collected with a certain ``SystemMetrics.Configuration``
+    case on(configuration: SystemMetrics.Configuration)    // swiftlint:disable:this identifier_name
+    /// Sytem metrics will not be collected
     case off
     
+    /// System metrics will be collected with a default ``SystemMetrics.Configuration`` which collect only Linux metrics with default labels in an one second interval
     public static var `default`: SystemMetricsConfiguration =
         .on(
             configuration: .init(

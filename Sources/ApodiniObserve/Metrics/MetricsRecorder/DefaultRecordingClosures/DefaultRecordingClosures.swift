@@ -8,6 +8,8 @@
 
 import Logging
 
+// swiftlint:disable large_tuple
+
 /// Specifies default RecordingClosures that can be easily extended and reused
 public enum DefaultRecordingClosures {
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``s
@@ -32,7 +34,7 @@ public enum DefaultRecordingClosures {
         Self.buildDefaultRecordingClosures(defaultRecorders)
     }
     
-    /// Builds the default `dimensions` of the different Metric types
+    /// Builds the default `dimensions` for all Metric types
     public static let defaultDimensions: (ObserveMetadata.Value) -> [(String, String)] = { observeMetadata in
         [
             ("endpoint", observeMetadata.0.endpointName),
@@ -48,8 +50,12 @@ public enum DefaultRecordingClosures {
     }
 }
 
+/// Bundle ``DefaultRecorder``s in certain categories
 public extension DefaultRecordingClosures {
-    static var all: ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    /// Records all default metrics (so responseTime, requestCounter and errorRate) from the execution of a ``Handler``
+    static var all: ([DefaultRecorder.BeforeRecordingClosure],
+                     [DefaultRecorder.AfterRecordingClosure],
+                     [DefaultRecorder.AfterExceptionRecordingClosure]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ResponseTime.self,
             DefaultRecordingClosures.RequestCounter.self,
@@ -57,19 +63,28 @@ public extension DefaultRecordingClosures {
         )
     }
     
-    static var responseTime: ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    /// Records only the response time from the execution of a ``Handler``
+    static var responseTime: ([DefaultRecorder.BeforeRecordingClosure],
+                              [DefaultRecorder.AfterRecordingClosure],
+                              [DefaultRecorder.AfterExceptionRecordingClosure]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ResponseTime.self
         )
     }
     
-    static var requestCounter: ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    /// Records only the request counter from the execution of a ``Handler``
+    static var requestCounter: ([DefaultRecorder.BeforeRecordingClosure],
+                                [DefaultRecorder.AfterRecordingClosure],
+                                [DefaultRecorder.AfterExceptionRecordingClosure]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.RequestCounter.self
         )
     }
     
-    static var errorRate: ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    /// Records only the error rate from the execution of a ``Handler``
+    static var errorRate: ([DefaultRecorder.BeforeRecordingClosure],
+                           [DefaultRecorder.AfterRecordingClosure],
+                           [DefaultRecorder.AfterExceptionRecordingClosure]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ErrorRate.self
         )

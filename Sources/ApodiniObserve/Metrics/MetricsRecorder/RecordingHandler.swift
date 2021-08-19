@@ -10,30 +10,35 @@ import Apodini
 import Logging
 
 extension Component {
-    /// Use an asynchronous `Guard` to guard `Component`s by inspecting incoming requests
-    /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
+    /// Use a`MetricsRecorder` to record metrics from an incoming request of a `Component`
+    /// - Parameter recorder: The `MetricsRecorder` used to record metrics from an incoming request
+    /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
     public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Never>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
     
-    // We could also make the record function more powerful (eg. change the parameter type etc.) to spare the protocol magic
-    // What if we define everything on DefaultMetricsRecorder? (s0 .all, + etc). But this wouldn't allow the combination diff recorders via + anymore
-    public func record(_ recorder: DefaultMetricsRecorder = .all) -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Never>> {
+    /// Use a `DefaultMetricsRecorder` to record default metrics from an incoming request of a `Component`
+    /// - Parameter recorder: The `MetricsRecorder` used to record default metrics from an incoming request, defaults to `.all`
+    /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
+    public func record(_ recorder: DefaultMetricsRecorder = .all)
+    -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Never>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
-    
 }
 
 extension Handler {
-    /// Use an asynchronous `Guard` to guard a `Handler` by inspecting incoming requests
-    /// - Parameter guard: The `Guard` used to inspecting incoming requests
-    /// - Returns: Returns a modified `Component` protected by the asynchronous `Guard`
+    /// Use a`MetricsRecorder` to record metrics from an incoming request of a `Component`
+    /// - Parameter recorder: The `MetricsRecorder` used to record metrics from an incoming request
+    /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
     public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Response>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
     
-    public func record(_ recorder: DefaultMetricsRecorder = .all) -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Response>> {
+    /// Use a `DefaultMetricsRecorder` to record default metrics from an incoming request of a `Component`
+    /// - Parameter recorder: The `MetricsRecorder` used to record default metrics from an incoming request, defaults to `.all`
+    /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
+    public func record(_ recorder: DefaultMetricsRecorder = .all)
+    -> DelegationModifier<Self, RecordingHandlerInitializer<DefaultMetricsRecorder, Response>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
 }
@@ -52,7 +57,7 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
     
     func handle() async throws -> D.Response {
         let recorderInstance = try recorder.instance()
-        var dictionary = Dictionary<R.Key, R.Value>()
+        var dictionary = [R.Key: R.Value]()
         
         // TODO: Implement something that logs the incoming request
         // Maybe even pass the logger via the closures and provide a default closure that logs the information

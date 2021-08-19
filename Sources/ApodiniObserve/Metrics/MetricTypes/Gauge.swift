@@ -9,8 +9,8 @@
 import Apodini
 import Metrics
 
-@propertyWrapper
 /// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
+@propertyWrapper
 public struct Gauge: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]

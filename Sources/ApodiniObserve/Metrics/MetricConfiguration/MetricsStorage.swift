@@ -15,6 +15,7 @@ public struct MetricsStorageKey: StorageKey {
 
 /// The storage value for Metrics-related information.
 public struct MetricsStorageValue {
+    /// The stored `MetricsConfiguration`
     public let configuration: MetricsConfiguration
 
     internal init(configuration: MetricsConfiguration) {

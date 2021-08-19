@@ -11,14 +11,16 @@ import ApodiniObserve
 import Metrics
 import Prometheus
 
+/// Extension that allows for easier setup of the ``MetricsConfiguration`` for a Prometheus backend by providing a default configuration value
 public extension MetricPullHandlerConfiguration {
+    /// Default configuration for Prometheus
     static let `defaultPrometheus`: MetricPullHandlerConfiguration =
         MetricPullHandlerConfiguration(
             factory: PrometheusMetricsFactory(
                 client: PrometheusClient(),
                 configuration: PrometheusMetricsFactory.Configuration()),
             endpoint: "/metrics",
-            collect: { promise in                
+            collect: { promise in
                 DispatchQueue.global().async {
                     do {
                         try MetricsSystem.prometheus().collect(into: promise)

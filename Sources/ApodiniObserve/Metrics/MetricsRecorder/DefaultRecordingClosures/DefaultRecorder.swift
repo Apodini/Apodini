@@ -10,12 +10,17 @@ import Logging
 
 /// A ``DefaultRecorder`` requires to implement default closures that are executed before and after a ``Handler`` is called
 public protocol DefaultRecorder {
+    /// Use a String key for the relay dictionary
     typealias Key = String
+    /// Use a String value for the relay dictionary
     typealias Value = String
     // Somehow i can't get it to work to reuse the RecordingHandler.BeforeRecordingClosure typealias
-    typealias BeforeRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, inout Dictionary<Key, Value>) -> Void
-    typealias AfterRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Dictionary<Key, Value>) -> Void
-    typealias AfterExceptionRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Error, Dictionary<Key, Value>) -> Void
+    /// The closure type of a default closure which is executed before the handler is processed
+    typealias BeforeRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, inout [Key: Value]) -> Void
+    /// The closure type of a default closure which is executed after the handler is processed (also in case of an exception)
+    typealias AfterRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, [Key: Value]) -> Void
+    /// The closure type of a default closure which is executed if the handler throws an exception
+    typealias AfterExceptionRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Error, [Key: Value]) -> Void
     
     /// Executed before handler is executed
     static var before: BeforeRecordingClosure { get }

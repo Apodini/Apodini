@@ -9,8 +9,8 @@
 import Apodini
 import Metrics
 
-@propertyWrapper
 /// A wrapped version of the ``Metrics.Timer`` of swift-metrics
+@propertyWrapper
 public struct Timer: DynamicProperty {
     let label: String
     let dimensions: [(String, String)]

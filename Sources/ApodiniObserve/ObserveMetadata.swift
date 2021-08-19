@@ -10,7 +10,8 @@ import Apodini
 
 @propertyWrapper
 public struct ObserveMetadata: DynamicProperty {
-    public typealias Value = (ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata, ExporterTypeObserveMetadata.ExporterTypeObserveMetadata)
+    public typealias Value = (ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata,
+                              ExporterTypeObserveMetadata.ExporterTypeObserveMetadata)
     
     /// Metadata from the ``Blackboard`` that is injected into the environment of the ``Handler`` via a ``Delegate``
     @Environment(\ObserveMetadataExporter.BlackboardObserveMetadata.value)
