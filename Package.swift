@@ -577,6 +577,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniVaporSupport"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras")
