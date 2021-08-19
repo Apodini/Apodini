@@ -134,27 +134,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         
         let dockerImageName = try prepareDockerImage()
         Context.logger.notice("successfully built docker image. image name: \(dockerImageName)")
-        
-        Context.logger.notice("generating web service structure")
-        let webServiceStructure = try { () -> WebServiceStructure in
-            if awsDeployOnly {
-                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
-                return try JSONDecoder().decode(WebServiceStructure.self, from: data)
-            } else {
-                return try readWebServiceStructure(usingDockerImage: dockerImageName)
-            }
-        }()
-        
-        let nodes = try computeDefaultDeployedSystemNodes(
-            from: webServiceStructure,
-            nodeIdProvider: { endpoints in
-                guard let endpoint = endpoints.first, endpoints.count == 1 else {
-                    return UUID().uuidString
-                }
-                return endpoint.handlerId.rawValue.replacingOccurrences(of: ".", with: "-")
-            }
-        )
-        
+
         let awsIntegration = AWSIntegration(
             awsRegionName: awsRegion,
             awsCredentials: Context.makeAWSCredentialProviderFactory(profileName: awsProfileName)//,
@@ -164,14 +144,16 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         if awsApiGatewayApiId == "_createNew" {
             awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
         }
+        Context.logger.notice("generating web service structure")
         
-        let deploymentStructure = try DeployedSystem(
-            deploymentProviderId: Self.identifier,
-            //currentInstanceNodeId: "", // we can safely set an invalid id here, because the
-            nodes: nodes,
-            userInfo: LambdaDeployedSystemContext(awsRegion: awsRegion, apiGatewayApiId: awsApiGatewayApiId)
-        )
-        
+        let deploymentStructure = try { () -> LambdaDeployedSystem in
+            if awsDeployOnly {
+                let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
+                return try JSONDecoder().decode(LambdaDeployedSystem.self, from: data)
+            } else {
+                return try retrieveDeployedSystem(usingDockerImage: dockerImageName)
+            }
+        }()
         
         let lambdaExecutableUrl: URL = awsDeployOnly
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
@@ -180,7 +162,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         Context.logger.notice("Deploying to AWS")
         try awsIntegration.deployToLambda(
             deploymentStructure: deploymentStructure,
-            openApiDocument: webServiceStructure.openApiDocument,
+            openApiDocument: deploymentStructure.openApiDocument,
             lambdaExecutableUrl: lambdaExecutableUrl,
             lambdaSharedObjectFilesUrl: lambdaOutputDir,
             s3BucketName: s3BucketName,
@@ -260,21 +242,16 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         try task.launchSyncAndAssertSuccess()
     }
     
-    
-    private func readWebServiceStructure(usingDockerImage dockerImageName: String) throws -> WebServiceStructure {
+    private func retrieveDeployedSystem(usingDockerImage dockerImageName: String) throws -> LambdaDeployedSystem {
         let filename = "WebServiceStructure.json"
+        let filePath = ".build/\(tmpDirName)/\(filename)"
         try runInDocker(
             imageName: dockerImageName,
-            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName)",
-            environment: [
-                WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                WellKnownEnvironmentVariables.fileUrl: ".build/\(tmpDirName)/\(filename)" // can't use self.tmpDirUrl here since that's an absolute path but we need a relative one bc this is running in the docker container which has a different mount path
-            ]
+            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier.rawValue) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
-        return try WebServiceStructure(decodingJSONAt: url)
+        return try LambdaDeployedSystem(decodingJSONAt: url)
     }
-    
     
     /// - returns: the directory containing all build artifacts (ie, the built executable and collected shared object files)
     private func compileForLambda(usingDockerImage dockerImageName: String) throws -> URL {

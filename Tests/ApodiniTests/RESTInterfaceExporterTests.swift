@@ -406,7 +406,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app, webService: TestWebService())
+        TestWebService().start(app: app)
 
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
             XCTAssertEqual(response.headers["Content-Type"].first, "application/json; charset=utf-8")
@@ -455,7 +455,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app, webService: TestWebService())
+        TestWebService().start(app: app)
 
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
             XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")

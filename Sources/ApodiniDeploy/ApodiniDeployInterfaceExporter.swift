@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import ArgumentParser
 import Apodini
 import ApodiniExtension
 import ApodiniUtils
@@ -55,6 +56,17 @@ public final class ApodiniDeploy: Configuration {
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: deployExporter)
     }
+    
+    public var command: ParsableCommand.Type {
+        ApodiniDeployCommand.withSubcommands(
+            ExportStructureCommand.withSubcommands(
+                configuration.runtimes.map { $0.exportCommand }
+            ),
+            StartupCommand.withSubcommands(
+                configuration.runtimes.map { $0.startupCommand }
+            )
+        )
+    }
 }
 
 
@@ -65,30 +77,6 @@ public final class ApodiniDeploy: Configuration {
 class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     struct ApplicationStorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
-    }
-    
-    /// The information collected about an `Endpoint`.
-    /// - Note: This type's `Hashable`  implementation ignores deployment options.
-    /// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
-    ///         and will only work if all deployment options of both objects being compared are reducible.
-    struct CollectedEndpointInfo: Hashable, Equatable {
-        let handlerType: HandlerTypeIdentifier
-        let endpoint: AnyEndpoint
-        let deploymentOptions: DeploymentOptions
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(endpoint[AnyHandlerIdentifier.self])
-        }
-        
-        static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
-            lhs.handlerType == rhs.handlerType
-                && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
-                && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
-                    rhs.deploymentOptions.reduced().options,
-                    computeHash: { option, hasher in hasher.combine(option) },
-                    areEqual: { lhs, rhs in lhs.testEqual(rhs) }
-                )
-        }
     }
     
     
@@ -145,54 +133,42 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     
     private func performDeploymentRelatedActions() throws {
-        let env = ProcessInfo.processInfo.environment
-        guard let mode = env[WellKnownEnvironmentVariables.executionMode],
-              let fileURL = env[WellKnownEnvironmentVariables.fileUrl]
-        else {
+        try self.exportDeployedSystemIfNeeded()
+        
+        let currentNodeId: String
+        let deployedSystem: AnyDeployedSystem
+        
+        if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
+            // check if any startup data are available
+            currentNodeId = deploymentConfig.nodeId
+            let configUrl = URL(fileURLWithPath: deploymentConfig.filePath)
+            // swiftlint:disable:next identifier_name
+            let DeployedSystemStructureType = deploymentConfig.deployedSystemType
+            // swiftlint:disable:next explicit_init
+            deployedSystem = try DeployedSystemStructureType.init(decodingJSONAt: configUrl)
+        } else {
+            // If no startup data are available, web service was started without deployment. Just return, there's nothing to do.
             return
         }
         
-        switch mode {
-        case WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure:
-            let outputUrl = URL(fileURLWithPath: fileURL)
-            do {
-                try self.exportWebServiceStructure(
-                    to: outputUrl,
-                    apodiniDeployConfiguration: self.exporterConfiguration
+        do {
+            guard
+                let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
+            else {
+                throw ApodiniDeployError(
+                    message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
                 )
-            } catch {
-                fatalError("Error exporting web service structure: \(error)")
             }
-            exit(EXIT_SUCCESS)
-            
-        case WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig:
-            let configUrl = URL(fileURLWithPath: fileURL)
-            guard let currentNodeId = env[WellKnownEnvironmentVariables.currentNodeId] else {
-                throw ApodiniDeployError(message: "Unable to find '\(WellKnownEnvironmentVariables.currentNodeId)' environment variable")
-            }
-            do {
-                let deployedSystem = try DeployedSystem(decodingJSONAt: configUrl)
-                guard
-                    let DPRSType = self.exporterConfiguration.runtimes.first(where: { $0.identifier == deployedSystem.deploymentProviderId })
-                else {
-                    throw ApodiniDeployError(
-                        message: "Unable to find deployment runtime with id '\(deployedSystem.deploymentProviderId.rawValue)'"
-                    )
-                }
-                // initializing from a metatype, which requires the '.init'
-                // swiftlint:disable:next explicit_init
-                let runtimeSupport = try DPRSType.init(
-                    deployedSystem: deployedSystem,
-                    currentNodeId: currentNodeId
-                )
-                self.deploymentProviderRuntime = runtimeSupport
-                try runtimeSupport.configure(app)
-            } catch {
-                throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
-            }
-            
-        default:
-            break
+            // initializing from a metatype, which requires the '.init'
+            // swiftlint:disable:next explicit_init
+            let runtimeSupport = try DPRSType.init(
+                deployedSystem: deployedSystem,
+                currentNodeId: currentNodeId
+            )
+            self.deploymentProviderRuntime = runtimeSupport
+            try runtimeSupport.configure(app)
+        } catch {
+            throw ApodiniDeployError(message: "Unable to launch with custom config: \(error)")
         }
     }
     

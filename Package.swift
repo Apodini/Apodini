@@ -122,8 +122,7 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
         
         .target(
@@ -134,8 +133,7 @@ let package = Package(
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "_NIOConcurrency", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -155,8 +153,7 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         .testTarget(
@@ -318,8 +315,7 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
-            ],
-            swiftSettings: [.unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"], nil)]
+            ]
         ),
 
         // MARK: Apodini Authorization
@@ -459,10 +455,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .target(name: "ApodiniDeployRuntimeSupport")
             ]
         ),
         
@@ -472,8 +466,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .target(
@@ -526,7 +519,8 @@ let package = Package(
             name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI")
             ]
         ),
 
@@ -561,6 +555,7 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         ),

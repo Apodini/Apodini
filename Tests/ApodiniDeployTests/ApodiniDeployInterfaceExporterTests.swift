@@ -69,13 +69,13 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
                 try setUpWithError()
             }
             
-            TestWebService.start(app: app)
+            TestWebService().start(app: app)
             
             let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
             let actual = apodiniDeployIE.collectedEndpoints
             
-            let expected: [ApodiniDeployInterfaceExporter.CollectedEndpointInfo] = [
-                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+            let expected: [CollectedEndpointInfo] = [
+                CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
@@ -85,28 +85,28 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
                         ResolvedOption(key: .timeout, value: .seconds(12))
                     ])
                 ),
-                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler2Id))),
                     deploymentOptions: DeploymentOptions([])
                 ),
-                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler3Id))),
                     deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(70)))
                 ),
-                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler4Id))),
                     deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(150)))
                 ),
-                ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
+                CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
                     endpoint: Endpoint<Text>(blackboard: MockBlackboard(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
@@ -118,7 +118,7 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
             if !actual.compareIgnoringOrder(expected) {
                 let missingEndpoints = Set(expected).subtracting(actual)
                 let unexpectedEndpoints = Set(actual).subtracting(expected)
-                let fmtEndpointInfoSet: (Set<ApodiniDeployInterfaceExporter.CollectedEndpointInfo>) -> String = { set in
+                let fmtEndpointInfoSet: (Set<CollectedEndpointInfo>) -> String = { set in
                     set
                         .map { "  - HT: \($0.handlerType), id: \($0.endpoint[AnyHandlerIdentifier.self]), #opts: \($0.deploymentOptions.count)" }
                         .joined(separator: "\n")
