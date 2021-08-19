@@ -9,7 +9,6 @@
 import Foundation
 import Apodini
 import ApodiniUtils
-import OpenAPIKit
 
 
 /// Well-known environment variables, i.e. environment variables which are read by Apodini and used when performing certain tasks.
@@ -51,27 +50,6 @@ public struct ExporterIdentifier: RawRepresentable, Codable, Hashable, Equatable
     }
 }
 
-
-public struct WebServiceStructure: Codable {
-    public let endpoints: Set<ExportedEndpoint>
-    public let deploymentConfig: DeploymentConfig
-    public let openApiDocument: OpenAPI.Document
-    public let enabledDeploymentProviders: [DeploymentProviderID]
-    
-    public init(
-        endpoints: Set<ExportedEndpoint>,
-        deploymentConfig: DeploymentConfig,
-        openApiDocument: OpenAPI.Document,
-        enabledDeploymentProviders: [DeploymentProviderID]
-    ) {
-        self.endpoints = endpoints
-        self.deploymentConfig = deploymentConfig
-        self.openApiDocument = openApiDocument
-        self.enabledDeploymentProviders = enabledDeploymentProviders
-    }
-}
-
-
 public struct ExportedEndpoint: Codable, Hashable, Equatable {
     public let handlerType: HandlerTypeIdentifier
     /// Identifier of the  handler this endpoint was generated for
@@ -100,5 +78,39 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
     
     public static func == (lhs: ExportedEndpoint, rhs: ExportedEndpoint) -> Bool {
         lhs.handlerId == rhs.handlerId
+    }
+}
+
+/// The information collected about an `Endpoint`.
+/// - Note: This type's `Hashable`  implementation ignores deployment options.
+/// - Note: This type's `Equatable` implementation ignores all context of the endpoint other than its identifier,
+///         and will only work if all deployment options of both objects being compared are reducible.
+public struct CollectedEndpointInfo: Hashable, Equatable {
+    public let handlerType: HandlerTypeIdentifier
+    public let endpoint: AnyEndpoint
+    public let deploymentOptions: DeploymentOptions
+    
+    public init(
+        handlerType: HandlerTypeIdentifier,
+        endpoint: AnyEndpoint,
+        deploymentOptions: DeploymentOptions
+    ) {
+        self.handlerType = handlerType
+        self.endpoint = endpoint
+        self.deploymentOptions = deploymentOptions
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(endpoint[AnyHandlerIdentifier.self])
+    }
+    
+    public static func == (lhs: CollectedEndpointInfo, rhs: CollectedEndpointInfo) -> Bool {
+        lhs.handlerType == rhs.handlerType
+            && lhs.endpoint[AnyHandlerIdentifier.self] == rhs.endpoint[AnyHandlerIdentifier.self]
+            && lhs.deploymentOptions.reduced().options.compareIgnoringOrder(
+                rhs.deploymentOptions.reduced().options,
+                computeHash: { option, hasher in hasher.combine(option) },
+                areEqual: { lhs, rhs in lhs.testEqual(rhs) }
+            )
     }
 }

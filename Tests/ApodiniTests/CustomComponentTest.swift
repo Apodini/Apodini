@@ -59,7 +59,7 @@ final class CustomComponentTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         
         let headers: HTTPHeaders = ["Content-Type": "application/json"]

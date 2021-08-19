@@ -42,12 +42,12 @@ public struct HandlerInvocation<Handler: InvocableHandler> {
     /// The identifier of the handler which is the invocation's target
     public let handlerId: Handler.HandlerIdentifier
     /// The node within the deployed system exporting this handler
-    public let targetNode: DeployedSystem.Node
+    public let targetNode: DeployedSystemNode
     /// The parameters collected for the invocation
     public let parameters: [Parameter]
     
     /// Creates a `HandlerInvocation` object for the specifid handlerId, targetNode and parameters
-    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystem.Node, parameters: [Parameter]) {
+    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystemNode, parameters: [Parameter]) {
         self.handlerId = handlerId
         self.targetNode = targetNode
         self.parameters = parameters

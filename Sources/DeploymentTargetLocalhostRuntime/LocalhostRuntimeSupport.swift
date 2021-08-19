@@ -10,16 +10,20 @@ import Foundation
 import Apodini
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetLocalhostCommon
+import ArgumentParser
+import ApodiniOpenAPI
 
 
-public class LocalhostRuntime: DeploymentProviderRuntime {
-    public static let identifier = localhostDeploymentProviderId
+public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
+    public static var identifier: DeploymentProviderID {
+        localhostDeploymentProviderId
+    }
     
-    public let deployedSystem: DeployedSystem
-    public let currentNodeId: DeployedSystem.Node.ID
+    public let deployedSystem: AnyDeployedSystem
+    public let currentNodeId: DeployedSystemNode.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
-    public required init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws {
+    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard
@@ -51,5 +55,13 @@ public class LocalhostRuntime: DeploymentProviderRuntime {
             )
         }
         return .invokeDefault(url: url)
+    }
+    
+    public static var exportCommand: StructureExporter.Type {
+        LocalhostStructureExporterCommand<Service>.self
+    }
+    
+    public static var startupCommand: DeploymentStartupCommand.Type {
+        LocalhostStartupCommand<Service>.self
     }
 }
