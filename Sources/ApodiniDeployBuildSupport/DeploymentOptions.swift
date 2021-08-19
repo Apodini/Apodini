@@ -8,9 +8,13 @@
 
 import Apodini
 
+/// The option namespace for ApodiniDeploy options.
 public enum DeploymentOptionNamespace {}
 
+/// Typealias for deployment option `PropertyOptionKey`.
 public typealias DeploymentOptionKey<T: PropertyOption> = PropertyOptionKey<DeploymentOptionNamespace, T>
+/// Typealias for a deployment `AnyPropertyOption`
 public typealias DeploymentOption = AnyPropertyOption<DeploymentOptionNamespace>
 
+/// The `ContextKey` for all deployment options.
 public typealias DeploymentOptionsContextKey = OptionBasedMetadataContextKey<DeploymentOptionNamespace>

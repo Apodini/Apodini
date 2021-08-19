@@ -35,14 +35,27 @@ public struct TimeoutValue: PropertyOptionWithDefault, RawRepresentable {
 }
 
 public extension PropertyOptionKey where PropertyNameSpace == DeploymentOptionNamespace, Option == TimeoutValue {
+    /// The ``PropertyOptionKey`` for ``TimeoutValue``.
     static let timeoutValue = DeploymentOptionKey<TimeoutValue>()
 }
 
 
 public extension ComponentMetadataNamespace {
+    /// Name definition for the ``DeploymentTimeoutMetadata``
     typealias Timeout = DeploymentTimeoutMetadata
 }
 
+/// The ``DeploymentTimeoutMetadata`` can be used to explicitly declare the ``TimeoutValue`` deployment option.
+///
+/// The Metadata is available under the ``ComponentMetadataNamespace/Timeout`` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         Timeout(.seconds(4))
+///     }
+/// }
+/// ```
 public struct DeploymentTimeoutMetadata: ComponentMetadataDefinition {
     public typealias Key = DeploymentOptionsContextKey
 

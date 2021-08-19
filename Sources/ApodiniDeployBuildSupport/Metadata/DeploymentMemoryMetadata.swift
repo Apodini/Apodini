@@ -30,14 +30,26 @@ public struct MemorySize: PropertyOptionWithDefault, RawRepresentable {
 }
 
 public extension PropertyOptionKey where PropertyNameSpace == DeploymentOptionNamespace, Option == MemorySize {
+    /// The ``PropertyOptionKey`` for ``MemorySize``.
     static let memorySize = DeploymentOptionKey<MemorySize>()
 }
 
 public extension ComponentMetadataNamespace {
+    /// Name definition for the ``DeploymentMemoryMetadata``
     typealias Memory = DeploymentMemoryMetadata
 }
 
-
+/// The ``DeploymentMemoryMetadata`` can be used to explicitly declare the ``MemorySize`` deployment option.
+///
+/// The Metadata is available under the ``ComponentMetadataNamespace/Memory`` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         Memory(.mb(128))
+///     }
+/// }
+/// ```
 public struct DeploymentMemoryMetadata: ComponentMetadataDefinition {
     public typealias Key = DeploymentOptionsContextKey
 

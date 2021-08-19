@@ -22,14 +22,27 @@ public struct LambdaDescriptionOption: PropertyOption, RawRepresentable {
 }
 
 public extension PropertyOptionKey where PropertyNameSpace == DeploymentOptionNamespace, Option == LambdaDescriptionOption {
+    /// The ``PropertyOptionKey`` for ``LambdaDescriptionOption``.
     static let lambdaDescription = DeploymentOptionKey<LambdaDescriptionOption>()
 }
 
 
 public extension ComponentMetadataNamespace {
+    /// Name definition for the ``LambdaDescriptionMetadata``
     typealias LambdaDescription = LambdaDescriptionMetadata
 }
 
+/// The ``LambdaDescriptionMetadata`` can be used to explicitly declare the ``LambdaDescriptionOption`` deployment option.
+///
+/// The Metadata is available under the ``ComponentMetadataNamespace/LambdaDescription`` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         LambdaDescription("Some Description")
+///     }
+/// }
+/// ```
 public struct LambdaDescriptionMetadata: ComponentMetadataDefinition {
     public typealias Key = DeploymentOptionsContextKey
 
