@@ -112,7 +112,7 @@ private extension LoggingMetadata {
     private func getRawRequestMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
             if let loggingMetadataInformation = info as? LoggingMetadataInformationClass,
-               !loggingMetadataInformation.sensitive {
+                   !loggingMetadataInformation.sensitive {
                 partialResult[loggingMetadataInformation.entry.key] = loggingMetadataInformation.entry.value as? Logger.MetadataValue
             }
         }
