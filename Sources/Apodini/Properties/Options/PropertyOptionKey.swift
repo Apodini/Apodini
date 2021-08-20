@@ -37,8 +37,7 @@ public class AnyPropertyOptionKey: Equatable, Hashable {
 /// A `PropertyOptionKey` can be associated with a `PropertyNameSpace` and and store an `Option` that is associated with the `PropertyOptionKey` within the `PropertyNameSpace`.
 public class PropertyOptionKey<PropertyNameSpace, Option: PropertyOption>: AnyPropertyOptionKey {
     /// Get the string-based type of the `PropertyOption`
-    @inlinable
-    override var propertyOptionType: String {
+    @inlinable override var propertyOptionType: String {
         String(describing: Option.self)
     }
     
