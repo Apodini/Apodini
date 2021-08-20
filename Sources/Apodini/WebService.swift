@@ -30,7 +30,7 @@ public extension WebService {
 }
 
 extension WebService {
-    /// Overrides  the `main()` method of `ParsableCommand`
+    /// Overrides  the `main()` method of `ParsableCommand` from the Swift ArgumentParser
     /// Store the values of wrapped properties in the `WebService` (eg. `@Environment`)  before parsing the CLI arguments and then restore the saved values after the parsing is finished
     public static func main(_ arguments: [String]? = nil) {     // swiftlint:disable:this discouraged_optional_collection
         let mirror = Mirror(reflecting: Self())
@@ -47,7 +47,6 @@ extension WebService {
             }
         }
         
-        // Parsing of Command Line Arguments and restoring the values of the property wrappers
         do {
             // Parse the CLI arguments
             var command = try parseAsRoot(arguments)
