@@ -9,7 +9,7 @@
 import Apodini
 
 extension WebSocket {
-    /// /// Configuration of the `WebSocketInterfaceExporter`
+    /// Configuration of the `WebSocketInterfaceExporter`
     public struct ExporterConfiguration {
         let path: String
         

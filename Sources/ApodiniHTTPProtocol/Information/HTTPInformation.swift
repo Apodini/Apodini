@@ -42,6 +42,10 @@ public struct AnyHTTPInformation: Information {
     public var header: String {
         key.key
     }
+    
+    public var sensitive: Bool {
+        header.lowercased() == Authorization.header.lowercased()
+    }
 
     /// Instantiates a new `AnyHTTPInformation` instance for the given HTTP key and value.
     /// - Parameters:

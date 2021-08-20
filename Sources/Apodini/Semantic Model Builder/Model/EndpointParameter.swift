@@ -28,7 +28,7 @@ protocol EndpointParameterThrowingVisitor {
 }
 
 /// Describes a type erasured `EndpointParameter`
-public protocol AnyEndpointParameter: CustomStringConvertible {
+public protocol AnyEndpointParameter: CustomStringConvertible, CustomDebugStringConvertible {
     /// The `UUID` which uniquely identifies the given `AnyEndpointParameter` and the `Parameter` it represents.
     var id: UUID { get }
     var pathId: String { get }
@@ -67,6 +67,8 @@ public protocol AnyEndpointParameter: CustomStringConvertible {
 
     /// See `CustomStringConvertible`
     var description: String { get }
+    /// See `CustomDebugStringConvertible`
+    var debugDescription: String { get }
 
     /// Can be used to retrieve options configured for this parameter in the `ParameterOptionNameSpace`.
     func option<Option>(for key: PropertyOptionKey<ParameterOptionNameSpace, Option>) -> Option?
@@ -133,6 +135,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
     }
 
     public let description: String
+    public let debugDescription: String
 
     let options: PropertyOptionSet<ParameterOptionNameSpace>
 
@@ -153,8 +156,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         self.options = options
         self.necessity = necessity
         self.defaultValue = defaultValue
-
-        // If somebody wants to make this more fancy, one could add options into the @Parameter initializer
+        
         var description = "@Parameter var \(name): \(Type.self)"
         if nilIsValidValue {
             description += "?"
@@ -163,7 +165,17 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
             description += " = \(defaultValue())"
         }
         self.description = description
-
+        
+        self.debugDescription = """
+        @Parameter(\
+        \(self.options.map { key, value in
+            "\(key.propertyOptionType) = .\(value)"
+        }
+        .joined(separator: ", "))\
+        ) \
+        \(description.components(separatedBy: "@Parameter ")[1])
+        """
+        
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
         case .path:

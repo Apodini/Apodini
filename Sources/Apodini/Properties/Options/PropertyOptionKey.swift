@@ -11,6 +11,10 @@ import Foundation
 
 /// A type erasure for the `PropertyOptionKey`
 public class AnyPropertyOptionKey: Equatable, Hashable {
+    var propertyOptionType: String {
+        fatalError("AnyPropertyOptionKey.propertyOptionType not implemented!")
+    }
+    
     /// Combines two `PropertyOptionKey`s.
     /// - Parameters:
     ///   - lhs: The left hand side `PropertyOptionKey` that should be combined
@@ -32,6 +36,11 @@ public class AnyPropertyOptionKey: Equatable, Hashable {
 
 /// A `PropertyOptionKey` can be associated with a `PropertyNameSpace` and and store an `Option` that is associated with the `PropertyOptionKey` within the `PropertyNameSpace`.
 public class PropertyOptionKey<PropertyNameSpace, Option: PropertyOption>: AnyPropertyOptionKey {
+    /// Get the string-based type of the `PropertyOption`
+    @inlinable override var propertyOptionType: String {
+        String(describing: Option.self)
+    }
+    
     /// Initialize an empty `PropertyOptionKey`
     override public init() {}
 
