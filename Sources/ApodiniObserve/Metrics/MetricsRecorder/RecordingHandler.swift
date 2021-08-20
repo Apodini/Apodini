@@ -44,13 +44,8 @@ extension Handler {
 }
 
 internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsRecorder {
-    /// Metadata from ``BlackBoard`` and data regarding the ``Exporter`` that is injected into the environment of the ``Handler``
-    @ObserveMetadata
-    private var observeMetadata
-    
-    /// Logging metadata
-    @LoggingMetadata
-    private var loggingMetadata
+    @ApodiniLogger
+    private var logger
     
     let handler: Delegate<D>
     let recorder: Delegate<R>
@@ -59,9 +54,12 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
         let recorderInstance = try recorder.instance()
         var dictionary = [R.Key: R.Value]()
         
-        // TODO: Implement something that logs the incoming request
-        // Maybe even pass the logger via the closures and provide a default closure that logs the information
+        let loggingMetadata = _logger.loggingMetadata
+        let observeMetadata = _logger.observeMetadata
         
+        logger.info("Incoming request for endpoint \(observeMetadata.0.endpointName) via \(String(describing: observeMetadata.1.exporterType))")
+        
+        // Execute "before" and defer "after" recording closures
         recorderInstance.before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }
         defer {
             recorderInstance.after.forEach { $0(observeMetadata, loggingMetadata, dictionary) }
@@ -70,6 +68,7 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
         do {
             return try await handler.instance().handle()
         } catch {
+            // Execute "after exception" recording closures
             recorderInstance.afterException.forEach { $0(observeMetadata, loggingMetadata, error, dictionary) }
             
             throw error

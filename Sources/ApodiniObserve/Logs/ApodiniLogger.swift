@@ -28,13 +28,14 @@ public struct ApodiniLogger: DynamicProperty {
     @Environment(\.logger)
     private var logger
     
-    /// Metadata from ``BlackBoard`` and data regarding the ``Exporter`` that is injected into the environment of the ``Handler``
-    @ObserveMetadata
-    private var observeMetadata
-    
     /// Logging metadata 
     @LoggingMetadata
-    private var loggingMetadata
+    var loggingMetadata
+    
+    // TODO
+    var observeMetadata: ObserveMetadata.Value {
+        self._loggingMetadata.observeMetadata
+    }
     
     /// Property that holds the built ``Logger`` instance
     @State
@@ -48,13 +49,15 @@ public struct ApodiniLogger: DynamicProperty {
     private let label: String?
     
     public var wrappedValue: Logger {
+        let observeMetadata = self.observeMetadata
+        
         if builtLogger == nil {
             if let label = label {
                 // User-defined label of logger
                 builtLogger = .init(label: "org.apodini.observe.\(label)")
             } else {
                 // org.apodini.observe.<Handler>.<Exporter>
-                builtLogger = .init(label: "org.apodini.observe.\(self.observeMetadata.0.endpointName).\(String(describing: self.observeMetadata.1.exporterType))")
+                builtLogger = .init(label: "org.apodini.observe.\(observeMetadata.0.endpointName).\(String(describing: observeMetadata.1.exporterType))")
             }
             
             // Stays consitent over the lifetime of the associated handler
@@ -72,7 +75,7 @@ public struct ApodiniLogger: DynamicProperty {
                 // If logging level is configured gloally
                 if let globalConfiguredLogLevel = storage.get(LoggerConfiguration.LoggingStorageKey.self)?.configuration.logLevel {
                     if logLevel < globalConfiguredLogLevel {
-                        logger.warning("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(self.observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
+                        logger.warning("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
                     }
                 // If logging level is automatically set to a default value
                 } else {
@@ -84,7 +87,7 @@ public struct ApodiniLogger: DynamicProperty {
                     #endif
                     
                     if logLevel < globalLogLevel {
-                        logger.warning("The global default logging level is \(globalLogLevel.rawValue) but Handler \(self.observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
+                        logger.warning("The global default logging level is \(globalLogLevel.rawValue) but Handler \(observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
                     }
                 }
             }
@@ -102,7 +105,7 @@ public struct ApodiniLogger: DynamicProperty {
             }
         } else {
             // Connection stays open since these communicational patterns allow for any amount of client messages
-            switch self.observeMetadata.0.communicationalPattern {
+            switch observeMetadata.0.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Insert built metadata into the logger
                 loggingMetadata

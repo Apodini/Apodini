@@ -19,7 +19,7 @@ public struct LoggingMetadata: DynamicProperty {
     
     /// Metadata from ``BlackBoard`` and data regarding the ``Exporter`` that is injected into the environment of the ``Handler``
     @ObserveMetadata
-    private var observeMetadata
+    var observeMetadata
     
     @State
     private var builtMetadata: Logger.Metadata = [:]
