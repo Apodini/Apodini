@@ -77,6 +77,7 @@ extension WebService {
     public mutating func run() throws {
         try Self.start(mode: .run, webService: self)
     }
+    
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
         CommandConfiguration(subcommands: Self().configuration._commands)
