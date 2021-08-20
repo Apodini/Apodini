@@ -52,7 +52,6 @@ public final class LoggerExporter: InterfaceExporter, TruthAnchor {
     private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
-        // Information which is required for the LoggingMetadata of the ApodiniLogger
         let blackboardMetadata = BlackboardMetadata.BlackboardMetadata(
             endpointName: endpoint.description,
             endpointParameters: endpoint[EndpointParameters.self],
