@@ -8,20 +8,21 @@
 
 import Foundation
 import Apodini
-@_implementationOnly import Vapor
 import ApodiniExtension
+import ApodiniLoggingSupport
+@_implementationOnly import Vapor
 
 // MARK: Client streaming request handler
 extension GRPCService {
     private func drainBody<H: Handler>(from request: Vapor.Request,
-                                       factory: DelegateFactory<H>,
+                                       factory: DelegateFactory<H, GRPCInterfaceExporter>,
                                        strategy: AnyDecodingStrategy<GRPCMessage>,
                                        defaults: DefaultValueStore,
                                        promise: EventLoopPromise<Vapor.Response>) {
         let delegate = factory.instance()
         
         var lastMessage: GRPCMessage?
-        request.body.drain { (bodyStream: BodyStreamResult) in
+        request.body.drain { (bodyStream: BodyStreamResult) in      // swiftlint:disable:this closure_body_length
             switch bodyStream {
             case let .buffer(byteBuffer):
                 guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
@@ -43,7 +44,11 @@ extension GRPCService {
                     // See `getMessages` internal comments for more details.
                     .filter(\.didCollectAllFragments)
                     .forEach({ message in
-                        let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                        let basis = DefaultRequestBasis(
+                            base: message,
+                            remoteAddress: message.remoteAddress,
+                            information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                        )
                         
                         let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                             .decodeRequest(from: message, with: basis, with: request.eventLoop)
@@ -61,7 +66,11 @@ extension GRPCService {
                 // and set the final flag
                 let message = lastMessage ?? GRPCMessage.defaultMessage
                 
-                let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                let basis = DefaultRequestBasis(
+                    base: message,
+                    remoteAddress: message.remoteAddress,
+                    information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                )
                 
                 let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                     .decodeRequest(from: message, with: basis, with: request.eventLoop)
@@ -88,7 +97,7 @@ extension GRPCService {
     }
 
     func createClientStreamingHandler<H: Handler>(
-        factory: DelegateFactory<H>,
+        factory: DelegateFactory<H, GRPCInterfaceExporter>,
         strategy: AnyDecodingStrategy<GRPCMessage>,
         defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
@@ -124,9 +133,18 @@ extension GRPCService {
         ]
 
         vaporApp.on(.POST, path) { request in
-            self.createClientStreamingHandler(factory: endpoint[DelegateFactory<H>.self],
+            self.createClientStreamingHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                                               strategy: strategy,
                                               defaults: endpoint[DefaultValueStore.self])(request)
         }
     }
+    
+    static func getLoggingMetadataInformation(_ message: GRPCMessage) -> [LoggingMetadataInformation] {
+         [
+            LoggingMetadataInformation(key: .init("data"), rawValue: message.data.count <= 32_768 ? .string(message.data.base64EncodedString()) : .string("\(message.data.base64EncodedString().prefix(32_715))... (Further bytes omitted since data too large!)")),
+            LoggingMetadataInformation(key: .init("dataLength"), rawValue: .string(message.length.description)),
+            LoggingMetadataInformation(key: .init("compression"), rawValue: .string(message.compressed.description)),
+            LoggingMetadataInformation(key: .init("didCollectAllFragments"), rawValue: .string(message.didCollectAllFragments.description))
+         ]
+     }
 }

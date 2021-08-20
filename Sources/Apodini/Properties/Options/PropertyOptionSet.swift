@@ -128,3 +128,13 @@ public extension PropertyOptionSet {
         }
     }
 }
+
+// MARK: Sequence
+extension PropertyOptionSet: Sequence {
+    public typealias Iterator = Dictionary<AnyPropertyOptionKey, Any>.Iterator
+    public typealias Element = Dictionary<AnyPropertyOptionKey, Any>.Element
+
+    public func makeIterator() -> Iterator {
+        self.options.makeIterator()
+    }
+}

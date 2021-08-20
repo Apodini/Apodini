@@ -45,7 +45,10 @@ let package = Package(
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        //Observe
+        .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
+        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -128,7 +131,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "_NIOConcurrency", package: "swift-nio")
+                .product(name: "_NIOConcurrency", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
 
@@ -180,7 +184,9 @@ let package = Package(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding")
             ]
         ),
@@ -292,6 +298,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
@@ -303,6 +310,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
@@ -549,6 +557,29 @@ let package = Package(
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .target(name: "ApodiniOpenAPI"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        
+        //
+        // MARK: Observe
+        //
+        
+        .target(
+            name: "ApodiniObserve",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniLoggingSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Logging", package: "swift-log")
             ]
         )
     ]

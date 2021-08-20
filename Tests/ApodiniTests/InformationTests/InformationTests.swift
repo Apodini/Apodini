@@ -211,4 +211,26 @@ final class InformationTests: XCTestCase {
             "Basic realm=\"My \\\"Test\\\" Realm\", Bearer error=invalid_request"
         )
     }
+    
+    func testInformationSensitive() throws {
+        // Authorization header must be marked as sensitive
+        let basicAuthorization = AnyHTTPInformation(key: "Authorization", rawValue: "Basic UGF1bFNjaG1pZWRtYXllcjpTdXBlclNlY3JldFBhc3N3b3Jk")
+        XCTAssertTrue(basicAuthorization.sensitive)
+        
+        let bearerAuthorization = AnyHTTPInformation(key: "Authorization", rawValue: "Bearer QWEERTYUIOPASDFGHJKLZXCVBNM")
+        XCTAssertTrue(bearerAuthorization.sensitive)
+        
+        // All other headers should be marked as non-sensitive
+        let cookies = AnyHTTPInformation(key: "Cookie", rawValue: "name=value; name2=value2")
+        XCTAssertFalse(cookies.sensitive)
+            
+        let expires = try AnyHTTPInformation(key: "Expires", rawValue: "Wed, 16 June 2021 11:42:00 GMT")
+        XCTAssertFalse(expires.sensitive)
+        
+        let eTag = AnyHTTPInformation(key: "ETag", rawValue: "\"ABCDE\"")
+        XCTAssertFalse(eTag.sensitive)
+        
+        let redirectTo = AnyHTTPInformation(key: "Location", rawValue: "https://ase.in.tum.de/schmiedmayer")
+        XCTAssertFalse(redirectTo.sensitive)
+    }
 }

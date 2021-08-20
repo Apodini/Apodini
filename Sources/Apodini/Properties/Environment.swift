@@ -8,7 +8,6 @@
 
 import ApodiniUtils
 
-
 @propertyWrapper
 /// A property wrapper to inject pre-defined values  to a `Component`. If `Value` is an
 /// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
@@ -23,13 +22,13 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     }
     
     /// Keypath to access an `EnvironmentValue`.
-    internal var keyPath: KeyPath<Key, Value>
+    @Boxed internal var keyPath: KeyPath<Key, Value>?
     
     private var app: Application?
     
     // only used if Value is ObservableObject
     private var storage: Box<Storage>?
-    private let observe: Bool
+    @Boxed private var observe = false
     
     @LocalEnvironment private var localEnvironment: Value?
     
@@ -72,7 +71,7 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
         if let key = keyPath as? KeyPath<Application, Value> {
             return app[keyPath: key]
         }
-        if let value = app.storage[keyPath] {
+        if let key = keyPath, let value = app.storage[key] {
             return value
         }
         
@@ -87,6 +86,31 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
     /// Sets the value for the given KeyPath.
     mutating func prepareValue(_ value: Value, for keyPath: WritableKeyPath<Key, Value>) {
         _localEnvironment.prepareValue(value)
+    }
+}
+
+extension Environment: Decodable {
+    public init(from decoder: Decoder) throws {
+        self._localEnvironment = LocalEnvironment()
+        self.keyPath = nil
+        self.observe = false
+    }
+}
+
+/// Since ``Environment`` is now allowed in the ``WebService``, the property values have to be backed up and then restored since the ArgumentParser doesn't cache those values
+extension Environment: ArgumentParserStoreable {
+    public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
+        store[key] = self
+    }
+    
+    public func restore(from store: [String: ArgumentParserStoreable], keyedBy key: String) {
+        if let storedValues = store[key] as? Environment {
+            self.keyPath = storedValues.keyPath
+            self.observe = storedValues.observe
+            // No need to reinstanciate the local environment since it's already instenciated by the Decodable initializer
+        } else {
+            fatalError("Stored properties couldn't be read. Key=\(key)")
+        }
     }
 }
 

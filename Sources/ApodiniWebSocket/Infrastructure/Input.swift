@@ -90,6 +90,15 @@ enum InputCheckResult {
 struct SomeInput: Input {
     private(set) var parameters: [String: InputParameter]
     
+    var parametersValid: String {
+        switch self.check() {
+        case .ok:
+            return "ok"
+        case .missing(let values):
+            return "missing parameter(s): \(values.joined(separator: ", "))"
+        }
+    }
+    
     init(parameters: [String: InputParameter]) {
         self.parameters = parameters
     }
