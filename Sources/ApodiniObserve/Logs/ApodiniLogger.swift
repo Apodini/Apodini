@@ -28,11 +28,11 @@ public struct ApodiniLogger: DynamicProperty {
     @Environment(\.logger)
     private var logger
     
-    /// Logging metadata 
+    /// Aggregated``Logging.Metadata``
     @LoggingMetadata
     var loggingMetadata
     
-    // TODO
+    /// Raw metadata which can then be aggrgated
     var observeMetadata: ObserveMetadata.Value {
         self._loggingMetadata.observeMetadata
     }
