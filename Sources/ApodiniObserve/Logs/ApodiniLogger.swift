@@ -192,7 +192,7 @@ private extension ApodiniLogger {
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
             if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
-                   !stringKeyedStringInformation.sensitive {
+               !stringKeyedStringInformation.sensitive {
                 partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
             }
         }
