@@ -9,7 +9,6 @@
 @testable import Apodini
 import ApodiniHTTPProtocol
 import XCTApodini
-import XCTest
 
 
 final class InformationTests: XCTestCase {
