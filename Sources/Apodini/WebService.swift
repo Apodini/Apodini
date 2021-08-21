@@ -10,6 +10,10 @@ import Foundation
 import Logging
 import ArgumentParser
 
+/// A fileprivate property of a `CommandConfiguration`. This has to be a variable and has to be declared outside of `WebService`
+/// to allow to add subcommands after its initialization
+private var config = CommandConfiguration()
+
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
     typealias Metadata = AnyWebServiceMetadata
@@ -78,9 +82,14 @@ extension WebService {
         try Self.start(mode: .run, webService: self)
     }
     
+    /// Performing custom operation to the `CommandConfiguration` using an instance of `WebService`.
+    public func validate() throws {
+        config.subcommands = self.configuration._commands
+    }
+    
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(subcommands: Self().configuration._commands)
+        config
     }
     
     /// This function is executed to start up an Apodini `WebService`
