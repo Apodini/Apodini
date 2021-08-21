@@ -44,7 +44,7 @@ public class ConnectionContext<Input, H: Handler> {
         self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
-    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returnes the value for all
+    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returns the value for all
     /// decoded input parameters based on the parameter's id.
     public func handleAndReturnParameters(
         request: Input,
@@ -104,14 +104,14 @@ extension Vapor.Request: WithEventLoop { }
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H>.self].instance(),
+        ConnectionContext(delegate: self[DelegateFactory<H, IE>.self].instance(),
                           strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }
     
     /// Create a ``ConnectionContext`` for any object that can provide a fitting strategy for decoding its ``EndpointDecodingStrategyProvider/Input``.
     public func createConnectionContext<IE: EndpointDecodingStrategyProvider>(for exporter: IE) -> ConnectionContext<IE.Input, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H>.self].instance(),
+        ConnectionContext(delegate: self[DelegateFactory<H, RESTInterfaceExporter>.self].instance(),
                           strategy: exporter.strategy.applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }

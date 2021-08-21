@@ -29,7 +29,7 @@ extension Application {
 /// Represents the state of a connection to the client.
 /// For non-client-streaming requests,
 /// the default state should be `.end`.
-public enum ConnectionState {
+public enum ConnectionState: String {
     /// The request is part of a client stream,
     /// and there are more requests to follow.
     case open
@@ -51,5 +51,5 @@ public struct Connection {
     public var information: InformationSet { request.information }
     
     /// Holds the latest `Request`
-    var request: Request
+    public var request: Request
 }

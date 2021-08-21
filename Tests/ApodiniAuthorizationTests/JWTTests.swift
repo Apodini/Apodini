@@ -47,6 +47,9 @@ class JWTTests: XCTApodiniTest {
                 Verify(notBefore: \.nbf)
 
                 Verify(issuer: \.iss, is: "https://other-option.org", "https://example.org")
+
+                Verify(that: \.adminFlag)
+                Deny(ifNot: \.adminFlag) // the same thing, just testing a different init
             }
             Authorize(ExampleJWTToken.self) {
                 Deny { element in
@@ -98,7 +101,8 @@ class JWTTests: XCTApodiniTest {
                 nbf: .init(value: notBefore),
                 aud: .init(value: audience),
                 iss: "https://example.org",
-                email: email
+                email: email,
+                adminFlag: true
             )
             
             return try signers.sign(payload)
@@ -112,6 +116,7 @@ class JWTTests: XCTApodiniTest {
         var iss: IssuerClaim
 
         var email: String?
+        var adminFlag: BoolClaim
     }
 
     // swiftlint:disable:next implicitly_unwrapped_optional

@@ -71,7 +71,6 @@ public struct DefaultRequestBasis: RequestBasis {
     }
 }
 
-
 // MARK: Request Decoding
 
 extension DecodingStrategy {

@@ -22,7 +22,7 @@ extension Exporter {
         
         let abortAnyError = AbortTransformer<H>()
             
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
