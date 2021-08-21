@@ -14,11 +14,15 @@ import ApodiniUtils
 import Logging
 import DeploymentTargetIoTCommon
 
+fileprivate enum RedeploymentReason {
+    case fileChange
+    case topologyChange
+}
+
 extension IoTDeploymentProvider: FileMonitorDelegate {
     func fileMonitorDidDetectChanges() {
         
     }
-    
     
     func listenForChanges() throws {
         guard automaticRedeployment else { return }
@@ -26,13 +30,101 @@ extension IoTDeploymentProvider: FileMonitorDelegate {
         let promise = group.next().makePromise(of: Void.self)
     
         let fileMonitor = try FileMonitor(self.packageRootDir, promise: promise)
-        fileMonitor.onChangeDetection = {
-            
-        }
 
         fileMonitor.listen()
+        listenForTopologyChanges(promise)
 
         try promise.futureResult.wait()
+        
+        
+    }
+    
+    func listenForTopologyChanges(_ promise: EventLoopPromise<Void>) {
+        group.next().scheduleRepeatedAsyncTask(initialDelay: .zero, delay: .seconds(30), notifying: promise, { repeatedTask in
+            do {
+                let discovery = self.setup(for: self.searchableTypes[0])
+                let result = try discovery
+                    .run()
+                    .map { results -> Void in
+                        // we need to compare the results to see if a reployment is necessary
+                        // Possible Options:
+                        // 1. There can be new devices
+                        // 2. The action results of an existing device changed
+                        for result in results {
+                            
+                            let isNewDevice = self.results.compactMap { $0.device.ipv4Address }.contains(result.device.ipv4Address!)
+                            if isNewDevice {
+                                //TODO: asdf
+                            }
+                            let needsRedeployment = result.hasDifferActions(<#T##other: DiscoveryResult##DiscoveryResult#>)
+                            
+                            
+                        }
+                        // check for new device
+                        let newDevices = results.filter { !self.results.contains($0) }
+                        if !newDevices.isEmpty {
+                            // new device found.
+                            // Need to find what actions where successful and deploy the responding handler ids
+                        }
+                        
+                        let 
+                        
+                        
+                        guard results != self.results else {
+                            // nothing changed, we can schedule next task
+                            repeatedTask.cancel(promise: promise)
+                            return ()
+                        }
+                        self.results = results
+                        promise.succeed(())
+                        return ()
+                    }
+                return result
+            } catch {
+                self.logger.error("An error \(error) occurred with listing for topology changes.")
+                repeatedTask.cancel(promise: promise)
+                return promise.futureResult
+            }
+        })
+    }
+    
+    fileprivate func redeploy(reason: RedeploymentReason) {
+        
+    }
+}
+
+enum ComparingResult {
+    case newDevice
+    case foundEndDevices
+}
+
+extension DiscoveryResult {
+    public static func == (lhs: DiscoveryResult, rhs: DiscoveryResult) -> Bool {
+        guard let lhsIp = lhs.device.ipv4Address, let rhsIp = rhs.device.ipv4Address else {
+            return false
+        }
+        return lhsIp == rhsIp &&
+            lhs.device.identifier == rhs.device.identifier &&
+            lhs.foundEndDevices == rhs.foundEndDevices
+    }
+    
+    func hasDifferActions(_ other: DiscoveryResult) -> Bool {
+        !self.foundEndDevices.filter { id, value in
+            other.foundEndDevices[id] != value
+        }.isEmpty
+    }
+    
+    func hasDifferActions(_ others: [DiscoveryResult]) -> Bool {
+        let other = others.filter {
+            $0.device.ipv4Address == self.device.ipv4Address
+        }
+        
+        
+        for other in others {
+            !self.foundEndDevices.filter { id, value in
+                other.foundEndDevices[id] != value
+            }.isEmpty
+        }
     }
 }
 
@@ -44,8 +136,6 @@ class FileMonitor {
     let url: URL
     var sources: [DispatchSourceFileSystemObject] = []
     var isActive: Bool
-    
-    var onChangeDetection: (() -> Void)?
     
     var delegate: FileMonitorDelegate?
 
@@ -69,7 +159,6 @@ class FileMonitor {
                     queue: .init(label: "queue_deployment_\(dirUrl.absoluteString)")
                 )
             source.setEventHandler {
-                self.onChangeDetection?()
                 IoTDeploymentProvider.logger.info("Detected changes in directory \(dirUrl.lastPathComponent)")
                 self.promise?.succeed(())
             }

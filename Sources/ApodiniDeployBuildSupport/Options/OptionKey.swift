@@ -16,6 +16,10 @@ public class AnyOptionKey<OuterNS: OuterNamespace>: Codable, Hashable, Equatable
         self.rawValue = "\(OuterNS.identifier):\(rawValue)"
     }
     
+    public init(completeKey: String) {
+        self.rawValue = completeKey
+    }
+    
     public var description: String {
         "\(Self.self)('\(rawValue)')"
     }
@@ -37,6 +41,10 @@ public class OptionKey<InnerNS: InnerNamespace, Value: OptionValue>: AnyOptionKe
     
     public required init(from decoder: Decoder) throws {
         try super.init(from: decoder)
+    }
+    
+    override public init(completeKey: String) {
+        super.init(completeKey: completeKey)
     }
     
     override public func encode(to encoder: Encoder) throws {

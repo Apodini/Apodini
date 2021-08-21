@@ -14,7 +14,7 @@ import Logging
 import DeploymentTargetIoTCommon
 
 
-public struct IoTDeploymentProvider: DeploymentProvider {
+public class IoTDeploymentProvider: DeploymentProvider {
     public static var identifier: DeploymentProviderID {
         iotDeploymentProviderId
     }
@@ -29,17 +29,16 @@ public struct IoTDeploymentProvider: DeploymentProvider {
     
     // Remove later
     public let dryRun: Bool = true
-
+    
     public var target: DeploymentProviderTarget {
         .spmTarget(packageUrl: packageRootDir, targetName: productName)
     }
     
     private var isRunning = false
-
+    
     private let fileManager = FileManager.default
     
-    
-    private var actionsDict: [ActionIdentifier: (AnyOption<DeploymentOptionsNamespace>, PostDiscoveryAction.Type)] = [:]
+    private var postActionMapping: [DeviceIdentifier: (AnyOption<DeploymentOptionsNamespace>, PostDiscoveryAction.Type)] = [:]
     private let additionalConfiguration: [ConfigurationProperty: Any]
     
     internal let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -51,7 +50,7 @@ public struct IoTDeploymentProvider: DeploymentProvider {
     
     public var currentDeployedSystem: DeployedSystem? = nil
     public var results: [DiscoveryResult] = []
-
+    
     
     public init(
         searchableTypes: [String],
@@ -76,41 +75,48 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         case some([String])
         case one(String)
     }
-
-    public mutating func registerAction(
+    
+    public func registerAction(
         scope: RegistrationScope,
         action: PostDiscoveryAction.Type,
         option: AnyOption<DeploymentOptionsNamespace>
     ) {
         switch scope {
         case .all:
-            self.searchableTypes.forEach { actionsDict[ActionIdentifier($0)] = (option, action) }
+            self.searchableTypes.forEach { postActionMapping[DeviceIdentifier($0)] = (option, action) }
         case .some(let array):
-            array.forEach { actionsDict[ActionIdentifier($0)] = (option, action) }
+            array.forEach { postActionMapping[DeviceIdentifier($0)] = (option, action) }
         case .one(let type):
-            actionsDict[ActionIdentifier(type)] = (option, action)
+            postActionMapping[DeviceIdentifier(type)] = (option, action)
         }
     }
-
-    public mutating func run() throws {
+    
+    public func run() throws {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
-
+        
         logger.notice("Starting deployment of \(productName)..")
         isRunning = true
         
         try listenForChanges()
         
         let executableURL = try buildWebService()
-
+        
         logger.info("Search for devices in the network")
         for type in searchableTypes {
             let discovery = setup(for: type)
-
+            
             results = try discovery.run(2).wait()
             logger.info("Found: \(results)")
             
-            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystem(for: discovery.actions, executableUrl: executableURL)
+            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystemOnLocalMachineTmp(deviceID: type, postDiscoveryActions: discovery.actions, executableUrl: executableURL)
+            
+//            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystemOnLocalMachine(
+//                for: results,
+//                   postDiscoveryActions: discovery.actions,
+//                   executableUrl: executableURL
+//            )
+            
             print(modelFileUrl)
             print(deployedSystem)
             
@@ -129,19 +135,21 @@ public struct IoTDeploymentProvider: DeploymentProvider {
                 logger.warning("Starting deployment to device \(result.device.hostname)")
                 
                 let device = result.device
-//                let sshClient = try getSSHClient(for: device, configuration: discovery.configuration)
-
+                //                let sshClient = try getSSHClient(for: device, configuration: discovery.configuration)
+                
                 logger.info("Copying sources to remote")
                 try copyResourcesToRemote(result)
-
+                try copyModelFileToRemote(result.device, localmodelFileUrl: modelFileUrl)
+                
                 logger.info("Building package on remote")
                 try buildPackage(on: device)
                 
-                logger.info("Retrieving system structure")
-                let (modelFileUrl, deployedSystem) = try retrieveDeployedSystem(on: device, postActions: discovery.actions)
-
+                //TODO: Activate later
+                //                logger.info("Retrieving system structure")
+                //                let (modelFileUrl, deployedSystem) = try retrieveDeployedSystem(on: device, postActions: discovery.actions)
+                
                 // Check if we have a suitable deployment node
-                guard let deploymentNode = self.deploymentNode(for: result, deployedSystem: deployedSystem) else {
+                guard let deploymentNode = try self.deploymentNode(for: result, deployedSystem: deployedSystem) else {
                     logger.error("No deployment node found for device \(device.hostname)")
                     // do some cleanup here
                     continue
@@ -161,7 +169,7 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         logger.notice("Completed deployment.")
     }
     
-    private mutating func setup(for type: String) -> DeviceDiscovery {
+    internal func setup(for type: String) -> DeviceDiscovery {
         let (username, password): (String, String)
         if dryRun {
             username = IoTContext.defaultUsername
@@ -171,7 +179,7 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         }
         
         let discovery = DeviceDiscovery(DeviceIdentifier(type), domain: .local)
-        discovery.actions = [CreateDeploymentDirectoryAction.self] + actionsDict.filter { $0.key.rawValue == type }.compactMap { $1.1 }
+        discovery.actions = [CreateDeploymentDirectoryAction.self] + postActionMapping.filter { $0.key.rawValue == type }.compactMap { $1.1 }
         
         let config: [ConfigurationProperty: Any] = [
             .username: username,
@@ -188,25 +196,93 @@ public struct IoTDeploymentProvider: DeploymentProvider {
     private func run(on node: DeployedSystemNode, device: Device, modelFileUrl: URL) throws {
         let handlerIds: String = node.exportedEndpoints.compactMap { $0.handlerId.rawValue }.joined(separator: ",")
         try IoTContext.runTaskOnRemote(
-            "swift run \(productName) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --handler-ids \(handlerIds)",
+            "swift run \(productName) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)",
             workingDir: self.deploymentDir.path,
             device: device
         )
     }
     
-    private func retrieveDeployedSystem(
-        for postDiscoveryActions: [PostDiscoveryAction.Type],
-        executableUrl: URL,
-        additionalCommands: [String] = []
+    //    private func computeDeployedSystem(
+    //        for postDiscoveryActions: [PostDiscoveryAction.Type]
+    //    ) throws -> (URL, DeployedSystem) {
+    //        // First, check if a local executable exists
+    //        let executablePath = packageRootDir
+    //            .appendingPathComponent(".build")
+    //            .appendingPathComponent("debug")
+    //            .appendingPathComponent(productName)
+    //        if fileManager.fileExists(atPath: executablePath.path) {
+    //            return try retrieveDeployedSystemOnLocalMachine(for: postDiscoveryActions, executableUrl: executablePath)
+    //        }
+    //    }
+    
+    private func copyModelFileToRemote(_ device: Device, localmodelFileUrl: URL) throws {
+        try IoTContext.copyResourcesToRemote(
+            device,
+            origin: localmodelFileUrl.path,
+            destination: IoTContext.rsyncHostname(device, path: deploymentDir.path)
+        )
+    }
+    
+    private func retrieveDeployedSystemOnLocalMachineTmp(
+        deviceID: String,
+        postDiscoveryActions: [PostDiscoveryAction.Type],
+        executableUrl: URL) throws -> (URL, DeployedSystem) {
+            var infos: String = ""
+            let info = deviceID
+                .appending("-")
+                .appending(postActionMapping.values
+                            .map { $0.0.key.rawValue }
+                            .joined(separator: "-")
+                )
+            //                    .appending(result.foundEndDevices
+            //                                .filter { $0.value > 0 }
+            //                                .map { $0.key.rawValue }
+            //                                .joined(separator: "-")
+            //                    )
+                .appending("#")
+            infos.append(contentsOf: info)
+            
+            return try self.retrieveSystemStructure(
+                executableUrl,
+                providerCommand: "iot",
+                additionalCommands:
+                    [
+                        "--info",
+                        infos
+                    ],
+                as: DeployedSystem.self
+            )
+        }
+    
+    private func retrieveDeployedSystemOnLocalMachine(
+        for results: [DiscoveryResult],
+        postDiscoveryActions: [PostDiscoveryAction.Type],
+        executableUrl: URL
     ) throws -> (URL, DeployedSystem) {
-        try self.retrieveSystemStructure(
+        var infos: String = ""
+        
+        for result in results {
+            guard let ipAddress = result.device.ipv4Address else {
+                throw IoTDeploymentError(description: "Unable to initialise system retrieval - ip address not found")
+            }
+            let info = ipAddress
+                .appending("-")
+                .appending(result.foundEndDevices
+                            .filter { $0.value > 0 }
+                            .map { $0.key.rawValue }
+                            .joined(separator: "-")
+                )
+                .appending("#")
+            infos.append(contentsOf: info)
+        }
+        
+        return try self.retrieveSystemStructure(
             executableUrl,
             providerCommand: "iot",
             additionalCommands:
                 [
-                    "--device-ids",
-                    actionsDict.map { _, value in value.0.key.rawValue }.joined(separator: ",")
-//                    postDiscoveryActions.map { $0.identifier.rawValue }.joined(separator: ",")
+                    "--info",
+                    infos
                 ],
             as: DeployedSystem.self
         )
@@ -244,12 +320,12 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         guard let username = configuration.typedValue(for: .username, to: String.self),
               let password = configuration.typedValue(for: .password, to: String.self),
               let ipAddress = device.ipv4Address else {
-            return nil
-        }
-
+                  return nil
+              }
+        
         return try SSHClient(username: username, password: password, ipAdress: ipAddress)
     }
-
+    
     private func copyResourcesToRemote(_ result: DiscoveryResult) throws {
         // we dont need any existing build files because we moving to a different aarch
         if fileManager.directoryExists(atUrl: packageRootDir.appendingPathComponent(".build")) {
@@ -260,7 +336,7 @@ public struct IoTDeploymentProvider: DeploymentProvider {
             origin: packageRootDir.path,
             destination: IoTContext.rsyncHostname(result.device, path: self.deploymentDir.path))
     }
-
+    
     private func buildPackage(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
             "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none --package-path \(self.deploymentDir.path) -c debug --productName \(self.productName)",
@@ -278,21 +354,29 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         )
         
     }
-
-    private func deploymentNode(for result: DiscoveryResult, deployedSystem: DeployedSystem) -> DeployedSystemNode? {
-        // This is crucial and a point of discussion. If one device has multiple end devices connected to it,
-        // we only consider the type with the highest number of connections
-        guard let actualEndDeviceType = result.foundEndDevices.max(by: { $0.value > $1.value })?.key else {
-            return nil
+    
+    private func deploymentNode(for result: DiscoveryResult, deployedSystem: DeployedSystem) throws -> DeployedSystemNode? {
+        guard let ipAddress = result.device.ipv4Address else {
+            throw IoTDeploymentError(description: "Unable to find DeployedSystemNode - ip address was not found")
         }
-        let nodes = deployedSystem.nodes.filter { $0.id == actualEndDeviceType.rawValue }
-        // It is possible that there are no nodes for a result
-        guard !nodes.isEmpty else {
-            return nil
-        }
-        // But if there are nodes, it should be exactly 1
+        let nodes = deployedSystem.nodes.filter { $0.id == ipAddress }
         assert(nodes.count == 1, "There should only be one deployment node per end device")
+        
         return nodes.first
+        
+//        // This is crucial and a point of discussion. If one device has multiple end devices connected to it,
+//        // we only consider the type with the highest number of connections
+//        guard let actualEndDeviceType = result.foundEndDevices.max(by: { $0.value > $1.value })?.key else {
+//            return nil
+//        }
+//        let nodes = deployedSystem.nodes.filter { $0.id == actualEndDeviceType.rawValue }
+//        // It is possible that there are no nodes for a result
+//        guard !nodes.isEmpty else {
+//            return nil
+//        }
+//        // But if there are nodes, it should be exactly 1
+//        assert(nodes.count == 1, "There should only be one deployment node per end device")
+//        return nodes.first
     }
     
     private func readUsernameAndPassword(_ type: String) -> (String, String) {
@@ -304,7 +388,7 @@ public struct IoTDeploymentProvider: DeploymentProvider {
         logger.info("The password for devices of type \(type) :")
         let passw = getpass("")
         return (username!, String(cString: passw!))
-     }
+    }
 }
 
 public extension String {
@@ -313,6 +397,15 @@ public extension String {
     }
 }
 
+private extension Array where Element == DiscoveryResult {
+    func filterPositiveResults() -> [Element] {
+        filter { element in
+            element.foundEndDevices.contains(where: { _, value in
+                value > 0
+            })
+        }
+    }
+}
 
 
 // MARK: - Uncomment when SSHClient allows synchronous calls

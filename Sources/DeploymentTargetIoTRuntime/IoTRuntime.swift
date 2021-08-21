@@ -74,9 +74,12 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
             version: "0.0.1"
         )
     }
+    // deviceId-optionKey...#deviceId-optionKey...
+//    @Option
+//    public var deviceIds: String
     
     @Option
-    public var deviceIds: String
+    public var info: String
     
     @Argument(help: "The location of the json file")
     public var filePath: String = "service-structure.json"
@@ -93,47 +96,40 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
     }
     
     public func retrieveStructure(_ endpoints: Set<CollectedEndpointInfo>, config: DeploymentConfig, app: Application) throws -> AnyDeployedSystem {
-        let deviceIds = deviceIds.split(separator: ",").map { String($0) }
-        print(deviceIds)
-        let optionKeys = deviceIds.map { _ in
-            OptionKey<IoTDeploymentOptionsInnerNamespace, DeploymentDevice>(key: "deploymentDevice")
-        }
+        var endpointsByDeviceId: [String: Set<CollectedEndpointInfo>] = [:]
         
-        let iotDeploymentGroups = deviceIds.map { id -> DeploymentGroup in
-            // find explictly declared deployment groups
-            let possibleDeploymentGroups = config.deploymentGroups.filter { $0.id == id }
-            let allHandlerIds = possibleDeploymentGroups.flatMap { $0.handlerIds }.toSet()
-            let allHandlerTypes = possibleDeploymentGroups.flatMap { $0.handlerTypes }.toSet()
-            // add all types and ids that match into one group
-            let deployGroup = DeploymentGroup(id: id, handlerTypes: allHandlerTypes, handlerIds: allHandlerIds)
-            return deployGroup
-        }
-        var endpointsByDeploymentGroup = [DeploymentGroup: Set<CollectedEndpointInfo>](
-            uniqueKeysWithValues: iotDeploymentGroups.map { ($0, []) }
-        )
-        
-        for endpoint in endpoints {
-            // check if an endpoint has already a matching group
-            let matchingDeploymentGroups = endpointsByDeploymentGroup.keys.filter {
-                $0.matches(exportedEndpointInfo: endpoint) ||
-                endpoint.endpoint[AnyHandlerIdentifier.self].rawValue.contains($0.id)
-            }
+        // Get device info, e.g. ipAddress-options..
+        let deviceInfos: [String] = info.split(separator: "#").map { String($0) }
+        for deviceInfo in deviceInfos {
+            let info = deviceInfo.split(separator: "-").compactMap { String($0) }
+            let ipAddress = info[0]
+            let optionKeys: [String] = Array(info.dropFirst())
+            // init empty array
+            endpointsByDeviceId[ipAddress] = []
             
-            matchingDeploymentGroups.forEach {
-                endpointsByDeploymentGroup[$0]?.insert(endpoint)
+            for endpoint in endpoints {
+                // check if endpoint has a matching deployment option
+                guard !optionKeys.filter({ key in
+                    return endpoint.deploymentOptions.options.contains(where: { $0.key.rawValue == key })
+                }).isEmpty else {
+                    continue
+                }
+
+                endpointsByDeviceId[ipAddress]?.insert(endpoint)
             }
         }
         
-        let nodes: Set<DeployedSystemNode> = try endpointsByDeploymentGroup
-            .map { group, endpoints in
+        let nodes: Set<DeployedSystemNode> = try endpointsByDeviceId
+            .map { deviceId, endpoints in
                 try DeployedSystemNode(
-                    id: group.id,
+                    id: deviceId,
                     exportedEndpoints: endpoints.convert(),
                     userInfo: nil,
                     userInfoType: Null.self
                 )
             }
             .toSet()
+        
         return try DeployedSystem(
             deploymentProviderId: iotDeploymentProviderId,
             nodes: nodes
@@ -162,12 +158,12 @@ public struct IoTStartupCommand<Service: WebService>: DeploymentStartupCommand {
     public var nodeId: String
     
     @Option(help: "All the handler ids that should be activated")
-    public var handlerIds: String
+    public var endpointIds: String
     
     public func run() throws {
         let app = Application()
-        let handlerIds = handlerIds.split(separator: ",").map { String($0) }
-        let lifeCycleHandler = IoTLifeCycleHandler(handlerIds: handlerIds)
+        let endpointIds = endpointIds.split(separator: ",").map { String($0) }
+        let lifeCycleHandler = IoTLifeCycleHandler(endpointIds: endpointIds)
         
         app.lifecycle.use(lifeCycleHandler)
         
@@ -185,9 +181,9 @@ fileprivate extension Array where Element: Hashable {
 }
 
 struct IoTLifeCycleHandler: LifecycleHandler {
-    let handlerIds: [String]
+    let endpointIds: [String]
     
-    func filter(_ endpoints: [AnyEndpoint], app: Application) throws -> [AnyEndpoint] {
-        endpoints.filter { handlerIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
+    func map<IE>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] where IE : InterfaceExporter {
+        [endpoint].filter { endpointIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
     }
 }
