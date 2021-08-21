@@ -7,6 +7,7 @@
 //
 
 import Apodini
+@_implementationOnly import ApodiniOpenAPI
 
 /// Instead of performing authentication or authorization (like the ``Authenticator`` does)
 /// an ``AuthorizationRequirementsChecker`` relies on a previously executed ``Authenticator``
@@ -38,7 +39,7 @@ struct AuthorizationRequirementsChecker<H: Handler, Element: Authenticatable>: H
         if !authenticatable.isAuthorized {
             switch type {
             case .optional:
-                return await try delegate.instance().handle()
+                return try await delegate.instance().handle()
             case .required:
                 throw authenticationRequired
             }
@@ -54,7 +55,7 @@ struct AuthorizationRequirementsChecker<H: Handler, Element: Authenticatable>: H
         switch result {
         case let .fulfilled(cause), let .undecided(cause): // undecided is a acceptance state as well!
             logger.trace("Authorization on Handler \(H.self) succeeded with \(cause())")
-            return await try delegate.instance().handle()
+            return try await delegate.instance().handle()
         case let .rejected(cause):
             logger.debug("Authorization on Handler \(H.self) rejected with \(cause())")
             throw failedAuthorization

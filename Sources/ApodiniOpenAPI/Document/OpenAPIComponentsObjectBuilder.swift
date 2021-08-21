@@ -214,6 +214,13 @@ extension OpenAPIComponentsObjectBuilder {
     }
 }
 
+// MARK: Security Scheme
+extension OpenAPIComponentsObjectBuilder {
+    func addSecurityScheme(key: OpenAPIKit.OpenAPI.ComponentKey, scheme: OpenAPIKit.OpenAPI.SecurityScheme) {
+        componentsObject.securitySchemes[key] = scheme
+    }
+}
+
 // MARK: - Type reflection
 extension OpenAPIComponentsObjectBuilder {
     /// Creates a type tree for a certain type using reflection.

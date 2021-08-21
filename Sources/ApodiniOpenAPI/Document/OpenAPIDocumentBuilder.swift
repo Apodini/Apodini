@@ -24,7 +24,7 @@ struct OpenAPIDocumentBuilder {
     init(configuration: OpenAPI.ExporterConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
+        self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: self.componentsObjectBuilder)
     }
     
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {

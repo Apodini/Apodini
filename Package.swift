@@ -147,6 +147,10 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
@@ -323,7 +327,8 @@ let package = Package(
         .target(
             name: "ApodiniAuthorization",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniOpenAPI")
             ]
         ),
 

@@ -33,7 +33,7 @@ struct OpenAPIPathsObjectBuilder {
     var pathsObject: OpenAPIKit.OpenAPI.PathItem.Map = [:]
     let componentsObjectBuilder: OpenAPIComponentsObjectBuilder
     
-    init(componentsObjectBuilder: inout OpenAPIComponentsObjectBuilder) {
+    init(componentsObjectBuilder: OpenAPIComponentsObjectBuilder) {
         self.componentsObjectBuilder = componentsObjectBuilder
     }
     
@@ -89,7 +89,43 @@ private extension OpenAPIPathsObjectBuilder {
         
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPIKit.OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
-        
+
+
+        let securitySchemes = endpoint[Context.self].get(valueFor: SecurityMetadata.self).mapToOpenAPISecurity(on: endpoint)
+
+        var securityArray: [OpenAPIKit.OpenAPI.SecurityRequirement] = []
+        var requiredSecurityRequirementIndex: Int?
+
+        var requiresAuthentication = false
+
+        // see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#security-requirement-object
+        // all required security is placed in the **same** `SecurityRequirement` object
+        // the list of `SecurityRequirement` it encodes that only one of those is required.
+
+        for (key, description) in securitySchemes {
+            componentsObjectBuilder.addSecurityScheme(key: key, scheme: description.scheme)
+
+            requiresAuthentication = requiresAuthentication || description.required
+
+            if !description.required {
+                securityArray.append([.component(named: key.rawValue): description.scopes])
+                continue
+            }
+
+            if let requiredIndex = requiredSecurityRequirementIndex {
+                securityArray[requiredIndex][.component(named: key.rawValue)] = description.scopes
+            } else {
+                requiredSecurityRequirementIndex = securityArray.count
+                securityArray.append([.component(named: key.rawValue): description.scopes])
+            }
+        }
+
+        if !securityArray.isEmpty && !requiresAuthentication {
+            // OpenAPI represents optional authentication with an empty SecurityRequirement
+            // see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-requirement-object
+            securityArray.append([:])
+        }
+
         return OpenAPIKit.OpenAPI.Operation(
             tags: tags,
             description: endpointDescription,
@@ -97,6 +133,7 @@ private extension OpenAPIPathsObjectBuilder {
             parameters: parameters,
             requestBody: requestBody,
             responses: responses,
+            security: securityArray.isEmpty ? nil : securityArray,
             vendorExtensions: [
                 "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)
             ]
