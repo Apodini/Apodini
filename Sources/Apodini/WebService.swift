@@ -139,7 +139,6 @@ extension WebService {
         metadata.collectMetadata(visitor)
 
         let version = visitor.currentNode.peekValue(for: APIVersionContextKey.self)
-        print("adding \(version) to PathComponentContextKey!!")
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
 
         visitor.visit(webService: self)
