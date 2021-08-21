@@ -23,8 +23,9 @@ extension ApodiniOpenAPI.OpenAPI {
         var termsOfService: URL?
         var contact: OpenAPIKit.OpenAPI.Document.Info.Contact?
         var license: OpenAPIKit.OpenAPI.Document.Info.License?
+        var tags: [OpenAPIKit.OpenAPI.Tag]? // swiftlint:disable:this discouraged_optional_collection
         var externalDocumentation: OpenAPIKit.OpenAPI.ExternalDocumentation?
-        
+
         /// Server configuration.
         var serverUrls: Set<URL> = Set<URL>()
         

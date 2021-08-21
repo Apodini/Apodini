@@ -46,6 +46,7 @@ struct OpenAPIDocumentBuilder {
             },
             paths: pathsObjectBuilder.pathsObject,
             components: componentsObjectBuilder.componentsObject,
+            tags: configuration.tags,
             externalDocs: configuration.externalDocumentation
         )
     }

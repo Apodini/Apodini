@@ -30,6 +30,11 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
 
             TermsOfService(url: URL(string: "https://example.com")!)
 
+            TagDescriptions {
+                TagDescription(name: "authentication", description: "Authentication endpoints.")
+                TagDescription(name: "user", description: "User endpoints.")
+            }
+
             ExternalDocumentation(
                 description: """
                              Further documentation for the `ExampleWebService` is available here.
@@ -83,6 +88,10 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
             servers: [.init(url: URL(string: "http://127.0.0.1:8080")!)],
             paths: [:],
             components: .init(),
+            tags: [
+                .init(name: "authentication", description: "Authentication endpoints."),
+                .init(name: "user", description: "User endpoints.")
+            ],
             externalDocs: .init(
                 description: "Further documentation for the `ExampleWebService` is available here.",
                 url: URL(string: "https://example.com")!

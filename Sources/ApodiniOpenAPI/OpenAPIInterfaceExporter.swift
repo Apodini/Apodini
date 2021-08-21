@@ -83,6 +83,7 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         exporterConfiguration.termsOfService = webService.context.get(valueFor: TermsOfServiceMetadata.self)
         exporterConfiguration.contact = webService.context.get(valueFor: ContactMetadata.self)
         exporterConfiguration.license = webService.context.get(valueFor: LicenseMetadata.self)
+        exporterConfiguration.tags = webService.context.get(valueFor: TagDescriptionMetadata.self)
         exporterConfiguration.externalDocumentation = webService.context.get(valueFor: WebServiceExternalDocumentationMetadata.self)
 
         serveSpecification()
