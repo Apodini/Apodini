@@ -35,13 +35,18 @@ struct OpenAPIDocumentBuilder {
         OpenAPIKit.OpenAPI.Document(
             info: OpenAPIKit.OpenAPI.Document.Info(
                 title: configuration.title ?? "",
+                description: configuration.webServiceDescription,
+                termsOfService: configuration.termsOfService,
+                contact: configuration.contact,
+                license: configuration.license,
                 version: configuration.version ?? ""
             ),
             servers: configuration.serverUrls.map {
                 .init(url: $0)
             },
             paths: pathsObjectBuilder.pathsObject,
-            components: componentsObjectBuilder.componentsObject
+            components: componentsObjectBuilder.componentsObject,
+            externalDocs: configuration.externalDocumentation
         )
     }
 }

@@ -13,10 +13,17 @@ import OpenAPIKit
 
 extension ApodiniOpenAPI.OpenAPI {
     /// A configuration structure for manually setting OpenAPI information and output locations.
-    struct ExporterConfiguration {
+    class ExporterConfiguration {
         /// General OpenAPI information.
         var title: String?
         var version: String?
+
+        // data retrieved from web service metadata declarations
+        var webServiceDescription: String?
+        var termsOfService: URL?
+        var contact: OpenAPIKit.OpenAPI.Document.Info.Contact?
+        var license: OpenAPIKit.OpenAPI.Document.Info.License?
+        var externalDocumentation: OpenAPIKit.OpenAPI.ExternalDocumentation?
         
         /// Server configuration.
         var serverUrls: Set<URL> = Set<URL>()

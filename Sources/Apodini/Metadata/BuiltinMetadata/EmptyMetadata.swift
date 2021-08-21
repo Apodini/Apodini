@@ -7,27 +7,27 @@
 //              
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `EmptyHandlerMetadata`
+    /// Name definition for the `EmptyHandlerMetadata`
     public typealias Empty = EmptyHandlerMetadata
 }
 
 extension ComponentOnlyMetadataNamespace {
-    /// Name Definition for the `EmptyComponentOnlyMetadata`
+    /// Name definition for the `EmptyComponentOnlyMetadata`
     public typealias Empty = EmptyComponentOnlyMetadata
 }
 
 extension WebServiceMetadataNamespace {
-    /// Name Definition for the `EmptyWebServiceMetadata`
+    /// Name definition for the `EmptyWebServiceMetadata`
     public typealias Empty = EmptyWebServiceMetadata
 }
 
 extension ContentMetadataNamespace {
-    /// Name Definition for the `EmptyContentMetadata`
+    /// Name definition for the `EmptyContentMetadata`
     public typealias Empty = EmptyContentMetadata
 }
 
 extension ComponentMetadataBlockNamespace {
-    /// Name Definition for the `EmptyComponentMetadata`
+    /// Name definition for the `EmptyComponentMetadata`
     public typealias Empty = EmptyComponentMetadata
 }
 
