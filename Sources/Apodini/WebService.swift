@@ -10,9 +10,6 @@ import Foundation
 import Logging
 import ArgumentParser
 
-/// A fileprivate property of a `CommandConfiguration`. This has to be a variable and has to be declared outside of `WebService`
-/// to allow to add subcommands after its initialization
-private var config = CommandConfiguration()
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
@@ -82,14 +79,17 @@ extension WebService {
         try Self.start(mode: .run, webService: self)
     }
     
-    /// Performing custom operation to the `CommandConfiguration` using an instance of `WebService`.
-    public func validate() throws {
-        config.subcommands = self.configuration._commands
-    }
-    
-    /// The command configuration of the `ParsableCommand`
+    /// The command configuration of the `ParsableCommand`.
+    /// The default value depends if there are arguments or options specified in the web service.
+    /// If so, it contains the default empty configuration.
+    /// If not, it automatically adds the commands of the specified `Configurations` as sub command.
     public static var configuration: CommandConfiguration {
-        config
+        let mirror = Mirror(reflecting: Self())
+        if mirror.children.isEmpty {
+            return CommandConfiguration(subcommands: Self().configuration._commands)
+        } else {
+            return CommandConfiguration()
+        }
     }
     
     /// This function is executed to start up an Apodini `WebService`
