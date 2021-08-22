@@ -44,7 +44,7 @@ public protocol InformationInstantiatable: AnyInformation {
     /// - Returns: The merged ``InformationInstantiatable`` instance.
     func merge(with information: Self) -> Self
 
-    /// Enables developers to directly access properties of the ``value``
+    /// Enables developers to directly access properties of the `value`
     /// property using the ``InformationInstantiatable``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Member { get }
 }
