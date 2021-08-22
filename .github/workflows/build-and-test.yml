@@ -34,7 +34,7 @@ jobs:
       run: swift --version
     - name: Test Generating Docs
       run: |
-          xcodebuild docbuild -scheme Apodini -destination platform=macOS,arch=x86_64 -derivedDataPath ./.xcodebuild
+          xcodebuild docbuild -scheme Apodini-Package -destination platform=macOS,arch=x86_64 -derivedDataPath ./.xcodebuild
           cp -r $(find ./.xcodebuild -type d -name 'Apodini.doccarchive') ./Apodini.doccarchive
           echo "The DocC archive can be found at ./Apodini.doccarchive"
 #  macos:
