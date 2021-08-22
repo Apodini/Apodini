@@ -30,53 +30,103 @@ public extension WebService {
 }
 
 extension WebService {
-    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instantiated `WebService` containing CLI arguments
+    /// Overrides  the `main()` method of `ParsableCommand` from the Swift ArgumentParser
+    /// Store the values of wrapped properties in the `WebService` (eg. `@Environment`)  before parsing the CLI arguments and then restore the saved values after the parsing is finished
+    public static func main(_ arguments: [String]? = nil) {     // swiftlint:disable:this discouraged_optional_collection
+        let mirror = Mirror(reflecting: Self())
+        var propertyStore: [String: ArgumentParserStoreable] = [:]
+        
+        // Backup of property wrapper values
+        for child in mirror.children {
+            if let property = child.value as? ArgumentParserStoreable {
+                guard let label = child.label else {
+                    fatalError("Label of the to be stored property couldn't be read!")
+                }
+                
+                property.store(in: &propertyStore, keyedBy: label)
+            }
+        }
+        
+        do {
+            // Parse the CLI arguments
+            var command = try parseAsRoot(arguments)
+            
+            let mirror = Mirror(reflecting: command)
+            
+            // Restore property wrapper values
+            for child in mirror.children {
+                if let property = child.value as? ArgumentParserStoreable {
+                    guard let label = child.label else {
+                        fatalError("Label of the to be stored property couldn't be read!")
+                    }
+                    
+                    property.restore(from: propertyStore, keyedBy: label)
+                }
+            }
+            
+            // Start the webservice
+            try command.run()
+        } catch {
+            exit(withError: error)
+        }
+    }
+}
+
+extension WebService {
+    /// This function is executed to start up an Apodini `WebService`, called on an instantiated `WebService` containing the parsed CLI arguments
     public mutating func run() throws {
-        try Self.start(webService: self)
+        try Self.start(mode: .run, webService: self)
+    }
+    
+    /// The command configuration of the `ParsableCommand`
+    public static var configuration: CommandConfiguration {
+        CommandConfiguration(subcommands: Self().configuration._commands)
     }
     
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
-    ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
-    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instantiated by the Swift ArgumentParser, automatically create a default instance
+    ///    - mode: The `WebServiceExecutionMode` in which the web service is executed in. Defaults to `.run`, meaning the web service is ran normally and able to handle requests.
+    ///    - app: The instanciated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
+    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
-    static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
-        let app = Application()
-        LoggingSystem.bootstrap(StreamLogHandler.standardError)
-
-        start(app: app, webService: webService)
+    public static func start(
+        mode: WebServiceExecutionMode,
+        app: Application = Application(),
+        webService: Self = Self()
+    ) throws -> Application {
+        var webServiceCopy = webService
+        /// Inject the `Application` instance to allow access to it via the `@Environment` property wrapper
+        Apodini.inject(app: app, to: &webServiceCopy)
+        Apodini.activate(&webServiceCopy)
         
-        guard waitForCompletion else {
+        webServiceCopy.start(app: app)
+        
+        switch mode {
+        case .startup:
+            return app
+        case .boot:
             try app.boot()
             return app
+        case .run:
+            defer { app.shutdown() }
+            try app.run()
+            return app
         }
-
-        defer {
-            app.shutdown()
-        }
-
-        try app.run()
-        return app
     }
     
-
-     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
-     /// - Parameters:
-     ///    - app: The app instance that should be injected in the Apodini `WebService`
-     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
-    static func start(app: Application, webService: Self = Self()) {
+    
+    /// Start up a web service using the specified application. Does not boot or run the web service. Intended primarily for testing purposes.
+    func start(app: Application) {
         /// Configure application and instanciate exporters
-        webService.configuration.configure(app)
+        self.configuration.configure(app)
         
         // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
         if app.http.address == nil {
             app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
         }
         
-        webService.register(
-            SemanticModelBuilder(app)
-        )
+        self.register(SemanticModelBuilder(app))
     }
     
     
@@ -106,4 +156,17 @@ extension WebService {
             }.accept(visitor)
         }
     }
+}
+
+
+/// Specifies the mode in which the web service is executed in.
+public enum WebServiceExecutionMode {
+    /// Runs the configurations and the semantic model builder. It also boots the web service.
+    /// Enters the runloop afterwards.
+    case run
+    /// Runs the configurations and the semantic model builder. It exits afterwards.
+    case startup
+    /// Runs the configurations and the semantic model builder and boots the web service.
+    /// It exits afterwards.
+    case boot
 }

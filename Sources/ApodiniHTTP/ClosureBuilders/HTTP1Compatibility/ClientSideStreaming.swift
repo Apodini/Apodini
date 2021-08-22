@@ -24,7 +24,7 @@ extension Exporter {
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
             
-        let factory = endpoint[DelegateFactory<H>.self]
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {

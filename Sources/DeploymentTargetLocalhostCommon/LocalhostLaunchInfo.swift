@@ -8,7 +8,7 @@
 
 import Foundation
 import ApodiniDeployBuildSupport
-
+import OpenAPIKit
 
 /// Identifier of the localhost deployment provider.
 public let localhostDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.Localhost")
@@ -19,5 +19,23 @@ public struct LocalhostLaunchInfo: Codable {
     
     public init(port: Int) {
         self.port = port
+    }
+}
+
+public struct LocalhostDeployedSystem: AnyDeployedSystem {
+    public var deploymentProviderId: DeploymentProviderID
+    
+    public var nodes: Set<DeployedSystemNode>
+    
+    public var openApiDocument: OpenAPI.Document
+    
+    public init(
+        deploymentProviderId: DeploymentProviderID,
+        nodes: Set<DeployedSystemNode>,
+        openApiDocument: OpenAPI.Document
+    ) {
+        self.deploymentProviderId = deploymentProviderId
+        self.nodes = nodes
+        self.openApiDocument = openApiDocument
     }
 }

@@ -35,14 +35,24 @@ private struct TestComponent: Component {
             TestVoidHandlerMetadata()
         }
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
-        WebServiceVoids {
-            TestVoidWebServiceMetadata()
-        }
-
         // error: no exact matches in call to static method 'buildExpression'
         ContentVoids {
             TestVoidContentMetadata()
+        }
+    }
+}
+
+private struct TestComponent2: Component {
+    var content: some Component {
+        Text("Hello World!")
+    }
+
+    var metadata: Metadata {
+        TestVoidComponentOnlyMetadata()
+
+        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        WebServiceVoids {
+            TestVoidWebServiceMetadata()
         }
     }
 }

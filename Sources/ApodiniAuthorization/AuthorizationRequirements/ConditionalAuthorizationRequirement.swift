@@ -87,14 +87,14 @@ public extension ConditionalAuthorizationRequirement {
 
     /// Creates an ``AuthorizationCondition`` which evaluates to `true` if the `Bool` property
     /// pointed to by the `KeyPath` holds the value `true`.
-    /// - Parameter keyPath: The `KeyPath`.
+    /// - Parameter boolKeyPath: The `KeyPath`.
     init(if boolKeyPath: KeyPath<Element, Bool>) {
         self.init(if: AuthorizationCondition { instance in instance[keyPath: boolKeyPath] })
     }
 
     /// Creates an ``AuthorizationCondition`` which evaluates to `true` if the `Bool` property
     /// pointed to by the `KeyPath` holds the value `false`.
-    /// - Parameter keyPath: The `KeyPath`.
+    /// - Parameter boolKeyPath: The `KeyPath`.
     init(ifNot boolKeyPath: KeyPath<Element, Bool>) {
         self.init(if: AuthorizationCondition { instance in !instance[keyPath: boolKeyPath] })
     }

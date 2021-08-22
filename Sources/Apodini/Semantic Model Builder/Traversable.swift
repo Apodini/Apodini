@@ -10,6 +10,18 @@ import Foundation
 import NIO
 @_implementationOnly import Runtime
 
+// MARK: Get All
+func getAll<Element, T>(of type: T.Type = T.self, from subject: Element) -> [(String, T)] {
+    var result: [(String, T)] = []
+    
+    execute({ (property: T, label: String) in
+        result.append((label, property))
+    }, on: subject)
+    
+    return result
+}
+
+
 // MARK: ObservableObject
 
 /// Collects  every `ObservedObject` in the Handler.
@@ -34,13 +46,7 @@ public func activate<Element>(_ subject: inout Element) {
 
 // MARK: AnyParameter
 func extractParameters<Element>(from subject: Element) -> [(String, AnyParameter)] {
-    var result: [(String, AnyParameter)] = []
-    
-    execute({ (parameter: AnyParameter, label: String) in
-        result.append((label, parameter))
-    }, on: subject)
-    
-    return result
+    getAll(of: AnyParameter.self, from: subject)
 }
 
 extension Apodini.Request {

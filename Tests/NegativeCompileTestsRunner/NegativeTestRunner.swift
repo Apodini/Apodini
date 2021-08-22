@@ -12,10 +12,6 @@ import XCTest
 
 class XCTBootstrap: XCTestCase {
     func testRunner() throws {
-        throw XCTSkip("""
-            The NegativeTests are failing since Xcode 13 Beta 5.
-            @Supereg will take a look at this as noted here: https://github.com/Apodini/Apodini/pull/326#issuecomment-899036636
-        """)
         print("Bootstrapping negative test runner...")
         let runner = try NegativeTestRunner()
 

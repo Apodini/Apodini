@@ -17,7 +17,6 @@ public struct Authorization: HTTPInformation {
 
     public let value: Value
 
-
     public var rawValue: String {
         value.rawValue
     }
