@@ -2,6 +2,16 @@
 
 This target provides helpful tools for building Apodini `InterfaceExporter`s. These types are not relevant for building a `WebService`.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 Building an `InterfaceExporter` consists of three tasks. Building the correct _semantic model_, implementing the runtime-components according to the semantic model and wrapping everything in a `Configuration`. Currently, `ApodiniExtension` only includes support for the second task.

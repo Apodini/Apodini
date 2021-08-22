@@ -2,6 +2,16 @@
 
 Usually endpoints only handle one request and answer with one response. However, in certain cases, this is not enough. Apodini sets no restrictions on this.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 Apodini's API for handling requests is the ``Handler`` protocol. And that doesn't change if you want to get more than a single request-response cycle. Apodini defines a special ``Response`` type and additional ``Property``s to help you in achieving exactly the behavior you want.

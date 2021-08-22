@@ -2,6 +2,16 @@
 
 This chapter introduces you to the most important building blocks of an Apodini web service.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 An Apodini ``WebService`` consists of two parts. The `configuration` and the `content`. The former contains ``Configuration`` elements, which allow for modifying the ``Application``, i.e. the backbone of the ``WebService``.

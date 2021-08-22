@@ -2,6 +2,16 @@
 
 Despite its declarative nature, Apodini's API is really flexible and enables you to build reusable components on many different levels.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 There are a couple of primitives in Apodini that enable you to custom elements that can be easily composed to create new, unique functionality.

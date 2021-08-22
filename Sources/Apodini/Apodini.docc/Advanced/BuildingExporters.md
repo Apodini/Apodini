@@ -2,6 +2,16 @@
 
 Writing a web service with Apodini is easy - as long as there are ``InterfaceExporter``s suitable for your purposes. If that is not the case, you might need to adapt one, or build a new one.
 
+<!--
+                  
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+             
+-->
+
 ## Overview
 
 Implementing an exporter package consists of three tasks. Firstly you have to define the _semantic model_ of your exporter. In this step, you basically gather knowledge about the ``WebService`` defined by the developer using your exporter. Then you analyze this knowledge and decide, how you want to represent the ``WebService`` in your exporter's middleware format. Finally, you end up with an exact description on how the runtime-components of your exporter have to be built so that they behave correctly at runtime. See the article <doc:Semantic-Model> for more details.
