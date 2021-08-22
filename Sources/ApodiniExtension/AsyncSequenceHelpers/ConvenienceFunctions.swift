@@ -36,7 +36,7 @@ public extension AsyncSequence {
     func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         
-        promise.completeWithTask {
+        promise.completeWithAsync {
             try await self.first(where: { _ in true })
         }
     
