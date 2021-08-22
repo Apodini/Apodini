@@ -8,8 +8,14 @@
 
 import protocol NIO.EventLoop
 
-/// This is the base protocol shared by any Exporter type supported by Apodini. Any Interface Exporter
-/// creating an accessible WebService or a WebService specification document must conform to this protocol.
+
+/// An ``InterfaceExporter`` is a type which requires access to the web service's structure and
+/// internals.
+///
+/// Most ``InterfaceExporter``s use this information to provide clients access to the web service's
+/// application logic via some middleware/protocol. Other exporters just publish a specification-document
+/// of the same web service. Finally, ``InterfaceExporter`` can also - to some extent - manipulate
+/// how the web service is perceived by other ``InterfaceExporter``s.
 public protocol InterfaceExporter {
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
