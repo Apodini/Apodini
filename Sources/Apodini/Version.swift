@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
-/// A `Version` can be  used to specify the version of a Web API using semantic versioning
+/// A ``Version`` can be  used to specify the version of a Web API using semantic versioning.
+/// The ``Version`` is specified via the ``WebServiceMetadataNamespace/Version`` Metadata.
 public struct Version: Decodable {
     /// Default values for a `Version`
     public enum Defaults {
@@ -64,6 +65,9 @@ extension Version: CustomDebugStringConvertible {
     }
 }
 
-public struct APIVersionContextKey: OptionalContextKey {
-    public typealias Value = Version
+public extension Version {
+    /// SemVer string representation of the ``Version``.
+    var semVerString: String {
+        "\(major).\(minor).\(patch)"
+    }
 }
