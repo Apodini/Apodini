@@ -72,9 +72,9 @@ extension WebService {
     }
 }
 
-// Use to determine the first pass of the determination of the `CommandConfiguration`
+/// Used to determine the first pass of the determination of the `CommandConfiguration`.
 private var _firstParse = true
-// Caches the calculated `CommandConfiguration` of a `WebService` after the initial execution
+/// Caches the calculated `CommandConfiguration` of a `WebService` after the initial execution.
 private var _configuration: CommandConfiguration?
 
 extension WebService {
@@ -85,26 +85,26 @@ extension WebService {
     
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
-        if let cachedConfiguration = _configuration { // Return the cached configuration if one is present
+        if let cachedConfiguration = _configuration { // Return the cached configuration if one is present.
             return cachedConfiguration
         }
         
-        if !_firstParse { // We check if we are past the first call of this computed property so we don't run into an infinite call cycle
+        if !_firstParse { // We check if we are past the first call of this computed property, so we don't run into an infinite call cycle.
             return CommandConfiguration()
         }
         
         _firstParse = false
-        // We drop the path of the executable which is always the first argument
+        // We drop the path of the executable, which is always the first argument.
         let arguments = Array(CommandLine.arguments.dropFirst())
         
-        // This function is needed to correctly handle calls to subcommands.
-        // E.g. we have the following setup. We have a `test` subcommand with one arguemtn and a port argument for the main web service
-        // A call to the subcommand would result in the follwing arguments array:
-        // ["--port", "90", "test", "--test", "12"]
+        // This function is needed to handle calls to subcommands correctly.
+        // E.g., we have the following setup. We have a `test` subcommand with one argument and a port argument for the main web service.
+        // A call to the subcommand would result in the following arguments array:
+        //   ["--port", "90", "test", "--test", "12"]
         // down to
-        // ["--port", "90"]
-        // which is successful as port is the only argument
-        // We can then extract the subcommands and pass this to the configuration below
+        //   ["--port", "90"]
+        // which is successful as the port is the only argument.
+        // We can then extract the subcommands and pass this to the configuration below.
         func parseAutomaticSubcommands(arguments: [String]) -> [ParsableCommand.Type] {
             do {
                 print(arguments)
@@ -119,8 +119,8 @@ extension WebService {
             }
         }
         
-        // Create a new configuration with the subcommands in place
-        // All subsequent calls of the computed porperty use the cached version including all collected subcommands
+        // Create a new configuration with the subcommands in place.
+        // All subsequent calls of the computed property use the cached version, including all collected subcommands.
         let subcommands = parseAutomaticSubcommands(arguments: arguments)
         _configuration = CommandConfiguration(subcommands: subcommands)
         return _configuration! // swiftlint:disable:this
