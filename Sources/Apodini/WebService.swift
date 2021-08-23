@@ -72,6 +72,11 @@ extension WebService {
     }
 }
 
+// Use to determine the first pass of the determination of the `CommandConfiguration`
+private var _firstParse = true
+// Caches the calculated `CommandConfiguration` of a `WebService` after the initial execution
+private var _configuration: CommandConfiguration?
+
 extension WebService {
     /// This function is executed to start up an Apodini `WebService`, called on an instantiated `WebService` containing the parsed CLI arguments
     public mutating func run() throws {
@@ -80,7 +85,45 @@ extension WebService {
     
     /// The command configuration of the `ParsableCommand`
     public static var configuration: CommandConfiguration {
-        CommandConfiguration(subcommands: Self().configuration._commands)
+        if let cachedConfiguration = _configuration { // Return the cached configuration if one is present
+            return cachedConfiguration
+        }
+        
+        if !_firstParse { // We check if we are past the first call of this computed property so we don't run into an infinite call cycle
+            return CommandConfiguration()
+        }
+        
+        _firstParse = false
+        // We drop the path of the executable which is always the first argument
+        let arguments = Array(CommandLine.arguments.dropFirst())
+        
+        // This function is needed to correctly handle calls to subcommands.
+        // E.g. we have the following setup. We have a `test` subcommand with one arguemtn and a port argument for the main web service
+        // A call to the subcommand would result in the follwing arguments array:
+        // ["--port", "90", "test", "--test", "12"]
+        // down to
+        // ["--port", "90"]
+        // which is successful as port is the only argument
+        // We can then extract the subcommands and pass this to the configuration below
+        func parseAutomaticSubcommands(arguments: [String]) -> [ParsableCommand.Type] {
+            do {
+                print(arguments)
+                return try Self.parse(arguments).configuration._commands
+            } catch {
+                if arguments.isEmpty {
+                    return []
+                } else {
+                    let newArguments = Array(arguments.dropLast())
+                    return parseAutomaticSubcommands(arguments: newArguments)
+                }
+            }
+        }
+        
+        // Create a new configuration with the subcommands in place
+        // All subsequent calls of the computed porperty use the cached version including all collected subcommands
+        let subcommands = parseAutomaticSubcommands(arguments: arguments)
+        _configuration = CommandConfiguration(subcommands: subcommands)
+        return _configuration! // swiftlint:disable:this
     }
     
     /// This function is executed to start up an Apodini `WebService`
