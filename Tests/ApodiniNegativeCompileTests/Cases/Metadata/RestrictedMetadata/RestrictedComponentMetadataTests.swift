@@ -20,14 +20,14 @@ private struct TestComponent: Component {
             TestVoidComponentMetadata()
 
             // error: No exact matches in call to static method 'buildExpression'
-            Description("Hello World!")
+            TestVoidComponentOnlyMetadata()
         }
 
         ComponentOnlyVoids {
             TestVoidComponentOnlyMetadata()
 
             // error: No exact matches in call to static method 'buildExpression'
-            Description("Hello World!")
+            TestVoidComponentMetadata()
         }
 
         // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'

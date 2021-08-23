@@ -23,8 +23,6 @@ final class OperationModifierTests: ApodiniTests {
     }
 
     struct TestWebService: WebService {
-        var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
-        
         var content: some Component {
             Group("default") {
                 Text("Read")
@@ -43,6 +41,10 @@ final class OperationModifierTests: ApodiniTests {
                     .operation(.create)
                     .operation(.read)
             }
+        }
+
+        var metadata: Metadata {
+            Version(prefix: "version", major: 3, minor: 2, patch: 4)
         }
 
         var configuration: Configuration {

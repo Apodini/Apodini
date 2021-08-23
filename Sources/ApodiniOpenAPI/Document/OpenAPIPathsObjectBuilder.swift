@@ -76,7 +76,7 @@ private extension OpenAPIPathsObjectBuilder {
         let tags: [String] = endpoint[Context.self].get(valueFor: TagContextKey.self) ?? [defaultTag]
         
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
+        let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
 
         // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description

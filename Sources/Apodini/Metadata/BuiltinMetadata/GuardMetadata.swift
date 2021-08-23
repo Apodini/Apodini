@@ -7,7 +7,7 @@
 //              
 
 public extension TypedHandlerMetadataNamespace {
-    /// Name Definition for the ``GuardMetadata``
+    /// Name definition for the ``GuardMetadata``
     typealias Guarded = GuardMetadata<Self>
 }
 
@@ -34,7 +34,7 @@ public struct GuardMetadata<H: Handler>: HandlerMetadataDefinition, DefinitionWi
 
 
 public extension HandlerMetadataNamespace {
-    /// Name Definition for the ``ResetGuardsMetadata``
+    /// Name definition for the ``ResetGuardsMetadata``
     typealias ResetGuards = ResetGuardsMetadata
 }
 

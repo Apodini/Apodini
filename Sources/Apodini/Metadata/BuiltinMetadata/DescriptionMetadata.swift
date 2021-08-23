@@ -6,7 +6,11 @@
 // SPDX-License-Identifier: MIT
 //              
 
-public struct DescriptionContextKey: OptionalContextKey {
+public struct WebServiceDescriptionContextKey: OptionalContextKey {
+    public typealias Value = String
+}
+
+public struct HandlerDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
@@ -16,28 +20,56 @@ public struct ContentDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
-extension ComponentMetadataNamespace {
-    /// Name Definition for the `DescriptionMetadata`
-    public typealias Description = DescriptionMetadata
+
+extension WebServiceMetadataNamespace {
+    /// Name definition for the ``WebServiceDescriptionMetadata``
+    public typealias Description = WebServiceDescriptionMetadata
+}
+
+extension HandlerMetadataNamespace {
+    /// Name definition for the ``HandlerDescriptionMetadata``
+    public typealias Description = HandlerDescriptionMetadata
 }
 
 extension ContentMetadataNamespace {
-    /// Name Definition for the `ContentDescriptionMetadata`
+    /// Name definition for the ``ContentDescriptionMetadata``
     public typealias Description = ContentDescriptionMetadata
 }
 
-/// The `DescriptionMetadata` can be used to add a Description to a `Component`.
-/// The Metadata is available under the `ComponentMetadataNamespace.Description` name and can be used like the following:
+
+/// The ``WebServiceDescriptionMetadata`` can be used to add a Description to a ``WebService``.
+///
+/// The Metadata is available under the ``WebServiceMetadataNamespace/Description`` name and can be used like the following:
 /// ```swift
-/// struct ExampleComponent: Component {
+/// struct ExampleWebService: WebService {
 ///     // ...
 ///     var metadata: Metadata {
 ///         Description("Example Description")
 ///     }
 /// }
 /// ```
-public struct DescriptionMetadata: ComponentMetadataDefinition {
-    public typealias Key = DescriptionContextKey
+public struct WebServiceDescriptionMetadata: WebServiceMetadataDefinition {
+    public typealias Key = WebServiceDescriptionContextKey
+    public let value: String
+
+    public init(_ description: String) {
+        self.value = description
+    }
+}
+
+/// The ``HandlerDescriptionMetadata`` can be used to add a Description to a ``Handler``.
+///
+/// The Metadata is available under the ``HandlerMetadataNamespace/Description`` name and can be used like the following:
+/// ```swift
+/// struct ExampleHandler: Handler {
+///     // ...
+///     var metadata: Metadata {
+///         Description("Example Description")
+///     }
+/// }
+/// ```
+public struct HandlerDescriptionMetadata: HandlerMetadataDefinition {
+    public typealias Key = HandlerDescriptionContextKey
     public let value: String
 
     /// Creates a new Description Metadata
@@ -47,8 +79,9 @@ public struct DescriptionMetadata: ComponentMetadataDefinition {
     }
 }
 
-/// The `ContentDescriptionMetadata` can be used to add a Description to a `Content`.
-/// The Metadata is available under the `ContentMetadataNamespace.Description` name and can be used like the following:
+/// The ``ContentDescriptionMetadata`` can be used to add a Description to a ``Content``.
+///
+/// The Metadata is available under the ``ContentMetadataNamespace/Description`` name and can be used like the following:
 /// ```swift
 /// struct ExampleContent: Content {
 ///     // ...
@@ -69,20 +102,11 @@ public struct ContentDescriptionMetadata: ContentMetadataDefinition {
 }
 
 
-extension Component {
-    /// A `description` Modifier can be used to specify the `DescriptionMetadata` via a `Modifier`.
-    /// - Parameter description: The description used for the `Component`.
-    /// - Returns: The modified `Component` with the `DescriptionMetadata` added.
-    public func description(_ description: String) -> ComponentMetadataModifier<Self> {
-        ComponentMetadataModifier(modifies: self, with: DescriptionMetadata(description))
-    }
-}
-
 extension Handler {
     /// A `description` Modifier can be used to specify the `DescriptionMetadata` via a `HandlerModifier`.
     /// - Parameter description: The `description` that is used to for the `Handler`.
     /// - Returns: The modified `Handler` with the `DescriptionMetadata` added.
     public func description(_ value: String) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: DescriptionMetadata(value))
+        HandlerMetadataModifier(modifies: self, with: HandlerDescriptionMetadata(value))
     }
 }

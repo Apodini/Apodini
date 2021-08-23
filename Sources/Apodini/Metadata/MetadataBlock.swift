@@ -230,27 +230,27 @@ extension ContentMetadataBlock {
 }
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `StandardHandlerMetadataBlock`
+    /// Name definition for the `StandardHandlerMetadataBlock`
     public typealias Block = StandardHandlerMetadataBlock
 }
 
 extension ComponentOnlyMetadataNamespace {
-    /// Name Definition for the `StandardComponentOnlyMetadataBlock`
+    /// Name definition for the `StandardComponentOnlyMetadataBlock`
     public typealias Block = StandardComponentOnlyMetadataBlock
 }
 
 extension WebServiceMetadataNamespace {
-    /// Name Definition for the `StandardWebServiceMetadataBlock`
+    /// Name definition for the `StandardWebServiceMetadataBlock`
     public typealias Block = StandardWebServiceMetadataBlock
 }
 
 extension ComponentMetadataNamespace {
-    /// Name Definition for the `StandardComponentMetadataBlock`
+    /// Name definition for the `StandardComponentMetadataBlock`
     public typealias Block = StandardComponentMetadataBlock
 }
 
 extension ContentMetadataNamespace {
-    /// Name Definition for the `StandardContentMetadataBlock`
+    /// Name definition for the `StandardContentMetadataBlock`
     public typealias Block = StandardContentMetadataBlock
 }
 
