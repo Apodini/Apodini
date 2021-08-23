@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ContextNode.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import ApodiniUtils
@@ -146,10 +147,19 @@ class ContextNode {
     private func peekExportEntry<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> AnyContextEntry? {
         let id = ObjectIdentifier(contextKey)
 
+        var storedEntries = self.storedEntries[id]
+
+        for (key, value) in currentWorkingSet where key == id {
+            if storedEntries != nil {
+                storedEntries!.add(entry: value, derivedFromModifier: parsingModifier)
+            } else {
+                storedEntries = value.deriveCollection(entry: value, derivedFromModifier: parsingModifier)
+            }
+        }
+
         return [
             parentContextNode?.peekExportEntry(for: contextKey)?.filterLocalValues(),
-            storedEntries[id]?.joined(),
-            currentWorkingSet[id]
+            storedEntries?.joined()
         ]
             .compactMap { $0 }
             .reduceIntoFirst { first, entry in

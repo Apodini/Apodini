@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  DecodingStrategy.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 28.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -76,7 +77,7 @@ private struct SomeDecodingStrategyCaller<S: DecodingStrategy>: DecodingStrategy
 /// and a parent ``DecodingStrategy`` with ``DecodingStrategy/Input`` type `I`.
 ///
 /// This strategy allows for reuse of ``DecodingStrategy`` with a more basic ``DecodingStrategy/Input`` than
-/// the one you are acutally using. E.g. many of the predefined strategies have input type `Data`.
+/// the one you are actually using. E.g. many of the predefined strategies have input type `Data`.
 /// If your input type is a complete request, you can probably reuse those predefined strategies by extracting the body
 /// from the request.
 public struct TransformingStrategy<S: DecodingStrategy, I>: DecodingStrategy {

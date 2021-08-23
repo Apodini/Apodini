@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  BindingTests.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Max Obermeier on 24.02.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -45,8 +46,8 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
             self.delegate = Delegate(delegate)
         }
         
-        func handle() throws -> H.Response {
-            try delegate.environmentObject(language)().handle()
+        func handle() async throws -> H.Response {
+            try await delegate.environmentObject(language).instance().handle()
         }
     }
     

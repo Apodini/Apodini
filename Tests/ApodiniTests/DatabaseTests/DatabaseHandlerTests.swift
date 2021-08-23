@@ -1,10 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 @testable import Apodini
 @testable import ApodiniDatabase
 @testable import ApodiniREST
 @_implementationOnly import Runtime
 import Vapor
 import XCTApodini
-
 
 final class DatabaseHandlerTests: ApodiniTests {
     var vaporApp: Vapor.Application {

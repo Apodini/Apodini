@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  CustomComponentTest.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Paul Schmiedmayer on 6/27/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 @testable import ApodiniVaporSupport
@@ -11,7 +12,6 @@
 @testable import ApodiniREST
 import XCTVapor
 import XCTApodini
-
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
@@ -59,7 +59,7 @@ final class CustomComponentTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         
         let headers: HTTPHeaders = ["Content-Type": "application/json"]

@@ -1,15 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  OperationModifierTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 1/2/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTVapor
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniREST
-
 
 final class OperationModifierTests: ApodiniTests {
     struct HelloWorldHandler: Handler {
@@ -52,7 +52,7 @@ final class OperationModifierTests: ApodiniTests {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
     }
     
     func testRESTOperationModifier() throws {

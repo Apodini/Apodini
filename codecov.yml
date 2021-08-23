@@ -1,3 +1,11 @@
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
 ignore:
 - "Tests"
 - "TestWebService"
@@ -5,6 +13,9 @@ ignore:
 - "Sources/Apodini/Components/ComponentBuilder.swift"
 - "Sources/Apodini/Components/NeverExtensions"
 - "Sources/Apodini/Relationships/RelationshipIdentificationBuilder.swift"
+- "Sources/ApodiniDeployTestWebService"
+- "Sources/DeploymentTargetAWSLambda"
+- "Sources/DeploymentTargetLocalhost"
 
 codecov:
   require_ci_to_pass: yes

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  EndToEndTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 01.07.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTApodini
 import ApodiniVaporSupport
@@ -11,8 +12,6 @@ import Vapor
 import ApodiniHTTP
 @testable import Apodini
 import XCTVapor
-import OpenCombine
-
 
 class EndToEndTests: XCTApodiniTest {
     override func setUpWithError() throws {
@@ -40,9 +39,17 @@ class EndToEndTests: XCTApodiniTest {
         @Parameter(.http(.path)) var name: String
         
         @Parameter(.http(.query)) var greeting: String?
-
-        func handle() -> Blob {
-            Blob("\(greeting ?? "Hello"), \(name)!".data(using: .utf8)!)
+        
+        
+        var metadata: Metadata {
+            Pattern(.requestResponse)
+        }
+        
+        func handle() -> Apodini.Response<Blob> {
+            Response.send(
+                Blob(Data("\(greeting ?? "Hello"), \(name)!".utf8), type: .text(.plain)),
+                information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
+            )
         }
     }
 
@@ -74,6 +81,7 @@ class EndToEndTests: XCTApodiniTest {
                 return .send("\(start - counter)...")
             }
         }
+        
         
         var metadata: AnyHandlerMetadata {
             Pattern(.serviceSideStream)
@@ -232,11 +240,15 @@ class EndToEndTests: XCTApodiniTest {
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Paul", body: nil) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.body.string, "Hello, Paul!")
+            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
         }
         
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Andi?greeting=Wuzzup", body: nil) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.body.string, "Wuzzup, Andi!")
+            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
+            XCTAssertEqual(response.headers["Test"].first, "Test")
         }
     }
 }

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ComponentTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 1/2/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import ApodiniUtils
 @testable import Apodini
@@ -46,7 +47,7 @@ class ComponentTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -72,7 +73,7 @@ class ComponentTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in

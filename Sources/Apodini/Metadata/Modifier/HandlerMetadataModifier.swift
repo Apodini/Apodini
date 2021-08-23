@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 21.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 /// The `HandlerMetadataModifier` can be used to easily add `HandlerMetadataDefinition`
 /// to a `Handler` via a `HandlerModifier`.
@@ -34,7 +38,7 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     }
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        handlerMetadata.accept(visitor)
+        handlerMetadata.collectMetadata(visitor)
     }
 }
 

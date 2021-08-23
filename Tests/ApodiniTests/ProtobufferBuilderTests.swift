@@ -1,14 +1,21 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 import XCTVapor
 @testable import Apodini
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
 
-
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
-        S.start(app: app)
-        defer { app.shutdown() }
+        S().start(app: app)
+        defer { app.shutdown() } // This might in fact not be necessary
         
         try app.vapor.app.test(.GET, "apodini/proto") { res in
             XCTAssertEqual(res.body.string, expectation)

@@ -1,3 +1,11 @@
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
 name: SwiftLint
 
 on:
@@ -6,6 +14,7 @@ on:
 
 jobs:
   swiftlint:
+    name: SwiftLint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -13,3 +22,5 @@ jobs:
         uses: norio-nomura/action-swiftlint@3.2.1
         with:
           args: --strict
+        env:
+          DIFF_BASE: ${{ github.base_ref }}

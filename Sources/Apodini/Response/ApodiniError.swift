@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ApodiniError.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 20.01.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -31,20 +32,29 @@ public struct ApodiniError: Error {
     public typealias Option = AnyPropertyOption<ErrorOptionNameSpace>
     
     private let `type`: ErrorType
-    
+
     private let reason: String?
-    
+
     private let description: String?
+
+    public let information: InformationSet
     
     private let options: PropertyOptionSet<ErrorOptionNameSpace>
     
-    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, _ options: PropertyOptionSet<ErrorOptionNameSpace>) {
+    internal init(
+        type: ErrorType,
+        reason: String? = nil,
+        description: String? = nil,
+        information: InformationSet = [],
+        _ options: PropertyOptionSet<ErrorOptionNameSpace>
+    ) {
         self.options = options
         self.type = `type`
         self.reason = reason
         self.description = description
+        self.information = information
     }
-    
+
     /// Create a new `ApodiniError` from its base components:
     /// - Parameter `type`: The associated `ErrorType`. If `other` is chosen, the `options` should be
     ///   used to provide additional guidance for the exporters.
@@ -55,11 +65,70 @@ public struct ApodiniError: Error {
         self.init(type: type, reason: reason, description: description, PropertyOptionSet(options))
     }
     
+    /// Create a new `ApodiniError` from its base components:
+    /// - Parameter `type`: The associated `ErrorType`. If `other` is chosen, the `options` should be
+    ///   used to provide additional guidance for the exporters.
+    /// - Parameter `reason`: The **public** reason explaining what led to the this error.
+    /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
+    /// - Parameter `information`: Possible array of `Information` entries attached to the `Response`.
+    /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
+    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, information: AnyInformation..., options: Option...) {
+        self.init(type: type, reason: reason, description: description, information: InformationSet(information), PropertyOptionSet(options))
+    }
+
     /// Create a new `ApodiniError` from this instance using a different `reason` and/or `description`
     /// - Parameter `reason`: The **public** reason explaining what led to the this error.
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
-    public func callAsFunction(reason: String? = nil, description: String? = nil) -> ApodiniError {
-        ApodiniError(type: self.type, reason: reason ?? self.reason, description: description ?? self.description, self.options)
+    ///   - information: If provided, it creates a union of the provided `Information` entries and the existing ones.
+    ///   - options: If provided, it appends exporter-specific options to the existing ones.
+    public func callAsFunction(
+        reason: String? = nil,
+        description: String? = nil,
+        information: [AnyInformation],
+        options: [Option]
+    ) -> ApodiniError {
+        ApodiniError(
+            type: type,
+            reason: preserveOriginalReasoning(new: reason, previous: self.reason, "reason"),
+            description: preserveOriginalReasoning(new: description, previous: self.description, "description"),
+            information: self.information.merge(with: information),
+            PropertyOptionSet(lhs: self.options, rhs: options)
+        )
+    }
+    
+    /// Create a new `ApodiniError` from this instance using a different `reason` and/or `description`
+    /// - Parameter `reason`: The **public** reason explaining what led to the this error.
+    /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
+    ///   - information: If provided, it creates a union of the provided `Information` entries and the existing ones.
+    ///   - options: If provided, it appends exporter-specific options to the existing ones.
+    public func callAsFunction(
+        reason: String? = nil,
+        description: String? = nil,
+        information: AnyInformation...,
+        options: Option...
+    ) -> ApodiniError {
+        callAsFunction(reason: reason, description: description, information: information, options: options)
+    }
+
+    public func detailed(by error: Error) -> ApodiniError {
+        detailed(by: error.apodiniError)
+    }
+
+    public func detailed(by error: ApodiniError) -> ApodiniError {
+        ApodiniError(
+                type: type,
+                reason: preserveOriginalReasoning(new: reason, previous: error.reason, "reason"),
+                description: preserveOriginalReasoning(new: description, previous: error.description, "description"),
+                information: error.information.merge(with: information),
+                PropertyOptionSet(lhs: error.options, rhs: options)
+        )
+    }
+
+    private func preserveOriginalReasoning(new newMaybe: String?, previous previousMaybe: String?, _ name: String) -> String? {
+        guard let new = newMaybe, let previous = previousMaybe else {
+            return newMaybe ?? previousMaybe
+        }
+        return "\(new) (original \(name): \(previous)"
     }
 }
 
@@ -79,6 +148,10 @@ public protocol ApodiniErrorCompliantOption: PropertyOption {
 extension ApodiniError {
     public func option<T: ApodiniErrorCompliantOption>(for key: OptionKey<T>) -> T {
         self.options.option(for: key) ?? T.default(for: self.type)
+    }
+
+    public func option<T: PropertyOption>(for key: OptionKey<T>) -> T? {
+        self.options.option(for: key)
     }
     
     public func message(with prefix: String?) -> String {

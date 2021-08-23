@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Guard.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 06.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 #if DEBUG || RELEASE_TESTING
 @testable import Apodini
@@ -14,12 +15,6 @@ public extension Handler {
     /// - Note: This is only to be used when manually constructing an `Endpoint`
     func guarded<G: Guard>(_ guard: G) -> GuardingHandler<Self, G> {
         GuardingHandler(guarded: Delegate(self), guard: Delegate(`guard`))
-    }
-    
-    /// Guards the handler with the given `guard`, just as `.guard()` does on `Component`s.
-    /// - Note: This is only to be used when manually constructing an `Endpoint`
-    func guarded<G: SyncGuard>(_ guard: G) -> SyncGuardingHandler<Self, G> {
-        SyncGuardingHandler(guarded: Delegate(self), guard: Delegate(`guard`))
     }
 }
 #endif

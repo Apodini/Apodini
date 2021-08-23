@@ -1,17 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ThrowingErrorTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 1/14/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 import XCTest
-import Fluent
+import FluentKit
 import Vapor
-
 
 class ThrowingErrorTests: ApodiniTests {
     struct MyError: Codable, Error {
@@ -45,7 +45,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
@@ -63,7 +63,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)

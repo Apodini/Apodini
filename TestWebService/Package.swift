@@ -1,4 +1,12 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
+
+//
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
 
 import PackageDescription
 
@@ -6,7 +14,7 @@ import PackageDescription
 let package = Package(
     name: "TestWebService",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v12)
     ],
     products: [
         .executable(name: "TestWebService", targets: ["TestWebService"])

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ContextKey.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 /// A `OptionalContextKey` serves as a key definition for a `ContextNode`.
 /// Optionally it can serve a reduction logic when inserting a new value into the `ContextNode`,
@@ -28,6 +29,12 @@ public protocol OptionalContextKey {
     ///         The result of the reduction must be written into this inout parameter.
     ///   - nextValue: The return value of the provided closure is the newly inserted value.
     static func reduce(value: inout Self.Value, nextValue: Self.Value)
+
+    /// This function can be optionally implemented to execute operations on the ``OptionalContextKey``
+    /// value once all reduce operations have completed.
+    ///
+    /// - Parameter value: The fully reduced context key value.
+    static func mapFinal(value: inout Self.Value)
 }
 
 public extension OptionalContextKey {
@@ -35,6 +42,9 @@ public extension OptionalContextKey {
     static func reduce(value: inout Self.Value, nextValue: Self.Value) {
         value = nextValue
     }
+
+    /// Default logic is to do nothing.
+    static func mapFinal(value: inout Self.Value) {}
 }
 
 public extension OptionalContextKey where Value: AnyArray {

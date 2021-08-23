@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  XCTCheckResponse.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 2/3/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 #if DEBUG || RELEASE_TESTING
 @testable import Apodini
@@ -88,7 +89,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
 ///   - message: The message that should be posted in case of a failure
 ///   - file: The origin of the `XCTCheckResponse` call
 ///   - line: The origin of the `XCTCheckResponse` call
-/// - Throws: Thows an error in case of failure
+/// - Throws: Throws an error in case of failure
 @discardableResult
 public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,

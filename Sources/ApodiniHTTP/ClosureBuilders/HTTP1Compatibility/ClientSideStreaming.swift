@@ -1,15 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ClientSideStreaming.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 06.07.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniVaporSupport
-import OpenCombine
 import Vapor
 
 extension Exporter {
@@ -23,6 +23,8 @@ extension Exporter {
         let abortAnyError = AbortTransformer<H>()
         
         let transformer = VaporResponseTransformer<H>(configuration.encoder)
+            
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: Vapor.Request) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
@@ -32,10 +34,10 @@ extension Exporter {
                     description: "Input for client side steaming endpoints must be an array at top level.")
             }
             
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
             return Array(0..<requestCount)
-                .publisher
+                .asAsyncSequence
                 .map { index in
                     (request, (request, index))
                 }
@@ -43,8 +45,8 @@ extension Exporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
-                .subscribe(to: &delegate)
-                .evaluate(on: &delegate)
+                .subscribe(to: delegate)
+                .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancel(if: { response in
                     response.connectionEffect == .close
@@ -56,7 +58,7 @@ extension Exporter {
                         return response
                     }
                 }
-                .tryMap { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
+                .map { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
                     return try transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)

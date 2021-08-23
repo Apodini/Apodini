@@ -1,10 +1,10 @@
 //
-//  Delegate.swift
-//  
+// This source file is part of the Apodini open source project
 //
-//  Created by Max Obermeier on 17.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-
+// SPDX-License-Identifier: MIT
+//
 import ApodiniUtils
 import Foundation
 
@@ -32,11 +32,20 @@ public struct Delegate<D> {
         var environmentObject: [Any] = []
     }
     
+    struct InitialStorage {
+        // storage for values injected via .environment
+        var environment: [AnyKeyPath: Any] = [:]
+        // storage for values injected via .environmentObject
+        var environmentObject: [Any] = []
+    }
+    
     var delegateModel: D
     
     let optionality: Optionality
     
     var storage: Box<Storage>?
+    
+    var initialStorage = Box(InitialStorage())
     
     /// Create a `Delegate` from the given struct `delegate`.
     /// - Parameter `delegate`: the wrapped instance
@@ -47,7 +56,7 @@ public struct Delegate<D> {
     }
     
     /// Prepare the wrapped delegate `D` for usage.
-    public func callAsFunction() throws -> D {
+    public func instance() throws -> D {
         guard let store = storage else {
             fatalError("'Delegate' was called before activation.")
         }
@@ -58,7 +67,7 @@ public struct Delegate<D> {
             Apodini.activate(&store.value.delegate)
         }
         
-        // we inject observedobjects, environment and environmentObject and invalidate all stores afterwards
+        // we inject observedObjects, environment and environmentObject and invalidate all stores afterwards
         store.value.observableObjectsSetters.forEach { closure in closure() }
         store.value.observableObjectsSetters = []
         injectAll(values: store.value.environmentObject, into: store.value.delegate)
@@ -112,7 +121,7 @@ public enum Optionality: PropertyOption {
     /// Default for `@Parameter`s behind a `Delegate`. Documentation should show this parameter as not required.
     case optional
     /// Default for normal `@Parameter`s, i.e. such that are not behind a `Delegate`. Pass this to a `Delegate`, if there is no path
-    /// throgh your `handle()` that doesn't `throw` where the `Delegate` is not called.
+    /// through your `handle()` that doesn't `throw` where the `Delegate` is not called.
     case required
 }
 
@@ -136,7 +145,7 @@ extension Delegate {
     ///
     /// - Note: If the `Binding`'s initial value was a `Parameter`, this function changes the endpoint interface
     ///         at runtime to a certain degree. This has no impact on the framework or correctness of the endpoints
-    ///         interface specification, however, a client might wonder why specifiying a certain input has no effect.
+    ///         interface specification, however, a client might wonder why specifying a certain input has no effect.
     @discardableResult
     public func set<V>(_ keypath: WritableKeyPath<D, Binding<V>>, to value: V) -> Delegate {
         guard let store = storage else {
@@ -152,7 +161,7 @@ extension Delegate {
 extension Delegate {
     /// Change a `delegate`'s `ObservedObject` to observe another `value`.
     @discardableResult
-    public func setObservable<V: ObservableObject>(_ keypath: WritableKeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
+    public func setObservable<V: ObservableObject>(_ keypath: KeyPath<D, ObservedObject<V>>, to value: V) -> Delegate {
         guard let store = storage else {
             fatalError("'Delegate' was manipulated before activation.")
         }
@@ -168,23 +177,24 @@ extension Delegate {
 extension Delegate {
     /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
-    public func environment<V>(_ keyPath: WritableKeyPath<Application, V>, _ value: V) -> Delegate {
+    public func environment<V>(_ keyPath: KeyPath<Application, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
     /// Inject a local `value` into the `delegate`'s `Environment` properties that are based on the given `keyPath`.
     @discardableResult
-    public func environment<K, V>(_ keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
+    public func environment<K, V>(_ keyPath: KeyPath<K, V>, _ value: V) -> Delegate {
         self.environment(at: keyPath, value)
     }
     
     @discardableResult
-    private func environment<K, V>(at keyPath: WritableKeyPath<K, V>, _ value: V) -> Delegate {
-        guard let store = storage else {
-            fatalError("'Delegate' was manipulated before activation.")
+    private func environment<K, V>(at keyPath: KeyPath<K, V>, _ value: V) -> Delegate {
+        if let store = storage {
+            store.value.environment[keyPath] = value
+        } else {
+            self.initialStorage.value.environment[keyPath] = value
         }
         
-        store.value.environment[keyPath] = value
         return self
     }
 }
@@ -193,21 +203,24 @@ extension Delegate {
     /// Inject a local `value` into the `delegate`'s `EnvironmentObject` properties that are of type `T`.
     @discardableResult
     public func environmentObject<T>(_ object: T) -> Delegate {
-        guard let store = storage else {
-            fatalError("'Delegate' was manipulated before activation.")
+        if let store = storage {
+            store.value.environmentObject.append(object)
+        } else {
+            self.initialStorage.value.environmentObject.append(object)
         }
         
-        store.value.environmentObject.append(object)
         return self
     }
 }
 
 
 // MARK: Property Conformance
-
 extension Delegate: Activatable {
     mutating func activate() {
         self.storage = Box(Storage(delegate: delegateModel))
+        
+        self.storage?.value.environment.merge(self.initialStorage.value.environment) { current, _ in current }
+        self.storage?.value.environmentObject.append(contentsOf: self.initialStorage.value.environmentObject)
     }
 }
 
@@ -293,21 +306,14 @@ extension Delegate: AnyObservedObject {
 }
 
 public extension _Internal {
-    /// Activates the delegate if not done yet.
-    static func prepareIfNotReady<H: Handler>(_ delegate: inout Delegate<H>) {
-        if delegate.storage == nil {
-            delegate.activate()
-        }
-    }
-    
     /// Evaluates the delegate using the given `state` and `request`.
-    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) throws -> H.Response {
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) async throws -> H.Response {
         do {
             delegate.inject(Connection(state: state, request: request), for: \Application.connection)
             try delegate.inject(using: request)
         } catch {
             throw ApodiniError(type: .serverError, reason: "Internal Framework Error", description: "Could not inject Request into 'Delegate'")
         }
-        return try delegate().handle()
+        return try await delegate.instance().handle()
     }
 }

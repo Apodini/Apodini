@@ -1,16 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  InternalInvocationResponder.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-24.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import NIO
 import NIOHTTP1
 @_implementationOnly import Vapor
 import Apodini
-
 
 struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
     unowned let internalInterfaceExporter: ApodiniDeployInterfaceExporter
@@ -85,7 +85,6 @@ struct InternalInvocationResponder<H: Handler>: Vapor.Responder {
         }
     }
 }
-
 
 extension InternalInvocationResponder {
     struct Request: Codable {

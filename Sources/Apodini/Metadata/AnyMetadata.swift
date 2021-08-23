@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 21.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 /// The `AnyMetadata` protocol represents arbitrary Metadata.
 /// This might be a `MetadataDefinition`, a `AnyMetadataBlock` or something else.
@@ -22,7 +26,7 @@ public protocol AnyMetadata {
     /// or add the parsed Metadata to the visitor.
     ///
     /// - Parameter visitor: The `SyntaxTreeVisitor` parsing the Metadata tree.
-    func accept(_ visitor: SyntaxTreeVisitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor)
 }
 
 /// `AnyHandlerMetadata` represents arbitrary Metadata that can be declared on `Handler`s.

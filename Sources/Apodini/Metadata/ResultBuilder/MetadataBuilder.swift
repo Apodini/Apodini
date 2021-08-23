@@ -1,16 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 14.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//   
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
+
 @resultBuilder
 public enum MetadataBuilder {}
-#else
-@_functionBuilder
-public enum MetadataBuilder {}
-#endif
 
 // MARK: Handler Metadata
 public extension MetadataBuilder {

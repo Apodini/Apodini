@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Handler.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 1/11/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import NIO
 
@@ -15,7 +16,7 @@ public protocol Handler: HandlerMetadataNamespace, Component {
     typealias Metadata = AnyHandlerMetadata
 
     /// A function that is called when a request reaches the `Handler`
-    func handle() throws -> Response
+    func handle() async throws -> Response
 }
 
 // MARK: Metadata DSL
@@ -30,21 +31,5 @@ extension Handler {
     /// By default, `Handler`s don't provide any further content
     public var content: some Component {
         EmptyComponent()
-    }
-}
-
-// This extensions provides a helper for evaluating the `Handler`'s `handle` function.
-// The function hides the syntactic difference between the newly introduced `async`
-// version of `handle()` and the traditional, `EventLoopFuture`-based one.
-extension Handler {
-    internal func evaluate(using eventLoop: EventLoop) -> EventLoopFuture<Response> {
-        let promise: EventLoopPromise<Response> = eventLoop.makePromise()
-        do {
-            let result = try self.handle()
-            promise.succeed(result)
-        } catch {
-            promise.fail(error)
-        }
-        return promise.futureResult
     }
 }

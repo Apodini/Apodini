@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  RemoteHandlerInvocationManager.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-14.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import NIO
@@ -143,7 +144,7 @@ extension RemoteHandlerInvocationManager {
     private func invokeRemotely<H: InvocableHandler>( // swiftlint:disable:this function_body_length cyclomatic_complexity
         handlerId: H.HandlerIdentifier,
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
-        targetNode: DeployedSystem.Node,
+        targetNode: DeployedSystemNode,
         targetEndpoint: Endpoint<H>,
         collectedInputArgs: [CollectedArgument<H>]
     ) -> EventLoopFuture<H.Response.Content> {
@@ -237,7 +238,7 @@ extension RemoteHandlerInvocationManager {
     
     private enum DispatchStrategy {
         case locally
-        case remotely(DeployedSystem.Node)
+        case remotely(DeployedSystemNode)
     }
     
     
@@ -281,13 +282,13 @@ extension Endpoint {
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        var delegate = Delegate(handler, .required)
+        let delegate = self[DelegateFactory<H, ApodiniDeployInterfaceExporter>.self].instance()
         
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
             .applied(to: self)
             .decodeRequest(from: request, with: DefaultRequestBasis(base: request), with: eventLoop)
             .insertDefaults(with: self[DefaultValueStore.self])
-            .evaluate(on: &delegate)
+            .evaluate(on: delegate)
         
         return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.Content>) -> H.Response.Content in
             guard response.connectionEffect == .close else {

@@ -1,3 +1,11 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 import Foundation
 import NIO
 import Apodini
@@ -45,7 +53,7 @@ struct WebService: Apodini.WebService {
             OpenAPI()
         }
         ApodiniDeploy(
-            runtimes: [LocalhostRuntime.self, LambdaRuntime.self],
+            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self],
             config: DeploymentConfig(
                 defaultGrouping: .separateNodes,
                 deploymentGroups: [
@@ -53,6 +61,8 @@ struct WebService: Apodini.WebService {
                 ]
             )
         )
+        SingleCommandConfiguration()
+        MultipleCommandConfiguration()
     }
 
     var metadata: Metadata {

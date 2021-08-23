@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  GRPCServiceTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Moritz Schüll on 21.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 @testable import Apodini
@@ -16,8 +17,8 @@ final class GRPCServiceTests: ApodiniTests {
     
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
         let app = Application()
-        S.start(app: app)
-        defer { app.shutdown() }
+        S().start(app: app)
+        defer { app.shutdown() } // This might in fact not be necessary
         
         try app.vapor.app.test(.POST, path, headers: ["content-type": GRPCService.grpcproto.description]) { res in
             XCTAssertGreaterThanOrEqual(res.status.code, 200)

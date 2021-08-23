@@ -1,3 +1,11 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 @testable import Apodini
 @testable import ApodiniDeploy
 import Foundation
@@ -53,7 +61,6 @@ struct ComposableOption<Impl: ComposableOptionImpl>: OptionValue, RawRepresentab
     }
 }
 
-
 private struct TestWebService: Apodini.WebService {
     static let handler1Id = AnyHandlerIdentifier("handler1")
     static let handler2Id = AnyHandlerIdentifier("handler2")
@@ -96,7 +103,6 @@ private struct TestWebService: Apodini.WebService {
         )
     }
 }
-
 
 class DeploymentOptionsTests: XCTApodiniTest {
     func testOptionMerging() throws {
@@ -180,7 +186,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
     
     
     func testHandlerDeploymentOptions() throws {
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
         

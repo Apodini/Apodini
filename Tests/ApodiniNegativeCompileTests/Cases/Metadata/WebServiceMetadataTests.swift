@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 06.06.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 
@@ -15,9 +19,6 @@ private struct TestWebService: WebService {
 
         TestVoidWebServiceMetadata()
 
-        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
-        TestVoidComponentOnlyMetadata()
-
         TestVoidComponentMetadata()
 
         // error: No exact matches in call to static method 'buildExpression'
@@ -27,29 +28,16 @@ private struct TestWebService: WebService {
             TestVoidWebServiceMetadata()
         }
 
-        // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyWebServiceMetadata'
-        StandardHandlerMetadataBlock {
-            TestVoidHandlerMetadata()
-        }
-
         StandardWebServiceMetadataBlock {
             // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyWebServiceMetadata'
             TestVoidHandlerMetadata()
 
             TestVoidWebServiceMetadata()
 
-            // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
-            TestVoidComponentOnlyMetadata()
-
             TestVoidComponentMetadata()
 
             // error: No exact matches in call to static method 'buildExpression'
             TestVoidContentMetadata()
-        }
-
-        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
-        StandardComponentOnlyMetadataBlock {
-            TestVoidComponentOnlyMetadata()
         }
 
         StandardComponentMetadataBlock {
@@ -59,6 +47,38 @@ private struct TestWebService: WebService {
         // error: No exact matches in call to static method 'buildExpression'
         StandardContentMetadataBlock {
             TestVoidContentMetadata()
+        }
+    }
+}
+
+private struct TestWebService2: WebService {
+    var content: some Component {
+        Text("Hello World!")
+    }
+
+    var metadata: Metadata {
+        TestVoidWebServiceMetadata()
+
+        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
+        TestVoidComponentOnlyMetadata()
+
+        // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyWebServiceMetadata'
+        StandardHandlerMetadataBlock {
+            TestVoidHandlerMetadata()
+        }
+
+        TestVoidWebServiceMetadata()
+
+        StandardWebServiceMetadataBlock {
+            TestVoidWebServiceMetadata()
+
+            // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
+            TestVoidComponentOnlyMetadata()
+        }
+
+        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyWebServiceMetadata'
+        StandardComponentOnlyMetadataBlock {
+            TestVoidComponentOnlyMetadata()
         }
     }
 }

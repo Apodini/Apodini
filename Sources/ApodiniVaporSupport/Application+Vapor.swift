@@ -1,16 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Application+Vapor.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Tim Gymnich on 27.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import Vapor
 
 
 extension Vapor.Application {
-    struct LifecycleHandlery: Apodini.LifecycleHandler {
+    struct LifecycleHandler: Apodini.LifecycleHandler {
         var app: Vapor.Application
 
         func didBoot(_ application: Apodini.Application) throws {
@@ -22,7 +23,7 @@ extension Vapor.Application {
             try app.boot()
         }
 
-        func shutdown(_ application: Apodini.Application) {
+        func shutdown(_ application: Apodini.Application) throws {
             app.server.shutdown()
             app.shutdown()
         }
@@ -30,7 +31,7 @@ extension Vapor.Application {
 
     convenience init(from app: Apodini.Application, environment env: Vapor.Environment = .production) {
         self.init(env, .shared(app.eventLoopGroup))
-        app.lifecycle.use(LifecycleHandlery(app: self))
+        app.lifecycle.use(LifecycleHandler(app: self))
 
         // HTTP2
         self.http.server.configuration.supportVersions = Set(app.http.supportVersions.map { version in

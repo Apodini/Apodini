@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  VisitorTests.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Paul Schmiedmayer on 6/27/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 import XCTVapor
@@ -11,7 +12,6 @@ import XCTApodini
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
-
 
 final class ResponseTransformerTests: ApodiniTests {
     private static var emojiTransformerExpectation: XCTestExpectation?
@@ -78,7 +78,7 @@ final class ResponseTransformerTests: ApodiniTests {
     private func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
         XCTAssertEqual(response.status, .ok)
         let content = try response.content.decode(Content<T>.self)
-        XCTAssert(content.data == data)
+        XCTAssert(content.data == data, "Expected \(data) but got \(content.data)")
         waitForExpectations(timeout: 0, handler: nil)
     }
     
@@ -104,7 +104,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -138,7 +138,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
 
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
 
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -161,10 +161,13 @@ final class ResponseTransformerTests: ApodiniTests {
                 Group("send") {
                     ResponseHandler(response: .send("Paul"))
                         .response(EmojiResponseTransformer())
+                        .response(EmojiResponseTransformer(emojis: "🚀"))
                 }
                 Group("final") {
                     ResponseHandler(response: .final("Paul"))
                         .response(EmojiResponseTransformer())
+                        .response(EmojiResponseTransformer(emojis: "🚀"))
+                        .response(EmojiResponseTransformer(emojis: "🎸"))
                 }
                 Group("end") {
                     ResponseHandler(response: .end)
@@ -177,7 +180,7 @@ final class ResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/nothing") { response in
             XCTAssertEqual(response.status, .noContent)
@@ -185,13 +188,15 @@ final class ResponseTransformerTests: ApodiniTests {
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
+        ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 2
         try app.vapor.app.test(.GET, "/v1/send") { res in
-            try expect("✅ Paul ✅", in: res)
+            try expect("🚀 ✅ Paul ✅ 🚀", in: res)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
+        ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 3
         try app.vapor.app.test(.GET, "/v1/final") { res in
-            try expect("✅ Paul ✅", in: res)
+            try expect("🎸 🚀 ✅ Paul ✅ 🚀 🎸", in: res)
         }
         
         try app.vapor.app.test(.GET, "/v1/end") { response in

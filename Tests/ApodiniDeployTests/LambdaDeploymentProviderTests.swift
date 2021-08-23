@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  LambdaDeploymentProviderTests.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Lukas Kollmer on 2021-04-23.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 #if canImport(FoundationNetworking)
@@ -47,7 +48,6 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             return
         }
         
-        
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
         task = Task(
@@ -90,7 +90,6 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
             fullOutput += text
         }
         
-        
         wait(for: [taskDidFinishExpectation], timeout: 60 * 45) // We give it *a ton* of time, just to be sure.
         
         taskStdioObserverToken = nil
@@ -105,7 +104,6 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         continueAfterFailure = true
         
         let output = fullOutput.components(separatedBy: .newlines)
-        
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(

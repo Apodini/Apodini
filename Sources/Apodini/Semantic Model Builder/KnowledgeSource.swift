@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  KnowledgeSource.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 03.05.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -75,7 +76,7 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
 /// the OpenAPI exporter would use `Relationship<RESTInterfaceExporter>`, too.
 /// For that to work both `RESTInterfaceExporter` and `GraphQLInterfaceExporter` must conform
 /// to `TrustAnchor`.
-/// - Note: This is not particularely helpful yet, since we always expose the **whole** service definition to all
+/// - Note: This is not particularly helpful yet, since we always expose the **whole** service definition to all
 /// exporters. However, one could envision a `.hide(from exporter: TruthAnchor.Type)` modifier on
 /// `Component`s, where this feature becomes crucial.
 public protocol TruthAnchor { }
@@ -127,7 +128,7 @@ public struct AnyEndpointSource: KnowledgeSource {
     }
     
     public init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+        throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalBlackboard")
     }
 }
 

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  AWSIntegration.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-19.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import ApodiniUtils
@@ -96,7 +97,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
     func deployToLambda( // swiftlint:disable:this function_parameter_count function_body_length
-        deploymentStructure: DeployedSystem,
+        deploymentStructure: AnyDeployedSystem,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
         lambdaSharedObjectFilesUrl: URL,
@@ -159,7 +160,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent)
+                ./\(lambdaExecutableUrl.lastPathComponent) deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
@@ -208,7 +209,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         // Create new functions
         //
         
-        var nodeToLambdaFunctionMapping: [DeployedSystem.Node.ID: Lambda.FunctionConfiguration] = [:]
+        var nodeToLambdaFunctionMapping: [DeployedSystemNode.ID: Lambda.FunctionConfiguration] = [:]
         
         logger.notice("Creating lambda functions for nodes in the web service deployment structure (#nodes: \(deploymentStructure.nodes.count))")
         for node in deploymentStructure.nodes {
@@ -375,7 +376,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// Otherwise a new function will be created.
     /// - returns: the deployed-to function
     private func configureLambdaFunction( // swiftlint:disable:this function_body_length function_parameter_count
-        forNode node: DeployedSystem.Node,
+        forNode node: DeployedSystemNode,
         launchInfoFileUrl: URL,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  GRPCServiceUnary.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Moritz Schüll on 20.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -12,7 +13,7 @@ import ApodiniExtension
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler<H: Handler>(handler: H,
+    func createUnaryHandler<H: Handler>(factory: DelegateFactory<H, GRPCInterfaceExporter>,
                                         strategy: AnyDecodingStrategy<GRPCMessage>,
                                         defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
         { (request: Vapor.Request) in
@@ -22,7 +23,7 @@ extension GRPCService {
                 ))
             }
             
-            var delegate = Delegate(handler, .required)
+            let delegate = factory.instance()
 
             let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
             request.body.collect().whenSuccess { _ in
@@ -34,13 +35,17 @@ extension GRPCService {
                 // should be one at max (so we discard potential following messages).
                 let message = self.getMessages(from: data, remoteAddress: request.remoteAddress).first ?? GRPCMessage.defaultMessage
 
-                let basis = DefaultRequestBasis(base: message, remoteAddress: message.remoteAddress, information: request.information)
+                let basis = DefaultRequestBasis(
+                    base: message,
+                    remoteAddress: message.remoteAddress,
+                    information: request.information.merge(with: Self.getLoggingMetadataInformation(message))
+                )
                 
                 let response: EventLoopFuture<Apodini.Response<H.Response.Content>> = strategy
                     .decodeRequest(from: message, with: basis, with: request.eventLoop)
                     .insertDefaults(with: defaults)
                     .cache()
-                    .evaluate(on: &delegate)
+                    .evaluate(on: delegate)
                 
                 let result = response.map { response -> Vapor.Response in
                     switch response.content {
@@ -75,7 +80,7 @@ extension GRPCService {
         ]
 
         vaporApp.on(.POST, path) { request in
-            self.createUnaryHandler(handler: endpoint.handler,
+            self.createUnaryHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                                     strategy: strategy,
                                     defaults: endpoint[DefaultValueStore.self])(request)
         }

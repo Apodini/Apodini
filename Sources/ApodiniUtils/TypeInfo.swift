@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  File.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-02-18.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 @_implementationOnly import Runtime
@@ -46,14 +47,29 @@ public func isEnum(_ type: Any.Type) -> Bool {
 }
 
 
+private func isTypeOfKind<T>(_: T.Type, name: inout String, kind: Kind) -> Bool {
+    guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
+        fatalError("Unable to get type info for type '\(T.self)'")
+    }
+
+    name = typeInfo.name
+    return typeInfo.kind == kind
+}
+
 /// Run a precondition check to make sure that a type is a struct
 /// - parameter T: The type for which to assert that it is a struct
 /// - parameter messagePrefix: An optional string which will be prefixed to the "T must be a struct" message
 public func preconditionTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
-    guard let typeInfo = try? Runtime.typeInfo(of: T.self) else {
-        fatalError("Unable to get type info for type '\(T.self)'")
-    }
-    precondition(typeInfo.kind == .struct, "\(messagePrefix.map { $0 + " " } ?? "")'\(typeInfo.name)' must be a struct")
+    var name: String = "DEFAULT"
+    precondition(isTypeOfKind(T.self, name: &name, kind: .struct), "\(messagePrefix.map { $0 + " " } ?? "")'\(name)' must be a struct")
+}
+
+/// Run a assert check to make sure that a type is a struct
+/// - parameter T: The type for which to assert that it is a struct
+/// - parameter messagePrefix: An optional string which will be prefixed to the "T must be a struct" message
+public func assertTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
+    var name: String = "DEFAULT"
+    assert(isTypeOfKind(T.self, name: &name, kind: .struct), "\(messagePrefix.map { $0 + " " } ?? "")'\(name)' must be a struct")
 }
 
 

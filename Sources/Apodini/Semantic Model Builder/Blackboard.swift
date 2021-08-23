@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Blackboard.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 03.05.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -11,7 +12,7 @@ import Foundation
 /// It also allows for mutating `KnowledgeSource`s. Most initializations are performed lazily.
 public protocol Blackboard {
     /// `Blackboard`s can be read from and written to based on a `KnowledgeSource`'s type. If not present yet,
-    /// the `Blackboard` takes care of initlaizing the `KnowledgeSource`.
+    /// the `Blackboard` takes care of initializing the `KnowledgeSource`.
     subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource { get nonmutating set }
     
     /// An alternative for the `Blackboard`'s subscript for graceful error handling.

@@ -1,15 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ServiceTypeMetadata.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Moritz Schüll on 07.01.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
 /// Used to explicitly define the communicational
 /// pattern that is expressed by a `Handler`.
-public enum ServiceType {
+public enum ServiceType: String {
     /// Simple request-response
     case unary
     /// Client-side streaming, service-side unary

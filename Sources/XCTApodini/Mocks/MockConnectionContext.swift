@@ -1,10 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  MockConnectionContext.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 28.06.21.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 #if DEBUG || RELEASE_TESTING
 @testable import Apodini
@@ -21,7 +21,7 @@ import Vapor
 /// set of validation mechanisms. Furthermore, the ``ConnectionContext`` also
 /// takes care of observing the `Delegate`.
 public class ConnectionContext<Input, H: Handler> {
-    var delegate: Delegate<H>
+    let delegate: Delegate<H>
     
     let strategy: AnyDecodingStrategy<Input>
     
@@ -37,9 +37,6 @@ public class ConnectionContext<Input, H: Handler> {
         self.strategy = strategy
         self.defaults = defaults
         self.delegate = delegate
-        
-        
-        self.delegate.activate()
     }
     
     /// Evaluate the inner `Delegate` using the given `request`.
@@ -47,7 +44,7 @@ public class ConnectionContext<Input, H: Handler> {
         self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
-    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returnes the value for all
+    /// Evaluate the inner `Delegate` using the given `request` while also providing a callback that returns the value for all
     /// decoded input parameters based on the parameter's id.
     public func handleAndReturnParameters(
         request: Input,
@@ -67,7 +64,7 @@ public class ConnectionContext<Input, H: Handler> {
         
         let cachingRequest = latestRequest!.cache()
         
-        return cachingRequest.evaluate(on: &delegate, final ? .end : .open).map { response in (response, cachingRequest.peak(_:)) }
+        return cachingRequest.evaluate(on: delegate, final ? .end : .open).map { response in (response, cachingRequest.peak(_:)) }
     }
     
     /// Evaluate the inner `Delegate` based on the given `event`.
@@ -107,14 +104,14 @@ extension Vapor.Request: WithEventLoop { }
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
-        ConnectionContext(delegate: Delegate(handler, .required),
+        ConnectionContext(delegate: self[DelegateFactory<H, IE>.self].instance(),
                           strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }
     
     /// Create a ``ConnectionContext`` for any object that can provide a fitting strategy for decoding its ``EndpointDecodingStrategyProvider/Input``.
     public func createConnectionContext<IE: EndpointDecodingStrategyProvider>(for exporter: IE) -> ConnectionContext<IE.Input, H> {
-        ConnectionContext(delegate: Delegate(handler, .required),
+        ConnectionContext(delegate: self[DelegateFactory<H, RESTInterfaceExporter>.self].instance(),
                           strategy: exporter.strategy.applied(to: self).typeErased,
                           defaults: self[DefaultValueStore.self])
     }
@@ -140,9 +137,9 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     }
 }
 
-/// An object that can be called whenever a ``TriggerEvent`` is raised.
+/// An object that can be called whenever a `TriggerEvent` is raised.
 public protocol ObservedListener {
-    /// The function to be called whenever a ``TriggerEvent`` is raised.
+    /// The function to be called whenever a `TriggerEvent` is raised.
     func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent)
 }
 

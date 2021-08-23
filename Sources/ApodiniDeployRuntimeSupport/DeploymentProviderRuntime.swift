@@ -1,12 +1,14 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  DeploymentProviderRuntime.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-01.
-//
-
+// SPDX-License-Identifier: MIT
+//              
+import ArgumentParser
 import Foundation
 import Apodini
+import ApodiniUtils
 import NIO
 @_exported import ApodiniDeployBuildSupport
 
@@ -40,10 +42,14 @@ public protocol DeploymentProviderRuntime: AnyObject {
     ///         used to create the deployment, so it has to match the corresponding CLI's `identifier` exactly.
     static var identifier: DeploymentProviderID { get }
     
-    init(deployedSystem: DeployedSystem, currentNodeId: DeployedSystem.Node.ID) throws
+    init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws
     
-    var deployedSystem: DeployedSystem { get }
-    var currentNodeId: DeployedSystem.Node.ID { get }
+    var deployedSystem: AnyDeployedSystem { get }
+    var currentNodeId: DeployedSystemNode.ID { get }
+    /// The subcommand of `export-ws-structure` that should be used with this runtime.
+    static var exportCommand: StructureExporter.Type { get }
+    /// The subcommand of `startup` that should be used with this runtime.
+    static var startupCommand: DeploymentStartupCommand.Type { get }
     
     func configure(_ app: Apodini.Application) throws
     
@@ -62,4 +68,28 @@ extension DeploymentProviderRuntime {
     public var identifier: DeploymentProviderID {
         Self.identifier
     }
+}
+
+/// A public storage key that is used to save/retrieve the `StructureExporter` to/from the app;s storage.
+public struct DeploymentStructureExporterStorageKey: StorageKey {
+    public typealias Value = StructureExporter
+}
+
+/// A public storage key that is used to save/retrieve the `DeploymentStartupConfiguration` to/from the app;s storage.
+public struct DeploymentStartUpStorageKey: StorageKey {
+    public typealias Value = DeploymentStartupCommand
+}
+
+/// This protocol specifies the properties of the deployment startup command of a deployment provider that needs to be
+/// set by `DeploymentProviderRuntime`. Since it conforms to `ParsableCommand` it also defines the specific startup command
+/// for a runtime. It contains basic properties that are needed to initialize the deployment runtime. In its `run` method, it should an instance
+/// of itself to the app storage using `DeploymentStartUpStorageKey`
+public protocol DeploymentStartupCommand: ParsableCommand {
+    /// The file path of the deployment structure json.
+    var filePath: String { get }
+    /// The id of the deployment node
+    var nodeId: String { get }
+    /// The type of `AnyDeployedSystem` that should is used by the deployment provider.
+    /// To this type the json at `fileUrl` will be decoded to. You can use `DeployedSystem` if you don't need to define a custom type.
+    var deployedSystemType: AnyDeployedSystem.Type { get }
 }

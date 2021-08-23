@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ProxyServer.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-02.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Vapor
@@ -22,7 +23,7 @@ class ProxyServer {
     fileprivate let app: Vapor.Application
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     
-    init(openApiDocument: OpenAPI.Document, deployedSystem: DeployedSystem) throws {
+    init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem) throws {
         let environmentName = try Vapor.Environment.detect().name
         var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
         try LoggingSystem.bootstrap(from: &env)
@@ -87,7 +88,7 @@ extension OpenAPI.Path {
 
 private struct ProxyRequestResponder: Vapor.Responder {
     let proxyServer: ProxyServer
-    let targetNode: DeployedSystem.Node
+    let targetNode: DeployedSystemNode
     
     func respond(to request: Request) -> EventLoopFuture<Vapor.Response> {
         guard let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self) else {

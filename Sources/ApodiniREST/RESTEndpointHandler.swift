@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 30.12.20.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -15,6 +19,7 @@ struct RESTEndpointHandler<H: Handler> {
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
+    let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     
     private let strategy: AnyDecodingStrategy<Vapor.Request>
     
@@ -40,6 +45,7 @@ struct RESTEndpointHandler<H: Handler> {
         ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
+        self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }
     
     
@@ -48,14 +54,14 @@ struct RESTEndpointHandler<H: Handler> {
     }
 
     func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        var delegate = Delegate(endpoint.handler, .required)
+        let delegate = delegateFactory.instance()
         
         return strategy
             .decodeRequest(from: request,
                            with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
-            .evaluate(on: &delegate)
+            .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
                 
@@ -75,9 +81,16 @@ struct RESTEndpointHandler<H: Handler> {
                 if let blob = response.content?.response.typed(Blob.self) {
                     let vaporResponse = Vapor.Response()
                     
+                    var information = response.information
+                    if let contentType = blob.type?.description {
+                        information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                    }
+                    vaporResponse.headers = HTTPHeaders(information)
+                    
                     if let status = response.status {
                         vaporResponse.status = HTTPStatus(status)
                     }
+                    
                     vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
                     
                     return request.eventLoop.makeSucceededFuture(vaporResponse)

@@ -1,16 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  GRPCInterfaceExporter.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import NIO
 import Apodini
+import ApodiniExtension
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
-import ApodiniExtension
 
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {

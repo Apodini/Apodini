@@ -1,12 +1,14 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  LambdaCommon.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-18.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import ApodiniDeployBuildSupport
+import OpenAPIKit
 
 
 /// Identifier of the lambda deployment provider.
@@ -67,5 +69,29 @@ public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
     /// Option for specifying the description of the lambda generated for this deployment group.
     static func lambdaDescription(_ value: LambdaDescriptionOption) -> AnyOption {
         ResolvedOption(key: .lambdaDescription, value: value)
+    }
+}
+
+public struct LambdaDeployedSystem: AnyDeployedSystem {
+    public var nodes: Set<DeployedSystemNode>
+    
+    public var deploymentProviderId: DeploymentProviderID
+    
+    public var openApiDocument: OpenAPI.Document
+    
+    public var context: LambdaDeployedSystemContext
+    
+    public init(
+        deploymentProviderId: DeploymentProviderID,
+        nodes: Set<DeployedSystemNode>,
+        context: LambdaDeployedSystemContext,
+        openApiDocument: OpenAPI.Document
+    ) throws {
+        self.deploymentProviderId = deploymentProviderId
+        self.nodes = nodes
+        self.context = context
+        self.openApiDocument = openApiDocument
+        
+        try nodes.assertHandlersLimitedToSingleNode()
     }
 }

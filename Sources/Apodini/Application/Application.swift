@@ -1,33 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Application.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Tim Gymnich on 22.12.20.
+// SPDX-License-Identifier: MIT
+//
 //
 // This code is based on the Vapor project: https://github.com/vapor/vapor
 //
-// The MIT License (MIT)
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
 //
-// Copyright (c) 2020 Qutheory, LLC
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
+// SPDX-License-Identifier: MIT
+//              
 
 import Logging
 import NIO
@@ -37,35 +21,36 @@ import Dispatch
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
-    /// server will boot
-    func willBoot(_ application: Application) throws
     /// server did boot
     func didBoot(_ application: Application) throws
     /// server is shutting down
-    func shutdown(_ application: Application)
+    func shutdown(_ application: Application) throws
+    /// Allows interested parties to apply changes to the web service's endpoints.
+    /// This function is primarily intended to give components that integrate with Apodini the ability to "disable" individual endpoints
+    /// (e.g. by returning, for these specific endpoints, an empty array).
+    /// This function is called once for every endpoint-interfaceExporter combination.
+    func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint]
 }
 
+
 extension LifecycleHandler {
-    /// server will boot
-    public func willBoot(_ application: Application) throws { }
     /// server did boot
     public func didBoot(_ application: Application) throws { }
     /// server is shutting down
-    public func shutdown(_ application: Application) { }
-}
-
-extension Application {
-    func map<T>(transform: (Application) -> T ) -> T {
-        transform(self)
+    public func shutdown(_ application: Application) throws { }
+    /// Allows interested parties to apply changes to the web service's endpoints.
+    public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
+        [endpoint]
     }
 }
+
 
 /// Configuration and state of the application
 public final class Application {
     private static var latestApplicationLogger: Logger?
     /// A global logger that can be used when no  `Application` instance is available.
     ///
-    /// - Note: In `Handler`s you shpuld rely on the `Logger` injected in the `@Environment`.
+    /// - Note: In `Handler`s you should rely on the `Logger` injected in the `@Environment`.
     public static var logger: Logger {
         latestApplicationLogger ?? {
             var newLogger = Logger(label: "Pre-startup")
@@ -90,7 +75,7 @@ public final class Application {
     private var isBooted: Bool
     private var signalSources: [DispatchSourceSignal] = []
 
-    /// Keeps track of all application lifecylce handlers
+    /// Keeps track of all application lifecycle handlers
     public struct Lifecycle {
         var handlers: [LifecycleHandler]
         init() {
@@ -103,7 +88,7 @@ public final class Application {
         }
     }
 
-    /// Keeps track of the application lifecylce
+    /// Keeps track of the application lifecycle
     public var lifecycle: Lifecycle
 
     /// Keeps track of shared locks
@@ -211,7 +196,6 @@ public final class Application {
             return
         }
         self.isBooted = true
-        try self.lifecycle.handlers.forEach { try $0.willBoot(self) }
         try self.lifecycle.handlers.forEach { try $0.didBoot(self) }
     }
 
@@ -222,7 +206,11 @@ public final class Application {
         self.logger.debug("Application shutting down [pid=\(getpid())]")
 
         self.logger.trace("Shutting down providers")
-        self.lifecycle.handlers.forEach { $0.shutdown(self) }
+        do {
+            try self.lifecycle.handlers.forEach { try $0.shutdown(self) }
+        } catch {
+            self.logger.error("Error during lifecycle-shutdown: \(error)")
+        }
         self.lifecycle.handlers = []
 
         self.logger.trace("Clearing Application storage")

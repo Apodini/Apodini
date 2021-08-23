@@ -1,16 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  EndpointIdentifierTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2020-12-29.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import XCTest
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
-
 
 final class HandlerIdentifierTests: ApodiniTests {
     // Hashable summary of an endpoint, useful for comparing endpoint arrays
@@ -150,7 +150,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in

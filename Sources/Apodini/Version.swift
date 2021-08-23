@@ -1,10 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Version.swift
-//  Apodini
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 /// A `Version` can be  used to specify the version of a Web API using semantic versioning
 public struct Version: Decodable {
@@ -48,13 +48,19 @@ public struct Version: Decodable {
 }
 
 
-extension Version: _PathComponent {
+extension Version: _PathComponent, CustomStringConvertible {
     public var description: String {
         "\(prefix)\(major)"
     }
 
     func append<Parser: PathComponentParser>(to parser: inout Parser) {
         parser.visit(self)
+    }
+}
+
+extension Version: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        "\(prefix)\(major).\(minor).\(patch)"
     }
 }
 

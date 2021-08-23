@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 22.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import XCTest
@@ -48,7 +52,7 @@ private struct GenericTestStringHandlerMetadata<H: Handler>: HandlerMetadataDefi
 }
 
 private struct ReusableTestHandlerMetadata: HandlerMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {
@@ -107,18 +111,14 @@ private struct TestMetadataHandler: Handler {
                 TestInt(10)
             }
 
-            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
-            #endif
         }
 
-        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
-        #endif
 
         ReusableTestHandlerMetadata()
 
@@ -130,21 +130,11 @@ private struct TestMetadataHandler: Handler {
 
 final class HandlerMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
-        #if swift(>=5.4)
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15]
-        #endif
     }
 
     static var expectedInts: [Int] {
-        #if swift(>=5.4)
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,      14, 15]
-        #endif
     }
 
     func testHandlerMetadataTrue() {
@@ -228,5 +218,139 @@ final class HandlerMetadataTest: ApodiniTests {
 
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
         XCTAssertEqual(capturedStrings, "TestDelegatingHandler")
+    }
+
+    func testDynamicHandlerInitializerMetadataAndDelegateMetadataParsing() throws {
+        struct DynamicNameGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() async throws -> H.Response {
+                try await delegate
+                    .environmentObject("Alfred")
+                    .instance()
+                    .handle()
+            }
+        }
+
+        struct DynamicNameGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicNameGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+        struct DynamicIntGuard<H: Handler>: Handler {
+            let delegate: Delegate<H>
+
+            func handle() async throws -> H.Response {
+                try await delegate
+                    .environmentObject(34)
+                    .instance()
+                    .handle()
+            }
+        }
+
+        struct DynamicIntGuardInitializer: DelegatingHandlerInitializer {
+            typealias Response = Never
+            func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response> {
+                SomeHandler<Response>(DynamicIntGuard(delegate: Delegate(delegate)))
+            }
+        }
+
+
+        struct DynamicNameGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = DelegatingHandlerContextKey
+            let initializer: Key.Value = [.init(DynamicNameGuardInitializer())]
+        }
+
+        struct SomeContextKey: OptionalContextKey {
+            typealias Value = String
+        }
+
+        struct DynamicIntGuardMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandler {
+            typealias Key = SomeContextKey
+            var value = "asdf"
+            var initializer: DelegatingHandlerContextKey.Value = [.init(DynamicIntGuardInitializer())]
+        }
+
+        struct TestHandler: Handler {
+            // simulates extension to the TypedHandlerMetadataNamespace
+            typealias NameGuard = DynamicNameGuardMetadata
+            typealias IntGuard = DynamicIntGuardMetadata
+
+            @EnvironmentObject
+            var passedName: String
+            @EnvironmentObject
+            var passedAge: Int
+
+            var delegate1 = Delegate(SomeDelegatedHandler1())
+            var delegate2 = Delegate(SomeDelegatedHandler3())
+
+            func handle() -> String {
+                "Hello \(passedName) \(passedAge)"
+            }
+
+            var metadata: Metadata {
+                NameGuard()
+                IntGuard()
+
+                TestInt(4)
+            }
+        }
+
+        struct SomeDelegatedHandler1: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(1)
+            }
+        }
+
+        struct SomeDelegatedHandler2: Handler {
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(2)
+            }
+        }
+
+        struct SomeDelegatedHandler3: Handler {
+            var delegate = Delegate(SomeDelegatedHandler2())
+
+            func handle() -> String {
+                fatalError("Not implemented!")
+            }
+
+            var metadata: Metadata {
+                TestInt(3)
+            }
+        }
+
+        let exporter = MockExporter<String>()
+        app.registerExporter(exporter: exporter)
+
+        let modelBuilder = SemanticModelBuilder(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
+
+        let handler = TestHandler()
+        handler.accept(visitor)
+
+        let context = visitor.currentNode.export()
+
+        modelBuilder.finishedRegistration()
+
+        _ = modelBuilder.collectedEndpoints[0]
+        let response = exporter.request(on: 0, request: "Example Request", with: app)
+
+        try XCTCheckResponse(
+            try XCTUnwrap(response.typed(String.self)),
+            content: "Hello Alfred 34"
+        )
+
+        XCTAssertEqual(context.get(valueFor: TestIntMetadataContextKey.self), [1, 2, 3, 4])
     }
 }

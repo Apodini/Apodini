@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Input.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 04.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -88,6 +89,15 @@ enum InputCheckResult {
 /// An implementation of `Input` that accumulates results from given `InputParameter`s.
 struct SomeInput: Input {
     private(set) var parameters: [String: InputParameter]
+    
+    var parametersValid: String {
+        switch self.check() {
+        case .ok:
+            return "ok"
+        case .missing(let values):
+            return "missing parameter(s): \(values.joined(separator: ", "))"
+        }
+    }
     
     init(parameters: [String: InputParameter]) {
         self.parameters = parameters

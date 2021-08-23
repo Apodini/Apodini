@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 23.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import XCTest
@@ -48,7 +52,7 @@ private struct GenericTestStringContentMetadata<C: Content>: ContentMetadataDefi
 
 
 private struct ReusableTestContentMetadata: ContentMetadataBlock {
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(14)
         Empty()
         Block {
@@ -103,18 +107,14 @@ private struct TestMetadataContent: Content {
                 TestInt(10)
             }
 
-            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
-            #endif
         }
 
-        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
-        #endif
 
         ReusableTestContentMetadata()
 
@@ -136,27 +136,17 @@ private struct TestMetadataHandler: Handler {
 
 final class ContentMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
-        #if swift(>=5.4)
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15]
-        #endif
     }
 
     static var expectedInts: [Int] {
-        #if swift(>=5.4)
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,      14, 15]
-        #endif
     }
 
     func testContentMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         TestMetadataContent.state = true
-        TestMetadataContent.metadata.accept(visitor)
+        TestMetadataContent.metadata.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 
@@ -171,7 +161,7 @@ final class ContentMetadataTest: ApodiniTests {
     func testContentMetadataFalse() {
         let visitor = SyntaxTreeVisitor()
         TestMetadataContent.state = false
-        TestMetadataContent.metadata.accept(visitor)
+        TestMetadataContent.metadata.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 

@@ -1,17 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  StateTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 14.01.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import Vapor
 import XCTApodini
 
-
 class StateTests: ApodiniTests {
-    struct CountGuard: SyncGuard {
+    struct CountGuard: Guard {
         @State var count: Int = 0
         
         let callback: (Int) -> Void
@@ -19,20 +19,6 @@ class StateTests: ApodiniTests {
         func check() {
             callback(count)
             count += 1
-        }
-    }
-    
-    struct AsyncCountGuard: Guard {
-        @State var count: Int = 0
-
-        let callback: (Int) -> Void
-        
-        let eventLoop: EventLoop
-        
-        func check() -> EventLoopFuture<Void> {
-            callback(count)
-            count += 1
-            return eventLoop.makeSucceededFuture(())
         }
     }
     
@@ -62,7 +48,7 @@ class StateTests: ApodiniTests {
         }
     }
     
-    struct CountGuardUsingClassType: SyncGuard {
+    struct CountGuardUsingClassType: Guard {
         @State var count = IntClass(int: 0)
         
         let callback: (Int) -> Void
@@ -70,20 +56,6 @@ class StateTests: ApodiniTests {
         func check() {
             callback(count.int)
             count.int += 1
-        }
-    }
-    
-    struct AsyncCountGuardUsingClassType: Guard {
-        @State var count = IntClass(int: 0)
-
-        let callback: (Int) -> Void
-        
-        let eventLoop: EventLoop
-        
-        func check() -> EventLoopFuture<Void> {
-            callback(count.int)
-            count.int += 1
-            return eventLoop.makeSucceededFuture(())
         }
     }
     
@@ -115,7 +87,6 @@ class StateTests: ApodiniTests {
         let handler = TestHandler()
                         .transformed(CountTransformer())
                         .guarded(CountGuard(callback: assertion))
-                        .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
         let endpoint = handler.mockEndpoint()
 
@@ -156,7 +127,6 @@ class StateTests: ApodiniTests {
         let handler = TestHandlerUsingClassType()
             .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
-            .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
         let endpoint = handler.mockEndpoint()
 
@@ -186,7 +156,6 @@ class StateTests: ApodiniTests {
         let handler = TestHandlerUsingClassType()
             .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
-            .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
         let endpoint = handler.mockEndpoint()
 
@@ -217,7 +186,6 @@ class StateTests: ApodiniTests {
         let handler = TestHandler()
             .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
-            .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
         let endpoint = handler.mockEndpoint()
 
@@ -247,7 +215,6 @@ class StateTests: ApodiniTests {
         let handler = TestHandler()
             .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
-            .guarded(AsyncCountGuard(callback: assertion, eventLoop: eventLoop))
         
         let endpoint = handler.mockEndpoint()
 

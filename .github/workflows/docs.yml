@@ -1,14 +1,22 @@
-name: Publish Documentation
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Generate Docs
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
-  deploy_docs:
-    runs-on: macos-latest
+  macos:
+    name: Generate Docs
+    runs-on: macos-11
     steps:
     - uses: actions/checkout@v1
     - name: Publish Jazzy Docs

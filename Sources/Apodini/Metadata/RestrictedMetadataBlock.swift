@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 21.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 /// A `RestrictedMetadataBlock` is a  `AnyMetadataBlock` which is restricted to only contain
 /// a specific Type of `AnyMetadata` (`RestrictedMetadataBlock`s support arbitrary nesting, meaning
@@ -34,10 +38,10 @@ public protocol RestrictedMetadataBlock: AnyMetadataBlock {
 public struct RestrictedHandlerMetadataBlock<RestrictedContent: AnyHandlerMetadata>: HandlerMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var content: AnyHandlerMetadata
+    public var metadata: AnyHandlerMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> content: () -> AnyHandlerMetadata) {
-        self.content = content()
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyHandlerMetadata) {
+        self.metadata = metadata()
     }
 }
 
@@ -57,10 +61,10 @@ public struct RestrictedHandlerMetadataBlock<RestrictedContent: AnyHandlerMetada
 public struct RestrictedComponentOnlyMetadataBlock<RestrictedContent: AnyComponentOnlyMetadata>: ComponentOnlyMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var content: AnyComponentOnlyMetadata
+    public var metadata: AnyComponentOnlyMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> content: () -> AnyComponentOnlyMetadata) {
-        self.content = content()
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyComponentOnlyMetadata) {
+        self.metadata = metadata()
     }
 }
 
@@ -78,10 +82,10 @@ public struct RestrictedComponentOnlyMetadataBlock<RestrictedContent: AnyCompone
 public struct RestrictedWebServiceMetadataBlock<RestrictedContent: AnyWebServiceMetadata>: WebServiceMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var content: AnyWebServiceMetadata
+    public var metadata: AnyWebServiceMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> content: () -> AnyWebServiceMetadata) {
-        self.content = content()
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyWebServiceMetadata) {
+        self.metadata = metadata()
     }
 }
 
@@ -99,10 +103,10 @@ public struct RestrictedWebServiceMetadataBlock<RestrictedContent: AnyWebService
 public struct RestrictedComponentMetadataBlock<RestrictedContent: AnyComponentMetadata>: ComponentMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var content: AnyComponentMetadata
+    public var metadata: AnyComponentMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> content: () -> AnyComponentMetadata) {
-        self.content = content()
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyComponentMetadata) {
+        self.metadata = metadata()
     }
 }
 
@@ -120,9 +124,9 @@ public struct RestrictedComponentMetadataBlock<RestrictedContent: AnyComponentMe
 public struct RestrictedContentMetadataBlock<RestrictedContent: AnyContentMetadata>: ContentMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var content: AnyContentMetadata
+    public var metadata: AnyContentMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> content: () -> AnyContentMetadata) {
-        self.content = content()
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyContentMetadata) {
+        self.metadata = metadata()
     }
 }

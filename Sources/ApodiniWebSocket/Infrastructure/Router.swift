@@ -1,14 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Router.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 03.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @_implementationOnly import Vapor
-import NIOWebSocket
-@_implementationOnly import OpenCombine
 @_implementationOnly import Logging
+import NIOWebSocket
+import ApodiniExtension
 
 /// An error type that receives special treatment by the router. The router sends the
 /// `reason` to the client if it receives a `WSError` on the `output`. Other error
@@ -45,8 +46,8 @@ protocol Router {
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
+            (default: I, output: AnyAsyncSequence<Message<O>>),
         on identifier: String)
 }
 
@@ -133,8 +134,8 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyPublisher<I, Never>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyPublisher<Message<O>, Error>),
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
+            (default: I, output: AnyAsyncSequence<Message<O>>),
         on identifier: String) {
         if self.endpoints[identifier] != nil {
             self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")

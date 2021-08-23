@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 22.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import XCTest
@@ -50,7 +54,7 @@ private struct ReusableTestComponentMetadata: ComponentMetadataBlock {
     let offset: Int
     let state: Bool
 
-    var content: Metadata {
+    var metadata: Metadata {
         TestInt(offset)
         Empty()
         Block {
@@ -68,11 +72,9 @@ private struct ReusableTestComponentMetadata: ComponentMetadataBlock {
             TestInt(offset + 4)
         }
 
-        #if swift(>=5.4)
         for num in (offset + 5) ... (offset + 7) {
             TestInt(num)
         }
-        #endif
     }
 }
 
@@ -144,18 +146,14 @@ private struct TestMetadataComponent: Component {
                 TestInt(10)
             }
 
-            #if swift(>=5.4)
             for num in 11...11 {
                 TestInt(num)
             }
-            #endif
         }
 
-        #if swift(>=5.4)
         for num in 12...13 {
             TestInt(num)
         }
-        #endif
 
         ReusableTestComponentMetadata(offset: 14, state: true)
         ReusableTestComponentMetadata(offset: 22, state: false)
@@ -182,27 +180,17 @@ private struct TestMetadataWebService: WebService {
 
 final class ComponentMetadataTest: ApodiniTests {
     static var expectedIntsState: [Int] {
-        #if swift(>=5.4)
         [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 1, 2, 3, 5, 6, 7, 8, 9,      14, 15, 16, 17,             22, 23, 26            ]
-        #endif
     }
 
     static var expectedInts: [Int] {
-        #if swift(>=5.4)
         [0, 2, 4, 5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29]
-        #else
-        // swiftlint:disable:next comma
-        return [0, 2, 4, 5, 6, 10,      14, 15, 16, 17,             22, 23, 26            ]
-        #endif
     }
 
     func testComponentMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         let component = TestMetadataComponent(state: true)
-        component.accept(visitor)
+        component.collectMetadata(visitor)
 
         let context = visitor.currentNode.export()
 

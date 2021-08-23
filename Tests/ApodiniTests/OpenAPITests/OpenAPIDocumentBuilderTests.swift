@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Created by Lorena Schlesinger on 09.12.20.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 @_implementationOnly import OpenAPIKit
@@ -8,7 +12,6 @@ import XCTest
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
 import ApodiniREST
-
 
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeStruct: Apodini.Content {

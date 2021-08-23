@@ -1,13 +1,14 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  File.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Lukas Kollmer on 2021-01-01.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import ApodiniDeployBuildSupport
-
+import OpenAPIKit
 
 /// Identifier of the localhost deployment provider.
 public let localhostDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.Localhost")
@@ -18,5 +19,23 @@ public struct LocalhostLaunchInfo: Codable {
     
     public init(port: Int) {
         self.port = port
+    }
+}
+
+public struct LocalhostDeployedSystem: AnyDeployedSystem {
+    public var deploymentProviderId: DeploymentProviderID
+    
+    public var nodes: Set<DeployedSystemNode>
+    
+    public var openApiDocument: OpenAPI.Document
+    
+    public init(
+        deploymentProviderId: DeploymentProviderID,
+        nodes: Set<DeployedSystemNode>,
+        openApiDocument: OpenAPI.Document
+    ) {
+        self.deploymentProviderId = deploymentProviderId
+        self.nodes = nodes
+        self.openApiDocument = openApiDocument
     }
 }

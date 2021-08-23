@@ -1,14 +1,15 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  RequestDecoding.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 24.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
 import ApodiniUtils
-import OpenCombine
+import _Concurrency
 
 // MARK: RequestBasis
 
@@ -26,7 +27,7 @@ public protocol RequestBasis {
     /// The remote address associated with this request.
     var remoteAddress: SocketAddress? { get }
     /// A set of arbitrary information that is associated with this request.
-    var information: Set<AnyInformation> { get }
+    var information: InformationSet { get }
 }
 
 /// A default implementation of ``RequestBasis`` that can be constructed from
@@ -36,7 +37,7 @@ public struct DefaultRequestBasis: RequestBasis {
     private let _debugDescription: String?
     
     public let remoteAddress: SocketAddress?
-    public let information: Set<AnyInformation>
+    public let information: InformationSet
     
     public var description: String {
         _description ?? "Request(remoteAddress: \(remoteAddress?.description ?? "nil"), information: \(information))"
@@ -50,7 +51,7 @@ public struct DefaultRequestBasis: RequestBasis {
     public init(description: String? = nil,
                 debugDescription: String? = nil,
                 remoteAddress: SocketAddress? = nil,
-                information: Set<AnyInformation> = []) {
+                information: InformationSet = []) {
         self._description = description
         self._debugDescription = debugDescription
         self.remoteAddress = remoteAddress
@@ -62,14 +63,13 @@ public struct DefaultRequestBasis: RequestBasis {
     /// ``DefaultRequestBasis/debugDescription`` properties.
     public init(base: Any,
                 remoteAddress: SocketAddress? = nil,
-                information: Set<AnyInformation> = []) {
+                information: InformationSet = []) {
         self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
                   debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
                   remoteAddress: remoteAddress,
                   information: information)
     }
 }
-
 
 // MARK: Request Decoding
 
@@ -100,32 +100,32 @@ extension DecodingStrategy {
     }
 }
 
-extension Publisher {
-    /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
+extension AsyncSequence {
+    /// Maps each incoming `Element` to an Apodini `Request` based on the given `strategy` by
     /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:with:)`` function.
     ///
-    /// The `Output` must be a tuple consisting of a ``RequestBasis`` and the ``DecodingStrategy/Input`` for `S`.
+    /// The `Element` must be a tuple consisting of a ``RequestBasis`` and the ``DecodingStrategy/Input`` for `S`.
     ///
     /// - Parameters:
     ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
-    ///     contained in the second element of each value published on this `Publisher`
+    ///     contained in the second element of each value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
-        -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == (R, S.Input) {
+        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
         self.map { requestBasis, input in
             strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
         }
     }
     
-    /// Maps each incoming `Output` to an Apodini `Request` based on the given `strategy` by
+    /// Maps each incoming `Element` to an Apodini `Request` based on the given `strategy` by
     /// calling the strategy's ``DecodingStrategy/decodeRequest(from:with:)`` function.
     ///
     /// - Parameters:
     ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
-    ///     contained in the second element of each value published on this `Publisher`
+    ///     value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
     public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
-        -> OpenCombine.Publishers.Map<Self, DecodingRequest<S.Input>> where Output == S.Input, S.Input: RequestBasis {
+        -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == S.Input, S.Input: RequestBasis {
         self.map { input in
             strategy.decodeRequest(from: input, with: eventLoop)
         }
@@ -161,7 +161,7 @@ public struct DecodingRequest<Input>: Request {
         basis.remoteAddress
     }
     
-    public var information: Set<AnyInformation> {
+    public var information: InformationSet {
         basis.information
     }
 }

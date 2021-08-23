@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 21.06.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//    
 
 /// A single captures context value with its respective `Scope`.
 struct ContextValueEntry<Key: OptionalContextKey> {
@@ -97,6 +101,8 @@ class ContextEntry<Key: OptionalContextKey>: AnyContextEntry {
                 Key.reduce(value: &value, nextValue: values[index].value)
             }
         }
+
+        Key.mapFinal(value: &value)
 
         return value
     }

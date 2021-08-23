@@ -1,16 +1,17 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  WebSocketInterfaceExporter.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Paul Schmiedmayer on 6/26/20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Apodini
 import ApodiniUtils
 import ApodiniExtension
+import ApodiniLoggingSupport
 import ApodiniVaporSupport
 import NIOWebSocket
-@_implementationOnly import OpenCombine
 @_implementationOnly import Vapor
 
 // MARK: Exporter
@@ -23,7 +24,7 @@ public final class WebSocket: Configuration {
     }
     
     public func configure(_ app: Apodini.Application) {
-        /// Instanciate exporter
+        /// Instantiate exporter
         let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -39,7 +40,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let exporterConfiguration: WebSocket.ExporterConfiguration
     private let router: VaporWSRouter
 
-    /// Initalize a `WebSocketInterfaceExporter` from an `Application`
+    /// Initialize a `WebSocketInterfaceExporter` from an `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
         self.app = app
@@ -62,29 +63,37 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         
         let transformer = Transformer<H>()
         
-        self.router.register({(clientInput: AnyPublisher<SomeInput, Never>, eventLoop: EventLoop, request: Vapor.Request) -> (
+        let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
+        
+        self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
                     defaultInput: SomeInput,
-                    output: AnyPublisher<Message<H.Response.Content>, Error>
+                    output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
-            
             // We need a new `Delegate` for each connection
-            var delegate = Delegate(endpoint.handler, .required)
+            let delegate = factory.instance()
             
-        let output = clientInput
+            let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
-                (DefaultRequestBasis(base: someInput, remoteAddress: request.remoteAddress, information: request.information), someInput)
+                (DefaultRequestBasis(
+                    base: someInput,
+                    remoteAddress: request.remoteAddress,
+                    information: request.information.merge(
+                        with: [
+                            LoggingMetadataInformation(key: .init("parametersValid"), rawValue: .string(someInput.parametersValid))
+                        ]
+                    )), someInput)
             }
             .decode(using: decodingStrategy, with: eventLoop)
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
-            .subscribe(to: &delegate)
-            .evaluate(on: &delegate)
+            .subscribe(to: delegate)
+            .evaluate(on: delegate)
             .transform(using: transformer)
+            .typeErased
 
-
-            return (defaultInput: emptyInput, output: output.eraseToAnyPublisher())
+            return (defaultInput: emptyInput, output: output)
         }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
     }
 

@@ -1,6 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 21.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
 
 struct WrappedHandlerMetadataDefinition<Metadata: HandlerMetadataDefinition>: AnyHandlerMetadata {
     let metadata: Metadata
@@ -9,8 +13,8 @@ struct WrappedHandlerMetadataDefinition<Metadata: HandlerMetadataDefinition>: An
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -21,8 +25,8 @@ struct WrappedComponentOnlyMetadataDefinition<Metadata: ComponentOnlyMetadataDef
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -33,8 +37,8 @@ struct WrappedWebServiceMetadataDefinition<Metadata: WebServiceMetadataDefinitio
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -45,8 +49,8 @@ struct WrappedComponentMetadataDefinition<Metadata: ComponentMetadataDefinition>
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }
 
@@ -57,7 +61,7 @@ struct WrappedContentMetadataDefinition<Metadata: ContentMetadataDefinition>: An
         self.metadata = metadata
     }
 
-    func accept(_ visitor: SyntaxTreeVisitor) {
-        metadata.accept(visitor)
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        metadata.collectMetadata(visitor)
     }
 }

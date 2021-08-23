@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ConnectionTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Moritz Schüll on 21.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 @testable import Apodini
 import ApodiniREST
@@ -11,6 +12,7 @@ import XCTApodini
 import XCTVapor
 import XCTest
 
+import _NIOConcurrency
 
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
@@ -93,39 +95,11 @@ final class ConnectionTests: ApodiniTests {
             }
         }
 
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
 
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssert(res.body.string.contains("127.0.0.1:8080"))
-        }
-    }
-
-    func testConnectionEventLoop() throws {
-        struct TestHandler: Handler {
-            @Apodini.Environment(\.connection)
-            var connection: Connection
-
-            func handle() -> String {
-                connection.eventLoop.assertInEventLoop()
-                return "success"
-            }
-        }
-        
-        struct TestWebService: WebService {
-            var content: some Component {
-                TestHandler()
-            }
-
-            var configuration: Configuration {
-                REST()
-            }
-        }
-
-        TestWebService.start(app: app)
-
-        try app.vapor.app.test(.GET, "/v1/") { res in
-            XCTAssertEqual(res.status, .ok)
         }
     }
 }

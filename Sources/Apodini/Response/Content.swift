@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Content.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Paul Schmiedmayer on 1/11/21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -11,7 +12,7 @@ import Foundation
 /// Types that can be returned from a `Handler`'s `handle` function should conform to `Content`.
 /// `Content` includes the conformance to `Encodable`. If the types implement the `Encodable` requirements the type doesn't need to provide additional
 /// implementation steps to conform to `ResponseTransformable`.
-public protocol Content: Encodable & ResponseTransformable, ContentMetadataNamespace {
+public protocol Content: Encodable & ResponseTransformable, AnyMetadataBlock, ContentMetadataNamespace {
     typealias Metadata = AnyContentMetadata
 
     @ContentMetadataBuilder
@@ -23,5 +24,18 @@ public extension Content {
     /// Content Types have an empty `AnyContentMetadata` by default.
     static var metadata: AnyContentMetadata {
         Empty()
+    }
+}
+
+// MARK: AnyMetadataBlock
+public extension Content {
+    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
+    var blockContent: AnyMetadata {
+        Self.metadata
+    }
+
+    /// Collects metadata if this ``Content`` type is treated as an ``AnyMetadataBlock``
+    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+        blockContent.collectMetadata(visitor)
     }
 }

@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  HandlerInvocation.swift
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//
-//  Created by Lukas Kollmer on 2021-01-01.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Apodini
@@ -41,12 +42,12 @@ public struct HandlerInvocation<Handler: InvocableHandler> {
     /// The identifier of the handler which is the invocation's target
     public let handlerId: Handler.HandlerIdentifier
     /// The node within the deployed system exporting this handler
-    public let targetNode: DeployedSystem.Node
+    public let targetNode: DeployedSystemNode
     /// The parameters collected for the invocation
     public let parameters: [Parameter]
     
     /// Creates a `HandlerInvocation` object for the specifid handlerId, targetNode and parameters
-    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystem.Node, parameters: [Parameter]) {
+    public init(handlerId: Handler.HandlerIdentifier, targetNode: DeployedSystemNode, parameters: [Parameter]) {
         self.handlerId = handlerId
         self.targetNode = targetNode
         self.parameters = parameters

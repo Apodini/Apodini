@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  CommunicationalPatternMetadata.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 30.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 
@@ -11,7 +12,7 @@ import Foundation
 ///
 /// The pattern in a communication is defined by the quantity and order of messages
 /// that are sent from client to server and from server to client.
-public enum CommunicationalPattern {
+public enum CommunicationalPattern: String {
     /// **One** client message followed by **one** service message
     case requestResponse
     /// **Any amount** of client messages followed by **one** service message
@@ -36,7 +37,7 @@ extension HandlerMetadataNamespace {
 /// ``CommunicationalPattern``.
 ///
 /// The framework can automatically detect ``CommunicationalPattern/requestResponse`` if the
-/// ``Handler/handle()-94skg``'s return type is no ``Response``. If that is not the case and you don't
+/// ``Handler/handle()-3440f``'s return type is no ``Response``. If that is not the case and you don't
 /// explicitly specify the ``HandlerMetadataNamespace/Pattern``, the ``Handler`` is assumed to use
 /// ``CommunicationalPattern/bidirectionalStream``.
 ///

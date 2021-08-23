@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  GRPCInterfaceExporterTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Moritz Schüll on 20.12.20.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import XCTest
 @testable import Apodini
@@ -144,13 +145,13 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         var handler = service.createUnaryHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
 
         handler = service.createClientStreamingHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
@@ -175,7 +176,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let response = try service.createUnaryHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .wait()
@@ -210,7 +211,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let response = try service.createUnaryHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler2, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .wait()
@@ -241,7 +242,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let handler = service.createUnaryHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler2, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])
         XCTAssertThrowsError(try handler(vaporRequest).wait())
@@ -275,7 +276,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
                                          on: group.next())
 
         let response = try service.createUnaryHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .wait()
@@ -302,7 +303,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         service.createClientStreamingHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
@@ -343,7 +344,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         service.createClientStreamingHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
@@ -382,7 +383,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
 
         // get first response
         service.createClientStreamingHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in
@@ -418,7 +419,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         vaporRequest.bodyStorage = .stream(stream)
 
         service.createClientStreamingHandler(
-            handler: endpoint.handler,
+            factory: endpoint[DelegateFactory<GRPCNothingHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])(vaporRequest)
             .whenSuccess { response in

@@ -1,17 +1,19 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  EnvironmentObject.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 26.05.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import ApodiniUtils
 
 
+/// A property wrapper to inject pre-defined values  to a ``Component``.
+///
+/// If ``Value`` is an ``ObservableObject``, ``EnvironmentObject`` observes its value just as
+/// ``ObservedObject``. Use ``Delegate/environmentObject(_:)`` to inject a value.
 @propertyWrapper
-/// A property wrapper to inject pre-defined values  to a `Component`.  If `Value` is an
-/// `ObservableObject`, `Environment` observes its value just as `ObservedObject`.
-/// Use `Delegate.environmentObject(_:)` to inject a value.
 public struct EnvironmentObject<Value>: DynamicProperty {
     private struct Storage {
         var changed: Bool

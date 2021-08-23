@@ -1,16 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 16.05.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//  
 
 // swiftlint:disable missing_docs
 
-#if swift(>=5.4)
+
 @resultBuilder
 public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
-#else
-@_functionBuilder
-public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
-#endif
 
 // MARK: Restricted Handler Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: HandlerMetadataBlock, Block.RestrictedContent: AnyHandlerMetadata {

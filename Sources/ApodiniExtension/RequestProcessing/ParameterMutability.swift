@@ -1,19 +1,19 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  ParameterMutability.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 23.06.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
-import OpenCombine
 import Apodini
 import ApodiniUtils
 
-public extension Publisher where Output: Request {
+public extension AsyncSequence where Element: Request {
     /// Wraps all incoming `Request`s in ``MutabilityValidatingRequest``s, which share
     /// a common storage for providing stateful validation.
-    func validateParameterMutability() -> OpenCombine.Publishers.Map<Self, MutabilityValidatingRequest<Output>> {
+    func validateParameterMutability() -> AsyncMapSequence<Self, MutabilityValidatingRequest<Element>> {
         self.reduce()
     }
 }

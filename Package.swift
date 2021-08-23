@@ -1,12 +1,19 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
+
+//
+// This source file is part of the Apodini open source project
+// 
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
 
 import PackageDescription
-
 
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v10_15)
+        .macOS(.v12)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -21,9 +28,16 @@ let package = Package(
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
+        .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
-        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+
+        // Authorization
+        .library(name: "ApodiniAuthorization", targets: ["ApodiniAuthorization"]),
+        .library(name: "ApodiniAuthorizationBasicScheme", targets: ["ApodiniAuthorizationBasicScheme"]),
+        .library(name: "ApodiniAuthorizationBearerScheme", targets: ["ApodiniAuthorizationBearerScheme"]),
+        .library(name: "ApodiniAuthorizationJWT", targets: ["ApodiniAuthorizationJWT"]),
+
         // Deploy
         .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
         .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
@@ -31,31 +45,32 @@ let package = Package(
         .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"])
+        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        
+        // Observe
+        .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
+        .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        
+        // Migrator
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
-        .package(url: "https://github.com/vapor/fluent.git", from: "4.3.1"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
         // Used by the `NotificationCenter` to send push notifications to `FCM`.
         .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.10.0"),
-        .package(url: "https://github.com/vapor/fluent-mongo-driver.git", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.1.0"),
-        .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // OpenCombine seems to be only available as a pre release and is not feature complete.
-        // We constrain it to the next minor version as it doen't follow semantic versioning.
-        .package(url: "https://github.com/OpenCombine/OpenCombine.git", .upToNextMinor(from: "0.12.0")),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.30.0"),
+        // Update to 2.32 or higher once https://github.com/swift-server/swift-aws-lambda-runtime tags a new release with swift-nio 2.32 or higher
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.31.0")),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
         // HTTP/2 support for SwiftNIO
@@ -64,14 +79,11 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
-
-        .package(url: "https://github.com/Supereg/Runtime.git", .branch("master")),
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "0.0.4")),
+        .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
-//         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.2"),
-
-        // Used for testing purposes only. Enables us to test for assertions, preconditions and fatalErrors.
-        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0"),
+        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
@@ -81,9 +93,14 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
+        // testing runtime crashes
+        .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
+
+        // Apodini Authorization
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
-        // Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .revision("3d5539002cfe365c722dd3a54c8b49c587b580f0"))
+        // Apodini Migrator
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("develop"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -108,7 +125,8 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "OrderedCollections", package: "swift-collections")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -120,8 +138,9 @@ let package = Package(
             dependencies: [
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "NIO", package: "swift-nio")
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "_NIOConcurrency", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
 
@@ -137,9 +156,8 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
                 .product(name: "XCTVapor", package: "vapor"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
-                .product(name: "SotoTestUtils", package: "soto-core")
+                .product(name: "SotoTestUtils", package: "soto-core"),
+                .product(name: "OrderedCollections", package: "swift-collections")
             ],
             resources: [
                 .process("Resources")
@@ -166,12 +184,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "Fluent", package: "fluent"),
-                .product(name: "FluentKit", package: "fluent-kit"),
-                .product(name: "FluentMongoDriver", package: "fluent-mongo-driver"),
-                .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
-                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver")
+                .product(name: "FluentKit", package: "fluent-kit")
             ]
         ),
 
@@ -179,7 +192,9 @@ let package = Package(
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding")
             ]
         ),
@@ -254,6 +269,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport")
             ]
         ),
@@ -263,8 +279,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine")
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniVaporSupport")
             ]
         ),
 
@@ -277,10 +293,20 @@ let package = Package(
         ),
 
         .target(
+            name: "ApodiniHTTPProtocol",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "NIOHTTP1", package: "swift-nio")
+            ]
+        ),
+
+        .target(
             name: "ApodiniVaporSupport",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor")
             ]
         ),
@@ -292,12 +318,60 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "OpenCombine", package: "OpenCombine"),
-                .product(name: "OpenCombineFoundation", package: "OpenCombine"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+
+        // MARK: Apodini Authorization
+
+        .target(
+            name: "ApodiniAuthorization",
+            dependencies: [
+                .target(name: "Apodini")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationBasicScheme",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniAuthorization")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationBearerScheme",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniAuthorization")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniAuthorizationJWT",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .product(name: "JWTKit", package: "jwt-kit")
+            ]
+        ),
+
+        .testTarget(
+            name: "ApodiniAuthorizationTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
+                .target(name: "XCTApodini")
             ]
         ),
 
@@ -335,7 +409,7 @@ let package = Package(
             name: "XCTApodini",
             dependencies: [
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
-                .product(name: "CwlPreconditionTesting", package: "CwlPreconditionTesting", condition: .when(platforms: [.macOS])),
+                .product(name: "XCTAssertCrash", package: "XCTAssertCrash", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),
@@ -376,6 +450,7 @@ let package = Package(
             name: "ApodiniVaporSupportTests",
             dependencies: [
                 .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport"),
                 .product(name: "XCTVapor", package: "vapor")
             ]
@@ -398,10 +473,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .target(name: "ApodiniDeployRuntimeSupport")
             ]
         ),
         
@@ -411,8 +484,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         .target(
@@ -465,7 +537,8 @@ let package = Package(
             name: "DeploymentTargetLocalhostRuntime",
             dependencies: [
                 .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI")
             ]
         ),
 
@@ -500,7 +573,31 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI"),
                 .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+            ]
+        ),
+        
+        //
+        // MARK: Observe
+        //
+        
+        .target(
+            name: "ApodiniObserve",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniLoggingSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Logging", package: "swift-log")
             ]
         )
     ]

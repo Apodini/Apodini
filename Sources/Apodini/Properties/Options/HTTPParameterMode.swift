@@ -1,8 +1,16 @@
+//                   
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//              
+
 import Foundation
 
 
 /// An HTTP specific `PropertyOption` that indicates how the `@Parameter` property wrapper should be interpreted by interface exporters using HTTP to identify and multiplex components.
-public enum HTTPParameterMode: PropertyOption {
+public enum HTTPParameterMode: String, PropertyOption {
     /// The property associated with the `@Parameter` property wrapper should be decoded from the `body` of the HTTP request
     case body
     /// The property associated with the `@Parameter` property wrapper should be decoded from the URI path of the HTTP request

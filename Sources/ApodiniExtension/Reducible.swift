@@ -1,12 +1,12 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  Reducible.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Max Obermeier on 06.07.21.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
-import OpenCombine
 
 /// An object that can merge itself and a `new` element
 /// of same type.
@@ -31,13 +31,13 @@ public protocol Initializable: Reducible {
     init(_ initial: Input)
 }
 
-public extension Publisher where Output: Reducible {
-    /// This publisher implements a reduction on the upstream's output. For each
-    /// incoming value, the current result of the reduction is published.
-    func reduce() -> OpenCombine.Publishers.Map<Self, Output> where Output.Input == Output {
-        var last: Output?
+public extension AsyncSequence where Element: Reducible {
+    /// This `AsyncSequence` implements a reduction on a type `R` that can be created from the
+    /// upstream's output. Each incoming value is mapped to the current accumulated result of the reduction.
+    func reduce() -> AsyncMapSequence<Self, Element> where Element.Input == Element {
+        var last: Element?
         
-        return self.map { (new: Output) -> Output in
+        return self.map { (new: Element) -> Element in
             let result = last?.reduce(with: new) ?? new
             last = result
             return result
@@ -45,13 +45,13 @@ public extension Publisher where Output: Reducible {
     }
 }
 
-public extension Publisher {
-    /// This publisher implements a reduction on a type `R` that can be created from the
-    /// upstream's output. For each incoming value, the current result of the reduction is published.
-    func reduce<R: Initializable>(_ type: R.Type = R.self) -> OpenCombine.Publishers.Map<Self, R> where Output == R.Input {
+public extension AsyncSequence {
+    /// This `AsyncSequence` implements a reduction on a type `R` that can be created from the
+    /// upstream's output. Each incoming value is mapped to the current accumulated result of the reduction.
+    func reduce<R: Initializable>(_ type: R.Type = R.self) -> AsyncMapSequence<Self, R> where Element == R.Input {
         var last: R?
         
-        return self.map { (new: Output) -> R in
+        return self.map { (new: Element) -> R in
             let result = last?.reduce(with: new) ?? R(new)
             last = result
             return result

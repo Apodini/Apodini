@@ -1,6 +1,11 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-// Created by Andreas Bauer on 22.11.20.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
+// SPDX-License-Identifier: MIT
+//              
+
 import Foundation
 
 /// A ``ParameterCollection`` provides access to an endpoint's ``EndpointParameter``s.
@@ -48,14 +53,8 @@ protocol _AnyEndpoint: AnyEndpoint {
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
     private let blackboard: Blackboard
-
-    public let handler: H
     
-    init(
-        handler: H,
-        blackboard: Blackboard
-    ) {
-        self.handler = handler
+    init(blackboard: Blackboard) {
         self.blackboard = blackboard
     }
     
@@ -80,6 +79,15 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     @discardableResult
     public func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self[EndpointParameters.self].exportParameters(on: exporter)
+    }
+}
+
+extension Endpoint {
+    /// The ``Handler`` responsible for this ``Endpoint``.
+    ///
+    /// This is just a shortcut for ``EndpointSource/handler``. which can be accessed via the ``Blackboard``.
+    public var handler: H {
+        self[EndpointSource<H>.self].handler
     }
 }
 

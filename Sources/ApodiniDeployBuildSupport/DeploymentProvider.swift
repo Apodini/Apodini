@@ -1,10 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  DeploymentProvider.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2020-12-31.
-//
-
+// SPDX-License-Identifier: MIT
+//              
 
 import Foundation
 import Logging
@@ -107,190 +107,39 @@ extension DeploymentProvider {
             return executableUrl
         }
     }
-    
-    
-    /// Read the web service's structure, and return it encoded as a `WebServiceStructure` object
-    public func readWebServiceStructure() throws -> WebServiceStructure {
+
+    /// Retrieve a `AnyDeployedSystem` from the web service using the export-ws-structure command of the provider.
+    public func retrieveSystemStructure<T: AnyDeployedSystem>(
+        _ executableUrl: URL,
+        providerCommand: String,
+        additionalCommands: [String] = [],
+        as _ : T.Type = T.self) throws -> (URL, T) {
         let fileManager = FileManager()
-        let logger = Logger(label: "ApodiniDeployCLI.Localhost")
+        let logger = Logger(label: "ApodiniDeployCLI.\(providerCommand)")
         
         let modelFileUrl = fileManager.temporaryDirectory.appendingPathComponent("AM_\(UUID().uuidString).json")
         guard fileManager.createFile(atPath: modelFileUrl.path, contents: nil, attributes: nil) else {
             throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         
-        let exportWebServiceModelTask: Task
-        
-        switch target {
-        case .executable(let executableUrl):
-            exportWebServiceModelTask = Task(
-                executableUrl: executableUrl,
-                captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
-                ]
-            )
-        case let .spmTarget(packageUrl, productName):
-            let swiftBin = try Self.getSwiftBinUrl()
-            guard fileManager.directoryExists(atUrl: packageUrl) else {
-                throw ApodiniDeployBuildSupportError(message: "Unable to find input directory")
-            }
-            try fileManager.setWorkingDirectory(to: packageUrl)
-            
-            let packageSwiftFileUrl = packageUrl.appendingPathComponent("Package.swift")
-            guard fileManager.fileExists(atPath: packageSwiftFileUrl.path) else {
-                throw ApodiniDeployBuildSupportError(message: "Unable to find Package.swift")
-            }
-            exportWebServiceModelTask = Task(
-                executableUrl: swiftBin,
-                arguments: [
-                    "run",
-                    productName
-                ],
-                captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
-                environment: [
-                    WellKnownEnvironmentVariables.executionMode:
-                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
-                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
-                ]
-            )
-        }
-        
-        logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
-        let terminationInfo = try exportWebServiceModelTask.launchSync()
-        guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure: \(terminationInfo.exitCode)")
-        }
-        
-        logger.notice("model written to '\(modelFileUrl)'")
-        
-        let data = try Data(contentsOf: modelFileUrl, options: [])
-        return try JSONDecoder().decode(WebServiceStructure.self, from: data)
-    }
-    
-    
-    /// Based on a `WebServiceStructure` as input (i.e. a representation of an entire web service),
-    /// computes the default set of nodes within the deployed system.
-    public func computeDefaultDeployedSystemNodes(
-        from wsStructure: WebServiceStructure,
-        nodeIdProvider: (Set<ExportedEndpoint>) -> String = { _ in UUID().uuidString }
-    ) throws -> Set<DeployedSystem.Node> {
-        guard wsStructure.enabledDeploymentProviders.contains(Self.identifier) else {
-            throw ApodiniDeployBuildSupportError(
-                message: """
-                Identifier of current deployment provider ('\(Self.identifier.rawValue)') not found in set of enabled deployment providers.
-                This means that the web service, once deployed, will not be able to load and initialise this deployment provider's runtime.
-                """
-            )
-        }
-        
-        // a mapping from all user-defined deployment groups, to the set of
-        var endpointsByDeploymentGroup = [DeploymentGroup: Set<ExportedEndpoint>](
-            uniqueKeysWithValues: wsStructure.deploymentConfig.deploymentGroups.map { ($0, []) }
+        let retrieveStructureTask = Task(
+            executableUrl: executableUrl,
+            arguments: [
+                "deploy",
+                "export-ws-structure",
+                providerCommand,
+                modelFileUrl.path
+            ] + additionalCommands,
+            captureOutput: false,
+            launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
         )
-        // all endpoints which didn't match any of the user-defined deployment groups
-        var remainingEndpoints: Set<ExportedEndpoint> = []
-        
-        for endpoint in wsStructure.endpoints {
-            // for each exported endpoint (ie, handler in the DSL), find a matching node, based on the deployment group
-            // all groups in which the endpoint would be allowed to be, based on the deployment options
-            let matchingGroups = endpointsByDeploymentGroup.keys.filter { $0.matches(exportedEndpoint: endpoint) }
-            switch matchingGroups.count {
-            case 0:
-                // the endpoint didn't match any deployment groups
-                remainingEndpoints.insert(endpoint)
-            case 1:
-                // the endpoint matched exactly one group, so we'll put it in there
-                endpointsByDeploymentGroup[matchingGroups[0]]!.insert(endpoint) // swiftlint:disable:this force_unwrapping
-            default:
-                // the endpoint matched multiple deployment groups, which results in ambiguity, and therefore is forbidden
-                throw ApodiniDeployBuildSupportError(
-                    message: "Endpoint with handlerId '\(endpoint.handlerId)' matches multiple deployment groups: \(matchingGroups.map({ "'\($0.id)'" }).joined(separator: ", "))"
-                )
-            }
+        let terminationInfo = try retrieveStructureTask.launchSync()
+        guard terminationInfo.exitCode == EXIT_SUCCESS else {
+            throw ApodiniDeployBuildSupportError(message: "Unable to generate system structure: \(terminationInfo.exitCode)")
         }
         
-        // The nodes w/in the deployed system
-        var nodes: Set<DeployedSystem.Node> = []
-        
-        // one node per deployment group
-        nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
-            try DeployedSystem.Node(
-                id: deploymentGroup.id,
-                exportedEndpoints: endpoints,
-                userInfo: nil,
-                userInfoType: Null.self
-            )
-        }
-        
-        switch wsStructure.deploymentConfig.defaultGrouping {
-        case .separateNodes:
-            nodes += try remainingEndpoints.map { endpoint in
-                try DeployedSystem.Node(
-                    id: nodeIdProvider([endpoint]),
-                    exportedEndpoints: [endpoint],
-                    userInfo: nil,
-                    userInfoType: Null.self
-                )
-            }
-        case .singleNode:
-            nodes.insert(try DeployedSystem.Node(
-                id: nodeIdProvider(remainingEndpoints),
-                exportedEndpoints: remainingEndpoints,
-                userInfo: nil,
-                userInfoType: Null.self
-            ))
-        }
-        
-        try nodes.assertHandlersLimitedToSingleNode()
-        try nodes.assertContainsAllEndpointsIn(wsStructure.endpoints)
-        return nodes
-    }
-}
-
-
-extension DeploymentGroup {
-    // whether this group should contain the exported endpoint
-    func matches(exportedEndpoint: ExportedEndpoint) -> Bool {
-        handlerTypes.contains(exportedEndpoint.handlerType) || handlerIds.contains(exportedEndpoint.handlerId)
-    }
-}
-
-
-extension Sequence where Element == DeployedSystem.Node {
-    // check that, in the sequence of nodes, every handler appears in only one node
-    func assertHandlersLimitedToSingleNode() throws {
-        var exportedHandlerIds = Set<AnyHandlerIdentifier>()
-        // make sure a handler isn't listed in multiple nodes
-        for node in self {
-            for endpoint in node.exportedEndpoints {
-                guard exportedHandlerIds.insert(endpoint.handlerId).inserted else {
-                    throw ApodiniDeployBuildSupportError(
-                        message: "Handler with id '\(endpoint.handlerId)' appears in multiple deployment groups, which is illegal."
-                    )
-                }
-            }
-        }
-    }
-    
-    // check that the sequence of nodes contains all endpoints from the other set
-    func assertContainsAllEndpointsIn(_ allEndpoints: Set<ExportedEndpoint>) throws {
-        // make sure every handler appears in one node
-        let exportedHandlerIds = Set(self.flatMap(\.exportedEndpoints).map(\.handlerId))
-        let expectedHandlerIds = Set(allEndpoints.map(\.handlerId))
-        guard expectedHandlerIds == exportedHandlerIds else {
-            assert(exportedHandlerIds.isSubset(of: expectedHandlerIds))
-            // All handler ids which appear in one of the two sets, but not in both.
-            // Since the set of exported handler ids is a subset of the set of all handler ids,
-            // this difference is the set of all handlers which aren't exported by a node
-            let diff = expectedHandlerIds.symmetricDifference(exportedHandlerIds)
-            throw ApodiniDeployBuildSupportError(
-                message: "Handler ids\(diff.map { "'\($0.rawValue)'" }.joined(separator: ", "))"
-            )
-        }
+        logger.notice("System structure written to '\(modelFileUrl)'")
+        let data = try Data(contentsOf: modelFileUrl, options: [])
+        return (modelFileUrl, try JSONDecoder().decode(T.self, from: data))
     }
 }

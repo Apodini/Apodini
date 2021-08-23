@@ -1,9 +1,10 @@
+//                   
+// This source file is part of the Apodini open source project
 //
-//  InvocableHandlerTests.swift
-//  
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-//  Created by Lukas Kollmer on 2021-01-17.
-//
+// SPDX-License-Identifier: MIT
+//              
 
 // swiftlint:disable identifier_name type_name nesting
 
@@ -27,7 +28,6 @@ extension Vapor.ContentContainer {
         try self.decode(WrappedRESTResponse<T>.self).data
     }
 }
-
 
 private struct TestWebService: Apodini.WebService {
     struct F: InvocableHandler {
@@ -94,7 +94,6 @@ private struct TestWebService: Apodini.WebService {
         }
     }
 
-
     struct Greeter: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -155,7 +154,6 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-    
     struct Calculator: Handler {
         @Apodini.Environment(\.RHI) private var RHI
         
@@ -199,10 +197,9 @@ private struct TestWebService: Apodini.WebService {
     }
 }
 
-
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/f") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "F")
@@ -210,7 +207,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassing() throws {
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(
             .GET,
             "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
@@ -221,7 +218,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LuKAs!")
@@ -229,7 +226,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     }
     
     func testParametersStorageObjectBasedParameterPassing() throws {
-        TestWebService.start(app: app)
+        TestWebService().start(app: app)
         try app.vapor.app.test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(res.content.decodeRESTResponseData(Int.self), 12)
