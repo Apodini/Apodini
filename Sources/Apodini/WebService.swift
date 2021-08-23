@@ -85,11 +85,8 @@ extension WebService {
     /// If not, it automatically adds the commands of the specified `Configurations` as sub command.
     public static var configuration: CommandConfiguration {
         let mirror = Mirror(reflecting: Self())
-        if mirror.children.isEmpty {
-            return CommandConfiguration(subcommands: Self().configuration._commands)
-        } else {
-            return CommandConfiguration()
-        }
+        let hasNoRelevantChildren = !mirror.children.contains { $0.value is CLIParsable }
+        return CommandConfiguration(subcommands: hasNoRelevantChildren ? Self().configuration._commands : [])
     }
     
     /// This function is executed to start up an Apodini `WebService`
@@ -179,3 +176,8 @@ public enum WebServiceExecutionMode {
     /// It exits afterwards.
     case boot
 }
+
+private protocol CLIParsable {}
+extension Option: CLIParsable {}
+extension Argument: CLIParsable {}
+extension OptionGroup: CLIParsable {}
