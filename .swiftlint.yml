@@ -324,6 +324,7 @@ only_rules:
 
 excluded: # paths to ignore during linting. Takes precedence over `included`.
   - .build
+  - .xcodebuild
   - TestWebService/.build
   - .swiftpm
 
