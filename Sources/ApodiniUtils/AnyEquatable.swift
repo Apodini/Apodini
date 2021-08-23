@@ -34,31 +34,29 @@ public enum AnyEquatable {
     
     
     /// Checks whether the two objects of unknown types are equal.
-    /// - Returns: `true` if both objects are `Equatable`, of the same type, and `lhs == rhs`,
-    ///            `false` if both objects are `Equatable`, of the same type, and `self.value != other.value`,
-    ///             `nil` if the two objects are not `Equatable`, or not of the same type.
+    /// - Returns: Returns a according ``ComparisonResult``.
     public static func compare(_ lhs: Any, _ rhs: Any) -> ComparisonResult {
         switch TestEqualsImpl(lhs)(rhs) {
         case .some(let result):
             return result
         case .none:
-            // If the visitor returns nil, it was unable to visit the type, meaning `lhs` is not Equatable.
+            // If the visitor returns nil, it was unable to visit the type, meaning `rhs` is not Equatable.
             return .notEquatable
         }
     }
     
     
     private struct TestEqualsImpl: EquatableVisitor {
-        let value1: Any
+        let lhs: Any
         
-        init(_ value1: Any) {
-            self.value1 = value1
+        init(_ lhs: Any) {
+            self.lhs = lhs
         }
         
-        func callAsFunction<T: Equatable>(_ value2: T) -> ComparisonResult {
-            if let value1 = value1 as? T {
-                precondition(type(of: value1) == type(of: value2))
-                return value1 == value2 ? .equal : .notEqual
+        func callAsFunction<T: Equatable>(_ rhs: T) -> ComparisonResult {
+            if let lhs = lhs as? T {
+                precondition(type(of: lhs) == type(of: rhs))
+                return lhs == rhs ? .equal : .notEqual
             } else {
                 return .nonMatchingTypes
             }

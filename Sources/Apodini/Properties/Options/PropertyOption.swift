@@ -67,3 +67,9 @@ extension PropertyOption {
         lhs
     }
 }
+
+
+/// A ``PropertyOption`` which provides a default value.
+public protocol PropertyOptionWithDefault: PropertyOption {
+    static var defaultValue: Self { get }
+}
