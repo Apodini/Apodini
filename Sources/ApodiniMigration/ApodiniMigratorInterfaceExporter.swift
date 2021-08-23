@@ -1,15 +1,14 @@
 //
-//  File.swift
-//  
+// This source file is part of the Apodini open source project
 //
-//  Created by Eldi Cano on 07.08.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
 import Apodini
-import ApodiniMigratorCore
-import ApodiniMigratorCompare
-import ApodiniMigratorShared
+import ApodiniMigrator
 import Logging
 
 @_implementationOnly import ApodiniVaporSupport
@@ -20,13 +19,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     
     private let app: Apodini.Application
     private var document = Document()
-    private let logger = Logger(label: "org.apodini.migrator")
+    private let logger: Logger
     private var configuration: MigratorConfiguration
+    private var serverPath = ""
     
     init(_ app: Apodini.Application, configuration: MigratorConfiguration) {
         self.app = app
         self.configuration = configuration
-        
+        self.logger = configuration.logger
         setServerPath()
     }
     
@@ -42,17 +42,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         do {
             response = try TypeInformation(type: responseType)
         } catch {
-            if responseType == Blob.self {
-                response = .scalar(.data)
-            } else {
-                logger.error(
+            logger.error(
                     """
                     Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
-                    Response type set to \(Null.self).
+                    Using \(Data.self) for the response type.
                     """
-                )
-                response = .scalar(.null)
-            }
+            )
+            response = .scalar(.data)
         }
         
         let errors: [ErrorCode] = [
@@ -110,56 +106,57 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         
         if let hostName = hostName, let port = port {
             let serverPath = "http\(isHttps ? "s" : "")://\(hostName):\(port)"
+            self.serverPath = serverPath
             document.setServerPath(serverPath)
         }
     }
     
     private func handleDocument() {
         let config = configuration.documentConfig
-        let outputFormat = config.outputFormat
+        let format = config.format
         switch config.exportPath {
         case let .directory(path):
             do {
-                let filePath = try document.write(at: path, outputFormat: outputFormat, fileName: document.fileName)
+                let filePath = try document.write(at: path, outputFormat: format, fileName: document.fileName)
                 logger.info("Document exported at \(filePath)")
             } catch {
                 logger.error("Document export failed with error: \(error)")
             }
             
         case let .endpoint(path):
-            let content = outputFormat == .json ? document.json : document.yaml
+            let content = format.string(of: document)
             serve(content: content, at: path)
-            logger.info("Document served at \(path) in \(outputFormat.rawValue) format")
+            logger.info("Document served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
         }
     }
-
+    
     private func handleMigrationGuide() {
         let config = configuration.migrationGuideConfig
         do {
             switch config {
             case .none: return
-            case let .compare(documentPath, exportPath, format):
-                let oldDocument = try Document.decode(from: Path(documentPath))
+            case let .compare(location, exportPath, format):
+                let oldDocument: Document = try location.instance()
                 let migrationGuide = MigrationGuide(for: oldDocument, rhs: document)
-                try handleMigrationGuide(migrationGuide, for: exportPath, outputFormat: format)
-            case let .read(fromPath, exportPath, format):
-                let migrationGuide = try MigrationGuide.decode(from: Path(fromPath))
-                try handleMigrationGuide(migrationGuide, for: exportPath, outputFormat: format)
+                try handleMigrationGuide(migrationGuide, for: exportPath, format: format)
+            case let .read(location, exportPath, format):
+                let migrationGuide: MigrationGuide = try location.instance()
+                try handleMigrationGuide(migrationGuide, for: exportPath, format: format)
             }
         } catch {
             logger.error("Migration guide handling failed with error: \(error)")
         }
     }
     
-    private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, outputFormat: OutputFormat) throws {
+    private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, format: FileFormat) throws {
         switch exportPath {
         case let .directory(path):
-            let filePath = try migrationGuide.write(at: path, outputFormat: outputFormat, fileName: "migration_guide")
+            let filePath = try migrationGuide.write(at: path, outputFormat: format, fileName: "migration_guide")
             logger.info("Migration guide exported at \(filePath)")
         case let .endpoint(path):
-            let content = outputFormat == .json ? migrationGuide.json : migrationGuide.yaml
+            let content = format.string(of: migrationGuide)
             serve(content: content, at: path)
-            logger.info("Migration guide served at \(path) in \(outputFormat.rawValue) format")
+            logger.info("Migration guide served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
         }
     }
     

@@ -7,7 +7,6 @@
 //              
 
 /// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
-
 public enum MimeType: Codable, Equatable, CustomStringConvertible {
     public enum CodingKeys: CodingKey {
         case type
@@ -27,7 +26,7 @@ public enum MimeType: Codable, Equatable, CustomStringConvertible {
     }
     
     /// Any kind of binary data (https://www.iana.org/assignments/media-types/media-types.xhtml#application)
-    public enum ApplicationSubtype: String, Codable, Hashable, CaseIterable {
+    public enum ApplicationSubtype: String, Codable, Hashable {
         case pdf
         case zip
         case json
@@ -38,7 +37,7 @@ public enum MimeType: Codable, Equatable, CustomStringConvertible {
     }
     
     /// Any kind of image data (https://www.iana.org/assignments/media-types/media-types.xhtml#image)
-    public enum ImageSubtype: String, Codable, Hashable, CaseIterable {
+    public enum ImageSubtype: String, Codable, Hashable {
         case png
         case jpeg
         case gif

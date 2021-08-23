@@ -1,8 +1,9 @@
 //
-//  File.swift
-//  
+// This source file is part of the Apodini open source project
 //
-//  Created by Eldi Cano on 12.06.21.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
@@ -14,30 +15,17 @@ import Logging
 extension ApodiniMigratorCore.Parameter {
     static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
-        if parameter.propertyType == MimeType.self {
-            let codingKeys = MimeType.CodingKeys.self
-            typeInformation = .object(
-                name: .init(MimeType.self),
-                properties: [
-                    .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
-                    .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
-                    .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
-                ]
+        do {
+            typeInformation = try TypeInformation(type: parameter.propertyType)
+        } catch {
+            logger.error(
+                """
+                Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
+                Using \(Data.self) for the type of the parameter.
+                """
             )
-        } else {
-            do {
-                typeInformation = try TypeInformation(type: parameter.propertyType)
-            } catch {
-                logger.error(
-                    """
-                    Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
-                    Using \(Null.self) for the type of the parameter.
-                    """
-                )
-                typeInformation = .scalar(.null)
-            }
+            typeInformation = .scalar(.data)
         }
-        
         let isRequired: Bool = {
             parameter.parameterType == .path
                 || (!parameter.nilIsValidValue
@@ -58,6 +46,28 @@ extension ApodiniMigratorCore.Parameter {
 extension Array where Element == Apodini.AnyEndpointParameter {
     func migratorParameters<H: Handler>(of handler: H.Type, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
         map { ApodiniMigratorCore.Parameter.of(H.self, from: $0, with: logger) }
+    }
+}
+
+// MARK: - Blob + TypeInformationPrimitiveConstructor
+extension Blob: TypeInformationPrimitiveConstructor {
+    public static func construct() -> TypeInformation {
+        .scalar(.data)
+    }
+}
+
+// MARK: - MimeType + TypeInformationPrimitiveConstructor
+extension MimeType: TypeInformationPrimitiveConstructor {
+    public static func construct() -> TypeInformation {
+        let codingKeys = MimeType.CodingKeys.self
+        return .object(
+            name: .init(MimeType.self),
+            properties: [
+                .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
+                .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
+                .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
+            ]
+        )
     }
 }
 
