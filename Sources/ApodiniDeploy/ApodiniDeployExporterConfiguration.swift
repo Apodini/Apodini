@@ -52,11 +52,9 @@ struct DSLSpecifiedDeploymentGroupIdContextKey: OptionalContextKey {
 public struct DeploymentGroupModifier<Content: Component>: Modifier {
     public let component: Content
     let groupId: DeploymentGroup.ID
-    let options: [AnyDeploymentOption]
 
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(DSLSpecifiedDeploymentGroupIdContextKey.self, value: groupId, scope: .environment)
-        visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: options, scope: .environment)
     }
 }
 
@@ -64,55 +62,11 @@ public struct DeploymentGroupModifier<Content: Component>: Modifier {
 extension Group {
     /// Form a deployment group based on the handlers contained in this `Group`
     public func formDeploymentGroup(
-        withId groupId: DeploymentGroup.ID? = nil,
-        options: [AnyDeploymentOption] = []
+        withId groupId: DeploymentGroup.ID? = nil
     ) -> DeploymentGroupModifier<Self> {
         DeploymentGroupModifier(
             component: self,
-            groupId: groupId ?? DeploymentGroup.generateGroupId(),
-            options: options
+            groupId: groupId ?? DeploymentGroup.generateGroupId()
         )
-    }
-}
-
-
-struct HandlerDeploymentOptionsContextKey: Apodini.ContextKey {
-    typealias Value = [AnyDeploymentOption]
-    static let defaultValue: Value = []
-}
-
-
-public struct DeploymentOptionsModifier<C: Component>: Modifier {
-    public let component: C
-    public let deploymentOptions: [AnyDeploymentOption]
-
-    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(HandlerDeploymentOptionsContextKey.self, value: deploymentOptions, scope: .environment)
-    }
-}
-
-extension DeploymentOptionsModifier: Handler, HandlerModifier, HandlerMetadataNamespace where Self.ModifiedComponent: Handler {
-    public typealias Response = ModifiedComponent.Response
-}
-
-
-extension Component {
-    /// Attach a set of deployment options to the handler
-    public func deploymentOptions(_ options: AnyDeploymentOption...) -> DeploymentOptionsModifier<Self> {
-        DeploymentOptionsModifier(component: self, deploymentOptions: options)
-    }
-}
-
-
-/// A `Handler` which specifies deployment options
-public protocol HandlerWithDeploymentOptions: Handler {
-    /// Type-level deployment options (ie options which apply to all instances of this type)
-    static var deploymentOptions: [AnyDeploymentOption] { get }
-}
-
-extension HandlerWithDeploymentOptions {
-    /// By default, `Handler`s don't specify any type-level deployment options
-    public static var deploymentOptions: [AnyDeploymentOption] {
-        []
     }
 }

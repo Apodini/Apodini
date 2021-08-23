@@ -27,7 +27,7 @@ public struct OperationContextKey: OptionalContextKey {
 }
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `OperationHandlerMetadata`
+    /// Name definition for the `OperationHandlerMetadata`
     public typealias Operation = OperationHandlerMetadata
 }
 

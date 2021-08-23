@@ -7,7 +7,7 @@
 //              
 
 public extension TypedHandlerMetadataNamespace {
-    /// Name Definition for the ``DelegateMetadata``
+    /// Name definition for the ``DelegateMetadata``
     typealias Delegated = DelegateMetadata<Self>
 }
 
