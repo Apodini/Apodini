@@ -66,15 +66,20 @@ public struct DeployedSystemNode: Codable, Identifiable, Hashable, Equatable {
     public let exportedEndpoints: Set<ExportedEndpoint>
     /// Additional deployment provider specific data
     public private(set) var userInfo: Data?
-    
-    public init<T: Encodable>(id: String, exportedEndpoints: Set<ExportedEndpoint>, userInfo: T?, userInfoType: T.Type = T.self) throws {
+
+    public init(id: String, exportedEndpoints: Set<ExportedEndpoint>) {
+        self.id = id
+        self.exportedEndpoints = exportedEndpoints
+    }
+
+    public init<T: Encodable>(id: String, exportedEndpoints: Set<ExportedEndpoint>, userInfo: T) throws {
         self.id = id
         self.exportedEndpoints = exportedEndpoints
         try setUserInfo(userInfo, type: T.self)
     }
     
     
-    private mutating func setUserInfo<T: Encodable>(_ value: T?, type _: T.Type = T.self) throws {
+    public mutating func setUserInfo<T: Encodable>(_ value: T?, type _: T.Type = T.self) throws {
         self.userInfo = try value.map { try $0.encodeToJSON() }
     }
     
@@ -97,12 +102,6 @@ public struct DeployedSystemNode: Codable, Identifiable, Hashable, Equatable {
         var copy = self
         try copy.setUserInfo(userInfo, type: T.self)
         return copy
-    }
-    
-    
-    /// The deployment options for all endpoints exported by this node
-    public func combinedEndpointDeploymentOptions() -> DeploymentOptions {
-        DeploymentOptions(exportedEndpoints.map(\.deploymentOptions).flatMap(\.options))
     }
 }
 
