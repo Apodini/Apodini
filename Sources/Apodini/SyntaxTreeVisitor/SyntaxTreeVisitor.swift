@@ -90,6 +90,10 @@ public class SyntaxTreeVisitor: HandlerVisitor {
     public func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
+
+    func visit<S: WebService>(webService: S) {
+        modelBuilder?.app.webServiceContext = currentNode.export()
+    }
     
     /// Called every time a new `Handler` is registered
     /// - Parameter handler: The `Handler` that is registered

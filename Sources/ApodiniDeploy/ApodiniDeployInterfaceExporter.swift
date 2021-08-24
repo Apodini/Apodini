@@ -108,10 +108,7 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         collectedEndpoints.append(CollectedEndpointInfo(
             handlerType: HandlerTypeIdentifier(H.self),
             endpoint: endpoint,
-            deploymentOptions: CollectedOptions(reducing: [
-                endpoint.handler.getDeploymentOptions(),
-                endpoint[Context.self].get(valueFor: HandlerDeploymentOptionsContextKey.self)
-            ].flatMap { $0.compactMap { $0.resolve(against: endpoint.handler) } })
+            deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
         vaporApp.add(Vapor.Route(
             method: .POST,
@@ -244,43 +241,5 @@ extension ApodiniDeployInterfaceExporter {
         func collectedArgumentValue(for endpointParameter: AnyEndpointParameter) -> Argument? {
             argumentValues[endpointParameter.stableIdentity]
         }
-    }
-}
-
-
-// MARK: Utils
-
-private protocol HandlerWithDeploymentOptionsATRVisitorHelper: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = HandlerWithDeploymentOptionsATRVisitorHelper
-    associatedtype Input = HandlerWithDeploymentOptions
-    associatedtype Output
-    func callAsFunction<T: HandlerWithDeploymentOptions>(_ value: T) -> Output
-}
-
-private struct TestHandlerWithDeploymentOptions: HandlerWithDeploymentOptions {
-    typealias Response = Never
-    static var deploymentOptions: [AnyDeploymentOption] { [] }
-}
-
-extension HandlerWithDeploymentOptionsATRVisitorHelper {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(TestHandlerWithDeploymentOptions())
-    }
-}
-
-
-private struct HandlerWithDeploymentOptionsATRVisitor: HandlerWithDeploymentOptionsATRVisitorHelper {
-    func callAsFunction<H: HandlerWithDeploymentOptions>(_: H) -> [AnyDeploymentOption] {
-        H.deploymentOptions
-    }
-}
-
-
-extension Handler {
-    /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
-    internal func getDeploymentOptions() -> [AnyDeploymentOption] {
-        HandlerWithDeploymentOptionsATRVisitor()(self) ?? []
     }
 }

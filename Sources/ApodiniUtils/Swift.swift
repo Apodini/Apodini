@@ -36,18 +36,6 @@ extension Set {
     public static func += <S> (lhs: inout Self, rhs: S) where S: Sequence, S.Element == Element {
         lhs.formUnion(rhs)
     }
-    
-    
-    /// Insert an element into the set, using the provided closure to merge the element with an existing element, if applicable
-    /// - parameter newElement: The element to be inserted into the receiver
-    /// - parameter mergingFn: The closure to be called if the set already contains an element matching `newElement`
-    public mutating func insert(_ newElement: Element, merging mergingFn: (_ oldElem: Element, _ newElem: Element) -> Element) {
-        if let idx = firstIndex(of: newElement) {
-            update(with: mergingFn(self[idx], newElement))
-        } else {
-            insert(newElement)
-        }
-    }
 }
 
 
@@ -83,36 +71,6 @@ extension Collection {
         }
         return try dropFirst().reduce(first, transform)
     }
-    
-    
-    /// Count the number of elements matching `predicate`
-    public func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
-        try reduce(into: 0) { $0 += try predicate($1) ? 1 : 0 }
-    }
-    
-    
-    /// Returns the first element after the specified index, which matches the predicate
-    public func first(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Element? {
-        try firstIndex(from: index(after: idx), where: predicate).map { self[$0] }
-    }
-    
-    
-    /// Returns the first index within the collection which matches a predicate, starting one after the specified index.
-    public func firstIndex(after idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        try firstIndex(from: index(after: idx), where: predicate)
-    }
-    
-    /// Returns the first index within the collection which matches a predicate, starting at `from`.
-    public func firstIndex(from idx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        guard indices.contains(idx) else {
-            return nil
-        }
-        if try predicate(self[idx]) {
-            return idx
-        } else {
-            return try firstIndex(from: index(after: idx), where: predicate)
-        }
-    }
 }
 
 
@@ -138,72 +96,6 @@ extension Collection where Element: Hashable {
 
 
 extension Collection {
-    /// Checks whether the collectionn consists of the same elements as the other collection, ignoring the actual order of the elements.
-    /// The purpose of this function is that it can be used with non-hashable and non-equatable collections
-    /// (also hashable and equatable collections, but in a way that ignores the default hashable/equatable implementation).
-    /// - parameter other: The other collection to compare with.
-    /// - parameter computeHash: A function used to hash an element.
-    /// - parameter areEqual: A function used to determine whether two elements are equal.
-    /// - Note: There is also an `compareIgnoringOrder<C>(_:)` function which uses the element's
-    ///         default `Hashable` and `Equatable` conformances instead of requiring the two closure parameters.
-    ///         In most cases that's probably what you're looking for.
-    public func compareIgnoringOrder<C>(
-        _ other: C,
-        computeHash: (Element, inout Hasher) -> Void,
-        areEqual: (Element, Element) -> Bool
-    ) -> Bool where C: Collection, C.Element == Element {
-        guard self.count == other.count else {
-            return false
-        }
-        
-        func computeDistinctCounts<C: Collection>(_ value: C) -> [(C.Element, Int)] where C.Element == Element {
-            value
-                .distinctElementCounts(computeHash: computeHash, areEqual: areEqual)
-                .map { ($0.element, $0.count) }
-        }
-        
-        return computeDistinctCounts(self).compareEqualsIgnoringOrder(
-            computeDistinctCounts(other),
-            areEqual: { areEqual($0.0, $1.0) && $0.1 == $1.1 }
-        )
-    }
-    
-    
-    /// Determine how many distinct elements the collection contains, and how often each of these distinct elements is in the collection.
-    /// This function serves as an alternative to `distinctElementCounts() -> [Element: Int]`.
-    /// The main difference is that this function does not require `Element` be `Hashable` or `Equatable`. In fact, if they are, these conformances are ignored entirely.
-    /// Instead, these two operations can be customised by passing closures.
-    /// - returns:  An array of `(element, count)` key-value pairs.
-    ///             This function has to return an `Array`, since construcing a `Dictionary<Element, Int>` from the array
-    ///             would require `Element` conform to `Hashable`, which is the very thing this function is here to avoid.
-    /// - parameter computeHash: A function used to hash an element.
-    /// - parameter areEqual: A function used to determine whether two elements are equal.
-    /// - Note: There is alao another version of this function (`distinctElementCounts()`) which uses the element's `Hashable` and `Equatable` conformances,
-    ///         instead of requiring the two closure parameters.
-    private func distinctElementCounts(
-        computeHash: (Element, inout Hasher) -> Void,
-        areEqual: (Element, Element) -> Bool
-    ) -> [(element: Element, count: Int)] {
-        func hash(_ element: Element) -> Int {
-            var hasher = Hasher()
-            computeHash(element, &hasher)
-            return hasher.finalize()
-        }
-        var retval: [(element: Element, count: Int)] = []
-        for element in self {
-            let elementHash = hash(element)
-            if let idx = retval.firstIndex(where: { hash($0.element) == elementHash && areEqual($0.element, element) }) {
-                retval[idx].count += 1
-            } else {
-                retval.append((element, 1))
-            }
-        }
-        return retval
-    }
-}
-
-
-extension Collection {
     /// Compares two collections of 2-element tuples where both tuple element types are Equatable.
     public static func == <Other: Collection, Key: Equatable, Value: Equatable> (
         lhs: Self,
@@ -216,32 +108,6 @@ extension Collection {
             guard lhsVal == rhsVal else {
                 return false
             }
-        }
-        return true
-    }
-}
-
-
-extension Collection {
-    /// "Unordered equals" implementation for two collections of 2-element tuples using a custom equality predicate.
-    /// - Note: this assumes that `areEqual` is symmetric.
-    public func compareEqualsIgnoringOrder<Other: Collection, T0, T1> (
-        _ other: Other,
-        areEqual: ((T0, T1), (T0, T1)) -> Bool
-    ) -> Bool where Self.Element == (T0, T1), Other.Element == (T0, T1) {
-        guard self.count == other.count else {
-            return false
-        }
-        
-        var other = Array(other)
-        
-        for entry in self {
-            guard let idx = other.firstIndex(where: { areEqual(entry, $0) }) else {
-                // we're unable to find a matching tuple in rhs,
-                // meaning this entry exists only in lhs, meaning the two collections are not equal
-                return false
-            }
-            other.remove(at: idx)
         }
         return true
     }

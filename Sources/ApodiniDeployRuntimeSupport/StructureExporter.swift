@@ -53,12 +53,33 @@ extension StructureExporter {
     ) throws -> AnyDeployedSystem {
         try retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
     }
-    
+
     /// Computes the default deployed system where all endpoints are matched to deployment groups if possible.
-    public func retrieveDefaultDeployedSystem(
+    public  func retrieveDefaultDeployedSystem(
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
+    ) throws -> DeployedSystem {
+        try retrieveDefaultDeployedSystem(endpoints, config: config, app: app, deriveUserData: nil)
+    }
+
+    /// Computes the default deployed system where all endpoints are matched to deployment groups if possible.
+    public func retrieveDefaultDeployedSystem<T: Codable>(
+        _ endpoints: Set<CollectedEndpointInfo>,
+        config: DeploymentConfig,
+        app: Application,
+        deriveUserData: @escaping (CollectedEndpointInfo) -> T
+    ) throws -> DeployedSystem {
+        try retrieveDefaultDeployedSystem(endpoints, config: config, app: app) { endpoint in
+            try deriveUserData(endpoint).encodeToJSON()
+        }
+    }
+
+    private func retrieveDefaultDeployedSystem(
+        _ endpoints: Set<CollectedEndpointInfo>,
+        config: DeploymentConfig,
+        app: Application,
+        deriveUserData: ((CollectedEndpointInfo) throws -> Data)? = nil
     ) throws -> DeployedSystem {
         // a mapping from all user-defined deployment groups, to the set of
         var endpointsByDeploymentGroup = [DeploymentGroup: Set<CollectedEndpointInfo>](
@@ -91,30 +112,24 @@ extension StructureExporter {
         
         // one node per deployment group
         nodes += try endpointsByDeploymentGroup.map { deploymentGroup, endpoints in
-            try DeployedSystemNode(
+            DeployedSystemNode(
                 id: deploymentGroup.id,
-                exportedEndpoints: Set(endpoints.map(ExportedEndpoint.init)),
-                userInfo: nil,
-                userInfoType: Null.self
+                exportedEndpoints: try Set(endpoints.map { endpoint in try ExportedEndpoint(endpoint, transformingEndpoint: deriveUserData) })
             )
         }
         
         switch config.defaultGrouping {
         case .separateNodes:
             nodes += try remainingEndpoints.map { endpoint in
-                try DeployedSystemNode(
+                DeployedSystemNode(
                     id: nodeIdProvider([endpoint]),
-                    exportedEndpoints: [ExportedEndpoint(endpoint)],
-                    userInfo: nil,
-                    userInfoType: Null.self
+                    exportedEndpoints: [try ExportedEndpoint(endpoint, transformingEndpoint: deriveUserData)]
                 )
             }
         case .singleNode:
-            nodes.insert(try DeployedSystemNode(
+            nodes.insert(DeployedSystemNode(
                 id: nodeIdProvider(remainingEndpoints),
-                exportedEndpoints: Set(remainingEndpoints.map(ExportedEndpoint.init)),
-                userInfo: nil,
-                userInfoType: Null.self
+                exportedEndpoints: try Set(endpoints.map { endpoint in try ExportedEndpoint(endpoint, transformingEndpoint: deriveUserData) })
             ))
         }
         
@@ -129,12 +144,11 @@ extension StructureExporter {
 }
 
 extension ExportedEndpoint {
-    init(_ collectedEndpointInfo: CollectedEndpointInfo) {
+    init(_ collectedEndpointInfo: CollectedEndpointInfo, transformingEndpoint: ((CollectedEndpointInfo) throws -> Data)? = nil) throws {
         self.init(
             handlerType: collectedEndpointInfo.handlerType,
             handlerId: collectedEndpointInfo.endpoint[AnyHandlerIdentifier.self],
-            deploymentOptions: collectedEndpointInfo.deploymentOptions,
-            userInfo: [:]
+            data: try transformingEndpoint?(collectedEndpointInfo)
         )
     }
 }
