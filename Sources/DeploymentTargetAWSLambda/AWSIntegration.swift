@@ -97,7 +97,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// - parameter s3BucketName: name of the S3 bucket the function should be uploaded to
     /// - parameter s3ObjectFolderKey: key (ie path) of the folder into which the function should be uploaded
     func deployToLambda( // swiftlint:disable:this function_parameter_count function_body_length
-        deploymentStructure: AnyDeployedSystem,
+        deploymentStructure: LambdaDeployedSystem,
         openApiDocument: OpenAPI.Document,
         lambdaExecutableUrl: URL,
         lambdaSharedObjectFilesUrl: URL,
@@ -218,6 +218,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             let functionConfig = try configureLambdaFunction(
                 forNode: node,
+                context: deploymentStructure.context,
                 launchInfoFileUrl: launchInfoFileUrl,
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
@@ -378,6 +379,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     /// - returns: the deployed-to function
     private func configureLambdaFunction( // swiftlint:disable:this function_body_length function_parameter_count
         forNode node: DeployedSystemNode,
+        context: LambdaDeployedSystemContext,
         launchInfoFileUrl: URL,
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
@@ -391,10 +393,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         guard deployedLambdaFunctions.insert(lambdaName).inserted else {
             fatalError("Encountered multiple lambda functions with same name '\(lambdaName)'. This can happen if two handler or deployment group identifiers are very similar and one of them contains invalid caracters, causing the sanitised name to match the other one.")
         }
-        
-        let deploymentOptions = node.combinedEndpointDeploymentOptions()
-        let memorySize: UInt = try deploymentOptions.getValue(forKey: .memorySize).rawValue
-        let timeoutInSec = Int((try deploymentOptions.getValue(forKey: .timeout) as ApodiniDeployBuildSupport.TimeoutValue).rawValue)
+
+        let memorySize = context.memoryMaximum
+        let timeoutInSec = context.timeoutMaximum
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id,
             WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
@@ -409,7 +410,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             _ = try lambda.updateFunctionConfiguration(Lambda.UpdateFunctionConfigurationRequest(
                 environment: lambdaEnv,
                 functionName: function.functionArn!,
-                memorySize: Int(memorySize),
+                memorySize: memorySize,
                 timeout: timeoutInSec
             )).wait()
             return try lambda
@@ -430,8 +431,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 description: "Apodini-created lambda function",
                 environment: lambdaEnv,
                 functionName: lambdaName,
-                handler: "apodini.main", // doesn;t actually matter
-                memorySize: Int(memorySize),
+                handler: "apodini.main", // doesn't actually matter
+                memorySize: memorySize,
                 packageType: .zip,
                 publish: true,
                 role: executionRole.arn,

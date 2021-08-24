@@ -150,7 +150,7 @@ final class WebServiceMetadataTest: ApodiniTests {
     func testWebServiceMetadataTrue() {
         let visitor = SyntaxTreeVisitor()
         let webService = TestMetadataWebService(state: true)
-        webService.visit(visitor)
+        webService.accept(visitor)
 
         let context = visitor.currentNode.export()
 
@@ -165,7 +165,7 @@ final class WebServiceMetadataTest: ApodiniTests {
     func testWebServiceMetadataFalse() {
         let visitor = SyntaxTreeVisitor()
         let webService = TestMetadataWebService(state: false)
-        webService.visit(visitor)
+        webService.accept(visitor)
 
         let context = visitor.currentNode.export()
 

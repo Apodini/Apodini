@@ -8,6 +8,7 @@
 
 import Foundation
 import XCTApodini
+@testable import Apodini
 import ApodiniREST
 import OpenAPIKit
 import ApodiniOpenAPI
@@ -75,57 +76,39 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
         XCTAssertEqualIgnoringOrder(exportedEndpoints, [
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.main"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(150)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.main")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.other"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(180)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.other")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.2.0"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(175)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("0.2.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "LH_TextMut"),
-                handlerId: AnyHandlerIdentifier("LH_TextMut.main"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("LH_TextMut.main")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "LH_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.4.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.4.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.1.0.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.1.0.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.0.0.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.0.0.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.5"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.5")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.6"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.6")
             )
         ])
     }
@@ -152,57 +135,39 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
         XCTAssertEqualIgnoringOrder(exportedEndpoints, [
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.main"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(150)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.main")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_RandomNumberGenerator"),
-                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.other"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(180)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("AWS_RandomNumberGenerator.other")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "AWS_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.2.0"),
-                deploymentOptions: DeploymentOptions([
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(175)),
-                    ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))
-                ])
+                handlerId: AnyHandlerIdentifier("0.2.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "LH_TextMut"),
-                handlerId: AnyHandlerIdentifier("LH_TextMut.main"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("LH_TextMut.main")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "LH_Greeter"),
-                handlerId: AnyHandlerIdentifier("0.4.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.4.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.1.0.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.1.0.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text2"),
-                handlerId: AnyHandlerIdentifier("0.0.0.0"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.0.0.0")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.5"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.5")
             ),
             ExportedEndpoint(
                 handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                handlerId: AnyHandlerIdentifier("0.6"),
-                deploymentOptions: DeploymentOptions()
+                handlerId: AnyHandlerIdentifier("0.6")
             )
         ])
     }

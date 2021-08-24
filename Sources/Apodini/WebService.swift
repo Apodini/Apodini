@@ -15,9 +15,6 @@ import ArgumentParser
 public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
     typealias Metadata = AnyWebServiceMetadata
     
-    /// The current version of the `WebService`
-    var version: Version { get }
-    
     /// An empty initializer used to create an Apodini `WebService`
     init()
 }
@@ -174,27 +171,23 @@ extension WebService {
         
         self.register(SemanticModelBuilder(app))
     }
-    
-    
-    /// The current version of the `WebService`
-    public var version: Version {
-        Version()
-    }
 }
 
 
 extension WebService {
     func register(_ modelBuilder: SemanticModelBuilder) {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-        self.visit(visitor)
+        self.accept(visitor)
         visitor.finishParsing()
     }
     
-    func visit(_ visitor: SyntaxTreeVisitor) {
+    func accept(_ visitor: SyntaxTreeVisitor) {
         metadata.collectMetadata(visitor)
 
-        visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
+        let version = visitor.currentNode.peekValue(for: APIVersionContextKey.self)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
+
+        visitor.visit(webService: self)
 
         if Content.self != Never.self {
             Group {

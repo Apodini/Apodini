@@ -188,7 +188,7 @@ final class ContentMetadataTest: ApodiniTests {
         let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
         XCTAssertEqual(capturedStrings, "TestMetadataContent")
 
-        let capturedDescription = context.get(valueFor: DescriptionMetadata.self)
+        let capturedDescription = context.get(valueFor: HandlerDescriptionMetadata.self)
         XCTAssertEqual(capturedDescription, "Handler Description!")
     }
 }

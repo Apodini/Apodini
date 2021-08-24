@@ -79,7 +79,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        let expectedServiceName = "Group1Group2Service"
+        let expectedServiceName = "V1Group1Group2Service"
 
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -443,7 +443,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        let expectedServiceName = "Group1Group2Service"
+        let expectedServiceName = "V1Group1Group2Service"
 
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
