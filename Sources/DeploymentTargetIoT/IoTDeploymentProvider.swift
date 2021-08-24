@@ -38,7 +38,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     private let fileManager = FileManager.default
     
-    private var postActionMapping: [DeviceIdentifier: (AnyOption<DeploymentOptionsNamespace>, PostDiscoveryAction.Type)] = [:]
+    private var postActionMapping: [DeviceIdentifier: (DeploymentDeviceMetadata, PostDiscoveryAction.Type)] = [:]
     private let additionalConfiguration: [ConfigurationProperty: Any]
     
     internal let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -79,7 +79,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     public func registerAction(
         scope: RegistrationScope,
         action: PostDiscoveryAction.Type,
-        option: AnyOption<DeploymentOptionsNamespace>
+        option: DeploymentDeviceMetadata
     ) {
         switch scope {
         case .all:
@@ -202,19 +202,6 @@ public class IoTDeploymentProvider: DeploymentProvider {
         )
     }
     
-    //    private func computeDeployedSystem(
-    //        for postDiscoveryActions: [PostDiscoveryAction.Type]
-    //    ) throws -> (URL, DeployedSystem) {
-    //        // First, check if a local executable exists
-    //        let executablePath = packageRootDir
-    //            .appendingPathComponent(".build")
-    //            .appendingPathComponent("debug")
-    //            .appendingPathComponent(productName)
-    //        if fileManager.fileExists(atPath: executablePath.path) {
-    //            return try retrieveDeployedSystemOnLocalMachine(for: postDiscoveryActions, executableUrl: executablePath)
-    //        }
-    //    }
-    
     private func copyModelFileToRemote(_ device: Device, localmodelFileUrl: URL) throws {
         try IoTContext.copyResourcesToRemote(
             device,
@@ -231,14 +218,9 @@ public class IoTDeploymentProvider: DeploymentProvider {
             let info = deviceID
                 .appending("-")
                 .appending(postActionMapping.values
-                            .map { $0.0.key.rawValue }
+                            .compactMap { $0.0.getOptionRawValue() }
                             .joined(separator: "-")
                 )
-            //                    .appending(result.foundEndDevices
-            //                                .filter { $0.value > 0 }
-            //                                .map { $0.key.rawValue }
-            //                                .joined(separator: "-")
-            //                    )
                 .appending("#")
             infos.append(contentsOf: info)
             
@@ -404,6 +386,12 @@ private extension Array where Element == DiscoveryResult {
                 value > 0
             })
         }
+    }
+}
+
+extension DeploymentDeviceMetadata {
+    func getOptionRawValue() -> String? {
+        self.value.option(for: .deploymentDevice)?.rawValue
     }
 }
 

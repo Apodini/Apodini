@@ -7,10 +7,11 @@
 
 import Foundation
 import ApodiniDeployBuildSupport
+import Apodini
 import DeploymentTargetIoTCommon
 
-public extension DeploymentDevice {
-    static var lifx: Self {
-        .init(rawValue: #function)
+extension DeploymentDevice {
+    public static var lifx: Self {
+        DeploymentDevice(rawValue: "lifx")
     }
 }

@@ -9,6 +9,7 @@
 import Foundation
 import ApodiniDeployBuildSupport
 import ApodiniUtils
+import Apodini
 
 /// Identifier of the iot deployment provider.
 public let iotDeploymentProviderId = DeploymentProviderID("de.desiderato.ApodiniDeploymentProvider.IoT")
@@ -19,42 +20,49 @@ public struct IoTLaunchInfo: Codable {
     public let host: URL
 }
 
-public struct IoTDeploymentOptionsInnerNamespace: InnerNamespace {
-    public typealias OuterNS = DeploymentOptionsNamespace
-    public static let identifier: String = "org.apodini.deploy.iot"
-}
-
-public struct DeploymentDevice: OptionValue, RawRepresentable {
+public struct DeploymentDevice: PropertyOption, RawRepresentable {
+    /// memory size, in MB
     public let rawValue: String
 
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-
-    public func reduce(with other: DeploymentDevice) -> DeploymentDevice {
-        print("reduce \(self) with \(other)")
-        return self
-    }
-}
-
-public extension OptionKey where InnerNS == IoTDeploymentOptionsInnerNamespace, Value == DeploymentDevice {
-    /// The option key used to specify a deployment device option
-    static let device = OptionKeyWithDefaultValue<IoTDeploymentOptionsInnerNamespace, DeploymentDevice>(
-        key: "deploymentDevice",
-        defaultValue: DeploymentDevice(rawValue: "")
-    )
     
-    static func device(_ id: String) -> OptionKey<IoTDeploymentOptionsInnerNamespace, DeploymentDevice> {
-        OptionKey<IoTDeploymentOptionsInnerNamespace, DeploymentDevice>(
-            key: "deploymentDevice." + id
+    public static func & (lhs: DeploymentDevice, rhs: DeploymentDevice) -> DeploymentDevice {
+        DeploymentDevice(rawValue: lhs.rawValue
+                            .appending(".")
+                            .appending(rhs.rawValue)
         )
     }
 }
 
-public extension AnyOption where OuterNS == DeploymentOptionsNamespace {
-    /// An option for specifying the deployment device
-    static func device(_ deploymentDevice: DeploymentDevice) -> AnyDeploymentOption {
-        ResolvedOption(key: .device(deploymentDevice.rawValue), value: deploymentDevice)
-    }
+public extension PropertyOptionKey where PropertyNameSpace == DeploymentOptionNamespace, Option == DeploymentDevice {
+    /// The ``PropertyOptionKey`` for ``MemorySize``.
+    static let deploymentDevice = DeploymentOptionKey<DeploymentDevice>()
 }
 
+public extension ComponentMetadataNamespace {
+    /// Name definition for the ``DeploymentMemoryMetadata``
+    typealias DeploymentDevice = DeploymentDeviceMetadata
+}
+
+/// The ``DeploymentMemoryMetadata`` can be used to explicitly declare the ``MemorySize`` deployment option.
+///
+/// The Metadata is available under the ``ComponentMetadataNamespace/Memory`` name and can be used like the following:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         Memory(.mb(128))
+///     }
+/// }
+/// ```
+public struct DeploymentDeviceMetadata: ComponentMetadataDefinition {
+    public typealias Key = DeploymentOptionsContextKey
+
+    public let value: PropertyOptionSet<DeploymentOptionNamespace>
+
+    public init(_ value: DeploymentDevice) {
+        self.value = .init(value, for: .deploymentDevice)
+    }
+}

@@ -56,7 +56,7 @@ extension IoTDeploymentProvider: FileMonitorDelegate {
                             if isNewDevice {
                                 //TODO: asdf
                             }
-                            let needsRedeployment = result.hasDifferActions(<#T##other: DiscoveryResult##DiscoveryResult#>)
+//                            let needsRedeployment = result.hasDifferActions(<#T##other: DiscoveryResult##DiscoveryResult#>)
                             
                             
                         }
@@ -67,7 +67,7 @@ extension IoTDeploymentProvider: FileMonitorDelegate {
                             // Need to find what actions where successful and deploy the responding handler ids
                         }
                         
-                        let 
+                       
                         
                         
                         guard results != self.results else {
@@ -125,6 +125,7 @@ extension DiscoveryResult {
                 other.foundEndDevices[id] != value
             }.isEmpty
         }
+        return false
     }
 }
 

@@ -110,7 +110,10 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
             for endpoint in endpoints {
                 // check if endpoint has a matching deployment option
                 guard !optionKeys.filter({ key in
-                    return endpoint.deploymentOptions.options.contains(where: { $0.key.rawValue == key })
+                    if let option = endpoint.deploymentOptions.option(for: .deploymentDevice) {
+                        return option.rawValue.contains(key)
+                    }
+                    return false
                 }).isEmpty else {
                     continue
                 }
@@ -121,12 +124,7 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
         
         let nodes: Set<DeployedSystemNode> = try endpointsByDeviceId
             .map { deviceId, endpoints in
-                try DeployedSystemNode(
-                    id: deviceId,
-                    exportedEndpoints: endpoints.convert(),
-                    userInfo: nil,
-                    userInfoType: Null.self
-                )
+                try DeployedSystemNode(id: deviceId, exportedEndpoints: endpoints.convert())
             }
             .toSet()
         
