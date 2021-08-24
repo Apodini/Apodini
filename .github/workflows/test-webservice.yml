@@ -77,7 +77,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: TestWebService/.build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('TestWebService/Package.resolved') }}
+        key: ${{ runner.os }}-${{matrix.linux}}-${{matrix.configuration}}-spm-${{ hashFiles('TestWebService/Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
