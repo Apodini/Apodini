@@ -234,11 +234,22 @@ let package = Package(
                 .process("Resources")
             ]
         ),
+        
+        .target(
+            name: "ApodiniOpenAPISecurity",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "OrderedCollections", package: "swift-collections")
+            ]
+        ),
 
         .target(
             name: "ApodiniOpenAPI",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniOpenAPISecurity"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniTypeReflection"),
@@ -329,7 +340,7 @@ let package = Package(
             name: "ApodiniAuthorization",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniOpenAPI")
+                .target(name: "ApodiniOpenAPISecurity")
             ]
         ),
 

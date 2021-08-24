@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct WebServiceExternalDocsContextKey: OptionalContextKey {
@@ -39,7 +40,7 @@ public struct WebServiceExternalDocumentationMetadata: WebServiceMetadataDefinit
 
     public let value: Key.Value
 
-    public init(description: String? = nil, url: URL, vendorExtensions: [String: AnyCodable] = [:]) {
-        self.value = .init(description: description, url: url, vendorExtensions: vendorExtensions)
+    public init(description: String? = nil, url: URL, vendorExtensions: [String: AnyEncodable] = [:]) {
+        self.value = .init(description: description, url: url, vendorExtensions: vendorExtensions.mapToOpenAPICodable())
     }
 }

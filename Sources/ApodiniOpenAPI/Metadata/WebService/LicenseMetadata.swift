@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct LicenseContextKey: OptionalContextKey {
@@ -35,7 +36,7 @@ public struct LicenseMetadata: WebServiceMetadataDefinition {
 
     public let value: Key.Value
 
-    public init(name: String, url: URL? = nil, vendorExtensions: [String: AnyCodable] = [:]) {
-        self.value = .init(name: name, url: url, vendorExtensions: vendorExtensions)
+    public init(name: String, url: URL? = nil, vendorExtensions: [String: AnyEncodable] = [:]) {
+        self.value = .init(name: name, url: url, vendorExtensions: vendorExtensions.mapToOpenAPICodable())
     }
 }

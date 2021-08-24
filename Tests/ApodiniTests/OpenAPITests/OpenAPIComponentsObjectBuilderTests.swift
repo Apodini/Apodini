@@ -8,7 +8,7 @@
 
 import XCTest
 import ApodiniTypeReflection
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI

@@ -126,7 +126,7 @@ class StructureExporterTests: ApodiniDeployTestCase {
         
         XCTAssertEqual(deployedSystem.deploymentProviderId, TestRuntime.identifier)
         let expectedNodes: [DeployedSystemNode] = [
-            try DeployedSystemNode(
+            DeployedSystemNode(
                 id: "myID",
                 exportedEndpoints: [
                     ExportedEndpoint(
@@ -135,7 +135,7 @@ class StructureExporterTests: ApodiniDeployTestCase {
                     )
                 ]
             ),
-            try DeployedSystemNode(
+            DeployedSystemNode(
                 id: "apiID",
                 exportedEndpoints: [
                     ExportedEndpoint(

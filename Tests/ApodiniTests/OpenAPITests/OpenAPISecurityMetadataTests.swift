@@ -113,9 +113,6 @@ final class OpenAPISecurityMetadataTests: ApodiniTests, InterfaceExporterVisitor
     }
 
     func testOpenAPISecurityDocs() throws {
-        let modelBuilder = SemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-
         var service = TestWebService()
         Apodini.inject(app: app, to: &service)
         Apodini.activate(&service)

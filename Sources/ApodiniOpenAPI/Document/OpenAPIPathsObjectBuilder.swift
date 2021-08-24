@@ -7,6 +7,7 @@
 //              
 
 import Apodini
+import ApodiniOpenAPISecurity
 import OpenAPIKit
 
 
@@ -90,8 +91,9 @@ private extension OpenAPIPathsObjectBuilder {
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPIKit.OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
 
-
-        let securitySchemes = endpoint[Context.self].get(valueFor: SecurityMetadata.self).mapToOpenAPISecurity(on: endpoint)
+        let securitySchemes = endpoint[Context.self]
+            .get(valueFor: SecurityMetadata.self)
+            .map(to: EndpointSecurityDescription.self, on: endpoint)
 
         var securityArray: [OpenAPIKit.OpenAPI.SecurityRequirement] = []
         var requiredSecurityRequirementIndex: Int?
@@ -103,20 +105,27 @@ private extension OpenAPIPathsObjectBuilder {
         // the list of `SecurityRequirement` it encodes that only one of those is required.
 
         for (key, description) in securitySchemes {
-            componentsObjectBuilder.addSecurityScheme(key: key, scheme: description.scheme)
+            guard let componentKey = OpenAPIKit.OpenAPI.ComponentKey(rawValue: key) else {
+                fatalError("""
+                           Security Metadata Key must match pattern '^[a-zA-Z0-9\\.\\-_]+$'. \
+                           Key '\(key)' for \(description) didn't match.
+                           """)
+            }
+
+            componentsObjectBuilder.addSecurityScheme(key: componentKey, scheme: description.scheme)
 
             requiresAuthentication = requiresAuthentication || description.required
 
             if !description.required {
-                securityArray.append([.component(named: key.rawValue): description.scopes])
+                securityArray.append([.component(named: componentKey.rawValue): description.scopes])
                 continue
             }
 
             if let requiredIndex = requiredSecurityRequirementIndex {
-                securityArray[requiredIndex][.component(named: key.rawValue)] = description.scopes
+                securityArray[requiredIndex][.component(named: componentKey.rawValue)] = description.scopes
             } else {
                 requiredSecurityRequirementIndex = securityArray.count
-                securityArray.append([.component(named: key.rawValue): description.scopes])
+                securityArray.append([.component(named: componentKey.rawValue): description.scopes])
             }
         }
 

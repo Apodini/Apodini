@@ -7,6 +7,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct OpenAPITagDescription: OptionalContextKey {
@@ -52,8 +53,15 @@ public struct TagDescriptionMetadata: WebServiceMetadataDefinition {
         name: String,
         description: String? = nil,
         externalDocs: OpenAPIKit.OpenAPI.ExternalDocumentation? = nil,
-        vendorExtensions: [String: AnyCodable] = [:]
+        vendorExtensions: [String: AnyEncodable] = [:]
     ) {
-        self.value = [.init(name: name, description: description, externalDocs: externalDocs, vendorExtensions: vendorExtensions)]
+        self.value = [
+            .init(
+                name: name,
+                description: description,
+                externalDocs: externalDocs,
+                vendorExtensions: vendorExtensions.mapToOpenAPICodable()
+            )
+        ]
     }
 }
