@@ -54,7 +54,7 @@ struct TestWebService: Apodini.WebService {
                 at: .endpoint("api-spec"),
                 as: .yaml
             ),
-            using: MigratorSubcommand.self
+            useSubcommand: true
         )
     }
 }

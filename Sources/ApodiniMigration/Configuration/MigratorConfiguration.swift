@@ -9,9 +9,10 @@
 import Foundation
 import Apodini
 import ApodiniMigratorShared
-@_implementationOnly import ApodiniUtils
-import Logging
 import ArgumentParser
+
+@_implementationOnly import ApodiniUtils
+@_implementationOnly import Logging
 @_implementationOnly import PathKit
 
 /// Represents distinct cases of export paths
@@ -36,7 +37,7 @@ public enum ResourceLocation {
     case resource(_ bundle: Bundle, fileName: String, format: FileFormat)
     
     /// Returns the decodable instance at `self`
-    /// - Throws: If resource not found in the bundle or if the decoding fails
+    /// - Throws: If resource not found in the bundle or if decoding fails
     func instance<D: Decodable>() throws -> D {
         let path: Path
         switch self {
@@ -81,29 +82,29 @@ public enum MigrationGuideConfiguration {
     case read(_ migrationGuideLocation: ResourceLocation, exportAt: ExportPath, as: FileFormat)
 }
 
-/// A typealias for `MigratorConfiguration`
-public typealias Migrator = MigratorConfiguration
-
 /// A configuration to handle migration tasks between two subsequent versions of an Apodini Web Service
-public class MigratorConfiguration: Configuration {
+/// - Note: Inside the `configuration` property of a `WebService` declaration, can be used via the typealias `Migrator`
+public class MigratorConfiguration<Service: WebService>: Configuration {
     let documentConfig: DocumentConfiguration
     let migrationGuideConfig: MigrationGuideConfiguration
-    let subcommandType: ApodiniMigratorParsableCommand.Type?
+    let useSubcommand: Bool
     let logger = Logger(label: "org.apodini.migrator")
     
     /// Initializer for a `MigratorConfiguration` instance
     /// - Parameters:
     ///   - documentConfig: Configuration that determines how to handle the document of the current API version
     ///   - migrationGuideConfig: Configuration of handling the migration guide. Defaults to `.none`
-    ///   - subcommand: An optional command-line subcommand to perform `MigratorConfiguration` tasks. Defaults to `nil`
+    ///   - useSubcommand: A flag to indicate whether the tasks performed by `self`
+    ///    can be executed via `migrator` subcommand of the Web Service. The subcommand starts up the web service, performes the
+    ///    pre-configured tasks of the initializer, and exits afterwards
     public init(
         documentConfig: DocumentConfiguration,
         migrationGuideConfig: MigrationGuideConfiguration = .none,
-        using subcommandType: ApodiniMigratorParsableCommand.Type? = nil
+        useSubcommand: Bool = false
     ) {
-        self.subcommandType = subcommandType
         self.documentConfig = documentConfig
         self.migrationGuideConfig = migrationGuideConfig
+        self.useSubcommand = useSubcommand
         
         #if Xcode
         runShellCommand(.killPort(8080))
@@ -117,8 +118,15 @@ public class MigratorConfiguration: Configuration {
         app.registerExporter(exporter: ApodiniMigratorInterfaceExporter(app, configuration: self))
     }
     
-    /// Returns the `subcommandType` if specified, otherwise `EmptyCommand.self`
+    /// Returns the `MigratorStartupSubcommand` type if specified, otherwise `EmptyCommand.self`
     public var command: ParsableCommand.Type {
-        subcommandType ?? EmptyCommand.self
+        useSubcommand ? MigratorStartupSubcommand<Service>.self : EmptyCommand.self
     }
+}
+
+
+// MARK: - WebService
+public extension WebService {
+    /// A typealias for `MigratorConfiguration`
+    typealias Migrator = MigratorConfiguration<Self>
 }

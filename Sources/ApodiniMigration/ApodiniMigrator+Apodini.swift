@@ -9,9 +9,9 @@
 import Foundation
 import ApodiniMigratorCore
 import Apodini
-import Logging
+@_implementationOnly import Logging
 
-// MARK: - ApodiniMigrator.Parameter
+// MARK: - ApodiniMigratorCore.Parameter
 extension ApodiniMigratorCore.Parameter {
     static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
@@ -30,7 +30,7 @@ extension ApodiniMigratorCore.Parameter {
             parameter.parameterType == .path
                 || (!parameter.nilIsValidValue
                         && !parameter.hasDefaultValue
-                        && parameter.option(for: PropertyOptionKey.optionality) != .optional)
+                        && parameter.option(for: .optionality) != .optional)
         }()
         
         return .init(
@@ -71,7 +71,7 @@ extension MimeType: TypeInformationPrimitiveConstructor {
     }
 }
 
-// MARK: - ApodiniMigrator.Operation
+// MARK: - ApodiniMigratorCore.Operation
 extension ApodiniMigratorCore.Operation {
     init(_ from: Apodini.Operation) {
         switch from {
@@ -83,7 +83,7 @@ extension ApodiniMigratorCore.Operation {
     }
 }
 
-// MARK: - ApodiniMigrator.ParameterType
+// MARK: - ApodiniMigratorCore.ParameterType
 extension ApodiniMigratorCore.ParameterType {
     init(_ from: Apodini.ParameterType) {
         switch from {
@@ -94,14 +94,14 @@ extension ApodiniMigratorCore.ParameterType {
     }
 }
 
-// MARK: - ApodiniMigrator.Version
+// MARK: - ApodiniMigratorCore.Version
 extension ApodiniMigratorCore.Version {
-    init(_ from: Apodini.Version) {
+    init(with version: Apodini.Version) {
         self.init(
-            prefix: from.prefix,
-            major: from.major,
-            minor: from.minor,
-            patch: from.patch
+            prefix: version.prefix,
+            major: version.major,
+            minor: version.minor,
+            patch: version.patch
         )
     }
 }

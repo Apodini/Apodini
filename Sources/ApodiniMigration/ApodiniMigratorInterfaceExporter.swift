@@ -9,8 +9,7 @@
 import Foundation
 import Apodini
 import ApodiniMigrator
-import Logging
-
+@_implementationOnly import Logging
 @_implementationOnly import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
@@ -20,12 +19,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private let app: Apodini.Application
     private var document = Document()
     private let logger: Logger
-    private var configuration: MigratorConfiguration
+    private let documentConfig: DocumentConfiguration
+    private let migrationGuideConfig: MigrationGuideConfiguration
     private var serverPath = ""
     
-    init(_ app: Apodini.Application, configuration: MigratorConfiguration) {
+    init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
-        self.configuration = configuration
+        self.documentConfig = configuration.documentConfig
+        self.migrationGuideConfig = configuration.migrationGuideConfig
         self.logger = configuration.logger
         setServerPath()
     }
@@ -36,7 +37,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         let identifier = endpoint[AnyHandlerIdentifier.self]
         let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
         
-        let path = endpoint.absolutePath.asPathString()
+        let endpointPath = endpoint[EndpointPathComponentsHTTP.self].value
+        let absolutePath = endpointPath.build(with: MigratorPathStringBuilder.self)
         let responseType = endpoint[ResponseType.self].type
         let response: TypeInformation
         do {
@@ -62,15 +64,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
-            absolutePath: path,
+            absolutePath: absolutePath,
             parameters: params,
             response: response,
             errors: errors
         )
         
         document.add(endpoint: migratorEndpoint)
-        
-        setVersion(from: endpoint)
     }
     
     public func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
@@ -78,17 +78,9 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
     
     public func finishedExporting(_ webService: WebServiceModel) {
+        document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         handleDocument()
         handleMigrationGuide()
-    }
-    
-    private func setVersion<H: Handler>(from endpoint: Apodini.Endpoint<H>) {
-        if let version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self) {
-            let migratorVersion: ApodiniMigratorCore.Version = .init(version)
-            if document.metaData.version != migratorVersion {
-                document.setVersion(migratorVersion)
-            }
-        }
     }
     
     private func setServerPath() {
@@ -112,9 +104,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
     
     private func handleDocument() {
-        let config = configuration.documentConfig
-        let format = config.format
-        switch config.exportPath {
+        let format = documentConfig.format
+        switch documentConfig.exportPath {
         case let .directory(path):
             do {
                 let filePath = try document.write(at: path, outputFormat: format, fileName: document.fileName)
@@ -131,9 +122,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
     
     private func handleMigrationGuide() {
-        let config = configuration.migrationGuideConfig
         do {
-            switch config {
+            switch migrationGuideConfig {
             case .none: return
             case let .compare(location, exportPath, format):
                 let oldDocument: Document = try location.instance()
@@ -164,6 +154,24 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         app.vapor.app.get(path.withLeadingSlash.pathComponents) { _ -> String in
             content
         }
+    }
+}
+
+// MARK: - MigratorPathStringBuilder
+private struct MigratorPathStringBuilder: PathBuilderWithResult {
+    private static let separator = "/"
+    private var components: [String] = []
+    
+    mutating func append(_ string: String) {
+        components.append(string)
+    }
+    
+    mutating func append<C: Codable>(_ parameter: EndpointPathParameter<C>) {
+        components.append("{\(parameter.name)}")
+    }
+    
+    func result() -> String {
+        components.joined(separator: Self.separator)
     }
 }
 

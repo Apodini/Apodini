@@ -10,15 +10,11 @@ import Foundation
 import Apodini
 import ArgumentParser
 
-/// A protocol for subcommands to be used in `MigratorConfiguration`
-public protocol ApodiniMigratorParsableCommand: ParsableCommand {}
-
 /// A subcommand with a generic type that must conform to `Apodini.WebService`, used to start up the web service for
 /// `MigratorConfiguration` tasks.
-///  - Note: Inside the `configuration` property of a `WebService` declaration, can be used via the typealias `MigratorSubcommand`
-public struct ApodiniMigratorStartupSubcommand<Service: WebService>: ApodiniMigratorParsableCommand {
+struct MigratorStartupSubcommand<Service: WebService>: ParsableCommand {
     /// Configuration of the subcommand with name `migrator`
-    public static var configuration: CommandConfiguration {
+    static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "migrator",
             abstract: "Starts up the web service",
@@ -28,16 +24,7 @@ public struct ApodiniMigratorStartupSubcommand<Service: WebService>: ApodiniMigr
     }
     
     /// Runs this command
-    public func run() throws {
+    func run() throws {
         try Service.start(mode: .startup)
     }
-    
-    /// Creates a new `MigratorSubcommand` instance
-    public init() {}
-}
-
-// MARK: - WebService
-public extension WebService {
-    /// A typealias for `ApodiniMigratorStartupSubcommand`
-    typealias MigratorSubcommand = ApodiniMigratorStartupSubcommand<Self>
 }
