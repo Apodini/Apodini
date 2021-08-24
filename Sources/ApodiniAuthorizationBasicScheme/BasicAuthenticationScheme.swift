@@ -10,7 +10,7 @@ import Apodini
 import ApodiniAuthorization
 import ApodiniHTTPProtocol
 import NIOHTTP1
-@_implementationOnly import ApodiniOpenAPI
+@_implementationOnly import ApodiniOpenAPISecurity
 
 public struct BasicAuthenticationScheme: AuthenticationScheme {
     @Apodini.Environment(\.connection)

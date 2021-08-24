@@ -7,7 +7,7 @@
 //
 
 import Apodini
-@_implementationOnly import ApodiniOpenAPI
+@_implementationOnly import ApodiniOpenAPISecurity
 
 /// Instead of performing authentication or authorization (like the ``Authenticator`` does)
 /// an ``AuthorizationRequirementsChecker`` relies on a previously executed ``Authenticator``

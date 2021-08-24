@@ -7,7 +7,7 @@
 //
 
 import Apodini
-@_implementationOnly import ApodiniOpenAPI
+@_implementationOnly import ApodiniOpenAPISecurity
 
 /// The ``Authenticator`` is the core Delegating Handler which orchestrates authentication and authorization.
 struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Handler {

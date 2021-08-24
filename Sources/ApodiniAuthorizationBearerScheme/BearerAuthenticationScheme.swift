@@ -9,7 +9,7 @@
 import Apodini
 import ApodiniAuthorization
 import ApodiniHTTPProtocol
-@_implementationOnly import ApodiniOpenAPI
+@_implementationOnly import ApodiniOpenAPISecurity
 
 /// The ``BearerAuthenticationScheme`` implements a Apodini `AuthenticationScheme` parsing the bearer authorization information.
 /// See RFC 6750 for more details on the Bearer token scheme.
