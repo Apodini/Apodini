@@ -105,7 +105,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         s3ObjectFolderKey: String,
         apiGatewayApiId: String,
         deleteOldApodiniLambdaFunctions: Bool,
-        tmpDirUrl: URL
+        tmpDirUrl: URL,
+        flattenedWebServiceArguments: String
     ) throws {
         guard !didRunDeployment else {
             fatalError("Cannot call '\(#function)' multiple times.")
@@ -160,7 +161,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
+                ./\(lambdaExecutableUrl.lastPathComponent) ${\(flattenedWebServiceArguments)} deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)

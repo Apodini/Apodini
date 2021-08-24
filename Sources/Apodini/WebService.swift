@@ -111,7 +111,6 @@ extension WebService {
         // We can then extract the subcommands and pass this to the configuration below.
         func parseAutomaticSubcommands(arguments: [String]) -> [ParsableCommand.Type] {
             do {
-                print(arguments)
                 return try Self.parse(arguments).configuration._commands
             } catch {
                 if arguments.isEmpty {
@@ -217,8 +216,3 @@ public enum WebServiceExecutionMode {
     /// It exits afterwards.
     case boot
 }
-
-private protocol CLIParsable {}
-extension Option: CLIParsable {}
-extension Argument: CLIParsable {}
-extension OptionGroup: CLIParsable {}

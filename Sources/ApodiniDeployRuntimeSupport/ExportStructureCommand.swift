@@ -82,3 +82,11 @@ public struct StartupCommand: ParsableCommand {
         return StartupCommand.self
     }
 }
+
+extension WebService {
+    /// An instance start function that can be used by the deployment related start and export structure commands,
+    /// since they all have access to an instanciated object of the `WebService`. Leave it here until a general revamp of the start function.
+    public func start(mode: WebServiceExecutionMode, app: Application) throws {
+        try Self.start(mode: mode, app: app, webService: self)
+    }
+}

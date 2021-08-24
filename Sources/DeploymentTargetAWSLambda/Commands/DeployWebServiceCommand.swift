@@ -66,6 +66,9 @@ struct DeployWebServiceCommand: ParsableCommand {
     @Flag(help: "Whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly = false
     
+    @Argument(parsing: .unconditionalRemaining, help:"CLI arguments of the web service")
+    var webServiceArguments: [String] = []
+    
     var packageRootDir: URL {
         URL(fileURLWithPath: inputPackageDir).absoluteURL
     }
@@ -81,7 +84,8 @@ struct DeployWebServiceCommand: ParsableCommand {
             s3BucketPath: s3BucketPath,
             awsApiGatewayApiId: awsApiGatewayApiId,
             awsDeployOnly: awsDeployOnly,
-            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions
+            deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions,
+            webServiceArguments: webServiceArguments
         )
         try deploymentProvider.run()
     }
@@ -101,6 +105,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
     private(set) var awsApiGatewayApiId: String
     let awsDeployOnly: Bool
     let deleteOldApodiniLambdaFunctions: Bool
+    let webServiceArguments: [String]
     
     var target: DeploymentProviderTarget {
         .spmTarget(packageUrl: packageRootDir, targetName: productName)
@@ -116,6 +121,10 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
     
     private var tmpDirUrl: URL {
         buildFolderUrl.appendingPathComponent(tmpDirName, isDirectory: true)
+    }
+    
+    private var flattenedWebServiceArguments: String {
+        webServiceArguments.joined(separator: " ")
     }
     
     private var lambdaOutputDir: URL {
@@ -169,7 +178,8 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             s3ObjectFolderKey: s3BucketPath,
             apiGatewayApiId: awsApiGatewayApiId,
             deleteOldApodiniLambdaFunctions: deleteOldApodiniLambdaFunctions,
-            tmpDirUrl: self.tmpDirUrl
+            tmpDirUrl: self.tmpDirUrl,
+            flattenedWebServiceArguments: flattenedWebServiceArguments
         )
         Context.logger.notice("Done! Successfully applied the deployment.")
     }
@@ -247,7 +257,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         let filePath = ".build/\(tmpDirName)/\(filename)"
         try runInDocker(
             imageName: dockerImageName,
-            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier.rawValue) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
+            bashCommand: "swift run -Xswiftc -Xfrontend -Xswiftc -sil-verify-none \(productName) \(flattenedWebServiceArguments) deploy export-ws-structure aws \(filePath) --identifier \(Self.identifier.rawValue) --aws-api-gateway-api-id \(awsApiGatewayApiId) --aws-region \(awsRegion)"
         )
         let url = tmpDirUrl.appendingPathComponent(filename, isDirectory: false)
         return try LambdaDeployedSystem(decodingJSONAt: url)
