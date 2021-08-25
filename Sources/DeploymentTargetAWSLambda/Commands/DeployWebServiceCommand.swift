@@ -163,7 +163,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
                 return try retrieveDeployedSystem(usingDockerImage: dockerImageName)
             }
         }()
-        
+        Context.logger.notice("Successfully generated web service structure")
         let lambdaExecutableUrl: URL = awsDeployOnly
             ? tmpDirUrl.appendingPathComponent("lambda.out", isDirectory: false)
             : try compileForLambda(usingDockerImage: dockerImageName)
