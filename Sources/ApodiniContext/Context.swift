@@ -8,15 +8,16 @@
 
 /// Defines some sort of `Context` for a given representation (like `Endpoint`).
 /// A `Context` holds a collection of values for predefined `ContextKey`s or `OptionalContextKey`s.
-public class Context: KnowledgeSource {
+public struct Context {
     private let entries: [ObjectIdentifier: Any]
 
     init(_ entries: [ObjectIdentifier: Any] = [:]) {
         self.entries = entries
     }
-    
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.entries = blackboard[AnyEndpointSource.self].context.entries
+
+    /// Creates a new ``Context`` by copying the contents of the provided ``Context``.
+    public init(copying context: Context) {
+        self.entries = context.entries
     }
 
     /// Retrieves the value for a given `ContextKey`.

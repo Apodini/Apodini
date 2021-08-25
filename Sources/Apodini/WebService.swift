@@ -11,7 +11,7 @@ import Logging
 import ArgumentParser
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
+public protocol WebService: AnyWebServiceMetadataBlock, Component, ConfigurationCollection, ParsableCommand {
     typealias Metadata = AnyWebServiceMetadata
     
     /// An empty initializer used to create an Apodini `WebService`

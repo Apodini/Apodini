@@ -57,9 +57,9 @@ import ApodiniUtils
 ///
 /// // expected order is: 1, 2, 3, 4, 5
 /// ```
-class ContextNode {
+public class ContextNode {
     /// Holds the parent `ContextNode` if it's not the root `ContextNode`.
-    let parentContextNode: ContextNode?
+    public let parentContextNode: ContextNode?
 
     /// The current working set of `AnyContextEntry`s belonging to the currently parsed `Component`.
     /// Once a `Component` has fully been parsed, entries of the `currentWorkingSet` are stored
@@ -73,17 +73,23 @@ class ContextNode {
     /// Caches the result of `exportEntries()` optimizing multiple executions.
     private var exportedEntries: [ObjectIdentifier: AnyContextEntry]? // swiftlint:disable:this discouraged_optional_collection
 
-    init(parent: ContextNode? = nil) {
+    /// Initializes a new ``ContextNode`` optionally referencing a parent ``ContextNode``.
+    public init(parent: ContextNode? = nil) {
         parentContextNode = parent
     }
 
-    func markContextWorkSetBegin(isModifier: Bool = false) {
+    /// Marks the beginning of a working-set for the ``ContextNode``.
+    /// In general, for every parsed Component we create a working set. Working sets are a abstraction
+    /// to be able to handle ordering of context values added thorough modifier.
+    /// - Parameter isModifier: Defines if the current component is a modifier.
+    public func markContextWorkSetBegin(isModifier: Bool = false) {
         storeCurrentWorkingSet()
 
         parsingModifier = isModifier
     }
 
-    func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
+    /// Adds a new value to the ``ContextNode``.
+    public func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         precondition(exportedEntries == nil, "Tried adding additional context values on a ContextNode which was already exported!")
 
         guard !isOptional(C.Value.self) else {
@@ -167,7 +173,8 @@ class ContextNode {
             }
     }
 
-    func export() -> Context {
+    /// Exports the ``ContextNode``, creating a ``Context`` instance which preserves the contents of this node.
+    public func export() -> Context {
         storeCurrentWorkingSet()
 
         let entries = exportEntries()
@@ -178,18 +185,27 @@ class ContextNode {
         return Context(entries)
     }
 
-    func newContextNode() -> ContextNode {
+    /// Creates new new child ``ContextNode``.
+    public func newContextNode() -> ContextNode {
         markContextWorkSetBegin()
 
         return ContextNode(parent: self)
     }
 
-    func peekValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
+    /// Peeks a value of the ``ContextNode``. In general value can only be retrieved once
+    /// the ``ContextNode`` was exported into a ``Context``. This guarantees that the value is only
+    /// retrieved when everything was fully parsed.
+    /// `peekValue` doesn't guarantee that. The value might change after the call as parsing continues.
+    public func peekValue<C: ContextKey>(for contextKey: C.Type = C.self) -> C.Value {
         peekExportEntry(for: contextKey)?.reduce() as? C.Value
             ?? C.defaultValue
     }
 
-    func peekValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
+    /// Peeks a value of the ``ContextNode``. In general value can only be retrieved once
+    /// the ``ContextNode`` was exported into a ``Context``. This guarantees that the value is only
+    /// retrieved when everything was fully parsed.
+    /// `peekValue` doesn't guarantee that. The value might change after the call as parsing continues.
+    public func peekValue<C: OptionalContextKey>(for contextKey: C.Type = C.self) -> C.Value? {
         peekExportEntry(for: contextKey)?.reduce() as? C.Value
     }
 }

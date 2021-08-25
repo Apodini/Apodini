@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
 /// The `HandlerMetadataNamespace` can be used to define an appropriate
 /// Name for your `HandlerMetadataDefinition` in a way that avoids Name collisions

@@ -110,6 +110,8 @@ let package = Package(
         .target(
             name: "Apodini",
             dependencies: [
+                .target(name: "ApodiniContext"),
+                .target(name: "MetadataSystem"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
@@ -170,6 +172,21 @@ let package = Package(
                 .target(name: "Apodini")
             ],
             exclude: ["Cases"]
+        ),
+
+        .target(
+            name: "ApodiniContext",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+
+        .target(
+            name: "MetadataSystem",
+            dependencies: [
+                .target(name: "ApodiniContext"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
         ),
 
         .target(

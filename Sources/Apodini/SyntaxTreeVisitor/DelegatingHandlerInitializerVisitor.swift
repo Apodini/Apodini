@@ -162,7 +162,7 @@ extension StoredContextKeyEntry: Hashable {
 // MARK: Delegate
 
 /// This protocol represents a ``Delegate`` instance which wraps some sort of ``Handler``.
-private protocol DelegateWithMetadata {
+private protocol DelegateWithComponentMetadata {
     /// Collect the metadata from the wrapped model of a ``Delegate`` as well as from all `Delegate``s it might contain.
     /// - Parameters:
     ///   - metadata: The array of ``AnyMetadata`` the results should be collected into.
@@ -171,8 +171,13 @@ private protocol DelegateWithMetadata {
     func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?)
 }
 
-extension Delegate: DelegateWithMetadata where D: AnyMetadataBlock {
-    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+private protocol DelegateWithComponentOnlyMetadata {
+    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?)
+}
+
+
+private extension Delegate where D: AnyMetadataBlock {
+    func collectAnyMetadataBlock(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
         if handlerType == ObjectIdentifier(D.self) {
             return
         }
@@ -182,9 +187,23 @@ extension Delegate: DelegateWithMetadata where D: AnyMetadataBlock {
         collectChildrenMetadata(from: delegateModel, into: &metadata, ignoring: handlerType)
 
         // outer metadata always has higher precedence than inner metadata when reducing, thus APPEND
-        metadata.append(delegateModel.blockContent)
+        metadata.append(delegateModel.typeErasedContent)
     }
 }
+
+
+extension Delegate: DelegateWithComponentMetadata where D: AnyComponentMetadataBlock {
+    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+        collectAnyMetadataBlock(into: &metadata, ignoring: handlerType)
+    }
+}
+
+extension Delegate: DelegateWithComponentOnlyMetadata where D: AnyComponentOnlyMetadataBlock {
+    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+        collectAnyMetadataBlock(into: &metadata, ignoring: handlerType)
+    }
+}
+
 
 private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
     // This is probably the part were its a bit weird how we set precedence for metadata reduction.
@@ -194,7 +213,9 @@ private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMet
 
     let mirror = Mirror(reflecting: any)
     for (_, value) in mirror.children {
-        if let delegate = value as? DelegateWithMetadata {
+        if let delegate = value as? DelegateWithComponentMetadata {
+            delegate.collectMetadata(into: &metadata, ignoring: handlerType)
+        } else if let delegate = value as? DelegateWithComponentOnlyMetadata {
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
         }
     }

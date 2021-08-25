@@ -7,7 +7,7 @@
 //              
 
 extension Never: AnyMetadata {
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
+    public func collectMetadata(_ visitor: MetadataParser) {
         // as the Never also conforms to Component, we need to manually specify the implementation
         fatalError("Never cannot be accepted by the SyntaxTreeVisitor!")
     }

@@ -35,11 +35,11 @@ public extension RestrictedMetadataBlockBuilder where Block: HandlerMetadataBloc
     }
 
     static func buildArray(_ components: [AnyHandlerMetadata]) -> AnyHandlerMetadata {
-        AnyHandlerMetadataArrayWrapper(components)
+        AnyHandlerMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyHandlerMetadata...) -> AnyHandlerMetadata {
-        AnyHandlerMetadataArrayWrapper(components)
+        AnyHandlerMetadataArray(components)
     }
 }
 
@@ -66,11 +66,11 @@ public extension RestrictedMetadataBlockBuilder where Block: ComponentOnlyMetada
     }
 
     static func buildArray(_ components: [AnyComponentOnlyMetadata]) -> AnyComponentOnlyMetadata {
-        AnyComponentOnlyMetadataArrayWrapper(components)
+        AnyComponentOnlyMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyComponentOnlyMetadata...) -> AnyComponentOnlyMetadata {
-        AnyComponentOnlyMetadataArrayWrapper(components)
+        AnyComponentOnlyMetadataArray(components)
     }
 }
 
@@ -97,11 +97,11 @@ public extension RestrictedMetadataBlockBuilder where Block: WebServiceMetadataB
     }
 
     static func buildArray(_ components: [AnyWebServiceMetadata]) -> AnyWebServiceMetadata {
-        AnyWebServiceMetadataArrayWrapper(components)
+        AnyWebServiceMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyWebServiceMetadata...) -> AnyWebServiceMetadata {
-        AnyWebServiceMetadataArrayWrapper(components)
+        AnyWebServiceMetadataArray(components)
     }
 }
 
@@ -128,11 +128,11 @@ public extension RestrictedMetadataBlockBuilder where Block: ComponentMetadataBl
     }
 
     static func buildArray(_ components: [AnyComponentMetadata]) -> AnyComponentMetadata {
-        AnyComponentMetadataArrayWrapper(components)
+        AnyComponentMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyComponentMetadata...) -> AnyComponentMetadata {
-        AnyComponentMetadataArrayWrapper(components)
+        AnyComponentMetadataArray(components)
     }
 }
 
@@ -159,10 +159,10 @@ public extension RestrictedMetadataBlockBuilder where Block: ContentMetadataBloc
     }
 
     static func buildArray(_ components: [AnyContentMetadata]) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
+        AnyContentMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyContentMetadata...) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
+        AnyContentMetadataArray(components)
     }
 }

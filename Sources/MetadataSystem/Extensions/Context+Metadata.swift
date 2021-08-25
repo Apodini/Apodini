@@ -4,10 +4,11 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
+
+import ApodiniContext
 
 // MARK: Metadata
-
 public extension Context {
     /// Retrieves the value for a given `MetadataDefinition`.
     /// - Parameter contextKey: The `MetadataDefinition` to retrieve the value for.

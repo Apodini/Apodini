@@ -8,14 +8,6 @@
 
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-/// The scope of a value associated with a `ContextKey`
-public enum Scope {
-    /// The value is only applied to the current `ContextNode` and discarded afterwards
-    case current
-    /// The value is applied to all following `ContextNodes`s located in the subtree of the current `ContextNode`
-    case environment
-}
-
 
 /// The `SyntaxTreeVisitable` makes a type discoverable by a `SyntaxTreeVisitor`.
 ///

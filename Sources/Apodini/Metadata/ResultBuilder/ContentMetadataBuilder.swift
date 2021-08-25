@@ -36,10 +36,10 @@ public extension ContentMetadataBuilder {
     }
 
     static func buildArray(_ components: [AnyContentMetadata]) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
+        AnyContentMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyContentMetadata...) -> AnyContentMetadata {
-        AnyContentMetadataArrayWrapper(components)
+        AnyContentMetadataArray(components)
     }
 }

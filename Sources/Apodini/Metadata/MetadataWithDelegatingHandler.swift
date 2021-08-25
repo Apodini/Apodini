@@ -12,8 +12,8 @@ public protocol AnyDefinitionWithDynamicDelegatingHandler {
     /// by the ``DefinitionWithDelegatingHandler`` to the `ContextNode`.
     ///
     /// Note, this method does nothing, if self also conforms to ``DefinitionWithDelegatingHandlerKey``.
-    /// - Parameter visitor: The ``SyntaxTreeVisitor``.
-    func addInitializerContextValue(_ visitor: SyntaxTreeVisitor)
+    /// - Parameter visitor: The `MetadataParser`.
+    func addInitializerContextValue<Parser: MetadataParser>(_ visitor: Parser)
 }
 
 /// Some ``MetadataDefinition`` might declare conformance to ``DefinitionWithDelegatingHandler``
@@ -38,7 +38,7 @@ public protocol DefinitionWithDelegatingHandlerKey: DefinitionWithDelegatingHand
 
 public extension DefinitionWithDelegatingHandler {
     /// Default implementation for adding the initializer context key.
-    func addInitializerContextValue(_ visitor: SyntaxTreeVisitor) {
+    func addInitializerContextValue<Parser: MetadataParser>(_ visitor: Parser) {
         guard Self.Key.self != DelegatingHandlerContextKey.self else {
             return
         }
