@@ -39,7 +39,7 @@ struct LifxDeployer: ParsableCommand {
                 .deploymentDirectory: deploymentOptions.deploymentDir
             ]
         )
-        provider.registerAction(scope: .all, action: LIFXDeviceDiscoveryAction.self, option: .device(.lifx))
+        provider.registerAction(scope: .all, action: LIFXDeviceDiscoveryAction.self, option: DeploymentDeviceMetadata(.lifx))
         try provider.run()
     }
 }

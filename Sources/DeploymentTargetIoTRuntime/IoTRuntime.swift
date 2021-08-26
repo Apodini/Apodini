@@ -74,10 +74,7 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
             version: "0.0.1"
         )
     }
-    // deviceId-optionKey...#deviceId-optionKey...
-//    @Option
-//    public var deviceIds: String
-    
+
     @Option
     public var info: String
     

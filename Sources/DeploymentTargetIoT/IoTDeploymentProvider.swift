@@ -51,6 +51,9 @@ public class IoTDeploymentProvider: DeploymentProvider {
     public var currentDeployedSystem: DeployedSystem? = nil
     public var results: [DiscoveryResult] = []
     
+    private var packageName: String {
+        packageRootDir.lastPathComponent
+    }
     
     public init(
         searchableTypes: [String],
@@ -109,7 +112,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
             results = try discovery.run(2).wait()
             logger.info("Found: \(results)")
             
-            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystemOnLocalMachineTmp(deviceID: type, postDiscoveryActions: discovery.actions, executableUrl: executableURL)
+            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystemOnLocalMachine(for: results, postDiscoveryActions: discovery.actions, executableUrl: executableURL)
             
 //            let (modelFileUrl, deployedSystem) = try self.retrieveDeployedSystemOnLocalMachine(
 //                for: results,
@@ -128,8 +131,12 @@ public class IoTDeploymentProvider: DeploymentProvider {
                     // do nothing if there were no post actions
                     !result.foundEndDevices.isEmpty,
                     // do nothing if all post actions returned 0
-                    result.foundEndDevices.values.contains(where: { $0 != 0 }) else {
-                        logger.warning("No end devices were found for device \(result.device.hostname)")
+                    result.foundEndDevices.values.contains(where: { $0 != 0 }),
+                    // Check if we have a suitable deployment node.
+                    // If theres none for this device, there's no point to continue
+                    let deploymentNode = try self.deploymentNode(for: result, deployedSystem: deployedSystem)
+                else {
+                        logger.warning("No end devices were found for device \(result.device.hostname) or no deployment node were found")
                         continue
                     }
                 logger.warning("Starting deployment to device \(result.device.hostname)")
@@ -148,13 +155,14 @@ public class IoTDeploymentProvider: DeploymentProvider {
                 //                logger.info("Retrieving system structure")
                 //                let (modelFileUrl, deployedSystem) = try retrieveDeployedSystem(on: device, postActions: discovery.actions)
                 
-                // Check if we have a suitable deployment node
-                guard let deploymentNode = try self.deploymentNode(for: result, deployedSystem: deployedSystem) else {
-                    logger.error("No deployment node found for device \(device.hostname)")
-                    // do some cleanup here
-                    continue
-                }
-                
+//                // Check if we have a suitable deployment node.
+//                // If theres none for this device, there's no point to continue
+//                guard let deploymentNode = try self.deploymentNode(for: result, deployedSystem: deployedSystem) else {
+//                    logger.error("No deployment node found for device \(device.hostname)")
+//                    // do some cleanup here
+//                    continue
+//                }
+                exit(0)
                 // Run web service on deployed node
                 logger.info("Starting web service on remote node")
                 try run(on: deploymentNode, device: device, modelFileUrl: modelFileUrl)
@@ -211,11 +219,12 @@ public class IoTDeploymentProvider: DeploymentProvider {
     }
     
     private func retrieveDeployedSystemOnLocalMachineTmp(
-        deviceID: String,
+        device: Device,
         postDiscoveryActions: [PostDiscoveryAction.Type],
         executableUrl: URL) throws -> (URL, DeployedSystem) {
             var infos: String = ""
-            let info = deviceID
+            let ipAddress = try IoTContext.ipAddress(for: device)
+            let info = ipAddress
                 .appending("-")
                 .appending(postActionMapping.values
                             .compactMap { $0.0.getOptionRawValue() }
@@ -244,14 +253,11 @@ public class IoTDeploymentProvider: DeploymentProvider {
         var infos: String = ""
         
         for result in results {
-            guard let ipAddress = result.device.ipv4Address else {
-                throw IoTDeploymentError(description: "Unable to initialise system retrieval - ip address not found")
-            }
+            let ipAddress = try IoTContext.ipAddress(for: result.device)
             let info = ipAddress
                 .appending("-")
-                .appending(result.foundEndDevices
-                            .filter { $0.value > 0 }
-                            .map { $0.key.rawValue }
+                .appending(postActionMapping.values
+                            .compactMap { $0.0.getOptionRawValue() }
                             .joined(separator: "-")
                 )
                 .appending("#")
@@ -321,15 +327,15 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     private func buildPackage(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
-            "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none --package-path \(self.deploymentDir.path) -c debug --productName \(self.productName)",
-            workingDir: self.deploymentDir.path,
+            "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --product \(self.productName)",
+            workingDir: self.deploymentDir.appendingPathComponent(packageName).path,
             device: device
         )
     }
     
     private func cleanup(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
-            "sudo rm -drf \(self.deploymentDir.path)",
+            "sudo rm -rf \(self.deploymentDir.path)/*",
             workingDir: self.deploymentDir.path,
             device: device,
             assertSuccess: false
@@ -338,9 +344,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     }
     
     private func deploymentNode(for result: DiscoveryResult, deployedSystem: DeployedSystem) throws -> DeployedSystemNode? {
-        guard let ipAddress = result.device.ipv4Address else {
-            throw IoTDeploymentError(description: "Unable to find DeployedSystemNode - ip address was not found")
-        }
+        let ipAddress = try IoTContext.ipAddress(for: result.device)
         let nodes = deployedSystem.nodes.filter { $0.id == ipAddress }
         assert(nodes.count == 1, "There should only be one deployment node per end device")
         

@@ -12,7 +12,6 @@ import ApodiniDeployRuntimeSupport
 import DeploymentTargetLocalhostCommon
 import ArgumentParser
 import ApodiniOpenAPI
-import DeploymentTargetAWSLambdaCommon
 
 /// The default `StructureExporter` of the localhost deployment provider. This command is responsible for
 /// exporting the web service structure in a way that is understandable by the `LocalhostDeploymentProvider`.

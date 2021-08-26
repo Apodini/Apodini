@@ -7,8 +7,8 @@ public enum IoTContext {
     static let deploymentDirectory = ConfigurationProperty("key_deployDir")
     static let logger = ConfigurationProperty("key_logger")
     
-    static let defaultUsername = "pi"
-    static let defaultPassword = "rasp_ma-1511"
+    static let defaultUsername = "ubuntu"
+    static let defaultPassword = "test1234"
 
     static var resourceURL: URL {
         URL(fileURLWithPath: #filePath)
@@ -33,6 +33,13 @@ public enum IoTContext {
     public static func rsyncHostname(_ device: Device, path: String) -> String {
         "\(device.username)@\(device.ipv4Address!):\(path)"
     }
+    
+    public static func ipAddress(for device: Device) throws -> String {
+        guard let ipaddress = device.ipv4Address else {
+            throw IoTDeploymentError(description: "Unable to get ipaddress for \(device)")
+        }
+        return ipaddress
+    }
 
     private static func _findExecutable(_ name: String) -> URL {
         guard let url = Task.findExecutable(named: name) else {
@@ -41,22 +48,21 @@ public enum IoTContext {
         return url
     }
     
-    /// Due to Swift nio ssh being asynchronous by default, we don't have a convenient way to execute synchronous calls on remote.
-    /// This is why (at least for now) we use Apodini's `Task` to execute single commands synchronously.
+    private static func getSSHClient(for device: Device) throws -> SSHClient {
+        guard let anyDevice = device as? AnyDevice, let ipAddress = anyDevice.ipv4Address else {
+            throw IoTDeploymentError(description: "Failed to get sshclient for \(device)")
+        }
+        return try SSHClient(username: anyDevice.username, password: anyDevice.password, ipAdress: ipAddress)
+    }
+    
+    /// A wrapper function that navigates to the specified working directory and executes the command remotely
     public static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true) throws {
-        let task = Task(
-            executableUrl: Self._findExecutable("ssh"),
-            arguments: [
-                "\(device.username)@\(device.ipv4Address)",
-                ["cd /\(workingDir)", command].joined(separator: " && ")
-            ],
-            captureOutput: false,
-            redirectStderrToStdout: true,
-            launchInCurrentProcessGroup: false)
+        let client = try getSSHClient(for: device)
+        let cmd = "cd \(workingDir) && \(command)"
         if assertSuccess {
-            try task.launchSyncAndAssertSuccess()
+            try client.executeWithAssertion(cmd: cmd)
         } else {
-            _ = try task.launchSync()
+            let _: Bool = try client.execute(cmd: cmd, responseHandler: nil)
         }
     }
 }
