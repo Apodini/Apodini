@@ -2,7 +2,7 @@
   "object": {
     "pins": [
       {
-        "package": "apnswift",
+        "package": "APNSwift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
