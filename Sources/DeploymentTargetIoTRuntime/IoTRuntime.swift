@@ -95,10 +95,11 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
-        try Service.start(mode: .boot, app: app, webService: Service())
+        try Service.start(mode: .startup, app: app, webService: Service())
     }
     
     public func retrieveStructure(_ endpoints: Set<CollectedEndpointInfo>, config: DeploymentConfig, app: Application) throws -> AnyDeployedSystem {
+        print("retrieving structure")
         let actionKeys: [String] = actionKeys.split(separator: ",").map(String.init)
         var suitableEndpoints: [CollectedEndpointInfo] = []
         for endpoint in endpoints {

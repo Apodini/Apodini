@@ -267,15 +267,20 @@ public class IoTDeploymentProvider: DeploymentProvider {
         let remoteFilePath = deploymentDir.appendingPathComponent(modelFileName, isDirectory: false)
         let device = result.device
         
+        let buildUrl = remotePackageRootDir
+            .appendingPathComponent(".build")
+            .appendingPathComponent("debug")
+        
         let actionKeys = postActionMapping
             .filter { $0.key == device.identifier }
             .values
             .compactMap { $0.0.getOptionRawValue() }
             .joined(separator: "-")
         let ipAddress = try IoTContext.ipAddress(for: device)
+        print("./\(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ip \(ipAddress) --action-keys \(actionKeys)")
         try IoTContext.runTaskOnRemote(
-            "swift run \(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ip \(ipAddress) --action-keys \(actionKeys)",
-            workingDir: self.remotePackageRootDir.path,
+            "./\(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ip \(ipAddress) --action-keys \(actionKeys)",
+            workingDir: buildUrl.path,
             device: device
         )
         
