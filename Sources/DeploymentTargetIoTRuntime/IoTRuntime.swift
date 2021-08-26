@@ -208,6 +208,6 @@ struct IoTLifeCycleHandler: LifecycleHandler {
     func map<IE>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] where IE : InterfaceExporter {
         print(endpoint[AnyHandlerIdentifier.self].rawValue)
         print(endpointIds)
-        [endpoint].filter { endpointIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
+        return [endpoint].filter { endpointIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
     }
 }
