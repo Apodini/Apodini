@@ -55,6 +55,10 @@ public class IoTDeploymentProvider: DeploymentProvider {
         packageRootDir.lastPathComponent
     }
     
+    private var remotePackageRootDir: URL {
+        deploymentDir.appendingPathComponent(packageName)
+    }
+    
     public init(
         searchableTypes: [String],
         productName: String,
@@ -125,6 +129,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
             
             for result in results {
                 // Clean up any previous deployment
+                logger.debug("Cleaning up previous builds")
                 try cleanup(on: result.device)
                 
                 guard
@@ -162,7 +167,8 @@ public class IoTDeploymentProvider: DeploymentProvider {
 //                    // do some cleanup here
 //                    continue
 //                }
-                exit(0)
+                print("build successful.")
+//                exit(0)
                 // Run web service on deployed node
                 logger.info("Starting web service on remote node")
                 try run(on: deploymentNode, device: device, modelFileUrl: modelFileUrl)
@@ -203,9 +209,13 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     private func run(on node: DeployedSystemNode, device: Device, modelFileUrl: URL) throws {
         let handlerIds: String = node.exportedEndpoints.compactMap { $0.handlerId.rawValue }.joined(separator: ",")
+        let buildUrl = remotePackageRootDir
+            .appendingPathComponent(".build")
+            .appendingPathComponent("debug")
+        let tmuxName = productName
         try IoTContext.runTaskOnRemote(
-            "swift run \(productName) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)",
-            workingDir: self.deploymentDir.path,
+            "tmux new-session -d -s \(tmuxName) './\(productName) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)'",
+            workingDir: buildUrl.path,
             device: device
         )
     }
@@ -327,7 +337,8 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     private func buildPackage(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
-            "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --product \(self.productName)",
+//            "swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug --product \(self.productName)",
+            "swift build -c debug --product \(self.productName)",
             workingDir: self.deploymentDir.appendingPathComponent(packageName).path,
             device: device
         )
