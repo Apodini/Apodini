@@ -10,13 +10,7 @@ public enum IoTContext {
     static let defaultUsername = "ubuntu"
     static let defaultPassword = "test1234"
 
-    static var resourceURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .appendingPathComponent("Resources", isDirectory: true)
-    }
-
-    public static func copyResourcesToRemote(_ device: Device, origin: String, destination: String) throws {
+    public static func copyResources(_ device: Device, origin: String, destination: String) throws {
         let task = Task(executableUrl: Self._findExecutable("rsync"),
                         arguments: [
                             "-avz",

@@ -27,5 +27,8 @@ public struct IoTDeploymentOptions: ParsableArguments {
     @Flag(help: "If set, the deployment provider listens for changes in the the working directory and automatically redeploys changes to the affected nodes.")
     public var automaticRedeployment = false
     
+    @Argument(parsing: .unconditionalRemaining, help:"CLI arguments of the web service")
+    var webServiceArguments: [String] = []
+    
     public init() {}
 }

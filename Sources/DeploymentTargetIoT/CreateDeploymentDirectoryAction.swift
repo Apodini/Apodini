@@ -13,7 +13,7 @@ struct CreateDeploymentDirectoryAction: PostDiscoveryAction {
 
     func run(_ device: Device, on eventLoopGroup: EventLoopGroup, client: SSHClient?) throws -> EventLoopFuture<Int> {
         try client?.bootstrap()
-        try client?.fileManager.createDir(on: deploymentDir, permissions: 777)
+        try client?.fileManager.createDir(on: deploymentDir, permissions: 777, force: false)
         return eventLoopGroup.next().makeSucceededFuture(0)
     }
 }

@@ -76,6 +76,12 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
     }
 
     @Option
+    public var ip: String
+    
+    @Option
+    public var actionKeys: String
+    
+    @Option
     public var info: String
     
     @Argument(help: "The location of the json file")
@@ -93,42 +99,63 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
     }
     
     public func retrieveStructure(_ endpoints: Set<CollectedEndpointInfo>, config: DeploymentConfig, app: Application) throws -> AnyDeployedSystem {
-        var endpointsByDeviceId: [String: Set<CollectedEndpointInfo>] = [:]
-        
-        // Get device info, e.g. ipAddress-options..
-        let deviceInfos: [String] = info.split(separator: "#").map { String($0) }
-        for deviceInfo in deviceInfos {
-            let info = deviceInfo.split(separator: "-").compactMap { String($0) }
-            let ipAddress = info[0]
-            let optionKeys: [String] = Array(info.dropFirst())
-            // init empty array
-            endpointsByDeviceId[ipAddress] = []
-            
-            for endpoint in endpoints {
-                // check if endpoint has a matching deployment option
-                guard !optionKeys.filter({ key in
-                    if let option = endpoint.deploymentOptions.option(for: .deploymentDevice) {
-                        return option.rawValue.contains(key)
-                    }
-                    return false
-                }).isEmpty else {
-                    continue
+        let actionKeys: [String] = actionKeys.split(separator: ",").map(String.init)
+        var suitableEndpoints: [CollectedEndpointInfo] = []
+        for endpoint in endpoints {
+            // check if endpoint has a matching deployment option
+            guard !actionKeys.filter({ key in
+                if let option = endpoint.deploymentOptions.option(for: .deploymentDevice) {
+                    return option.rawValue.contains(key)
                 }
-
-                endpointsByDeviceId[ipAddress]?.insert(endpoint)
+                return false
+            }).isEmpty else {
+                continue
             }
+            suitableEndpoints.append(endpoint)
         }
         
-        let nodes: Set<DeployedSystemNode> = try endpointsByDeviceId
-            .map { deviceId, endpoints in
-                try DeployedSystemNode(id: deviceId, exportedEndpoints: endpoints.convert())
-            }
-            .toSet()
-        
+        let node = DeployedSystemNode(id: ip, exportedEndpoints: suitableEndpoints.convert())
         return try DeployedSystem(
             deploymentProviderId: iotDeploymentProviderId,
-            nodes: nodes
+            nodes: Set<DeployedSystemNode>([node])
         )
+        
+//        var endpointsByDeviceId: [String: Set<CollectedEndpointInfo>] = [:]
+//        
+//        // Get device info, e.g. ipAddress-options..
+//        let deviceInfos: [String] = info.split(separator: "#").map { String($0) }
+//        for deviceInfo in deviceInfos {
+//            let info = deviceInfo.split(separator: "-").compactMap { String($0) }
+//            let ipAddress = info[0]
+//            let optionKeys: [String] = Array(info.dropFirst())
+//            // init empty array
+//            endpointsByDeviceId[ipAddress] = []
+//            
+//            for endpoint in endpoints {
+//                // check if endpoint has a matching deployment option
+//                guard !optionKeys.filter({ key in
+//                    if let option = endpoint.deploymentOptions.option(for: .deploymentDevice) {
+//                        return option.rawValue.contains(key)
+//                    }
+//                    return false
+//                }).isEmpty else {
+//                    continue
+//                }
+//
+//                endpointsByDeviceId[ipAddress]?.insert(endpoint)
+//            }
+//        }
+//        
+//        let nodes: Set<DeployedSystemNode> = try endpointsByDeviceId
+//            .map { deviceId, endpoints in
+//                try DeployedSystemNode(id: deviceId, exportedEndpoints: endpoints.convert())
+//            }
+//            .toSet()
+//        
+//        return try DeployedSystem(
+//            deploymentProviderId: iotDeploymentProviderId,
+//            nodes: nodes
+//        )
     }
 }
 
@@ -179,6 +206,8 @@ struct IoTLifeCycleHandler: LifecycleHandler {
     let endpointIds: [String]
     
     func map<IE>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] where IE : InterfaceExporter {
+        print(endpoint[AnyHandlerIdentifier.self].rawValue)
+        print(endpointIds)
         [endpoint].filter { endpointIds.contains($0[AnyHandlerIdentifier.self].rawValue) }
     }
 }
