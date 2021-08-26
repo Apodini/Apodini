@@ -139,6 +139,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
                 logger.info("Copying sources to remote")
                 try copyResourcesToRemote(result)
 //                try copyModelFileToRemote(result.device, localmodelFileUrl: modelFileUrl)
+                
                 logger.info("Fetching the newest dependencies")
                 try fetchDependencies(on: device)
                 
@@ -215,7 +216,8 @@ public class IoTDeploymentProvider: DeploymentProvider {
             .appendingPathComponent("debug")
         let tmuxName = productName
         try IoTContext.runTaskOnRemote(
-            "tmux new-session -d -s \(tmuxName) './\(productName) \(flattenedWebServiceArguments) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)'",
+            "./\(productName) \(flattenedWebServiceArguments) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)",
+//            "tmux new-session -d -s \(tmuxName) './\(productName) \(flattenedWebServiceArguments) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)'",
             workingDir: buildUrl.path,
             device: device
         )
@@ -260,7 +262,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
         )
     }
     
-    // Since we dont want to compile the package locally just to retrieve the structure, we do it remotely on every device the service is deployed on. On the devices, we compile the package anyway, so just use this.
+    // Since we dont want to compile the package locally just to retrieve the structure, we retrieve the structure remotely on every device the service is deployed on. On the devices, we compile the package anyway, so just use this.
     // We could do it just once and copy the file around, but for now this should be fine
     private func retrieveDeployedSystem(result: DiscoveryResult, postActions: [PostDiscoveryAction.Type]) throws -> (URL, DeployedSystem) {
         let modelFileName = "AM_\(UUID().uuidString).json"
@@ -283,9 +285,22 @@ public class IoTDeploymentProvider: DeploymentProvider {
             workingDir: buildUrl.path,
             device: device
         )
+        // Since we are on remote, we need to decode the file differently.
+        // Check if there are better solutions
+        var responseString = ""
+        try IoTContext.runTaskOnRemote(
+            "cat \(remoteFilePath)",
+            workingDir: self.deploymentDir.path,
+            device: device,
+            responseHandler: { response in
+                print("nice response")
+                responseString = response
+            }
+        )
         
-        let data = try Data(contentsOf: remoteFilePath, options: [])
-        let deployedSystem = try JSONDecoder().decode(DeployedSystem.self, from: data)
+        print("hello")
+        let responseData = responseString.data(using: .utf8)!
+        let deployedSystem = try JSONDecoder().decode(DeployedSystem.self, from: responseData)
         
         return (remoteFilePath, deployedSystem)
     }

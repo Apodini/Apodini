@@ -50,11 +50,11 @@ public enum IoTContext {
     }
     
     /// A wrapper function that navigates to the specified working directory and executes the command remotely
-    public static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true) throws {
+    public static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true, responseHandler: ((String) -> Void)? = nil) throws {
         let client = try getSSHClient(for: device)
         let cmd = "cd \(workingDir) && \(command)"
         if assertSuccess {
-            try client.executeWithAssertion(cmd: cmd)
+            client.executeWithAssertion(cmd: cmd, responseHandler: responseHandler)
         } else {
             let _: Bool = try client.execute(cmd: cmd, responseHandler: nil)
         }

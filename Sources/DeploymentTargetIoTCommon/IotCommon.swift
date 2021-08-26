@@ -18,6 +18,11 @@ public let iotDeploymentProviderId = DeploymentProviderID("de.desiderato.Apodini
 public struct IoTLaunchInfo: Codable {
     public let port: Int
     public let host: URL
+    
+    public init(host: URL, port: Int) {
+        self.host = host
+        self.port = port
+    }
 }
 
 public struct DeploymentDevice: PropertyOption, RawRepresentable {

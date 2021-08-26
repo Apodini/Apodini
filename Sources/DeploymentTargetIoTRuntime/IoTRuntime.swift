@@ -115,7 +115,11 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
             suitableEndpoints.append(endpoint)
         }
         
-        let node = DeployedSystemNode(id: ip, exportedEndpoints: suitableEndpoints.convert())
+        let node = try DeployedSystemNode(
+            id: ip,
+            exportedEndpoints: suitableEndpoints.convert(),
+            userInfo: IoTLaunchInfo(host: URL(string: ip)!, port: 8080)
+        )
         return try DeployedSystem(
             deploymentProviderId: iotDeploymentProviderId,
             nodes: Set<DeployedSystemNode>([node])
