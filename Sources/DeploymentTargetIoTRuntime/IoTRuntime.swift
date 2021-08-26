@@ -81,8 +81,8 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
     @Option
     public var actionKeys: String
     
-    @Option
-    public var info: String
+//    @Option
+//    public var info: String
     
     @Argument(help: "The location of the json file")
     public var filePath: String = "service-structure.json"

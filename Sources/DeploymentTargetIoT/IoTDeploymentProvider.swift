@@ -139,10 +139,13 @@ public class IoTDeploymentProvider: DeploymentProvider {
                 logger.info("Copying sources to remote")
                 try copyResourcesToRemote(result)
 //                try copyModelFileToRemote(result.device, localmodelFileUrl: modelFileUrl)
+                logger.info("Fetching the newest dependencies")
+                try fetchDependencies(on: device)
                 
                 logger.info("Building package on remote")
                 try buildPackage(on: device)
                 
+                logger.info("Retrieving the system structure")
                 let (modelFileUrl, deployedSystem) = try retrieveDeployedSystem(result: result, postActions: discovery.actions)
                 print(modelFileUrl)
                 print(deployedSystem)
@@ -271,7 +274,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
             .joined(separator: "-")
         let ipAddress = try IoTContext.ipAddress(for: device)
         try IoTContext.runTaskOnRemote(
-            "swift run \(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(modelFileName) --ip \(ipAddress) --action-keys \(actionKeys)",
+            "swift run \(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ip \(ipAddress) --action-keys \(actionKeys)",
             workingDir: self.remotePackageRootDir.path,
             device: device
         )
@@ -293,6 +296,14 @@ public class IoTDeploymentProvider: DeploymentProvider {
             destination: IoTContext.rsyncHostname(result.device, path: self.deploymentDir.path))
     }
     
+    private func fetchDependencies(on device: Device) throws {
+        try IoTContext.runTaskOnRemote(
+            "swift package update",
+            workingDir: self.deploymentDir.appendingPathComponent(packageName).path,
+            device: device
+        )
+    }
+    
     private func buildPackage(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
             "swift build -c debug --product \(self.productName)",
@@ -303,7 +314,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     private func cleanup(on device: Device) throws {
         try IoTContext.runTaskOnRemote(
-            "sudo rm -rfv !(\(packageName))",
+            "sudo rm -rfv !(\"\(packageName)\")",
             workingDir: self.deploymentDir.path,
             device: device,
             assertSuccess: false

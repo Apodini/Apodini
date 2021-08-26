@@ -339,7 +339,7 @@
         "repositoryURL": "https://github.com/Apodini/Swift-NIO-LIFX-Impl",
         "state": {
           "branch": "develop",
-          "revision": "c6cba45024042ec4b134bc60bda1011af3970938",
+          "revision": "f1edc539733d21f2572b04beaeddeba0a9bdb9e0",
           "version": null
         }
       },
@@ -375,7 +375,7 @@
         "repositoryURL": "https://github.com/hendesi/SwiftDeviceDiscovery.git",
         "state": {
           "branch": "master",
-          "revision": "92c801d94d2f9a9c74f69a9ecb3fb26877f7b061",
+          "revision": "322e6381a192c8e0f127039ec2778319b489e4b3",
           "version": null
         }
       },
