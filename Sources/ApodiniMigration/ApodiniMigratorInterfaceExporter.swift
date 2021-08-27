@@ -15,14 +15,14 @@ import ApodiniMigrator
 
 final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .individual
-    
+
     private let app: Apodini.Application
     private var document = Document()
     private let logger: Logger
     private let documentConfig: DocumentConfiguration
     private let migrationGuideConfig: MigrationGuideConfiguration
     private var serverPath = ""
-    
+
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
         self.documentConfig = configuration.documentConfig
@@ -30,13 +30,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         self.logger = configuration.logger
         setServerPath()
     }
-    
-    public func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
+
+    func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
         let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
-        
+
         let endpointPath = endpoint[EndpointPathComponentsHTTP.self].value
         let absolutePath = endpointPath.build(with: MigratorPathStringBuilder.self)
         let responseType = endpoint[ResponseType.self].type
@@ -52,14 +52,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             )
             response = .scalar(.data)
         }
-        
+
         let errors: [ErrorCode] = [
             .init(code: 401, message: "Unauthorized"),
             .init(code: 403, message: "Forbidden"),
             .init(code: 404, message: "Not found"),
             .init(code: 500, message: "Internal server error")
         ]
-        
+
         let migratorEndpoint = ApodiniMigratorCore.Endpoint(
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
@@ -69,20 +69,20 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             response: response,
             errors: errors
         )
-        
+
         document.add(endpoint: migratorEndpoint)
     }
-    
-    public func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+
+    func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         export(endpoint)
     }
-    
-    public func finishedExporting(_ webService: WebServiceModel) {
+
+    func finishedExporting(_ webService: WebServiceModel) {
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         handleDocument()
         handleMigrationGuide()
     }
-    
+
     private func setServerPath() {
         let isHttps = app.http.tlsConfiguration != nil
         var hostName: String?
@@ -95,14 +95,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             hostName = configuration.hostname
             port = configuration.port
         }
-        
+
         if let hostName = hostName, let port = port {
             let serverPath = "http\(isHttps ? "s" : "")://\(hostName):\(port)"
             self.serverPath = serverPath
             document.setServerPath(serverPath)
         }
     }
-    
+
     private func handleDocument() {
         let format = documentConfig.format
         switch documentConfig.exportPath {
@@ -113,14 +113,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             } catch {
                 logger.error("Document export failed with error: \(error)")
             }
-            
+
         case let .endpoint(path):
             let content = format.string(of: document)
             serve(content: content, at: path)
             logger.info("Document served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
         }
     }
-    
+
     private func handleMigrationGuide() {
         do {
             switch migrationGuideConfig {
@@ -137,7 +137,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             logger.error("Migration guide handling failed with error: \(error)")
         }
     }
-    
+
     private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, format: FileFormat) throws {
         switch exportPath {
         case let .directory(path):
@@ -149,7 +149,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             logger.info("Migration guide served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
         }
     }
-    
+
     private func serve(content: String, at path: String) {
         app.vapor.app.get(path.withLeadingSlash.pathComponents) { _ -> String in
             content
@@ -161,15 +161,15 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
 private struct MigratorPathStringBuilder: PathBuilderWithResult {
     private static let separator = "/"
     private var components: [String] = []
-    
+
     mutating func append(_ string: String) {
         components.append(string)
     }
-    
+
     mutating func append<C: Codable>(_ parameter: EndpointPathParameter<C>) {
         components.append("{\(parameter.name)}")
     }
-    
+
     func result() -> String {
         components.joined(separator: Self.separator)
     }

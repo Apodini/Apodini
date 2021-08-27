@@ -52,7 +52,7 @@ let package = Package(
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
         
         // Migrator
-        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),

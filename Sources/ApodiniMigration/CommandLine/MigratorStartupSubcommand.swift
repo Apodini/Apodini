@@ -22,7 +22,7 @@ struct MigratorStartupSubcommand<Service: WebService>: ParsableCommand {
             version: "0.4.0"
         )
     }
-    
+
     /// Runs this command
     func run() throws {
         try Service.start(mode: .startup)

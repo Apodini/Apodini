@@ -13,7 +13,7 @@ import Apodini
 
 // MARK: - ApodiniMigratorCore.Parameter
 extension ApodiniMigratorCore.Parameter {
-    static func of<H: Handler>(_ handler: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
+    static func of<H: Handler>(_ type: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
         do {
             typeInformation = try TypeInformation(type: parameter.propertyType)
@@ -32,7 +32,7 @@ extension ApodiniMigratorCore.Parameter {
                         && !parameter.hasDefaultValue
                         && parameter.option(for: .optionality) != .optional)
         }()
-        
+
         return .init(
             name: parameter.name,
             typeInformation: typeInformation,
