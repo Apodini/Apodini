@@ -82,7 +82,7 @@ let package = Package(
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
         
         // ApodiniTypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", from: "0.2.0"),
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
