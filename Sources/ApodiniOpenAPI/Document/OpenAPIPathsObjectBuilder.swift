@@ -107,7 +107,7 @@ private extension OpenAPIPathsObjectBuilder {
     mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Parameter.Array {
         parameters.compactMap {
             if let context = OpenAPIKit.OpenAPI.Parameter.Context($0) {
-                return Either.parameter(name: $0.name, context: context, schema: JSONSchema.from($0.propertyType), description: $0.description)
+                return Either.parameter(name: $0.name, context: context, schema: .from($0.propertyType), description: $0.description)
             }
             return nil
         }

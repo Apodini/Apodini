@@ -7,13 +7,45 @@
 //              
 
 import XCTest
-import ApodiniTypeReflection
 @_implementationOnly import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
+import ApodiniTypeInformation
 import ApodiniREST
 
+enum Test: String, Codable, CaseIterable {
+    case unit
+    case integration
+    case system
+}
+
+struct SomeStruct: Encodable {
+    var id: UUID?
+    var someProp = 4
+}
+
+struct SomeStructWithEnum: Encodable {
+    var someProp = 4
+    var test: Test
+}
+
+struct GenericStruct<T>: Encodable where T: Encodable {
+    var list: [T]
+    var listLength: Int
+}
+
+struct SomeComplexStruct: Encodable {
+    var someStruct: SomeStruct
+    var someNestedStruct: SomeNestedStruct
+    var someNestedStruct2: SomeNestedStruct
+    var someItems: GenericStruct<SomeStruct>
+}
+
+struct SomeNestedStruct: Encodable {
+    let someInt = 123
+    let someString: String?
+}
 
 final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someString = "Some String"
@@ -26,39 +58,6 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     let someOptional: String? = nil
     let someOptionalUUID: UUID? = nil
     let someEnum = Test.system
-
-    enum Test: String, Codable, CaseIterable {
-        case unit
-        case integration
-        case system
-    }
-
-    struct SomeStruct: Encodable {
-        var id: UUID?
-        var someProp = 4
-    }
-
-    struct SomeStructWithEnum: Encodable {
-        var someProp = 4
-        var test: Test
-    }
-
-    struct GenericStruct<T>: Encodable where T: Encodable {
-        var list: [T]
-        var listLength: Int
-    }
-
-    struct SomeComplexStruct: Encodable {
-        var someStruct: SomeStruct
-        var someNestedStruct: SomeNestedStruct
-        var someNestedStruct2: SomeNestedStruct
-        var someItems: GenericStruct<SomeStruct>
-    }
-
-    struct SomeNestedStruct: Encodable {
-        let someInt = 123
-        let someString: String?
-    }
 
     /// Create schema for primitive types and non structs (will not be added to components map, but defined inline).
     func testBuildSchemaNonStructs() throws {
@@ -164,7 +163,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         
         let ref1 = try componentsBuilder.componentsObject.reference(named: "\(SomeStruct.self)", ofType: JSONSchema.self)
         let ref2 = try componentsBuilder.componentsObject.reference(named: "\(SomeNestedStruct.self)", ofType: JSONSchema.self)
-        let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct\(OpenAPISchemaConstants.replaceOpenAngleBracket)SomeStruct\(OpenAPISchemaConstants.replaceCloseAngleBracket)", ofType: JSONSchema.self)
+        let ref3 = try componentsBuilder.componentsObject.reference(named: "GenericStruct\(OpenAPISchemaConstants.genericsPrefix)SomeStruct", ofType: JSONSchema.self)
         let ref4 = try componentsBuilder.componentsObject.reference(named: "\(SomeComplexStruct.self)", ofType: JSONSchema.self)
         let ref5 = try componentsBuilder.componentsObject.reference(named: "\(SomeStructWithEnum.self)", ofType: JSONSchema.self)
         
@@ -205,7 +204,7 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
                         .component(named: "SomeNestedStruct")
                     ),
                     "someItems": .reference(
-                        .component(named: "GenericStruct\(OpenAPISchemaConstants.replaceOpenAngleBracket)SomeStruct\(OpenAPISchemaConstants.replaceCloseAngleBracket)")
+                        .component(named: "GenericStruct\(OpenAPISchemaConstants.genericsPrefix)SomeStruct")
                     ),
                     "someStruct": .reference(
                         .component(named: "SomeStruct")
@@ -227,14 +226,32 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         )
     }
     
-    func testCreateReflectionInfoTree() throws {
+    func testTypeInformation() throws {
+        enum Number: UInt8 {
+            case zero
+            case one
+            case two
+            case three
+        }
+        
         struct Card {
-            let number: Int
+            let number: Number
+        }
+        
+        enum Badge: String {
+            case newbie
+            case explorer
+            case achiever
+            case worldSaver
         }
         
         struct Player {
             let hand: [Card]
             let teamMates: [String: String]
+            let website: URL
+            let joinedAt: Date
+            let budget: UInt64
+            let badge: Badge
         }
         
         struct Game {
@@ -246,48 +263,69 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
             let tables: [Game]
         }
         
-        let tree = try OpenAPIComponentsObjectBuilder.node(Casino.self)
+        let casino = try TypeInformation(type: Casino.self)
+        let game = try TypeInformation(type: Game.self)
+        let player = try TypeInformation(type: Player.self)
+        let badge = try TypeInformation(type: Badge.self)
+        let card = try TypeInformation(type: Card.self)
+        let number = try TypeInformation(type: Number.self)
         
-        XCTAssertEqual(tree.children.count, 1)
+        let objectTypes = casino.objectTypes()
+        let enums = casino.enums()
         
-        let tablesNode = tree.children.first {
-            $0.value.propertyInfo?.name == "tables"
+        XCTAssertEqual(objectTypes.count, 4)
+        XCTAssertEqual(casino.typeName.name, "Casino")
+        XCTAssertEqual(casino.typeName.definedIn, "ApodiniTests")
+        XCTAssertEqual(casino.property("tables")?.type, .repeated(element: game))
+        
+        let unwrappedBadge = try XCTUnwrap(enums.first { $0.typeName.name == "Badge" })
+        XCTAssertEqual(unwrappedBadge.rawValueType, .scalar(.string))
+        XCTAssertEqual(unwrappedBadge, badge)
+        
+        let unwrappedNumber = try XCTUnwrap(enums.first { $0.typeName.name == "Number" })
+        XCTAssertEqual(unwrappedNumber.rawValueType, .scalar(.uint8))
+        XCTAssertEqual(unwrappedNumber, number)
+        
+        XCTAssertEqual(player.objectProperties.count, 6)
+        XCTAssertEqual(player.property("badge")?.type, badge)
+        XCTAssertEqual(player.property("hand")?.type, .repeated(element: try TypeInformation(type: Card.self)))
+        
+        XCTAssert(game.isContained(in: casino))
+        XCTAssert(player.isContained(in: casino))
+        XCTAssert(player.isContained(in: game))
+        XCTAssert(number.isContained(in: card))
+        XCTAssert(!badge.contains(card))
+        
+        [game, player, badge, card, number].forEach {
+            XCTAssert(casino.contains($0))
         }
+    }
+    
+    func testJSONSchemaFromPrimitiveTypes() throws {
+        let void: Void = ()
+        XCTAssertEqual(JSONSchema.string, .from(type(of: void)))
+        XCTAssertEqual(JSONSchema.boolean, .from(Bool.self))
+        XCTAssertEqual(JSONSchema.integer, .from(Int.self))
+        XCTAssertEqual(JSONSchema.integer(format: .int32), .from(Int32.self))
+        XCTAssertEqual(JSONSchema.integer(format: .int64), .from(Int64.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("int8")), .from(Int8.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("int16")), .from(Int16.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("uint")), .from(UInt.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("uint8")), .from(UInt8.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("uint16")), .from(UInt16.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("uint32")), .from(UInt32.self))
+        XCTAssertEqual(JSONSchema.integer(format: .other("uint64")), .from(UInt64.self))
+        XCTAssertEqual(JSONSchema.string, .from(String.self))
+        XCTAssertEqual(JSONSchema.number(format: .double), .from(Double.self))
+        XCTAssertEqual(JSONSchema.number(format: .float), .from(Float.self))
+        XCTAssertEqual(JSONSchema.string(format: .other("uuid")), .from(UUID.self))
+        XCTAssertEqual(JSONSchema.string(format: .other("url")), .from(URL.self))
+        XCTAssertEqual(JSONSchema.string(format: .date), .from(Date.self))
+        XCTAssertEqual(JSONSchema.string(format: .binary), .from(Data.self))
+        XCTAssertEqual(JSONSchema.array(items: .string), .from([String].self))
         
-        XCTAssertEqual(tablesNode?.children.count, 2)
-        XCTAssertTrue(tablesNode?.value.cardinality == .zeroToMany(.array))
-        
-        // check for correct children of tablesNode
-        let stringNode = try ReflectionInfo.node(String.self)
-        let playerNode = try ReflectionInfo.node(Player.self)
-        let newPlayersNode = tablesNode?.children.first {
-            $0.value.propertyInfo?.name == "newPlayers"
-        }
-        let playersNode = tablesNode?.children.first {
-            $0.value.propertyInfo?.name == "players"
-        }
-        
-        XCTAssertEqual(playersNode?.children.count, 2)
-        XCTAssertTrue(playersNode?.value.cardinality == .zeroToMany(.dictionary(key: stringNode.value, value: playerNode.value)))
-        XCTAssertEqual(newPlayersNode?.children.count, 2)
-        XCTAssertTrue(newPlayersNode?.value.cardinality == .zeroToMany(.array))
-        
-        let playersHandNode = playersNode?.children.first {
-            $0.value.propertyInfo?.name == "hand"
-        }
-        let newPlayersHandNode = newPlayersNode?.children.first {
-            $0.value.propertyInfo?.name == "hand"
-        }
-        
-        XCTAssertEqual(playersHandNode?.value, newPlayersHandNode?.value)
-        
-        let playersTeamMatesNode = playersNode?.children.first {
-            $0.value.propertyInfo?.name == "teamMates"
-        }
-        let newPlayersTeamMatesNode = newPlayersNode?.children.first {
-            $0.value.propertyInfo?.name == "teamMates"
-        }
-        
-        XCTAssertEqual(playersTeamMatesNode?.value, newPlayersTeamMatesNode?.value)
+        let nullSchema = JSONSchema.from(primitiveType: .null)
+        let nullData = try XCTUnwrap(try? nullSchema.defaultValue?.encodeToJSON())
+        XCTAssertNoThrow(try JSONDecoder().decode(Null.self, from: nullData))
     }
 }

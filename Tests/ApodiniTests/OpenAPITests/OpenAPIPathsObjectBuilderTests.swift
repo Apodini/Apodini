@@ -11,17 +11,17 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
+struct TestStruct: Codable {
+    var id = 1
+    var someProp = "somesome"
+}
+
+struct ResponseStruct: Apodini.Content {
+    var someResponse = "response"
+    var someCount: Int?
+}
+
 final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
-    struct SomeStruct: Codable {
-        var id = 1
-        var someProp = "somesome"
-    }
-
-    struct ResponseStruct: Apodini.Content {
-        var someResponse = "response"
-        var someCount: Int?
-    }
-
     @PathParameter var param: String
     
     struct HandlerParam: Handler {
@@ -121,8 +121,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     
     func testAddPathItemOperationWrappedParams() throws {
         struct WrappingParamsComp: Handler {
-            @Parameter var someStruct1: SomeStruct?
-            @Parameter var someStruct2: SomeStruct
+            @Parameter var someStruct1: TestStruct?
+            @Parameter var someStruct2: TestStruct
             
             func handle() -> String {
                 "Hello"
@@ -147,17 +147,17 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
         
-        let wrappedRef = try componentsObjectBuilder.componentsObject.reference(named: "SomeStruct_SomeStruct", ofType: JSONSchema.self)
+        let wrappedRef = try componentsObjectBuilder.componentsObject.reference(named: "TestStruct_TestStruct", ofType: JSONSchema.self)
         
         XCTAssertEqual(
             componentsObjectBuilder.componentsObject[wrappedRef],
             .object(
                 properties: [
-                    "SomeStruct_0": .reference(
-                        .component(named: "\(SomeStruct.self)")
+                    "TestStruct_0": .reference(
+                        .component(named: "\(TestStruct.self)")
                     ),
-                    "SomeStruct_1": .reference(
-                        .component(named: "\(SomeStruct.self)")
+                    "TestStruct_1": .reference(
+                        .component(named: "\(TestStruct.self)")
                     )
                 ]
             )
@@ -170,9 +170,9 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     
     func testAddPathItemOperationArrayParams() throws {
         struct ArrayParamsComp: Handler {
-            @Parameter var someStructArray: [SomeStruct]
+            @Parameter var someStructArray: [TestStruct]
             
-            func handle() -> [SomeStruct] {
+            func handle() -> [TestStruct] {
                 []
             }
         }
@@ -203,9 +203,9 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
-                description: "@Parameter var someStructArray: Array<SomeStruct>",
+                description: "@Parameter var someStructArray: Array<TestStruct>",
                 content: [
-                    .json: .init(schema: .array(items: .reference(.component(named: "\(SomeStruct.self)"))))
+                    .json: .init(schema: .array(items: .reference(.component(named: "\(TestStruct.self)"))))
                 ]
             ),
             responses: [
@@ -214,7 +214,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
                         description: "OK",
                         content: [
                             .json: .init(schema: .reference(
-                                .component(named: "Arrayof\(SomeStruct.self)Response")))
+                                .component(named: "Arrayof\(TestStruct.self)Response")))
                         ]
                     )),
                 .status(code: 401): .init(
@@ -237,7 +237,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
     
     func testAddPathItemWithRequestBodyAndResponseStruct() throws {
         struct ComplexComp: Handler {
-            @Parameter var someStruct: SomeStruct
+            @Parameter var someStruct: TestStruct
             
             func handle() -> ResponseStruct {
                 ResponseStruct()
@@ -270,9 +270,9 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: [],
             requestBody: OpenAPI.Request(
-                description: "@Parameter var someStruct: SomeStruct",
+                description: "@Parameter var someStruct: TestStruct",
                 content: [
-                    .json: .init(schema: .reference(.component(named: "\(SomeStruct.self)")))
+                    .json: .init(schema: .reference(.component(named: "\(TestStruct.self)")))
                 ]
             ),
             responses: [
