@@ -8,7 +8,7 @@
 
 /// An ``AuthorizationRequirements`` wraps one or multiple ``AuthorizationRequirement`` instances.
 /// On Evaluation it will loop over the contained requirements until the first ``RequirementResult``
-/// is encountered which is not ``RequirementResult/undecided``.
+/// is encountered which is not ``RequirementResult/undecided(cause:)``.
 public struct AuthorizationRequirements<Element: Authenticatable>: AuthorizationRequirement {
     let requirements: [AnyAuthorizationRequirement]
 

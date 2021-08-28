@@ -343,7 +343,8 @@ final class HandlerMetadataTest: ApodiniTests {
 
         modelBuilder.finishedRegistration()
 
-        _ = modelBuilder.collectedEndpoints[0]
+        let test = modelBuilder.collectedEndpoints[0]
+        print(test)
         let response = exporter.request(on: 0, request: "Example Request", with: app)
 
         try XCTCheckResponse(

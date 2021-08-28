@@ -7,6 +7,7 @@
 //
 
 @testable import Apodini
+@testable import ApodiniContext
 import XCTest
 
 

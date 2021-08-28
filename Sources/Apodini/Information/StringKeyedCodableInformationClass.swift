@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //    
 
-/// The ``InformationClass`` identifying any ``Information`` which holds ``Encodable`` information.
+/// The ``InformationClass`` identifying any ``Information`` which holds `Encodable` information.
 public protocol StringKeyedEncodableInformationClass: InformationClass {
     var entry: (key: String, value: Encodable) { get }
 }

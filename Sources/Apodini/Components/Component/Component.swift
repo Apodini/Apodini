@@ -13,7 +13,7 @@ import ApodiniUtils
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
 /// A `Component`  consists of different other components as described by the `content` property.
-public protocol Component: AnyMetadataBlock, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
+public protocol Component: AnyComponentOnlyMetadataBlock {
     /// The type of `Component` this `Component` is made out of if the component is a composition of multiple subcomponents.
     associatedtype Content: Component
 
@@ -38,13 +38,8 @@ public extension Component {
 // MARK: AnyMetadataBlock
 public extension Component {
     /// Returns the type erased metadata content of the ``Component``.
-    var blockContent: AnyMetadata {
+    var typeErasedContent: AnyMetadata {
         self.metadata as! AnyMetadata
-    }
-
-    /// Collects metadata if this ``Component`` is treated as an ``AnyMetadataBlock``
-    func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        blockContent.collectMetadata(visitor)
     }
 }
 

@@ -83,7 +83,7 @@ public struct HandleReturnType: HandlerKnowledgeSource {
 }
 ```
 
-``OptionalContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on an ``OptionalContextKey``:
+``OptionalContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on an `OptionalContextKey`:
 ```swift
 extension Operation: OptionalContextKeyKnowledgeSource {
     public typealias Key = OperationContextKey
@@ -93,7 +93,7 @@ extension Operation: OptionalContextKeyKnowledgeSource {
     }
 }
 ```
-``ContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on a (non-optional) ``ContextKey``:
+``ContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on a (non-optional) `ContextKey`:
 ```swift
 extension ServiceType: ContextKeyKnowledgeSource {
     public typealias Key = ServiceTypeContextKey
@@ -174,7 +174,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``EndpointSource``
 - ``AnyEndpointSource``
 - ``Blackboards``
-- ``Context``
+- `Context`
 - ``CommunicationalPattern``
 <!-- TODO: ``All`` -->
 <!-- TODO: external KS: 

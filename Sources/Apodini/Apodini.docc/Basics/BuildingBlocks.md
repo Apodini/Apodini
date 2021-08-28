@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 
 An Apodini ``WebService`` consists of two parts. The `configuration` and the `content`. The former contains ``Configuration`` elements, which allow for modifying the ``Application``, i.e. the backbone of the ``WebService``.
 
-The ``WebService``'s `content` holds a tree of ``Component``s. ``Component``s define the structure of your web service. At the leaves of this tree are ``Handler``s. Those define the interface and application logic of a certain endpoint of your web service. In other words, ``Component``s allow you to place ``Handler``s in a certain ``Context``.
+The ``WebService``'s `content` holds a tree of ``Component``s. ``Component``s define the structure of your web service. At the leaves of this tree are ``Handler``s. Those define the interface and application logic of a certain endpoint of your web service. In other words, ``Component``s allow you to place ``Handler``s in a certain `Context`.
 
 ### Defining Structure
 
@@ -69,7 +69,7 @@ struct MyNestedComponent: Component {
 }
 ```
 
-Of course, ``Group`` is just one of many ``Component``s. As mentioned previously, ``Component``s put endpoints in a certain ``Context``. ``Group`` adds identifiers to the ``Context``s of its contained endpoints. In HTTP verbs that means it adds segments to the endpoint's path. Most ``Component``s are ``Modifier``s. They wrap a single ``Component`` or ``Handler`` and append to its ``Context``. An example is ``Handler/operation(_:)``.
+Of course, ``Group`` is just one of many ``Component``s. As mentioned previously, ``Component``s put endpoints in a certain `Context`. ``Group`` adds identifiers to the ``Context``s of its contained endpoints. In HTTP verbs that means it adds segments to the endpoint's path. Most ``Component``s are ``Modifier``s. They wrap a single ``Component`` or ``Handler`` and append to its `Context`. An example is ``Handler/operation(_:)``.
 
 ### Configuring Middleware
 

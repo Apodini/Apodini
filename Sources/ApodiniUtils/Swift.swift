@@ -144,10 +144,11 @@ extension Date {
         }
         return fmt.string(from: self)
     }
-    
+
     /// Formats the date using the supplied format string.
     public func format(_ formatString: String) -> String {
         let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "en_US")
         fmt.dateFormat = formatString
         return fmt.string(from: self)
     }
