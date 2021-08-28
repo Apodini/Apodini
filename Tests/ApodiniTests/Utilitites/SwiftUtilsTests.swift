@@ -69,8 +69,8 @@ final class SwiftUtilsTests: XCTestCase {
         let date = Date(timeIntervalSince1970: 1623843720)
 
         XCTAssertEqual(date.formatAsIso8601(), "2021-06-16")
-        XCTAssert(date.formatAsIso8601(includeTime: true).starts(with: "2021-06-16"))
+        XCTAssertEqual(date.formatAsIso8601(includeTime: true), "2021-06-16T114200")
 
-        XCTAssertEqual(date.format("yyyy-MM-dd_HHmmss"), "2021-06-16_134200")
+        XCTAssertEqual(date.format("yyyy-MM-dd_HHmmss").starts(with: "2021-06-16"))
     }
 }
