@@ -132,6 +132,9 @@ extension ProtobufferBuilderTests {
         }
         
         XCTAssertEqual(playersTeamMatesNode?.value, newPlayersTeamMatesNode?.value)
+        
+        let dictionaryCardinality = try node([String: String].self).value.cardinality
+        XCTAssertEqual(dictionaryCardinality, .zeroToMany(.dictionary(key: stringNode.value, value: stringNode.value)))
     }
     
     private func node(_ type: Any.Type) throws -> Node<ReflectionInfo> {

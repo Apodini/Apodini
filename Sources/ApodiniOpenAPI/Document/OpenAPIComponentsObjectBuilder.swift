@@ -20,28 +20,6 @@ enum OpenAPISchemaConstants {
     static let genericsJoiner = "and"
 }
 
-
-// MARK: - MimeType + TypeInformationDefaultConstructor
-extension MimeType: TypeInformationDefaultConstructor {
-    public static func construct() -> TypeInformation {
-        .object(
-            name: .init(MimeType.self),
-            properties: [
-                .init(name: MimeType.CodingKeys.type.stringValue, type: .scalar(.string)),
-                .init(name: MimeType.CodingKeys.subtype.stringValue, type: .scalar(.string)),
-                .init(name: MimeType.CodingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
-            ]
-        )
-    }
-}
-
-// MARK: - Blob + TypeInformationDefaultConstructor
-extension Blob: TypeInformationDefaultConstructor {
-    public static func construct() -> TypeInformation {
-        .scalar(.data)
-    }
-}
-
 /// Corresponds to `components` section in OpenAPI document
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {

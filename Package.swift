@@ -81,9 +81,6 @@ let package = Package(
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
         
-        // ApodiniTypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
-        
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
@@ -132,7 +129,8 @@ let package = Package(
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
-                .product(name: "TypeInformationMetadata", package: "ApodiniTypeInformation")
+                .product(name: "TypeInformationMetadata", package: "ApodiniTypeInformation"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
