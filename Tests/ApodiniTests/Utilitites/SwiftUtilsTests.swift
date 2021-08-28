@@ -71,6 +71,6 @@ final class SwiftUtilsTests: XCTestCase {
         XCTAssertEqual(date.formatAsIso8601(), "2021-06-16")
         XCTAssertEqual(date.formatAsIso8601(includeTime: true), "2021-06-16T114200")
 
-        XCTAssertEqual(date.format("yyyy-MM-dd_HHmmss").starts(with: "2021-06-16"))
+        XCTAssert(date.format("yyyy-MM-dd_HHmmss").starts(with: "2021-06-16"))
     }
 }
