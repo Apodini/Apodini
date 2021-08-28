@@ -42,7 +42,7 @@ public struct AuthorizedAuthenticatable<Element: Authenticatable>: DynamicProper
     var authenticationRequired
 
     /// Returns if the associated ``Element`` was successfully authenticated.
-    /// This property might return false in cases of ``ComponentMetadataNamespace/AuthorizeOptionally`` Metadata.
+    /// This property might return false in cases of `ComponentMetadataNamespace/AuthorizeOptionally` Metadata.
     public var isAuthorized: Bool {
         stateContainer.contains(element: Element.self)
     }
