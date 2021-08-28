@@ -44,7 +44,11 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
             entry.collectMetadata(self.visitor)
         }
 
-        handler.metadata.collectMetadata(self.visitor)
+        print("We found metadata: \(metadata) for \(H.self)")
+
+        let metadata2 = handler.metadata
+        print(metadata2)
+        metadata2.collectMetadata(self.visitor)
 
         self.queryInitializers()
         self.lastHandlerType = ObjectIdentifier(H.self)
@@ -217,6 +221,8 @@ private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMet
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
         } else if let delegate = value as? DelegateWithComponentOnlyMetadata {
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
+        } else {
+            print("Not parsing: \(value)")
         }
     }
 }

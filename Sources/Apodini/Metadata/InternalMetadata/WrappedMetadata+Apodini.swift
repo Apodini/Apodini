@@ -39,11 +39,3 @@ struct WrappedComponentMetadataDefinition<Metadata: ComponentMetadataDefinition>
         self.metadata = metadata
     }
 }
-
-struct WrappedContentMetadataDefinition<Metadata: ContentMetadataDefinition>: WrappedMetadataDefinition, AnyContentMetadata {
-    let metadata: Metadata
-
-    init(_ metadata: Metadata) {
-        self.metadata = metadata
-    }
-}

@@ -23,11 +23,6 @@ extension WebServiceMetadataNamespace {
     public typealias Empty = EmptyWebServiceMetadata
 }
 
-extension ContentMetadataNamespace {
-    /// Name definition for the `EmptyContentMetadata`
-    public typealias Empty = EmptyContentMetadata
-}
-
 extension ComponentMetadataBlockNamespace {
     /// Name definition for the `EmptyComponentMetadata`
     public typealias Empty = EmptyComponentMetadata
@@ -86,19 +81,5 @@ public struct EmptyWebServiceMetadata: EmptyMetadata, WebServiceMetadataDefiniti
 /// }
 /// ```
 public struct EmptyComponentMetadata: EmptyMetadata, ComponentMetadataDefinition {
-    public init() {}
-}
-
-/// `EmptyContentMetadata` is a `AnyContentMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `ContentMetadataNamespace.Empty` name and can be used like the following:
-/// ```swift
-/// struct ExampleContent: Content {
-///     // ...
-///     var metadata: Metadata {
-///         Empty()
-///     }
-/// }
-/// ```
-public struct EmptyContentMetadata: EmptyMetadata, ContentMetadataDefinition {
     public init() {}
 }

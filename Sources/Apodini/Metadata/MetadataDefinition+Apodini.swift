@@ -56,16 +56,6 @@ public protocol WebServiceMetadataDefinition: MetadataDefinition, AnyWebServiceM
 public protocol ComponentMetadataDefinition: HandlerMetadataDefinition, ComponentOnlyMetadataDefinition,
     WebServiceMetadataDefinition, AnyComponentMetadata {}
 
-/// See `MetadataDefinition` for an explanation on what a Metadata Definition is
-/// and a recommendation for a naming convention.
-///
-/// Any Metadata Definition conforming to `ContentMetadataDefinition` can be used in
-/// the Metadata Declaration Blocks of a `Content` Type to annotate the `Content` Type with
-/// the given Metadata.
-///
-/// Use the `ContentMetadataNamespace` to define the name used in the Metadata DSL.
-public protocol ContentMetadataDefinition: MetadataDefinition, AnyContentMetadata {}
-
 
 public extension ComponentOnlyMetadataDefinition {
     /// By default, `ComponentOnlyMetadataDefinition` will apply to the `Component.Content` as well.

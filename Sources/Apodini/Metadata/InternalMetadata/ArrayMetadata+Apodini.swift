@@ -40,11 +40,3 @@ struct AnyComponentMetadataArray: AnyMetadataArray, AnyComponentMetadata {
         self.array = array
     }
 }
-
-struct AnyContentMetadataArray: AnyMetadataArray, AnyContentMetadata {
-    let array: [AnyContentMetadata]
-
-    init(_ array: [AnyContentMetadata]) {
-        self.array = array
-    }
-}

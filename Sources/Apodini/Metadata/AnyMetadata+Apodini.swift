@@ -20,6 +20,3 @@ public protocol AnyWebServiceMetadata: AnyMetadata {}
 /// Such Metadata can also be used on `Handler`s and on the `WebService` which both are Components as well,
 /// as it inherits from `AnyHandlerMetadata`, `AnyWebServiceMetadata` and `AnyComponentOnlyMetadata`.
 public protocol AnyComponentMetadata: AnyComponentOnlyMetadata, AnyHandlerMetadata, AnyWebServiceMetadata {}
-
-/// `ContentMetadata` represents arbitrary Metadata that can be declared on `Content` types.
-public protocol AnyContentMetadata: AnyMetadata {}

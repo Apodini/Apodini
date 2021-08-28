@@ -93,13 +93,12 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
-        
-        let responseType = H.Response.Content.self
 
-        // Content Metadata is currently added to the Context of the Handler.
-        // Also, we currently do not recursively parse properties
-        let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
-        metadataContentVisitor(responseType)
+        if let contentType = H.Response.Content.self as? AnyStaticContentMetadataBlock.Type {
+            let parser = StandardMetadataParser()
+            contentType.collectMetadata(parser)
+            addContext(RootContextOfReturnTypeContextKey.self, value: parser.exportContext(), scope: .current)
+        }
         
         
         // build the final handler using the delegating handlers

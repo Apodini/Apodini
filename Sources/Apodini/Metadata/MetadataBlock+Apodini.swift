@@ -17,8 +17,6 @@ public protocol AnyWebServiceMetadataBlock: AnyMetadataBlock, AnyWebServiceMetad
 
 public protocol AnyComponentMetadataBlock: AnyMetadataBlock, AnyComponentMetadata, ComponentMetadataNamespace {}
 
-public protocol AnyContentMetadataBlock: AnyMetadataBlock, AnyContentMetadata, ContentMetadataNamespace {}
-
 
 /// The `HandlerMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyHandlerMetadata` and itself can only be placed in `AnyHandlerMetadata` Declaration Blocks.
@@ -45,13 +43,13 @@ public protocol HandlerMetadataBlock: AnyHandlerMetadataBlock {
     associatedtype Metadata = AnyHandlerMetadata
 
     @MetadataBuilder
-    var metadata: AnyHandlerMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension HandlerMetadataBlock {
     /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     public var typeErasedContent: AnyMetadata {
-        self.metadata
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -78,13 +76,13 @@ public protocol ComponentOnlyMetadataBlock: AnyComponentOnlyMetadataBlock {
     associatedtype Metadata = AnyComponentOnlyMetadata
 
     @MetadataBuilder
-    var metadata: AnyComponentOnlyMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension ComponentOnlyMetadataBlock {
     /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     public var typeErasedContent: AnyMetadata {
-        self.metadata
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -113,13 +111,13 @@ public protocol WebServiceMetadataBlock: AnyWebServiceMetadataBlock {
     associatedtype Metadata = AnyWebServiceMetadata
 
     @MetadataBuilder
-    var metadata: AnyWebServiceMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension WebServiceMetadataBlock {
     /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     public var typeErasedContent: AnyMetadata {
-        self.metadata
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -148,48 +146,13 @@ public protocol ComponentMetadataBlock: AnyComponentMetadataBlock {
     associatedtype Metadata = AnyComponentMetadata
 
     @ComponentMetadataBuilder
-    var metadata: AnyComponentMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension ComponentMetadataBlock {
     /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
     public var typeErasedContent: AnyMetadata {
-        self.metadata
-    }
-}
-
-/// The `ContentMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
-/// `AnyContentMetadata` and itself can only be placed in `AnyContentMetadata` Declaration Blocks.
-///
-/// See `StandardContentMetadataBlock` for a general purpose `ContentMetadataBlock` available by default.
-///
-/// By conforming to `ContentMetadataBlock` you can create reusable Metadata like the following:
-/// ```swift
-/// struct DefaultDescriptionMetadata: ContentMetadataBlock {
-///     var metadata: Metadata {
-///         Description("Example Description")
-///         // ...
-///     }
-/// }
-///
-/// struct ExampleContent: Content {
-///     // ...
-///     static var metadata: Metadata {
-///         DefaultDescriptionMetadata()
-///     }
-/// }
-/// ```
-public protocol ContentMetadataBlock: AnyContentMetadataBlock {
-    associatedtype Metadata = AnyContentMetadata
-
-    @ContentMetadataBuilder
-    var metadata: AnyContentMetadata { get }
-}
-
-extension ContentMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var typeErasedContent: AnyMetadata {
-        self.metadata
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -211,11 +174,6 @@ extension WebServiceMetadataNamespace {
 extension ComponentMetadataNamespace {
     /// Name definition for the `StandardComponentMetadataBlock`
     public typealias Block = StandardComponentMetadataBlock
-}
-
-extension ContentMetadataNamespace {
-    /// Name definition for the `StandardContentMetadataBlock`
-    public typealias Block = StandardContentMetadataBlock
 }
 
 
@@ -309,29 +267,6 @@ public struct StandardComponentMetadataBlock: ComponentMetadataBlock {
     public var metadata: AnyComponentMetadata
 
     public init(@ComponentMetadataBuilder metadata: () -> AnyComponentMetadata) {
-        self.metadata = metadata()
-    }
-}
-
-/// `StandardContentMetadataBlock` is a `ContentMetadataBlock` available by default.
-/// It is available under the `Collect` name in `Content` Metadata Declaration Blocks.
-///
-/// It may be used in `Content` Metadata Declaration Blocks in the following way:
-/// ```swift
-/// struct ExampleContent: Content {
-///     // ...
-///     static var metadata: Metadata {
-///         // ...
-///         Block {
-///             // ...
-///         }
-///     }
-/// }
-/// ```
-public struct StandardContentMetadataBlock: ContentMetadataBlock {
-    public var metadata: AnyContentMetadata
-
-    public init(@ContentMetadataBuilder metadata: () -> AnyContentMetadata) {
         self.metadata = metadata()
     }
 }

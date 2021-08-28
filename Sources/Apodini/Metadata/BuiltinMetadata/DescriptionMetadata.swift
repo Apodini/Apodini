@@ -10,13 +10,7 @@ public struct WebServiceDescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
-public struct HandlerDescriptionContextKey: OptionalContextKey {
-    public typealias Value = String
-}
-
-// As ContentMetadata currently still shares the `Context` with the Handler
-// we need to declare a custom `OptionalContextKey` to avoid collisions.
-public struct ContentDescriptionContextKey: OptionalContextKey {
+public struct DescriptionContextKey: OptionalContextKey {
     public typealias Value = String
 }
 
@@ -69,7 +63,7 @@ public struct WebServiceDescriptionMetadata: WebServiceMetadataDefinition {
 /// }
 /// ```
 public struct HandlerDescriptionMetadata: HandlerMetadataDefinition {
-    public typealias Key = HandlerDescriptionContextKey
+    public typealias Key = DescriptionContextKey
     public let value: String
 
     /// Creates a new Description Metadata
@@ -91,7 +85,7 @@ public struct HandlerDescriptionMetadata: HandlerMetadataDefinition {
 /// }
 /// ```
 public struct ContentDescriptionMetadata: ContentMetadataDefinition {
-    public typealias Key = ContentDescriptionContextKey
+    public typealias Key = DescriptionContextKey
     public let value: String
 
     /// Creates a new Description Metadata.

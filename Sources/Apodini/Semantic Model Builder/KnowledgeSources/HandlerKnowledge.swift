@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import TypeInformationMetadata
 
 /// `HandlerDescription` describes a `Handler`'s type-name.
 public typealias HandlerDescription = String
@@ -24,6 +25,31 @@ public struct HandleReturnType: HandlerKnowledgeSource {
         self.type = H.Response.Content.self
     }
 }
+
+
+public struct HandleReturnTypeRootContext: ContextKeyKnowledgeSource, ContextKeyRetrievable {
+    public typealias Key = RootContextOfReturnTypeContextKey
+
+    public let context: Context
+
+    public init(from value: Context) throws {
+        self.context = value
+    }
+
+    public func get<C: ContextKey>(valueFor contextKey: C.Type) -> C.Value {
+        context.get(valueFor: contextKey)
+    }
+
+    public func get<C: OptionalContextKey>(valueFor contextKey: C.Type) -> C.Value? {
+        context.get(valueFor: contextKey)
+    }
+}
+
+public struct RootContextOfReturnTypeContextKey: ContextKey {
+    public typealias Value = Context
+    public static var defaultValue = Context()
+}
+
 
 extension ServiceType: ContextKeyKnowledgeSource {
     public typealias Key = ServiceTypeContextKey

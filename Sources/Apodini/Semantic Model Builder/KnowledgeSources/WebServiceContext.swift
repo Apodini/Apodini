@@ -8,6 +8,8 @@
 
 /// ``KnowledgeSource`` giving access to the ``Context`` of the ``WebService``.
 public struct WebServiceContext: KnowledgeSource {
+    public static var preference: LocationPreference { .global }
+
     let context: Context
 
     init (_ context: Context) {
