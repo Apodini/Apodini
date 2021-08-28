@@ -124,7 +124,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
 
     
     func testAutomaticCommunicationalPattern() throws {
-        let context = Context([:])
+        let context = Context()
         
         let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
         
