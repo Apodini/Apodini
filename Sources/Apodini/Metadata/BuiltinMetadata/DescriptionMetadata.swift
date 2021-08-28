@@ -75,7 +75,7 @@ public struct HandlerDescriptionMetadata: HandlerMetadataDefinition {
 
 /// The ``ContentDescriptionMetadata`` can be used to add a Description to a ``Content``.
 ///
-/// The Metadata is available under the ``ContentMetadataNamespace/Description`` name and can be used like the following:
+/// The Metadata is available under the `ContentMetadataNamespace/Description` name and can be used like the following:
 /// ```swift
 /// struct ExampleContent: Content {
 ///     // ...

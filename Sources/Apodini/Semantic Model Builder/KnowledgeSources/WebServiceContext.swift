@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-/// ``KnowledgeSource`` giving access to the ``Context`` of the ``WebService``.
+/// ``KnowledgeSource`` giving access to the `Context` of the ``WebService``.
 public struct WebServiceContext: KnowledgeSource {
     public static var preference: LocationPreference { .global }
 
@@ -22,7 +22,7 @@ public struct WebServiceContext: KnowledgeSource {
 }
 
 public extension WebServiceModel {
-    /// The ``Context`` of the ``WebService``. This particularly gives access to all
+    /// The `Context` of the ``WebService``. This particularly gives access to all
     /// Metadata Declarations made on the ``WebService``.
     var context: Context {
         self[WebServiceContext.self].context

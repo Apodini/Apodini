@@ -47,7 +47,7 @@ public protocol HandlerMetadataBlock: AnyHandlerMetadataBlock {
 }
 
 extension HandlerMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
     public var typeErasedContent: AnyMetadata {
         self.metadata as! AnyMetadata
     }
@@ -80,7 +80,7 @@ public protocol ComponentOnlyMetadataBlock: AnyComponentOnlyMetadataBlock {
 }
 
 extension ComponentOnlyMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
     public var typeErasedContent: AnyMetadata {
         self.metadata as! AnyMetadata
     }
@@ -115,7 +115,7 @@ public protocol WebServiceMetadataBlock: AnyWebServiceMetadataBlock {
 }
 
 extension WebServiceMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
     public var typeErasedContent: AnyMetadata {
         self.metadata as! AnyMetadata
     }
@@ -150,7 +150,7 @@ public protocol ComponentMetadataBlock: AnyComponentMetadataBlock {
 }
 
 extension ComponentMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
     public var typeErasedContent: AnyMetadata {
         self.metadata as! AnyMetadata
     }

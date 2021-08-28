@@ -20,7 +20,7 @@ public protocol AnyInformation {
     /// - Returns: The untyped ``AnyInformation``.
     func anyUntyped() -> AnyInformation
 
-    /// Type erased version of the ``Information/merge(with:)`` and ``InformationInstantiatable/merge(with:)`` methods.
+    /// Type erased version of the ``Information/merge(with:)-1xjd0`` and ``InformationInstantiatable/merge(with:)-66dae`` methods.
     ///
     /// Default implementations exists for both protocols.
     ///

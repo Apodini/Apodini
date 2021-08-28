@@ -20,9 +20,9 @@ public extension WebServiceMetadataNamespace {
 }
 
 /// The ``WebServiceExternalDocumentationMetadata`` can be used to define external documentation for
-/// the OpenAPI Specification for the ``WebService``.
+/// the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/ExternalDocumentation`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/ExternalDocumentation` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...

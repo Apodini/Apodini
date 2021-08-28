@@ -16,11 +16,11 @@ public protocol AnyDefinitionWithDynamicDelegatingHandler {
     func addInitializerContextValue<Parser: MetadataParser>(_ visitor: Parser)
 }
 
-/// Some ``MetadataDefinition`` might declare conformance to ``DefinitionWithDelegatingHandler``
+/// Some `MetadataDefinition` might declare conformance to ``DefinitionWithDelegatingHandler``
 /// if it wishes to bootstrap an ``DelegatingHandlerInitializer`` for the respective ``Component``, ``WebService`` and/or ``Handler``.
-/// This protocol shall be used if the Initializer is supplied in addition to the ``OptionalContextKey`` provided
-/// by the ``MetadataDefinition``.
-/// If ``MetadataDefinition`` solely provides a ``DelegatingHandlerInitializer``, use ``DefinitionWithDelegatingHandlerKey``.
+/// This protocol shall be used if the Initializer is supplied in addition to the `OptionalContextKey` provided
+/// by the `MetadataDefinition`.
+/// If `MetadataDefinition` solely provides a ``DelegatingHandlerInitializer``, use ``DefinitionWithDelegatingHandlerKey``.
 ///
 /// Note, this conformance has no effects when used with a `ContentMetadata`.
 public protocol DefinitionWithDelegatingHandler: AnyDefinitionWithDynamicDelegatingHandler where Self: MetadataDefinition {
@@ -28,10 +28,10 @@ public protocol DefinitionWithDelegatingHandler: AnyDefinitionWithDynamicDelegat
     var initializer: DelegatingHandlerContextKey.Value { get }
 }
 
-/// Some ``MetadataDefinition`` might declare conformance to ``DefinitionWithDelegatingHandlerKey``
+/// Some `MetadataDefinition` might declare conformance to ``DefinitionWithDelegatingHandlerKey``
 /// if it wishes (and only wishes; meaning doesn't expose any other Context values) to bootstrap an
 /// ``DelegatingHandlerInitializer`` for the respective ``Component``, ``WebService`` and/or ``Handler``.
-/// Therefore this protocol sets the ``MetadataDefinition/Key`` associated type.
+/// Therefore this protocol sets the `MetadataDefinition/Key` associated type.
 public protocol DefinitionWithDelegatingHandlerKey: DefinitionWithDelegatingHandler {
     typealias Key = DelegatingHandlerContextKey
 }
@@ -48,7 +48,7 @@ public extension DefinitionWithDelegatingHandler {
 }
 
 public extension DefinitionWithDelegatingHandler where Self.Key == DelegatingHandlerContextKey {
-    /// Default value for ``MetadataDefinition``s with ``DelegatingHandlerContextKey``.
+    /// Default value for `MetadataDefinition`s with ``DelegatingHandlerContextKey``.
     /// It assembles the value for the ``DelegatingHandlerContextKey``.
     var value: Self.Key.Value {
         self.initializer

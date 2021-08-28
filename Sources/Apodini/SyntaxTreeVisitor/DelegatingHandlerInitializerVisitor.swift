@@ -44,11 +44,7 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
             entry.collectMetadata(self.visitor)
         }
 
-        print("We found metadata: \(metadata) for \(H.self)")
-
-        let metadata2 = handler.metadata
-        print(metadata2)
-        metadata2.collectMetadata(self.visitor)
+        handler.collectMetadata(self.visitor)
 
         self.queryInitializers()
         self.lastHandlerType = ObjectIdentifier(H.self)
