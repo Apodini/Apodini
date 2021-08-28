@@ -39,7 +39,7 @@ final class SwiftUtilsTests: XCTestCase {
         }
 
         XCTAssertEqual(result1, nil)
-        XCTAssertEqual(result2, 1+2+3+4)
+        XCTAssertEqual(result2, 1 + 2 + 3 + 4)
     }
 
     func testReduceIntoFirstInOut() {
@@ -62,7 +62,7 @@ final class SwiftUtilsTests: XCTestCase {
         }
 
         XCTAssertEqual(result1, nil)
-        XCTAssertEqual(result2?.num, 1+2+3+4)
+        XCTAssertEqual(result2?.num, 1 + 2 + 3 + 4)
     }
 
     func testFormatDate() {
