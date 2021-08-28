@@ -103,9 +103,20 @@ final class BlobTests: ApodiniTests {
         try makeRequest(blobContent: "Bernd", mimeType: .image(.gif))
     }
     
-    func testBlobResponseHandlerWithOpenAPIExporter() throws {
-        let blobResponse = try OpenAPIComponentsObjectBuilder().buildResponse(for: Blob.self)
+    func testBlobAndMimeTypeWithOpenAPIExporter() throws {
+        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        
+        let blobResponse = try componentsBuilder.buildResponse(for: Blob.self)
         XCTAssertEqual(.reference(.component(named: "DataResponse")), blobResponse)
+        
+        let blobSchema = try componentsBuilder.buildSchema(for: Blob.self)
+        XCTAssertEqual(blobSchema, .string(format: .binary))
+        
+        let mimeTypeResponse = try componentsBuilder.buildResponse(for: MimeType.self)
+        XCTAssertEqual(.reference(.component(named: "MimeTypeResponse")), mimeTypeResponse)
+        
+        let mimeTypeSchema = try componentsBuilder.buildSchema(for: MimeType.self)
+        XCTAssertEqual(.reference(.component(named: "MimeType")), mimeTypeSchema)
     }
     
     func testBlobEncoding() throws {
