@@ -1,30 +1,22 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-/// The `AnyMetadataBlock` protocol represents Metadata that is _somehow_ grouped together.
-/// How the Metadata is grouped and how it is made accessible is the responsibility
-/// of the one conforming to this protocol or of the protocol inheriting from this one.
-///
-/// The following Metadata Blocks are available:
-/// - `HandlerMetadataBlock`
-/// - `ComponentOnlyMetadataBlock`
-/// - `WebServiceMetadataBlock`
-/// - `ComponentMetadataBlock`
-/// - `ContentMetadataBlock`
-///
-/// See those docs for examples on how to use them in their respective scope
-/// or on how to create **independent** and thus **reusable** Metadata.
-///
-/// See `RestrictedMetadataBlock` for a way to create custom Metadata Blocks where
-/// the content is restricted to a specific `MetadataDefinition`.
-public protocol AnyMetadataBlock: AnyMetadata {
-    var blockContent: AnyMetadata { get }
-}
+import MetadataSystem
+
+public protocol AnyHandlerMetadataBlock: AnyMetadataBlock, AnyHandlerMetadata, HandlerMetadataNamespace, ComponentMetadataNamespace {}
+
+public protocol AnyComponentOnlyMetadataBlock: AnyMetadataBlock, AnyComponentOnlyMetadata,
+    ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {}
+
+public protocol AnyWebServiceMetadataBlock: AnyMetadataBlock, AnyWebServiceMetadata, WebServiceMetadataNamespace, ComponentMetadataNamespace {}
+
+public protocol AnyComponentMetadataBlock: AnyMetadataBlock, AnyComponentMetadata, ComponentMetadataNamespace {}
+
 
 /// The `HandlerMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
 /// `AnyHandlerMetadata` and itself can only be placed in `AnyHandlerMetadata` Declaration Blocks.
@@ -47,23 +39,17 @@ public protocol AnyMetadataBlock: AnyMetadata {
 ///     }
 /// }
 /// ```
-public protocol HandlerMetadataBlock: AnyMetadataBlock, AnyHandlerMetadata, HandlerMetadataNamespace, ComponentMetadataNamespace {
+public protocol HandlerMetadataBlock: AnyHandlerMetadataBlock {
     associatedtype Metadata = AnyHandlerMetadata
 
     @MetadataBuilder
-    var metadata: AnyHandlerMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension HandlerMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var blockContent: AnyMetadata {
-        self.metadata
-    }
-
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
-    /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        metadata.collectMetadata(visitor)
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
+    public var typeErasedContent: AnyMetadata {
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -86,23 +72,17 @@ extension HandlerMetadataBlock {
 ///     }
 /// }
 /// ```
-public protocol ComponentOnlyMetadataBlock: AnyMetadataBlock, AnyComponentOnlyMetadata, ComponentOnlyMetadataNamespace, ComponentMetadataNamespace {
+public protocol ComponentOnlyMetadataBlock: AnyComponentOnlyMetadataBlock {
     associatedtype Metadata = AnyComponentOnlyMetadata
 
     @MetadataBuilder
-    var metadata: AnyComponentOnlyMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension ComponentOnlyMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var blockContent: AnyMetadata {
-        self.metadata
-    }
-
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
-    /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        metadata.collectMetadata(visitor)
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
+    public var typeErasedContent: AnyMetadata {
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -127,23 +107,17 @@ extension ComponentOnlyMetadataBlock {
 ///     }
 /// }
 /// ```
-public protocol WebServiceMetadataBlock: AnyMetadataBlock, AnyWebServiceMetadata, WebServiceMetadataNamespace, ComponentMetadataNamespace {
+public protocol WebServiceMetadataBlock: AnyWebServiceMetadataBlock {
     associatedtype Metadata = AnyWebServiceMetadata
 
     @MetadataBuilder
-    var metadata: AnyWebServiceMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension WebServiceMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var blockContent: AnyMetadata {
-        self.metadata
-    }
-
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
-    /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        metadata.collectMetadata(visitor)
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
+    public var typeErasedContent: AnyMetadata {
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -168,64 +142,17 @@ extension WebServiceMetadataBlock {
 ///     }
 /// }
 /// ```
-public protocol ComponentMetadataBlock: AnyMetadataBlock, AnyComponentMetadata, ComponentMetadataNamespace {
+public protocol ComponentMetadataBlock: AnyComponentMetadataBlock {
     associatedtype Metadata = AnyComponentMetadata
 
     @ComponentMetadataBuilder
-    var metadata: AnyComponentMetadata { get }
+    var metadata: Metadata { get }
 }
 
 extension ComponentMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var blockContent: AnyMetadata {
-        self.metadata
-    }
-
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
-    /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        metadata.collectMetadata(visitor)
-    }
-}
-
-/// The `ContentMetadataBlock` protocol represents `AnyMetadataBlock`s which can only contain
-/// `AnyContentMetadata` and itself can only be placed in `AnyContentMetadata` Declaration Blocks.
-///
-/// See `StandardContentMetadataBlock` for a general purpose `ContentMetadataBlock` available by default.
-///
-/// By conforming to `ContentMetadataBlock` you can create reusable Metadata like the following:
-/// ```swift
-/// struct DefaultDescriptionMetadata: ContentMetadataBlock {
-///     var metadata: Metadata {
-///         Description("Example Description")
-///         // ...
-///     }
-/// }
-///
-/// struct ExampleContent: Content {
-///     // ...
-///     static var metadata: Metadata {
-///         DefaultDescriptionMetadata()
-///     }
-/// }
-/// ```
-public protocol ContentMetadataBlock: AnyMetadataBlock, AnyContentMetadata, ContentMetadataNamespace {
-    associatedtype Metadata = AnyContentMetadata
-
-    @ContentMetadataBuilder
-    var metadata: AnyContentMetadata { get }
-}
-
-extension ContentMetadataBlock {
-    /// Returns the type erased metadata content of the ``AnyMetadataBlock``.
-    public var blockContent: AnyMetadata {
-        self.metadata
-    }
-
-    /// Forwards the `SyntaxTreeVisitor` to the content of the `AnyMetadataBlock`
-    /// - Parameter visitor: `SyntaxTreeVisitor` responsible for parsing the Metadata Tree
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {
-        metadata.collectMetadata(visitor)
+    /// Returns the type erased metadata content of the `AnyMetadataBlock`.
+    public var typeErasedContent: AnyMetadata {
+        self.metadata as! AnyMetadata
     }
 }
 
@@ -247,11 +174,6 @@ extension WebServiceMetadataNamespace {
 extension ComponentMetadataNamespace {
     /// Name definition for the `StandardComponentMetadataBlock`
     public typealias Block = StandardComponentMetadataBlock
-}
-
-extension ContentMetadataNamespace {
-    /// Name definition for the `StandardContentMetadataBlock`
-    public typealias Block = StandardContentMetadataBlock
 }
 
 
@@ -319,7 +241,7 @@ public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
 /// ```
 public struct StandardWebServiceMetadataBlock: WebServiceMetadataBlock {
     public var metadata: AnyWebServiceMetadata
-    
+
     public init(@MetadataBuilder metadata: () -> AnyWebServiceMetadata) {
         self.metadata = metadata()
     }
@@ -345,29 +267,6 @@ public struct StandardComponentMetadataBlock: ComponentMetadataBlock {
     public var metadata: AnyComponentMetadata
 
     public init(@ComponentMetadataBuilder metadata: () -> AnyComponentMetadata) {
-        self.metadata = metadata()
-    }
-}
-
-/// `StandardContentMetadataBlock` is a `ContentMetadataBlock` available by default.
-/// It is available under the `Collect` name in `Content` Metadata Declaration Blocks.
-///
-/// It may be used in `Content` Metadata Declaration Blocks in the following way:
-/// ```swift
-/// struct ExampleContent: Content {
-///     // ...
-///     static var metadata: Metadata {
-///         // ...
-///         Block {
-///             // ...
-///         }
-///     }
-/// }
-/// ```
-public struct StandardContentMetadataBlock: ContentMetadataBlock {
-    public var metadata: AnyContentMetadata
-    
-    public init(@ContentMetadataBuilder metadata: () -> AnyContentMetadata) {
         self.metadata = metadata()
     }
 }

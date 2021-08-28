@@ -4,7 +4,9 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
+
+import MetadataSystem
 
 extension HandlerMetadataNamespace {
     /// Name definition for the `EmptyHandlerMetadata`
@@ -19,11 +21,6 @@ extension ComponentOnlyMetadataNamespace {
 extension WebServiceMetadataNamespace {
     /// Name definition for the `EmptyWebServiceMetadata`
     public typealias Empty = EmptyWebServiceMetadata
-}
-
-extension ContentMetadataNamespace {
-    /// Name definition for the `EmptyContentMetadata`
-    public typealias Empty = EmptyContentMetadata
 }
 
 extension ComponentMetadataBlockNamespace {
@@ -42,16 +39,8 @@ extension ComponentMetadataBlockNamespace {
 ///     }
 /// }
 /// ```
-public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
-    public typealias Key = Never
-
-    public var value: Key.Value {
-        fatalError("Cannot access the value of an empty metadata!")
-    }
-
+public struct EmptyHandlerMetadata: EmptyMetadata, HandlerMetadataDefinition {
     public init() {}
-
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyComponentOnlyMetadata` is a `ComponentOnlyMetadataDefinition` which in fact doesn't hold any Metadata.
@@ -64,16 +53,8 @@ public struct EmptyHandlerMetadata: HandlerMetadataDefinition {
 ///     }
 /// }
 /// ```
-public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
-    public typealias Key = Never
-
-    public var value: Key.Value {
-        fatalError("Cannot access the value of an empty metadata!")
-    }
-
+public struct EmptyComponentOnlyMetadata: EmptyMetadata, ComponentOnlyMetadataDefinition {
     public init() {}
-
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyWebServiceMetadata` is a `AnyWebServiceMetadata` which in fact doesn't hold any Metadata.
@@ -86,16 +67,8 @@ public struct EmptyComponentOnlyMetadata: ComponentOnlyMetadataDefinition {
 ///     }
 /// }
 /// ```
-public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
-    public typealias Key = Never
-
-    public var value: Key.Value {
-        fatalError("Cannot access the value of an empty metadata!")
-    }
-
+public struct EmptyWebServiceMetadata: EmptyMetadata, WebServiceMetadataDefinition {
     public init() {}
-
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }
 
 /// `EmptyComponentMetadata` is a `AnyComponentMetadata` which in fact doesn't hold any Metadata.
@@ -107,36 +80,6 @@ public struct EmptyWebServiceMetadata: WebServiceMetadataDefinition {
 ///     }
 /// }
 /// ```
-public struct EmptyComponentMetadata: ComponentMetadataDefinition {
-    public typealias Key = Never
-
-    public var value: Key.Value {
-        fatalError("Cannot access the value of an empty metadata!")
-    }
-
+public struct EmptyComponentMetadata: EmptyMetadata, ComponentMetadataDefinition {
     public init() {}
-
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
-}
-
-/// `EmptyContentMetadata` is a `AnyContentMetadata` which in fact doesn't hold any Metadata.
-/// The Metadata is available under the `ContentMetadataNamespace.Empty` name and can be used like the following:
-/// ```swift
-/// struct ExampleContent: Content {
-///     // ...
-///     var metadata: Metadata {
-///         Empty()
-///     }
-/// }
-/// ```
-public struct EmptyContentMetadata: ContentMetadataDefinition {
-    public typealias Key = Never
-
-    public var value: Key.Value {
-        fatalError("Cannot access the value of an empty metadata!")
-    }
-
-    public init() {}
-
-    public func collectMetadata(_ visitor: SyntaxTreeVisitor) {}
 }

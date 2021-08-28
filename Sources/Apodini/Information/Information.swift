@@ -86,13 +86,13 @@ public protocol Information: AnyInformation where Self: InformationClass {
     /// - Returns: The merged ``Information`` instance.
     func merge(with information: Self) -> Self
 
-    /// Enables developers to directly access properties of the ``value`` property using the ``Information``.
+    /// Enables developers to directly access properties of the ``value-4ijxx`` property using the ``Information``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Key.RawValue, Member>) -> Member { get }
 }
 
 // MARK: dynamicMemberLookup
 public extension Information {
-    /// Enables developers to directly access properties of the ``value`` property using the ``Information``.
+    /// Enables developers to directly access properties of the ``value-4ijxx`` property using the ``Information``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Key.RawValue, Member>) -> Member {
         value[keyPath: keyPath]
     }

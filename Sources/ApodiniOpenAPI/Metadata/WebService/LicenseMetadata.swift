@@ -21,7 +21,7 @@ public extension WebServiceMetadataNamespace {
 
 /// The ``ContactMetadata`` can be used to define license information for the OpenAPI Specification for the ``WebService``.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/License`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/License` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...

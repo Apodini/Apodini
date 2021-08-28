@@ -71,7 +71,8 @@ struct IntModifier<C: Component>: Modifier {
     }
 }
 
-extension IntModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+extension IntModifier: Handler, HandlerModifier, HandlerMetadataNamespace, AnyHandlerMetadataBlock, AnyHandlerMetadata
+    where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -92,7 +93,8 @@ struct OptionalIntModifier<C: Component>: Modifier {
     }
 }
 
-extension OptionalIntModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+extension OptionalIntModifier: Handler, HandlerModifier, HandlerMetadataNamespace, AnyHandlerMetadataBlock, AnyHandlerMetadata
+    where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -113,7 +115,8 @@ struct IntAdditionModifier<C: Component>: Modifier {
     }
 }
 
-extension IntAdditionModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+extension IntAdditionModifier: Handler, HandlerModifier, HandlerMetadataNamespace, AnyHandlerMetadataBlock, AnyHandlerMetadata
+    where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -133,7 +136,8 @@ struct StringModifier<C: Component>: Modifier {
     }
 }
 
-extension StringModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+extension StringModifier: Handler, HandlerModifier, HandlerMetadataNamespace, AnyHandlerMetadataBlock, AnyHandlerMetadata
+    where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 
@@ -153,7 +157,8 @@ struct IntArrayModifier<C: Component>: Modifier {
     }
 }
 
-extension IntArrayModifier: Handler, HandlerModifier, HandlerMetadataNamespace where ModifiedComponent: Handler {
+extension IntArrayModifier: Handler, HandlerModifier, HandlerMetadataNamespace, AnyHandlerMetadataBlock, AnyHandlerMetadata
+    where ModifiedComponent: Handler {
     typealias Response = ModifiedComponent.Response
 }
 

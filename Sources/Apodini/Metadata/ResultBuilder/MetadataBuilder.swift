@@ -39,11 +39,11 @@ public extension MetadataBuilder {
     }
 
     static func buildArray(_ components: [AnyHandlerMetadata]) -> AnyHandlerMetadata {
-        AnyHandlerMetadataArrayWrapper(components)
+        AnyHandlerMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyHandlerMetadata...) -> AnyHandlerMetadata {
-        AnyHandlerMetadataArrayWrapper(components)
+        AnyHandlerMetadataArray(components)
     }
 }
 
@@ -74,11 +74,11 @@ public extension MetadataBuilder {
     }
 
     static func buildArray(_ components: [AnyComponentOnlyMetadata]) -> AnyComponentOnlyMetadata {
-        AnyComponentOnlyMetadataArrayWrapper(components)
+        AnyComponentOnlyMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyComponentOnlyMetadata...) -> AnyComponentOnlyMetadata {
-        AnyComponentOnlyMetadataArrayWrapper(components)
+        AnyComponentOnlyMetadataArray(components)
     }
 }
 
@@ -109,10 +109,10 @@ public extension MetadataBuilder {
     }
 
     static func buildArray(_ components: [AnyWebServiceMetadata]) -> AnyWebServiceMetadata {
-        AnyWebServiceMetadataArrayWrapper(components)
+        AnyWebServiceMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyWebServiceMetadata...) -> AnyWebServiceMetadata {
-        AnyWebServiceMetadataArrayWrapper(components)
+        AnyWebServiceMetadataArray(components)
     }
 }

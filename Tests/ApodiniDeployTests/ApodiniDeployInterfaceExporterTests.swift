@@ -9,6 +9,7 @@
 import Foundation
 import XCTest
 @testable import Apodini
+@testable import ApodiniContext
 @testable import ApodiniDeploy
 import XCTApodini
 import ApodiniUtils

@@ -92,8 +92,14 @@ let package = Package(
         // testing runtime crashes
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
+        // Metadata
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.0")),
+
         // Apodini Authorization
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0")
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
+
+        // TypeInformation
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -111,6 +117,8 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .target(name: "ApodiniUtils"),
+                .product(name: "ApodiniContext", package: "MetadataSystem"),
+                .product(name: "MetadataSystem", package: "MetadataSystem"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
@@ -119,7 +127,8 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "OrderedCollections", package: "swift-collections")
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "TypeInformationMetadata", package: "ApodiniTypeInformation")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"

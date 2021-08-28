@@ -180,12 +180,13 @@ final class ContentMetadataTest: ApodiniTests {
         handler.accept(visitor)
 
         let context = visitor.currentNode.export()
+        let contentContext = context.get(valueFor: RootContextOfReturnTypeContextKey.self)
 
-        let capturedInts = context.get(valueFor: TestIntMetadataContextKey.self)
+        let capturedInts = contentContext.get(valueFor: TestIntMetadataContextKey.self)
         let expectedInts: [Int] = Self.expectedIntsState
         XCTAssertEqual(capturedInts, expectedInts)
 
-        let capturedStrings = context.get(valueFor: TestStringMetadataContextKey.self)
+        let capturedStrings = contentContext.get(valueFor: TestStringMetadataContextKey.self)
         XCTAssertEqual(capturedStrings, "TestMetadataContent")
 
         let capturedDescription = context.get(valueFor: HandlerDescriptionMetadata.self)

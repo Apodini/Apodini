@@ -119,7 +119,7 @@ In this case, the `contactId` can be passed as a path in the URL request
 ```
 http://localhost:8080/v1/contacts/<contactId>
 ```
-For every endpoint it is to be defined which ``operation`` is represented by the given endpoint.
+For every endpoint it is to be defined which `operation` is represented by the given endpoint.
 
 > Tip: Learn more advance relationship retrieval: <doc:RetrieveRelationship>
 
