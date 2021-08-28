@@ -8,7 +8,7 @@
 
 /// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
 public enum MimeType: Codable, Equatable, CustomStringConvertible {
-    enum CodingKeys: CodingKey {
+    public enum CodingKeys: CodingKey {
         case type
         case subtype
         case parameters

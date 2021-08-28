@@ -104,8 +104,8 @@ final class BlobTests: ApodiniTests {
     }
     
     func testBlobResponseHandlerWithOpenAPIExporter() throws {
-        let blobSchema = try OpenAPIComponentsObjectBuilder().buildResponse(for: Blob.self)
-        XCTAssertEqual(.string(format: .binary, required: true), blobSchema)
+        let blobResponse = try OpenAPIComponentsObjectBuilder().buildResponse(for: Blob.self)
+        XCTAssertEqual(.reference(.component(named: "DataResponse")), blobResponse)
     }
     
     func testBlobEncoding() throws {
