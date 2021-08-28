@@ -217,8 +217,6 @@ private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMet
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
         } else if let delegate = value as? DelegateWithComponentOnlyMetadata {
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
-        } else {
-            print("Not parsing: \(value)")
         }
     }
 }
