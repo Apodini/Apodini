@@ -1,28 +1,13 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-/// A `RestrictedMetadataBlock` is a  `AnyMetadataBlock` which is restricted to only contain
-/// a specific Type of `AnyMetadata` (`RestrictedMetadataBlock`s support arbitrary nesting, meaning
-/// they always can contain themselves).
-///
-/// In order to support multiple `AnyMetadata` which is allowed inside a `RestrictedMetadataBlock`,
-/// use a class as the base Metadata type, creating subclasses for all allowed Metadata.
-///
-/// The following `RestrictedMetadataBlock`s are supported, depending on what `AnyMetadata` they support
-/// and in which Declaration Blocks they can be placed:
-/// - `RestrictedHandlerMetadataBlock`
-/// - `RestrictedComponentOnlyMetadataBlock`
-/// - `RestrictedWebServiceMetadataBlock`
-/// - `RestrictedComponentMetadataBlock`
-/// - `RestrictedContentMetadataBlock`
-public protocol RestrictedMetadataBlock: AnyMetadataBlock {
-    associatedtype RestrictedContent: AnyMetadata
-}
+import MetadataSystem
+
 
 /// The `RestrictedHandlerMetadataBlock` protocol represents `RestrictedMetadataBlock`s which can only contain
 /// `AnyHandlerMetadata` and itself can only be placed in `AnyHandlerMetadata` Declaration Blocks.
@@ -106,27 +91,6 @@ public struct RestrictedComponentMetadataBlock<RestrictedContent: AnyComponentMe
     public var metadata: AnyComponentMetadata
 
     public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyComponentMetadata) {
-        self.metadata = metadata()
-    }
-}
-
-/// The `RestrictedContentMetadataBlock` protocol represents `RestrictedMetadataBlock`s which can only contain
-/// `AnyContentMetadata` and itself can only be placed in `AnyContentMetadata` Declaration Blocks.
-/// Use the generic type `RestrictedContent` to define which `AnyContentMetadata` is allowed in the Block.
-///
-/// Given a `Example` Metadata (already part of the `ContentMetadataNamespace`), a `RestrictedContentMetadataBlock`
-/// can be added to the Namespace like the following:
-/// ```swift
-/// extension ContentMetadataNamespace {
-///     public typealias Examples = RestrictedContentMetadataBlock<Example>
-/// }
-/// ```
-public struct RestrictedContentMetadataBlock<RestrictedContent: AnyContentMetadata>: ContentMetadataBlock, RestrictedMetadataBlock {
-    public typealias RestrictedContent = RestrictedContent
-
-    public var metadata: AnyContentMetadata
-
-    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyContentMetadata) {
         self.metadata = metadata()
     }
 }

@@ -2,12 +2,21 @@
   "object": {
     "pins": [
       {
-        "package": "APNSwift",
+        "package": "apnswift",
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
           "revision": "03e83e2332d13a3c06d5cd70948166e5724c43c7",
           "version": "3.0.0"
+        }
+      },
+      {
+        "package": "ApodiniTypeInformation",
+        "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
+        "state": {
+          "branch": null,
+          "revision": "b5b9a4d56f8b4fc28fff159e3e9349c41baf40a4",
+          "version": "0.2.0"
         }
       },
       {
@@ -107,6 +116,15 @@
           "branch": null,
           "revision": "7a9a04df93e71de10fa2e8d6e9430dd0a7924643",
           "version": "4.2.4"
+        }
+      },
+      {
+        "package": "MetadataSystem",
+        "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
+        "state": {
+          "branch": null,
+          "revision": "5c5b7f0a01017785e3d265fa5d04f0e0b5b3a733",
+          "version": "0.1.0"
         }
       },
       {

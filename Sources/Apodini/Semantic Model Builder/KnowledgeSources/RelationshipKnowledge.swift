@@ -11,7 +11,8 @@ import Logging
 
 enum GlobalRelationshipAnchor: TruthAnchor { }
 
-struct PartialRelationshipSourceCandidates: ContextKeyKnowledgeSource {
+/// Gives access to the `RelationshipSourceCandidateContextKey` declared on an `Endpoint`.
+struct EndpointPartialRelationshipSourceCandidates: ContextKeyKnowledgeSource { // swiftlint:disable:this type_name
     typealias Key = RelationshipSourceCandidateContextKey
     
     let list: [PartialRelationshipSourceCandidate]
@@ -133,13 +134,18 @@ extension RelationshipModelKnowledgeSource {
             // once the latter was ported to the standard Blackboard-Pattern.
             endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
             endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
+
+            let contentContext = blackboard[HandleReturnTypeRootContext.self]
+
+            let contentCandidates = contentContext.get(valueFor: RelationshipSourceCandidateContextKey.self)
+            let endpointCandidates = blackboard[EndpointPartialRelationshipSourceCandidates.self].list
             
             blackboard[RelationshipBuilderSource.self].builder.collect(
                 endpoint: endpoint,
-                candidates: blackboard[PartialRelationshipSourceCandidates.self].list,
+                candidates: contentCandidates + endpointCandidates,
                 sources: blackboard[RelationshipSources.self].list,
                 destinations: blackboard[RelationshipDestinations.self].list)
-            
+
             let content = endpoint[HandleReturnType.self].type
             let reference = endpoint[ReferenceModule.self].reference
             let markedDefault = endpoint[Context.self].get(valueFor: DefaultRelationshipContextKey.self) != nil

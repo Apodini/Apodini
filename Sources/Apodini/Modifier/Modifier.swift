@@ -22,7 +22,7 @@ public protocol Modifier: Component, SyntaxTreeVisitable {
 
 // Workaround for the "swift conditional conformance does not imply conformance to inherited protocol" compiler error
 /// A modifier which can be invoked on a `Handler` or a `Component`
-public typealias HandlerModifier = HandlerModifierProto & Handler & HandlerMetadataNamespace
+public typealias HandlerModifier = HandlerModifierProto & Handler & AnyHandlerMetadataBlock & AnyHandlerMetadata & HandlerMetadataNamespace
 
 /// A modifier which can be invoked on a `Handler` or a `Component`
 public protocol HandlerModifierProto: Modifier, Handler where ModifiedComponent: Handler {

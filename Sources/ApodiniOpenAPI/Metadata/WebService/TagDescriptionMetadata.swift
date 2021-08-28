@@ -33,9 +33,9 @@ public extension WebServiceMetadataNamespace {
     typealias TagDescriptions = RestrictedWebServiceMetadataBlock<TagDescription>
 }
 
-/// The ``TagDescriptionMetadata`` can be used to define tag documentation for the OpenAPI Specification for the ``WebService``.
+/// The ``TagDescriptionMetadata`` can be used to define tag documentation for the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/TagDescription`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/TagDescription` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...
