@@ -22,7 +22,6 @@ struct ResponseStruct: Apodini.Content {
 }
 
 final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
-
     @PathParameter var param: String
     
     struct HandlerParam: Handler {

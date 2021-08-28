@@ -28,7 +28,6 @@ struct SomeRequiredDelegate {
 
 
 final class OpenAPIDocumentBuilderTests: ApodiniTests {
-    
     struct SomeComp: Handler {
         @Parameter var name: String
         
