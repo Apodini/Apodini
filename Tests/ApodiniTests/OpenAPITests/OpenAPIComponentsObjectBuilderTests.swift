@@ -7,7 +7,7 @@
 //              
 
 import XCTest
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI

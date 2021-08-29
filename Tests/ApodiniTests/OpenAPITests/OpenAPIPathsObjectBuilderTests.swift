@@ -7,7 +7,7 @@
 //              
 
 import XCTest
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
@@ -58,8 +58,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<HandlerParam>)
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         pathsObjectBuilder.addPathItem(from: endpoint)
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
@@ -72,8 +72,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         let webService = RelationshipWebServiceModel()
         webService.addEndpoint(&rendpoint, at: [$param, "first"])
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         pathsObjectBuilder.addPathItem(from: endpoint)
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
@@ -91,8 +91,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             }
         }
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         
         
         let modelBuilder = SemanticModelBuilder(app)
@@ -129,8 +129,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             }
         }
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -177,8 +177,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             }
         }
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -244,8 +244,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             }
         }
         
-        var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
+        let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder)
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)

@@ -120,6 +120,13 @@ extension OpenAPIComponentsObjectBuilder {
     }
 }
 
+// MARK: Security Scheme
+extension OpenAPIComponentsObjectBuilder {
+    func addSecurityScheme(key: OpenAPIKit.OpenAPI.ComponentKey, scheme: OpenAPIKit.OpenAPI.SecurityScheme) {
+        componentsObject.securitySchemes[key] = scheme
+    }
+}
+
 // MARK: - TypeInformation + JSONSchemaName
 extension TypeInformation {
     func jsonSchemaName(isRoot: Bool = false) -> String {
