@@ -277,7 +277,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
             .joined(separator: "-")
         let ipAddress = try IoTContext.ipAddress(for: device)
         try IoTContext.runTaskOnRemote(
-            "./\(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ipAddress \(ipAddress) --action-keys \(actionKeys)",
+            "./\(productName) \(flattenedWebServiceArguments) deploy export-ws-structure iot \(remoteFilePath) --ip-address \(ipAddress) --action-keys \(actionKeys)",
             workingDir: buildUrl.path,
             device: device
         )
