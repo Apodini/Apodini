@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "c1de408100a2f2e4ab2ea06512e8635bc1a59144",
-          "version": "1.3.1"
+          "revision": "ae12394e466f7fe44725655e763f7e603ed876b5",
+          "version": "1.4.0"
         }
       },
       {
@@ -375,7 +375,7 @@
         "repositoryURL": "https://github.com/hendesi/SwiftDeviceDiscovery.git",
         "state": {
           "branch": "master",
-          "revision": "322e6381a192c8e0f127039ec2778319b489e4b3",
+          "revision": "571df3c534d05a6c357b397fc036e00b6aac3217",
           "version": null
         }
       },

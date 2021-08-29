@@ -1,16 +1,27 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//       
+
 import Foundation
 import DeviceDiscovery
 import ApodiniUtils
+import Logging
 
-public enum IoTContext {
-    static let resourceDirectory = ConfigurationProperty("key_resourceDir")
+enum IoTContext {
     static let deploymentDirectory = ConfigurationProperty("key_deployDir")
-    static let logger = ConfigurationProperty("key_logger")
     
     static let defaultUsername = "ubuntu"
     static let defaultPassword = "test1234"
+    
+    static let logger = Logger(label: "de.apodini.IoTDeployment")
+    
+    private static var startDate = Date()
 
-    public static func copyResources(_ device: Device, origin: String, destination: String) throws {
+    static func copyResources(_ device: Device, origin: String, destination: String) throws {
         let task = Task(executableUrl: Self._findExecutable("rsync"),
                         arguments: [
                             "-avz",
@@ -24,11 +35,11 @@ public enum IoTContext {
         try task.launchSyncAndAssertSuccess()
     }
 
-    public static func rsyncHostname(_ device: Device, path: String) -> String {
+    static func rsyncHostname(_ device: Device, path: String) -> String {
         "\(device.username)@\(device.ipv4Address!):\(path)"
     }
     
-    public static func ipAddress(for device: Device) throws -> String {
+    static func ipAddress(for device: Device) throws -> String {
         guard let ipaddress = device.ipv4Address else {
             throw IoTDeploymentError(description: "Unable to get ipaddress for \(device)")
         }
@@ -50,7 +61,13 @@ public enum IoTContext {
     }
     
     /// A wrapper function that navigates to the specified working directory and executes the command remotely
-    public static func runTaskOnRemote(_ command: String, workingDir: String, device: Device, assertSuccess: Bool = true, responseHandler: ((String) -> Void)? = nil) throws {
+    static func runTaskOnRemote(
+        _ command: String,
+        workingDir: String,
+        device: Device,
+        assertSuccess: Bool = true,
+        responseHandler: ((String) -> Void)? = nil
+    ) throws {
         let client = try getSSHClient(for: device)
         let cmd = "cd \(workingDir) && \(command)"
         if assertSuccess {
@@ -59,18 +76,43 @@ public enum IoTContext {
             let _: Bool = try client.execute(cmd: cmd, responseHandler: nil)
         }
     }
-}
-
-public struct IoTDeploymentError: Swift.Error {
-    public let description: String
     
-    public init(description: String) {
-        self.description = description
+    static func startTimer() {
+        startDate = Date()
+    }
+    
+    static func endTimer() {
+        let components = Calendar.current.dateComponents([.hour, .minute, .second], from: startDate, to: Date())
+        guard let hours = components.hour,
+              let minutes = components.minute,
+              let seconds = components.second else {
+                  Self.logger.error("Unable to read timer")
+                  return
+              }
+        let hourString = hours < 10 ? "0\(hours)" : "\(hours)"
+        let minuteString = minutes < 10 ? "0\(minutes)" : "\(minutes)"
+        let secondsString = seconds < 10 ? "0\(seconds)" : "\(seconds)"
+        logger.notice("Complete deployment in \(hourString):\(minuteString):\(secondsString)")
+    }
+    
+    static func readUsernameAndPassword(_ type: String) -> (String, String) {
+        Self.logger.info("The username for devices of type \(type) :")
+        var username = readLine()
+        while username.isEmpty {
+            username = readLine()
+        }
+        Self.logger.info("The password for devices of type \(type) :")
+        let passw = getpass("")
+        return (username!, String(cString: passw!))
     }
 }
 
+struct IoTDeploymentError: Swift.Error {
+    let description: String
+}
+
 extension Dictionary {
-    static func +(lhs: [Key: Value], rhs: [Key: Value]) -> [Key: Value] {
+    static func + (lhs: [Key: Value], rhs: [Key: Value]) -> [Key: Value] {
         lhs.merging(rhs) { $1 }
     }
 }

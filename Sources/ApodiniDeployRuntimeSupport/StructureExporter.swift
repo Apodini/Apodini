@@ -152,7 +152,7 @@ extension ExportedEndpoint {
         )
     }
 }
-//TODO: Maybe remove later
+
 extension Sequence where Element == CollectedEndpointInfo {
     /// Converts a sequence of `CollectedEndpointInfo` to a Set of `ExportedEndpoint`.
     public func convert() -> Set<ExportedEndpoint> {

@@ -1,9 +1,12 @@
 //
 //  File.swift
-//  File
 //
-//  Created by Felix Desiderato on 13/08/2021.
+// This source file is part of the Apodini open source project
 //
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//  
 
 import Foundation
 import DeploymentTargetIoT
@@ -12,32 +15,33 @@ import LifxDiscoveryActions
 import LifxIoTDeploymentOption
 import DeploymentTargetIoTCommon
 
-@main
-struct LifxDeployer: ParsableCommand {
+struct LifxDeployCommand: ParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
-            abstract: "Deployment executor for Lifx",
-            discussion: """
-            A CLI to execute the IoT deployment provider for Lifx smart lamps
-            """,
+            commandName: "deploy",
+            abstract: "LIFX Deployment Provider",
+            discussion: "Runs the LIFX deployment provider",
             version: "0.0.1"
         )
     }
+    
+    @Argument(parsing: .unconditionalRemaining, help: "CLI arguments of the web service")
+    var webServiceArguments: [String] = []
     
     @OptionGroup
     var deploymentOptions: IoTDeploymentOptions
 
     func run() throws {
-        var provider = IoTDeploymentProvider(
-            searchableTypes: deploymentOptions.types,
+        let provider = IoTDeploymentProvider(
+            searchableTypes: deploymentOptions.types.split(separator: ",").map(String.init),
             productName: deploymentOptions.productName,
             packageRootDir: deploymentOptions.inputPackageDir,
             deploymentDir: deploymentOptions.deploymentDir,
-            configurationFilePath: deploymentOptions.configurationFilePath,
             automaticRedeployment: deploymentOptions.automaticRedeployment,
             additionalConfiguration: [
                 .deploymentDirectory: deploymentOptions.deploymentDir
-            ]
+            ],
+            webServiceArguments: webServiceArguments
         )
         provider.registerAction(scope: .all, action: LIFXDeviceDiscoveryAction.self, option: DeploymentDeviceMetadata(.lifx))
         try provider.run()

@@ -42,23 +42,32 @@ public struct DeploymentDevice: PropertyOption, RawRepresentable {
 }
 
 public extension PropertyOptionKey where PropertyNameSpace == DeploymentOptionNamespace, Option == DeploymentDevice {
-    /// The ``PropertyOptionKey`` for ``MemorySize``.
+    /// The ``PropertyOptionKey`` for ``DeploymentDevice``.
     static let deploymentDevice = DeploymentOptionKey<DeploymentDevice>()
 }
 
 public extension ComponentMetadataNamespace {
-    /// Name definition for the ``DeploymentMemoryMetadata``
+    /// Name definition for the ``DeploymentDeviceMetadata``
     typealias DeploymentDevice = DeploymentDeviceMetadata
 }
 
-/// The ``DeploymentMemoryMetadata`` can be used to explicitly declare the ``MemorySize`` deployment option.
+/// The ``DeploymentDeviceMetadata`` can be used to explicitly declare the ``DeploymentDevice`` deployment option.
 ///
-/// The Metadata is available under the ``ComponentMetadataNamespace/Memory`` name and can be used like the following:
+/// The Metadata is available under the ``ComponentMetadataNamespace/DeploymentDevice`` name and can be used like the following:
+/// 1. Create an extension for your Iot device
+/// ```
+/// extension DeploymentDevice {
+///    public static var lifx: Self {
+///         DeploymentDevice(rawValue: "lifx")
+///        }
+/// }
+/// ```
+/// 2. Use it like this:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...
 ///     var metadata: Metadata {
-///         Memory(.mb(128))
+///         DeploymentDevice(.lifx)
 ///     }
 /// }
 /// ```
