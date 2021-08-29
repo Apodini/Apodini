@@ -68,7 +68,7 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -85,7 +85,7 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -101,7 +101,7 @@ final class DescriptionModifierTests: ApodiniTests {
         visitor.finishParsing()
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: DescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")

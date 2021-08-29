@@ -87,6 +87,7 @@ let package = Package(
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
+        
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
@@ -99,12 +100,18 @@ let package = Package(
         // testing runtime crashes
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
+        // Metadata
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.0")),
+
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Iot deployment
         .package(name: "swift-device-discovery", url: "https://github.com/hendesi/SwiftDeviceDiscovery.git", .branch("master")),
-        .package(name: "swift-nio-lifx-impl", url: "https://github.com/Apodini/Swift-NIO-LIFX-Impl", .branch("develop"))
+        .package(name: "swift-nio-lifx-impl", url: "https://github.com/Apodini/Swift-NIO-LIFX-Impl", .branch("develop")),
+
+        // TypeInformation
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -122,6 +129,8 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .target(name: "ApodiniUtils"),
+                .product(name: "ApodiniContext", package: "MetadataSystem"),
+                .product(name: "MetadataSystem", package: "MetadataSystem"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
@@ -130,7 +139,9 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "OrderedCollections", package: "swift-collections")
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "TypeInformationMetadata", package: "ApodiniTypeInformation"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
@@ -159,6 +170,10 @@ let package = Package(
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
@@ -241,14 +256,25 @@ let package = Package(
                 .process("Resources")
             ]
         ),
+        
+        .target(
+            name: "ApodiniOpenAPISecurity",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "OrderedCollections", package: "swift-collections")
+            ]
+        ),
 
         .target(
             name: "ApodiniOpenAPI",
             dependencies: [
                 .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniOpenAPISecurity"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniTypeReflection"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
             ],
@@ -335,7 +361,8 @@ let package = Package(
         .target(
             name: "ApodiniAuthorization",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniOpenAPISecurity")
             ]
         ),
 

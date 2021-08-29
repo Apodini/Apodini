@@ -57,7 +57,7 @@
 /// }
 /// ```
 public protocol InformationClass {
-    /// Indicates if the ``Information`` could contain sensitive information, eg. ``ApodiniHTTP.Authorization``
+    /// Indicates if the ``Information`` could contain sensitive information, eg. `ApodiniHTTP.Authorization`
     var sensitive: Bool { get }
 }
 

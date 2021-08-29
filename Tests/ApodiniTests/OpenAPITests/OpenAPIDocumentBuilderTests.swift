@@ -7,34 +7,35 @@
 //              
 
 import XCTest
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniVaporSupport
 import ApodiniREST
 
-final class OpenAPIDocumentBuilderTests: ApodiniTests {
-    struct SomeStruct: Apodini.Content {
-        var someProp = 4
-    }
+struct SomeTestStruct: Apodini.Content {
+    var someProp = 4
+}
 
-    struct SomeDelegate {
-        @Parameter var lazyoptional: String
-    }
-    
-    struct SomeRequiredDelegate {
-        @Parameter var required: String
-        @Parameter var realoptional: String?
-    }
-    
+struct SomeDelegate {
+    @Parameter var lazyoptional: String
+}
+
+struct SomeRequiredDelegate {
+    @Parameter var required: String
+    @Parameter var realoptional: String?
+}
+
+
+final class OpenAPIDocumentBuilderTests: ApodiniTests {
     struct SomeComp: Handler {
         @Parameter var name: String
         
         let someD = Delegate(SomeDelegate())
         let requiredD = Delegate(SomeRequiredDelegate(), .required)
 
-        func handle() -> SomeStruct {
-            SomeStruct()
+        func handle() -> SomeTestStruct {
+            SomeTestStruct()
         }
     }
 
@@ -93,7 +94,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                                     description: "OK",
                                     content: [
                                         .json: .init(schema: .reference(
-                                            .component(named: "\(SomeStruct.self)Response")))
+                                            .component(named: "\(SomeTestStruct.self)Response")))
                                     ]
                                 )
                             ),
@@ -116,10 +117,10 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
             ],
             components: .init(
                 schemas: [
-                    "SomeStruct": .object(properties: ["someProp": .integer]),
-                    "SomeStructResponse": .object(
-                        title: "\(SomeStruct.self)Response", properties: [
-                        ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeStruct.self)")),
+                    "SomeTestStruct": .object(properties: ["someProp": .integer]),
+                    "SomeTestStructResponse": .object(
+                        title: "\(SomeTestStruct.self)Response", properties: [
+                        ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeTestStruct.self)")),
                         ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
                         ])
                 ]

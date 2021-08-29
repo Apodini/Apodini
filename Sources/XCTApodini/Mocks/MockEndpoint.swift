@@ -8,6 +8,7 @@
 
 #if DEBUG || RELEASE_TESTING
 @testable import Apodini
+@testable import ApodiniContext
 import struct Foundation.UUID
 
 // MARK: Mock Endpoint

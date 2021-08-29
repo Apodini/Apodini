@@ -115,6 +115,7 @@ public extension DelegatingHandlerInitializer {
 
 // MARK: DelegatingHandlerContextKey
 
+/// Key to store Delegating Handler Initializer
 public struct DelegatingHandlerContextKey: ContextKey {
     public typealias Value = OrderedSet<Entry>
     public static var defaultValue: Value = []

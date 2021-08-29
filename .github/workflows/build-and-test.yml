@@ -52,7 +52,7 @@ jobs:
 #    - uses: actions/cache@v2
 #      with:
 #        path: .build
-#        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}-5.5
+#        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
 #    - name: Check Xcode version
 #      run: xcodebuild -version
 #    - name: Check Swift version
@@ -99,15 +99,15 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}-5.5
+        key: ${{ runner.os }}-${{matrix.linux}}-${{matrix.configuration}}-spm-${{ hashFiles('Package.resolved') }}
     - name: Check Swift version
       run: swift --version
     - name: Release Build # Ensuring release build runs successfully without -enable-testing flag
       if: matrix.configuration == 'release'
-      run: swift build -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release
+      run: swift build -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
+      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -Xswiftc -DWORKAROUND -Xswiftc -Xfrontend -Xswiftc -sil-verify-none -c debug
+      run: swift test -c debug

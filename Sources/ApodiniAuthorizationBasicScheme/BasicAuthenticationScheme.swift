@@ -10,6 +10,7 @@ import Apodini
 import ApodiniAuthorization
 import ApodiniHTTPProtocol
 import NIOHTTP1
+@_implementationOnly import ApodiniOpenAPISecurity
 
 public struct BasicAuthenticationScheme: AuthenticationScheme {
     @Apodini.Environment(\.connection)
@@ -18,11 +19,23 @@ public struct BasicAuthenticationScheme: AuthenticationScheme {
     @Throws(.unauthenticated)
     var unauthenticatedError
 
+    public var required = false
+
     let realm: String
     // The RFC 7617 defines the "charset" parameter, though the only allowed value is "UTF-8", so we leave the configuration out
 
-    public init(realm: String = "Standard Apodini Realm") {
+    // used in the Security Metadata
+    public var name: String?
+    public var description: String?
+
+    public init(name: String? = nil, realm: String = "Standard Apodini Realm", description: String? = nil) {
+        self.name = name
         self.realm = realm
+        self.description = description
+    }
+
+    public var metadata: Metadata {
+        Security(name: name, .http(scheme: "basic"), description: description, required: required)
     }
 
     public func deriveAuthenticationInfo() throws -> (username: String, password: String)? {
