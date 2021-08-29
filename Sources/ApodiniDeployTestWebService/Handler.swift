@@ -12,6 +12,7 @@ import ApodiniOpenAPI
 import ApodiniREST
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
+import DeploymentTargetIoTCommon
 import Foundation
 import NIO
 
@@ -140,5 +141,12 @@ struct AWS_Greeter: Handler {
         .map { randomNumber -> String in
             "Hello, \(name). Your random number in range \(age)...\(2 * age) is \(randomNumber)!"
         }
+    }
+}
+
+// MARK: - IoT
+extension DeploymentDevice {
+    static var deployTest: Self {
+        DeploymentDevice(rawValue: "deployTest")
     }
 }

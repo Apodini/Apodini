@@ -69,4 +69,4 @@ additionalConfiguration: [
 ```
 
 ## Final remarks
-As mentioned in the beginning, this is still work in progress. So if you come across any bugs or feel like there is some important feature missing or you just have questions about the provider, please don't hesitate to reach out to me or Paul.  
+As mentioned in the beginning, this is still work in progress. So if you come across any bugs or feel like there is some important feature missing or you just have questions about the provider, please don't hesitate to reach out to me(@hendesi) or Paul.  

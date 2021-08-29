@@ -447,6 +447,7 @@ let package = Package(
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "DeploymentTargetIoTRuntime"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniProtobuffer"),
@@ -533,7 +534,8 @@ let package = Package(
                 .product(name: "SotoApiGatewayV2", package: "soto"),
                 .product(name: "SotoIAM", package: "soto"),
                 .target(name: "DeploymentTargetLocalhost"),
-                .target(name: "DeploymentTargetAWSLambda")
+                .target(name: "DeploymentTargetAWSLambda"),
+                .target(name: "DeploymentTargetIoT")
             ]
         ),
         .executableTarget(

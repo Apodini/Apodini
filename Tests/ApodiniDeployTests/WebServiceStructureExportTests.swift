@@ -171,4 +171,37 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
             )
         ])
     }
+    
+    func testExportIoTDeployedSystem() throws { // swiftlint:disable:this function_body_length
+        let (_, deployedSystem) = try StaticDeploymentProvider(
+            executableUrl: Self.apodiniDeployTestWebServiceTargetUrl
+        )
+        .retrieveSystemStructure(
+            Self.apodiniDeployTestWebServiceTargetUrl,
+            providerCommand: "iot",
+            additionalCommands: [
+                "--ip-address",
+                "0.0.0.0",
+                "--action-keys",
+                "deployTest"
+            ], as: DeployedSystem.self)
+        
+        let exportedEndpoints = deployedSystem.nodes
+            .flatMap { $0.exportedEndpoints }
+        XCTAssert(!deployedSystem.nodes.isEmpty)
+        let node = try XCTUnwrap(deployedSystem.nodes.first)
+        XCTAssertEqual("0.0.0.0", node.id)
+        
+        XCTAssertEqual(2, exportedEndpoints.count)
+        XCTAssertEqualIgnoringOrder(exportedEndpoints, [
+            ExportedEndpoint(
+                handlerType: HandlerTypeIdentifier(rawValue: "Text"),
+                handlerId: AnyHandlerIdentifier("0.5")
+            ),
+            ExportedEndpoint(
+                handlerType: HandlerTypeIdentifier(rawValue: "Text"),
+                handlerId: AnyHandlerIdentifier("0.6")
+            )
+        ])
+    }
 }

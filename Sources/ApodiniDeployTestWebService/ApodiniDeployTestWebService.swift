@@ -12,6 +12,7 @@ import Apodini
 import ApodiniDeploy
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
+import DeploymentTargetIoTRuntime
 import ApodiniREST
 import ApodiniOpenAPI
 
@@ -44,8 +45,14 @@ struct WebService: Apodini.WebService {
             LH_Greeter()
         }
         Text("change is")
+            .metadata(
+                DeploymentDevice(.deployTest)
+            )
         Text("the only constant")
             .operation(.delete)
+            .metadata(
+                DeploymentDevice(.deployTest)
+            )
     }
     
     var configuration: Configuration {
@@ -53,7 +60,7 @@ struct WebService: Apodini.WebService {
             OpenAPI()
         }
         ApodiniDeploy(
-            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self],
+            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self, IoTRuntime<Self>.self],
             config: DeploymentConfig(
                 defaultGrouping: .separateNodes,
                 deploymentGroups: [
