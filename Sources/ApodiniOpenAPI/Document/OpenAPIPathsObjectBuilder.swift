@@ -151,8 +151,10 @@ private extension OpenAPIPathsObjectBuilder {
     
     /// https://swagger.io/specification/#parameter-object
     mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Parameter.Array {
+        // TODO consider Endpoint context stuff for Parameter types?
+
         parameters.compactMap {
-            if let context = OpenAPIKit.OpenAPI.Parameter.Context($0) {
+            if let context = OpenAPIKit.OpenAPI.Parameter.Context($0) { // filters content parameters
                 return Either.parameter(name: $0.name, context: context, schema: .from($0.propertyType), description: $0.description)
             }
             return nil
@@ -162,6 +164,7 @@ private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#request-body-object
     mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Request? {
         var requestBody: OpenAPIKit.OpenAPI.Request?
+        // TODO consider modifications contained in the Endpoint Context
         let contentParameters = parameters.filter {
             $0.parameterType == .content
         }

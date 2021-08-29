@@ -70,6 +70,8 @@ final class OpenAPIContentMetadataTests: XCTestCase {
             properties: originProperties
         )
 
+        let num_42: Int? = 42
+
         let expectedHelloWorld = JSONSchema.object(
             deprecated: true,
             description: "This type represents a Hello World message with some extra goodies.",
@@ -77,7 +79,7 @@ final class OpenAPIContentMetadataTests: XCTestCase {
                 "hello": .string(),
                 "magicNumber": .integer(
                     required: false,
-                    example: AnyCodable(.some(42))
+                    example: AnyCodable.fromComplex(num_42)
                 ),
                 "origin": .object(
                     required: false,

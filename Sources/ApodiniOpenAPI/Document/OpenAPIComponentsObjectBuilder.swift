@@ -91,6 +91,8 @@ extension OpenAPIComponentsObjectBuilder {
         // To workaround that, we will just dereference such objects.
         var optionalObjectProperties: [String: [String]] = [:]
 
+        // TODO we also need to address @Parameter (or at least test it if it is already supported)?
+
         var pendingModifications: [OpenAPIKit.OpenAPI.ComponentKey: JSONSchemeModification] = [:]
 
         rootTypeInformation.allTypes().forEach { typeInformation in
