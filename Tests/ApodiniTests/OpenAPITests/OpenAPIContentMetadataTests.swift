@@ -1,5 +1,9 @@
 //
-// Created by Andreas Bauer on 28.08.21.
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import XCTest
@@ -13,12 +17,14 @@ struct HelloWorld: Content {
 
     var origin: Origin?
 
+    var requiredOrigin: Origin
+
     static var metadata: Metadata {
-        Example(HelloWorld(hello: "World"))
+        Example(HelloWorld(hello: "World", requiredOrigin: Origin.default))
 
         Example(for: \.magicNumber, 42, propertyName: "magicNumber")
 
-        Example(for: \.origin, Origin(country: "de", language: .init(name: "Deutsch")), propertyName: "origin")
+        Example(for: \.requiredOrigin, Origin.default, propertyName: "requiredOrigin")
 
         Description("This type represents a Hello World message with some extra goodies.")
 
@@ -27,6 +33,8 @@ struct HelloWorld: Content {
 }
 
 struct Origin: Content {
+    static var `default` = Origin(country: "de", language: .init(name: "Deutsch"))
+
     var country: String
     var language: Language
 }
@@ -36,40 +44,20 @@ struct Language: Content {
 }
 
 final class OpenAPIContentMetadataTests: XCTestCase {
-    func XCTAssertJSONSchemeEqual(_ received: JSONSchema, _ expected: JSONSchema) throws {
-        // we need to encode to JSON as AnyCodable just always returns false for non standard types
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes] // TODO adjust
-
-        let receivedJSON = try XCTUnwrap(String(data: encoder.encode(received), encoding: .utf8))
-        let expectedJSON = try XCTUnwrap(String(data: encoder.encode(expected), encoding: .utf8))
-
-        print(receivedJSON)
-
-        XCTAssertEqual(receivedJSON, expectedJSON)
+    func XCTAssertJSONSchemeEqual(_ received: JSONSchema, _ expected: JSONSchema) {
+        XCTAssert(received <=> expected, "'\(received)' is not equal to '\(expected)'")
     }
 
-    // TODO all vendorextensions just fail (AnyCodable!!!)
     func testExampleMetadata() throws {
-        // TODO componentKey stuff thingy with "unknownContext" in name!
-
         let componentBuilder = OpenAPIComponentsObjectBuilder()
 
-        // TODO test buildResponse?
         let helloWorldSchema = try XCTUnwrap(try? componentBuilder.buildSchema(for: HelloWorld.self))
             .rootDereference(in: componentBuilder.componentsObject)
 
-        let originSchema = try XCTUnwrap(try? componentBuilder.componentsObject.schemas[.init(stringLiteral: "Origin")])
+        let originSchema = try XCTUnwrap(componentBuilder.componentsObject.schemas[.init(stringLiteral: "Origin")])
             .rootDereference(in: componentBuilder.componentsObject)
-        let languageSchema = try XCTUnwrap(try? componentBuilder.componentsObject.schemas[.init(stringLiteral: "Language")])
+        let languageSchema = try XCTUnwrap(componentBuilder.componentsObject.schemas[.init(stringLiteral: "Language")])
             .rootDereference(in: componentBuilder.componentsObject)
-
-        // TODO ensure that the regaulr origin is not modified
-
-        // TODO remove
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-        print(String(data: try encoder.encode(componentBuilder.componentsObject), encoding: .utf8)!)
 
         let originProperties: [String: JSONSchema] = [
             "country": .string(),
@@ -89,23 +77,26 @@ final class OpenAPIContentMetadataTests: XCTestCase {
                 "hello": .string(),
                 "magicNumber": .integer(
                     required: false,
-                    example: AnyCodable(42)
+                    example: AnyCodable(.some(42))
                 ),
                 "origin": .object(
-                    required: true, // TODO somethings faulty, required is wrongfully true from the beginning on!
+                    required: false,
+                    properties: originProperties
+                ),
+                "requiredOrigin": .object(
                     properties: originProperties,
-                    example: AnyCodable.fromComplex(Origin(country: "de", language: .init(name: "Deutsch")))
+                    example: AnyCodable.fromComplex(Origin.default)
                 )
             ],
-            example: AnyCodable.fromComplex(HelloWorld(hello: "World"))
+            example: AnyCodable.fromComplex(HelloWorld(hello: "World", requiredOrigin: Origin.default))
         )
 
         // test that the "Hello World" scheme was modified according the Metadata
-        try XCTAssertJSONSchemeEqual(helloWorldSchema, expectedHelloWorld)
+        XCTAssertJSONSchemeEqual(helloWorldSchema, expectedHelloWorld)
 
         // test that the modifications made to origin property in "Hello World" didn't affect the globally defined schema
-        try XCTAssertJSONSchemeEqual(originSchema, expectedOrigin)
+        XCTAssertJSONSchemeEqual(originSchema, expectedOrigin)
         // out of completeness, verify `Language`
-        try XCTAssertJSONSchemeEqual(languageSchema, expectedLanguage)
+        XCTAssertJSONSchemeEqual(languageSchema, expectedLanguage)
     }
 }

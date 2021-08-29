@@ -1,17 +1,19 @@
 //
-// Created by Andreas Bauer on 28.08.21.
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Apodini
 import OpenAPIKit
 
-public struct OpenAPIJSONSchemeModificationContextKey: ContextKey { // TODO relocate
-    public typealias Value = [JSONSchemeModificationType]
-    public static var defaultValue: [JSONSchemeModificationType] = []
-}
-
+/// Defines a modification to a `Content` type.
 public enum JSONSchemeModificationType {
+    /// The modification applies to the `Content` type itself.
     case root(modification: AnyJSONContextModification)
+    /// The modification applies to a property of the `Content` type.
     case property(property: String, modification: AnyJSONContextModification)
 }
 
@@ -45,6 +47,10 @@ struct JSONSchemeModification {
 
     var hasPendingPropertyModifications: Bool {
         !propertyModifications.isEmpty
+    }
+
+    init(root modification: AnyJSONContextModification) {
+        self.init(with: [.root(modification: modification)])
     }
 
     init(with modifications: [JSONSchemeModificationType]) {
@@ -85,8 +91,6 @@ struct JSONSchemeModification {
                 continue
             }
 
-            print("proeprty \(property) was required \(jsonProperty.required)")
-
             if jsonProperty.isReference {
                 jsonProperty = try jsonProperty.rootDereference(in: components)
             }
@@ -94,21 +98,13 @@ struct JSONSchemeModification {
             let modifiedProperty = applyModifications(on: jsonProperty, considering: propertyModifications)
             // save the modified scheme
             updateProperties[property] = modifiedProperty
-
-            print("proeprty \(property) is now required \(modifiedProperty.required)")
         }
 
-        let mirror = Mirror(reflecting: objectContext)
-
-        return .object(
-            coreContext,
-            JSONSchema.ObjectContext(
-                properties: updateProperties,
-                additionalProperties: objectContext.additionalProperties,
-                maxProperties: objectContext.maxProperties,
-                minProperties: internalProperty(name: "_minProperties", on: mirror)
-            )
+        let modification = JSONSchemeModification(
+            root: PropertyModification(context: ObjectContext.self, property: .properties, value: updateProperties)
         )
+
+        return modification(on: schema)
     }
 
     private func applyModifications(on scheme: JSONSchema, considering modifications: Modifications) -> JSONSchema {

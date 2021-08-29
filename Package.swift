@@ -100,7 +100,10 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
+
+        // used for testing, as it provides predictable key ordering
+        .package(url: "https://github.com/omochi/FineJSON.git", .exact("1.14.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -165,7 +168,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
-                .product(name: "OrderedCollections", package: "swift-collections")
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "FineJSON", package: "FineJSON")
             ],
             resources: [
                 .process("Resources")
