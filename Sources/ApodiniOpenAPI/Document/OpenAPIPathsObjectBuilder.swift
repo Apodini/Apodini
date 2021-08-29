@@ -200,7 +200,7 @@ private extension OpenAPIPathsObjectBuilder {
         do {
             responseJSONSchema = try componentsObjectBuilder.buildResponse(for: responseType)
         } catch {
-            fatalError("Could not build schema for response body for type \(responseType).")
+            fatalError("Could not build schema for response body for type \(responseType): \(error)")
         }
         responseContent[responseJSONSchema.openAPIContentType] = .init(schema: responseJSONSchema)
         var responses: OpenAPIKit.OpenAPI.Response.Map = [:]

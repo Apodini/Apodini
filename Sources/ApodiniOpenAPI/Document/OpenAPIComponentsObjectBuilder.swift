@@ -84,25 +84,55 @@ extension OpenAPIComponentsObjectBuilder {
     /// Builds the schema for a type and returns it together with a suitable title.
     private func buildSchemaWithTitle(for type: Any.Type) throws -> (JSONSchema, String) {
         let rootTypeInformation = try TypeInformation(type: type)
-        
+
+
+        var pendingModifications: [OpenAPIKit.OpenAPI.ComponentKey: JSONSchemeModification] = [:]
+
+        // TODO document the allTypes!
         rootTypeInformation.allTypes().forEach { typeInformation in
             let schema: JSONSchema = .from(typeInformation: typeInformation)
             let schemaName = typeInformation.jsonSchemaName()
+
             if schema.isReference && !schemaExists(for: schemaName) {
                 let properties = typeInformation.objectProperties.reduce(into: [String: JSONSchema]()) { result, current in
+                    // TODO => properties might be annotated in the context! (docuemtn above)
                     result[current.name] = .from(typeInformation: current.type)
                 }
+
+                var pendingModification: JSONSchemeModification?
+
                 let schemaObject: JSONSchema = .object(title: schema.title, properties: properties)
-                saveSchema(name: schemaName, schema: schemaObject)
+                    .evaluateModifications(
+                        containedIn: typeInformation.context,
+                        writingPendingPropertyProcessingInto: &pendingModification
+                    )
+
+                let key = saveSchema(name: schemaName, schema: schemaObject)
+
+                if let pendingModification = pendingModification {
+                    pendingModifications[key] = pendingModification
+                }
             }
         }
-        
+
+        // property modifications are also evaluated last, as they might overwrite metadata inside the type.
+        for (key, modification) in pendingModifications {
+            let resultingScheme = try modification.completePendingModifications(for: key, in: componentsObject)
+            componentsObject.schemas[key] = resultingScheme // update the scheme (properties might have changed)
+            // TODO test changing properties (referneces!)
+        }
+
+        // below will always generate a .reference or something without a `Context`.
+        // Therefore everything is fine and we don't need to evaluate modifications.
         return (.from(typeInformation: rootTypeInformation), rootTypeInformation.jsonSchemaName(isRoot: true))
     }
     
     /// Saves a schema into componentsObject.
-    private func saveSchema(name: String, schema: JSONSchema) {
-        componentsObject.schemas[componentKey(for: name)] = schema
+    @discardableResult
+    private func saveSchema(name: String, schema: JSONSchema) -> OpenAPIKit.OpenAPI.ComponentKey {
+        let key = componentKey(for: name)
+        componentsObject.schemas[key] = schema
+        return key
     }
     
     /// Checks if schema is already part of componentsObject.
