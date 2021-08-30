@@ -9,8 +9,6 @@
 import Foundation
 
 struct StringContext: JSONContext {
-    var context: ContextName = .string
-
     enum Property: String {
         case maxLength
         case minLength

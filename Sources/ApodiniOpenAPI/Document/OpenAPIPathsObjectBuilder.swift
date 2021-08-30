@@ -61,6 +61,8 @@ struct OpenAPIPathsObjectBuilder {
 private extension OpenAPIPathsObjectBuilder {
     /// https://swagger.io/specification/#operation-object
     mutating func buildPathItemOperationObject<H: Handler>(from endpoint: Endpoint<H>) -> OpenAPIKit.OpenAPI.Operation {
+        let handlerContext = endpoint[Context.self]
+
         var defaultTag: String
         let absolutePath = endpoint.absoluteRESTPath
         
@@ -74,24 +76,23 @@ private extension OpenAPIPathsObjectBuilder {
         }
         
         // Get tags if some have been set explicitly passed via TagModifier.
-        let tags: [String] = endpoint[Context.self].get(valueFor: TagContextKey.self) ?? [defaultTag]
+        let tags: [String] = handlerContext.get(valueFor: TagContextKey.self) ?? [defaultTag]
         
         // Get customDescription if it has been set explicitly passed via DescriptionModifier.
-        let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
+        let customDescription = handlerContext.get(valueFor: HandlerDescriptionMetadata.self)
 
         // Set endpointDescription to customDescription or `endpoint.description` holding the `Handler`s type name.
         let endpointDescription = customDescription ?? endpoint.description
-        
+
         // Get `Parameter.Array` from existing `query` or `path` parameters.
-        let parameters: OpenAPIKit.OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters)
-        
+        let parameters: OpenAPIKit.OpenAPI.Parameter.Array = buildParametersArray(from: endpoint.parameters, with: handlerContext)
         // Get `OpenAPI.Request` body object containing HTTP body types.
         let requestBody: OpenAPIKit.OpenAPI.Request? = buildRequestBodyObject(from: endpoint.parameters)
         
         // Get `OpenAPI.Response.Map` containing all possible HTTP responses mapped to their status code.
         let responses: OpenAPIKit.OpenAPI.Response.Map = buildResponsesObject(from: endpoint[ResponseType.self].type)
 
-        let securitySchemes = endpoint[Context.self]
+        let securitySchemes = handlerContext
             .get(valueFor: SecurityMetadata.self)
             .map(to: EndpointSecurityDescription.self, on: endpoint)
 
@@ -137,6 +138,7 @@ private extension OpenAPIPathsObjectBuilder {
 
         return OpenAPIKit.OpenAPI.Operation(
             tags: tags,
+            summary: handlerContext.get(valueFor: HandlerSummaryMetadata.self),
             description: endpointDescription,
             operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
             parameters: parameters,
@@ -150,21 +152,26 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#parameter-object
-    mutating func buildParametersArray(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Parameter.Array {
-        // TODO consider Endpoint context stuff for Parameter types?
+    mutating func buildParametersArray(from parameters: [AnyEndpointParameter], with handlerContext: Context) -> OpenAPIKit.OpenAPI.Parameter.Array {
+        let parameterDescription = handlerContext.get(valueFor: ParameterDescriptionContextKey.self)
 
-        parameters.compactMap {
-            if let context = OpenAPIKit.OpenAPI.Parameter.Context($0) { // filters content parameters
-                return Either.parameter(name: $0.name, context: context, schema: .from($0.propertyType), description: $0.description)
+        return parameters.compactMap {
+            guard let context = OpenAPIKit.OpenAPI.Parameter.Context($0) else {
+                return nil // filter out content parameters
             }
-            return nil
+
+            return Either.parameter(
+                name: $0.name,
+                context: context,
+                schema: .from($0.propertyType),
+                description: parameterDescription[$0.id] ?? $0.description
+            )
         }
     }
     
     /// https://swagger.io/specification/#request-body-object
     mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Request? {
         var requestBody: OpenAPIKit.OpenAPI.Request?
-        // TODO consider modifications contained in the Endpoint Context
         let contentParameters = parameters.filter {
             $0.parameterType == .content
         }

@@ -1,0 +1,60 @@
+//
+// Created by Andreas Bauer on 29.08.21.
+//
+
+import Apodini
+
+public struct TagContextKey: OptionalContextKey {
+    public typealias Value = [String]
+}
+
+public extension ComponentMetadataNamespace {
+    /// Name definition for the ``TagsMetadata``.
+    typealias Tags = TagsMetadata
+}
+
+public struct TagsMetadata: ComponentMetadataDefinition {
+    public typealias Key = TagContextKey
+
+    public let value: [String]
+
+    public init(_ tags: [String]) {
+        self.value = tags
+    }
+
+    public init(_ tags: String...) {
+        self.init(tags)
+    }
+}
+
+extension Component {
+    /// A `tag` modifier can be used to explicitly specify the `tags` for the given `Handler`
+    /// - Parameter tags: Arbitrary amount of `tags` that are used for logical grouping of operations, e.g., within the API documentation
+    /// - Returns: The modified `Handler` with specific `tags`
+    public func tags(_ tags: [String]) -> ComponentMetadataModifier<Self> {
+        metadata(TagsMetadata(tags))
+    }
+
+    /// A `tag` modifier can be used to explicitly specify the `tags` for the given `Handler`
+    /// - Parameter tags: Arbitrary amount of `tags` that are used for logical grouping of operations, e.g., within the API documentation
+    /// - Returns: The modified `Handler` with specific `tags`
+    public func tags(_ tags: String...) -> ComponentMetadataModifier<Self> {
+        self.tags(tags)
+    }
+}
+
+extension Handler {
+    /// A `tag` modifier can be used to explicitly specify the `tags` for the given `Handler`
+    /// - Parameter tags: Arbitrary amount of `tags` that are used for logical grouping of operations, e.g., within the API documentation
+    /// - Returns: The modified `Handler` with specific `tags`
+    public func tags(_ tags: [String]) -> HandlerMetadataModifier<Self> {
+        metadata(TagsMetadata(tags))
+    }
+
+    /// A `tag` modifier can be used to explicitly specify the `tags` for the given `Handler`
+    /// - Parameter tags: Arbitrary amount of `tags` that are used for logical grouping of operations, e.g., within the API documentation
+    /// - Returns: The modified `Handler` with specific `tags`
+    public func tags(_ tags: String...) -> HandlerMetadataModifier<Self> {
+        self.tags(tags)
+    }
+}

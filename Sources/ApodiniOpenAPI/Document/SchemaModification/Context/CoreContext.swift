@@ -10,8 +10,6 @@ import Foundation
 import OpenAPIKit
 
 struct CoreContext: JSONContext {
-    var context: ContextName = .core
-
     enum Property: String {
         case format
         case required

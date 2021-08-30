@@ -10,8 +10,6 @@ import Foundation
 import OpenAPIKit
 
 struct ArrayContext: JSONContext {
-    var context: ContextName = .array
-
     enum Property: String {
         case items
         case maxItems

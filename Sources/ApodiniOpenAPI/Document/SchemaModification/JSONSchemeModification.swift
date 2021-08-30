@@ -75,7 +75,7 @@ struct JSONSchemeModification {
         }
         precondition(!schema.isReference, "Unexpected reference!")
 
-        guard case let .object(coreContext, objectContext) = schema else {
+        guard case let .object(_, objectContext) = schema else {
             preconditionFailure("Unexpected non object with properties!")
         }
 
@@ -178,54 +178,18 @@ struct JSONSchemeModification {
     }
 
     private func modifyNumericContext(_ context: JSONSchema.NumericContext, considering modifications: Modifications) -> JSONSchema.NumericContext {
-        let minimumBound = modify(property: NumericContext.maximum, considering: modifications) ?? context.maximum
-        let maximumBound = modify(property: NumericContext.minimum, considering: modifications) ?? context.minimum
-
-        let minimum: (Double, exclusive: Bool)?
-        let maximum: (Double, exclusive: Bool)?
-
-        if let minimumBound = minimumBound {
-            minimum = (minimumBound.value, exclusive: minimumBound.exclusive)
-        } else {
-            minimum = nil
-        }
-
-        if let maximumBound = maximumBound {
-            maximum = (maximumBound.value, exclusive: maximumBound.exclusive)
-        } else {
-            maximum = nil
-        }
-
-        return JSONSchema.NumericContext(
+        JSONSchema.NumericContext(
             multipleOf: modify(property: NumericContext.multipleOf, considering: modifications) ?? context.multipleOf,
-            maximum: maximum,
-            minimum: minimum
+            maximum: modify(property: NumericContext.maximum, considering: modifications) ?? context.maximum?.tuple,
+            minimum: modify(property: NumericContext.minimum, considering: modifications) ?? context.minimum?.tuple
         )
     }
 
     private func modifyIntegerContext(_ context: JSONSchema.IntegerContext, considering modifications: Modifications) -> JSONSchema.IntegerContext {
-        let minimumBound = modify(property: IntegerContext.maximum, considering: modifications) ?? context.maximum
-        let maximumBound = modify(property: IntegerContext.minimum, considering: modifications) ?? context.minimum
-
-        let minimum: (Int, exclusive: Bool)?
-        let maximum: (Int, exclusive: Bool)?
-
-        if let minimumBound = minimumBound {
-            minimum = (minimumBound.value, exclusive: minimumBound.exclusive)
-        } else {
-            minimum = nil
-        }
-
-        if let maximumBound = maximumBound {
-            maximum = (maximumBound.value, exclusive: maximumBound.exclusive)
-        } else {
-            maximum = nil
-        }
-
-        return JSONSchema.IntegerContext(
+        JSONSchema.IntegerContext(
             multipleOf: modify(property: IntegerContext.multipleOf, considering: modifications) ?? context.multipleOf,
-            maximum: maximum,
-            minimum: minimum
+            maximum: modify(property: IntegerContext.maximum, considering: modifications) ?? context.maximum?.tuple,
+            minimum: modify(property: IntegerContext.minimum, considering: modifications) ?? context.minimum?.tuple
         )
     }
 
@@ -290,5 +254,17 @@ struct JSONSchemeModification {
         }
 
         return casted
+    }
+}
+
+extension JSONSchema.NumericContext.Bound {
+    var tuple: (Double, exclusive: Bool) {
+        (self.value, exclusive: self.exclusive)
+    }
+}
+
+extension JSONSchema.IntegerContext.Bound {
+    var tuple: (Int, exclusive: Bool) {
+        (self.value, exclusive: self.exclusive)
     }
 }

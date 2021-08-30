@@ -10,8 +10,6 @@ import Foundation
 import OpenAPIKit
 
 struct ObjectContext: JSONContext {
-    var context: ContextName = .object
-
     enum Property: String {
         case properties
         case additionalProperties

@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Foundation
 @testable import OpenAPIKit
-import FineJSON
 
 infix operator <=>: ComparisonPrecedence
 
@@ -54,7 +54,8 @@ extension JSONSchema: CustomEquate {
 
 extension AnyCodable: CustomEquate {
     static func <=> (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
-        let encoder = FineJSONEncoder()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
 
         do {
             let lhsString = try encoder.encode(lhs)

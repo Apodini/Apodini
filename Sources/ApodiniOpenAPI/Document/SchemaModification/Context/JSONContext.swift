@@ -9,17 +9,6 @@
 import Foundation
 import OpenAPIKit
 
-enum ContextName: String {
-    case core
-    case numeric
-    case integer
-    case string
-    case object
-    case array
-}
-
 protocol JSONContext where Self.Property.RawValue == String {
     associatedtype Property: RawRepresentable
-
-    var context: ContextName { get }
 }

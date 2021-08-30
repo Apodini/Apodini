@@ -12,10 +12,6 @@ struct JSONContextPropertyKey<Context: JSONContext>: Hashable {
     let context: Context.Type
     let property: Context.Property
 
-    func any() -> AnyHashable {
-        AnyHashable(self)
-    }
-
     static func == (lhs: JSONContextPropertyKey<Context>, rhs: JSONContextPropertyKey<Context>) -> Bool {
         lhs.context == rhs.context && lhs.property.rawValue == rhs.property.rawValue
     }
