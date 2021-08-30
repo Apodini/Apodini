@@ -20,9 +20,9 @@ public extension WebServiceMetadataNamespace {
     typealias Contact = ContactMetadata
 }
 
-/// The ``ContactMetadata`` can be used to define contact information for the OpenAPI Specification for the ``WebService``.
+/// The ``ContactMetadata`` can be used to define contact information for the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/Contact`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/Contact` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...

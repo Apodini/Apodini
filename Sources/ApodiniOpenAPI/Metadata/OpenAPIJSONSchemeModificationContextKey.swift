@@ -14,15 +14,3 @@ public struct OpenAPIJSONSchemeModificationContextKey: ContextKey {
     public typealias Value = [JSONSchemeModificationType]
     public static var defaultValue: [JSONSchemeModificationType] = []
 }
-
-// TODO remove?
-public struct OpenAPIParameterSchemeModificationContextKey: ContextKey { // swiftlint:disable:this type_name
-    public typealias Value = [UUID: [JSONSchemeModificationType]]
-    public static var defaultValue: [UUID: [JSONSchemeModificationType]] = [:]
-
-    public static func reduce(value: inout Value, nextValue: Value) {
-        value.merge(nextValue) { current, new in
-            current + new
-        }
-    }
-}

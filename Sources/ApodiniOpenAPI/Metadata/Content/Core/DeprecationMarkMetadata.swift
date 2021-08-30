@@ -18,6 +18,19 @@ public extension ContentMetadataNamespace {
     typealias MarkDeprecated<Element: Content> = DeprecationMarkMetadata<Element>
 }
 
+/// The ``DeprecationMarkMetadata`` can be used to mark a `Content` type or its properties deprecated.
+///
+/// The Metadata is available under the `ContentMetadataNamespace/MarkDeprecated` name and can be used like the following:
+/// ```swift
+/// struct ExampleContent: Content {
+///     var someProperty: String
+///     // ...
+///     static var metadata: Metadata {
+///         MarkDeprecated()
+///         MarkDeprecated(of: \.someProperty, propertyName: "someProperty")
+///     }
+/// }
+/// ```
 public struct DeprecationMarkMetadata<Element: Content>: ContentMetadataDefinition {
     public typealias Key = OpenAPIJSONSchemeModificationContextKey
 

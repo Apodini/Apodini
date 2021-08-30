@@ -18,14 +18,16 @@ public extension ContentMetadataNamespace {
     typealias Description<Element: Content> = ContentDescriptionMetadata<Element>
 }
 
-/// The ``ContentDescriptionMetadata`` can be used to add a Description to a ``Content``.
+/// The ``ContentDescriptionMetadata`` can be used to add a description to a `Content` type or its properties.
 ///
 /// The Metadata is available under the `ContentMetadataNamespace/Description` name and can be used like the following:
 /// ```swift
 /// struct ExampleContent: Content {
+///     var someProperty: String
 ///     // ...
-///     var metadata: Metadata {
+///     static var metadata: Metadata {
 ///         Description("Example Description")
+///         Description(of: \.someProperty, "Example Description", propertyName: "someProperty")
 ///     }
 /// }
 /// ```

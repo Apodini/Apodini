@@ -9,13 +9,27 @@
 import Apodini
 
 public extension TypedContentMetadataNamespace {
+    /// Name definition for the ``NumericMultipleOfMetadata``.
     typealias MultipleOf = NumericMultipleOfMetadata<Self>
 }
 
 public extension ContentMetadataNamespace {
+    /// Name definition for the ``NumericMultipleOfMetadata``.
     typealias MultipleOf<Element: Content> = NumericMultipleOfMetadata<Element>
 }
 
+/// The ``NumericMultipleOfMetadata`` can be used to describe structural validations for numeric properties of a `Content` type.
+///
+/// The Metadata is available under the `ContentMetadataNamespace/MultipleOf` name and can be used like the following:
+/// ```swift
+/// struct ExampleContent: Content {
+///     var number: Int
+///     // ...
+///     static var metadata: Metadata {
+///         MultipleOf(of: \.number, is: 2, propertyName: "number")
+///     }
+/// }
+/// ```
 public struct NumericMultipleOfMetadata<Element: Content>: ContentMetadataDefinition {
     public typealias Key = OpenAPIJSONSchemeModificationContextKey
 

@@ -13,9 +13,21 @@ public struct SummaryContextKey: OptionalContextKey {
 }
 
 public extension HandlerMetadataNamespace {
+    /// Name definition for the ``HandlerSummaryMetadata``.
     typealias Summary = HandlerSummaryMetadata
 }
 
+/// The ``HandlerSummaryMetadata`` can be used to define a summary for a `Handler`.
+///
+/// The Metadata is available under the `HandlerMetadataNamespace/Summary` name and can be used like the following:
+/// ```swift
+/// struct ExampleHandler: Handler {
+///     // ...
+///     var metadata: Metadata {
+///         Summary("Some summary of the handler")
+///     }
+/// }
+/// ```
 public struct HandlerSummaryMetadata: HandlerMetadataDefinition {
     public typealias Key = SummaryContextKey
 

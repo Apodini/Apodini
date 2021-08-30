@@ -19,6 +19,19 @@ public extension ContentMetadataNamespace {
     typealias Example<Element: Content> = ExampleMetadata<Element>
 }
 
+/// The ``ExampleMetadata`` can be used to add an example to a `Content` type or its properties.
+///
+/// The Metadata is available under the `ContentMetadataNamespace/Example` name and can be used like the following:
+/// ```swift
+/// struct ExampleContent: Content {
+///     var someProperty: String
+///     // ...
+///     static var metadata: Metadata {
+///         Example(ExampleContent(someProperty: "stringValue"))
+///         Example(of: \.someProperty, "stringValue", propertyName: "someProperty")
+///     }
+/// }
+/// ```
 public struct ExampleMetadata<Element: Content>: ContentMetadataDefinition {
     public typealias Key = OpenAPIJSONSchemeModificationContextKey
 

@@ -10,13 +10,28 @@ import Apodini
 import OpenAPIKit
 
 public extension TypedContentMetadataNamespace {
+    /// Name definition of the ``NumericMaximumMetadata``.
     typealias Maximum = NumericMaximumMetadata<Self>
 }
 
 public extension ContentMetadataNamespace {
+    /// Name definition of the ``NumericMaximumMetadata``.
     typealias Maximum<Element: Content> = NumericMaximumMetadata<Element>
 }
 
+
+/// The ``NumericMaximumMetadata`` can be used to describe structural validations for numeric properties of a `Content` type.
+///
+/// The Metadata is available under the `ContentMetadataNamespace/Maximum` name and can be used like the following:
+/// ```swift
+/// struct ExampleContent: Content {
+///     var number: Int
+///     // ...
+///     static var metadata: Metadata {
+///         Maximum(of: \.number, is: 42, propertyName: "number")
+///     }
+/// }
+/// ```
 public struct NumericMaximumMetadata<Element: Content>: ContentMetadataDefinition {
     public typealias Key = OpenAPIJSONSchemeModificationContextKey
 

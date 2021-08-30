@@ -17,6 +17,17 @@ public extension ComponentMetadataNamespace {
     typealias Tags = TagsMetadata
 }
 
+/// The ``TagsMetadata`` can be used to define OpenAPI tags for a `Component`.
+///
+/// The Metadata is available under the `ComponentMetadataNamespace/Tags` name and can be used like the following:
+/// ```swift
+/// struct ExampleHandler: Handler {
+///     // ...
+///     var metadata: Metadata {
+///         Tags("authentication", "example")
+///     }
+/// }
+/// ```
 public struct TagsMetadata: ComponentMetadataDefinition {
     public typealias Key = TagContextKey
 
