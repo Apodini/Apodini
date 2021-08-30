@@ -4,9 +4,8 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-/// A ``AnyInformation`` instance which is identified by a ``InformationKey``.
 /// An ``Information`` can be used to map arbitrary middleware specific Metadata into Apdoini,
 /// and make them accessible inside an ``Handler``.
 /// ``Information`` instances are stored in the ``InformationSet`` of a `Request` or ``Response``.
@@ -15,7 +14,7 @@
 /// and `AnyExampleInformation` sharing the key `ExampleInformationKey`.
 /// Additionally we assume the custom defined subscript overload on the ``InformationSet`` `InformationSet[example: String]`.
 ///
-/// ## Retrieving ``Information`` instances
+/// ## Retrieving Information instances
 /// ```swift
 /// struct ExampleHandler: Handler {
 ///     @Environment(\.connection) var connection: Connection
@@ -32,7 +31,7 @@
 /// }
 /// ```
 ///
-/// ## Returning ``Information`` instances
+/// ## Returning Information instances
 /// ```swift
 /// struct ExampleHandler: Handler {
 ///     func handle() -> Response<String> {
