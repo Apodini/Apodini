@@ -2,6 +2,16 @@
 
 Formulate Authorization Requirements using the <doc:Metadata> system.
 
+<!--
+
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+
+-->
+
 ## Overview
 
 The goal of `ApodiniAuthorization` is to easily define authentication and authorization requirements for the ``WebService``,

@@ -3,6 +3,16 @@
 The Information API maps middleware-specific metadata of the respective wire protocol into the framework
 making it accessible inside a ``Handler``.
 
+<!--
+
+This source file is part of the Apodini open source project
+
+SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+
+SPDX-License-Identifier: MIT
+
+-->
+
 ## Overview
 
 Apodini provides the Information API to map middleware-specific metadata of a respective wire protocol into the framework.
