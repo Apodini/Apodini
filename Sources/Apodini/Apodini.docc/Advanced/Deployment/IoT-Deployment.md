@@ -25,7 +25,19 @@ To allow the setup for custom user-defined actions and IoT devices, the IoT DP i
 
 Let's look at the following example to describe how the provider works and how one can set it up: Assume we have some [LIFX](https://www.lifx.com) smart lamps that are connected to our raspberry pi. We wrote a cool web service using [Apodini](https://github.com/Apodini/Apodini) that exposes among other, the functionality of the lights (e.g. on/off, control the brightness, etc.) via some endpoints. Now we want to deploy the web service to our raspberry pi using the IoT deployment provider.  
 
-Internally the provider runs a [device discovery](https://github.com/hendesi/SwiftDeviceDiscovery) that searches for devices that publish services under the given identifier, e.g. raspberry pis. It is possible to define `PostDiscoveryActions`. These are user-defined actions that will be executed on the found devices are return an `Int` telling us how many results of the action were found. They can be customised by implementing their `run` method. It's possible to pass these actions to the `IoTDeploymentProvider`. 
+Internally the provider runs a [device discovery](https://github.com/hendesi/SwiftDeviceDiscovery) that searches for devices that publish services under the given identifier, e.g. raspberry pis. It is possible to define `PostDiscoveryActions`.
+```
+public protocol PostDiscoveryAction {
+
+    static var identifier: ActionIdentifier { get }
+
+    init()
+
+    func run(_ device: Device, on eventLoopGroup: EventLoopGroup, client: SSHClient?) throws -> EventLoopFuture<Int>
+}
+```
+These are user-defined actions that will be executed on the found devices are return an `Int` telling us how many results of the action were found. They can be customised by implementing their `run` method. It's possible to pass these actions to the `IoTDeploymentProvider`. 
+
 
 This is what we are going to do. But first, we need to create our own `LifxPostDiscoveryAction`. It should check if there are any lifx devices connected to raspberry pi. Luckily, there is already a [library](https://github.com/PSchmiedmayer/Swift-NIO-LIFX) that searches for lifx devices, so all we need to do is to run this action remotely on the pi and count the results. So we're going to create a new project called `Swift-NIO-LIFX-Impl` where we will use the Swift-NIO-LIFX and the SwiftDeviceDiscovery library. You can checkout the code [here](https://github.com/Apodini/Swift-NIO-LIFX-Impl). The project needs two target, one containing the post discovery action and the other being the actual executable that calculates the results. 
 The executable will be, for our use case, just a simple CLI program that runs the Swift-NIO-LIFX discovery and persists the results to disk.
@@ -33,7 +45,17 @@ In our other target, the action, we need to run the executable target and read t
 If you interested in the details, feel free to check it out by yourself.
 
 
-Now that we created the action, we can continue by making a new target called `LifxDeploymentOption`. This will be used to define a deployment option using `Apodini.Metadata`. The option specifies the deployment target and can be used in the web service to annotate handler or groups and associate them with the deployment target. To put it in another way, all handlers/groups that are not annotate, will not be accessible on the deployed web service. Since it will be directly associated with the deployment target, it makes sense to name it somewhat similar, we will name it `lifx`. In the next step, we import the created target to our web service and annotate all lifx related handlers with our new created meta data option, like this:
+Now that we created the action, we can continue by making a new target called `LifxDeploymentOption`. This will be used to define a deployment option using `Apodini.Metadata`. The option specifies the deployment target and can be used in the web service to annotate handler or groups and associate them with the deployment target. To put it in another way, all handlers/groups that are not annotate, will not be accessible on the deployed web service. Since it will be directly associated with the deployment target, it makes sense to name it somewhat similar, we will name it `lifx`. 
+```
+extension DeploymentDevice {
+    public static var lifx: Self {
+        DeploymentDevice(rawValue: "lifx")
+    }
+}
+```
+`DeploymentDevice` is a `ComponentMetadataDefinition` that can be extended to define custom device types of `DeploymentDevice` as seen above. This approach guarantees that all defined device types are conformable to `DeploymentDevice`.
+
+In the next step, we import the created target to our web service and annotate all lifx related handlers with our new created meta data option, like this:
 ```
 Text("Should not be visible")
     .metadata(

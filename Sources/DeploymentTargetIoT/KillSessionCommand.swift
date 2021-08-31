@@ -29,7 +29,6 @@ public struct KillSessionCommand: ParsableCommand {
     var productName: String
 
     public func run() throws {
-        print("test")
         for id in types.split(separator: ",").map(String.init) {
             let discovery = DeviceDiscovery(DeviceIdentifier(id))
             discovery.configuration = [.runPostActions: false]

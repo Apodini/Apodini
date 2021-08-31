@@ -78,8 +78,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "7d9982a788dc0bbc80937537a0e2b0a42d282202",
-          "version": "1.15.1"
+          "revision": "c0cfc1e6d9a2bbd04d4c583632eb0c09c92ff22c",
+          "version": "1.15.0"
         }
       },
       {
@@ -134,6 +134,15 @@
           "branch": null,
           "revision": "c9ea04017b7fb3b1f034ad7a77f8e53d3e080be5",
           "version": "4.2.1"
+        }
+      },
+      {
+        "package": "NetService",
+        "repositoryURL": "https://github.com/Bouke/NetService.git",
+        "state": {
+          "branch": null,
+          "revision": "08e1f7663fd4b09b9f4ad165be89704c7cd2e3f8",
+          "version": "0.8.1"
         }
       },
       {
@@ -390,10 +399,10 @@
       },
       {
         "package": "swift-device-discovery",
-        "repositoryURL": "https://github.com/hendesi/SwiftDeviceDiscovery.git",
+        "repositoryURL": "https://github.com/Apodini/SwiftDeviceDiscovery.git",
         "state": {
           "branch": "master",
-          "revision": "571df3c534d05a6c357b397fc036e00b6aac3217",
+          "revision": "7e720c04cdaee40d24ffca8091d7cbe199fc8c24",
           "version": null
         }
       },
