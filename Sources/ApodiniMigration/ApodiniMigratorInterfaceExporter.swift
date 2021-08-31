@@ -14,19 +14,19 @@ import ApodiniMigrator
 @_implementationOnly import Vapor
 
 final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
-    static var parameterNamespace: [ParameterNamespace] = .individual
+    static var parameterNamespace: [ParameterNamespace] = .global
 
     private let app: Apodini.Application
     private var document = Document()
     private let logger: Logger
-    private let documentConfig: DocumentConfiguration
-    private let migrationGuideConfig: MigrationGuideConfiguration
+    private let documentConfig: DocumentConfiguration?
+    private let migrationGuideConfig: MigrationGuideConfiguration?
     private var serverPath = ""
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
-        self.documentConfig = configuration.documentConfig
-        self.migrationGuideConfig = configuration.migrationGuideConfig
+        self.documentConfig = configuration.documentConfig ?? app.storage.get(DocumentConfigStorageKey.self)
+        self.migrationGuideConfig = configuration.migrationGuideConfig ?? app.storage.get(MigrationGuideConfigStorageKey.self)
         self.logger = configuration.logger
         setServerPath()
     }
@@ -84,7 +84,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     private func setServerPath() {
-        let isHttps = app.http.tlsConfiguration != nil
         var hostName: String?
         var port: Int?
         if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
@@ -97,62 +96,61 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         }
 
         if let hostName = hostName, let port = port {
-            let serverPath = "http\(isHttps ? "s" : "")://\(hostName):\(port)"
+            let serverPath = "http\(app.http.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
             self.serverPath = serverPath
             document.setServerPath(serverPath)
         }
     }
 
     private func handleDocument() {
-        let format = documentConfig.format
-        switch documentConfig.exportPath {
-        case let .directory(path):
-            do {
-                let filePath = try document.write(at: path, outputFormat: format, fileName: document.fileName)
-                logger.info("Document exported at \(filePath)")
-            } catch {
-                logger.error("Document export failed with error: \(error)")
-            }
-
-        case let .endpoint(path):
-            let content = format.string(of: document)
-            serve(content: content, at: path)
-            logger.info("Document served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
+        guard let exportOptions = documentConfig?.exportOptions else {
+            return logger.notice("No configuration provided to handle the document of the current version")
         }
+        
+        handle(document, with: exportOptions)
     }
-
+    
     private func handleMigrationGuide() {
+        guard let migrationGuideConfig = migrationGuideConfig else {
+            return logger.notice("No migration guide configurations provided")
+        }
+        
         do {
-            switch migrationGuideConfig {
-            case .none: return
-            case let .compare(location, exportPath, format):
-                let oldDocument: Document = try location.instance()
+            let exportOptions = migrationGuideConfig.exportOptions
+            if let migrationGuidePath = migrationGuideConfig.migrationGuidePath {
+                let migrationGuide = try MigrationGuide.decode(from: migrationGuidePath.asPath)
+                handle(migrationGuide, with: exportOptions)
+            } else if let oldDocumentPath = migrationGuideConfig.oldDocumentPath {
+                let oldDocument = try Document.decode(from: oldDocumentPath.asPath)
                 let migrationGuide = MigrationGuide(for: oldDocument, rhs: document)
-                try handleMigrationGuide(migrationGuide, for: exportPath, format: format)
-            case let .read(location, exportPath, format):
-                let migrationGuide: MigrationGuide = try location.instance()
-                try handleMigrationGuide(migrationGuide, for: exportPath, format: format)
+                handle(migrationGuide, with: exportOptions)
             }
         } catch {
             logger.error("Migration guide handling failed with error: \(error)")
         }
     }
-
-    private func handleMigrationGuide(_ migrationGuide: MigrationGuide, for exportPath: ExportPath, format: FileFormat) throws {
-        switch exportPath {
-        case let .directory(path):
-            let filePath = try migrationGuide.write(at: path, outputFormat: format, fileName: "migration_guide")
-            logger.info("Migration guide exported at \(filePath)")
-        case let .endpoint(path):
-            let content = format.string(of: migrationGuide)
-            serve(content: content, at: path)
-            logger.info("Migration guide served at \(serverPath)\(path.withLeadingSlash) in \(format.rawValue) format")
+    
+    private func handle<I: MigratorItem>(_ instance: I, with exportOptions: ExportOptions) {
+        let format = exportOptions.format
+        if let endpoint = exportOptions.endpoint {
+            let path = endpoint.withLeadingSlash.pathComponents
+            app.vapor.app.get(path) { _ -> String in
+                format.string(of: instance)
+            }
+            logger.info("\(instance.itemName) served at \(serverPath)\(path) in \(format.rawValue) format")
         }
-    }
-
-    private func serve(content: String, at path: String) {
-        app.vapor.app.get(path.withLeadingSlash.pathComponents) { _ -> String in
-            content
+        
+        if let directory = exportOptions.directory {
+            do {
+                let filePath = try instance.write(at: directory, outputFormat: format, fileName: instance.fileName)
+                logger.info("\(instance.itemName) exported at \(filePath)")
+            } catch {
+                logger.error("\(instance.itemName) export at \(directory) failed with error: \(error)")
+            }
+        }
+        
+        if (exportOptions.directory == nil && exportOptions.endpoint == nil) {
+            logger.notice("No export paths provided to handle \(instance.itemName)")
         }
     }
 }
@@ -172,6 +170,27 @@ private struct MigratorPathStringBuilder: PathBuilderWithResult {
 
     func result() -> String {
         components.joined(separator: Self.separator)
+    }
+}
+
+// MARK: - MigratorItem
+protocol MigratorItem: Encodable {
+    var fileName: String { get }
+    var itemName: String { get }
+}
+
+// MARK: - Document + MigratorItem
+extension Document: MigratorItem {
+    var itemName: String {
+        "API Document"
+    }
+}
+
+// MARK: - MigrationGuide + MigratorItem
+extension MigrationGuide: MigratorItem {
+    var fileName: String { "migration_guide" }
+    var itemName: String {
+        "Migration Guide"
     }
 }
 
