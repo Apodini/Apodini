@@ -18,9 +18,9 @@ public extension WebServiceMetadataNamespace {
     typealias TermsOfService = TermsOfServiceMetadata
 }
 
-/// The ``TermsOfServiceMetadata`` can be used to define terms of service for the OpenAPI Specification for the ``WebService``.
+/// The ``TermsOfServiceMetadata`` can be used to define terms of service for the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/TermsOfService`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/TermsOfService` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...

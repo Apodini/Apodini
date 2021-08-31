@@ -5,4 +5,8 @@
 //
 // SPDX-License-Identifier: MIT
 //
+
 @_exported import NIO
+@_exported import ApodiniContext
+@_exported import MetadataSystem
+@_exported import TypeInformationMetadata

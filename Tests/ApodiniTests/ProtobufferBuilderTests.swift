@@ -10,6 +10,7 @@ import XCTVapor
 @testable import Apodini
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
+@testable import ApodiniTypeReflection
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
@@ -65,6 +66,95 @@ extension ProtobufferBuilderTests {
         }
 
         XCTAssertThrowsError(try buildMessage(JSON.self))
+    }
+        
+    func testCreateReflectionInfoTree() throws {
+        struct Card {
+            let number: Int
+        }
+        
+        struct Player {
+            let hand: [Card]
+            let teamMates: [String: String]
+        }
+        
+        struct Game {
+            let players: [String: Player]
+            let newPlayers: [Player]
+        }
+        
+        struct Casino {
+            let id: UUID
+            let name: String?
+            let tables: [Game]
+        }
+        
+        let tree = try node(Casino.self)
+        
+        XCTAssertEqual(tree.children.count, 3)
+        
+        let tablesNode = tree.children.first {
+            $0.value.propertyInfo?.name == "tables"
+        }
+        
+        XCTAssertEqual(tablesNode?.children.count, 2)
+        XCTAssertTrue(tablesNode?.value.cardinality == .zeroToMany(.array))
+        
+        // check for correct children of tablesNode
+        let stringNode = try ReflectionInfo.node(String.self)
+        let playerNode = try ReflectionInfo.node(Player.self)
+        let newPlayersNode = tablesNode?.children.first {
+            $0.value.propertyInfo?.name == "newPlayers"
+        }
+        let playersNode = tablesNode?.children.first {
+            $0.value.propertyInfo?.name == "players"
+        }
+        
+        XCTAssertEqual(playersNode?.children.count, 2)
+        XCTAssertTrue(playersNode?.value.cardinality == .zeroToMany(.dictionary(key: stringNode.value, value: playerNode.value)))
+        XCTAssertEqual(newPlayersNode?.children.count, 2)
+        XCTAssertTrue(newPlayersNode?.value.cardinality == .zeroToMany(.array))
+        
+        let playersHandNode = playersNode?.children.first {
+            $0.value.propertyInfo?.name == "hand"
+        }
+        let newPlayersHandNode = newPlayersNode?.children.first {
+            $0.value.propertyInfo?.name == "hand"
+        }
+        
+        XCTAssertEqual(playersHandNode?.value, newPlayersHandNode?.value)
+        
+        let playersTeamMatesNode = playersNode?.children.first {
+            $0.value.propertyInfo?.name == "teamMates"
+        }
+        let newPlayersTeamMatesNode = newPlayersNode?.children.first {
+            $0.value.propertyInfo?.name == "teamMates"
+        }
+        
+        XCTAssertEqual(playersTeamMatesNode?.value, newPlayersTeamMatesNode?.value)
+        
+        let dictionaryCardinality = try node([String: String].self).value.cardinality
+        XCTAssertEqual(dictionaryCardinality, .zeroToMany(.dictionary(key: stringNode.value, value: stringNode.value)))
+    }
+    
+    private func node(_ type: Any.Type) throws -> Node<ReflectionInfo> {
+        let node = try ReflectionInfo.node(type)
+        return try recursiveEdit(node: node)
+    }
+    
+    private func recursiveEdit(node: Node<ReflectionInfo>) throws -> Node<ReflectionInfo> {
+        let before = node.collectValues()
+        guard let newNode = try node
+                .edited(handleOptional)?
+                .edited(handleArray)?
+                .edited(handleDictionary)?
+                .edited(handlePrimitiveType)?
+                .edited(handleUUID)
+        else {
+            fatalError("Error occurred during transforming tree of nodes with type \(node.value.typeInfo.name).")
+        }
+        let after = newNode.collectValues()
+        return after != before ? try recursiveEdit(node: newNode) : node
     }
 }
 

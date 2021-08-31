@@ -120,7 +120,7 @@ public extension ConditionalAuthorizationRequirement {
     /// Creates an ``AuthorizationCondition`` which forwards the result of the custom defined predicated.
     ///
     /// Any `ApodiniError` thrown by this predicate is forwarded to the respective
-    /// ``AuthenticationScheme/mapFailedAuthorization(failedWith:)`. Therefore it might contain ``AuthenticationScheme``
+    /// ``AuthenticationScheme/mapFailedAuthorization(failedWith:)``. Therefore it might contain ``AuthenticationScheme``
     /// specific options, providing guidance on how the error is mapped to the according wire format.
     /// - Parameter custom: The predicated which should be evaluated on the ``Authenticatable`` instance.
     init(custom predicate: @escaping (Element) throws -> Bool) {

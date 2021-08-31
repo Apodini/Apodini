@@ -34,10 +34,10 @@ public extension ComponentMetadataBuilder {
     }
 
     static func buildArray(_ components: [AnyComponentMetadata]) -> AnyComponentMetadata {
-        AnyComponentMetadataArrayWrapper(components)
+        AnyComponentMetadataArray(components)
     }
 
     static func buildBlock(_ components: AnyComponentMetadata...) -> AnyComponentMetadata {
-        AnyComponentMetadataArrayWrapper(components)
+        AnyComponentMetadataArray(components)
     }
 }

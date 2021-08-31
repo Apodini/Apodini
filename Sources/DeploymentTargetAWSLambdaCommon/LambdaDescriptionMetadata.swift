@@ -34,7 +34,7 @@ public extension ComponentMetadataNamespace {
 
 /// The ``LambdaDescriptionMetadata`` can be used to explicitly declare the ``LambdaDescriptionOption`` deployment option.
 ///
-/// The Metadata is available under the ``ComponentMetadataNamespace/LambdaDescription`` name and can be used like the following:
+/// The Metadata is available under the `ComponentMetadataNamespace/LambdaDescription` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...

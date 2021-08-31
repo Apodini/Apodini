@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct ContactContextKey: OptionalContextKey {
@@ -35,7 +36,7 @@ public struct ContactMetadata: WebServiceMetadataDefinition {
 
     public var value: Key.Value
 
-    public init(name: String? = nil, url: URL? = nil, email: String? = nil, vendorExtensions: [String: AnyCodable] = [:]) {
-        self.value = .init(name: name, url: url, email: email, vendorExtensions: vendorExtensions)
+    public init(name: String? = nil, url: URL? = nil, email: String? = nil, vendorExtensions: [String: AnyEncodable] = [:]) {
+        self.value = .init(name: name, url: url, email: email, vendorExtensions: vendorExtensions.mapToOpenAPICodable())
     }
 }

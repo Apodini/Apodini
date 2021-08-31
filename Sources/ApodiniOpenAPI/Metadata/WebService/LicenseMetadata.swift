@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct LicenseContextKey: OptionalContextKey {
@@ -21,7 +22,7 @@ public extension WebServiceMetadataNamespace {
 
 /// The ``ContactMetadata`` can be used to define license information for the OpenAPI Specification for the ``WebService``.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/License`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/License` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...
@@ -35,7 +36,7 @@ public struct LicenseMetadata: WebServiceMetadataDefinition {
 
     public let value: Key.Value
 
-    public init(name: String, url: URL? = nil, vendorExtensions: [String: AnyCodable] = [:]) {
-        self.value = .init(name: name, url: url, vendorExtensions: vendorExtensions)
+    public init(name: String, url: URL? = nil, vendorExtensions: [String: AnyEncodable] = [:]) {
+        self.value = .init(name: name, url: url, vendorExtensions: vendorExtensions.mapToOpenAPICodable())
     }
 }

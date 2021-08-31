@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "ApodiniTypeInformation",
+        "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
+        "state": {
+          "branch": null,
+          "revision": "b5b9a4d56f8b4fc28fff159e3e9349c41baf40a4",
+          "version": "0.2.0"
+        }
+      },
+      {
         "package": "AssociatedTypeRequirementsKit",
         "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
         "state": {
@@ -33,8 +42,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "c1de408100a2f2e4ab2ea06512e8635bc1a59144",
-          "version": "1.3.1"
+          "revision": "ae12394e466f7fe44725655e763f7e603ed876b5",
+          "version": "1.4.0"
         }
       },
       {
@@ -69,8 +78,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "c0cfc1e6d9a2bbd04d4c583632eb0c09c92ff22c",
-          "version": "1.15.0"
+          "revision": "7d9982a788dc0bbc80937537a0e2b0a42d282202",
+          "version": "1.15.1"
         }
       },
       {
@@ -107,6 +116,15 @@
           "branch": null,
           "revision": "7a9a04df93e71de10fa2e8d6e9430dd0a7924643",
           "version": "4.2.4"
+        }
+      },
+      {
+        "package": "MetadataSystem",
+        "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
+        "state": {
+          "branch": null,
+          "revision": "5c5b7f0a01017785e3d265fa5d04f0e0b5b3a733",
+          "version": "0.1.0"
         }
       },
       {
