@@ -19,6 +19,13 @@ public protocol AuthenticationScheme: ComponentMetadataBlock {
     /// The result type of an ``AuthenticationScheme``.
     associatedtype AuthenticationInfo
 
+    /// This property stores if the `Authenticator` using this ``AuthenticationScheme`` is a required one.
+    /// The property is written by the `Authenticator` when setting up the Metadata.
+    /// This property is entirely informational.
+    /// It MAY be used for specifying the OpenAPI `Security` Metadata.
+    /// It MUST NOT be used for any of implementations of the below methods.
+    var required: Bool { get set }
+
     /// This method derives the ``AuthenticationInfo`` from the request input.
     /// What and how that request input is transformed is completely application domain defined.
     ///
@@ -51,6 +58,19 @@ public protocol AuthenticationScheme: ComponentMetadataBlock {
     /// - Returns: Returns the MODIFIED `ApodiniError` (according to the wire format).
     ///     The method MUST NOT create a new instance, as it would erase any custom defined options or Information instances.
     func mapFailedAuthorization(failedWith error: ApodiniError) -> ApodiniError
+}
+
+public extension AuthenticationScheme {
+    /// Default implementation for the required property.
+    /// It cannot be read. Written values are ignored.
+    var required: Bool {
+        get {
+            fatalError("required property wasn't implemented!")
+        }
+        set { // swiftlint:disable:this unused_setter_value
+            // ... do nothing
+        }
+    }
 }
 
 public extension AuthenticationScheme {

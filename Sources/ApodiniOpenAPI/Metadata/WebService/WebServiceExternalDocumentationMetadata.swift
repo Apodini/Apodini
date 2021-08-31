@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct WebServiceExternalDocsContextKey: OptionalContextKey {
@@ -20,9 +21,9 @@ public extension WebServiceMetadataNamespace {
 }
 
 /// The ``WebServiceExternalDocumentationMetadata`` can be used to define external documentation for
-/// the OpenAPI Specification for the ``WebService``.
+/// the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/ExternalDocumentation`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/ExternalDocumentation` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...
@@ -39,7 +40,7 @@ public struct WebServiceExternalDocumentationMetadata: WebServiceMetadataDefinit
 
     public let value: Key.Value
 
-    public init(description: String? = nil, url: URL, vendorExtensions: [String: AnyCodable] = [:]) {
-        self.value = .init(description: description, url: url, vendorExtensions: vendorExtensions)
+    public init(description: String? = nil, url: URL, vendorExtensions: [String: AnyEncodable] = [:]) {
+        self.value = .init(description: description, url: url, vendorExtensions: vendorExtensions.mapToOpenAPICodable())
     }
 }

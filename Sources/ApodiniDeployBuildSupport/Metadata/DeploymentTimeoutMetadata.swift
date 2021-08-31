@@ -47,7 +47,7 @@ public extension ComponentMetadataNamespace {
 
 /// The ``DeploymentTimeoutMetadata`` can be used to explicitly declare the ``TimeoutValue`` deployment option.
 ///
-/// The Metadata is available under the ``ComponentMetadataNamespace/Timeout`` name and can be used like the following:
+/// The Metadata is available under the `ComponentMetadataNamespace/Timeout` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...

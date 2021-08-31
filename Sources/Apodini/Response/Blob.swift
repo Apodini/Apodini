@@ -9,6 +9,7 @@
 import NIO
 import Foundation
 import NIOFoundationCompat
+import ApodiniTypeInformation
 
 
 /// A binary large object (blob) that can be used to return binary data from a `Handler`
@@ -53,5 +54,13 @@ public struct Blob: Encodable, ResponseTransformable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes), forKey: .byteBuffer)
         try container.encode(type, forKey: .type)
+    }
+}
+
+// MARK: - Blob + TypeInformationDefaultConstructor
+extension Blob: TypeInformationDefaultConstructor {
+    /// Default type information representation
+    public static func construct() -> TypeInformation {
+        .scalar(.data)
     }
 }

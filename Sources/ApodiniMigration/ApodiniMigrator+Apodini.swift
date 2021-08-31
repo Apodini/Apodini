@@ -49,28 +49,6 @@ extension Array where Element == Apodini.AnyEndpointParameter {
     }
 }
 
-// MARK: - Blob + TypeInformationPrimitiveConstructor
-extension Blob: TypeInformationPrimitiveConstructor {
-    public static func construct() -> TypeInformation {
-        .scalar(.data)
-    }
-}
-
-// MARK: - MimeType + TypeInformationPrimitiveConstructor
-extension MimeType: TypeInformationPrimitiveConstructor {
-    public static func construct() -> TypeInformation {
-        let codingKeys = MimeType.CodingKeys.self
-        return .object(
-            name: .init(MimeType.self),
-            properties: [
-                .init(name: codingKeys.type.stringValue, type: .scalar(.string)),
-                .init(name: codingKeys.subtype.stringValue, type: .scalar(.string)),
-                .init(name: codingKeys.parameters.stringValue, type: .dictionary(key: .string, value: .scalar(.string)))
-            ]
-        )
-    }
-}
-
 // MARK: - ApodiniMigratorCore.Operation
 extension ApodiniMigratorCore.Operation {
     init(_ from: Apodini.Operation) {

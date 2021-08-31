@@ -12,7 +12,7 @@ import XCTest
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
 @_implementationOnly import Yams
-@_implementationOnly import OpenAPIKit
+import OpenAPIKit
 import XCTVapor
 
 final class OpenAPIInterfaceExporterTests: ApodiniTests {

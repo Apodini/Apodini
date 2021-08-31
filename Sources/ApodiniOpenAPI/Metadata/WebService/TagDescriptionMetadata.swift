@@ -7,6 +7,7 @@
 //
 
 import Apodini
+import ApodiniUtils
 import OpenAPIKit
 
 public struct OpenAPITagDescription: OptionalContextKey {
@@ -32,9 +33,9 @@ public extension WebServiceMetadataNamespace {
     typealias TagDescriptions = RestrictedWebServiceMetadataBlock<TagDescription>
 }
 
-/// The ``TagDescriptionMetadata`` can be used to define tag documentation for the OpenAPI Specification for the ``WebService``.
+/// The ``TagDescriptionMetadata`` can be used to define tag documentation for the OpenAPI Specification for the `WebService`.
 ///
-/// The Metadata is available under the ``WebServiceMetadataNamespace/TagDescription`` name and can be used like the following:
+/// The Metadata is available under the `WebServiceMetadataNamespace/TagDescription` name and can be used like the following:
 /// ```swift
 /// struct ExampleWebService: WebService {
 ///     // ...
@@ -52,8 +53,15 @@ public struct TagDescriptionMetadata: WebServiceMetadataDefinition {
         name: String,
         description: String? = nil,
         externalDocs: OpenAPIKit.OpenAPI.ExternalDocumentation? = nil,
-        vendorExtensions: [String: AnyCodable] = [:]
+        vendorExtensions: [String: AnyEncodable] = [:]
     ) {
-        self.value = [.init(name: name, description: description, externalDocs: externalDocs, vendorExtensions: vendorExtensions)]
+        self.value = [
+            .init(
+                name: name,
+                description: description,
+                externalDocs: externalDocs,
+                vendorExtensions: vendorExtensions.mapToOpenAPICodable()
+            )
+        ]
     }
 }

@@ -41,7 +41,7 @@ public extension ComponentMetadataNamespace {
 
 /// The ``DeploymentMemoryMetadata`` can be used to explicitly declare the ``MemorySize`` deployment option.
 ///
-/// The Metadata is available under the ``ComponentMetadataNamespace/Memory`` name and can be used like the following:
+/// The Metadata is available under the `ComponentMetadataNamespace/Memory` name and can be used like the following:
 /// ```swift
 /// struct ExampleComponent: Component {
 ///     // ...

@@ -47,14 +47,14 @@ public struct WWWAuthenticate: HTTPInformation {
 
 
 extension WWWAuthenticate {
-    /// Represents a ``WWWAuthenticate`` ``Challenge``.
+    /// Represents a ``WWWAuthenticate`` ``WWWAuthenticate/Challenge``.
     public struct Challenge {
         /// The scheme.
         public let scheme: String
-        /// The parameters associated with the ``Challenge``.
+        /// The parameters associated with the ``WWWAuthenticate/Challenge``.
         public let parameters: [AuthenticationParameter]
 
-        /// The raw string value of the ``Challenge``.
+        /// The raw string value of the ``WWWAuthenticate/Challenge``.
         public var rawValue: String {
             if parameters.isEmpty {
                 return scheme
@@ -65,7 +65,7 @@ extension WWWAuthenticate {
             }
         }
 
-        /// Initializes a new ``Challenge``.
+        /// Initializes a new ``WWWAuthenticate/Challenge``.
         /// - Parameters:
         ///   - scheme: The challenge scheme.
         ///   - parameters: The associated parameters.
@@ -74,7 +74,7 @@ extension WWWAuthenticate {
             self.parameters = parameters
         }
 
-        /// Initializes a new ``Challenge``.
+        /// Initializes a new ``WWWAuthenticate/Challenge``.
         /// - Parameters:
         ///   - scheme: The challenge scheme.
         ///   - parameters: The associated parameters.
@@ -93,7 +93,7 @@ extension WWWAuthenticate {
         /// The value of the parameter
         public var value: String
 
-        /// The raw string value representation of the ``AuthenticationParameter``
+        /// The raw string value representation of the ``WWWAuthenticate/AuthenticationParameter``
         public var rawValue: String {
             let escaped = value.replacingOccurrences(of: "\"", with: "\\\"")
 
@@ -105,7 +105,7 @@ extension WWWAuthenticate {
             }
         }
 
-        /// Initializes a new ``AuthenticationParameter``.
+        /// Initializes a new ``WWWAuthenticate/AuthenticationParameter``.
         /// - Parameters:
         ///   - key: The key of the parameter.
         ///   - value: The value of the parameter.

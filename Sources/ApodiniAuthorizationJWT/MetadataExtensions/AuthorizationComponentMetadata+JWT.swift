@@ -13,15 +13,20 @@ public extension AuthorizationMetadata {
     /// Initializes a new `AuthorizationMetadata` using the `BearerAuthenticationScheme` and the ``JWTVerifier``.
     /// - Parameters:
     ///   - authenticatable: The ``JWTAuthenticatable``.
+    ///   - authenticationScheme: Optionally pass a custom ``BearerAuthenticationScheme`` instance.
     ///   - requirements: The ``AuthorizationRequirement`` evaluated on the authenticated token.
     init<Element: JWTAuthenticatable>(
         _ authenticatable: Element.Type = Element.self,
+        using authenticationScheme: BearerAuthenticationScheme = BearerAuthenticationScheme(),
         skipRequirementsForAuthorized: Bool = false,
         @AuthorizationRequirementsBuilder<Element> requirements: () -> AuthorizationRequirements<Element> = { AuthorizationRequirements(Allow()) }
     ) {
+        var scheme = authenticationScheme
+        scheme.bearerFormat = "JWT"
         self.init(
             authenticatable,
-            using: BearerAuthenticationScheme(),
+            using: scheme,
+            verifiedBy: JWTVerifier(),
             skipRequirementsForAuthorized: skipRequirementsForAuthorized,
             requirements: requirements
         )
