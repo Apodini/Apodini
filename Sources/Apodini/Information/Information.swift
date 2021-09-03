@@ -8,6 +8,8 @@
 
 /// An ``Information`` can be used to map arbitrary middleware specific Metadata into Apdoini,
 /// and make them accessible inside an ``Handler``.
+/// 
+/// Every ``Information`` instance is uniquely identified by a ``InformationKey``.
 /// ``Information`` instances are stored in the ``InformationSet`` of a `Request` or ``Response``.
 ///
 /// The following examples assume the existence of `ExampleInformation` (which is a ``InformationInstantiatable``)

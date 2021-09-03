@@ -246,3 +246,15 @@ struct ExampleHandler: Handler {
 - ``Component/metadata(_:)``
 - ``Handler/metadata(@MetadataBuilder:)``
 - ``Handler/metadata(_:)-154i8``
+
+### Metadata built into the Apodini core package
+
+- ``Apodini/HandlerDescriptionMetadata``
+- ``Apodini/WebServiceDescriptionMetadata``
+- ``Apodini/OperationHandlerMetadata``
+- ``Apodini/CommunicationalPatternMetadata``
+- ``Apodini/ServiceTypeHandlerMetadata``
+- ``Apodini/WebServiceVersionMetadata``
+- ``Apodini/DelegateMetadata``
+- ``Apodini/GuardMetadata``
+- ``Apodini/ResetMetadata``

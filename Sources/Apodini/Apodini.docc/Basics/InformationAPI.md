@@ -1,7 +1,7 @@
 # Information
 
 The Information API maps middleware-specific metadata of the respective wire protocol into the framework
-making it accessible inside a ``Handler``.
+making it accessible inside a Handler.
 
 <!--
 
@@ -31,6 +31,9 @@ Then, a typed version of a specific http header can be implemented using ``Infor
 
 The below example shows the supported ways of accessing Information from the current ``Connection``.
 
+We assume the existence of a `ExampleInformation` ``Information`` which stores string key-value pairs.
+Additionally, we assume the example of a `NumberInformation` ``InformationInstantiatable`` for the key `"number"`.
+
 ```swift
 struct ExampleHandler: Handler {
     @Environment(\.connection) var connection: Connection
@@ -38,9 +41,15 @@ struct ExampleHandler: Handler {
     func handle() -> String {
         let information = connection.information
 
-        let info1 = information[ExampleInformation.self] // returns the typed ExampleInformation.Value if present
-        let info2 = information[example: "dynamicKey"] // use custom overload to return raw value for the dynamic key (assuming string key)
-        let info3 = information[ExampleInformationKey("dynamicKey")] // same as above, just not using the custom overload
+        // returns the rawValue for the manually created "exampleKey"
+        let stringInfo = information[ExampleInformationKey("exampleKey")]
+
+        // returns the rawValue for the manually created string "exampleKey".
+        // it uses an subscript overload. This method must be supported by your Information provider.
+        let subscriptInfo = information[exampke: "exampleKey"]
+
+        // returns the typed version of the "number" key with the type `NumberInformation.Value`
+        let typedInfo = information[NumberInformation.self]
 
         return "Hello World"
     }
@@ -57,7 +66,7 @@ struct ExampleHandler: Handler {
 
         return .final(
             "Hello World",
-            information: ExampleInformation(.someTypedValue), AnyExampleInformation(key: "dynamic", value: "custom")
+            information: NumberInformation(3), ExampleInformation(key: "dynamic", value: "custom")
         )
     }
 }
@@ -95,11 +104,11 @@ struct ExampleHandler: Handler {
 
 ### Information Classes
 
-Relevant only to the parties who implement their own ``Apodini/Information`` are ``InformationClass``es.
-All information is organized or grouped into one or multiple ``InformationClass``.
-As the ``Apodini/Information`` implementation itself often times resides in the individual targets which implement support for a dedicated wire protocol, it isn't easy for other ``InterfaceExporter``s to access ``Information`` in way which doesn't require dependence on those packages.
+Relevant only to the parties who implement their own ``Apodini/Information`` or ``InformationClass``es.
+All information is organized or grouped into one or multiple ``InformationClass``es.
+As the ``Apodini/Information`` implementation itself often times resides in the individual targets, which implement support for a dedicated wire protocol, it isn't easy for other ``InterfaceExporter``s to access ``Information`` in way which doesn't require dependence on those packages.
 
-An ``Apodini/Information`` implementation conforms to one or more ``InformationClass``es (see the ``InformationClass`` for more information how this conformance is achieved). An ``InterfaceExporter`` can the query those ``InformationClass`` when mapping the ``InformationSet`` to the respective response.
+An ``Apodini/Information`` implementation conforms to one or more ``InformationClass``es (see the ``InformationClass`` for more information how this conformance is achieved). An ``InterfaceExporter`` can then query those ``InformationClass`` when mapping the ``InformationSet`` to the respective response.
 
 The core Apodini target provides the following default ``InformationClass``es: ``StringKeyedEncodableInformationClass`` and ``StringKeyedStringInformationClass``.
 
@@ -127,6 +136,12 @@ The core Apodini target provides the following default ``InformationClass``es: `
 - ``Response/final(_:status:information:)-1fwar``
 - ``Response/end(status:information:)-1ingx``
 - ``Response/end(status:information:)-1ingx``
+
+### Returning Information in an ApodiniError
+
+- ``Throws/init(_:reason:description:information:options:)``
+- ``ApodiniError/callAsFunction(reason:description:information:options:)-5trw4``
+- ``ApodiniError/callAsFunction(reason:description:information:options:)-7hor5``
 
 ### Implementing Information
 

@@ -19,7 +19,7 @@ The guide will demonstrate each step using the example of a `Description` Metada
 on ``Handler``s and the ``WebService`` to define a textual description of the respective Component,
 which could be used by a tool generating WebService Documentation (like the `OpenAPIExporter`).
 
-## Creating the `ContextKey`
+## Creating the ContextKey
 
 The Metadata DSL system currently relies on the usage of `ContextKey`s to store and identify
 Metadata with the respective Component. Therefore, the first step is to define
@@ -41,7 +41,7 @@ relying on the default hierarchy when encountering multiple declarations of the 
 Overriding the `reduce` method can be especially useful when working with numbers, to get the maximum or minimum,
 or appending values when working with array type ContextKeys.
 
-## Creating the `Metadata Definition`
+## Creating the Metadata Definition
 
 Next up we need to deal with creating the actual Metadata Definition.  
 When creating Metadata Definitions, the `MetadataDefinition` protocol is the fundamental build block
@@ -85,7 +85,7 @@ Note that your Type name can and should be pretty descriptive. This will not be 
 for the Metadata Declaration. The Metadata DSL proposes the concept of the Metadata Namespaces described in the next
 chapter which allow for more flexible naming, incorporating more natural language for the DSL.
 
-## Adding the Definition to the appropriate `Metadata Namespace`
+## Adding the Definition to the appropriate Metadata Namespace
 
 Metadata Namespaces are a way of providing more descriptive and natural naming while reducing
 potential naming conflicts.
@@ -188,7 +188,7 @@ extension HandlerMetadataNamespace {
 This allows the user to still use your Metadata inside `HandlerMetadataBlock` though with the additional 
 overhead of manually specifying the generic type.
 
-## Define a `Restricted Metadata Block`
+## Define a Restricted Metadata Block
 
 By default, the user can use the `Block` metadata (e.g. ``HandlerMetadataNamespace/Block``) to group arbitrary (according to the respective Metadata Declaration Block it is used on) Metadata for better overview.
 `Block` serves as a general purpose way of grouping Metadata Declarations.  
@@ -217,7 +217,7 @@ extension WebServiceMetadataNamespace {
 ```
 
 A user can now use our `Descriptions` Block to group all occurrences of our `Description`
-Metadata (which doesn't make really sense in this example, but works for demonstration purposes).
+Metadata (which doesn't really make sense in this example, but works for demonstration purposes).
 
 ```swift
 struct  TestHandler: Handler {
@@ -240,7 +240,7 @@ struct  TestHandler: Handler {
 The Metadata API provides some easy to use interfaces making the creation of common types of Metadata easier.
 This section highlights the most important cases.
 
-### 4.1. Metadata Definition providing a ``DelegatingHandlerInitializer``
+### 4.1. Metadata Definition providing a DelegatingHandlerInitializer
 
 A given Metadata Declaration might want to boostrap a `DelegatingHandler`
 (see <doc:HandlerDelegation>) via the ``DelegatingHandlerContextKey``
@@ -295,7 +295,7 @@ struct FooBarMetadata: HandlerMetadataDefinition, DefinitionWithDelegatingHandle
 That's it. When the Metadata is parsed, it will now add the `value` for the `FooBarMetadataContextKey` and
 the `initializer` for the `DelegatingHandlerContextKey` (both added with the `MetadataDefinition.scope`).
 
-#### Providing a `DelegatingHandler` as the primary Metadata
+#### Providing a DelegatingHandler as the primary Metadata
 
 When creating a `MetadataDefinition` which solely contributes a ``DelegatingHandlerInitializer``, in addition
 to declaring conformance to the appropriate `MetadataDefinition` protocol
