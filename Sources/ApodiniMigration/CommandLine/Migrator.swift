@@ -9,20 +9,8 @@
 import Foundation
 import Apodini
 import ArgumentParser
-import ApodiniMigrator
 
-protocol MigratorParsableSubcommand: ParsableCommand {
-    associatedtype Service: WebService
-}
-
-extension MigratorParsableSubcommand {
-    func run<S: StorageKey>(setting key: S.Type, to value: S.Value) throws {
-        let app = Application()
-        app.storage.set(S.self, to: value)
-        try Service.start(mode: .run, app: app)
-    }
-}
-
+/// Root subcomand of `ApodiniMigrator`
 struct Migrator<Service: WebService>: ParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(

@@ -13,21 +13,72 @@ import ApodiniMigrator
 @_implementationOnly import ApodiniVaporSupport
 @_implementationOnly import Vapor
 
+/// Identifying storage key for `ApodiniMigrator` `Document`
+public struct MigratorDocumentStorageKey: Apodini.StorageKey {
+    public typealias Value = Document
+}
+
+/// Identifying storage key for `ApodiniMigrator` `MigrationGuide`
+public struct MigrationGuideStorageKey: Apodini.StorageKey {
+    public typealias Value = MigrationGuide
+}
+
+// MARK: - MigratorPathStringBuilder
+private struct MigratorPathStringBuilder: PathBuilderWithResult {
+    private static let separator = "/"
+    private var components: [String] = []
+
+    mutating func append(_ string: String) {
+        components.append(string)
+    }
+
+    mutating func append<C: Codable>(_ parameter: EndpointPathParameter<C>) {
+        components.append("{\(parameter.name)}")
+    }
+
+    func result() -> String {
+        components.joined(separator: Self.separator)
+    }
+}
+
+// MARK: - MigratorItem
+protocol MigratorItem: Encodable {
+    var fileName: String { get }
+    static var itemName: String { get }
+}
+
+// MARK: - Document + MigratorItem
+extension Document: MigratorItem {
+    static var itemName: String {
+        "API Document"
+    }
+}
+
+// MARK: - MigrationGuide + MigratorItem
+extension MigrationGuide: MigratorItem {
+    var fileName: String {
+        "migration_guide"
+    }
+    
+    static var itemName: String {
+        "Migration Guide"
+    }
+}
+
 final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .global
 
     private let app: Apodini.Application
     private var document = Document()
-    private let logger: Logger
     private let documentConfig: DocumentConfiguration?
     private let migrationGuideConfig: MigrationGuideConfiguration?
     private var serverPath = ""
+    private let logger = Logger(label: "org.apodini.migrator")
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
         self.documentConfig = configuration.documentConfig ?? app.storage.get(DocumentConfigStorageKey.self)
         self.migrationGuideConfig = configuration.migrationGuideConfig ?? app.storage.get(MigrationGuideConfigStorageKey.self)
-        self.logger = configuration.logger
         setServerPath()
     }
 
@@ -79,6 +130,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
 
     func finishedExporting(_ webService: WebServiceModel) {
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
+        app.storage.set(MigratorDocumentStorageKey.self, to: document)
+        
         handleDocument()
         handleMigrationGuide()
     }
@@ -117,86 +170,44 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         
         do {
             let exportOptions = migrationGuideConfig.exportOptions
+            var migrationGuide: MigrationGuide?
             if let migrationGuidePath = migrationGuideConfig.migrationGuidePath {
-                let migrationGuide = try MigrationGuide.decode(from: migrationGuidePath.asPath)
-                handle(migrationGuide, with: exportOptions)
+                migrationGuide = try MigrationGuide.decode(from: migrationGuidePath.asPath)
             } else if let oldDocumentPath = migrationGuideConfig.oldDocumentPath {
                 let oldDocument = try Document.decode(from: oldDocumentPath.asPath)
-                let migrationGuide = MigrationGuide(for: oldDocument, rhs: document)
+                migrationGuide = MigrationGuide(for: oldDocument, rhs: document)
+            }
+            if let migrationGuide = migrationGuide {
                 handle(migrationGuide, with: exportOptions)
+                app.storage.set(MigrationGuideStorageKey.self, to: migrationGuide)
             }
         } catch {
             logger.error("Migration guide handling failed with error: \(error)")
         }
     }
     
-    private func handle<I: MigratorItem>(_ instance: I, with exportOptions: ExportOptions) {
+    private func handle<I: MigratorItem, E: ExportOptions>(_ migratorItem: I, with exportOptions: E) {
         let format = exportOptions.format
+        let itemName = I.itemName
         if let endpoint = exportOptions.endpoint {
-            let path = endpoint.withLeadingSlash.pathComponents
+            let path = endpoint.pathComponents
             app.vapor.app.get(path) { _ -> String in
-                format.string(of: instance)
+                format.string(of: migratorItem)
             }
-            logger.info("\(instance.itemName) served at \(serverPath)\(path) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(serverPath)\(path) in \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {
             do {
-                let filePath = try instance.write(at: directory, outputFormat: format, fileName: instance.fileName)
-                logger.info("\(instance.itemName) exported at \(filePath)")
+                let filePath = try migratorItem.write(at: directory, outputFormat: format, fileName: migratorItem.fileName)
+                logger.info("\(itemName) exported at \(filePath)")
             } catch {
-                logger.error("\(instance.itemName) export at \(directory) failed with error: \(error)")
+                logger.error("\(itemName) export at \(directory) failed with error: \(error)")
             }
         }
         
-        if (exportOptions.directory == nil && exportOptions.endpoint == nil) {
-            logger.notice("No export paths provided to handle \(instance.itemName)")
+        if exportOptions.directory == nil && exportOptions.endpoint == nil {
+            logger.notice("No export paths provided to handle \(itemName)")
         }
-    }
-}
-
-// MARK: - MigratorPathStringBuilder
-private struct MigratorPathStringBuilder: PathBuilderWithResult {
-    private static let separator = "/"
-    private var components: [String] = []
-
-    mutating func append(_ string: String) {
-        components.append(string)
-    }
-
-    mutating func append<C: Codable>(_ parameter: EndpointPathParameter<C>) {
-        components.append("{\(parameter.name)}")
-    }
-
-    func result() -> String {
-        components.joined(separator: Self.separator)
-    }
-}
-
-// MARK: - MigratorItem
-protocol MigratorItem: Encodable {
-    var fileName: String { get }
-    var itemName: String { get }
-}
-
-// MARK: - Document + MigratorItem
-extension Document: MigratorItem {
-    var itemName: String {
-        "API Document"
-    }
-}
-
-// MARK: - MigrationGuide + MigratorItem
-extension MigrationGuide: MigratorItem {
-    var fileName: String { "migration_guide" }
-    var itemName: String {
-        "Migration Guide"
-    }
-}
-
-// MARK: - String
-fileprivate extension String {
-    var withLeadingSlash: String {
-        hasPrefix("/") ? self : "/\(self)"
     }
 }

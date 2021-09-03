@@ -9,14 +9,18 @@
 import Foundation
 import Apodini
 
+/// An object that holds export options of API document
 public struct DocumentConfiguration {
-    let exportOptions: ExportOptions
+    let exportOptions: DocumentExportOptions
     
-    init(exportOptions: ExportOptions) {
+    init(exportOptions: DocumentExportOptions) {
         self.exportOptions = exportOptions
     }
     
-    public static func export(_ exportOptions: ExportOptions) -> Self {
+    /// A convenient static function for initializing a `DocumentConfiguration` instance
+    /// - Parameters:
+    ///   - exportOptions: export options of the API Document
+    public static func export(_ exportOptions: DocumentExportOptions) -> Self {
         .init(exportOptions: exportOptions)
     }
 }

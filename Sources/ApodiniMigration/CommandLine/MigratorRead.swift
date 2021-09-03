@@ -11,9 +11,12 @@ import Apodini
 import ArgumentParser
 import ApodiniMigrator
 
-struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
+struct MigratorRead<Service: WebService>: ParsableCommand {
     @OptionGroup
-    var export: ExportOptions
+    var migrationGuideExport: MigrationGuideExportOptions
+    
+    @OptionGroup
+    var documentExport: DocumentExportOptions
     
     @Option(help: "A local `path` (`absolute` or `relative`) pointing to the migration guide")
     var migrationGuidePath: String
@@ -21,13 +24,22 @@ struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "read",
-            abstract: "A parsable command to export the migration guide",
+            abstract: "A parsable command to export a local migration guide and the API document of the current version",
             discussion: "Runs an Apodini web service and exports the migration guide",
             version: "0.1.0"
         )
     }
     
     func run() throws {
-        try run(setting: MigrationGuideConfigStorageKey.self, to: MigrationGuideConfiguration(exportOptions: export, migrationGuidePath: migrationGuidePath))
+        let app = Application()
+        app.storage.set(
+            MigrationGuideConfigStorageKey.self,
+            to: .init(exportOptions: migrationGuideExport, migrationGuidePath: migrationGuidePath)
+        )
+        app.storage.set(
+            DocumentConfigStorageKey.self,
+            to: .init(exportOptions: documentExport)
+        )
+        try Service.start(mode: .run, app: app)
     }
 }

@@ -10,45 +10,21 @@ import Foundation
 import Apodini
 import ApodiniMigratorShared
 import ArgumentParser
-
 @_implementationOnly import ApodiniUtils
 @_implementationOnly import Logging
 @_implementationOnly import PathKit
 
-/// Represents distinct cases of resource locations
-public enum ResourceLocation {
-    /// Errors thrown from `instance()`
-    enum ResourceLocationError: Error {
-        /// Not found error
-        case notFound(message: String)
-    }
-    /// A file `path` (`absolute` or `relative`) pointing to the resource, e.g. `.file("./path/to/main.swift")`
-    case file(_ path: String)
-    /// A resource stored in `bundle` with the specified `fileName` and `format`,
-    /// e.g. `.resource(.module, fileName: "resource", format: .yaml)`
-    case resource(_ bundle: Bundle, fileName: String, format: FileFormat)
-    
-    var path: String? {
-        switch self {
-        case let .file(localPath):
-            return localPath
-        case let .resource(bundle, fileName, format):
-            return bundle.path(forResource: fileName, ofType: format.rawValue)
-        }
-    }
+// MARK: - WebService
+public extension WebService {
+    /// A typealias for `MigratorConfiguration`
+    typealias Migrator = MigratorConfiguration<Self>
 }
-
-/// A typealias for `OutputFormat`
-public typealias FileFormat = OutputFormat
-
-extension OutputFormat: ExpressibleByArgument {}
 
 /// A configuration to handle migration tasks between two subsequent versions of an Apodini Web Service
 /// - Note: Inside the `configuration` property of a `WebService` declaration, can be used via the typealias `Migrator`
-public class MigratorConfiguration<Service: WebService>: Configuration {
+public struct MigratorConfiguration<Service: WebService>: Configuration {
     let documentConfig: DocumentConfiguration?
     let migrationGuideConfig: MigrationGuideConfiguration?
-    let logger = Logger(label: "org.apodini.migrator")
 
     /// Initializer for a `MigratorConfiguration` instance. This configuration registers by default a `migrator` subcommand
     /// of the web service
@@ -80,10 +56,4 @@ public class MigratorConfiguration<Service: WebService>: Configuration {
     public var command: ParsableCommand.Type {
         Migrator<Service>.self
     }
-}
-
-// MARK: - WebService
-public extension WebService {
-    /// A typealias for `MigratorConfiguration`
-    typealias Migrator = MigratorConfiguration<Self>
 }

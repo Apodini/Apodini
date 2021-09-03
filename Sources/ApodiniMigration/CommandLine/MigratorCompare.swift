@@ -11,13 +11,7 @@ import Apodini
 import ArgumentParser
 import ApodiniMigrator
 
-struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
-    @Option(help: "A local `path` (`absolute` or `relative`) pointing to the document of the previous API version")
-    var oldDocumentPath: String
-    
-    @OptionGroup
-    var export: ExportOptions
-    
+struct MigratorCompare<Service: WebService>: ParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "compare",
@@ -27,7 +21,25 @@ struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
         )
     }
     
+    @Option(help: "A local `path` (`absolute` or `relative`) pointing to the document of the previous API version")
+    var oldDocumentPath: String
+    
+    @OptionGroup
+    var migrationGuideExport: MigrationGuideExportOptions
+    
+    @OptionGroup
+    var documentExport: DocumentExportOptions
+    
     func run() throws {
-        try run(setting: MigrationGuideConfigStorageKey.self, to: MigrationGuideConfiguration(exportOptions: export, oldDocumentPath: oldDocumentPath))
+        let app = Application()
+        app.storage.set(
+            MigrationGuideConfigStorageKey.self,
+            to: .init(exportOptions: migrationGuideExport, oldDocumentPath: oldDocumentPath)
+        )
+        app.storage.set(
+            DocumentConfigStorageKey.self,
+            to: .init(exportOptions: documentExport)
+        )
+        try Service.start(mode: .run, app: app)
     }
 }

@@ -45,7 +45,7 @@ extension ApodiniMigratorCore.Parameter {
 // MARK: - Array
 extension Array where Element == Apodini.AnyEndpointParameter {
     func migratorParameters<H: Handler>(of handler: H.Type, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
-        map { ApodiniMigratorCore.Parameter.of(H.self, from: $0, with: logger) }
+        map { .of(H.self, from: $0, with: logger) }
     }
 }
 
