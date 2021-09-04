@@ -1,0 +1,9 @@
+summary: A summary of what changed between versions
+service-type: REST
+api-spec: Apodini DSL
+from: v_1.0.0
+to: v_1.0.0
+changes: []
+scripts: {}
+json-values: {}
+updated-json-representations: {}

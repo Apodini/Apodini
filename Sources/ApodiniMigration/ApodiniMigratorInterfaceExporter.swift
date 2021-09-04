@@ -79,7 +79,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         self.app = app
         self.documentConfig = configuration.documentConfig ?? app.storage.get(DocumentConfigStorageKey.self)
         self.migrationGuideConfig = configuration.migrationGuideConfig ?? app.storage.get(MigrationGuideConfigStorageKey.self)
-        setServerPath()
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
@@ -129,6 +128,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
+        setServerPath()
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
         
@@ -194,7 +194,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             app.vapor.app.get(path) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(serverPath)\(path) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {

@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 import ArgumentParser
 
-struct MigratorDocument<Service: WebService>: ParsableCommand {
+struct MigratorDocument<Service: WebService>: MigratorParsableSubcommand {
     @OptionGroup
     var export: DocumentExportOptions
     
@@ -23,12 +23,11 @@ struct MigratorDocument<Service: WebService>: ParsableCommand {
         )
     }
     
-    func run() throws {
-        let app = Application()
+    func run(app: Application, mode: WebServiceExecutionMode) throws {
         app.storage.set(
             DocumentConfigStorageKey.self,
             to: .init(exportOptions: export)
         )
-        try Service.start(mode: .run, app: app)
+        try Service.start(mode: mode, app: app)
     }
 }

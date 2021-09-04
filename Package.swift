@@ -167,6 +167,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniMigration"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),

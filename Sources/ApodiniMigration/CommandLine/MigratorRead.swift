@@ -11,7 +11,7 @@ import Apodini
 import ArgumentParser
 import ApodiniMigrator
 
-struct MigratorRead<Service: WebService>: ParsableCommand {
+struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
     @OptionGroup
     var migrationGuideExport: MigrationGuideExportOptions
     
@@ -30,8 +30,7 @@ struct MigratorRead<Service: WebService>: ParsableCommand {
         )
     }
     
-    func run() throws {
-        let app = Application()
+    func run(app: Application, mode: WebServiceExecutionMode) throws {
         app.storage.set(
             MigrationGuideConfigStorageKey.self,
             to: .init(exportOptions: migrationGuideExport, migrationGuidePath: migrationGuidePath)
@@ -40,6 +39,6 @@ struct MigratorRead<Service: WebService>: ParsableCommand {
             DocumentConfigStorageKey.self,
             to: .init(exportOptions: documentExport)
         )
-        try Service.start(mode: .run, app: app)
+        try Service.start(mode: mode, app: app)
     }
 }

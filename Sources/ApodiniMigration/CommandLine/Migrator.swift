@@ -31,3 +31,13 @@ struct Migrator<Service: WebService>: ParsableCommand {
         MigratorDocument<Service>.self
     }
 }
+
+protocol MigratorParsableSubcommand: ParsableCommand {
+    func run(app: Application, mode: WebServiceExecutionMode) throws
+}
+
+extension MigratorParsableSubcommand {
+    func run() throws {
+        try run(app: Application(), mode: .run)
+    }
+}

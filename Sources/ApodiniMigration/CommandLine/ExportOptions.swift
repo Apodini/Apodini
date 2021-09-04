@@ -26,11 +26,13 @@ public protocol ExportOptions: ParsableArguments {
 }
 
 extension ExportOptions {
-    init(directory: String?, endpoint: String?, format: FileFormat) {
+    init(directory: String? = nil, endpoint: String? = nil, format: FileFormat) {
         self.init()
         self.directory = directory
         if let endpoint = endpoint {
             self.endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
+        } else {
+            self.endpoint = nil
         }
         self.format = format
     }
