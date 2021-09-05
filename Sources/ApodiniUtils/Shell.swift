@@ -18,8 +18,8 @@ public enum ShellCommand {
 
     var method: String {
         switch self {
-        case let .killPort(port): return "kill $(lsof -ti:\(port))"
-        case let .getProcessesAtPort(port): return "lsof -ti:\(port)"
+        case let .killPort(port): return "kill $(lsof -t -i :\(port) -sTCP:LISTEN)"
+        case let .getProcessesAtPort(port): return "lsof -t -i :\(port) -sTCP:LISTEN"
         }
     }
 }
