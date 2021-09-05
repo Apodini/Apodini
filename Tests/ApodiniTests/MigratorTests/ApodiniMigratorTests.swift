@@ -66,7 +66,7 @@ struct MigratorWebService: WebService {
 }
 
 final class ApodiniMigratorTests: ApodiniTests {
-    let testDirectory = Path("./migrator-tests")
+    let testDirectory = Path("./\(UUID().uuidString)")
     
     static var sut: MigratorConfiguration<MigratorWebService>?
     
@@ -164,10 +164,10 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssert(changes.contains { $0.element == .networking(target: .serverPath) })
         XCTAssert(changes.contains { $0.element == .endpoint("multiplyHandler", target: .`self`) })
         XCTAssert(changes.contains { $0.element == .endpoint("blob", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("text", target: .`self`) })
+        XCTAssert(changes.contains { $0.element == .endpoint("throwingHandler", target: .`self`) })
         XCTAssert(changes.contains { $0.element == .endpoint("text", target: .`self`) })
         
-        let addedModelChange = try XCTUnwrap( changes.first { $0.element.isModel } as? AddChange)
+        let addedModelChange = try XCTUnwrap(changes.first { $0.element.isModel } as? AddChange)
         XCTAssert(addedModelChange.elementID == "MimeType")
         
         if case let .element(anyCodable) = addedModelChange.added {
@@ -327,18 +327,21 @@ final class ApodiniMigratorTests: ApodiniTests {
         let migrator = try ApodiniMigrator.Migrator(
             packageName: "TestPackage",
             packagePath: testDirectory.string,
-            documentPath: (testDirectory + "\(document.fileName).json").string,
-            migrationGuide: .empty
+            documentPath: (testDirectory + "\(document.fileName).json").string
         )
         
-        XCTAssertNoThrow(try migrator.migrate())
+        XCTAssertNoThrow(try migrator.run())
         
         let swiftFiles = try testDirectory.recursiveSwiftFiles().map { $0.lastComponent }
         
-        XCTAssert(swiftFiles.contains("Package.swift"))
-        XCTAssert(swiftFiles.contains("MimeType.swift"))
-        XCTAssert(swiftFiles.contains("Data+Endpoint.swift"))
-        XCTAssert(swiftFiles.contains("Int+Endpoint.swift"))
+        let modelNames = document.allModels().map { $0.typeString + .swift }
+        
+        modelNames.forEach { XCTAssert(swiftFiles.contains($0)) }
+        
+        let endpointFileNames = document.endpoints.map { $0.response.nestedTypeString + "+Endpoint" + .swift }.unique()
+        
+        endpointFileNames.forEach { XCTAssert(swiftFiles.contains($0)) }
+
         XCTAssert(swiftFiles.contains("Handler.swift"))
         XCTAssert(swiftFiles.contains("NetworkingService.swift"))
         XCTAssert(swiftFiles.contains("TestPackageTests.swift"))

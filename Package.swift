@@ -104,9 +104,9 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("develop")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
-        // ApodiniTypeInformation
+        // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
     ],
     targets: [

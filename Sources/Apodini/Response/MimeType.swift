@@ -10,7 +10,7 @@ import ApodiniTypeInformation
 
 /// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
 public enum MimeType: Codable, Equatable, CustomStringConvertible {
-    public enum CodingKeys: CodingKey {
+    enum CodingKeys: CodingKey {
         case type
         case subtype
         case parameters
