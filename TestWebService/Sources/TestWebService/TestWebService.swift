@@ -49,6 +49,8 @@ struct TestWebService: Apodini.WebService {
         
         WebSocket()
         
-        Migrator()
+        Migrator(
+            documentConfig: .export(.endpoint("migrator-doc", format: .yaml))
+        )
     }
 }
