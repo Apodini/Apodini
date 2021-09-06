@@ -62,11 +62,11 @@ Already convinced? Then check out our guides to Getting Started with Apodini!
 If you want to get a bit more details first or need some support in building your first web service, here are some helpful resources for you.
 
 - <doc:BuildingBlocks>
-<!-- TODO: metadata -->
+- <doc:Metadata>
 - <doc:AllAboutReuse>
 <!-- TODO: Configuration with Swift Argument Parser -->
 - <doc:StatefulHandlers>
-<!-- TODO: middlware-specific content: Information API -->
+- <doc:InformationAPI>
 - <doc:UnitTesting>
 
 ### Ecosystem
@@ -74,9 +74,9 @@ If you want to get a bit more details first or need some support in building you
 Here are some links to internal and external packages you might find helpful when building your web service.
 
 - <doc:DatabaseConnection>
+- <doc:Authorization>
 - <doc:PushNotifications>
 - <doc:Jobs>
-<!-- TODO: Authentication -->
 
 ### Advanced
 

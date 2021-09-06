@@ -1,27 +1,29 @@
+# Metadata User Guide
+
+A guide on how to use the Metadata system from the perspective of a user writing a web service.
+
 <!--
-                  
+
 This source file is part of the Apodini open source project
 
 SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 
 SPDX-License-Identifier: MIT
-             
+
 -->
 
-![documentation](https://apodini.github.io/resources/markdown-labels/document_type_documentation.svg)
-
-# Metadata DSL: User Guide
+## Overview
 
 This guide introduces the most important features of the Apodini Metadata system. It is primarily targeted
 towards users of the Metadata system, but can also be used by Metadata Providers to get an overview
 of the Metadata system.
 
-## 1. Declaration Blocks
+## Declaration Blocks
 
-Apodini provides Metadata Declaration Blocks on the following types: `Componenet`, `WebService`, `Handler`
-and `Content` (Note that that the `metadata` property for `Content` types are static). 
-Inside those Declaration Blocks you can place any applicable Metadata instance to apply it to the respective component.  
-Below shows the Metadata Declaration Blocks for all the above mentioned protocols.
+Apodini provides Metadata Declaration Blocks on the following types: ``Component``, ``WebService``, ``Handler``
+and ``Content`` (Note that the `metadata` property for ``Content`` types is static). 
+Inside those Declaration Blocks you can place any applicable Metadata instance to apply it to the respective element.  
+Below shows the Metadata Declaration Blocks for all the above-mentioned protocols.
 
 ```swift
 struct ExampleWebService: WebService {
@@ -55,29 +57,28 @@ struct ExampleContent: Content {
 
 Some Metadata Definitions might only be available on a subset of the above Metadata Declaration Blocks.
 
-Looking at the example of the predefined `Description` Metadata which can be used in all of the above Metadata Declaration
-Blocks, to add a textual description to the respective component. Adding a `Description` Metadata to a `Handler`
-could look like the following: 
+Looking at the example of the predefined ``HandlerDescriptionMetadata`` Metadata which can be used in all the above Metadata Declaration
+Blocks, to add a textual description to the respective component. Adding a ``HandlerMetadataNamespace/Description`` Metadata to a ``Handler`` could look like the following: 
 
 ```swift
 struct ExampleHandler: Handler {
     func handle() -> String {
         "Hello World!"
     }
-    
+
     var metadata: Metadata {
         Description("This Endpoint serves a message to the world!")
     }
 }
 ```
 
-## 2. Metadata Blocks
+## Metadata Blocks
 
 Metadata Blocks are a way of grouping your Metadata Declaration such that it may improve code readability or introduce
 any user defined semantics to the reader. Metadata Blocks are functionally not different to Metadata Declarations made
 without Metadata Blocks.  
 
-The special `Block` Metadata is available in all of the above Metadata Declaration Blocks.  
+The special `Block` Metadata is available in all the above Metadata Declaration Blocks.  
 It may be used as follows:
 
 ```swift
@@ -92,7 +93,7 @@ struct ExampleHandler: Handler {
 }
 ```
 
-## 3. Reusable Metadata Blocks
+## Reusable Metadata Blocks
 
 In some situations it might make sense to create Metadata Declarations which are independent of the component(s)
 where they are used. Reasons may be to declutter the Metadata Declaration of your component or to reuse certain
@@ -100,11 +101,10 @@ Metadata on several components.
 Apodini provides Reusable Metadata Blocks for such circumstances. There are the following protocols available,
 depending on where you want to apply your Metadata Block:
 
-- `HandlerMetadataBlock`
-- `WebServiceMetadataBlock`
-- `ComponentMetadataBlock`
+- ``HandlerMetadataBlock``
+- ``WebServiceMetadataBlock``
+- ``ComponentMetadataBlock``
 - `ContentMetadataBlock`
-- `ComponentOnlyMetadataBlock`
 
 An example `HandlerMetadataBlock` might look like the following:
 
@@ -123,14 +123,15 @@ struct ExampleHandler: Handler {
 }
 ````
 
-## 4. Restricted Metadata Blocks
+## Restricted Metadata Blocks
 
-Chapter [2. Metadata Blocks](#2-metadata-blocks) introduced the general purpose Metadata Block `Block`.
+
+Chapter `Metadata Blocks` introduced the general purpose Metadata Block `Block`.
 Metadata Providers might choose to provide custom named Metadata Blocks which are restricted to only contain
 certain types of Metadata.
 
 You might imagine a Restricted Metadata Block called `Descriptions` which is restricted to only contain
-`Description` Metadata (and may also contain nested `Descriptions` Blocks).  
+``HandlerDescriptionMetadata`` Metadata (and may also contain nested `Descriptions` Blocks).  
 Such a Block may be used like the following: 
 
 ```swift
@@ -145,20 +146,20 @@ struct ExampleHandler: Handler {
 }
 ```
 
-## 5. Component and Handler Modifiers
+## Component and Handler Modifiers
 
-Apodini offers a range of `Component` and `Handler` Modifiers which can be used to add additional Metadata
+Apodini offers a range of ``Component`` and ``Handler`` Modifiers which can be used to add additional Metadata
 to the respective Component. The following Modifiers are provided:
 
-- `Component.metadata(content:)`
-- `Componenet.metadata(...)`
-- `Handler.metadata(content:)`
-- `Handler.metadata(...)`
+- ``Component/metadata(@MetadataBuilder:)``
+- ``Component/metadata(_:)``
+- ``Handler/metadata(@MetadataBuilder:)``
+- ``Handler/metadata(_:)-154i8``
 
-For both `Componenet` and `Handler` there are each two `.metadata` modifiers which can be used
+For both ``Component`` and ``Handler`` there are each two `.metadata` modifiers which can be used
 to either add a specific instance of Metadata or add Metadata Declaration Blocks to the respective Component.
 
-Below are two examples demonstrating on how to use each of those Modifier to add a `Description` Metadata
+Below are two examples demonstrating on how to use each of those Modifiers to add a `Description` Metadata
 to the Handler in the Component Tree:
 
 ```swift
@@ -180,11 +181,11 @@ struct ExampleComponent: Component {
 }
 ```
 
-## 6. Conditional Metadata 
+## Conditional Metadata 
 
 The Metadata DSL allows for `if`, `if/else` and `switch` control flow statements.
 This can be used to conditionally construct Metadata depending on arbitrary state.  
-Note that Metadata Declaration Blocks are only evaluated once at startup. Therefore it is sensible
+Note that Metadata Declaration Blocks are only evaluated once at startup. Therefore, it is sensible
 to base the conditions only on state which is fixed after initialization.
 
 ```swift
@@ -193,7 +194,7 @@ struct ExampleHandler: Handler {
     // ...
     var metadata: Metadata {
         if experimental {
-            Description("Note: The new experimental version of the Handler introduces breaking changes!")
+        Description("Note: The new experimental version of the Handler introduces breaking changes!")
         } else {
             Description ("This Handler serves as a example!")
         }
@@ -201,9 +202,9 @@ struct ExampleHandler: Handler {
 }
 ```
 
-## 7. Loops
+## Loops
 
-With Swift 5.4, the Metadata DSL allows for use of `for .. in ..` loops to construct multiple Metadata Declarations.
+With Swift 5.4, the Metadata DSL allows for usage of `for .. in ..` loops to construct multiple Metadata Declarations.
 
 ```swift
 struct ExampleHandler: Handler {
@@ -215,3 +216,45 @@ struct ExampleHandler: Handler {
     }
 }
 ```
+
+## Topics
+
+### Web Service Elements
+
+- ``Component``
+- ``Handler``
+- ``WebService``
+- ``Content``
+
+### Metadata Blocks
+
+- ``ComponentMetadataBlock``
+- ``HandlerMetadataBlock``
+- ``WebServiceMetadataBlock``
+<!-- - `ContentMetadataBlock` -->
+
+### Restricted Metadata Blocks
+
+- ``RestrictedComponentMetadataBlock``
+- ``RestrictedHandlerMetadataBlock``
+- ``RestrictedWebServiceMetadataBlock``
+<!-- - `RestrictedContentMetadataBlock` -->
+
+### Metadata Modifier
+
+- ``Component/metadata(@MetadataBuilder:)``
+- ``Component/metadata(_:)``
+- ``Handler/metadata(@MetadataBuilder:)``
+- ``Handler/metadata(_:)-154i8``
+
+### Metadata built into the Apodini core package
+
+- ``Apodini/HandlerDescriptionMetadata``
+- ``Apodini/WebServiceDescriptionMetadata``
+- ``Apodini/OperationHandlerMetadata``
+- ``Apodini/CommunicationalPatternMetadata``
+- ``Apodini/ServiceTypeHandlerMetadata``
+- ``Apodini/WebServiceVersionMetadata``
+- ``Apodini/DelegateMetadata``
+- ``Apodini/GuardMetadata``
+- ``Apodini/ResetMetadata``
