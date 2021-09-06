@@ -27,6 +27,9 @@ public struct KillSessionCommand: ParsableCommand {
     
     @Option(help: "Name of the deployed web service")
     var productName: String
+    
+    @Flag(help: "If set, looks for the corresponding docker instance instead")
+    var docker = false
 
     public func run() throws {
         for id in types.split(separator: ",").map(String.init) {
@@ -40,7 +43,11 @@ public struct KillSessionCommand: ParsableCommand {
                 let ipAddress = try IoTContext.ipAddress(for: result.device)
                 let client = try SSHClient(username: username, password: password, ipAdress: ipAddress)
                 IoTContext.logger.info("Trying to kill session on \(ipAddress)")
-                try client.execute(cmd: "tmux kill-session -t \(productName)")
+                if docker {
+                    try client.execute(cmd: "sudo docker kill \(productName)")
+                } else {
+                    try client.execute(cmd: "tmux kill-session -t \(productName)")
+                }
             }
             IoTContext.logger.info("Finished.")
         }

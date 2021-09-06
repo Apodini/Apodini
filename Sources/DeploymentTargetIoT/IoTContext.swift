@@ -18,7 +18,9 @@ enum IoTContext {
     static let defaultPassword = "test1234"
     
     static let logger = Logger(label: "de.apodini.IoTDeployment")
-    
+
+    static let dockerVolumeTmpDir = URL(fileURLWithPath: "/app/tmp")
+
     private static var startDate = Date()
 
     static func copyResources(_ device: Device, origin: String, destination: String) throws {
@@ -106,22 +108,37 @@ enum IoTContext {
         return (username!, String(cString: passw!))
     }
 
-    static func runInDocker(imageName: String, command: String, device: Device, workingDir: String) throws {
-        let taskArguments = { () -> String in
-            var args: [String] = [
+    static func runInDocker(
+        imageName: String,
+        command: String,
+        device: Device,
+        workingDir: URL,
+        containerName: String = "",
+        detached: Bool = false,
+        privileged: Bool = false,
+        volumeDir: URL = dockerVolumeTmpDir,
+        port: Int = 8080) throws {
+        var arguments: String {
+            var args = [
                 "sudo",
                 "docker",
                 "run",
                 "--rm",
-                imageName
+                "--name",
+                containerName,
+                "-p",
+                "\(port):\(port)",
+                detached ? "-d" : "",
+                privileged ? "--privileged": "",
+                "-v",
+                "\(workingDir.path):\(volumeDir.path):Z",
+                imageName,
+                command
             ]
-            args.append(contentsOf: [
-                imageName, command
-            ])
             return args.joined(separator: " ")
-        }()
-        print(taskArguments)
-        try runTaskOnRemote(taskArguments, workingDir: workingDir, device: device)
+        }
+        print(arguments)
+        try runTaskOnRemote(arguments, workingDir: workingDir.path, device: device)
     }
 }
 

@@ -28,8 +28,11 @@ public class IoTDeploymentProvider: DeploymentProvider {
         case one(String)
     }
     
+    /// Defines the input of the deployment
     public enum InputType {
+        /// Use a docker image of the web service for deployment
         case dockerImage(String)
+        /// Use the swift package for deployment
         case package
     }
     
@@ -88,6 +91,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     /// - Parameter automaticRedeployment: If set, the deployment provider listens for changes in the the working directory and automatically redeploys changes to the affected nodes.
     /// - Parameter additionalConfiguration: Manually add user-defined `ConfigurationStorage` that will be accessible by the `PostDiscoveryAction`s. Defaults to [:]
     /// - Parameter webServiceArguments: If your web service has its own arguments/options, pass them here, otherwise the deployment might fail. Defaults to [].
+    /// - Parameter input: Specify if the deployment is done via docker or swift package.
     public init(
         searchableTypes: [String],
         productName: String,
@@ -253,11 +257,16 @@ public class IoTDeploymentProvider: DeploymentProvider {
                 device: device
             )
         case .dockerImage(let imageName):
+            let volumeURL = IoTContext.dockerVolumeTmpDir.appendingPathComponent("WebServiceStructure.json")
             try IoTContext.runInDocker(
                 imageName: imageName,
-                command: "tmux new-session -d -s \(tmuxName) 'swift run \(productName) \(flattenedWebServiceArguments) deploy startup iot \(modelFileUrl.path) --node-id \(node.id) --endpoint-ids \(handlerIds)'",
+                command: "\(flattenedWebServiceArguments) deploy startup iot \(volumeURL.path) --node-id \(node.id) --endpoint-ids \(handlerIds)",
                 device: device,
-                workingDir: buildUrl.path)
+                workingDir: remotePackageRootDir,
+                containerName: packageName,
+                detached: true,
+                privileged: true
+            )
         }
     }
     
@@ -309,8 +318,10 @@ public class IoTDeploymentProvider: DeploymentProvider {
     
     // MARK: - Retrieve Deployed System
     private func retrieveDeployedSystemUsingDocker(imageName: String, result: DiscoveryResult) throws -> (URL, DeployedSystem) {
+        // ensure remote host dir is writable
+        try IoTContext.runTaskOnRemote("sudo chmod 777 \(packageName)", workingDir: deploymentDir.path, device: result.device, assertSuccess: false)
         let filename = "WebServiceStructure.json"
-        let fileUrl = remotePackageRootDir.appendingPathComponent(filename)
+        let fileUrl = IoTContext.dockerVolumeTmpDir.appendingPathComponent(filename)
         let actionKeys = postActionMapping
             .filter { $0.key == result.device.identifier }
             .values
@@ -320,11 +331,26 @@ public class IoTDeploymentProvider: DeploymentProvider {
             
         try IoTContext.runInDocker(
             imageName: imageName,
-            command: "\(flattenedWebServiceArguments) deploy export-ws-structure iot \(fileUrl.path) --ip-address \(ipAddress) --action-keys \(actionKeys)",
+            command: "\(flattenedWebServiceArguments) deploy export-ws-structure iot \(fileUrl.path) --ip-address \(ipAddress) --action-keys \(actionKeys) --docker",
             device: result.device,
-            workingDir: remotePackageRootDir.path
+            workingDir: remotePackageRootDir
         )
-        return try (fileUrl, DeployedSystem(decodingJSONAt: fileUrl))
+        let hostFilePath = remotePackageRootDir.appendingPathComponent(filename)
+
+        var responseString = ""
+        try IoTContext.runTaskOnRemote(
+            "cat \(hostFilePath)",
+            workingDir: self.deploymentDir.path,
+            device: result.device,
+            responseHandler: { response in
+                responseString = response
+            }
+        )
+        
+        let responseData = responseString.data(using: .utf8)!
+        let deployedSystem = try JSONDecoder().decode(DeployedSystem.self, from: responseData)
+        
+        return (hostFilePath, deployedSystem)
     }
     
     // Since we dont want to compile the package locally just to retrieve the structure, we retrieve the structure remotely on every device the service is deployed on. On the devices, we compile the package anyway, so just use this.
