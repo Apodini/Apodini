@@ -95,15 +95,33 @@ enum IoTContext {
         logger.notice("Complete deployment in \(hourString):\(minuteString):\(secondsString)")
     }
     
-    static func readUsernameAndPassword(_ type: String) -> (String, String) {
-        Self.logger.info("The username for devices of type \(type) :")
+    static func readUsernameAndPassword(for reason: String) -> (String, String) {
+        Self.logger.info("The username for \(reason) :")
         var username = readLine()
         while username.isEmpty {
             username = readLine()
         }
-        Self.logger.info("The password for devices of type \(type) :")
+        Self.logger.info("The password for \(reason) :")
         let passw = getpass("")
         return (username!, String(cString: passw!))
+    }
+
+    static func runInDocker(imageName: String, command: String, device: Device, workingDir: String) throws {
+        let taskArguments = { () -> String in
+            var args: [String] = [
+                "sudo",
+                "docker",
+                "run",
+                "--rm",
+                imageName
+            ]
+            args.append(contentsOf: [
+                imageName, command
+            ])
+            return args.joined(separator: " ")
+        }()
+        print(taskArguments)
+        try runTaskOnRemote(taskArguments, workingDir: workingDir, device: device)
     }
 }
 

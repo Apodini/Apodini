@@ -41,7 +41,8 @@ struct LifxDeployCommand: ParsableCommand {
             additionalConfiguration: [
                 .deploymentDirectory: deploymentOptions.deploymentDir
             ],
-            webServiceArguments: webServiceArguments
+            webServiceArguments: webServiceArguments,
+            input: .dockerImage("hendesi/master-thesis:latest-arm64")
         )
         provider.registerAction(scope: .all, action: LIFXDeviceDiscoveryAction.self, option: DeploymentDeviceMetadata(.lifx))
         try provider.run()
