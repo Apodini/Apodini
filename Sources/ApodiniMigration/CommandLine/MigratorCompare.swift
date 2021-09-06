@@ -9,8 +9,8 @@
 import Foundation
 import Apodini
 import ArgumentParser
-import ApodiniMigrator
 
+// MARK: - MigratorCompare
 struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(

@@ -9,8 +9,8 @@
 import Foundation
 import Apodini
 import ArgumentParser
-import ApodiniMigrator
 
+// MARK: - MigratorRead
 struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
     @OptionGroup
     var migrationGuideExport: MigrationGuideExportOptions

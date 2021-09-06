@@ -11,14 +11,13 @@ import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
 @_implementationOnly import ApodiniVaporSupport
-@_implementationOnly import Vapor
 
-/// Identifying storage key for `ApodiniMigrator` `Document`
+/// Identifying storage key for `ApodiniMigrator` ``Document``
 public struct MigratorDocumentStorageKey: Apodini.StorageKey {
     public typealias Value = Document
 }
 
-/// Identifying storage key for `ApodiniMigrator` `MigrationGuide`
+/// Identifying storage key for `ApodiniMigrator` ``MigrationGuide``
 public struct MigrationGuideStorageKey: Apodini.StorageKey {
     public typealias Value = MigrationGuide
 }
@@ -43,8 +42,8 @@ private struct MigratorPathStringBuilder: PathBuilderWithResult {
 
 // MARK: - MigratorItem
 protocol MigratorItem: Encodable {
-    var fileName: String { get }
     static var itemName: String { get }
+    var fileName: String { get }
 }
 
 // MARK: - Document + MigratorItem
@@ -56,15 +55,16 @@ extension Document: MigratorItem {
 
 // MARK: - MigrationGuide + MigratorItem
 extension MigrationGuide: MigratorItem {
-    var fileName: String {
-        "migration_guide"
-    }
-    
     static var itemName: String {
         "Migration Guide"
     }
+    
+    var fileName: String {
+        "migration_guide"
+    }
 }
 
+// MARK: - ApodiniMigratorInterfaceExporter
 final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .global
 
@@ -174,8 +174,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             if let migrationGuidePath = migrationGuideConfig.migrationGuidePath {
                 migrationGuide = try MigrationGuide.decode(from: migrationGuidePath.asPath)
             } else if let oldDocumentPath = migrationGuideConfig.oldDocumentPath {
-                let oldDocument = try Document.decode(from: oldDocumentPath.asPath)
-                migrationGuide = MigrationGuide(for: oldDocument, rhs: document)
+                migrationGuide = MigrationGuide(for: try Document.decode(from: oldDocumentPath.asPath), rhs: document)
             }
             if let migrationGuide = migrationGuide {
                 handle(migrationGuide, with: exportOptions)
@@ -200,7 +199,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         if let directory = exportOptions.directory {
             do {
                 let filePath = try migratorItem.write(at: directory, outputFormat: format, fileName: migratorItem.fileName)
-                logger.info("\(itemName) exported at \(filePath)")
+                logger.info("\(itemName) exported at \(filePath) in \(format.rawValue) format")
             } catch {
                 logger.error("\(itemName) export at \(directory) failed with error: \(error)")
             }

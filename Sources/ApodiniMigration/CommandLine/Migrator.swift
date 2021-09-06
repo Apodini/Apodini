@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ArgumentParser
 
+// MARK: - Migrator
 /// Root subcomand of `ApodiniMigrator`
 struct Migrator<Service: WebService>: ParsableCommand {
     static var configuration: CommandConfiguration {
@@ -27,11 +28,12 @@ struct Migrator<Service: WebService>: ParsableCommand {
         )
     }
     
-    static var `default`: ParsableCommand.Type {
+    private static var `default`: ParsableCommand.Type {
         MigratorDocument<Service>.self
     }
 }
 
+// MARK: - MigratorParsableSubcommand
 protocol MigratorParsableSubcommand: ParsableCommand {
     func run(app: Application, mode: WebServiceExecutionMode) throws
 }

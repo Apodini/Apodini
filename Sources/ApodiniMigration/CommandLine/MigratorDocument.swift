@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ArgumentParser
 
+// MARK: - MigratorDocument
 struct MigratorDocument<Service: WebService>: MigratorParsableSubcommand {
     @OptionGroup
     var export: DocumentExportOptions

@@ -10,7 +10,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniMigration
 @testable import ApodiniMigrator
-import PathKit
+@_implementationOnly import PathKit
 import XCTVapor
 
 struct ThrowingHandler: Handler {

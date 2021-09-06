@@ -10,11 +10,12 @@ import Foundation
 import ApodiniMigrator
 import ArgumentParser
 
-/// A typealias for `OutputFormat`
+/// A typealias for ``OutputFormat``
 public typealias FileFormat = OutputFormat
 
 extension OutputFormat: ExpressibleByArgument {}
 
+// MARK: - ExportOptions
 /// A protocol that defines export options for `ApodiniMigrator` items
 public protocol ExportOptions: ParsableArguments {
     /// Optional directory path to export an item
@@ -39,7 +40,7 @@ extension ExportOptions {
 }
 
 public extension ExportOptions {
-    /// If initialized through command line validates whether at least one of the paths `directory` or `endpoint` are not `nil`
+    /// If initialized through command line validates whether at least one of the paths ``directory`` or ``endpoint`` are not `nil`
     func validate() throws {
         guard directory != nil || endpoint != nil else {
             throw ValidationError(
@@ -48,7 +49,7 @@ public extension ExportOptions {
         }
     }
     
-    /// A convenient static function for initializing an `ExportOptions` instance
+    /// A convenient static function for initializing an ``ExportOptions`` instance
     /// - Parameters:
     ///   - path: A path to a local directory used to export an item
     ///   - format: Format of the item to be exported, either `json` or `yaml`. Defaults to `.json`
@@ -56,7 +57,7 @@ public extension ExportOptions {
         .init(directory: path, endpoint: nil, format: format)
     }
     
-    /// A convenient static function for initializing an `ExportOptions` instance
+    /// A convenient static function for initializing an ``ExportOptions`` instance
     /// - Parameters:
     ///   - path: An endpoint path of the web service used to expose an item
     ///   - format: Format of the item to be exposed, either `json` or `yaml`. Defaults to `.json`
@@ -64,7 +65,7 @@ public extension ExportOptions {
         .init(directory: nil, endpoint: path, format: format)
     }
     
-    /// A convenient static function for initializing an `ExportOptions` instance
+    /// A convenient static function for initializing an ``ExportOptions`` instance
     /// - Parameters:
     ///   - directory: A path to a local directory used to export an item
     ///   - endpoint: An endpoint path of the web service used to expose an item
@@ -74,6 +75,7 @@ public extension ExportOptions {
     }
 }
 
+// MARK: - DocumentExportOptions
 // swiftlint:disable line_length
 /// An object that defines export options of the API Document
 public struct DocumentExportOptions: ExportOptions {
@@ -91,6 +93,7 @@ public struct DocumentExportOptions: ExportOptions {
     public init() {}
 }
 
+// MARK: - MigrationGuideExportOptions
 /// An object that defines export options of the API Document
 public struct MigrationGuideExportOptions: ExportOptions {
     /// A path to a local directory used to export the migration guide

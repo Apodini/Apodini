@@ -421,12 +421,13 @@ let package = Package(
             ]
         ),
         
+        // ApodiniMigration
+        
         .target(
             name: "ApodiniMigration",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
-                .target(name: "ApodiniUtils"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),

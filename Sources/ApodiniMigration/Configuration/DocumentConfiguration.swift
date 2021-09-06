@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 
+// MARK: - DocumentConfiguration
 /// An object that holds export options of API document
 public struct DocumentConfiguration {
     let exportOptions: DocumentExportOptions
@@ -17,7 +18,7 @@ public struct DocumentConfiguration {
         self.exportOptions = exportOptions
     }
     
-    /// A convenient static function for initializing a `DocumentConfiguration` instance
+    /// A convenient static function for initializing a ``DocumentConfiguration`` instance
     /// - Parameters:
     ///   - exportOptions: export options of the API Document
     public static func export(_ exportOptions: DocumentExportOptions) -> Self {
@@ -25,6 +26,7 @@ public struct DocumentConfiguration {
     }
 }
 
+// MARK: - DocumentConfigStorageKey
 struct DocumentConfigStorageKey: StorageKey {
     typealias Value = DocumentConfiguration
 }

@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 
+// MARK: - ResourceLocation
 /// Represents distinct cases of resource locations
 public enum ResourceLocation {
     /// A file `path` (`absolute` or `relative`) pointing to the resource, e.g. `.file("./path/to/main.swift")`
@@ -27,10 +28,12 @@ public enum ResourceLocation {
     }
 }
 
+// MARK: - MigrationGuideConfigStorageKey
 struct MigrationGuideConfigStorageKey: StorageKey {
     typealias Value = MigrationGuideConfiguration
 }
 
+// MARK: - MigrationGuideConfiguration
 /// An object that holds export options of the Migration guide
 public struct MigrationGuideConfiguration {
     let exportOptions: MigrationGuideExportOptions
@@ -43,7 +46,7 @@ public struct MigrationGuideConfiguration {
         self.migrationGuidePath = migrationGuidePath
     }
     
-    /// A convenient static function for initializing a `MigrationGuideConfiguration` instance
+    /// A convenient static function for initializing a `MigrationGuideConfiguration`` instance
     /// - Parameters:
     ///   - documentLocation: location of the API document of the previous version
     ///   - export: export options for the migration guide
@@ -51,7 +54,7 @@ public struct MigrationGuideConfiguration {
         .init(exportOptions: export, oldDocumentPath: documentLocation.path)
     }
     
-    /// A convenient static function for initializing a `MigrationGuideConfiguration` instance
+    /// A convenient static function for initializing a `MigrationGuideConfiguration`` instance
     /// - Parameters:
     ///   - migrationGuideLocation: location of previously generated and (potentially) adjusted migration guide
     ///   - export: export options for the migration guide
