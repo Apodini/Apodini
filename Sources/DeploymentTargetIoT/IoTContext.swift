@@ -117,17 +117,15 @@ enum IoTContext {
         detached: Bool = false,
         privileged: Bool = false,
         volumeDir: URL = dockerVolumeTmpDir,
-        port: Int = 8080) throws {
+        port: Int = -1) throws {
         var arguments: String {
             var args = [
                 "sudo",
                 "docker",
                 "run",
                 "--rm",
-                "--name",
-                containerName,
-                "-p",
-                "\(port):\(port)",
+                containerName.isEmpty ? "" : "--name \(containerName)",
+                port == -1 ? "" : "-p \(port):\(port)",
                 detached ? "-d" : "",
                 privileged ? "--privileged": "",
                 "-v",

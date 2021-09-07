@@ -50,6 +50,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     public let webServiceArguments: [String]
     
     public let automaticRedeployment: Bool
+    public let port: Int
     
     // Remove later
     public let dryRun = true
@@ -92,6 +93,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
     /// - Parameter additionalConfiguration: Manually add user-defined `ConfigurationStorage` that will be accessible by the `PostDiscoveryAction`s. Defaults to [:]
     /// - Parameter webServiceArguments: If your web service has its own arguments/options, pass them here, otherwise the deployment might fail. Defaults to [].
     /// - Parameter input: Specify if the deployment is done via docker or swift package.
+    /// - Parameter port: The port the deployed web service will listen on. Defaults to 8080
     public init(
         searchableTypes: [String],
         productName: String,
@@ -100,7 +102,8 @@ public class IoTDeploymentProvider: DeploymentProvider {
         automaticRedeployment: Bool,
         additionalConfiguration: [ConfigurationProperty: Any] = [:],
         webServiceArguments: [String] = [],
-        input: InputType
+        input: InputType,
+        port: Int = 8080
     ) {
         self.searchableTypes = searchableTypes
         self.productName = productName
@@ -110,6 +113,7 @@ public class IoTDeploymentProvider: DeploymentProvider {
         self.additionalConfiguration = additionalConfiguration
         self.webServiceArguments = webServiceArguments
         self.inputType = input
+        self.port = port
     }
     
     /// Runs the deployment
@@ -263,9 +267,10 @@ public class IoTDeploymentProvider: DeploymentProvider {
                 command: "\(flattenedWebServiceArguments) deploy startup iot \(volumeURL.path) --node-id \(node.id) --endpoint-ids \(handlerIds)",
                 device: device,
                 workingDir: remotePackageRootDir,
-                containerName: packageName,
+                containerName: productName,
                 detached: true,
-                privileged: true
+                privileged: true,
+                port: port
             )
         }
     }

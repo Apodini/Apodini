@@ -27,6 +27,9 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
     public var ipAddress: String
     
     @Option
+    public var port: Int = 8080
+    
+    @Option
     public var actionKeys: String
     
     @Argument(help: "The location of the json file")
@@ -69,7 +72,7 @@ public struct IoTStructureExporterCommand<Service: WebService>: StructureExporte
         let node = try DeployedSystemNode(
             id: ipAddress,
             exportedEndpoints: suitableEndpoints.convert(),
-            userInfo: IoTLaunchInfo(host: URL(string: docker ? remoteLocalhost : ipAddress)!, port: 8080)
+            userInfo: IoTLaunchInfo(host: URL(string: docker ? remoteLocalhost : ipAddress)!, port: port)
         )
         return try DeployedSystem(
             deploymentProviderId: iotDeploymentProviderId,
