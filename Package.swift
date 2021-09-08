@@ -103,7 +103,7 @@ let package = Package(
         // Apodini Observe
         .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.1.0")),
         .package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
-        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha")
+        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
