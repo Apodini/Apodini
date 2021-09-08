@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
+import ApodiniTypeInformation
+
 /// MIME type (Multipurpose Internet Mail Extensions) that expresses the format of a `Blob`
 public enum MimeType: Codable, Equatable, CustomStringConvertible {
     enum CodingKeys: CodingKey {
@@ -154,5 +156,24 @@ public enum MimeType: Codable, Equatable, CustomStringConvertible {
         try container.encode(type, forKey: .type)
         try container.encode(subtype, forKey: .subtype)
         try container.encode(parameters, forKey: .parameters)
+    }
+}
+
+// MARK: - MimeType + TypeInformationDefaultConstructor
+extension MimeType: TypeInformationDefaultConstructor {
+    /// Default type information representation
+    public static func construct() -> TypeInformation {
+        .object(
+            name: .init(Self.self),
+            properties: [
+                .init(name: string(.type), type: .scalar(.string)),
+                .init(name: string(.subtype), type: .scalar(.string)),
+                .init(name: string(.parameters), type: .dictionary(key: .string, value: .scalar(.string)))
+            ]
+        )
+    }
+    
+    private static func string(_ key: Self.CodingKeys) -> String {
+        key.stringValue
     }
 }

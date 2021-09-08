@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import ApodiniContext
 
 // MARK: KnowledgeSource
 
@@ -38,9 +39,9 @@ public enum LocationPreference {
 
 public enum KnowledgeError: Error, CustomDebugStringConvertible {
     /// An error thrown if a `KnowledgeSource` is requested from the wrong `Blackboard`, i.e. one that
-    /// cannot provide all `KnowledgeSource`s required to initilaize the former.
+    /// cannot provide all `KnowledgeSource`s required to initialize the former.
     case unsatisfiableDependency(String, String?)
-    /// An error thrown if  a `KnowledgeSource`'s initilaizer is called, but there is already an instance of
+    /// An error thrown if  a `KnowledgeSource`'s initializer is called, but there is already an instance of
     /// that type present on the `Blackboard`. This can be used to signalize to the `Blackboard`, that
     /// creation of the instance was delegated from the original initializer to some other `KnowledgeSource`.
     case instancePresent

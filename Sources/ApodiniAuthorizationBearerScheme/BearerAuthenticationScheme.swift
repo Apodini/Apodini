@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniAuthorization
 import ApodiniHTTPProtocol
+@_implementationOnly import ApodiniOpenAPISecurity
 
 /// The ``BearerAuthenticationScheme`` implements a Apodini `AuthenticationScheme` parsing the bearer authorization information.
 /// See RFC 6750 for more details on the Bearer token scheme.
@@ -22,12 +23,24 @@ public struct BearerAuthenticationScheme: AuthenticationScheme {
     @Throws(.unauthenticated)
     var unauthenticatedError: ApodiniError
 
+    public var required = false
+
     let realm: String?
     let scope: [String]
 
-    public init(realm: String? = nil, scope: [String] = []) {
+    public var name: String?
+    public var bearerFormat: String?
+    public var description: String?
+
+    public init(name: String? = nil, realm: String? = nil, scope: [String] = [], bearerFormat: String? = nil, description: String? = nil) {
+        self.name = name
         self.realm = realm
         self.scope = scope
+        self.bearerFormat = bearerFormat
+    }
+
+    public var metadata: Metadata {
+        Security(name: name, .http(scheme: "bearer", bearerFormat: bearerFormat), description: description, required: required)
     }
 
     public func deriveAuthenticationInfo() throws -> String? {

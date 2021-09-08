@@ -23,7 +23,7 @@ public extension ComponentMetadataNamespace {
 /// some sort of wire protocol to a single ``AuthenticationScheme/AuthenticationInfo`` instance, which
 /// can be used for further processing.
 ///
-/// An according ``AuthenticationVerifier`` (where `AuthenticationScheme/AuthenticationInfo`` equals
+/// An according ``AuthenticationVerifier`` (where ``AuthenticationScheme/AuthenticationInfo`` equals
 /// ``AuthenticationVerifier/AuthenticationInfo``) is then responsible for turning the AuthenticationInfo
 /// into the expected ``Authenticatable`` instance. This might include loading additional information
 /// form a database, or simply consist of parsing the input and execution some sort of integrity checks.
@@ -34,7 +34,7 @@ public extension ComponentMetadataNamespace {
 /// otherwise an appropriate, ``AuthenticationScheme`` defined `ApodiniError` will be returned.
 ///
 /// ## Accessing the authenticated and authorized `Authenticatable` instance
-/// Use the ``Authorize`` Apodini `Property` property to access the ``Authenticatable`` instance.
+/// Use the `ComponentMetadataNamespace/Authorize` Apodini `Property` property to access the ``Authenticatable`` instance.
 /// See the documentation of the property for an example.
 ///
 /// ## Example

@@ -126,29 +126,23 @@ class StructureExporterTests: ApodiniDeployTestCase {
         
         XCTAssertEqual(deployedSystem.deploymentProviderId, TestRuntime.identifier)
         let expectedNodes: [DeployedSystemNode] = [
-            try DeployedSystemNode(
+            DeployedSystemNode(
                 id: "myID",
                 exportedEndpoints: [
                     ExportedEndpoint(
                         handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                        handlerId: AnyHandlerIdentifier("0.0.0"),
-                        deploymentOptions: DeploymentOptions()
+                        handlerId: AnyHandlerIdentifier("0.0.0")
                     )
-                ],
-                userInfo: nil,
-                userInfoType: Null.self
+                ]
             ),
-            try DeployedSystemNode(
+            DeployedSystemNode(
                 id: "apiID",
                 exportedEndpoints: [
                     ExportedEndpoint(
                         handlerType: HandlerTypeIdentifier(rawValue: "Text"),
-                        handlerId: AnyHandlerIdentifier("0.1.0"),
-                        deploymentOptions: DeploymentOptions()
+                        handlerId: AnyHandlerIdentifier("0.1.0")
                     )
-                ],
-                userInfo: nil,
-                userInfoType: Null.self
+                ]
             )
         ]
         

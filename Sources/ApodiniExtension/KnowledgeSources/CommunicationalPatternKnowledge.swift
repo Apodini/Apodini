@@ -30,15 +30,34 @@ struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
     let value: CommunicationalPattern
     
     init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
-        if H.Response.self is CustomizableResponse.Type {
-            self.value = .bidirectionalStream
-        } else {
+        guard H.Response.self is CustomizableResponse.Type else {
             self.value = .requestResponse
+            return
+        }
+        
+        let isObserving = !blackboard[All<AnyObservedObject>.self].elements.isEmpty
+        let hasState = !blackboard[All<AnyState>.self].elements.isEmpty
+        let expectsInputStream = !blackboard[All<ConnectionEnvironment>.self].elements.isEmpty
+        
+        
+        if expectsInputStream {
+            if hasState {
+                // likely aggregates input
+                self.value = .clientSideStream
+            } else {
+                self.value = .bidirectionalStream
+            }
+        } else {
+            if isObserving {
+                self.value = .serviceSideStream
+            } else {
+                self.value = .requestResponse
+            }
         }
     }
 }
 
-/// This protocol is helps to detect if a `Handler.Response` type actually uses the
+/// This protocol helps to detect if a `Handler.Response` type actually uses the
 /// `Apodini.Response` struct.
 ///
 /// This is important for detecting the `AutomaticCommunicationalPattern` correctly.
@@ -49,3 +68,14 @@ private protocol CustomizableResponse { }
 extension Response: CustomizableResponse { }
 
 extension EventLoopFuture: CustomizableResponse where Value: CustomizableResponse { }
+
+/// This protocol helps to detect if a `Handler` can maintain state.
+private protocol AnyState { }
+
+extension State: AnyState { }
+
+/// This protocol helps to detect if a `Handler` has an `@Environment(\.connection)` that could
+/// help to detect when the input-stream ends.
+private protocol ConnectionEnvironment { }
+
+extension Environment: ConnectionEnvironment where Value == Connection, Key == Application { }

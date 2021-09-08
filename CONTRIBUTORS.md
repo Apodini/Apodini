@@ -26,3 +26,4 @@ Apodini contributors
 * [Philipp Zagar](https://github.com/philippzagar)
 * [Sadik Ekin Özbay](https://github.com/sadikekin)
 * [Magdalena Papagianni](https://github.com/MagdalenaPap)
+* [Hans Santoso](https://github.com/hansfilbert)

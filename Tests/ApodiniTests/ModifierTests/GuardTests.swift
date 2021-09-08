@@ -31,11 +31,13 @@ final class GuardTests: ApodiniTests {
         GuardTests.guardExpectation = self.expectation(description: "Guard is executed")
         
         struct TestWebService: WebService {
-            var version = Version(prefix: "v", major: 2, minor: 1, patch: 0)
-            
             var content: some Component {
                 Text("Hello")
                     .guard(TestGuard())
+            }
+
+            var metadata: Metadata {
+                Version(major: 2, minor: 1)
             }
 
             var configuration: Configuration {

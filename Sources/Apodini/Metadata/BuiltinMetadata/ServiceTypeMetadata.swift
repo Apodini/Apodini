@@ -27,7 +27,7 @@ public struct ServiceTypeContextKey: ContextKey {
 }
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `ServiceTypeHandlerMetadata`
+    /// Name definition for the `ServiceTypeHandlerMetadata`
     public typealias ServiceType = ServiceTypeHandlerMetadata
 }
 

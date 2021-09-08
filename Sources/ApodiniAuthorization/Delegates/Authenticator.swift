@@ -7,11 +7,12 @@
 //
 
 import Apodini
+@_implementationOnly import ApodiniOpenAPISecurity
 
 /// The ``Authenticator`` is the core Delegating Handler which orchestrates authentication and authorization.
 struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Handler {
     let type: AuthorizationType
-    let scheme: Delegate<Configuration.Scheme>
+    var scheme: Delegate<Configuration.Scheme>
     let verifier: Delegate<Configuration.Verifier>
     let requirements: AuthorizationRequirements<Configuration.Authenticatable>
     let skipRequirementsForAuthorized: Bool
@@ -31,8 +32,11 @@ struct Authenticator<H: Handler, Configuration: AuthorizationConfiguration>: Han
     @Authorized(Configuration.Authenticatable.self) var authenticatable
 
     init(_ configuration: Configuration, _ requirements: AuthorizationRequirements<Configuration.Authenticatable>, _ handler: H) {
+        var scheme = configuration.scheme
+        scheme.required = configuration.type == .required
+
         self.type = configuration.type
-        self.scheme = Delegate(configuration.scheme, type.optionality)
+        self.scheme = Delegate(scheme, type.optionality)
         self.verifier = Delegate(configuration.verifier, type.optionality)
         self.requirements = requirements
         self.skipRequirementsForAuthorized = configuration.skipRequirementsForAuthorized

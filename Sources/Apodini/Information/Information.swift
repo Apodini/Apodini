@@ -4,18 +4,19 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-/// A ``AnyInformation`` instance which is identified by a ``InformationKey``.
 /// An ``Information`` can be used to map arbitrary middleware specific Metadata into Apdoini,
 /// and make them accessible inside an ``Handler``.
+/// 
+/// Every ``Information`` instance is uniquely identified by a ``InformationKey``.
 /// ``Information`` instances are stored in the ``InformationSet`` of a `Request` or ``Response``.
 ///
 /// The following examples assume the existence of `ExampleInformation` (which is a ``InformationInstantiatable``)
 /// and `AnyExampleInformation` sharing the key `ExampleInformationKey`.
 /// Additionally we assume the custom defined subscript overload on the ``InformationSet`` `InformationSet[example: String]`.
 ///
-/// ## Retrieving ``Information`` instances
+/// ## Retrieving Information instances
 /// ```swift
 /// struct ExampleHandler: Handler {
 ///     @Environment(\.connection) var connection: Connection
@@ -32,7 +33,7 @@
 /// }
 /// ```
 ///
-/// ## Returning ``Information`` instances
+/// ## Returning Information instances
 /// ```swift
 /// struct ExampleHandler: Handler {
 ///     func handle() -> Response<String> {
@@ -86,13 +87,13 @@ public protocol Information: AnyInformation where Self: InformationClass {
     /// - Returns: The merged ``Information`` instance.
     func merge(with information: Self) -> Self
 
-    /// Enables developers to directly access properties of the ``value`` property using the ``Information``.
+    /// Enables developers to directly access properties of the ``value-4ijxx`` property using the ``Information``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Key.RawValue, Member>) -> Member { get }
 }
 
 // MARK: dynamicMemberLookup
 public extension Information {
-    /// Enables developers to directly access properties of the ``value`` property using the ``Information``.
+    /// Enables developers to directly access properties of the ``value-4ijxx`` property using the ``Information``.
     subscript<Member>(dynamicMember keyPath: KeyPath<Key.RawValue, Member>) -> Member {
         value[keyPath: keyPath]
     }

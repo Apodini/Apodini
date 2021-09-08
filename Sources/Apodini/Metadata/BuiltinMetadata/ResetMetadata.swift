@@ -7,7 +7,7 @@
 //              
 
 public extension HandlerMetadataNamespace {
-    /// Name Definition for the ``ResetMetadata``
+    /// Name definition for the ``ResetMetadata``
     typealias Reset = ResetMetadata
 }
 

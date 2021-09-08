@@ -33,10 +33,10 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
-        /// Set configartion of parent
+        /// Set configuration of parent
         self.configuration.parentConfiguration = parentConfiguration
         
-        /// Instanciate exporter
+        /// Instantiate exporter
         let openAPIExporter = OpenAPIInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -50,9 +50,9 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     
     let app: Apodini.Application
     var documentBuilder: OpenAPIDocumentBuilder
-    var exporterConfiguration: OpenAPI.ExporterConfiguration
+    let exporterConfiguration: OpenAPI.ExporterConfiguration
     
-    /// Initalize`OpenAPIInterfaceExporter` from `Application`
+    /// Initialize `OpenAPIInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: OpenAPI.ExporterConfiguration = OpenAPI.ExporterConfiguration()) {
         self.app = app
@@ -67,12 +67,6 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         documentBuilder.addEndpoint(endpoint)
-        
-        // Set version information from APIContextKey, if the version was not defined by developer.
-        if self.exporterConfiguration.version == nil {
-            self.exporterConfiguration.version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self)?.description
-            //updateStorage()
-        }
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
@@ -80,6 +74,18 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
+        if self.exporterConfiguration.version == nil {
+            // retrieve the web service Version if there wasn't specified separately for OpenAPI
+            self.exporterConfiguration.version = webService.context.get(valueFor: APIVersionContextKey.self).semVerString
+        }
+
+        exporterConfiguration.webServiceDescription = webService.context.get(valueFor: WebServiceDescriptionMetadata.self)
+        exporterConfiguration.termsOfService = webService.context.get(valueFor: TermsOfServiceMetadata.self)
+        exporterConfiguration.contact = webService.context.get(valueFor: ContactMetadata.self)
+        exporterConfiguration.license = webService.context.get(valueFor: LicenseMetadata.self)
+        exporterConfiguration.tags = webService.context.get(valueFor: TagDescriptionMetadata.self)
+        exporterConfiguration.externalDocumentation = webService.context.get(valueFor: WebServiceExternalDocumentationMetadata.self)
+
         serveSpecification()
         updateStorage()
     }

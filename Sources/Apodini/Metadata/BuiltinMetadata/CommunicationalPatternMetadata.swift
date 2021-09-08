@@ -29,7 +29,7 @@ public struct CommunicationalPatternContextKey: OptionalContextKey {
 }
 
 extension HandlerMetadataNamespace {
-    /// Name Definition for the `ComponentDescriptionMetadata`
+    /// Name definition for the `ComponentDescriptionMetadata`
     public typealias Pattern = CommunicationalPatternMetadata
 }
 

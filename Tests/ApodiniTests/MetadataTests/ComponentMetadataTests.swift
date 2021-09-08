@@ -247,7 +247,7 @@ final class ComponentMetadataTest: ApodiniTests {
     func testComponentMetadataOnWebService() {
         let visitor = SyntaxTreeVisitor()
         let webService = TestMetadataWebService()
-        webService.visit(visitor)
+        webService.accept(visitor)
 
         let context = visitor.currentNode.export()
 

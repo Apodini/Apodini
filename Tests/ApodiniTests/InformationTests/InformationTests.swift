@@ -223,8 +223,8 @@ final class InformationTests: XCTestCase {
         // All other headers should be marked as non-sensitive
         let cookies = AnyHTTPInformation(key: "Cookie", rawValue: "name=value; name2=value2")
         XCTAssertFalse(cookies.sensitive)
-
-        let expires = try AnyHTTPInformation(key: "Expires", rawValue: "Wed, 16 June 2021 11:42:00 GMT")
+            
+        let expires = AnyHTTPInformation(key: "Expires", rawValue: "Wed, 16 June 2021 11:42:00 GMT")
         XCTAssertFalse(expires.sensitive)
 
         let eTag = AnyHTTPInformation(key: "ETag", rawValue: "\"ABCDE\"")

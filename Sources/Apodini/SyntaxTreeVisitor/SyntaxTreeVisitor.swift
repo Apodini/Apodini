@@ -8,14 +8,6 @@
 
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
-/// The scope of a value associated with a `ContextKey`
-public enum Scope {
-    /// The value is only applied to the current `ContextNode` and discarded afterwards
-    case current
-    /// The value is applied to all following `ContextNodes`s located in the subtree of the current `ContextNode`
-    case environment
-}
-
 
 /// The `SyntaxTreeVisitable` makes a type discoverable by a `SyntaxTreeVisitor`.
 ///
@@ -90,6 +82,10 @@ public class SyntaxTreeVisitor: HandlerVisitor {
     public func addContext<C: OptionalContextKey>(_ contextKey: C.Type = C.self, value: C.Value, scope: Scope) {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
+
+    func visit<S: WebService>(webService: S) {
+        modelBuilder?.app.webServiceContext = currentNode.export()
+    }
     
     /// Called every time a new `Handler` is registered
     /// - Parameter handler: The `Handler` that is registered
@@ -97,13 +93,12 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
-        
-        let responseType = H.Response.Content.self
 
-        // Content Metadata is currently added to the Context of the Handler.
-        // Also, we currently do not recursively parse properties
-        let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
-        metadataContentVisitor(responseType)
+        if let contentType = H.Response.Content.self as? AnyStaticContentMetadataBlock.Type {
+            let parser = StandardMetadataParser()
+            contentType.collectMetadata(parser)
+            addContext(RootContextOfReturnTypeContextKey.self, value: parser.exportContext(), scope: .current)
+        }
         
         
         // build the final handler using the delegating handlers

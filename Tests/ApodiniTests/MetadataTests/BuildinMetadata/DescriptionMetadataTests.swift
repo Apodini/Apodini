@@ -57,14 +57,6 @@ final class DescriptionModifierTests: ApodiniTests {
         }
     }
 
-    struct TestComponentWithGroupDescription: Component {
-        var content: some Component {
-            Group("a") {
-                StringTestHandler()
-            }.description("Group Description")
-        }
-    }
-
     func testEndpointDescription() throws {
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -75,8 +67,8 @@ final class DescriptionModifierTests: ApodiniTests {
         visitor.finishParsing()
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -92,8 +84,8 @@ final class DescriptionModifierTests: ApodiniTests {
         visitor.finishParsing()
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
         XCTAssertEqual(contentDescription, "Content Description!")
@@ -109,24 +101,9 @@ final class DescriptionModifierTests: ApodiniTests {
         visitor.finishParsing()
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let contentDescription = endpoint[Context.self].get(valueFor: ContentDescriptionMetadata.self)
+        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: DescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
         XCTAssertEqual(contentDescription, "Content Description!")
-    }
-
-    func testComponentDescriptionModifier() throws {
-        let modelBuilder = SemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-        let testComponent = TestComponentWithGroupDescription()
-        Group {
-            testComponent.content
-        }.accept(visitor)
-        visitor.finishParsing()
-
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let customDescription = endpoint[Context.self].get(valueFor: DescriptionMetadata.self)
-
-        XCTAssertEqual(customDescription, "Group Description")
     }
 }

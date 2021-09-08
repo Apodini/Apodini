@@ -24,7 +24,7 @@ struct OpenAPIDocumentBuilder {
     init(configuration: OpenAPI.ExporterConfiguration) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &self.componentsObjectBuilder)
+        self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: self.componentsObjectBuilder)
     }
     
     mutating func addEndpoint<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -35,13 +35,19 @@ struct OpenAPIDocumentBuilder {
         OpenAPIKit.OpenAPI.Document(
             info: OpenAPIKit.OpenAPI.Document.Info(
                 title: configuration.title ?? "",
+                description: configuration.webServiceDescription,
+                termsOfService: configuration.termsOfService,
+                contact: configuration.contact,
+                license: configuration.license,
                 version: configuration.version ?? ""
             ),
             servers: configuration.serverUrls.map {
                 .init(url: $0)
             },
             paths: pathsObjectBuilder.pathsObject,
-            components: componentsObjectBuilder.componentsObject
+            components: componentsObjectBuilder.componentsObject,
+            tags: configuration.tags,
+            externalDocs: configuration.externalDocumentation
         )
     }
 }
