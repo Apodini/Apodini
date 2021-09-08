@@ -10,7 +10,7 @@ import Foundation
 import XCTApodini
 import ApodiniUtils
 
-class ParsableConfigurationTests: ApodiniDeployTestCase {
+class DeploymentCommandsTests: ApodiniDeployTestCase {
     private func executionTask(with args: [String]) throws -> Task {
         Task(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl,

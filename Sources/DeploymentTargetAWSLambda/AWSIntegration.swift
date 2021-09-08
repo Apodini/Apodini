@@ -105,7 +105,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         s3ObjectFolderKey: String,
         apiGatewayApiId: String,
         deleteOldApodiniLambdaFunctions: Bool,
-        tmpDirUrl: URL
+        tmpDirUrl: URL,
+        flattenedWebServiceArguments: String
     ) throws {
         guard !didRunDeployment else {
             fatalError("Cannot call '\(#function)' multiple times.")
@@ -160,7 +161,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 // create & add bootstrap file
                 let bootstrapFileContents = """
                 #!/bin/bash
-                ./\(lambdaExecutableUrl.lastPathComponent) deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
+                ./\(lambdaExecutableUrl.lastPathComponent) ${\(WellKnownEnvironmentVariables.webServiceArguments)} deploy startup aws-lambda ${\(WellKnownEnvironmentVariables.fileUrl)} ${\(WellKnownEnvironmentVariables.currentNodeId)}
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
@@ -222,7 +223,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 allFunctions: allFunctions,
                 s3BucketName: s3BucketName,
                 s3ObjectKey: s3ObjectKey,
-                apiGatewayApiId: apiGatewayApiId
+                apiGatewayApiId: apiGatewayApiId,
+                webServiceArguments: flattenedWebServiceArguments
             )
             nodeToLambdaFunctionMapping[node.id] = functionConfig
             
@@ -383,7 +385,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         allFunctions: [Lambda.FunctionConfiguration],
         s3BucketName: String,
         s3ObjectKey: String,
-        apiGatewayApiId: String
+        apiGatewayApiId: String,
+        webServiceArguments: String
     ) throws -> Lambda.FunctionConfiguration {
         // lambda allowed function names regex:
         // #"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?"#
@@ -398,7 +401,8 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         let lambdaEnv: Lambda.Environment = .init(variables: [
             WellKnownEnvironmentVariables.currentNodeId: node.id,
             WellKnownEnvironmentVariables.executionMode: WellKnownEnvironmentVariableExecutionMode.launchWebServiceInstanceWithCustomConfig,
-            WellKnownEnvironmentVariables.fileUrl: launchInfoFileUrl.lastPathComponent
+            WellKnownEnvironmentVariables.fileUrl: launchInfoFileUrl.lastPathComponent,
+            WellKnownEnvironmentVariables.webServiceArguments: webServiceArguments
         ])
         
         let executionRole = try fetchOrCreateLambdaExecutionRole(forApiGatewayWithId: apiGatewayApiId)
