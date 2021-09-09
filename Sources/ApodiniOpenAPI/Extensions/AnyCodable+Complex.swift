@@ -45,15 +45,6 @@ public extension AnyCodable {
             fatalError("Failed to serialize json encoded string: \(String(data: encoded, encoding: .utf8) ?? "<ERR>") [\(element)]: \(error)")
         }
 
-        #if DEBUG
-        do {
-            // verify that encoding works actually
-            _ = try encoder.encode(AnyCodable(json))
-        } catch {
-            fatalError("Failsafe failed: failed with \(error) to encoder OpenAPIKit AnyCodable\(json)!")
-        }
-        #endif
-
         return AnyCodable(json)
     }
 }
