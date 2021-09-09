@@ -18,6 +18,7 @@ struct GreetComponent: Component {
                 .rpcName("greetMe")
                 .response(EmojiTransformer())
                 .destination(of: greeterRelationship)
+                .identified(by: "greetMe")
         }
     }
 }

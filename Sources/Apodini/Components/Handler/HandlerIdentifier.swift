@@ -10,16 +10,13 @@ import Foundation
 
 private struct AllAnyHandlerIdentifiersAnchor: TruthAnchor {}
 
-/// A `KnowledgeSource` that initializes and holds all `AnyHandlerIdenfier`, by also asserting the uniqueness of them.
+/// A `KnowledgeSource` that initializes all `AnyHandlerIdenfier`, by also asserting the uniqueness of them.
 private struct AllAnyHandlerIdentifiers: KnowledgeSource {
     static var preference: LocationPreference { .global }
     
-    /// All registered `AnyHandlerIdentifer`'s of the web service
-    var anyHandlerIdentifiers: Set<AnyHandlerIdentifier>
-    
     /// `KnowledgeSource` initializer
     init<B>(_ blackboard: B) throws where B: Blackboard {
-        var anyHandlerIdentifiers: Set<AnyHandlerIdentifier> = []
+        var storage: Set<AnyHandlerIdentifier> = []
         
         for blackboard in blackboard[Blackboards.self][for: AllAnyHandlerIdentifiersAnchor.self] {
             let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
@@ -49,15 +46,13 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
             }
             
             let anyHandlerIdentifier = AnyHandlerIdentifier(rawValue)
-            let storage = anyHandlerIdentifiers.count
             
-            anyHandlerIdentifiers.insert(anyHandlerIdentifier)
+            guard storage.insert(anyHandlerIdentifier).inserted else {
+                preconditionFailure("Encountered a duplicated handler identifier: '\(rawValue)'. The explicitly specified identifiers must be unique")
+            }
             
-            Swift.assert(anyHandlerIdentifiers.count > storage, "Encountered a duplicated handler identifier: '\(rawValue)'. The explicitly specified identifiers must be unique")
             blackboard[AnyHandlerIdentifier.self] = anyHandlerIdentifier
         }
-        
-        self.anyHandlerIdentifiers = anyHandlerIdentifiers
     }
 }
 

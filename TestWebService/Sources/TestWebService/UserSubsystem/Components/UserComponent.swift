@@ -21,17 +21,20 @@ struct UserComponent: Component {
                 .guard(LogGuard())
                 .description("Returns `User` by id")
                 .relationship(to: greeterRelationship)
+                .identified(by: "getUserById")
             Group {
                 "post"
                     .relationship(name: "posts")
                 $postId
             } content: {
                 PostHandler(userId: $userId, postId: $postId)
+                    .identified(by: "getPost")
                     .guard(LogGuard())
             }
         }
         Group("authenticated") {
             AuthenticatedUserHandler()
+                .identified(by: "getAuthenticatedUser")
                 .guard(LogGuard())
                 .description("Returns the currently authenticated `User`")
         }

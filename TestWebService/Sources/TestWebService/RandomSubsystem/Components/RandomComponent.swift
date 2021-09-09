@@ -14,6 +14,7 @@ struct RandomComponent: Component {
     var content: some Component {
         Group("rand") {
             Random()
+                .identified(by: "getRandomInt")
                 .relationship(to: greeterRelationship)
         }
     }
