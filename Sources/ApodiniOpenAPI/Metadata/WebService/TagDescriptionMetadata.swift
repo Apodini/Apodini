@@ -18,7 +18,7 @@ public extension WebServiceMetadataNamespace {
     /// Name definition for the ``TagDescriptionMetadata``.
     typealias TagDescription = TagDescriptionMetadata
 
-    /// Defines a ``WebServiceMetadataBlock`` you can use to group your ``WebServiceMetadataNamespace/TagDescription`` Metadata.
+    /// Defines a ``WebServiceMetadataBlock`` you can use to group your `WebServiceMetadataNamespace/TagDescription` Metadata.
     ///
     /// ```swift
     /// struct ExampleWebService: WebService {

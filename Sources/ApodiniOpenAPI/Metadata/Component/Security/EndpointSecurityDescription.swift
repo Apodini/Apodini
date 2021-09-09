@@ -62,9 +62,3 @@ extension OpenAPISecurityType {
         return typed
     }
 }
-
-extension Dictionary where Key == String, Value == AnyEncodable {
-    func mapToOpenAPICodable() -> [String: AnyCodable] {
-        mapValues { AnyCodable($0.wrappedValue) }
-    }
-}

@@ -31,6 +31,10 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         func handle() -> String {
             "test"
         }
+
+        var metadata: Metadata {
+            Summary("This handler returns the string 'test'.")
+        }
     }
 
     func testPathBuilder() throws {
@@ -64,6 +68,8 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["second"])
+
+        XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.summary, "This handler returns the string 'test'.")
     }
     
     func testDefaultTagWithSinglePathParameter() throws {

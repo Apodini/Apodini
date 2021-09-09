@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import TypeInformationMetadata
 
 
 /// Types that can be returned from a `Handler`'s `handle` function should conform to `Content`.
