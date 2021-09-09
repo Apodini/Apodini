@@ -17,7 +17,7 @@ struct Migrator<Service: WebService>: ParsableCommand {
         CommandConfiguration(
             commandName: "migrator",
             abstract: "Root subcommand of `ApodiniMigrator`",
-            discussion: "Runs an Apodini web service based on the configurations of a subsubcommand",
+            discussion: "Starts or runs an Apodini web service based on the configurations of a subsubcommand",
             version: "0.1.0",
             subcommands: [
                 `default`,
@@ -35,11 +35,20 @@ struct Migrator<Service: WebService>: ParsableCommand {
 
 // MARK: - MigratorParsableSubcommand
 protocol MigratorParsableSubcommand: ParsableCommand {
-    func run(app: Application, mode: WebServiceExecutionMode) throws
+    associatedtype Service: WebService
+    
+    var webService: Service { get }
+    var runWebService: Bool { get }
+    
+    func run(app: Application) throws
 }
 
 extension MigratorParsableSubcommand {
     func run() throws {
-        try run(app: Application(), mode: .run)
+        try run(app: Application())
+    }
+    
+    func start(_ app: Application) throws {
+        try Service.start(mode: runWebService ? .run : .startup, app: app, webService: webService)
     }
 }

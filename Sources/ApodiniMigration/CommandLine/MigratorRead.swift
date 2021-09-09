@@ -12,6 +12,15 @@ import ArgumentParser
 
 // MARK: - MigratorRead
 struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
+    static var configuration: CommandConfiguration {
+        CommandConfiguration(
+            commandName: "read",
+            abstract: "A parsable command to export a local migration guide and the API document of the current version",
+            discussion: "Starts or runs the web service to export the migration guide",
+            version: "0.1.0"
+        )
+    }
+    
     @OptionGroup
     var migrationGuideExport: MigrationGuideExportOptions
     
@@ -21,16 +30,13 @@ struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
     @Option(help: "A local `path` (`absolute` or `relative`) pointing to the migration guide")
     var migrationGuidePath: String
     
-    static var configuration: CommandConfiguration {
-        CommandConfiguration(
-            commandName: "read",
-            abstract: "A parsable command to export a local migration guide and the API document of the current version",
-            discussion: "Runs an Apodini web service and exports the migration guide",
-            version: "0.1.0"
-        )
-    }
+    @OptionGroup
+    var webService: Service
     
-    func run(app: Application, mode: WebServiceExecutionMode) throws {
+    @Flag(help: "A flag that indicates whether the web service should run after executing the subcommand")
+    var runWebService = false
+    
+    func run(app: Application) throws {
         app.storage.set(
             MigrationGuideConfigStorageKey.self,
             to: .init(exportOptions: migrationGuideExport, migrationGuidePath: migrationGuidePath)
@@ -39,6 +45,6 @@ struct MigratorRead<Service: WebService>: MigratorParsableSubcommand {
             DocumentConfigStorageKey.self,
             to: .init(exportOptions: documentExport)
         )
-        try Service.start(mode: mode, app: app)
+        try start(app)
     }
 }

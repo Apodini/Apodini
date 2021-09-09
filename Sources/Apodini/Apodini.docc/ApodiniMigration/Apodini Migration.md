@@ -89,15 +89,15 @@ extension Event: TypeInformationDefaultConstructor {
 ## Command-line interface
 
 Once `Migrator` is registered in the `configuration` property of the Web Service, it automatically registers a `migrator` subcommand to the web service 
-consisting of three subsubcommands, which start and run your Apodini Web Service:
+consisting of three subsubcommands, which can start or run your Apodini Web Service:
 
 ```console
 $ swift run YourWebService migrator --help
 OVERVIEW: Root subcommand of `ApodiniMigrator`
 
-Runs an Apodini web service based on the configurations of a subsubcommand
+Starts or runs an Apodini web service based on the configurations of a subsubcommand
 
-USAGE: yourwebservice migrator <subcommand>
+USAGE: your-web-service migrator <subcommand>
 
 OPTIONS:
   --version               Show the version.
@@ -111,10 +111,18 @@ SUBCOMMANDS:
   compare                 A parsable command for generating the migration guide
 ```
 
-For the initial version of the Web Service `document` subsubcommand can be used as follows to run the web service and expose the document of the current version at `/api-document` endpoint as `yaml`:
+For the initial version of the Web Service `document` subsubcommand can be used as follows to expose the document of the current version at `./data` directory as `yaml`:
 
 ```console
-$ swift run YourWebService migrator document --doc-endpoint=api-document --doc-format=yaml
+$ swift run YourWebService migrator document --doc-directory=./data --doc-format=yaml
+info org.apodini.migrator : API Document exported at ./data/api_v1.0.0.yaml in yaml format
+```
+
+By default, `migrator` subsubcommands simply start the web service to execute migration related tasks and exit afterwards. If you want to additionally run 
+the web service via a `migrator` subsubcommand, include `--run-web-service` flag, e.g.: 
+
+```console
+$ swift run YourWebService migrator document --doc-endpoint=api-document --doc-format=yaml --run-web-service
 info org.apodini.migrator : API Document served at http://0.0.0.0:8080/api-document in yaml format
 notice codes.vapor.application : Server starting on http://0.0.0.0:8080
 ```
@@ -124,14 +132,14 @@ For the future versions of the Web Service, one can make use of either `read` or
 
 ```console
 $ swift run YourWebService migrator compare --old-document-path=./api_v1.0.0.yaml \
-> --doc-endpoint=api-document --doc-format=yaml --guide-endpoint=migration-guide
+> --doc-endpoint=api-document --doc-format=yaml --guide-endpoint=migration-guide --run-web-service
 info org.apodini.migrator : API Document served at http://0.0.0.0:8080/api-document in yaml format
 info org.apodini.migrator : Migration Guide served at http://0.0.0.0:8080/migration-guide in json format
 notice codes.vapor.application : Server starting on http://0.0.0.0:8080
 ```
 
 By default, configurations provided in source code in `configuration` property of the web service, overwrite the CLI arguments. 
-Hence, make sure to use empty `Migrator()` initializer when running the web service via `migrator` subcommand, and use the arguments as presented above. 
+Hence, make sure to use empty `Migrator()` initializer when running or starting the web service via `migrator` subcommand, and use the arguments as presented above. 
 Provided with a `Document` and a Migration guide, one can make use of `migrator` CLI (see [example](https://github.com/Apodini/ApodiniMigrator#apodinimigratorexample)) 
 to automatically generate or migrate an intermediary client library.
 
@@ -179,6 +187,3 @@ generates `JavaScript` methods, that handle type conversion at runtime during re
 Two versions of an example Apodini Web Service using `Migrator` configuration can be found in [`ApodiniMigratorExample`](https://github.com/Apodini/ApodiniMigratorExample).
 An overview on how to use `migrator` CLI to generate and migrate the intermediary client library of the example web service, is given in 
 [ApodiniMigrator](https://github.com/Apodini/ApodiniMigrator)
-
-
-

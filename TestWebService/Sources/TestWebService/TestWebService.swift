@@ -13,12 +13,16 @@ import ApodiniProtobuffer
 import ApodiniOpenAPI
 import ApodiniWebSocket
 import ApodiniMigration
+import ArgumentParser
 
 
 @main
 struct TestWebService: Apodini.WebService {
     let greeterRelationship = Relationship(name: "greeter")
 
+    @Argument(help: "Endpoint to expose OpenAPI specification")
+    var openApiEndpoint: String = "oas"
+    
     var content: some Component {
         // Hello World! 👋
         Text("Hello World! 👋")
@@ -37,7 +41,7 @@ struct TestWebService: Apodini.WebService {
         REST {
             OpenAPI(
                 outputFormat: .json,
-                outputEndpoint: "oas",
+                outputEndpoint: openApiEndpoint,
                 swaggerUiEndpoint: "oas-ui",
                 title: "The great TestWebService - presented by Apodini"
             )
@@ -49,8 +53,6 @@ struct TestWebService: Apodini.WebService {
         
         WebSocket()
         
-        Migrator(
-            documentConfig: .export(.endpoint("migrator-doc", format: .yaml))
-        )
+        Migrator()
     }
 }

@@ -188,9 +188,9 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private func handle<I: MigratorItem, E: ExportOptions>(_ migratorItem: I, with exportOptions: E) {
         let format = exportOptions.format
         let itemName = I.itemName
-        if let endpoint = exportOptions.endpoint {
-            let path = endpoint.pathComponents
-            app.vapor.app.get(path) { _ -> String in
+        if var endpoint = exportOptions.endpoint {
+            endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
+            app.vapor.app.get(endpoint.pathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")

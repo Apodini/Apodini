@@ -119,8 +119,6 @@ final class ApodiniMigratorTests: ApodiniTests {
     
     func testDocumentDirectoryExport() throws {
         let documentExport: DocumentExportOptions = .directory(testDirectory.string, format: .yaml)
-        XCTAssertNoThrow(try documentExport.validate())
-        
         Self.sut = MigratorConfiguration(documentConfig: .export(documentExport))
         
         start()
@@ -193,8 +191,6 @@ final class ApodiniMigratorTests: ApodiniTests {
             let migrationGuide = try response.content.decode(MigrationGuide.self, using: JSONDecoder())
             XCTAssertEqual(storedMigrationGuide, migrationGuide)
         }
-        
-        XCTAssertThrowsError(try documentExport.validate())
     }
     
     func testMigrationGuideReadFromResources() throws {
@@ -236,10 +232,10 @@ final class ApodiniMigratorTests: ApodiniTests {
         let commandType = MigratorDocument<MigratorWebService>.self
         var command = commandType.init()
         command.export = .directory(testDirectory.string)
+        command.webService = .init()
+        command.runWebService = false
         
-        XCTAssertNoThrow(try command.validate())
-        
-        try command.run(app: app, mode: .startup)
+        try command.run(app: app)
         
         XCTAssertEqual(commandType.configuration.commandName, "document")
         
@@ -257,10 +253,10 @@ final class ApodiniMigratorTests: ApodiniTests {
         command.documentExport = .directory(testDirectory.string)
         command.migrationGuideExport = .directory(testDirectory.string)
         command.oldDocumentPath = documentPath
+        command.webService = .init()
+        command.runWebService = false
         
-        XCTAssertNoThrow(try command.validate())
-        
-        try command.run(app: app, mode: .startup)
+        try command.run(app: app)
         
         XCTAssertEqual(commandType.configuration.commandName, "compare")
         
@@ -278,13 +274,15 @@ final class ApodiniMigratorTests: ApodiniTests {
         let commandType = MigratorRead<MigratorWebService>.self
         
         var command = commandType.init()
-        command.documentExport = .directory(testDirectory.string)
+        command.documentExport = .endpoint("api-document")
         command.migrationGuideExport = .directory(testDirectory.string)
         command.migrationGuidePath = guidePath
+        command.webService = .init()
+        command.runWebService = false
         
         XCTAssertNoThrow(try command.validate())
         
-        try command.run(app: app, mode: .startup)
+        try command.run(app: app)
         
         XCTAssertEqual(commandType.configuration.commandName, "read")
         

@@ -16,7 +16,7 @@ struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
         CommandConfiguration(
             commandName: "compare",
             abstract: "A parsable command for generating the migration guide",
-            discussion: "Compares the current API with a document of a previous version, and then runs the web service",
+            discussion: "Starts or runs the web service to compares the current API with a document of a previous version",
             version: "0.1.0"
         )
     }
@@ -30,7 +30,13 @@ struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
     @OptionGroup
     var documentExport: DocumentExportOptions
     
-    func run(app: Application, mode: WebServiceExecutionMode) throws {
+    @OptionGroup
+    var webService: Service
+    
+    @Flag(help: "A flag that indicates whether the web service should run after executing the subcommand")
+    var runWebService = false
+    
+    func run(app: Application) throws {
         app.storage.set(
             MigrationGuideConfigStorageKey.self,
             to: .init(exportOptions: migrationGuideExport, oldDocumentPath: oldDocumentPath)
@@ -39,6 +45,7 @@ struct MigratorCompare<Service: WebService>: MigratorParsableSubcommand {
             DocumentConfigStorageKey.self,
             to: .init(exportOptions: documentExport)
         )
-        try Service.start(mode: mode, app: app)
+        
+        try start(app)
     }
 }
