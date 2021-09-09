@@ -37,12 +37,16 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String
     
+    @Argument(parsing: .unconditionalRemaining, help:"CLI arguments of the web service")
+    var webServiceArguments: [String] = []
+    
     mutating func run() throws {
         let deploymentProvider = LocalhostDeploymentProvider(
             productName: productName,
             packageRootDir: URL(fileURLWithPath: inputPackageDir).absoluteURL,
             port: port,
-            endpointProcessesBasePort: endpointProcessesBasePort
+            endpointProcessesBasePort: endpointProcessesBasePort,
+            webServiceArguments: webServiceArguments
         )
         try deploymentProvider.run()
     }
@@ -63,6 +67,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     let port: Int
     // Starting number for the started child processes
     let endpointProcessesBasePort: Int
+    
+    let webServiceArguments: [String]
     
     private let fileManager = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
@@ -86,13 +92,14 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 "--endpoint-processes-base-port",
                 "\(self.endpointProcessesBasePort)"
             ],
+            webServiceCommands: webServiceArguments,
             as: LocalhostDeployedSystem.self
         )
 
         for node in deployedSystem.nodes {
             let task = Task(
                 executableUrl: executableUrl,
-                arguments: [
+                arguments: webServiceArguments + [
                     "deploy",
                     "startup",
                     "local",

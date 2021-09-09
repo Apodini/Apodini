@@ -12,7 +12,6 @@ import ApodiniDeployRuntimeSupport
 import DeploymentTargetLocalhostCommon
 import ArgumentParser
 import ApodiniOpenAPI
-import DeploymentTargetAWSLambdaCommon
 
 /// The default `StructureExporter` of the localhost deployment provider. This command is responsible for
 /// exporting the web service structure in a way that is understandable by the `LocalhostDeploymentProvider`.
@@ -44,11 +43,14 @@ public struct LocalhostStructureExporterCommand<Service: WebService>: StructureE
     @Option(help: "The port number for the first-launched child process")
     public var endpointProcessesBasePort: Int
     
+    @OptionGroup
+    public var webServiceWithArguments: Service
+    
     public func run() throws {
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
-        try Service.start(mode: .startup, app: app, webService: Service())
+        try webServiceWithArguments.start(mode: .startup, app: app)
     }
     
     public func retrieveStructure(

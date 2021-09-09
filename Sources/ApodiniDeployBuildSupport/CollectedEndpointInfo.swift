@@ -23,6 +23,9 @@ public enum WellKnownEnvironmentVariables {
     
     /// Key for an environment variable specifying the url of the directory used for ApodiniDeploy, either the outputURL or configURL
     public static let fileUrl = "AD_INPUT_FILE_PATH"
+    
+    /// Key for an environment variable specifiying potential arguments that have been defined in the web service.
+    public static let webServiceArguments = "AD_SERVICE_ARGUMENTS"
 }
 
 // swiftlint:disable type_name
