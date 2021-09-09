@@ -161,4 +161,10 @@ class StructureExporterTests: ApodiniDeployTestCase {
         
         app.shutdown()
     }
+    
+    func testWSStartForStructureExporters() {
+        let instance = TestWebService()
+        let application = Application()
+        XCTAssertNoThrow(try instance.start(mode: .startup, app: application))
+    }
 }
