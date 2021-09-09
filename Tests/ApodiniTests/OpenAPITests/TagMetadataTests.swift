@@ -10,13 +10,17 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
-final class TagModifierTests: ApodiniTests {
+final class TagMetadataTests: ApodiniTests {
     struct TestHandler: Handler {
         @Binding
         var name: String
 
         func handle() -> String {
             "Hello \(name)"
+        }
+
+        var metadata: Metadata {
+            Tags("tag1")
         }
     }
 
@@ -28,7 +32,7 @@ final class TagModifierTests: ApodiniTests {
             Group("register", $name) {
                 TestHandler(name: $name)
                     .tags("People_Register")
-            }
+            }.tags("tag3")
         }
     }
 
@@ -44,6 +48,6 @@ final class TagModifierTests: ApodiniTests {
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let tags = endpoint[Context.self].get(valueFor: TagContextKey.self)
     
-        XCTAssertEqual(tags, ["People_Register"])
+        XCTAssertEqual(tags, ["tag3", "tag1", "People_Register"])
     }
 }

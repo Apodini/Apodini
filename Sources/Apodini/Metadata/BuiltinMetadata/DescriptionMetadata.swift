@@ -25,11 +25,6 @@ extension HandlerMetadataNamespace {
     public typealias Description = HandlerDescriptionMetadata
 }
 
-extension ContentMetadataNamespace {
-    /// Name definition for the ``ContentDescriptionMetadata``
-    public typealias Description = ContentDescriptionMetadata
-}
-
 
 /// The ``WebServiceDescriptionMetadata`` can be used to add a Description to a ``WebService``.
 ///
@@ -68,28 +63,6 @@ public struct HandlerDescriptionMetadata: HandlerMetadataDefinition {
 
     /// Creates a new Description Metadata
     /// - Parameter description: The description for the Component.
-    public init(_ description: String) {
-        self.value = description
-    }
-}
-
-/// The ``ContentDescriptionMetadata`` can be used to add a Description to a ``Content``.
-///
-/// The Metadata is available under the `ContentMetadataNamespace/Description` name and can be used like the following:
-/// ```swift
-/// struct ExampleContent: Content {
-///     // ...
-///     var metadata: Metadata {
-///         Description("Example Description")
-///     }
-/// }
-/// ```
-public struct ContentDescriptionMetadata: ContentMetadataDefinition {
-    public typealias Key = DescriptionContextKey
-    public let value: String
-
-    /// Creates a new Description Metadata.
-    /// - Parameter description: The description for the Content Type.
     public init(_ description: String) {
         self.value = description
     }
