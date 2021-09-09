@@ -38,6 +38,9 @@ public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupComman
     
     @ArgumentParser.Argument(help: "The identifier of the deployment node")
     public var nodeId: String
+    
+    @ArgumentParser.OptionGroup
+    public var webServiceWithArguments: Service
 
     public var deployedSystemType: AnyDeployedSystem.Type {
         LambdaDeployedSystem.self
@@ -48,6 +51,6 @@ public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupComman
     public func run() throws {
         let app = Application()
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(mode: .run, app: app)
+        try webServiceWithArguments.start(mode: .run, app: app)
     }
 }

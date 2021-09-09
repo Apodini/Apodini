@@ -49,6 +49,9 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
     
     @ArgumentParser.Option
     var awsRegion: String = "eu-central-1"
+    
+    @ArgumentParser.OptionGroup
+    var webServiceWithArguments: Service
 
     public init() {}
     
@@ -65,7 +68,7 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
         let app = Apodini.Application()
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: self)
         
-        try Service.start(mode: .startup, app: app, webService: Service())
+        try webServiceWithArguments.start(mode: .startup, app: app)
     }
     
     public func retrieveStructure(

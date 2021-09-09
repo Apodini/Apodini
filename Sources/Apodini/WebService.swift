@@ -10,6 +10,7 @@ import Foundation
 import Logging
 import ArgumentParser
 
+
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
 public protocol WebService: AnyWebServiceMetadataBlock, Component, ConfigurationCollection, ParsableCommand {
     typealias Metadata = AnyWebServiceMetadata
@@ -80,7 +81,10 @@ extension WebService {
         try Self.start(mode: .run, webService: self)
     }
     
-    /// The command configuration of the `ParsableCommand`
+    /// The command configuration of the `ParsableCommand`.
+    /// The default value depends if there are arguments or options specified in the web service.
+    /// If so, it contains the default empty configuration.
+    /// If not, it automatically adds the commands of the specified `Configurations` as sub command.
     public static var configuration: CommandConfiguration {
         if let cachedConfiguration = _configuration { // Return the cached configuration if one is present.
             return cachedConfiguration

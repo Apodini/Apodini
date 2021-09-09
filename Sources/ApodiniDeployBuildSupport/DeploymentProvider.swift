@@ -113,6 +113,7 @@ extension DeploymentProvider {
         _ executableUrl: URL,
         providerCommand: String,
         additionalCommands: [String] = [],
+        webServiceCommands: [String] = [],
         as _ : T.Type = T.self) throws -> (URL, T) {
         let fileManager = FileManager()
         let logger = Logger(label: "ApodiniDeployCLI.\(providerCommand)")
@@ -124,7 +125,9 @@ extension DeploymentProvider {
         
         let retrieveStructureTask = Task(
             executableUrl: executableUrl,
-            arguments: [
+            arguments:
+                webServiceCommands +
+            [
                 "deploy",
                 "export-ws-structure",
                 providerCommand,

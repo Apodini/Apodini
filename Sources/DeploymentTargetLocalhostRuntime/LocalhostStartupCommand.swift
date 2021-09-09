@@ -39,6 +39,9 @@ public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCom
     @Argument(help: "The identifier of the deployment node")
     public var nodeId: String
     
+    @OptionGroup
+    var webServiceWithArguments: Service
+    
     public var deployedSystemType: AnyDeployedSystem.Type {
         LocalhostDeployedSystem.self
     }
@@ -47,7 +50,7 @@ public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCom
     public func run() throws {
         let app = Application()
         app.storage.set(DeploymentStartUpStorageKey.self, to: self)
-        try Service.start(mode: .run, app: app)
+        try webServiceWithArguments.start(mode: .run, app: app)
     }
     
     public init() {}
