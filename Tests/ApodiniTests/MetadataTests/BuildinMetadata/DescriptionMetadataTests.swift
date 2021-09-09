@@ -10,15 +10,9 @@ import XCTest
 @testable import Apodini
 
 final class DescriptionModifierTests: ApodiniTests {
-    struct TestContent: Content {
-        static var metadata: Metadata {
-            Description("Content Description!")
-        }
-    }
-
     struct TestHandler: Handler {
-        func handle() -> TestContent {
-            TestContent()
+        func handle() -> String {
+            "Hello World"
         }
 
         var metadata: Metadata {
@@ -68,10 +62,8 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
-        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
-        XCTAssertEqual(contentDescription, "Content Description!")
     }
 
     func testEndpointDescriptionModifier() throws {
@@ -85,10 +77,8 @@ final class DescriptionModifierTests: ApodiniTests {
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
-        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: ContentDescriptionMetadata.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
-        XCTAssertEqual(contentDescription, "Content Description!")
     }
     
     func testEndpointDefaultDescription() throws {
@@ -101,9 +91,7 @@ final class DescriptionModifierTests: ApodiniTests {
         visitor.finishParsing()
 
         let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
-        let contentDescription = endpoint[HandleReturnTypeRootContext.self].get(valueFor: DescriptionContextKey.self)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
-        XCTAssertEqual(contentDescription, "Content Description!")
     }
 }
