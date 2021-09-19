@@ -12,15 +12,30 @@ import Metrics
 /// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
 @propertyWrapper
 public struct Gauge: DynamicProperty {
-    let label: String
-    let dimensions: [(String, String)]
+    @State
+    private var builtGauge: Metrics.Gauge?
+    @ObserveMetadata
+    var observeMetadata
+    @State
+    var dimensions: [(String, String)]
     
-    public init(label: String, dimensions: [(String, String)]) {
+    let label: String
+    
+    public init(label: String, dimensions: [(String, String)] = []) {
         self.label = label
-        self.dimensions = dimensions
+        self._dimensions = State(wrappedValue: dimensions)
     }
     
     public var wrappedValue: Metrics.Gauge {
-        .init(label: self.label, dimensions: self.dimensions)
+        if self.builtGauge == nil {
+            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            self.builtGauge = .init(label: self.label, dimensions: self.dimensions)
+        }
+        
+        guard let builtGauge = self.builtGauge else {
+            fatalError("The Gauge isn't built correctly!")
+        }
+        
+        return builtGauge
     }
 }

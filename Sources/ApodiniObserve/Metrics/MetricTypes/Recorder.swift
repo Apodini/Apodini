@@ -12,17 +12,32 @@ import Metrics
 /// A wrapped version of the ``Metrics.Recorder`` of swift-metrics
 @propertyWrapper
 public struct Recorder: DynamicProperty {
+    @State
+    private var builtRecorder: Metrics.Recorder?
+    @ObserveMetadata
+    var observeMetadata
+    @State
+    var dimensions: [(String, String)]
+    
     let label: String
-    let dimensions: [(String, String)]
     let aggregate: Bool
     
-    public init(label: String, dimensions: [(String, String)], aggregate: Bool) {
+    public init(label: String, dimensions: [(String, String)] = [], aggregate: Bool = true) {
         self.label = label
-        self.dimensions = dimensions
+        self._dimensions = State(wrappedValue: dimensions)
         self.aggregate = aggregate
     }
     
     public var wrappedValue: Metrics.Recorder {
-        .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
+        if self.builtRecorder == nil {
+            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            self.builtRecorder = .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
+        }
+        
+        guard let builtRecorder = self.builtRecorder else {
+            fatalError("The Recorder isn't built correctly!")
+        }
+        
+        return builtRecorder
     }
 }

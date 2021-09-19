@@ -21,8 +21,19 @@ public struct ObserveMetadata: DynamicProperty {
     @Environment(\ExporterTypeObserveMetadata.value)
     var exporterMetadata
     
+    @State
+    private var builtMetadata: Value?
+    
     public var wrappedValue: Value {
-        (self.blackboardMetadata, self.exporterMetadata)
+        if self.builtMetadata == nil {
+            self.builtMetadata = (self.blackboardMetadata, self.exporterMetadata)
+        }
+        
+        guard let builtMetadata = self.builtMetadata else {
+            fatalError("The ObserveMetadata isn't built correctly!")
+        }
+        
+        return builtMetadata
     }
     
     public init() {}

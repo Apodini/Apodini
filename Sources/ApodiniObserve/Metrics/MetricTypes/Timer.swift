@@ -12,17 +12,34 @@ import Metrics
 /// A wrapped version of the ``Metrics.Timer`` of swift-metrics
 @propertyWrapper
 public struct Timer: DynamicProperty {
+    @State
+    private var builtTimer: Metrics.Timer?
+    @ObserveMetadata
+    var observeMetadata
+    @State
+    var dimensions: [(String, String)]
+    
     let label: String
-    let dimensions: [(String, String)]
     let displayUnit: TimeUnit
     
-    public init(label: String, dimensions: [(String, String)], preferredDisplayUnit displayUnit: TimeUnit = TimeUnit.milliseconds) {
+    public init(label: String, dimensions: [(String, String)] = [], preferredDisplayUnit displayUnit: TimeUnit = TimeUnit.milliseconds) {
         self.label = label
-        self.dimensions = dimensions
+        self._dimensions = State(wrappedValue: dimensions)
         self.displayUnit = displayUnit
     }
     
     public var wrappedValue: Metrics.Timer {
-        .init(label: self.label, dimensions: self.dimensions, preferredDisplayUnit: self.displayUnit)
+        if self.builtTimer == nil {
+            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            self.builtTimer = .init(label: self.label,
+                                    dimensions: self.dimensions,
+                                    preferredDisplayUnit: self.displayUnit)
+        }
+        
+        guard let builtTimer = self.builtTimer else {
+            fatalError("The Timer isn't built correctly!")
+        }
+        
+        return builtTimer
     }
 }

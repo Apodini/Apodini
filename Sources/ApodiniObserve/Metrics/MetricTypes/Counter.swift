@@ -12,15 +12,30 @@ import Metrics
 /// A wrapped version of the ``Metrics.Counter`` of swift-metrics
 @propertyWrapper
 public struct Counter: DynamicProperty {
-    let label: String
-    let dimensions: [(String, String)]
+    @State
+    private var builtCounter: Metrics.Counter?
+    @ObserveMetadata
+    var observeMetadata
+    @State
+    var dimensions: [(String, String)]
     
-    public init(label: String, dimensions: [(String, String)]) {
+    let label: String
+    
+    public init(label: String, dimensions: [(String, String)] = []) {
         self.label = label
-        self.dimensions = dimensions
+        self._dimensions = State(wrappedValue: dimensions)
     }
     
     public var wrappedValue: Metrics.Counter {
-        .init(label: self.label, dimensions: self.dimensions)
+        if self.builtCounter == nil {
+            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            self.builtCounter = .init(label: self.label, dimensions: self.dimensions)
+        }
+        
+        guard let builtCounter = self.builtCounter else {
+            fatalError("The Counter isn't built correctly!")
+        }
+        
+        return builtCounter
     }
 }
