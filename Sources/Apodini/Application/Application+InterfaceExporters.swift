@@ -22,18 +22,18 @@ extension Application {
         }
     }
     
-    private enum InterfaceExporerKey: StorageKey {
+    private enum InterfaceExporterKey: StorageKey {
         typealias Value = InterfaceExporterStorage
     }
     
     var interfaceExporters: [AnyInterfaceExporter] {
-        storage[InterfaceExporerKey.self]?.interfaceExporters ?? []
+        storage[InterfaceExporterKey.self]?.interfaceExporters ?? []
     }
     
     private var interfaceExporterStorage: InterfaceExporterStorage {
-        guard let exporterStorage = storage[InterfaceExporerKey.self] else {
+        guard let exporterStorage = storage[InterfaceExporterKey.self] else {
             let exporterStorage = InterfaceExporterStorage()
-            storage[InterfaceExporerKey.self] = exporterStorage
+            storage[InterfaceExporterKey.self] = exporterStorage
             return exporterStorage
         }
         return exporterStorage
