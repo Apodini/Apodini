@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "03e83e2332d13a3c06d5cd70948166e5724c43c7",
-          "version": "3.0.0"
+          "revision": "e7645362c051fb12c28ed290c6e7f6918596d25b",
+          "version": "3.1.0"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "ae12394e466f7fe44725655e763f7e603ed876b5",
-          "version": "1.4.0"
+          "revision": "8ec02e274b70afe9e6d2f39c49b7491d76cbc128",
+          "version": "1.8.0"
         }
       },
       {
@@ -87,8 +87,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "7d9982a788dc0bbc80937537a0e2b0a42d282202",
-          "version": "1.15.1"
+          "revision": "176f2b4b7c35a89dd756a5d6d8d5a8473bf92410",
+          "version": "1.15.2"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/vapor/multipart-kit.git",
         "state": {
           "branch": null,
-          "revision": "c9ea04017b7fb3b1f034ad7a77f8e53d3e080be5",
-          "version": "4.2.1"
+          "revision": "30f53439b52587b016a5e5b3dce7f50f686681be",
+          "version": "4.4.0"
         }
       },
       {
@@ -186,8 +186,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "693fc693b580a2c635c1457d09cbf54411691ffe",
-          "version": "5.7.0"
+          "revision": "3a8e82ac86a75e548504b6f5aeeeda209a4e7c27",
+          "version": "5.8.1"
         }
       },
       {
@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "98c7f11f9e66480984340950e7d0241c7456ac8e",
-          "version": "5.5.0"
+          "revision": "283f0de557995848c1fea5893124956084b433f8",
+          "version": "5.6.0"
         }
       },
       {
@@ -339,8 +339,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "4829979d9f5ed9a2f4c6efd9c1ed51d1ab4d0394",
-          "version": "2.14.1"
+          "revision": "2e74773972bd6254c41ceeda827f229bccbf1c0f",
+          "version": "2.15.0"
         }
       },
       {
@@ -357,8 +357,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "5113bfcb0dbcfaefdc043acd8e161046eb4fbb65",
-          "version": "4.48.4"
+          "revision": "69b0e257b1a86c1eaa1767563a093e208fdb8fab",
+          "version": "4.48.7"
         }
       },
       {
