@@ -77,9 +77,9 @@
         "package": "fluent-kit",
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
-          "branch": null,
-          "revision": "7d9982a788dc0bbc80937537a0e2b0a42d282202",
-          "version": "1.15.1"
+          "branch": "async-await",
+          "revision": "b3cb3845c3732fb39e6c579909b3d108d0bc3852",
+          "version": null
         }
       },
       {
@@ -249,8 +249,8 @@
         "repositoryURL": "https://github.com/swift-server/swift-aws-lambda-runtime.git",
         "state": {
           "branch": null,
-          "revision": "a9e15b13b30b6700056c4cfbdcf6a69382a9fb6f",
-          "version": "0.5.0"
+          "revision": "dc37adebe7f2311b8da67d977a0972a7614d88a7",
+          "version": "0.5.1"
         }
       },
       {
@@ -321,8 +321,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "9a992ee3de1f8da9f2968fc96b26714834f3105f",
-          "version": "2.31.1"
+          "revision": "fb48bdd8279799f655da5f8b4e0a21430eca6012",
+          "version": "2.32.3"
         }
       },
       {
