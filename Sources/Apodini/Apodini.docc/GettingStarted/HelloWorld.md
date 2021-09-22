@@ -70,7 +70,7 @@ Our `Greeter` defines a ``Parameter`` called `country`. The parameter must be of
 
 > Tip: See also: ``PathParameter`` express parameters that are exposed as part of the endpoint identifier (e.g. the HTTP URL).
 
-The ``Handler/handle()-1xtna`` function uses the ``Parameter`` to generate a response. In our case, this response is also of type `String`.
+The ``Handler`` function uses the ``Parameter`` to generate a response. In our case, this response is also of type `String`.
 
 ### Define Web Services
 
