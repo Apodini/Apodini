@@ -46,10 +46,14 @@ let package = Package(
         .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
         .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
         .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
-        //Observe
+        
+        // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
         .library(name: "ApodiniObserveMetricsPrometheus", targets: ["ApodiniObserveMetricsPrometheus"])
+        
+        // Migrator
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -104,6 +108,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.1.0")),
         .package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
+        // Apodini Migrator
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
@@ -166,6 +172,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniMigration"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
@@ -416,6 +423,17 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding")
+            ]
+        ),
+        
+        // ApodiniMigration
+        
+        .target(
+            name: "ApodiniMigration",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),
 

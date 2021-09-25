@@ -16,7 +16,7 @@ private struct TestContent: Content {
             TestVoidContentMetadata()
 
             // error: No exact matches in call to static method 'buildExpression'
-            Description("Hello World!")
+            TestOtherContentMetadata()
             
             ContentVoids {
                 TestVoidContentMetadata()

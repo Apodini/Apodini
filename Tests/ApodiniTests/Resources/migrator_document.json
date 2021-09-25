@@ -1,0 +1,17 @@
+{
+    "id": "24C6C9D9-35A6-4CC4-9AB2-19297A33E8F5",
+    "info": {
+        "serverPath": "",
+        "version": "v_1.0.0",
+        "encoderConfiguration": {
+            "dateEncodingStrategy": "deferredToDate",
+            "dataEncodingStrategy": "base64"
+        },
+        "decoderConfiguration": {
+            "dateDecodingStrategy": "deferredToDate",
+            "dataDecodingStrategy": "base64"
+        }
+    },
+    "endpoints": [],
+    "components": {}
+}

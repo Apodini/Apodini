@@ -38,3 +38,8 @@ struct TestVoidContentMetadata: ContentMetadataDefinition {
     typealias Key = TestVoidContextKey
     var value: Void = ()
 }
+
+struct TestOtherContentMetadata: ContentMetadataDefinition {
+    typealias Key = TestVoidContextKey
+    var value: Void = ()
+}

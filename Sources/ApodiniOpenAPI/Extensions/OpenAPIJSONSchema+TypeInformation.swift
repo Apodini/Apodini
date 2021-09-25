@@ -31,7 +31,9 @@ extension JSONSchema {
         case let .optional(wrappedValue):
             return from(typeInformation: wrappedValue).optionalSchemaObject()
         case let .enum(_, _, cases, _):
+            let context = typeInformation.context
             return .string(allowedValues: cases.map { .init($0.name) })
+                .evaluateModifications(containedIn: context) // enums only have limited support for Metadata modifications as they are strings
         case .object, .reference:
             return .reference(.component(named: typeInformation.jsonSchemaName()))
         }

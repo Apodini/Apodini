@@ -33,7 +33,8 @@ let package = Package(
                 .product(name: "ApodiniProtobuffer", package: "Apodini"),
                 .product(name: "ApodiniOpenAPI", package: "Apodini"),
                 .product(name: "ApodiniWebSocket", package: "Apodini"),
-                .product(name: "ApodiniNotifications", package: "Apodini")
+                .product(name: "ApodiniNotifications", package: "Apodini"),
+                .product(name: "ApodiniMigration", package: "Apodini")
             ]
         ),
         .testTarget(

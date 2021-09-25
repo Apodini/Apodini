@@ -84,25 +84,67 @@ extension OpenAPIComponentsObjectBuilder {
     /// Builds the schema for a type and returns it together with a suitable title.
     private func buildSchemaWithTitle(for type: Any.Type) throws -> (JSONSchema, String) {
         let rootTypeInformation = try TypeInformation(type: type)
-        
+
+        // OpenAPIKit stores the requiredness of property INSIDE the property and not in the .object schema.
+        // Therefore, having a .reference property which is optional DOES NOT WORK.
+        // This is something which will/is addressed in an alpha version of OpenAPIKit.
+        // To workaround that, we will just dereference such objects.
+        var optionalObjectProperties: [String: [String]] = [:]
+
+        var pendingModifications: [OpenAPIKit.OpenAPI.ComponentKey: JSONSchemeModification] = [:]
+
         rootTypeInformation.allTypes().forEach { typeInformation in
             let schema: JSONSchema = .from(typeInformation: typeInformation)
             let schemaName = typeInformation.jsonSchemaName()
+
             if schema.isReference && !schemaExists(for: schemaName) {
                 let properties = typeInformation.objectProperties.reduce(into: [String: JSONSchema]()) { result, current in
-                    result[current.name] = .from(typeInformation: current.type)
+                    let schema: JSONSchema = .from(typeInformation: current.type)
+                    result[current.name] = schema
+
+                    if current.type.isOptional && schema.isReference {
+                        optionalObjectProperties[schemaName, default: []].append(current.name)
+                    }
                 }
+
+                var pendingModification: JSONSchemeModification?
+
                 let schemaObject: JSONSchema = .object(title: schema.title, properties: properties)
-                saveSchema(name: schemaName, schema: schemaObject)
+                    .evaluateModifications(
+                        containedIn: typeInformation.context,
+                        writingPendingPropertyProcessingInto: &pendingModification
+                    )
+
+                let key = saveSchema(name: schemaName, schema: schemaObject)
+
+                if let pendingModification = pendingModification {
+                    pendingModifications[key] = pendingModification
+                }
             }
         }
-        
+
+        for (key, properties) in optionalObjectProperties {
+            let updatedSchema = try fixOptionalObjectProperties(for: key, optionalObjectProperties: properties)
+            componentsObject.schemas[.init(stringLiteral: key)] = updatedSchema
+        }
+
+        // property modifications are also evaluated last, as they might overwrite metadata inside the type.
+        for (key, modification) in pendingModifications {
+            let resultingScheme = try modification.completePendingModifications(for: key, in: componentsObject)
+            componentsObject.schemas[key] = resultingScheme // update the scheme (properties might have changed)
+        }
+
+        // below will always generate a .reference or something without a `Context`.
+        // Therefore everything is fine and we don't need to evaluate modifications.
         return (.from(typeInformation: rootTypeInformation), rootTypeInformation.jsonSchemaName(isRoot: true))
     }
     
     /// Saves a schema into componentsObject.
-    private func saveSchema(name: String, schema: JSONSchema) {
-        componentsObject.schemas[componentKey(for: name)] = schema
+    @discardableResult
+    private func saveSchema(name: String, schema: JSONSchema) -> OpenAPIKit.OpenAPI.ComponentKey {
+        let key = componentKey(for: name)
+        componentsObject.schemas[key] = schema
+        return key
     }
     
     /// Checks if schema is already part of componentsObject.
@@ -117,6 +159,37 @@ extension OpenAPIComponentsObjectBuilder {
             fatalError("Failed to set component key \(name) in OpenAPI components.")
         }
         return componentKey
+    }
+
+    private func fixOptionalObjectProperties(for key: String, optionalObjectProperties: [String]) throws -> JSONSchema {
+        guard let schema = componentsObject.schemas[.init(stringLiteral: key)] else {
+            fatalError("Schema \(key) got lost. Tried evaluating property modifications.")
+        }
+        guard case let .object(_, objectContext) = schema else {
+            preconditionFailure("Unexpected non object with properties!")
+        }
+
+        var updatedProperties: [String: JSONSchema] = objectContext.properties
+
+        for propertyName in optionalObjectProperties {
+            guard let property = try updatedProperties[propertyName]?.rootDereference(in: componentsObject) else {
+                fatalError("Unexpected property: \(propertyName)!")
+            }
+            precondition(property.isObject, "Found non object property!")
+
+            let propertyModification = JSONSchemeModification(
+                root: PropertyModification(context: CoreContext.self, property: .required, value: false)
+            )
+
+            updatedProperties[propertyName] = propertyModification(on: property)
+        }
+
+        let modification = JSONSchemeModification(
+            root: PropertyModification(context: ObjectContext.self, property: .properties, value: updatedProperties)
+        )
+
+
+        return modification(on: schema)
     }
 }
 
