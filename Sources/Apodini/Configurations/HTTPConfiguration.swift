@@ -15,7 +15,7 @@ import NIO
 /// function `address`
 public final class HTTPConfiguration: Configuration {
     enum Defaults {
-        static let hostname = "0.0.0.0"
+        static let hostname = "localhost"
         static let port = 8080
     }
     
@@ -44,7 +44,7 @@ public final class HTTPConfiguration: Configuration {
         do {
             switch (hostname, port, bind, socketPath) {
             case (.none, .none, .none, .none):
-                self.address = nil
+                self.address = .hostname(Defaults.hostname, port: Defaults.port)
             case (.none, .none, .none, .some(let socketPath)):
                 self.address = .unixDomainSocket(path: socketPath)
             case (.none, .none, .some(let address), .none):
@@ -53,7 +53,7 @@ public final class HTTPConfiguration: Configuration {
                 let port = components.last.flatMap { Int($0) }
                 self.address = .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
-                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
+                self.address = .hostname(hostname, port: port)
             default:
                 throw HTTPConfigurationError.incompatibleFlags
             }

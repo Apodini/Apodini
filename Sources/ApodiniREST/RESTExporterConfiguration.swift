@@ -12,32 +12,35 @@ import Vapor
 extension REST {
     /// Configuration of the RESTful Interface
     public struct Configuration {
-        let configuration: HTTPServer.Configuration
-        let bindAddress: Vapor.BindAddress
+        let bindAddress: Apodini.BindAddress
         let uriPrefix: String
 
-        init(_ configuration: HTTPServer.Configuration) {
-            self.configuration = configuration
-            self.bindAddress = configuration.address
+        init(_ configuration: Apodini.Application.HTTP) {
+            guard let address = configuration.address else {
+                self.bindAddress = .hostname("localhost", port: 8080)
+                self.uriPrefix = ""
+                return
+            }
+            self.bindAddress = address
 
             switch bindAddress {
-            case .hostname:
+            case let .hostname(configuredHost, port: configuredPort):
                 let httpProtocol: String
                 var port = ""
 
                 if configuration.tlsConfiguration == nil {
                     httpProtocol = "http://"
-                    if configuration.port != 80 {
-                        port = ":\(configuration.port)"
+                    if configuredPort != 80 {
+                        port = ":\(configuredPort!)"
                     }
                 } else {
                     httpProtocol = "https://"
-                    if configuration.port != 443 {
-                        port = ":\(configuration.port)"
+                    if configuredPort != 443 {
+                        port = ":\(configuredPort!)"
                     }
                 }
 
-                self.uriPrefix = httpProtocol + configuration.hostname + port
+                self.uriPrefix = httpProtocol + configuredHost! + port
             case let .unixDomainSocket(path):
                 let httpProtocol: String
 

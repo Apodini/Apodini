@@ -97,9 +97,6 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
             hostName = configuredHost
             port = configuredPort
-        } else {
-            hostName = app.vapor.app.http.server.configuration.hostname
-            port = app.vapor.app.http.server.configuration.port
         }
         if let hostName = hostName, let port = port, let url = URL(string: "\(isHttps ? "https" : "http")://\(hostName):\(port)") {
             self.exporterConfiguration.serverUrls.insert(url)
