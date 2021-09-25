@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "7daeaf83310f53bc4e5a124a987f7dba95c72666",
-          "version": "0.1.0"
+          "revision": "f298a3d8961ba6059f99d3277597a11e2e197352",
+          "version": "0.1.1"
         }
       },
       {
@@ -267,8 +267,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "83b23d940471b313427da226196661856f6ba3e0",
-          "version": "0.4.4"
+          "revision": "d2930e8fcf9c33162b9fcc1d522bc975e2d4179b",
+          "version": "1.0.1"
         }
       },
       {
@@ -294,8 +294,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "9d8719c8bebdc79740b6969c912ac706eb721d7a",
-          "version": "0.0.7"
+          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
+          "version": "1.0.1"
         }
       },
       {
@@ -330,8 +330,8 @@
         "repositoryURL": "https://github.com/apple/swift-metrics.git",
         "state": {
           "branch": null,
-          "revision": "e382458581b05839a571c578e90060fff499f101",
-          "version": "2.1.1"
+          "revision": "3edd2f57afc4e68e23c3e4956bc8b65ca6b5b2ff",
+          "version": "2.2.0"
         }
       },
       {

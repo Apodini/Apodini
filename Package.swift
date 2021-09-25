@@ -79,8 +79,8 @@ let package = Package(
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "0.0.4")),
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.0.0")),
+        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
@@ -105,7 +105,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Apodini Observe
-        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.1.0")),
+        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
         .package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         // Apodini Migrator
