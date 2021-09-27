@@ -53,7 +53,7 @@ public final class HTTPConfiguration: Configuration {
                 let port = components.last.flatMap { Int($0) }
                 self.address = .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
-                self.address = .hostname(hostname, port: port)
+                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             default:
                 throw HTTPConfigurationError.incompatibleFlags
             }
