@@ -15,13 +15,13 @@ extension REST {
         let bindAddress: Apodini.BindAddress
         let uriPrefix: String
 
-        init(_ configuration: Apodini.Application.HTTP) {
-            guard let address = configuration.address else {
-                self.bindAddress = .hostname("localhost", port: 8080)
-                self.uriPrefix = ""
-                return
+        init(_ app: Apodini.Application) {
+            // Default initialization
+            if app.http.address == nil {
+                HTTPConfiguration.init().configure(app)
             }
-            self.bindAddress = address
+            let configuration = app.http
+            self.bindAddress = configuration.address!
 
             switch bindAddress {
             case let .hostname(configuredHost, port: configuredPort):
