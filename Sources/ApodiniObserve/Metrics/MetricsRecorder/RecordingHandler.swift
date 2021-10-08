@@ -57,7 +57,7 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
         let loggingMetadata = _logger.loggingMetadata
         let observeMetadata = _logger.observeMetadata
         
-        logger.info("Incoming request for endpoint \(observeMetadata.0.endpointName) via \(String(describing: observeMetadata.1.exporterType))")
+        logger.info("Incoming request for endpoint \(observeMetadata.blackboardMetadata.endpointName) via \(String(describing: observeMetadata.exporterMetadata.exporterType))")
         
         // Execute "before" and defer "after" recording closures
         recorderInstance.before.forEach { $0(observeMetadata, loggingMetadata, &dictionary) }

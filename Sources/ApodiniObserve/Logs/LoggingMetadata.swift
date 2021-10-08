@@ -46,7 +46,7 @@ public struct LoggingMetadata: DynamicProperty {
         } else {
             // Connection stays open since these communicational patterns allow for any amount of client messages
             // Therfore the metadata chould have changed and we need to reevaluate it
-            switch self.observeMetadata.0.communicationalPattern {
+            switch self.observeMetadata.blackboardMetadata.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Write connection metadata
                 builtMetadata["connection"] = .dictionary(self.connectionMetadata)
@@ -69,26 +69,26 @@ public struct LoggingMetadata: DynamicProperty {
 private extension LoggingMetadata {
     private var endpointMetadata: Logger.Metadata {
         [
-            "name": .string(self.observeMetadata.0.endpointName),
-            "parameters": .array(self.observeMetadata.0.endpointParameters.map { parameter in
+            "name": .string(self.observeMetadata.blackboardMetadata.endpointName),
+            "parameters": .array(self.observeMetadata.blackboardMetadata.endpointParameters.map { parameter in
                     .string(parameter.debugDescription)
             }),
-            "operation": .string(self.observeMetadata.0.operation.description),
-            "endpointPath": .string(self.observeMetadata.0.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-                partialResult.append(contentsOf: endpointPath.description)
-            })),
-            "version": .string(self.observeMetadata.0.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
-            "handlerType": .string(String(describing: self.observeMetadata.0.anyEndpointSource.handlerType)),
-            "handlerReturnType": .string(String(describing: self.observeMetadata.0.handleReturnType.type)),
-            "serviceType": .string(self.observeMetadata.0.serviceType.rawValue),
-            "communicationalPattern": .string(self.observeMetadata.0.communicationalPattern.rawValue)
+            "operation": .string(self.observeMetadata.blackboardMetadata.operation.description),
+            "endpointPath": .string(String(self.observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
+                partialResult.append(contentsOf: endpointPath.description + "<")
+            }).dropLast())),
+            "version": .string(self.observeMetadata.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
+            "handlerType": .string(String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType)),
+            "handlerReturnType": .string(String(describing: self.observeMetadata.blackboardMetadata.handleReturnType.type)),
+            "serviceType": .string(self.observeMetadata.blackboardMetadata.serviceType.rawValue),
+            "communicationalPattern": .string(self.observeMetadata.blackboardMetadata.communicationalPattern.rawValue)
         ]
     }
     
     private var exporterMetadata: Logger.Metadata {
         [
-            "type": .string(String(describing: self.observeMetadata.1.exporterType)),
-            "parameterNamespace": .array(self.observeMetadata.1.parameterNamespace.map { .string($0.description) })
+            "type": .string(String(describing: self.observeMetadata.exporterMetadata.exporterType)),
+            "parameterNamespace": .array(self.observeMetadata.exporterMetadata.parameterNamespace.map { .string($0.description) })
         ]
     }
     
@@ -125,7 +125,7 @@ private extension LoggingMetadata {
         builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
         builtRequestMetadata["debugDescription"] = .string(request.debugDescription.count < 32_768 ? request.debugDescription : "\(request.debugDescription.prefix(32_715))... (further bytes omitted since description too large!")
         
-        let parameterMetadata = self.observeMetadata.0.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
+        let parameterMetadata = self.observeMetadata.blackboardMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
             if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
                 partialResult[String(parameter.0.dropFirst())] = Self.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
             } else {

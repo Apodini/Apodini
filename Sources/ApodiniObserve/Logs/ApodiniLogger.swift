@@ -47,26 +47,57 @@ public struct ApodiniLogger: DynamicProperty {
     private let logLevel: Logger.Level?
     /// A user-defined label of the built ``Logger``, else a standard default value
     private let label: String?
+    /// A user-defined factory for the ``Logger``
+    private let logHandler: ((String) -> LogHandler)?
+    /// A user-defined level of automatic metadata aggregation
+    private let metadataLevel: MetadataLevel
+    
+    /// Creates a new `@ApodiniLogger`
+    public init() {
+        self.init(logLevel: nil)
+    }
+    
+    /// Creates a new `@ApodiniLogger`with further user-defined configurations
+    public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil, metadataLevel: MetadataLevel = .all, logHandler: ((String) -> LogHandler)? = nil) {
+        self.id = id
+        self.logLevel = logLevel
+        self.label = label
+        self.metadataLevel = metadataLevel
+        self.logHandler = logHandler
+    }
     
     public var wrappedValue: Logger {
         let observeMetadata = self.observeMetadata
         
         if builtLogger == nil {
-            if let label = label {
+            var label: String
+            if let customLabel = self.label {
                 // User-defined label of logger
-                builtLogger = .init(label: "org.apodini.observe.\(label)")
+                label = "org.apodini.observe.\(customLabel)"
             } else {
-                // org.apodini.observe.<Handler>.<Exporter>
-                builtLogger = .init(label: "org.apodini.observe.\(observeMetadata.0.endpointName).\(String(describing: observeMetadata.1.exporterType))")
+                // Automatically created label in the form of org.apodini.observe.<Handler>.<Exporter>
+                label = "org.apodini.observe.\(observeMetadata.blackboardMetadata.endpointName).\(String(describing: observeMetadata.exporterMetadata.exporterType))"
+            }
+            
+            // If user-defined logging factory (loghandler) is passed
+            if let customLogHandler = self.logHandler {
+                builtLogger = .init(label: label, factory: customLogHandler)
+            } else {
+                builtLogger = .init(label: label)
             }
             
             // Stays consitent over the lifetime of the associated handler
             builtLogger?[metadataKey: "logger-uuid"] = .string(self.id.uuidString)
             
             // Insert built metadata into the logger
-            loggingMetadata.forEach { metadataKey, metadataValue in
-                builtLogger?[metadataKey: metadataKey] = metadataValue
-            }
+            loggingMetadata
+                // User-defined setting what metadata should be automatically aggregated
+                .filter{ metadataKey, _ in
+                    self.metadataLevel.metadataKeys.contains(metadataKey)
+                }
+                .forEach { metadataKey, metadataValue in
+                    builtLogger?[metadataKey: metadataKey] = metadataValue
+                }
             
             /// Prio 1: User specifies a `Logger.LogLevel` in the property wrapper for a specific `Handler`
             if let logLevel = self.logLevel {
@@ -75,7 +106,7 @@ public struct ApodiniLogger: DynamicProperty {
                 // If logging level is configured gloally
                 if let globalConfiguredLogLevel = storage.get(LoggerConfiguration.LoggingStorageKey.self)?.configuration.logLevel {
                     if logLevel < globalConfiguredLogLevel {
-                        logger.warning("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
+                        logger.warning("The global configured logging level is \(globalConfiguredLogLevel.rawValue) but Handler \(observeMetadata.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the configured global logging level")
                     }
                 // If logging level is automatically set to a default value
                 } else {
@@ -87,7 +118,7 @@ public struct ApodiniLogger: DynamicProperty {
                     #endif
                     
                     if logLevel < globalLogLevel {
-                        logger.warning("The global default logging level is \(globalLogLevel.rawValue) but Handler \(observeMetadata.0.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
+                        logger.warning("The global default logging level is \(globalLogLevel.rawValue) but Handler \(observeMetadata.blackboardMetadata.endpointName) has logging level \(logLevel.rawValue) which is lower than the global default logging level")
                     }
                 }
             }
@@ -105,13 +136,17 @@ public struct ApodiniLogger: DynamicProperty {
             }
         } else {
             // Connection stays open since these communicational patterns allow for any amount of client messages
-            switch observeMetadata.0.communicationalPattern {
+            switch observeMetadata.blackboardMetadata.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Insert built metadata into the logger
                 loggingMetadata
                     // Filter for metadata that could have changed
                     .filter { metadataKey, _ in
                         metadataKey == "connection" || metadataKey == "request"
+                    }
+                    // User-defined setting what metadata should be automatically aggregated
+                    .filter{ metadataKey, _ in
+                        self.metadataLevel.metadataKeys.contains(metadataKey)
                     }
                     .forEach { metadataKey, metadataValue in
                         builtLogger?[metadataKey: metadataKey] = metadataValue
@@ -126,21 +161,25 @@ public struct ApodiniLogger: DynamicProperty {
         
         return builtLogger
     }
+}
+
+///
+public enum MetadataLevel {
+    case all
+    case reduced
+    case none
+    case custom(metadata: [String])
     
-    /// Private initializer
-    private init(id: UUID, logLevel: Logger.Level? = nil, label: String? = nil) {
-        self.id = id
-        self.logLevel = logLevel
-        self.label = label
-    }
-    
-    /// Creates a new `@ApodiniLogger` and specifies a `Logger.Level`
-    public init(id: UUID = UUID(), logLevel: Logger.Level) {
-        self.init(id: id, logLevel: logLevel, label: nil)
-    }
-    
-    /// Creates a new `@ApodiniLogger` and specifies a `Logger.Level`and a label of the `Logger`
-    public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil) {
-        self.init(id: id, logLevel: logLevel, label: label)
+    var metadataKeys: [String] {
+        switch self {
+        case .all:
+            return ["connection", "request", "information", "endpoint", "exporter"]
+        case .reduced:
+            return ["request", "endpoint", "exporter"]
+        case .none:
+            return []
+        case .custom(let customMetadata):
+            return customMetadata
+        }
     }
 }

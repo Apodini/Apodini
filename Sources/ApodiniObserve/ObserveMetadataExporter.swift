@@ -54,7 +54,7 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
         
         // Information which is required for the LoggingMetadata of the ApodiniLogger
         let blackboardMetadata = BlackboardObserveMetadata.BlackboardObserveMetadata(
-            endpointName: endpoint.description,
+            endpointName: Self.extractRawEndpointName(endpoint.description),
             endpointParameters: endpoint[EndpointParameters.self],
             parameters: endpoint[All<ParameterRetriever>.self].elements,
             operation: endpoint[Operation.self],
@@ -68,6 +68,15 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
         )
         
         delegate.environment(\BlackboardObserveMetadata.value, blackboardMetadata)
+    }
+    
+    private static func extractRawEndpointName(_ endpointName: String) -> String {
+        guard let splitted = endpointName.components(separatedBy: "<").last,
+              let rawEndpointName = splitted.split(separator: ",").first else {
+                  return endpointName
+              }
+        
+        return String(rawEndpointName)
     }
 }
 

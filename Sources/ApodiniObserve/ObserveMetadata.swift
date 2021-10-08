@@ -10,8 +10,9 @@ import Apodini
 
 @propertyWrapper
 public struct ObserveMetadata: DynamicProperty {
-    public typealias Value = (ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata,
-                              ExporterTypeObserveMetadata.ExporterTypeObserveMetadata)
+    public typealias BlackboardMetadata = ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata
+    public typealias ExporterMetadata = ExporterTypeObserveMetadata.ExporterTypeObserveMetadata
+    public typealias Value = (blackboardMetadata: BlackboardMetadata, exporterMetadata: ExporterMetadata)
     
     /// Metadata from the ``Blackboard`` that is injected into the environment of the ``Handler`` via a ``Delegate``
     @Environment(\ObserveMetadataExporter.BlackboardObserveMetadata.value)
@@ -22,19 +23,29 @@ public struct ObserveMetadata: DynamicProperty {
     var exporterMetadata
     
     @State
-    private var builtMetadata: Value?
+    private var builtBlackboardMetadata: BlackboardMetadata?
+    @State
+    private var builtExporterMetadata: ExporterMetadata?
+    
+    public init() {}
     
     public var wrappedValue: Value {
-        if self.builtMetadata == nil {
-            self.builtMetadata = (self.blackboardMetadata, self.exporterMetadata)
+        if self.builtBlackboardMetadata == nil || self.builtExporterMetadata == nil {
+            self.builtBlackboardMetadata = blackboardMetadata
+            self.builtExporterMetadata = exporterMetadata
+        } else {
+            switch self.builtBlackboardMetadata?.communicationalPattern {
+            case .clientSideStream, .bidirectionalStream:
+                self.builtBlackboardMetadata = blackboardMetadata
+            default: break
+            }
         }
         
-        guard let builtMetadata = self.builtMetadata else {
+        guard let builtBlackboardMetadata = self.builtBlackboardMetadata,
+              let builtExporterMetadata = self.builtExporterMetadata else {
             fatalError("The ObserveMetadata isn't built correctly!")
         }
         
-        return builtMetadata
+        return (blackboardMetadata: builtBlackboardMetadata, exporterMetadata: builtExporterMetadata)
     }
-    
-    public init() {}
 }
