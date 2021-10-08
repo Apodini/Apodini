@@ -15,53 +15,59 @@ import Prometheus
 /// A wrapped version of the ``PromSummary`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct PrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty {
-    /// The ``Storage`` of the ``Application``
-    @Environment(\.storage)
-    var storage: Storage
+    @State
+    private var builtSummary: PromSummary<T, U>?
     
-    let label: String
+    let name: String
     let type: T.Type
     let helpText: String?
     let capacity: Int
     let quantiles: [Double]
-    let labels: U.Type
+    let withLabelType: U.Type
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ label: String,
+    public init(_ name: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 capacity: Int = Prometheus.defaultSummaryCapacity,
                 quantiles: [Double] = Prometheus.defaultQuantiles,
-                labels: U.Type = DimensionSummaryLabels.self as! U.Type) {
-        self.label = label
+                withLabelType: U.Type = DimensionSummaryLabels.self as! U.Type) {
+        self.name = name
         self.type = type
         self.helpText = helpText
         self.capacity = capacity
         self.quantiles = quantiles
-        self.labels = labels
+        self.withLabelType = withLabelType
         
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ label: String) where T == Int64, U == DimensionSummaryLabels {
+    public init(_ name: String) where T == Int64, U == DimensionSummaryLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(label, helpText: nil)
+        self.init(name, helpText: nil)
     }
     
     public var wrappedValue: PromSummary<T, U> {
-        guard let prometheus = try? MetricsSystem.prometheus() else {
-            fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
+        if self.builtSummary == nil {
+            guard let prometheus = try? MetricsSystem.prometheus() else {
+                fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
+            }
+
+            self.builtSummary = prometheus.createSummary(
+                forType: self.type,
+                named: self.prometheusLabelSanitizer.sanitize(self.name),
+                helpText: self.helpText,
+                capacity: self.capacity,
+                quantiles: self.quantiles,
+                labels: self.withLabelType
+            )
         }
         
-        // No need to cache the created Metric since the `createSummary()` does exactly that
-        return prometheus.createSummary(
-            forType: self.type,
-            named: self.prometheusLabelSanitizer.sanitize(self.label),
-            helpText: self.helpText,
-            capacity: self.capacity,
-            quantiles: self.quantiles,
-            labels: self.labels
-        )
+        guard let builtSummary = self.builtSummary else {
+            fatalError("The Summary isn't built correctly!")
+        }
+        
+        return builtSummary
     }
 }

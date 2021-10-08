@@ -15,11 +15,10 @@ import Prometheus
 /// A wrapped version of the ``PromGauge`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicProperty {
-    /// The ``Storage`` of the ``Application``
-    @Environment(\.storage)
-    var storage: Storage
-    
-    let label: String
+    @State
+    private var builtGauge: PromGauge<T, U>?
+
+    let name: String
     let type: T.Type
     let helpText: String?
     let initialValue: T
@@ -27,12 +26,12 @@ public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicP
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ label: String,
+    public init(_ name: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 initialValue: T = 0,
                 withLabelType: U.Type = DimensionLabels.self as! U.Type) {
-        self.label = label
+        self.name = name
         self.type = type
         self.helpText = helpText
         self.initialValue = initialValue
@@ -41,9 +40,9 @@ public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicP
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ label: String) where T == Int64, U == DimensionLabels {
+    public init(_ name: String) where T == Int64, U == DimensionLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(label, helpText: nil)
+        self.init(name, helpText: nil)
     }
     
     public var wrappedValue: PromGauge<T, U> {
@@ -54,7 +53,7 @@ public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicP
         // No need to cache the created Metric since the `createGauge()` does exactly that
         return prometheus.createGauge(
             forType: self.type,
-            named: self.prometheusLabelSanitizer.sanitize(self.label),
+            named: self.prometheusLabelSanitizer.sanitize(self.name),
             helpText: self.helpText,
             initialValue: self.initialValue,
             withLabelType: self.withLabelType

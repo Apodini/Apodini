@@ -15,49 +15,55 @@ import Prometheus
 /// A wrapped version of the ``PromHistogram`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
 public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProperty {
-    /// The ``Storage`` of the ``Application``
-    @Environment(\.storage)
-    var storage: Storage
+    @State
+    private var builtHistogram: PromHistogram<T, U>?
     
-    let label: String
+    let name: String
     let type: T.Type
     let helpText: String?
     let buckets: Buckets
-    let labels: U.Type
+    let withLabelType: U.Type
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ label: String,
+    public init(_ name: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 buckets: Buckets = .defaultBuckets,
-                labels: U.Type = DimensionHistogramLabels.self as! U.Type) {
-        self.label = label
+                withLabelType: U.Type = DimensionHistogramLabels.self as! U.Type) {
+        self.name = name
         self.type = type
         self.helpText = helpText
         self.buckets = buckets
-        self.labels = labels
+        self.withLabelType = withLabelType
         
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ label: String) where T == Int64, U == DimensionHistogramLabels {
+    public init(_ name: String) where T == Int64, U == DimensionHistogramLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(label, helpText: nil)
+        self.init(name, helpText: nil)
     }
     
-    public var wrappedValue: PromHistogram<T, U> {
-        guard let prometheus = try? MetricsSystem.prometheus() else {
-            fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
-        }
+    public var wrappedValue: PromHistogram<T, U> {        
+        if self.builtHistogram == nil {
+            guard let prometheus = try? MetricsSystem.prometheus() else {
+                fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
+            }
 
-        // No need to cache the created Metric since the `createHistogram()` does exactly that
-        return prometheus.createHistogram(
-            forType: self.type,
-            named: self.prometheusLabelSanitizer.sanitize(self.label),
-            helpText: self.helpText,
-            buckets: self.buckets,
-            labels: self.labels
-        )
+            self.builtHistogram = prometheus.createHistogram(
+                forType: self.type,
+                named: self.prometheusLabelSanitizer.sanitize(self.name),
+                helpText: self.helpText,
+                buckets: self.buckets,
+                labels: self.withLabelType
+            )
+        }
+        
+        guard let builtHistogram = self.builtHistogram else {
+            fatalError("The Histogram isn't built correctly!")
+        }
+        
+        return builtHistogram
     }
 }
