@@ -9,11 +9,11 @@
 import Apodini
 import Metrics
 
-/// A wrapped version of the ``Metrics.Counter`` of swift-metrics
+/// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
 @propertyWrapper
-public struct Counter: DynamicProperty {
+public struct ApodiniGauge: DynamicProperty {
     @State
-    private var builtCounter: Metrics.Counter?
+    private var builtGauge: Metrics.Gauge?
     @ObserveMetadata
     var observeMetadata
     @State
@@ -26,16 +26,16 @@ public struct Counter: DynamicProperty {
         self._dimensions = State(wrappedValue: dimensions)
     }
     
-    public var wrappedValue: Metrics.Counter {
-        if self.builtCounter == nil {
+    public var wrappedValue: Metrics.Gauge {
+        if self.builtGauge == nil {
             self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
-            self.builtCounter = .init(label: self.label, dimensions: self.dimensions)
+            self.builtGauge = .init(label: self.label, dimensions: self.dimensions)
         }
         
-        guard let builtCounter = self.builtCounter else {
-            fatalError("The Counter isn't built correctly!")
+        guard let builtGauge = self.builtGauge else {
+            fatalError("The Gauge isn't built correctly!")
         }
         
-        return builtCounter
+        return builtGauge
     }
 }

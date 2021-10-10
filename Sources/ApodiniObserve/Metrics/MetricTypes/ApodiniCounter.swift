@@ -9,35 +9,33 @@
 import Apodini
 import Metrics
 
-/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics
+/// A wrapped version of the ``Metrics.Counter`` of swift-metrics
 @propertyWrapper
-public struct Recorder: DynamicProperty {
+public struct ApodiniCounter: DynamicProperty {
     @State
-    private var builtRecorder: Metrics.Recorder?
+    private var builtCounter: Metrics.Counter?
     @ObserveMetadata
     var observeMetadata
     @State
     var dimensions: [(String, String)]
     
     let label: String
-    let aggregate: Bool
     
-    public init(label: String, dimensions: [(String, String)] = [], aggregate: Bool = true) {
+    public init(label: String, dimensions: [(String, String)] = []) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
-        self.aggregate = aggregate
     }
     
-    public var wrappedValue: Metrics.Recorder {
-        if self.builtRecorder == nil {
+    public var wrappedValue: Metrics.Counter {
+        if self.builtCounter == nil {
             self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
-            self.builtRecorder = .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
+            self.builtCounter = .init(label: self.label, dimensions: self.dimensions)
         }
         
-        guard let builtRecorder = self.builtRecorder else {
-            fatalError("The Recorder isn't built correctly!")
+        guard let builtCounter = self.builtCounter else {
+            fatalError("The Counter isn't built correctly!")
         }
         
-        return builtRecorder
+        return builtCounter
     }
 }

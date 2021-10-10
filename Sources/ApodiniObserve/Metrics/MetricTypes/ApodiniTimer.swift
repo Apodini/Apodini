@@ -11,7 +11,7 @@ import Metrics
 
 /// A wrapped version of the ``Metrics.Timer`` of swift-metrics
 @propertyWrapper
-public struct Timer: DynamicProperty {
+public struct ApodiniTimer: DynamicProperty {
     @State
     private var builtTimer: Metrics.Timer?
     @ObserveMetadata

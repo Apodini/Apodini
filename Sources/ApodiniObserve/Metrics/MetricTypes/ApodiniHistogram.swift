@@ -9,11 +9,11 @@
 import Apodini
 import Metrics
 
-/// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
+/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics used as a Histrogram
 @propertyWrapper
-public struct Gauge: DynamicProperty {
+public struct ApodiniHistogram: DynamicProperty {
     @State
-    private var builtGauge: Metrics.Gauge?
+    private var builtHistrogram: Metrics.Recorder?
     @ObserveMetadata
     var observeMetadata
     @State
@@ -26,16 +26,16 @@ public struct Gauge: DynamicProperty {
         self._dimensions = State(wrappedValue: dimensions)
     }
     
-    public var wrappedValue: Metrics.Gauge {
-        if self.builtGauge == nil {
+    public var wrappedValue: Metrics.Recorder {
+        if self.builtHistrogram == nil {
             self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
-            self.builtGauge = .init(label: self.label, dimensions: self.dimensions)
+            self.builtHistrogram = .init(label: self.label, dimensions: self.dimensions)
         }
         
-        guard let builtGauge = self.builtGauge else {
-            fatalError("The Gauge isn't built correctly!")
+        guard let builtHistrogram = self.builtHistrogram else {
+            fatalError("The Histrogram isn't built correctly!")
         }
         
-        return builtGauge
+        return builtHistrogram
     }
 }

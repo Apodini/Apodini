@@ -9,33 +9,35 @@
 import Apodini
 import Metrics
 
-/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics used as a Histrogram
+/// A wrapped version of the ``Metrics.Recorder`` of swift-metrics
 @propertyWrapper
-public struct Histogram: DynamicProperty {
+public struct ApodiniRecorder: DynamicProperty {
     @State
-    private var builtHistrogram: Metrics.Recorder?
+    private var builtRecorder: Metrics.Recorder?
     @ObserveMetadata
     var observeMetadata
     @State
     var dimensions: [(String, String)]
     
     let label: String
+    let aggregate: Bool
     
-    public init(label: String, dimensions: [(String, String)] = []) {
+    public init(label: String, dimensions: [(String, String)] = [], aggregate: Bool = true) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
+        self.aggregate = aggregate
     }
     
     public var wrappedValue: Metrics.Recorder {
-        if self.builtHistrogram == nil {
+        if self.builtRecorder == nil {
             self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
-            self.builtHistrogram = .init(label: self.label, dimensions: self.dimensions)
+            self.builtRecorder = .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
         }
         
-        guard let builtHistrogram = self.builtHistrogram else {
-            fatalError("The Histrogram isn't built correctly!")
+        guard let builtRecorder = self.builtRecorder else {
+            fatalError("The Recorder isn't built correctly!")
         }
         
-        return builtHistrogram
+        return builtRecorder
     }
 }
