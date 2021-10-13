@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DeploymentProvider.swift
 //  
 //
 //  Created by Lukas Kollmer on 2020-12-31.
@@ -125,9 +125,13 @@ extension DeploymentProvider {
         case .executable(let executableUrl):
             exportWebServiceModelTask = Task(
                 executableUrl: executableUrl,
-                arguments: [WellKnownCLIArguments.exportWebServiceModelStructure, modelFileUrl.path],
                 captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+                environment: [
+                    WellKnownEnvironmentVariables.executionMode:
+                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+                ]
             )
         case let .spmTarget(packageUrl, productName):
             let swiftBin = try Self.getSwiftBinUrl()
@@ -144,19 +148,22 @@ extension DeploymentProvider {
                 executableUrl: swiftBin,
                 arguments: [
                     "run",
-                    productName,
-                    WellKnownCLIArguments.exportWebServiceModelStructure,
-                    modelFileUrl.path
+                    productName
                 ],
                 captureOutput: false,
-                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup
+                launchInCurrentProcessGroup: launchChildrenInCurrentProcessGroup,
+                environment: [
+                    WellKnownEnvironmentVariables.executionMode:
+                        WellKnownEnvironmentVariableExecutionMode.exportWebServiceModelStructure,
+                    WellKnownEnvironmentVariables.fileUrl: modelFileUrl.path
+                ]
             )
         }
         
         logger.notice("Invoking child process `\(exportWebServiceModelTask)`")
         let terminationInfo = try exportWebServiceModelTask.launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure")
+            throw ApodiniDeployBuildSupportError(message: "Unable to generate model structure: \(terminationInfo.exitCode)")
         }
         
         logger.notice("model written to '\(modelFileUrl)'")

@@ -100,12 +100,11 @@ final class ResponseTransformerTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -135,12 +134,11 @@ final class ResponseTransformerTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
 
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
 
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -175,12 +173,11 @@ final class ResponseTransformerTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/nothing") { response in
             XCTAssertEqual(response.status, .noContent)
@@ -201,28 +198,5 @@ final class ResponseTransformerTests: XCTApodiniDatabaseBirdTest {
             XCTAssertEqual(response.status, .noContent)
             XCTAssertEqual(response.body.readableBytes, 0)
         }
-    }
-    
-    func testFailingResponseTransformer() throws {
-        let response: Apodini.Response<Int> = .final(42)
-        XCTAssertRuntimeFailure(
-            EmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
-        )
-        
-        XCTAssertRuntimeFailure(
-            EmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
-        )
-        
-        XCTAssertRuntimeFailure(
-            OptionalEmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
-        )
-        
-        XCTAssertRuntimeFailure(
-            OptionalEmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
-        )
     }
 }

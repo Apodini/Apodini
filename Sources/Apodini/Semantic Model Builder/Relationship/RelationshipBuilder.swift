@@ -46,7 +46,7 @@ class RelationshipBuilder {
     ///   - sources: Array of `Relationship` instance this `Endpoint` is declared a source of.
     ///   - destinations: Array of `Relationship` instance this `Endpoint` is declared a destination of.
     func collect<H: Handler>(
-        endpoint: Endpoint<H>,
+        endpoint: RelationshipEndpoint<H>,
         candidates: [PartialRelationshipSourceCandidate],
         sources: [Relationship],
         destinations: [Relationship]
@@ -59,11 +59,13 @@ class RelationshipBuilder {
         collectDestinations(for: endpoint, destinations)
     }
 
-    private func collectRelationshipCandidates<H: Handler>(for endpoint: Endpoint<H>, _ partialCandidates: [PartialRelationshipSourceCandidate]) {
+    private func collectRelationshipCandidates<H: Handler>(
+        for endpoint: RelationshipEndpoint<H>,
+        _ partialCandidates: [PartialRelationshipSourceCandidate]) {
         collectedRelationshipCandidates.append(contentsOf: partialCandidates.linked(to: endpoint))
     }
 
-    private func collectSources<H: Handler>(for endpoint: Endpoint<H>, _ relationships: [Relationship]) {
+    private func collectSources<H: Handler>(for endpoint: RelationshipEndpoint<H>, _ relationships: [Relationship]) {
         for source in relationships {
             modifyRelationshipInstance(for: source) { instance in
                 instance.addSource(endpoint)
@@ -71,7 +73,7 @@ class RelationshipBuilder {
         }
     }
 
-    private func collectDestinations<H: Handler>(for endpoint: Endpoint<H>, _ relationships: [Relationship]) {
+    private func collectDestinations<H: Handler>(for endpoint: RelationshipEndpoint<H>, _ relationships: [Relationship]) {
         for destination in relationships {
             modifyRelationshipInstance(for: destination) { instance in
                 instance.addDestination(endpoint)

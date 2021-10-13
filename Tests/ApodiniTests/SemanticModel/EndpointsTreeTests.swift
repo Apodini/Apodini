@@ -70,7 +70,7 @@ final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
     func testEndpointParameters() throws {
         let testComponent = TestComponent()
         let testHandler: TestHandler = try XCTUnwrap(testComponent.content.content as? TestHandler)
-        let endpoint = try testHandler.mockEndpoint(application: app)
+        let endpoint = try XCTCreateMockEndpoint(testHandler)
 
         let parameters = endpoint.parameters
         let nameParameter = parameters.first { $0.label == "_name" }!
@@ -107,11 +107,12 @@ final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
 
     func testRequestHandler() throws {
         let name = "Paul" // this is the parameter value we want to inject
-
+        
+        
         try XCTCheckHandler(
             BasicTestHandler()
-                .guard(PrintGuard())
                 .response(EmojiMediator(emojis: "✅"))
+                .guard(PrintGuard())
         ) {
             MockRequest(expectation: "✅ Hello \(name) ✅") {
                 NamedParameter("name", value: name)
@@ -153,9 +154,10 @@ final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
         let builder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: builder)
         self.missingPathParameterWebService.accept(visitor)
+        builder.finishedRegistration()
         XCTAssertRuntimeFailure(
-            builder.finishedRegistration(),
-            "Parsing a Handler with missing PathParameter declaration should fail!"
+            builder.collectedEndpoints.first![EndpointPathComponents.self],
+            "Accessing a Handler's path with missing PathParameter declaration should fail!"
         )
     }
 
@@ -177,62 +179,60 @@ final class EndpointsTreeTests: XCTApodiniDatabaseBirdTest {
     
     private struct TestAnchor: TruthAnchor { }
     
+    
     func testWebServiceRootKnowledgeSource() {
-        XCTFail("Not adapted yet")
+        var exported = false
+        let exporter = MockExporter<String>(onFinished: { model in
+            let service = model[WebServiceRoot<TestAnchor>.self]
+            XCTAssertEqual(service.identifier, .root)
+            XCTAssertNil(service.parent)
+            XCTAssertEqual(service.endpoints.count, 2)
+            XCTAssertEqual(service.endpoints[.create]?[HandlerDescription.self], "BasicTestHandler")
+            XCTAssertEqual(service.endpoints[.delete]?[HandlerDescription.self], "BasicTestHandler")
+            XCTAssertEqual(service.children.count, 1)
+            
+            XCTAssertEqual(service.children[0].identifier, .string("noendpointhere"))
+            XCTAssertNotNil(service.children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].parent!), ObjectIdentifier(service.node))
+            XCTAssertEqual(service.children[0].endpoints.count, 0)
+            XCTAssertEqual(service.children[0].children.count, 1)
+            
+            XCTAssertEqual(service.children[0].children[0].identifier, .string("test"))
+            XCTAssertNotNil(service.children[0].children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].parent!), ObjectIdentifier(service.children[0]))
+            XCTAssertEqual(service.children[0].children[0].endpoints.count, 0)
+            XCTAssertEqual(service.children[0].children[0].children.count, 1)
+            
+            XCTAssertTrue(service.children[0].children[0].children[0].identifier.isParameter())
+            XCTAssertNotNil(service.children[0].children[0].children[0].parent)
+            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].children[0].parent!), ObjectIdentifier(service.children[0].children[0]))
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints.count, 2)
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.read]?[HandlerDescription.self], "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.update]?[HandlerDescription.self], "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].children.count, 0)
+            
+            exported = true
+        })
         
-//        var exported = false
-//        let exporter = MockExporter<String>(onFinished: { model in
-//            let service = model.globalBlackboard[WebServiceRoot<TestAnchor>.self]
-//            XCTAssertEqual(service.identifier, .root)
-//            XCTAssertNil(service.parent)
-//            XCTAssertEqual(service.endpoints.count, 2)
-//            XCTAssertEqual(service.endpoints[.create]?[HandlerDescription.self], "BasicTestHandler")
-//            XCTAssertEqual(service.endpoints[.delete]?[HandlerDescription.self], "BasicTestHandler")
-//            XCTAssertEqual(service.children.count, 1)
-//
-//            XCTAssertEqual(service.children[0].identifier, .string("noendpointhere"))
-//            XCTAssertNotNil(service.children[0].parent)
-//            XCTAssertEqual(ObjectIdentifier(service.children[0].parent!), ObjectIdentifier(service.node))
-//            XCTAssertEqual(service.children[0].endpoints.count, 0)
-//            XCTAssertEqual(service.children[0].children.count, 1)
-//
-//            XCTAssertEqual(service.children[0].children[0].identifier, .string("test"))
-//            XCTAssertNotNil(service.children[0].children[0].parent)
-//            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].parent!), ObjectIdentifier(service.children[0]))
-//            XCTAssertEqual(service.children[0].children[0].endpoints.count, 0)
-//            XCTAssertEqual(service.children[0].children[0].children.count, 1)
-//
-//            XCTAssertTrue(service.children[0].children[0].children[0].identifier.isParameter())
-//            XCTAssertNotNil(service.children[0].children[0].children[0].parent)
-//            XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].children[0].parent!), ObjectIdentifier(service.children[0].children[0]))
-//            XCTAssertEqual(service.children[0].children[0].children[0].endpoints.count, 2)
-//            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.read]?[HandlerDescription.self], "TestHandler")
-//            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.update]?[HandlerDescription.self], "TestHandler")
-//            XCTAssertEqual(service.children[0].children[0].children[0].children.count, 0)
-//
-//            exported = true
-//        })
-//
-//
-//        let builder = SemanticModelBuilder(app).with(exporter: exporter)
-//        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
-//        self.validWebService.accept(visitor)
-//        builder.finishedRegistration()
-//        XCTAssertTrue(exported)
+        
+        let builder = SemanticModelBuilder(app.registerExporter(exporter: exporter))
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        self.validWebService.accept(visitor)
+        builder.finishedRegistration()
+        XCTAssertTrue(exported)
     }
     
     func testWebServiceComponentKnowledgeSource() {
-        XCTFail("Not adapted yet")
-//        let exporter = MockExporter<String>(calling: { endpoint in
-//            XCTAssertEqual(
-//                endpoint[WebServiceComponent<TestAnchor>.self].endpoints[endpoint[Operation.self]]![AnyHandlerIdentifier.self],
-//                endpoint[AnyHandlerIdentifier.self])
-//        })
-//
-//
-//        let builder = SemanticModelBuilder(app).with(exporter: exporter)
-//        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
-//        self.validWebService.accept(visitor)
-//        builder.finishedRegistration()
+        let exporter = MockExporter<String>(calling: { endpoint in
+            XCTAssertEqual(
+                endpoint[WebServiceComponent<TestAnchor>.self].endpoints[endpoint[Operation.self]]![AnyHandlerIdentifier.self],
+                endpoint[AnyHandlerIdentifier.self])
+        })
+        
+        
+        let builder = SemanticModelBuilder(app.registerExporter(exporter: exporter))
+        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        self.validWebService.accept(visitor)
+        builder.finishedRegistration()
     }
 }

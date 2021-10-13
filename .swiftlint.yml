@@ -309,7 +309,7 @@ only_rules:
     # Don’t include vertical whitespace (empty line) after opening braces.
   - void_return
     # Prefer -> Void over -> ().
-  - weak_delegate
+ # - weak_delegate (we don't really use the delegate pattern anywhere and the name-collision with our own 'Delegate' is annoying)
     # Delegates should be weak to avoid reference cycles.
   - xctfail_message
     # An XCTFail call should include a description of the assertion.
@@ -320,12 +320,17 @@ excluded: # paths to ignore during linting. Takes precedence over `included`.
   - .build
   - TestWebService/.build
   - .swiftpm
-  # We ignore all files with @_functionBuilder as as long as we support 5.3: https://github.com/Apodini/Apodini/runs/2525316261?check_suite_focus=true
+  # We ignore all files with @_functionBuilder/@resultBuilder as long as we support 5.3: https://github.com/Apodini/Apodini/runs/2525316261?check_suite_focus=true
   - Sources/Apodini/Components/Path/PathComponentBuilder.swift
   - Sources/Apodini/Components/ComponentBuilder.swift
   - Sources/Apodini/Configurations/ConfigurationBuilder.swift
   - Sources/Apodini/Relationships/RelationshipIdentificationBuilder.swift
-  - Sources/Apodini/Relationships/RelationshipDefinitionBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/MetadataBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/ComponentMetadataBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/ContentMetadataBuilder.swift
+  - Sources/Apodini/Metadata/ResultBuilder/RestrictedMetadataBlockBuilder.swift
+  - Sources/ApodiniGRPC/GRPCDependentStaticConfigurationBuilder.swift
+  - Sources/ApodiniREST/RESTDependentStaticConfigurationBuilder.swift
 
 closure_body_length: # Closure bodies should not span too many lines.
   - 35 # warning - default: 20
@@ -355,6 +360,7 @@ identifier_name:
     - p8
     - of
     - s3
+    - at
 
 large_tuple: # Tuples shouldn't have too many members. Create a custom type instead.
   - 2 # warning - default: 2

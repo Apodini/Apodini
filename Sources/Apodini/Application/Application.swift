@@ -62,6 +62,22 @@ extension Application {
 
 /// Configuration and state of the application
 public final class Application {
+    private static var latestApplicationLogger: Logger?
+    /// A global logger that can be used when no  `Application` instance is available.
+    ///
+    /// - Note: In `Handler`s you shpuld rely on the `Logger` injected in the `@Environment`.
+    public static var logger: Logger {
+        latestApplicationLogger ?? {
+            var newLogger = Logger(label: "Pre-startup")
+            #if DEBUG
+            newLogger.logLevel = .debug
+            #endif
+            latestApplicationLogger = newLogger
+            return newLogger
+        }()
+    }
+    
+    
     /// Decides how EventLoopGroups are created
     public let eventLoopGroupProvider: EventLoopGroupProvider
     /// The EventLoopGroup for the application
@@ -142,10 +158,13 @@ public final class Application {
         }
         self.locks = .init()
         self.didShutdown = false
+        
         self.logger = .init(label: "org.apodini.application")
         #if DEBUG
         self.logger.logLevel = .debug
         #endif
+        Application.latestApplicationLogger = self.logger
+        
         self.storage = .init(logger: self.logger)
         self.lifecycle = .init()
         self.isBooted = false

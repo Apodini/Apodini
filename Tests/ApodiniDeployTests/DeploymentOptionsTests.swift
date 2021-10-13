@@ -1,14 +1,6 @@
-//
-//  File.swift
-//  
-//
-//  Created by Lukas Kollmer on 2021-03-17.
-//
-
-import Foundation
-import XCTest
 @testable import Apodini
 @testable import ApodiniDeploy
+import Foundation
 import XCTApodini
 
 
@@ -91,14 +83,16 @@ private struct TestWebService: Apodini.WebService {
             .testOption1(14)
         ])
     }
+    
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
-        ApodiniDeployConfiguration(
+        ApodiniDeploy(
             runtimes: [],
-            config: DeploymentConfig(defaultGrouping: .singleNode, deploymentGroups: [
-                .allHandlers(ofType: Text.self)
-            ])
+            config: DeploymentConfig(
+                defaultGrouping: .singleNode,
+                deploymentGroups: [
+                    .allHandlers(ofType: Text.self)
+                ]
+            )
         )
     }
 }
@@ -109,6 +103,7 @@ class DeploymentOptionsTests: XCTApodiniTest {
         struct CapturedImplArgs: Hashable {
             let lhs, rhs: Int
         }
+        
         struct MinOptionImpl: ComposableOptionImpl {
             private(set) static var invocationsArgs: [CapturedImplArgs] = []
             
@@ -182,38 +177,38 @@ class DeploymentOptionsTests: XCTApodiniTest {
         let sumValue = try XCTUnwrap(reducedOptions.getValue(forKey: sumOptionKey))
         XCTAssertEqual(21, sumValue.rawValue)
     }
-
+    
     
     func testHandlerDeploymentOptions() throws {
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
         
         do {
-            let handler1 = try XCTUnwrap(apodiniDeployIE.getCollectedEndpointInfo(forHandlerWithIdentifier: TestWebService.handler1Id))
+            let handler1 = try XCTUnwrap(apodiniDeployIE.getCollectedEndpointInfo(forHandlerWithIdentifier: AnyHandlerIdentifier("handler1")))
             let option = try XCTUnwrap(handler1.deploymentOptions.getValue(forKey: .testOption1))
             XCTAssertEqual(12, option.rawValue)
         }
         
         do {
-            let handler2 = try XCTUnwrap(apodiniDeployIE.getCollectedEndpointInfo(forHandlerWithIdentifier: TestWebService.handler2Id))
+            let handler2 = try XCTUnwrap(apodiniDeployIE.getCollectedEndpointInfo(forHandlerWithIdentifier: AnyHandlerIdentifier("handler2")))
             let option = try XCTUnwrap(handler2.deploymentOptions.getValue(forKey: .testOption1))
             XCTAssertEqual(14, option.rawValue)
         }
     }
     
     
-    func testHandlerDeploymentOptionComparison() {
-        guard !Self.isRunningOnLinuxDebug() else {
-            return
-        }
-        // There used to be a bug where the comparison between CollectedEndpointInfo objects would randomly fail,
-        // because somehwere in the `.reduced().options.compareIgnoringOrder`
-        // it compared two arrays (which are ordered collections) which were constructed from
-        // dictionaries (unordered), and therefore would sometimes result in the wrong result.
-        // This test attempts to make sure this problem is fixed,
-        // by simply running the comparison many times and checking that they all returned the same result
-        
+    /// There used to be a bug where the comparison between CollectedEndpointInfo objects would randomly fail,
+    /// because somehwere in the `.reduced().options.compareIgnoringOrder`
+    /// it compared two arrays (which are ordered collections) which were constructed from
+    /// dictionaries (unordered), and therefore would sometimes result in the wrong result.
+    /// This test attempts to make sure this problem is fixed,
+    /// by simply running the comparison many times and checking that they all returned the same result
+    func testHandlerDeploymentOptionComparison() throws {
+        #if os(Linux)
+            throw XCTSkip("Skipped testHandlerDeploymentOptionComparison on Linux due to an yet undiscovered error on xenial builds")
+        #endif
+
         let opts1 = DeploymentOptions([
             ResolvedOption<DeploymentOptionsNamespace>(key: .memorySize, value: .mb(125)),
             ResolvedOption<DeploymentOptionsNamespace>(key: .timeout, value: .seconds(12))

@@ -11,17 +11,14 @@ public struct TagContextKey: OptionalContextKey {
 public struct TagModifier<H: Handler>: HandlerModifier {
     public let component: H
     let tags: [String]
-
+    
     init(_ component: H, tags: [String]) {
         self.component = component
         self.tags = tags
     }
-}
 
-extension TagModifier: SyntaxTreeVisitable {
-    public func accept(_ visitor: SyntaxTreeVisitor) {
+    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
         visitor.addContext(TagContextKey.self, value: tags, scope: .current)
-        component.accept(visitor)
     }
 }
 

@@ -3,7 +3,7 @@ import Foundation
 
 /// A `PropertyOptionSet` collects different type erased `PropertyOptionKey`s.
 struct PropertyOptionSet<Property> {
-    private let options: [AnyPropertyOptionKey: Any]
+    private var options: [AnyPropertyOptionKey: Any]
 
     init() {
         options = [:]
@@ -29,5 +29,13 @@ struct PropertyOptionSet<Property> {
         }
         
         return option
+    }
+    
+    mutating func addOption<Option>(_ option: Option, for key: PropertyOptionKey<Property, Option>) {
+        if let lhs = options[key] {
+            options[key] = key.combine(lhs: lhs, rhs: option)
+        } else {
+            options[key] = option
+        }
     }
 }

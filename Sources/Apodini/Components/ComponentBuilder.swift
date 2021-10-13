@@ -1,14 +1,8 @@
 // swiftlint:disable all
 // This file was automatically generated and should not be edited.
 
-#if swift(>=5.4)
 @resultBuilder
-public enum ComponentBuilder {}
-#else
-@_functionBuilder
-public enum ComponentBuilder {}
-#endif
-extension ComponentBuilder {
+public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
     }

@@ -23,7 +23,31 @@ final class UniqueIdentifierTests: XCTApodiniTest {
     }
     
     func testUniqueIdentifiers() {
+        struct IdentifierAccessing: Configuration {
+            func configure(_ app: Apodini.Application) {
+                let identifierExporter = IdentifierAccessingExporter(app)
+                app.registerExporter(exporter: identifierExporter)
+            }
+        }
+        
+        struct IdentifierAccessingExporter: InterfaceExporter {
+            init(_ app: Application) { }
+            
+            func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
+                _ = endpoint[AnyHandlerIdentifier.self]
+            }
+            
+            func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+                export(endpoint)
+            }
+        }
+        
+        
         struct TestWebService: WebService {
+            var configuration: Configuration {
+                IdentifierAccessing()
+            }
+            
             var content: some Component {
                 Group("ok") {
                     SomeIdentifiableHandler()
@@ -42,6 +66,6 @@ final class UniqueIdentifierTests: XCTApodiniTest {
             return XCTFail("App deallocated")
         }
         
-        XCTAssertRuntimeFailure(TestWebService.main(app: app))
+        XCTAssertRuntimeFailure(TestWebService.start(app: app))
     }
 }

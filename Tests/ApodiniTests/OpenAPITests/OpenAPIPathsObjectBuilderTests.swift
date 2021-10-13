@@ -7,6 +7,7 @@
 @testable import ApodiniOpenAPI
 import XCTApodini
 
+
 final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
     struct SomeStruct: Codable {
         var id = 1
@@ -30,11 +31,10 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
     }
 
     func testPathBuilder() throws {
-        let handler = HandlerParam(pathParam: $param)
-        let endpoint = try handler.mockEndpoint(application: app)
+        let endpoint = try XCTCreateMockEndpoint(HandlerParam(pathParam: $param))
         var pathParameter = EndpointPathParameter<String>(id: _param.id)
         pathParameter.scoped(on: endpoint)
-
+        
         let path: [EndpointPath] = [.string("test"), .parameter(pathParameter)]
         let pathString = path.build(with: OpenAPIPathBuilder.self)
         
@@ -42,10 +42,11 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
     }
     
     func testDefaultTagWithPathParameter() throws {
-        let handler = HandlerParam(pathParam: $param)
-        var endpoint: Endpoint<HandlerParam> = try handler.mockEndpoint(application: app)
-        let webService = WebServiceModel()
-        webService.addEndpoint(&endpoint, at: ["first", "second", $param, "third"])
+        let endpoint = try XCTCreateMockEndpoint(handlerType: HandlerParam.self) {
+            Group("first", "second", $param, "third") {
+                HandlerParam(pathParam: $param)
+            }
+        }
         
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
@@ -56,10 +57,11 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
     }
     
     func testDefaultTagWithSinglePathParameter() throws {
-        let handler = HandlerParam(pathParam: $param)
-        var endpoint: Endpoint<HandlerParam> = try handler.mockEndpoint(application: app)
-        let webService = WebServiceModel()
-        webService.addEndpoint(&endpoint, at: [$param, "first"])
+        let endpoint = try XCTCreateMockEndpoint(handlerType: HandlerParam.self) {
+            Group($param, "first") {
+                HandlerParam(pathParam: $param)
+            }
+        }
         
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
@@ -68,27 +70,26 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertEqual(pathsObjectBuilder.pathsObject.first?.value.get?.tags, ["default"])
     }
-
+    
     func testAddPathItemOperationParams() throws {
-        struct SomeComp: Handler {
+        struct SomeHandler: Handler {
             @Parameter(.http(.query)) var name: String
-
+            
             @Parameter(.http(.path)) var id: String
-
+            
             func handle() -> String {
                 "Hello \(name)!"
             }
         }
-
+        
+        let endpoint = try XCTCreateMockEndpoint(handlerType: SomeHandler.self) {
+            Group("test/{pathParam}") {
+                SomeHandler()
+            }
+        }
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
-        let webService = WebServiceModel()
-
-        let comp = SomeComp()
-        var endpoint: Endpoint<SomeComp> = try comp.mockEndpoint(application: app)
-        webService.addEndpoint(&endpoint, at: ["test/{pathParam}"])
-
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test/{pathParam}/{id}")
         let queryParam = Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
@@ -96,35 +97,34 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
-        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
             key == path && ((value.get?.parameters.contains(queryParam)) != nil) && ((value.get?.parameters.contains(pathParam)) != nil)
         })
     }
-
+    
     func testAddPathItemOperationWrappedParams() throws {
         struct WrappingParamsComp: Handler {
             @Parameter var someStruct1: SomeStruct?
             @Parameter var someStruct2: SomeStruct
-
+            
             func handle() -> String {
                 "Hello"
             }
         }
-
+        
+        let endpoint = try XCTCreateMockEndpoint(handlerType: WrappingParamsComp.self) {
+            Group("test") {
+                WrappingParamsComp()
+            }
+        }
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
-        let webService = WebServiceModel()
-
-        let comp = WrappingParamsComp()
-        var endpoint: Endpoint<WrappingParamsComp> = try comp.mockEndpoint(application: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
-
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
-
+        
         let wrappedRef = try componentsObjectBuilder.componentsObject.reference(named: "SomeStruct_SomeStruct", ofType: JSONSchema.self)
-
+        
         XCTAssertEqual(
             componentsObjectBuilder.componentsObject[wrappedRef],
             .object(
@@ -138,33 +138,32 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
                 ]
             )
         )
-
+        
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)
     }
-
+    
     func testAddPathItemOperationArrayParams() throws {
         struct ArrayParamsComp: Handler {
             @Parameter var someStructArray: [SomeStruct]
-
+            
             func handle() -> [SomeStruct] {
                 []
             }
         }
-
+        
+        let endpoint = try XCTCreateMockEndpoint(handlerType: ArrayParamsComp.self) {
+            Group("test") {
+                ArrayParamsComp()
+            }
+        }
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
-        let webService = WebServiceModel()
-
-        let comp = ArrayParamsComp()
-        var endpoint: Endpoint<ArrayParamsComp> = try comp.mockEndpoint(application: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
-
         pathsObjectBuilder.addPathItem(from: endpoint)
         let path = OpenAPI.Path(stringLiteral: "test")
-
+        
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
             // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
             tags: ["test"],
@@ -198,33 +197,32 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
             ],
             vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
-
-        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+        
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
             key == path && value == pathItem
         })
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 2)
     }
 
     func testAddPathItemWithRequestBodyAndResponseStruct() throws {
-        struct ComplexComp: Handler {
+        struct ComplexHandler: Handler {
             @Parameter var someStruct: SomeStruct
-
+            
             func handle() -> ResponseStruct {
                 ResponseStruct()
             }
         }
-
+        
+        let endpoint = try XCTCreateMockEndpoint(handlerType: ComplexHandler.self) {
+            Group("test") {
+                ComplexHandler()
+            }
+        }
+        
         var componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: &componentsObjectBuilder)
-
-        let webService = WebServiceModel()
-
-        let comp = ComplexComp()
-        var endpoint: Endpoint<ComplexComp> = try comp.mockEndpoint(application: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
-
         pathsObjectBuilder.addPathItem(from: endpoint)
-
+        
         let path = OpenAPI.Path(stringLiteral: "/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
             // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
@@ -259,10 +257,10 @@ final class OpenAPIPathsObjectBuilderTests: XCTApodiniTest {
             ],
             vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
         ))
-
+        
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains(key: path))
-        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPI.Path, value: OpenAPI.PathItem) -> Bool in
+        XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
             key == path && value == pathItem
         })
         XCTAssertEqual(componentsObjectBuilder.componentsObject.schemas.count, 3)

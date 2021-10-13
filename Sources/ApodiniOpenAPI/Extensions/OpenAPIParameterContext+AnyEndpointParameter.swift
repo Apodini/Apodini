@@ -6,16 +6,22 @@ import Foundation
 import Apodini
 import OpenAPIKit
 
-extension OpenAPI.Parameter.Context {
+extension OpenAPIKit.OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
     init?(_ endpointParameter: AnyEndpointParameter) {
         switch endpointParameter.parameterType {
         case .lightweight:
-            self = .query
+            self = .query(required: Self.isRequired(endpointParameter))
         case .path:
             self = .path
-        case .content, .header:
+        case .content:
             return nil
         }
+    }
+    
+    private static func isRequired(_ endpointParameter: AnyEndpointParameter) -> Bool {
+        !endpointParameter.nilIsValidValue
+            && !endpointParameter.hasDefaultValue
+            && endpointParameter.option(for: PropertyOptionKey.optionality) != Optionality.optional
     }
 }

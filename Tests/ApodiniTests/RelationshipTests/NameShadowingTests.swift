@@ -1,12 +1,16 @@
 //
-// Created by Andreas Bauer on 25.01.21.
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import XCTest
 import XCTApodini
 @testable import Apodini
 
-class NameShadowingTests: XCTApodiniDatabaseBirdTest {
+class NameShadowingTests: XCTApodiniTest {
     var aRelationship = Relationship(name: "a")
 
     struct Number: Handler {
@@ -16,8 +20,8 @@ class NameShadowingTests: XCTApodiniDatabaseBirdTest {
         }
     }
 
-    struct TestData: Content, WithRelationships {
-        static var relationships: Relationships {
+    struct TestData: Content {
+        static var metadata: Metadata {
             Inherits<Int>()
         }
     }
@@ -29,7 +33,7 @@ class NameShadowingTests: XCTApodiniDatabaseBirdTest {
     }
 
     @ComponentBuilder
-    var webService: some Component {
+    var webservice: some Component {
         Group("dut") {
             TestDataHandler()
                 .relationship(to: aRelationship)
@@ -46,24 +50,15 @@ class NameShadowingTests: XCTApodiniDatabaseBirdTest {
         }
     }
 
-    func testInheritedRelationshipShadowing() throws {
+    func testInheritedRelationshipShadowing() {
         // This test cases tests, that inherited relationships do not
         // affect our name shadowing logic:
         // explicit definition (`Relationship` instances) hides -> structural hides -> inherited relationships
-        try XCTCheckComponent(
-            webService,
-            exporter: RelationshipExporter(app),
-            interfaceExporterVisitors: [RelationshipExporterRetriever()],
-            checks: [
-                CheckHandler<TestDataHandler>(index: 0) {
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/dut", "self:update": "/dut", "a:read": "/other"]
-                        )
-                    })
-                }
-            ]
-        )
+        let context = RelationshipTestContext(app: app, service: webservice)
+
+        let result = context.request(on: 0)
+        XCTAssertEqual(
+            result.formatTestRelationships(),
+            ["self:read": "/dut", "self:update": "/dut", "a:read": "/other"])
     }
 }

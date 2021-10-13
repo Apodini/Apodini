@@ -9,15 +9,27 @@ import XCTVapor
 @testable import Apodini
 @testable import ApodiniVaporSupport
 @testable import ApodiniREST
+import XCTApodini
 
 
-final class OperationModifierTests: XCTApodiniDatabaseBirdTest {
+final class OperationModifierTests: XCTApodiniTest {
+    struct HelloWorldHandler: Handler {
+        func handle() -> String {
+            "Hello World"
+        }
+
+        var metadata: Metadata {
+            Operation(.delete)
+        }
+    }
+
     struct TestWebService: WebService {
         var version = Version(prefix: "version", major: 3, minor: 2, patch: 4)
         
         var content: some Component {
             Group("default") {
                 Text("Read")
+                HelloWorldHandler()
             }
             Text("Create")
                 .operation(.read)
@@ -35,14 +47,13 @@ final class OperationModifierTests: XCTApodiniDatabaseBirdTest {
         }
 
         var configuration: Configuration {
-            ExporterConfiguration()
-                .exporter(RESTInterfaceExporter.self)
+            REST()
         }
     }
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
     }
     
     func testRESTOperationModifier() throws {
@@ -58,6 +69,10 @@ final class OperationModifierTests: XCTApodiniDatabaseBirdTest {
         
         try app.vapor.app.test(.GET, "/version3/default") { res in
             try expect("Read", in: res)
+        }
+
+        try app.vapor.app.test(.DELETE, "/version3/default") { res in
+            try expect("Hello World", in: res)
         }
         
         try app.vapor.app.test(.POST, "/version3/") { res in

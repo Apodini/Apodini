@@ -1,6 +1,7 @@
-import Foundation
-import NIO
 import Apodini
+@_implementationOnly import ApodiniUtils
+@_implementationOnly import Foundation
+import NIO
 @_implementationOnly import SwifCron
 
 /// A convenient interface to schedule background running tasks on an event loop using `Job`s and crontab syntax.
@@ -35,10 +36,12 @@ public class Scheduler {
     ///     - keyPath: Associates a `Job` for later retrieval.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
-                                                          with cronTrigger: String,
-                                                          runs: Int? = nil,
-                                                          _ keyPath: KeyPath<K, T>) throws {
+    public func enqueue<K: EnvironmentAccessible, T: Job>(
+        _ job: T,
+        with cronTrigger: String,
+        runs: Int? = nil,
+        _ keyPath: KeyPath<K, T>
+    ) throws {
         try enqueue(job, with: cronTrigger, runs: runs, keyPath, on: app.eventLoopGroup.next())
     }
     
@@ -56,11 +59,15 @@ public class Scheduler {
     ///     - on: Specifies the event loop the `Job` is executed on.
     ///
     /// - Throws: If the `Job` uses request based property wrappers or the crontab cannot be parsed.
-    public func enqueue<K: EnvironmentAccessible, T: Job>(_ job: T,
-                                                          with cronTrigger: String,
-                                                          runs: Int? = nil,
-                                                          _ keyPath: KeyPath<K, T>,
-                                                          on eventLoop: EventLoop) throws {
+    public func enqueue<K: EnvironmentAccessible, T: Job>(
+        _ job: T,
+        with cronTrigger: String,
+        runs: Int? = nil,
+        _ keyPath: KeyPath<K, T>,
+        on eventLoop: EventLoop
+    ) throws {
+        preconditionTypeIsStruct(T.self, messagePrefix: "Job")
+        
         // Only valid property wrappers can be used with `Job`s.
         try check(on: job,
                   for: Environment<Application, Connection>.self,
@@ -84,15 +91,16 @@ public class Scheduler {
         
         // Subscribes to all `ObservedObject`s
         // using a closure that takes each `ObservedObject`.
-        let observation = subscribe(on: activatedJob,
-                                    using: { observedObject in
-                                        // Executes the `Job` on its own event loop
-                                        jobConfiguration.eventLoop.execute {
-                                            observedObject.changed = true
-                                            activatedJob.run()
-                                            observedObject.changed = false
-                                        }
-                                    }
+        let observation = subscribe(
+            on: activatedJob,
+            using: { observedObject, event in
+                // Executes the `Job` on its own event loop
+                jobConfiguration.eventLoop.execute {
+                    observedObject.setChanged(to: true, reason: event)
+                    activatedJob.run()
+                    observedObject.setChanged(to: false, reason: event)
+                }
+            }
         )
         // Only adds the observation if it is present.
         if let observation = observation {

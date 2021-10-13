@@ -39,7 +39,7 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
         }
 
         let birdFacts = BirdFacts()
-        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts, \Keys.bird).configure(app)
         
         
         try XCTCheckHandler(AnotherBirdHandler()) {
@@ -56,8 +56,8 @@ final class EnvironmentTests: XCTApodiniDatabaseBirdTest {
         let birdFacts2 = BirdFacts()
         birdFacts2.someFact = ""
 
-        EnvironmentObject(birdFacts, \Keys.bird).configure(app)
-        EnvironmentObject(birdFacts2, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts, \Keys.bird).configure(app)
+        EnvironmentValue(birdFacts2, \Keys.bird).configure(app)
         
         var environment = Environment(\Keys.bird)
         environment.inject(app: app)

@@ -6,17 +6,9 @@
 //
 
 
-#if DEBUG
-#if swift(>=5.4)
 @resultBuilder
-public enum MockBuilder<Response: Encodable> {}
-#else
-@_functionBuilder
-public enum MockBuilder<Response: Encodable> {}
-#endif
-extension MockBuilder {
+public enum MockBuilder<Response: Encodable> {
     public static func buildBlock<Response>(_ mocks: Mock<Response>...) -> [Mock<Response>] {
         mocks
     }
 }
-#endif

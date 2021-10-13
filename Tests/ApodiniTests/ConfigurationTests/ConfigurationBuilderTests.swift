@@ -65,7 +65,7 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollection = TestCollection()
-        testCollection.configuration.configure(app)
+        (testCollection.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollection.counter.number == 1)
     }
@@ -100,7 +100,7 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollection = TestCollection()
-        testCollection.configuration.configure(app)
+        (testCollection.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollection.counter.number == 3)
     }
@@ -182,12 +182,12 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollectionTrue = TestCollection(triggerConditional: true)
-        testCollectionTrue.configuration.configure(app)
+        (testCollectionTrue.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollectionTrue.counter.number == 2)
 
         let testCollectionFalse = TestCollection(triggerConditional: false)
-        testCollectionFalse.configuration.configure(app)
+        (testCollectionFalse.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollectionFalse.counter.number == 1)
     }
@@ -214,12 +214,12 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollectionTrue = TestCollection(triggerConditional1: true, triggerConditional2: true)
-        testCollectionTrue.configuration.configure(app)
+        (testCollectionTrue.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollectionTrue.counter.number == 2)
 
         let testCollectionFalse = TestCollection(triggerConditional1: true, triggerConditional2: false)
-        testCollectionFalse.configuration.configure(app)
+        (testCollectionFalse.configuration as? [Configuration])?.configure(app)
 
         XCTAssert(testCollectionFalse.counter.number == 3)
     }

@@ -10,24 +10,54 @@ import NIO
 import Apodini
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
+import ApodiniExtension
 
-/// Apodini Interface Exporter for gRPC
-public final class GRPCInterfaceExporter: InterfaceExporter {
+/// Public Apodini Interface Exporter for gRPC
+public final class GRPC: Configuration {
+    let configuration: GRPC.ExporterConfiguration
+    let staticConfigurations: [GRPCDependentStaticConfiguration]
+    
+    public init(integerWidth: IntegerWidthConfiguration = .native,
+                @GRPCDependentStaticConfigurationBuilder staticConfigurations:
+                    () -> [GRPCDependentStaticConfiguration] = { [EmptyGRPCDependentStaticConfiguration()] }) {
+        self.configuration = GRPC.ExporterConfiguration(integerWidth: integerWidth)
+        self.staticConfigurations = staticConfigurations()
+    }
+    
+    public func configure(_ app: Apodini.Application) {
+        /// Instanciate exporter
+        let grpcExporter = GRPCInterfaceExporter(app, self.configuration)
+        
+        /// Insert exporter into `InterfaceExporterStorage`
+        app.registerExporter(exporter: grpcExporter)
+        
+        /// Configure attached related static configurations
+        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
+    }
+}
+
+/// Internal Apodini Interface Exporter for gRPC
+final class GRPCInterfaceExporter: LegacyInterfaceExporter {
     let app: Apodini.Application
+    let exporterConfiguration: GRPC.ExporterConfiguration
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
     /// Initalize `GRPCInterfaceExporter` from `Application`
-    public required init(_ app: Apodini.Application) {
+    init(_ app: Apodini.Application,
+         _ exporterConfiguration: GRPC.ExporterConfiguration = GRPC.ExporterConfiguration()) {
         self.app = app
+        self.exporterConfiguration = exporterConfiguration
         self.services = [:]
         self.parameters = [:]
     }
 
-    public func export<H: Handler>(_ endpoint: Endpoint<H>) {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let serviceName = gRPCServiceName(from: endpoint)
         let methodName = gRPCMethodName(from: endpoint)
 
+        let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint).typeErased
+        
         // generate and store the field tags for all parameters
         // of this endpoint
         endpoint.parameters
@@ -42,19 +72,17 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         if let existingService = services[serviceName] {
             service = existingService
         } else {
-            service = GRPCService(name: serviceName, using: app)
+            service = GRPCService(name: serviceName, using: app, self.exporterConfiguration)
             services[serviceName] = service
         }
-
-        let context = endpoint.createConnectionContext(for: self)
 
         do {
             let serviceType = endpoint[ServiceType.self]
             if serviceType == .unary {
-                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                try service.exposeUnaryEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
             } else if serviceType == .clientStreaming {
-                try service.exposeClientStreamingEndpoint(name: methodName, context: context)
+                try service.exposeClientStreamingEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {
                 // Service-side streaming (and as a consequence also bidirectional streaming)
@@ -65,7 +93,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
                     Defaulting to unary.
                     Exported unary gRPC endpoint \(serviceName)/\(methodName).
                     """)
-                try service.exposeUnaryEndpoint(name: methodName, context: context)
+                try service.exposeUnaryEndpoint(endpoint, strategy: decodingStrategy)
             }
 
             app.logger.info("\tParameters:")
@@ -79,7 +107,7 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
         }
     }
 
-    public func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
+    func retrieveParameter<Type: Decodable>(_ parameter: EndpointParameter<Type>, for request: GRPCMessage) throws -> Type?? {
         guard let fieldTag = getFieldTag(for: parameter) else {
             // If this occurs, something went fundamentally wrong in usage
             // of the GRPC exporter.
@@ -106,13 +134,11 @@ public final class GRPCInterfaceExporter: InterfaceExporter {
 
             let decoder = ProtobufferDecoder()
             
-            if let configuration = app.storage[IntegerWidthConfiguration.StorageKey.self] {
-                switch configuration {
-                case .thirtyTwo:
-                    decoder.integerWidthCodingStrategy = .thirtyTwo
-                case .sixtyFour:
-                    decoder.integerWidthCodingStrategy = .sixtyFour
-                }
+            switch self.exporterConfiguration.integerWidth {
+            case .thirtyTwo:
+                decoder.integerWidthCodingStrategy = .thirtyTwo
+            case .sixtyFour:
+                decoder.integerWidthCodingStrategy = .sixtyFour
             }
 
             let wrappedDecoded = try decoder.decode(wrappedType, from: request.data)

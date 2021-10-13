@@ -2,8 +2,8 @@ name: Publish Documentation
 
 on:
   push:
-    branches:
-      - develop
+    tags:
+      - '*.*.*'
   workflow_dispatch:
 
 jobs:

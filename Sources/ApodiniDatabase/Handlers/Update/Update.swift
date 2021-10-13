@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 2/24/21.
 //
 
-import Fluent
+import FluentKit
 import Apodini
 
 
@@ -14,9 +14,9 @@ import Apodini
 /// If the request contains a set of parameters, `Update` uses these to update their counterparts
 /// in the model found under the given `ID` in the database.
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
-public struct Update<Model: Fluent.Model & Apodini.Content>: Handler {
+public struct Update<Model: FluentKit.Model & Apodini.Content>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Properties
     private var properties: [String: Apodini.Property]

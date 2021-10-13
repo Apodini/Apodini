@@ -11,6 +11,11 @@ public struct AnyRelationshipIdentification {
     }
 }
 
+extension TypedContentMetadataNamespace {
+    /// Shorthand for using a pretyped `RelationshipIdentification`.
+    public typealias Identifying<To: Identifiable> = RelationshipIdentification<Self, To> where To.ID: LosslessStringConvertible
+}
+
 /// A `RelationshipIdentification` provides additional information to resolve path parameter
 /// values to the destination of a relationship, e.g. defined by `RelationshipInheritance`, `RelationshipReference`
 /// or `RelationshipSource`.
@@ -22,7 +27,7 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
 
     /// Initializes a new `RelationshipIdentification`.
     ///
-    /// Within the the `WithRelationships` protocol you can use the `Identifying` typealias:
+    /// The Metadata is available under the name `Identifying` like the following:
     /// ```swift
     /// Identifying<SomeType>(identifiedBy: \.someId)
     /// ```
@@ -37,7 +42,7 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
 
     /// Initializes a new `RelationshipIdentification`.
     ///
-    /// Within the the `WithRelationships` protocol you can use the `Identifying` typealias:
+    /// The Metadata is available under the name `Identifying` like the following:
     /// ```swift
     /// // \.someId is of type Optional, thus the Parameter is only resolved when value is non nil.
     /// Identifying<SomeType>(identifiedBy: \.someId)

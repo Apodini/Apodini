@@ -11,10 +11,7 @@ import Foundation
 struct EndpointInstance<H: Handler> {
     let endpoint: Endpoint<H>
     
-    let handler: H
-    
-    let guards: [AnyGuard]
-    let responseTransformers: [AnyResponseTransformer]
+    var handler: H
     
     init(from endpoint: Endpoint<H>) {
         self.endpoint = endpoint
@@ -24,18 +21,6 @@ struct EndpointInstance<H: Handler> {
         activate(&handler)
         
         self.handler = handler
-        
-        self.guards = endpoint.guards.map { lazyGuard in
-            var `guard` = lazyGuard()
-            `guard`.activate()
-            return `guard`
-        }
-        
-        self.responseTransformers = endpoint.responseTransformers.map { lazyTransformer in
-            var transformer = lazyTransformer()
-            transformer.activate()
-            return transformer
-        }
     }
 }
     

@@ -5,8 +5,15 @@
 //  Created by Paul Schmiedmayer on 5/12/21.
 //
 
-#if DEBUG
-public class Mock<R: Encodable> {
+
+public class AnyMock {
+    func anyMock(usingExporter exporter: MockInterfaceExporter, mockIdentifier: MockIdentifier, lastResponse: Any?) throws -> Any? {
+        nil
+    }
+}
+
+
+public class Mock<R: Encodable>: AnyMock {
     let options: MockOptions
     
     
@@ -15,18 +22,12 @@ public class Mock<R: Encodable> {
     }
     
     
-    @discardableResult
-    func mock(
-        usingConnectionContext context: inout ConnectionContext<MockExporter>?,
-        requestNewConnectionContext: () -> (ConnectionContext<MockExporter>),
-        eventLoop: EventLoop,
-        lastResponse: R?
-    ) throws -> R? {
-        if context == nil || options.contains(.doNotReuseConnection) {
-            context = requestNewConnectionContext()
-        }
-        
-        return lastResponse
+    func mock(usingExporter exporter: MockInterfaceExporter, mockIdentifier: MockIdentifier, lastResponse: R?) throws -> R? {
+        nil
+    }
+    
+    
+    override func anyMock(usingExporter exporter: MockInterfaceExporter, mockIdentifier: MockIdentifier, lastResponse: Any?) throws -> Any? {
+        try mock(usingExporter: exporter, mockIdentifier: mockIdentifier, lastResponse: lastResponse as? R)
     }
 }
-#endif

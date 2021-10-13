@@ -7,7 +7,7 @@
 
 import XCTest
 import XCTVapor
-import protocol Fluent.Database
+import protocol FluentKit.Database
 @testable import Apodini
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
@@ -38,12 +38,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v2/") { res in
@@ -85,12 +84,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v2/") { res in
@@ -122,12 +120,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -162,16 +159,15 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
                             .guard(TestSyncGuard())
                     }.guard(TestSyncGuard())
                 }.guard(TestSyncGuard())
-                    .resetGuards()
+                .resetGuards()
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         
         try app.vapor.app.test(.GET, "/v1/") { res in
@@ -195,12 +191,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -229,12 +224,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -268,12 +262,11 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             }
             
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -285,41 +278,6 @@ final class GuardTests: XCTApodiniDatabaseBirdTest {
             let content = try res.content.decode(Content.self)
             XCTAssert(content.data == "Hello")
             waitForExpectations(timeout: 0, handler: nil)
-        }
-    }
-    
-    func testAllActiveGuardsFunction() {
-        struct ThrowAwayComponent: Component {
-            var content: some Component {
-                EmptyComponent()
-            }
-        }
-        
-        func getResetGuard() -> LazyGuard {
-            let throwAwayComponent = ThrowAwayComponent()
-            return throwAwayComponent.resetGuards().guard
-        }
-        
-        struct TestSyncGuard: SyncGuard, Equatable {
-            let id = UUID()
-            
-            func check() {}
-        }
-        
-        let guards: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }]
-        XCTAssertEqual(guards.allActiveGuards.count, 2)
-        guards.allActiveGuards.forEach {
-            XCTAssertEqual($0().guardType, ObjectIdentifier(TestSyncGuard.self))
-        }
-        
-        let resettedGuards: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, { AnyGuard(TestSyncGuard()) }, getResetGuard()]
-        XCTAssertEqual(resettedGuards.allActiveGuards.count, 0)
-        
-        
-        let onlyOneGuard: [LazyGuard] = [ { AnyGuard(TestSyncGuard()) }, getResetGuard(), { AnyGuard(TestSyncGuard()) }]
-        XCTAssertEqual(onlyOneGuard.allActiveGuards.count, 1)
-        onlyOneGuard.allActiveGuards.forEach {
-            XCTAssertEqual($0().guardType, ObjectIdentifier(TestSyncGuard.self))
         }
     }
 }

@@ -7,7 +7,7 @@ extension KeyPath where Value == Bool {
     ///
     /// Compare
     /// ```
-    /// subviews.filter { !$0.isHidden }
+    /// subviews.filter { !$0.isHidden }
     /// ```
     /// to
     /// ```

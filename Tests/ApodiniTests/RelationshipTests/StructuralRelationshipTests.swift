@@ -1,12 +1,16 @@
 //
-// Created by Andreas Bauer on 23.01.21.
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
-@testable import Apodini
 import XCTApodini
+@testable import Apodini
 
 
-class RelationshipTests: XCTApodiniDatabaseBirdTest {
+class RelationshipTests: XCTApodiniTest {
     @PathParameter
     var id: String
     @PathParameter
@@ -33,160 +37,129 @@ class RelationshipTests: XCTApodiniDatabaseBirdTest {
             text
         }
     }
-    
-    
-    func testStructuralRelationships() throws {
-        @ComponentBuilder
-        var webService: some Component {
-            Group("a") {
-                Text("Test1")
-                Group("b", $id) {
-                    Group("c") {
-                        TextParameterized(text: "Test2", id: $id)
-                        TextParameterized2(text: "Test3", id: $id, id2: $id2)
-                            .operation(.update)
-                    }
-                    Group("d") {
-                        TextParameterized(text: "Test4", id: $id)
-                    }
+
+    @ComponentBuilder
+    var webService: some Component {
+        Group("a") {
+            Text("Test1")
+            Group("b", $id) {
+                Group("c") {
+                    TextParameterized(text: "Test2", id: $id)
+                    TextParameterized2(text: "Test3", id: $id, id2: $id2)
+                        .operation(.update)
+                }
+                Group("d") {
+                    TextParameterized(text: "Test4", id: $id)
                 }
             }
         }
+    }
+
+    func testStructuralRelationships() throws {
+        let context = RelationshipTestContext(app: app, service: webService)
+
+        let result0 = context.request(on: 0) // handling "Test1"
+        XCTAssertEqual(
+            result0.formatTestRelationships(),
+            [
+                "self:read": "/a", "b_c:read": "/a/b/{id}/c", "b_c:update": "/a/b/{id}/c/{id2}",
+                "b_d:read": "/a/b/{id}/d"
+            ]
+        )
 
         
-        try XCTCheckComponent(
-            webService,
-            exporter: RelationshipExporter(app),
-            interfaceExporterVisitors: [RelationshipExporterRetriever()],
-            checks: [
-                CheckHandler<Text>(index: 0) { // handling "Test1"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            [
-                                "self:read": "/a", "b_c:read": "/a/b/{id}/c", "b_c:update": "/a/b/{id}/c/{id2}",
-                                "b_d:read": "/a/b/{id}/d"
-                            ]
-                        )
-                    })
-                },
-                CheckHandler<TextParameterized>(index: 1) { // handling "Test2"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                    }
-                },
-                CheckHandler<TextParameterized>(index: 2) { // handling "Test3"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:update": "/a/b/value0/c/value1"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                        UnnamedParameter("value1")
-                    }
-                },
-                CheckHandler<TextParameterized>(index: 3) {  // handling "Test4"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/a/b/value0/d"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                    }
-                }
-            ]
+        let result1 = context.request(on: 1) { // handling "Test2"
+            UnnamedParameter("value0")
+        }
+        XCTAssertEqual(
+            result1.formatTestRelationships(),
+            ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"]
+        )
+
+        let result2 = context.request(on: 2) { // handling "Test3"
+            UnnamedParameter("value0")
+            UnnamedParameter("value1")
+        }
+        XCTAssertEqual(
+            result2.formatTestRelationships(),
+            ["self:update": "/a/b/value0/c/value1"]
+        )
+
+        let result3 = context.request(on: 3) { // handling "Test4"
+            UnnamedParameter("value0")
+        }
+        XCTAssertEqual(
+            result3.formatTestRelationships(),
+            ["self:read": "/a/b/value0/d"]
         )
     }
 
-    func testModifiedStructuralRelationships() throws {
-        @ComponentBuilder
-        var webService: some Component {
-            Group("a") {
-                Text("Test1")
-                Group {
-                    "b".relationship(name: "named")
-                    $id.hideLink(of: .update)
-                } content: {
-                    Group("c") {
-                        TextParameterized(text: "Test2", id: $id)
-                        TextParameterized2(text: "Test3", id: $id, id2: $id2)
-                            .operation(.update)
-                    }
-                    Group("d".relationship(name: "Test")) {
-                        TextParameterized(text: "Test4", id: $id)
-                    }
-                    Group("e".hideLink()) {
-                        TextParameterized(text: "Test5", id: $id)
-                    }
+    @ComponentBuilder
+    var modifiedWebService: some Component {
+        Group("a") {
+            Text("Test1")
+            Group {
+                "b".relationship(name: "named")
+                $id.hideLink(of: .update)
+            } content: {
+                Group("c") {
+                    TextParameterized(text: "Test2", id: $id)
+                    TextParameterized2(text: "Test3", id: $id, id2: $id2)
+                        .operation(.update)
+                }
+                Group("d".relationship(name: "Test")) {
+                    TextParameterized(text: "Test4", id: $id)
+                }
+                Group("e".hideLink()) {
+                    TextParameterized(text: "Test5", id: $id)
                 }
             }
         }
-        
-        try XCTCheckComponent(
-            webService,
-            exporter: RelationshipExporter(app),
-            interfaceExporterVisitors: [RelationshipExporterRetriever()],
-            checks: [
-                CheckHandler<Text>(index: 0) { // handling "Test1"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            [
-                                "self:read": "/a", "namedc:read": "/a/b/{id}/c", "namedTest:read": "/a/b/{id}/d",
-                                "namedc:update": "hidden:/a/b/{id}/c/{id2}", "namede:read": "hidden:/a/b/{id}/e"
-                            ]
-                        )
-                    })
-                },
-                CheckHandler<TextParameterized>(index: 1) { // handling "Test2"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                    }
-                },
-                CheckHandler<TextParameterized2>(index: 2) { // handling "Test3"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:update": "/a/b/value0/c/value1"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                        UnnamedParameter("value1")
-                    }
-                },
-                CheckHandler<TextParameterized>(index: 3) { // handling "Test4"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/a/b/value0/d"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                    }
-                },
-                CheckHandler<TextParameterized>(index: 4) { // handling "Test5"
-                    MockRequest<EnrichedContent>(assertion: { enrichedContent in
-                        XCTAssertEqual(
-                            enrichedContent.formatTestRelationships(),
-                            ["self:read": "/a/b/value0/e"]
-                        )
-                    }) {
-                        UnnamedParameter("value0")
-                    }
-                }
+    }
+
+    func testModifiedStructuralRelationships() throws {
+        let context = RelationshipTestContext(app: app, service: modifiedWebService)
+
+        let result0 = context.request(on: 0) // handling "Test1"
+        XCTAssertEqual(
+            result0.formatTestRelationships(),
+            [
+                "self:read": "/a", "namedc:read": "/a/b/{id}/c", "namedTest:read": "/a/b/{id}/d",
+                "namedc:update": "hidden:/a/b/{id}/c/{id2}", "namede:read": "hidden:/a/b/{id}/e"
             ]
+        )
+
+        let result1 = context.request(on: 1) { // handling "Test2"
+            UnnamedParameter("value0")
+        }
+        XCTAssertEqual(
+            result1.formatTestRelationships(),
+            ["self:read": "/a/b/value0/c", "id2:update": "/a/b/value0/c/{id2}"]
+        )
+
+        let result2 = context.request(on: 2) { // handling "Test3"
+            UnnamedParameter("value0")
+            UnnamedParameter("value1")
+        }
+        XCTAssertEqual(
+            result2.formatTestRelationships(),
+            ["self:update": "/a/b/value0/c/value1"]
+        )
+
+        let result3 = context.request(on: 3) { // handling "Test4"
+            UnnamedParameter("value0")
+        }
+        XCTAssertEqual(
+            result3.formatTestRelationships(),
+            ["self:read": "/a/b/value0/d"]
+        )
+
+        let result4 = context.request(on: 4) { // handling "Test5"
+            UnnamedParameter("value0")
+        }
+        XCTAssertEqual(
+            result4.formatTestRelationships(),
+            ["self:read": "/a/b/value0/e"]
         )
     }
 }

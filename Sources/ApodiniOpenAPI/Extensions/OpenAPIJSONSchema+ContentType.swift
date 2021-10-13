@@ -6,7 +6,7 @@ import OpenAPIKit
 
 extension JSONSchema {
     /// Currently only `.json` and `.txt` are supported.
-    var openAPIContentType: OpenAPI.ContentType {
+    var openAPIContentType: OpenAPIKit.OpenAPI.ContentType {
         switch self {
         case .integer, .string, .number:
             return .txt

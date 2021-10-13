@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 2/24/21.
 //
 
-import Fluent
+import FluentKit
 import Apodini
 
 
@@ -18,9 +18,9 @@ import Apodini
 /// }
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would 
 /// return an array of `Bird` object that have an age of 19 and the name Foo.
-public struct ReadAll<Model: Fluent.Model & Apodini.Content>: Handler {
+public struct ReadAll<Model: FluentKit.Model & Apodini.Content>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Properties
     private var properties: [String: Apodini.Property]

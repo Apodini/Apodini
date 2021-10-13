@@ -10,7 +10,7 @@ import Vapor
 import XCTApodini
 
 
-class StateTests: XCTApodiniDatabaseBirdTest {
+class StateTests: XCTApodiniTest {
     struct TestHandler: Handler {
         @State var count: Int = 0
         
@@ -167,22 +167,29 @@ class StateTests: XCTApodiniDatabaseBirdTest {
             XCTAssertEqual(number, count)
         }
         
-        let guardExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
-        let asyncGuardExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
-        let transformerrExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
+        let transformerExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
+        let guardExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
+        let asyncGuardExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
         
-        let handler = TestHandler()
+        let handler = TestHandlerUsingClassType()
+            .response(CountTransformerUsingClassType(expectation: transformerExpectation))
             .guard(CountGuardUsingClassType(callback: assertion, expectation: guardExpectation))
-            .guard(AsyncCountGuardUsingClassType(callback: assertion, expectation: asyncGuardExpectation, eventLoop: self.app.eventLoopGroup.next()))
-            .response(CountTransformerUsingClassType(expectation: transformerrExpectation))
+            .guard(AsyncCountGuardUsingClassType(callback: assertion, expectation: asyncGuardExpectation, eventLoop: app.eventLoopGroup.next()))
         
-        
-        // Not shared between in the same connection context
+        // Not shared between in different connection contexts
         try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
             MockRequest(expectation: "", options: .doNotReuseConnection)
         }
         
+        // Not shared across the same instance of an exporter
+        let mockExporter = MockExporter()
+        try XCTCheckHandler(handler, configuration: mockExporter) {
+            MockRequest(expectation: "")
+        }
+        try XCTCheckHandler(handler, configuration: mockExporter) {
+            MockRequest(expectation: "")
+        }
         
         // Not shared across different instances of an exporter
         try XCTCheckHandler(handler) {
@@ -192,31 +199,40 @@ class StateTests: XCTApodiniDatabaseBirdTest {
             MockRequest(expectation: "")
         }
         
-        wait(for: [guardExpectation, asyncGuardExpectation, transformerrExpectation], timeout: 0)
+        wait(for: [guardExpectation, asyncGuardExpectation, transformerExpectation], timeout: 0)
     }
 
     func testStateIsNotSharedValueType() throws {
         let count: Int = 0
+        
         let assertion = { number in
             XCTAssertEqual(number, count)
         }
         
-        let guardExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
-        let asyncGuardExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
-        let transformerrExpectation = XCTestExpectation(expectedFulfillmentCount: 4)
+        let transformerExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
+        let guardExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
+        let asyncGuardExpectation = XCTestExpectation(expectedFulfillmentCount: 6)
         
         let handler = TestHandler()
+            .response(CountTransformer(expectation: transformerExpectation))
             .guard(CountGuard(callback: assertion, expectation: guardExpectation))
-            .guard(AsyncCountGuard(callback: assertion, expectation: asyncGuardExpectation, eventLoop: self.app.eventLoopGroup.next()))
-            .response(CountTransformer(expectation: transformerrExpectation))
+            .guard(AsyncCountGuard(callback: assertion, expectation: asyncGuardExpectation, eventLoop: app.eventLoopGroup.next()))
         
         
-        // Not shared between in the same connection context
+        // Not shared between in different connection contexts
         try XCTCheckHandler(handler) {
             MockRequest(expectation: "")
             MockRequest(expectation: "", options: .doNotReuseConnection)
         }
         
+        // Not shared across the same instance of an exporter
+        let mockExporter = MockExporter()
+        try XCTCheckHandler(handler, configuration: mockExporter) {
+            MockRequest(expectation: "")
+        }
+        try XCTCheckHandler(handler, configuration: mockExporter) {
+            MockRequest(expectation: "")
+        }
         
         // Not shared across different instances of an exporter
         try XCTCheckHandler(handler) {
@@ -226,6 +242,6 @@ class StateTests: XCTApodiniDatabaseBirdTest {
             MockRequest(expectation: "")
         }
         
-        wait(for: [guardExpectation, asyncGuardExpectation, transformerrExpectation], timeout: 0)
+        wait(for: [guardExpectation, asyncGuardExpectation, transformerExpectation], timeout: 0)
     }
 }

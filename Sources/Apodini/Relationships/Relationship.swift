@@ -11,7 +11,7 @@ import Foundation
 /// 
 /// Use the `Handler.destination(of:)` modifier to specify the destination for the Relationship.
 /// You can only define multiple destinations if the `Handler`s are located under the same path.
-public struct Relationship {
+public struct Relationship: Decodable {
     internal let id = UUID()
     internal let name: String
 

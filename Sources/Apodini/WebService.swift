@@ -1,16 +1,18 @@
 //
 //  WebService.swift
-//  
+//
 //
 //  Created by Paul Schmiedmayer on 7/6/20.
 //
 
 import Foundation
 import Logging
-
+import ArgumentParser
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: Component, ConfigurationCollection {
+public protocol WebService: WebServiceMetadataNamespace, Component, ConfigurationCollection, ParsableCommand {
+    typealias Metadata = AnyWebServiceMetadata
+    
     /// The current version of the `WebService`
     var version: Version { get }
     
@@ -18,21 +20,31 @@ public protocol WebService: Component, ConfigurationCollection {
     init()
 }
 
+// MARK: Metadata DSL
+public extension WebService {
+    /// WebService has an empty `AnyWebServiceMetadata` by default.
+    var metadata: AnyWebServiceMetadata {
+        Empty()
+    }
+}
 
 extension WebService {
-    /// This function is executed to start up an Apodini `WebService`
-    public static func main() throws {
-        try main(waitForCompletion: true)
+    /// This function is executed to start up an Apodini `WebService`, called by Swift ArgumentParser on instanciated `WebService` containing CLI arguments
+    public mutating func run() throws {
+        try Self.start(webService: self)
     }
-
     
     /// This function is executed to start up an Apodini `WebService`
+    /// - Parameters:
+    ///    - waitForCompletion: Indicates whether the `Application` is launched or just booted. Defaults to true, meaning the `Application` is run
+    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
-    static func main(waitForCompletion: Bool) throws -> Application {
+    static func start(waitForCompletion: Bool = true, webService: Self = Self()) throws -> Application {
         let app = Application()
         LoggingSystem.bootstrap(StreamLogHandler.standardError)
 
-        main(app: app)
+        start(app: app, webService: webService)
         
         guard waitForCompletion else {
             try app.boot()
@@ -48,19 +60,21 @@ extension WebService {
     }
     
 
-    /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.main()` to startup an Apodini `WebService`.
-    /// - Parameter app: The app instance that should be injected in the Apodini `WebService`
-    static func main(app: Application) {
-        let webService = Self()
+     /// This function is provided to start up an Apodini `WebService`. The `app` parameter can be injected for testing purposes only. Use `WebService.start()` to startup an Apodini `WebService`.
+     /// - Parameters:
+     ///    - app: The app instance that should be injected in the Apodini `WebService`
+     ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    static func start(app: Application, webService: Self = Self()) {
+        /// Configure application and instanciate exporters
         webService.configuration.configure(app)
         
-        // If no specific address hostname is provided we bind to the default address to automatically and correcly bind in Docker containers.
+        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
         if app.http.address == nil {
             app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
         }
         
         webService.register(
-            app.exporters.semanticModelBuilderBuilder(SemanticModelBuilder(app))
+            SemanticModelBuilder(app)
         )
     }
     
@@ -79,11 +93,16 @@ extension WebService {
         visitor.finishParsing()
     }
     
-    private func visit(_ visitor: SyntaxTreeVisitor) {
+    func visit(_ visitor: SyntaxTreeVisitor) {
+        metadata.accept(visitor)
+
         visitor.addContext(APIVersionContextKey.self, value: version, scope: .environment)
         visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-        Group {
-            content
-        }.accept(visitor)
+
+        if Content.self != Never.self {
+            Group {
+                content
+            }.accept(visitor)
+        }
     }
 }

@@ -26,11 +26,11 @@ public protocol SyntaxTreeVisitable {
 
 
 /// The `SyntaxTreeVisitor` is used to parse the Apodini DSL and forward the parsed result to the `SemanticModelBuilder`s.
-public class SyntaxTreeVisitor {
+public class SyntaxTreeVisitor: HandlerVisitor {
     /// The `semanticModelBuilders` that can interpret the Apodini DSL syntax tree collected by the `SyntaxTreeVisitor`
     private let modelBuilder: SemanticModelBuilder?
     /// Contains the current `ContextNode` that is used when creating a context for each registered `Handler`
-    private(set) var currentNode = ContextNode()
+    var currentNode = ContextNode()
     /// The `currentNodeIndexPath` is  used to uniquely identify `Handlers`, even across multiple runs of an Apodini web service if the DSL has not changed.
     /// We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers` by  the index paths.
     private var currentNodeIndexPath: [Int] = []
@@ -43,7 +43,7 @@ public class SyntaxTreeVisitor {
     }
     
     
-    /// `enterCollection` is used to keep track of the current depth into the web service data structure
+    /// `enterContent` is used to keep track of the current depth into the web service data structure
     /// All visits (`accept` call) to a component's content **must** be executed within the closure passed to `enterContent`.
     ///
     /// **Depth** is not defined in terms of path components or the exported interface, but simply how many levels of `.content` the `SyntaxTreeVisitor` is while parsing the Apodini DSL
@@ -73,6 +73,10 @@ public class SyntaxTreeVisitor {
             fatalError("Tried exiting a ContextNode which didn't have any parent nodes")
         }
     }
+
+    func markContextWorkSetBegin(isModifier: Bool = false) {
+        currentNode.markContextWorkSetBegin(isModifier: isModifier)
+    }
     
     /// Adds a new context value to the current context of the `SyntaxTreeVisitor`.
     ///
@@ -86,30 +90,29 @@ public class SyntaxTreeVisitor {
         currentNode.addContext(contextKey, value: value, scope: scope)
     }
     
-    
     /// Called every time a new `Handler` is registered
     /// - Parameter handler: The `Handler` that is registered
     func visit<H: Handler>(handler: H) {
         // We increase the component level specific `currentNodeIndexPath` by one for each `Handler` visited in the same component level to uniquely identify `Handlers`
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
-
-        let responseTransformers = currentNode.getContextValue(for: ResponseTransformerContextKey.self)
-        let responseType = responseTransformers.responseType ?? H.Response.Content.self
-
-        // Intermediate solution to parse `Content` types conforming to `WithRelationships`
-        // until the Metadata DSL creates a unified solution for such metadata.
-        let visitor = StandardRelationshipsVisitor(visitor: self)
-        visitor(responseType)
         
-        // We capture the currentContextNode and make a copy that will be used when executing the request as
-        // directly capturing the currentNode would be influenced by the `resetContextNode()` call and using the
-        // currentNode would always result in the last currentNode that was used when visiting the component tree.
-        let context = Context(contextNode: currentNode.copy())
+        let responseType = H.Response.Content.self
 
-        modelBuilder?.register(handler: handler, withContext: context)
+        // Content Metadata is currently added to the Context of the Handler.
+        // Also, we currently do not recursively parse properties
+        let metadataContentVisitor = StandardContentMetadataVisitor(visitor: self)
+        metadataContentVisitor(responseType)
         
-        currentNode.resetContextNode()
+        
+        // build the final handler using the delegating handlers
+        let delegateVisitor = DelegatingHandlerInitializerVisitor(calling: modelBuilder, with: self)
+        do {
+            // calls semantic model builder's `register`
+            try delegateVisitor.visit(handler: handler)
+        } catch {
+            fatalError("Failed to build delegate-stack for delegated handler \(handler): \(error)")
+        }
     }
     
     /// **Must** be called after finishing the parsing of the Apodini DSL to trigger the `finishedRegistration` of all `semanticModelBuilders`.

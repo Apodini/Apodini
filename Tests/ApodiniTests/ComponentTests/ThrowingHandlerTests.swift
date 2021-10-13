@@ -9,7 +9,7 @@
 @testable import ApodiniREST
 @testable import ApodiniVaporSupport
 import XCTest
-import Fluent
+import FluentKit
 import Vapor
 
 
@@ -41,12 +41,11 @@ class ThrowingErrorTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
@@ -60,12 +59,11 @@ class ThrowingErrorTests: XCTApodiniDatabaseBirdTest {
             }
 
             var configuration: Configuration {
-                ExporterConfiguration()
-                    .exporter(RESTInterfaceExporter.self)
+                REST()
             }
         }
         
-        TestWebService.main(app: app)
+        TestWebService.start(app: app)
         
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)

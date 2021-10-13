@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 5/12/21.
 //
 
-#if DEBUG
+#if DEBUG || RELEASE_TESTING
 import XCTApodini
 import ApodiniDatabase
 import FluentSQLiteDriver

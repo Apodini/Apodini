@@ -1,15 +1,17 @@
 //
 //  ThrowsTests.swift
-//  
+//
 //
 //  Created by Max Obermeier on 22.01.21.
 //
 
 
-@testable import Apodini
+import XCTest
 import XCTApodini
+import Vapor
 
-class ThrowsTests: XCTApodiniDatabaseBirdTest {
+
+class ThrowsTests: XCTApodiniTest {
     struct ErrorTestHandler: Handler {
         @Throws(.badInput, reason: "!badInput!", description: "<badInput>")
         var error1: ApodiniError
@@ -71,22 +73,22 @@ class ThrowsTests: XCTApodiniDatabaseBirdTest {
     }
     
     func testReasonAndDescriptionPresence() throws {
-        print(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self))
-        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
+        print(ErrorTestHandler(errorCode: 1).evaluationError().standardMessage)
+        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().standardMessage.contains("!badInput!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 1).evaluationError().standardMessage.contains("<badInput>"))
         #else
-        XCTAssertFalse(ErrorTestHandler(errorCode: 1).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 1).evaluationError().standardMessage.contains("<badInput>"))
         #endif
         
-        XCTAssertTrue(ErrorTestHandler(errorCode: 2).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
-        XCTAssertFalse(ErrorTestHandler(errorCode: 2).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 2).evaluationError().standardMessage.contains("!badInput!"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 2).evaluationError().standardMessage.contains("<badInput>"))
         
-        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().message(for: MockExporter.self).contains("!badInput!"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().standardMessage.contains("!badInput!"))
         #if DEBUG
-        XCTAssertTrue(ErrorTestHandler(errorCode: 3).evaluationError().message(for: MockExporter.self).contains("<badInput>"))
+        XCTAssertTrue(ErrorTestHandler(errorCode: 3).evaluationError().standardMessage.contains("<badInput>"))
         #else
-        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().message(for: _MockExporter.self).contains("<badInput>"))
+        XCTAssertFalse(ErrorTestHandler(errorCode: 3).evaluationError().standardMessage.contains("<badInput>"))
         #endif
     }
     
@@ -95,53 +97,52 @@ class ThrowsTests: XCTApodiniDatabaseBirdTest {
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("!other!"))
+                        description: "<other>").evaluationError().standardMessage.contains("!other!"))
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
         #else
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
         #endif
         
         XCTAssertTrue(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: nil).evaluationError().message(for: MockExporter.self).contains("!other!"))
+                        description: nil).evaluationError().standardMessage.contains("!other!"))
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: "!other!",
-                        description: nil).evaluationError().message(for: MockExporter.self).contains("<other>"))
+                        description: nil).evaluationError().standardMessage.contains("<other>"))
         
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: nil,
-                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("!other!"))
+                        description: "<other>").evaluationError().standardMessage.contains("!other!"))
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: nil,
-                        description: "<other>").evaluationError().message(for: MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
         #else
         XCTAssertFalse(ErrorTestHandler(
                         errorCode: 4,
                         applyChanges: true,
                         reason: nil,
-                        description: "<other>").evaluationError().message(for: _MockExporter.self).contains("<other>"))
+                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
         #endif
     }
 }
-
 
 private extension Handler {
     func evaluationError() -> ApodiniError {

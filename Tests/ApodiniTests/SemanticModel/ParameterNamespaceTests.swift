@@ -10,21 +10,36 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
     struct EmptyParameterNameHandler: Handler {
         @Parameter("")
         var param: String
+        
+        
         func handle() -> String {
             "test"
         }
     }
 
-    struct TestHandler: Handler {
+    struct TestHandlerPathLightweightCollision: Handler {
         @Parameter("a", .http(.path))
         var param0: String
         @Parameter("a", .http(.query))
         var param1: String
         @Parameter("b", .http(.body))
         var param2: String
-        @Parameter("b", .http(.header))
-        var param3: String
-
+        
+        
+        func handle() -> String {
+            "test"
+        }
+    }
+    
+    struct TestHandlerLightweightContentCollision: Handler {
+        @Parameter("a", .http(.path))
+        var param0: String
+        @Parameter("b", .http(.query))
+        var param1: String
+        @Parameter("b", .http(.body))
+        var param2: String
+        
+        
         func handle() -> String {
             "test"
         }
@@ -37,9 +52,8 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
         var param1: String
         @Parameter("a", .http(.body))
         var param2: String
-        @Parameter("a", .http(.header))
-        var param3: String
-
+        
+        
         func handle() -> String {
             "test"
         }
@@ -52,79 +66,64 @@ class ParameterNamespaceTests: XCTApodiniDatabaseBirdTest {
         )
     }
     
-    private func parameterNameCollisionCheck<H: Handler>(on handler: H, in namespaces: [ParameterNamespace]) throws {
-        try handler.mockEndpoint(application: app).parameterNameCollisionCheck(in: namespaces)
-    }
-
     func testIndividualParameterNamespace() throws {
-        try parameterNameCollisionCheck(
-            on: TestHandler(),
-            in: .individual
-        )
-        
-        try parameterNameCollisionCheck(
-            on: SameNameTestHandler(),
-            in: .individual
-        )
+        try XCTCreateMockEndpoint(TestHandlerPathLightweightCollision()).parameterNameCollisionCheck(in: .individual)
+        try XCTCreateMockEndpoint(TestHandlerLightweightContentCollision()).parameterNameCollisionCheck(in: .individual)
+        try XCTCreateMockEndpoint(SameNameTestHandler()).parameterNameCollisionCheck(in: .individual)
     }
 
-    func testGlobalParameterNamespace() {
+    func testGlobalParameterNamespace() throws {
         XCTAssertRuntimeFailure(
-            try! self.parameterNameCollisionCheck(
-                on: TestHandler(),
-                in: .global
-            ),
+            try! self.XCTCreateMockEndpoint(TestHandlerPathLightweightCollision()).parameterNameCollisionCheck(in: .global),
             "Failed to detect name collisions on .global level"
         )
-        
         XCTAssertRuntimeFailure(
-            try! self.parameterNameCollisionCheck(
-                on: SameNameTestHandler(),
-                in: .global
-            ),
+            try! self.XCTCreateMockEndpoint(TestHandlerLightweightContentCollision()).parameterNameCollisionCheck(in: .global),
+            "Failed to detect name collisions on .global level"
+        )
+        XCTAssertRuntimeFailure(
+            try! self.XCTCreateMockEndpoint(SameNameTestHandler()).parameterNameCollisionCheck(in: .global),
             "Failed to detect name collisions on .global level"
         )
     }
 
     func testEmptyParameterNamespace() throws {
         XCTAssertRuntimeFailure(
-            try! TestHandler().mockEndpoint(application: self.app).parameterNameCollisionCheck(),
+            try! self.XCTCreateMockEndpoint(SameNameTestHandler()).parameterNameCollisionCheck(),
             "Failed to reject empty namespace definition"
         )
     }
 
-    func testCustom1ParameterNamespace() throws {
-        let endpoint = try TestHandler().mockEndpoint(application: app)
-
-        endpoint.parameterNameCollisionCheck(in: .path, [.lightweight, .content])
+    func testCustomParameterPathLightweightCollisionNamespace() throws {
+        let endpoint = try XCTCreateMockEndpoint(TestHandlerPathLightweightCollision())
+        
+        endpoint.parameterNameCollisionCheck(in: .path, .lightweight, .content)
+        endpoint.parameterNameCollisionCheck(in: [.path], [.lightweight, .content])
+        endpoint.parameterNameCollisionCheck(in: [.path, .content], [.lightweight])
+        
+        XCTAssertRuntimeFailure(
+            endpoint.parameterNameCollisionCheck(in: .content, [.lightweight, .path]),
+            "Failed to detect name collisions on custom level"
+        )
+        XCTAssertRuntimeFailure(
+            endpoint.parameterNameCollisionCheck(in: [.path, .lightweight, .content], [.path, .lightweight, .content]),
+            "Failed to detect name collisions on custom level"
+        )
     }
-
-    func testCustom2ParameterNamespace() throws {
-        let endpoint = try TestHandler().mockEndpoint(application: app)
-
-        endpoint.parameterNameCollisionCheck(in: .lightweight, [.path, .content])
-    }
-
-    func testCustom3ParameterNamespace() throws {
-        let endpoint = try TestHandler().mockEndpoint(application: app)
-
-        endpoint.parameterNameCollisionCheck(in: .path, .lightweight, .content, .header)
-        endpoint.parameterNameCollisionCheck(in: [.path, .header], [.lightweight, .content])
-        endpoint.parameterNameCollisionCheck(in: [.path, .content], [.lightweight, .header])
+    
+    func testCustomParameterLightweightBodyCollisionNamespace() throws {
+        let endpoint = try XCTCreateMockEndpoint(TestHandlerLightweightContentCollision())
+        
+        endpoint.parameterNameCollisionCheck(in: .path, .lightweight, .content)
+        endpoint.parameterNameCollisionCheck(in: [.path, .lightweight], .content)
+        endpoint.parameterNameCollisionCheck(in: [.path, .content], [.lightweight])
+        
         XCTAssertRuntimeFailure(
-            endpoint.parameterNameCollisionCheck(in: .content, [.lightweight, .path], .header),
+            endpoint.parameterNameCollisionCheck(in: .path, [.lightweight, .content]),
             "Failed to detect name collisions on custom level"
         )
         XCTAssertRuntimeFailure(
-            endpoint.parameterNameCollisionCheck(in: .path, [.content, .header], .lightweight),
-            "Failed to detect name collisions on custom level"
-        )
-        XCTAssertRuntimeFailure(
-            endpoint.parameterNameCollisionCheck(in: [.path, .lightweight], [.content, .header]),
-            "Failed to detect name collisions on custom level"
-        )
-        XCTAssertRuntimeFailure(
-            endpoint.parameterNameCollisionCheck(in: [.path, .lightweight, .content, .header], [.path, .lightweight, .content, .header]),
+            endpoint.parameterNameCollisionCheck(in: [.path, .lightweight, .content], [.path, .lightweight, .content]),
             "Failed to detect name collisions on custom level"
         )
     }

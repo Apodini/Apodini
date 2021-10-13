@@ -33,7 +33,7 @@ public struct UploadConfiguration {
             let fileManager = FileManager.default
             
             var url = URL(fileURLWithPath: mainPath)
-            for pathComponent in subPath.pathComponents {
+            for pathComponent in subPath.split(separator: "/").map({ String($0) }) {
                 url.appendPathComponent(pathComponent.description)
                 if !fileManager.fileExists(atPath: url.relativePath) {
                     try fileManager.createDirectory(at: url, withIntermediateDirectories: false, attributes: nil)

@@ -7,7 +7,7 @@
 
 import Apodini
 import ApodiniUtils
-import Fluent
+import FluentKit
 
 
 fileprivate protocol ValueContainable {

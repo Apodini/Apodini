@@ -5,7 +5,7 @@
 //  Created by Paul Schmiedmayer on 5/12/21.
 //
 
-#if DEBUG
+
 public struct MockOptions: OptionSet {
     public static let doNotReduceRequest = MockOptions(rawValue: 0b001)
     public static let doNotReuseConnection = MockOptions(rawValue: 0b011)
@@ -19,4 +19,3 @@ public struct MockOptions: OptionSet {
         self.rawValue = rawValue
     }
 }
-#endif

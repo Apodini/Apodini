@@ -39,33 +39,17 @@ final class DescriptionModifierTests: XCTApodiniDatabaseBirdTest {
     }
 
     func testEndpointDescription() throws {
-        let modelBuilder = SemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-        let testComponent = TestComponentDescription()
-        Group {
-            testComponent.content
-        }.accept(visitor)
-        visitor.finishParsing()
-
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
+        let endpoint = try XCTCreateMockEndpoint(handlerType: TestHandler.self) {
+            TestComponentDescription()
+        }
         let customDescription = endpoint[Context.self].get(valueFor: DescriptionContextKey.self)
-    
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
     }
     
     func testEndpointDefaultDescription() throws {
-        let modelBuilder = SemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-        let testComponent = TestComponentWithoutDescription()
-        Group {
-            testComponent.content
-        }.accept(visitor)
-        visitor.finishParsing()
-    
-        let treeNodeA: EndpointsTreeNode = try XCTUnwrap(modelBuilder.rootNode.children.first?.children.first)
-        let endpoint: AnyEndpoint = try XCTUnwrap(treeNodeA.endpoints.first?.value)
-        
+        let endpoint = try XCTCreateMockEndpoint(handlerType: TestHandler.self) {
+            TestComponentWithoutDescription()
+        }
         XCTAssertEqual(endpoint.description, "TestHandler")
     }
 }

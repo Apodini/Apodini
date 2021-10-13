@@ -53,25 +53,24 @@ private struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        ExporterConfiguration()
-            .exporter(ApodiniDeployInterfaceExporter.self)
+        ApodiniDeploy()
     }
 }
 
 
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
-        guard !Self.isRunningOnLinuxDebug() else {
-            return
-        }
-        
+        #if os(Linux)
+        throw XCTSkip("Skipped testHandlerCollection on Linux due to some undiscovered issues on focal nightly and xenial 5.4.2 builds")
+        #endif
+
         for idx in 0..<100 {
             if idx > 0 {
                 try tearDownWithError()
                 try setUpWithError()
             }
             
-            TestWebService.main(app: app)
+            TestWebService.start(app: app)
             
             let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
             let actual = apodiniDeployIE.collectedEndpoints
@@ -79,7 +78,7 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
             let expected: [ApodiniDeployInterfaceExporter.CollectedEndpointInfo] = [
                 ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint(handler: Text(""), blackboard: MockBlackboard((AnyHandlerIdentifier.self, TestWebService.handler1Id))),
+                    endpoint: try XCTCreateMockEndpoint(Text("").identified(by: TestWebService.handler1Id)),
                     deploymentOptions: DeploymentOptions([
                         ResolvedOption(key: .memorySize, value: .mb(128)),
                         ResolvedOption(key: .timeout, value: .seconds(12))
@@ -87,22 +86,22 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
                 ),
                 ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint(handler: Text(""), blackboard: MockBlackboard((AnyHandlerIdentifier.self, TestWebService.handler2Id))),
+                    endpoint: try XCTCreateMockEndpoint(Text("").identified(by: TestWebService.handler2Id)),
                     deploymentOptions: DeploymentOptions([])
                 ),
                 ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint(handler: Text(""), blackboard: MockBlackboard((AnyHandlerIdentifier.self, TestWebService.handler3Id))),
+                    endpoint: try XCTCreateMockEndpoint(Text("").identified(by: TestWebService.handler3Id)),
                     deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(70)))
                 ),
                 ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint(handler: Text(""), blackboard: MockBlackboard((AnyHandlerIdentifier.self, TestWebService.handler4Id))),
+                    endpoint: try XCTCreateMockEndpoint(Text("").identified(by: TestWebService.handler4Id)),
                     deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(150)))
                 ),
                 ApodiniDeployInterfaceExporter.CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint(handler: Text(""), blackboard: MockBlackboard((AnyHandlerIdentifier.self, TestWebService.handler5Id))),
+                    endpoint: try XCTCreateMockEndpoint(Text("").identified(by: TestWebService.handler5Id)),
                     deploymentOptions: DeploymentOptions(ResolvedOption(key: .memorySize, value: .mb(180)))
                 )
             ]

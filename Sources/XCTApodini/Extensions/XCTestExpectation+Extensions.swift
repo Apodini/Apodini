@@ -5,7 +5,6 @@
 //  Created by Paul Schmiedmayer on 5/12/21.
 //
 
-#if DEBUG
 import XCTest
 
 
@@ -17,4 +16,3 @@ extension XCTestExpectation {
         self.assertForOverFulfill = true
     }
 }
-#endif

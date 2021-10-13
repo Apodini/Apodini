@@ -127,8 +127,8 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
 
 /// A `RelationshipSourceCandidate` but without the scope of the `Endpoint`
 /// meaning still missing the `EndpointReference` and missing any `PathParameterResolver` in the `resolvers`.
-struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
-    var debugDescription: String {
+public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
+    public var debugDescription: String {
         "PartialRelationshipSourceCandidate(\(type.debugDescription), targeting: \(destinationType), resolvers: \(resolvers.count))"
     }
 
@@ -170,7 +170,7 @@ struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
         self.resolvers = resolvers
     }
 
-    mutating func link(to endpoint: _AnyEndpoint) {
+    mutating func link(to endpoint: _AnyRelationshipEndpoint) {
         storedReference = endpoint.reference
     }
 
@@ -180,7 +180,7 @@ struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidate {
 }
 
 extension Array where Element == PartialRelationshipSourceCandidate {
-    func linked(to endpoint: _AnyEndpoint) -> [PartialRelationshipSourceCandidate] {
+    func linked(to endpoint: _AnyRelationshipEndpoint) -> [PartialRelationshipSourceCandidate] {
         map {
             var candidate = $0
             candidate.link(to: endpoint)

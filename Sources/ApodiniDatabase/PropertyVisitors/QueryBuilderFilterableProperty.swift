@@ -6,7 +6,7 @@
 //
 
 import Apodini
-import Fluent
+import FluentKit
 
 
 protocol QueryBuilderFilterableProperty {

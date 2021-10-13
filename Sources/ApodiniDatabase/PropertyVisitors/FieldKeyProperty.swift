@@ -6,12 +6,12 @@
 //
 
 import Apodini
-import Fluent
+import FluentKit
 
 
 ///A struct implementing `FieldKeyProperty` and containing a fieldkey and the expected type for that key.
 struct FieldKeyProperty {
-    ///A concrete `Fluent.FieldKey`
+    ///A concrete `FluentKit.FieldKey`
     let key: FieldKey
     ///A concrete type for that fieldkey
     let property: Apodini.Property

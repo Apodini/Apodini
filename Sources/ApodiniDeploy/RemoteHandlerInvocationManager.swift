@@ -8,6 +8,7 @@
 import Foundation
 import NIO
 import Apodini
+import ApodiniExtension
 import ApodiniUtils
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
@@ -159,7 +160,7 @@ extension RemoteHandlerInvocationManager {
         let invocationParams: [HandlerInvocation<H>.Parameter] = collectedInputArgs.map { collectedArg in
             // The @Parameter property wrapper declaration in the handler
             guard
-                let handlerParamId = Apodini.Internal.getParameterId(ofBinding: targetEndpoint.handler[keyPath: collectedArg.handlerKeyPath])
+                let handlerParamId = Apodini._Internal.getParameterId(ofBinding: targetEndpoint.handler[keyPath: collectedArg.handlerKeyPath])
             else {
                 fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedArg.handlerKeyPath)")
             }
@@ -280,20 +281,22 @@ extension Endpoint {
         internalInterfaceExporter: ApodiniDeployInterfaceExporter,
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
-        let context = self.createConnectionContext(for: internalInterfaceExporter)
-        let responseFuture: EventLoopFuture<Apodini.Response<EnrichedContent>> = context.handle(request: request, eventLoop: eventLoop)
-        return responseFuture.flatMapThrowing { (response: Apodini.Response<EnrichedContent>) -> H.Response.Content in
+        var delegate = Delegate(handler, .required)
+        
+        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
+            .applied(to: self)
+            .decodeRequest(from: request, with: DefaultRequestBasis(base: request), with: eventLoop)
+            .insertDefaults(with: self[DefaultValueStore.self])
+            .evaluate(on: &delegate)
+        
+        return responseFuture.flatMapThrowing { (response: Apodini.Response<H.Response.Content>) -> H.Response.Content in
             guard response.connectionEffect == .close else {
                 throw ApodiniDeployError(message: "Unexpected response value: \(response). Expected '.final'.")
             }
             guard let content = response.content else {
                 throw ApodiniDeployError(message: "Unable to get response content")
             }
-            if let value = content.typed(H.Response.Content.self) {
-                return value
-            } else {
-                throw ApodiniDeployError(message: "Unable to convert response to expected type '\(H.Response.Content.self)'")
-            }
+            return content
         }
     }
 }

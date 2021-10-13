@@ -5,13 +5,13 @@
 //  Created by Paul Schmiedmayer on 2/24/21.
 //
 
-import Fluent
+import FluentKit
 import Apodini
 
 
-public struct ReadOne<Model: Fluent.Model & Apodini.Content>: Handler {
+public struct ReadOne<Model: FluentKit.Model & Apodini.Content>: Handler {
     @Apodini.Environment(\.database)
-    private var database: Fluent.Database
+    private var database: FluentKit.Database
     
     @Parameter(.http(.path))
     var id: Model.IDValue

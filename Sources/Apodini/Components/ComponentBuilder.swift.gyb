@@ -3,16 +3,12 @@
 %{
     # Edit this if you want to include more components in a single tuple component
     maximumNumberOfComponents = 100
+
+    print("Generating ComponentBuilder...")
 }%
 
-#if swift(>=5.4)
 @resultBuilder
-public enum ComponentBuilder {}
-#else
-@_functionBuilder
-public enum ComponentBuilder {}
-#endif
-extension ComponentBuilder {
+public struct ComponentBuilder {
     public static func buildIf<T: Component>(_ component: T?) -> T? {
         return component
     }
@@ -49,3 +45,6 @@ extension ComponentBuilder {
     
     % end
 }
+%{
+    print("Finished generating ComponentBuilder!")
+}%

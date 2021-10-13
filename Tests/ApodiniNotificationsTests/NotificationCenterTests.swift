@@ -2,7 +2,7 @@
 import XCTest
 import XCTApodini
 import XCTApodiniDatabase
-import Fluent
+import FluentKit
 import FCM
 import APNSwift
 import XCTVapor

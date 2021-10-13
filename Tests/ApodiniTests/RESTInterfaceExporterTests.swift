@@ -5,10 +5,10 @@
 @testable import Apodini
 @testable import ApodiniREST
 import Vapor
-import XCTApodini
+import XCTApodiniHTTP
 
 
-class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
+class RESTInterfaceExporterTests: XCTApodiniHTTPTest {
     lazy var application = Vapor.Application(.testing)
 
     struct Parameters: Apodini.Content, Decodable, Equatable {
@@ -27,15 +27,9 @@ class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
 
         @Parameter(.http(.path))
         var pathA: String
-        var pathAParameter: Parameter<String> {
-            _pathA
-        }
 
         @Parameter(.http(.path))
         var pathB: String
-        var pathBParameter: Parameter<String> {
-            _pathB
-        }
 
         @Parameter
         var bird: Bird
@@ -103,41 +97,30 @@ class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
             AuthenticatedHandler()
         }
     }
+    
+    struct TestRESTExporterCollection: ConfigurationCollection {
+        var configuration: Configuration {
+            REST()
+        }
+    }
 
     func testParameterRetrieval() throws {
-        let handler = ParameterRetrievalTestHandler()
-        let endpoint = try handler.mockEndpoint(application: app)
-
-        let exporter = RESTInterfaceExporter(app)
-        let context = endpoint.createConnectionContext(for: exporter)
-
-        let body = Bird(name: "Rudi", age: 12)
-        let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
-
-        let uri = URI("http://example.de/test/a/b?param0=value0")
-
-        let request = Vapor.Request(
-                application: application,
-                method: .POST,
-                url: uri,
-                collectedBody: bodyData,
-                on: app.eventLoopGroup.next()
-        )
-        // we hardcode the pathId currently here
-        request.parameters.set("\(handler.pathAParameter.id)", to: "a")
-        request.parameters.set("\(handler.pathBParameter.id)", to: "b")
-
-        try XCTCheckResponse(
-            context.handle(request: request),
-            content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: body),
-            connectionEffect: .close
-        )
+        let bird = Bird(name: "Rudi", age: 12)
+        let body = ByteBuffer(data: try JSONEncoder().encode(bird))
+        
+        try XCTHTTPCheck(ParameterRetrievalTestHandler(), configuration: REST()) {
+            HTTPCheck(HTTPRequest(path: "/v1/a/b?param0=value0", method: .POST, body: body))  { response in
+                let parameters = try response.decodeBody(Parameters.self)
+                XCTAssertEqual(parameters, Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird))
+            }
+        }
     }
 
     func testRESTRequest() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
 
@@ -151,6 +134,147 @@ class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
         }
     }
     
+    @ComponentBuilder
+    var testServiceCaseSensitive: some Component {
+        Group {
+            "uSEr"
+                .hideLink()
+                .relationship(name: "uSEr")
+            $userId
+        } content: {
+            UserHandler(userId: $userId)
+        }
+    }
+    
+    struct TestRESTExporterCollectionCaseSensitive: ConfigurationCollection {
+        var configuration: Configuration {
+            REST(caseInsensitiveRouting: false)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive2() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "USER/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
+    
+    func testRESTRequestCaseSensitive3() throws {
+        let testCollection = TestRESTExporterCollectionCaseSensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
+    
+    // swiftlint:disable type_name
+    struct TestRESTExporterCollectionCaseInsensitive: ConfigurationCollection {
+        var configuration: Configuration {
+            REST(caseInsensitiveRouting: true)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive2() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive3() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .ok)
+            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            XCTAssertEqual(container.data.id, userId)
+            XCTAssertEqual(container.data.name, name)
+        }
+    }
+    
+    func testRESTRequestCaseInsensitive4() throws {
+        let testCollection = TestRESTExporterCollectionCaseInsensitive()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testServiceCaseSensitive.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        let name = "Rudi"
+        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSErA/\(userId)?name=\(name)") { response in
+            XCTAssertEqual(response.status, .notFound)
+        }
+    }
     
     func testEndpointPaths() throws {
         struct WebService: Apodini.WebService {
@@ -169,17 +293,16 @@ class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
             }
         }
         
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
         let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
         WebService().register(builder)
         
-        let endpointPaths = builder.rootNode
-            .collectEndpoints()
-            .map { $0.absolutePath.asPathString() }
+        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath.asPathString() }.sorted()
         
         let expectedEndpointPaths: [String] = [
             "/v1/api/user", "/v1/api/user", "/v1/api/post"
-        ]
+        ].sorted()
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }
 
@@ -197,9 +320,10 @@ class RESTInterfaceExporterTests: XCTApodiniDatabaseBirdTest {
     }
 
     func testDefaultRootHandler() throws {
-        let builder = SemanticModelBuilder(app)
-            .with(exporter: RESTInterfaceExporter.self)
-        let visitor = SyntaxTreeVisitor(modelBuilder: builder)
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+        
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         webserviceWithoutRoot.accept(visitor)
         visitor.finishParsing()
 

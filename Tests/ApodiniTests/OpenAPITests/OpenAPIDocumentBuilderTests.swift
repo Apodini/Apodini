@@ -3,9 +3,8 @@
 //
 
 @_implementationOnly import OpenAPIKit
-@testable import Apodini
 @testable import ApodiniOpenAPI
-@testable import ApodiniVaporSupport
+import ApodiniREST
 import XCTApodini
 
 
@@ -14,8 +13,20 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
         var someProp = 4
     }
 
-    struct SomeHandler: Handler {
+    struct SomeDelegate {
+        @Parameter var lazyoptional: String
+    }
+    
+    struct SomeRequiredDelegate {
+        @Parameter var required: String
+        @Parameter var realoptional: String?
+    }
+    
+    struct SomeHandler: Apodini.Handler {
         @Parameter var name: String
+        
+        let someD = Delegate(SomeDelegate())
+        let requiredD = Delegate(SomeRequiredDelegate(), .required)
 
         func handle() -> SomeStruct {
             SomeStruct()
@@ -23,18 +34,19 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
     }
 
     func testAddEndpoint() throws {
-        let handler = SomeHandler()
-        let webService = WebServiceModel()
-        var endpoint: Endpoint<SomeHandler> = try handler.mockEndpoint(application: app)
-        webService.addEndpoint(&endpoint, at: ["test"])
+        let endpoint = try XCTCreateMockEndpoint(
+            Group("test") {
+                SomeHandler()
+            }
+        )
 
-        let configuration = OpenAPIConfiguration()
+        let exporterConfiguration = OpenAPI.ExporterConfiguration()
 
-        var documentBuilder = OpenAPIDocumentBuilder(configuration: configuration)
+        var documentBuilder = OpenAPIDocumentBuilder(configuration: exporterConfiguration)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
-            info: OpenAPI.Document.Info(title: configuration.title ?? "", version: configuration.version ?? ""),
-            servers: configuration.serverUrls.map {
+            info: OpenAPI.Document.Info(title: exporterConfiguration.title ?? "", version: exporterConfiguration.version ?? ""),
+            servers: exporterConfiguration.serverUrls.map {
                 .init(url: $0)
             },
             paths: [
@@ -46,7 +58,22 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
                         description: endpoint.description,
                         operationId: endpoint[AnyHandlerIdentifier.self].rawValue,
                         parameters: [
-                            Either.parameter(name: "name", context: .query, schema: .string, description: "@Parameter var name: String")
+                            Either.parameter(name: "name",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var name: String"),
+                            Either.parameter(name: "lazyoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var lazyoptional: String"),
+                            Either.parameter(name: "required",
+                                             context: .query(required: true),
+                                             schema: .string,
+                                             description: "@Parameter var required: String"),
+                            Either.parameter(name: "realoptional",
+                                             context: .query(required: false),
+                                             schema: .string,
+                                             description: "@Parameter var realoptional: String?")
                         ],
                         responses: [
                             .status(code: 200): .init(
@@ -79,17 +106,19 @@ final class OpenAPIDocumentBuilderTests: XCTApodiniTest {
                 schemas: [
                     "SomeStruct": .object(properties: ["someProp": .integer]),
                     "SomeStructResponse": .object(
-                        title: "\(SomeStruct.self)Response", properties: [
-                        ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeStruct.self)")),
-                        ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-                        ])
+                        title: "\(SomeStruct.self)Response",
+                        properties: [
+                            ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeStruct.self)")),
+                            ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
+                        ]
+                    )
                 ]
             )
         )
 
         let builtDocument = documentBuilder.build()
 
-        XCTAssertNoThrow(try builtDocument.output(.json))
+        XCTAssertNoThrow(try builtDocument.output(configuration: exporterConfiguration))
         XCTAssertEqual(builtDocument, document)
     }
 }
