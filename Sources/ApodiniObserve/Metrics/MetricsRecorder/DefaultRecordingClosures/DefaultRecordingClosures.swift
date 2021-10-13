@@ -38,14 +38,14 @@ public enum DefaultRecordingClosures {
     public static let defaultDimensions: (ObserveMetadata.Value) -> [(String, String)] = { observeMetadata in
         [
             ("endpoint", observeMetadata.blackboardMetadata.endpointName),
-            ("endpointPath", String(observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
+            ("endpoint_path", String(observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
                 partialResult.append(contentsOf: endpointPath.description + "/")
             }).dropLast())),
             ("exporter", "\(observeMetadata.exporterMetadata.exporterType)"),
             ("operation", observeMetadata.blackboardMetadata.operation.rawValue),
-            ("communicationalPattern", observeMetadata.blackboardMetadata.communicationalPattern.rawValue),
-            ("serviceType", observeMetadata.blackboardMetadata.serviceType.rawValue),
-            ("responseType", "\(observeMetadata.blackboardMetadata.responseType.type)")
+            ("communicational_pattern", observeMetadata.blackboardMetadata.communicationalPattern.rawValue),
+            ("service_type", observeMetadata.blackboardMetadata.serviceType.rawValue),
+            ("response_type", "\(observeMetadata.blackboardMetadata.responseType.type)")
         ]
     }
 }
