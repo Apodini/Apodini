@@ -15,11 +15,11 @@ public extension DefaultRecordingClosures {
         
         public static var afterException: AfterExceptionRecordingClosure? = { observeMetadata, _, error, _ in
             let counter = Metrics.Counter(
-                label: "default_error_counter",
+                label: "error_counter",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata) +
                     [
-                        ("default_error_type", "\(error.self)"),
-                        ("default_error_description", "\(error.localizedDescription)")
+                        ("error_type", "\(error.self)"),
+                        ("error_description", "\(error.localizedDescription)")
                     ]
             )
             
