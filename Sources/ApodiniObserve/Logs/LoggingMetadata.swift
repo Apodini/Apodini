@@ -123,7 +123,6 @@ private extension LoggingMetadata {
         
         // Limit size since eg. the description of the WebSocket exporter contains the request parameters
         builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
-        builtRequestMetadata["debugDescription"] = .string(request.debugDescription.count < 32_768 ? request.debugDescription : "\(request.debugDescription.prefix(32_715))... (further bytes omitted since description too large!")
         
         let parameterMetadata = self.observeMetadata.blackboardMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
             if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
