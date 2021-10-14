@@ -18,7 +18,7 @@ public extension DefaultRecordingClosures {
                 label: "error_counter",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata) +
                     [
-                        ("error_type", String(describing: error)),
+                        ("error_type", String(describing: type(of: error))),
                         ("error_description", "\(error.localizedDescription)")
                     ]
             )
