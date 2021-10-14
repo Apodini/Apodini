@@ -18,9 +18,9 @@ public extension DefaultRecordingClosures {
         
         public static let after: AfterRecordingClosure? = { observeMetadata, _, relay in
             let timer = Metrics.Timer(
-                label: "response_time",
+                label: "response_time_nanoseconds",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata),
-                preferredDisplayUnit: .microseconds
+                preferredDisplayUnit: .nanoseconds
             )
             
             if let sinceDispatchTimeString = relay["sinceDispatchTimeNanoseconds"],
