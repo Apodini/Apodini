@@ -15,11 +15,7 @@ extension Vapor.Application {
         var app: Vapor.Application
 
         func didBoot(_ application: Apodini.Application) throws {
-            if let address = application.http.address {
-                try app.server.start(address: Vapor.BindAddress(from: address))
-            } else {
-                try app.server.start()
-            }
+            try app.server.start(address: Vapor.BindAddress(from: application.httpConfiguration.bindAddress))
             try app.boot()
         }
 
@@ -34,13 +30,13 @@ extension Vapor.Application {
         app.lifecycle.use(LifecycleHandler(app: self))
 
         // HTTP2
-        self.http.server.configuration.supportVersions = Set(app.http.supportVersions.map { version in
+        self.http.server.configuration.supportVersions = Set(app.httpConfiguration.supportVersions.map { version in
             switch version {
             case .one: return Vapor.HTTPVersionMajor.one
             case .two: return Vapor.HTTPVersionMajor.two
             }
         })
-        self.http.server.configuration.tlsConfiguration = app.http.tlsConfiguration
+        self.http.server.configuration.tlsConfiguration = app.httpConfiguration.tlsConfiguration
         self.routes.defaultMaxBodySize = "1mb"
         self.logger = app.logger
     }

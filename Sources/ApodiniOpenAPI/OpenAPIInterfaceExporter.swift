@@ -91,10 +91,10 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     }
     
     private func setApplicationServer(from app: Apodini.Application) {
-        let isHttps = app.http.tlsConfiguration != nil
+        let isHttps = app.httpConfiguration.tlsConfiguration != nil
         var hostName: String?
         var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
+        if case let .hostname(configuredHost, port: configuredPort) = app.httpConfiguration.bindAddress {
             hostName = configuredHost
             port = configuredPort
         }

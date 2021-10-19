@@ -163,12 +163,6 @@ extension WebService {
     func start(app: Application) {
         /// Configure application and instanciate exporters
         self.configuration.configure(app)
-        
-        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
-        if app.http.address == nil {
-            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
-        }
-        
         self.register(SemanticModelBuilder(app))
     }
 }

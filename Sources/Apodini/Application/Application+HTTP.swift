@@ -16,7 +16,7 @@
 import NIOSSL
 
 
-/// The http najor version
+/// The http major version
 public enum HTTPVersionMajor: Equatable, Hashable {
     case one
     case two
@@ -25,80 +25,22 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 
 /// BindAddress
 public enum BindAddress: Equatable {
-    case hostname(_ hostname: String?, port: Int?)
+    case hostname(_ hostname: String? = HTTPConfiguration.Defaults.hostname, port: Int? = HTTPConfiguration.Defaults.port)
     case unixDomainSocket(path: String)
 }
 
 
 extension Application {
-    /// Used to keep track of http related configuration
-    public var http: HTTP {
-        .init(application: self)
+    public var httpConfiguration: HTTPConfiguration {
+        guard let httpConfiguration = self.storage[HTTPConfigurationStorageKey] else {
+            let defaultConfig = HTTPConfiguration()
+            defaultConfig.configure(self)
+            return defaultConfig
+        }
+        return httpConfiguration
     }
+}
 
-    /// Used to keep track of http related configuration
-    public final class HTTP {
-        final class Storage {
-            var supportVersions: Set<HTTPVersionMajor>
-            var tlsConfiguration: TLSConfiguration?
-            var address: BindAddress?
-
-
-            // swiftlint:disable discouraged_optional_collection
-            init(
-                supportVersions: Set<HTTPVersionMajor>? = nil,
-                tlsConfiguration: TLSConfiguration? = nil,
-                address: BindAddress? = nil
-            ) {
-                if let supportVersions = supportVersions {
-                    self.supportVersions = supportVersions
-                } else {
-                    self.supportVersions = tlsConfiguration == nil ? [.one] : [.one, .two]
-                }
-                self.tlsConfiguration = tlsConfiguration
-                self.address = address
-            }
-        }
-
-        struct Key: StorageKey {
-            // swiftlint:disable nesting
-            typealias Value = Storage
-        }
-
-        let application: Application
-
-        var storage: Storage {
-            if self.application.storage[Key.self] == nil {
-                self.initialize()
-            }
-            // swiftlint:disable force_unwrapping
-            return self.application.storage[Key.self]!
-        }
-
-        /// Supported http major versions
-        public var supportVersions: Set<HTTPVersionMajor> {
-            get { storage.supportVersions }
-            set { storage.supportVersions = newValue }
-        }
-
-        /// TLS configuration
-        public var tlsConfiguration: TLSConfiguration? {
-            get { storage.tlsConfiguration }
-            set { storage.tlsConfiguration = newValue }
-        }
-
-        /// HTTP Server address
-        public var address: BindAddress? {
-            get { storage.address }
-            set { storage.address = newValue }
-        }
-
-        init(application: Application) {
-            self.application = application
-        }
-
-        func initialize() {
-            self.application.storage[Key.self] = .init()
-        }
-    }
+public struct HTTPConfigurationStorageKey: StorageKey {
+    public typealias Value = HTTPConfiguration
 }

@@ -8,15 +8,28 @@
 
 import Foundation
 import NIO
+import NIOSSL
 
-/// A `Configuration` for HTTP.
+/// A `Configuration` for HTTP, HTTP/2 and TLS.
 /// The configuration can be done in two ways, either via the
-/// command line arguments --hostname, --port and --bind or via the
-/// function `address`
+/// command line arguments --hostname, --port, --bind,  --cert and --key or via the
+/// functions `address` `certificate` or `key`.
+///
+/// Example command line arguments:
+/// --cert=/some/path/cert.pem
+/// --key=/some/path/key.pem
+///
+/// Example of config via code:
+/// ```
+/// HTTPConfiguration()
+///     .address(.hostname("localhost", port: 80))
+///     .certificate("/some/path/cert.pem")
+///     .key("/some/path/key.pem")
+/// ```
 public final class HTTPConfiguration: Configuration {
-    enum Defaults {
-        static let hostname = "localhost"
-        static let port = 8080
+    public enum Defaults {
+        public static let hostname = "localhost"
+        public static let port = 80
     }
     
     enum HTTPConfigurationError: LocalizedError {
@@ -37,46 +50,79 @@ public final class HTTPConfiguration: Configuration {
         }
     }
     
-    private var address: BindAddress?
+    public var bindAddress: BindAddress
+    private var certURL: URL?
+    private var keyURL: URL?
+    public var supportVersions: Set<HTTPVersionMajor> = [.one]
+    public var tlsConfiguration: TLSConfiguration?
     
     /// initalize HTTPConfiguration
-    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil) {
+    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil, cert: String? = nil, keyPath: String? = nil) {
         do {
             switch (hostname, port, bind, socketPath) {
             case (.none, .none, .none, .none):
-                self.address = .hostname(Defaults.hostname, port: Defaults.port)
+                self.bindAddress = .hostname(Defaults.hostname, port: Defaults.port)
             case (.none, .none, .none, .some(let socketPath)):
-                self.address = .unixDomainSocket(path: socketPath)
+                self.bindAddress = .unixDomainSocket(path: socketPath)
             case (.none, .none, .some(let address), .none):
                 let components = address.split(separator: ":")
                 let hostname = components.first.map { String($0) }
                 let port = components.last.flatMap { Int($0) }
-                self.address = .hostname(hostname, port: port)
+                self.bindAddress = .hostname(hostname, port: port)
             case let (hostname, port, .none, .none):
-                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
+                self.bindAddress = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             default:
                 throw HTTPConfigurationError.incompatibleFlags
             }
         } catch {
             fatalError("Cannot read http server address provided via command line. Error: \(error)")
         }
+        
+        if let certPath = cert, let keyPath = keyPath {
+            self.certURL = URL(fileURLWithPath: certPath)
+            self.keyURL = URL(fileURLWithPath: keyPath)
+        }
     }
 
     /// Configure application
     public func configure(_ app: Application) {
-        if let address = self.address {
-            app.http.address = address
-        } else {
-            app.logger.warning("No http server address configured")
+        do {
+            if let certURL = certURL, let keyURL = keyURL {
+                let certificates = try NIOSSLCertificate.fromPEMFile(certURL.path)
+                let privateKey = try NIOSSLPrivateKey(file: keyURL.path, format: .pem)
+                
+                self.supportVersions.insert(.two)
+                self.tlsConfiguration = .makeServerConfiguration(
+                    certificateChain: certificates.map { .certificate($0) },
+                    privateKey: .privateKey(privateKey)
+                )
+                
+                app.logger.info("Using HTTP/2 and TLS.")
+            } else {
+                app.logger.info("No certificate or no key. Starting without HTTP/2.")
+            }
+        } catch {
+            app.logger.warning("Cannot enable HTTP/2. Starting without HTTP/2. Error: \(error)")
         }
+        
+        app.storage[HTTPConfigurationStorageKey.self] = self
     }
-
+    
     /// Sets the http server address
     public func address(_ address: BindAddress) -> Self {
-        guard self.address == nil else {
-            return self
-        }
-        self.address = address
+        self.bindAddress = address
+        return self
+    }
+    
+    /// Sets the `.pem` file from which the certificate should be read.
+    public func certificate(_ filePath: String) -> Self {
+        self.certURL = URL(fileURLWithPath: filePath)
+        return self
+    }
+
+    /// Sets the `.pem` file from which the key should be read.
+    public func key(_ filePath: String) -> Self {
+        self.keyURL = URL(fileURLWithPath: filePath)
         return self
     }
 }

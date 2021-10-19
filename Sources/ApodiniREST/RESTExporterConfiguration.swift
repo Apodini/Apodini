@@ -16,12 +16,8 @@ extension REST {
         let uriPrefix: String
 
         init(_ app: Apodini.Application) {
-            // Default initialization
-            if app.http.address == nil {
-                HTTPConfiguration.init().configure(app)
-            }
-            let configuration = app.http
-            self.bindAddress = configuration.address!
+            let configuration = app.httpConfiguration
+            self.bindAddress = configuration.bindAddress
 
             switch bindAddress {
             case let .hostname(configuredHost, port: configuredPort):
