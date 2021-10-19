@@ -27,33 +27,33 @@ final class HTTP2ConfigurationTests: ApodiniTests {
     
     
     func testValidFile() throws {
-        HTTP2Configuration()
-            .certificate(try certPath())
-            .key(try keyPath())
+        HTTPConfiguration()
+            .certificate(try certPath().path)
+            .key(try keyPath().path)
             .configure(app)
 
-        XCTAssertNotNil(app.http.tlsConfiguration)
-        XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
+        XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)
+        XCTAssertEqual(app.httpConfiguration.supportVersions, [.one, .two])
+        XCTAssertEqual(app.httpConfiguration.tlsConfiguration?.privateKey, try privateKey())
     }
     
     func testCommandLineArguments() throws {
-        HTTP2Configuration(cert: try certPath().path, keyPath: try keyPath().path)
+        HTTPConfiguration(cert: try certPath().path, keyPath: try keyPath().path)
             .configure(app)
 
-        XCTAssertNotNil(app.http.tlsConfiguration)
-        XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
+        XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)
+        XCTAssertEqual(app.httpConfiguration.supportVersions, [.one, .two])
+        XCTAssertEqual(app.httpConfiguration.tlsConfiguration?.privateKey, try privateKey())
     }
     
     func testCommandLineArgumentOverwrite() throws {
-        HTTP2Configuration(cert: try certPath().path, keyPath: try keyPath().path)
-            .certificate(try certPath())
-            .key(try key2Path())
+        HTTPConfiguration(cert: try certPath().path, keyPath: try keyPath().path)
+            .certificate(try certPath().path)
+            .key(try key2Path().path)
             .configure(app)
 
-        XCTAssertNotNil(app.http.tlsConfiguration)
-        XCTAssertEqual(app.http.supportVersions, [.one, .two])
-        XCTAssertEqual(app.http.tlsConfiguration?.privateKey, try privateKey())
+        XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)
+        XCTAssertEqual(app.httpConfiguration.supportVersions, [.one, .two])
+        XCTAssertEqual(app.httpConfiguration.tlsConfiguration?.privateKey, try privateKey())
     }
 }

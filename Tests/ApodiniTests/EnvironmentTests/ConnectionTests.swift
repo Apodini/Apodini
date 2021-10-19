@@ -99,7 +99,7 @@ final class ConnectionTests: ApodiniTests {
 
         try app.vapor.app.test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
-            XCTAssert(res.body.string.contains("127.0.0.1:8080"))
+            XCTAssert(res.body.string.contains("localhost"))
         }
     }
 }

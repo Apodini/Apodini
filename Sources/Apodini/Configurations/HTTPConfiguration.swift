@@ -110,18 +110,30 @@ public final class HTTPConfiguration: Configuration {
     
     /// Sets the http server address
     public func address(_ address: BindAddress) -> Self {
+        guard self.bindAddress == .hostname(Defaults.hostname, port: Defaults.port) else {
+            return self
+        }
+        
         self.bindAddress = address
         return self
     }
     
     /// Sets the `.pem` file from which the certificate should be read.
     public func certificate(_ filePath: String) -> Self {
+        guard self.certURL == nil else {
+            return self
+        }
+        
         self.certURL = URL(fileURLWithPath: filePath)
         return self
     }
 
     /// Sets the `.pem` file from which the key should be read.
     public func key(_ filePath: String) -> Self {
+        guard self.keyURL == nil else {
+            return self
+        }
+        
         self.keyURL = URL(fileURLWithPath: filePath)
         return self
     }
