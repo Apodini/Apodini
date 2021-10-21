@@ -130,13 +130,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         app.lkHttpServer.registerRoute(.POST, ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)]) { request in
             InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint).respond(to: request)
         }
-//        vaporApp.add(Vapor.Route(
-//            method: .POST,
-//            path: ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
-//            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
-//            requestType: InternalInvocationResponder<H>.Request.self,
-//            responseType: InternalInvocationResponder<H>.Response.self
-//        ))
     }
     
     
