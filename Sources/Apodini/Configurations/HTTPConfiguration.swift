@@ -27,6 +27,7 @@ import NIOSSL
 ///     .key("/some/path/key.pem")
 /// ```
 public final class HTTPConfiguration: Configuration {
+    /// Default values for bindAddress
     public enum Defaults {
         public static let hostname = "localhost"
         public static let port = 80
@@ -57,7 +58,7 @@ public final class HTTPConfiguration: Configuration {
     public var tlsConfiguration: TLSConfiguration?
     
     /// initalize HTTPConfiguration
-    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil, cert: String? = nil, keyPath: String? = nil) {
+    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil, cert: String? = nil, key: String? = nil) {
         do {
             switch (hostname, port, bind, socketPath) {
             case (.none, .none, .none, .none):
@@ -78,7 +79,7 @@ public final class HTTPConfiguration: Configuration {
             fatalError("Cannot read http server address provided via command line. Error: \(error)")
         }
         
-        if let certPath = cert, let keyPath = keyPath {
+        if let certPath = cert, let keyPath = key {
             self.certURL = URL(fileURLWithPath: certPath)
             self.keyURL = URL(fileURLWithPath: keyPath)
         }

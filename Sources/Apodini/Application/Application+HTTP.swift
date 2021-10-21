@@ -32,7 +32,7 @@ public enum BindAddress: Equatable {
 
 extension Application {
     public var httpConfiguration: HTTPConfiguration {
-        guard let httpConfiguration = self.storage[HTTPConfigurationStorageKey] else {
+        guard let httpConfiguration = self.storage[HTTPConfigurationStorageKey.self] else {
             let defaultConfig = HTTPConfiguration()
             defaultConfig.configure(self)
             return defaultConfig
@@ -41,6 +41,7 @@ extension Application {
     }
 }
 
+/// HTTPConfigurationStorageKey
 public struct HTTPConfigurationStorageKey: StorageKey {
     public typealias Value = HTTPConfiguration
 }
