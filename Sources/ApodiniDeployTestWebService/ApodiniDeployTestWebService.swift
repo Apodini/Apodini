@@ -43,9 +43,6 @@ struct WebService: Apodini.WebService {
         Group("lh_greet") {
             LH_Greeter()
         }
-        Group("rocket") {
-            SS_Rocket()
-        }
         Text("change is")
         Text("the only constant")
             .operation(.delete)

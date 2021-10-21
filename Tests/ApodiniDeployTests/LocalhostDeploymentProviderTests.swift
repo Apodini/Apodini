@@ -53,10 +53,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
-        guard Self.shouldRunDeploymentProviderTests else {
-            print("Skipping test case '\(#function)'.")
-            return
-        }
+        try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
         runShellCommand(.killPort(8080))
         runShellCommand(.killPort(5000))
@@ -80,7 +77,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             launchInCurrentProcessGroup: false
         )
         
-        let expectedNumberOfNodes = 7
+        let expectedNumberOfNodes = 6
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
@@ -181,8 +178,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5006)
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {

@@ -111,7 +111,10 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
                         ],
-                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
+                        vendorExtensions: [
+                            "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
+                            "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
+                        ]
                     )
                 )
             ],

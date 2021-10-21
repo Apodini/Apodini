@@ -25,10 +25,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLambdaDeploymentProvider() throws { // swiftlint:disable:this function_body_length cyclomatic_complexity
-        guard Self.shouldRunDeploymentProviderTests else {
-            print("Skipping test case '\(#function)'.")
-            return
-        }
+        try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
         let awsAccessKeyId: String
         let awsSecretAccessKey: String

@@ -15,11 +15,6 @@ import XCTApodiniNetworking
 
 
 final class ProtobufferBuilderTests: XCTestCase {
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        throw XCTSkip()
-    }
-    
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
         let app = Application()
         S().start(app: app)
@@ -29,9 +24,6 @@ final class ProtobufferBuilderTests: XCTestCase {
             let responseString = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
             XCTAssertEqual(responseString, expectation)
         }
-//        try app.vapor.app.test(.GET, "apodini/proto") { res in
-//            XCTAssertEqual(res.body.string, expectation)
-//        }
     }
     
     func buildMessage(_ type: Any.Type) throws -> String {

@@ -26,7 +26,7 @@ The `Connection` could provide a `start: Date` so the service could e.g. close c
 
 ## NotificationCenter
 
-The `NotificationCenter` is used to send push notifications to APNS and FCM. It can be used in a `Handler`` using `@Environment(\.notificationCenter)`. Refer to <doc:PushNotifications> for more information.
+The `NotificationCenter` is used to send push notifications to APNS. It can be used in a `Handler`` using `@Environment(\.notificationCenter)`. Refer to <doc:PushNotifications> for more information.
 
 ## Topics
 

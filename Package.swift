@@ -64,8 +64,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
-        // Used by the `NotificationCenter` to send push notifications to `FCM`.
-        .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.10.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
@@ -259,8 +257,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniDatabase"),
-                .product(name: "APNSwift", package: "apnswift"),
-                .product(name: "FCM", package: "FCM")
+                .product(name: "APNSwift", package: "apnswift")
             ]
         ),
 

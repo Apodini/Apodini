@@ -89,53 +89,6 @@ struct LH_Greeter: Handler {
 
 
 
-class FakeTimer: Apodini.ObservableObject {
-    @Apodini.Published private var _trigger = true
-    
-    init() {  }
-    
-    func secondPassed() {
-        _trigger.toggle()
-    }
-    
-    deinit {
-        print(Self.self, #function)
-    }
-}
-
-
-struct SS_Rocket: Handler {
-    @Parameter(.http(.query), .mutability(.constant)) var start: Int = 10
-    
-    @State var counter = -1
-    
-    @ObservedObject var timer = FakeTimer()
-    
-    func handle() -> Apodini.Response<Blob> {
-        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 2) {
-            print("tick")
-            timer.secondPassed()
-        }
-        counter += 1
-        
-        if counter == start {
-            print("Sending .final")
-            return .final(.init(.init(string: "🚀🚀🚀 Launch !!! 🚀🚀🚀\n"), type: .text(.plain, parameters: ["charset": "utf-8"])))
-            //return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!)
-        } else {
-            print("Sending .send(\(start - counter))")
-            //return .send("\(start - counter)...\n".data(using: .utf8)!)
-            return .send(.init(.init(string: "\(start - counter)...\n"), type: .text(.plain, parameters: ["charset": "utf-8"])))
-        }
-    }
-    
-    
-    var metadata: AnyHandlerMetadata {
-        Pattern(.serviceSideStream)
-    }
-}
-
-
 // MARK: - Lambda Components
 
 struct AWS_RandomNumberGenerator: InvocableHandler {
