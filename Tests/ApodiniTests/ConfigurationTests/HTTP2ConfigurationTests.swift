@@ -38,7 +38,7 @@ final class HTTP2ConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments() throws {
-        HTTPConfiguration(cert: try certPath().path, keyPath: try keyPath().path)
+        HTTPConfiguration(cert: try certPath().path, key: try keyPath().path)
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)
@@ -47,7 +47,7 @@ final class HTTP2ConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArgumentOverwrite() throws {
-        HTTPConfiguration(cert: try certPath().path, keyPath: try keyPath().path)
+        HTTPConfiguration(cert: try certPath().path, key: try keyPath().path)
             .certificate(try certPath().path)
             .key(try key2Path().path)
             .configure(app)
