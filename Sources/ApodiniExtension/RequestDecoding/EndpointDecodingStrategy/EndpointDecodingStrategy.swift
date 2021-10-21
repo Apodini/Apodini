@@ -162,8 +162,7 @@ public struct TransformingEndpointStrategy<S: EndpointDecodingStrategy, I>: Endp
         self.transformer = transformer
     }
     
-    public func strategy<Element>(for parameter: EndpointParameter<Element>)
-        -> AnyParameterDecodingStrategy<Element, I> where Element: Decodable, Element: Encodable {
+    public func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, I> {
         TransformingParameterStrategy(strategy.strategy(for: parameter), using: transformer).typeErased
     }
 }

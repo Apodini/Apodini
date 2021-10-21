@@ -9,28 +9,32 @@
 import Foundation
 import Apodini
 import ApodiniREST
-import ApodiniVaporSupport
-@_implementationOnly import Vapor
 import OpenAPIKit
+import ApodiniNetworking
+
 
 /// Public Apodini Interface Exporter for OpenAPI
 public final class OpenAPI: RESTDependentStaticConfiguration {
     var configuration: OpenAPI.ExporterConfiguration
     
-    public init(outputFormat: OpenAPI.OutputFormat = OpenAPI.ConfigurationDefaults.outputFormat,
-                outputEndpoint: String = OpenAPI.ConfigurationDefaults.outputEndpoint,
-                swaggerUiEndpoint: String = OpenAPI.ConfigurationDefaults.swaggerUiEndpoint,
-                title: String? = nil,
-                version: String? = nil,
-                serverUrls: URL...) {
+    public init(
+        outputFormat: OpenAPI.OutputFormat = OpenAPI.ConfigurationDefaults.outputFormat,
+        outputEndpoint: String = OpenAPI.ConfigurationDefaults.outputEndpoint,
+        swaggerUiEndpoint: String = OpenAPI.ConfigurationDefaults.swaggerUiEndpoint,
+        title: String? = nil,
+        version: String? = nil,
+        serverUrls: URL...
+    ) {
         self.configuration = OpenAPI.ExporterConfiguration(
-                                outputFormat: outputFormat,
-                                outputEndpoint: outputEndpoint,
-                                swaggerUiEndpoint: swaggerUiEndpoint,
-                                title: title,
-                                version: version,
-                                serverUrls: serverUrls)
+            outputFormat: outputFormat,
+            outputEndpoint: outputEndpoint,
+            swaggerUiEndpoint: swaggerUiEndpoint,
+            title: title,
+            version: version,
+            serverUrls: serverUrls
+        )
     }
+    
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
         /// Set configuration of parent
@@ -43,6 +47,7 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
         app.registerExporter(exporter: openAPIExporter)
     }
 }
+
 
 /// Internal Apodini Interface Exporter for OpenAPI
 final class OpenAPIInterfaceExporter: InterfaceExporter {
@@ -91,18 +96,11 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     }
     
     private func setApplicationServer(from app: Apodini.Application) {
-        let isHttps = app.http.tlsConfiguration != nil
-        var hostName: String?
-        var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
-            hostName = configuredHost
-            port = configuredPort
-        } else {
-            hostName = app.vapor.app.http.server.configuration.hostname
-            port = app.vapor.app.http.server.configuration.port
-        }
-        if let hostName = hostName, let port = port, let url = URL(string: "\(isHttps ? "https" : "http")://\(hostName):\(port)") {
-            self.exporterConfiguration.serverUrls.insert(url)
+        switch app.http.address {
+        case .hostname:
+            exporterConfiguration.serverUrls.insert(URL(string: app.http.addressStringValue)!)
+        case .unixDomainSocket:
+            fatalError("Not yet supported")
         }
     }
     
@@ -118,23 +116,39 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(configuration: self.exporterConfiguration) {
             // Register OpenAPI specification endpoint.
-            app.vapor.app.get(exporterConfiguration.outputEndpoint.pathComponents) { _ -> String in
+//            app.vapor.app.get(exporterConfiguration.outputEndpoint.pathComponents) { _ -> String in
+//                output
+//            }
+            app.lkHttpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.lkHTTPPathComponents) { request in
+                //LKHTTPResponse(version: request.version, status: .ok, headers: [:], body: .init(string: output))
                 output
             }
             
             // Register swagger-UI endpoint.
-            app.vapor.app.get(exporterConfiguration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
-                var headers = HTTPHeaders()
-                headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
+            //app.vapor.app.get(exporterConfiguration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
+            app.lkHttpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.lkHTTPPathComponents) { request -> LKHTTPResponse in
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                       var html = try? String(contentsOfFile: htmlFile)
                 else {
-                    throw Vapor.Abort(.internalServerError)
+//                    //throw Vapor.Abort(.internalServerError)
+//                    struct TODO_ReplaceThisWithAProperErrorType: Swift.Error {}
+//                    //throw NSError(domain: "Apodini.OpenAPI", code: 0, userInfo: [NSLocalizedDescriptionKey: "ugh god"]) // TODO use ApodiniError or whatever
+//                    throw TODO_ReplaceThisWithAProperErrorType()
+                    throw ApodiniNetworking.LKHTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
                 }
                 // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.exporterConfiguration.outputEndpoint)
                 
-                return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
+                //return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
+                return LKHTTPResponse(
+                    version: request.version,
+                    status: .ok,
+                    headers: [ // TODO write an API to have this strongly typed!!!
+                        "Content-Type": "text/html; charset=UTF-8"
+                    ],
+                    //body: .init(string: html)
+                    bodyStorage: .buffer(initialValue: html)
+                )
             }
             
             // Inform developer about serving on configured endpoints.

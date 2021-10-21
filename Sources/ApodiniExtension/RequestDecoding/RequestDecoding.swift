@@ -137,9 +137,7 @@ extension AsyncSequence {
 /// ``DecodingRequest/retrieveParameter(_:)`` function.
 public struct DecodingRequest<Input>: Request {
     let basis: RequestBasis
-    
     let input: Input
-    
     let strategy: AnyDecodingStrategy<Input>
     
     public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {

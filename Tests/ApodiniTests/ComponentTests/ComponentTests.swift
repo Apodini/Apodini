@@ -8,10 +8,11 @@
 
 import ApodiniUtils
 @testable import Apodini
-@testable import ApodiniVaporSupport
+//@testable import ApodiniVaporSupport
 @testable import ApodiniREST
 import XCTest
 import XCTApodini
+import XCTApodiniNetworking
 
 
 class ComponentTests: ApodiniTests {
@@ -50,14 +51,15 @@ class ComponentTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        //try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
         }
     }
@@ -76,14 +78,15 @@ class ComponentTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        //try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
         }
     }

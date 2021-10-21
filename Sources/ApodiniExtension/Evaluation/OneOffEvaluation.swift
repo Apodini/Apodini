@@ -20,28 +20,38 @@ public struct ResponseWithRequest<C: Encodable>: WithRequest {
 public extension Request {
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
-    func evaluate<H: Handler>(on handler: Delegate<H>, _ state: ConnectionState = .end) async throws -> Response<H.Response.Content> {
+    func evaluate<H: Handler>(
+        on handler: Delegate<H>,
+        _ state: ConnectionState = .end
+    ) async throws -> Response<H.Response.Content> {
         try await handler.evaluate(using: self, with: state)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: Delegate<H>,
-                              _ state: ConnectionState = .end) async throws -> ResponseWithRequest<H.Response.Content> {
+    func evaluate<H: Handler>(
+        on handler: Delegate<H>,
+        _ state: ConnectionState = .end
+    ) async throws -> ResponseWithRequest<H.Response.Content> {
         let response: Response<H.Response.Content> = try await self.evaluate(on: handler, state)
         return ResponseWithRequest(response: response, request: self)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting `Response` future.
-    func evaluate<H: Handler>(on handler: Delegate<H>, _ state: ConnectionState = .end) -> EventLoopFuture<Response<H.Response.Content>> {
+    func evaluate<H: Handler>(
+        on handler: Delegate<H>,
+        _ state: ConnectionState = .end
+    ) -> EventLoopFuture<Response<H.Response.Content>> {
         handler.evaluate(using: self, with: state)
     }
     
     /// Evaluates this `Request` on the given `handler` with the given `state` and returns the
     /// resulting ``ResponseWithRequest``
-    func evaluate<H: Handler>(on handler: Delegate<H>,
-                              _ state: ConnectionState = .end) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
+    func evaluate<H: Handler>(
+        on handler: Delegate<H>,
+        _ state: ConnectionState = .end
+    ) -> EventLoopFuture<ResponseWithRequest<H.Response.Content>> {
         self.evaluate(on: handler, state).map { (response: Response<H.Response.Content>) in
             ResponseWithRequest(response: response, request: self)
         }
@@ -53,43 +63,33 @@ internal extension Delegate where D: Handler {
         try await _Internal.evaluate(delegate: self, using: request, with: state)
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
-        
         promise.completeWithAsync {
             try await self.evaluate(using: request, with: state)
         }
-        
         return promise.futureResult
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         let result: D.Response = try await self.evaluate(using: request, with: state)
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
-        
         promise.completeWithAsync {
             try await self.evaluate(trigger, using: request, with: state)
         }
-        
         return promise.futureResult
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
-        
         guard !trigger.cancelled else {
             self.setChanged(to: false, reason: trigger)
             return .nothing
         }
-        
         do {
             let response: Response<D.Response.Content> = try await self.evaluate(using: request, with: state)
             self.setChanged(to: false, reason: trigger)

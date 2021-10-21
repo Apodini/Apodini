@@ -7,46 +7,50 @@
 //              
 
 import Apodini
-import Vapor
+import ApodiniUtils
+import ApodiniNetworking
+
 
 extension REST {
     /// Configuration of the RESTful Interface
-    public struct Configuration {
-        let configuration: HTTPServer.Configuration
-        let bindAddress: Vapor.BindAddress
+    public struct Configuration { // TODO this is reduncant and can/should be removed, since all its used for seems to be passing the url prefix constructed in the initialiser somethere else via the IE
+        let configuration: Apodini.Application.HTTP
+//        let bindAddress: BindAddress
         let uriPrefix: String
-
-        init(_ configuration: HTTPServer.Configuration) {
+        
+        init(_ configuration: Apodini.Application.HTTP) {
             self.configuration = configuration
-            self.bindAddress = configuration.address
-
-            switch bindAddress {
-            case .hostname:
+//            self.bindAddress = configuration.address!
+            
+            switch configuration.address {
+            case .hostname(let hostname, let port):
+                let hasTLS = configuration.tlsConfiguration != nil
+                self.uriPrefix = "http\(hasTLS ? "s" : "")://\(hostname ?? HTTPConfiguration.Defaults.hostname):\(port ?? HTTPConfiguration.Defaults.port)"
+//                let httpProtocol: String
+//                var port = ""
+//                
+//                if configuration.tlsConfiguration == nil {
+//                    httpProtocol = "http://"
+//                    if configuration.port != 80 {
+//                        port = ":\(configuration.port)"
+//                    }
+//                } else {
+//                    httpProtocol = "https://"
+//                    if configuration.port != 443 {
+//                        port = ":\(configuration.port)"
+//                    }
+//                }
+//                
+//                self.uriPrefix = httpProtocol + configuration.hostname + port
+            case .unixDomainSocket(let path):
                 let httpProtocol: String
-                var port = ""
-
-                if configuration.tlsConfiguration == nil {
-                    httpProtocol = "http://"
-                    if configuration.port != 80 {
-                        port = ":\(configuration.port)"
-                    }
-                } else {
-                    httpProtocol = "https://"
-                    if configuration.port != 443 {
-                        port = ":\(configuration.port)"
-                    }
-                }
-
-                self.uriPrefix = httpProtocol + configuration.hostname + port
-            case let .unixDomainSocket(path):
-                let httpProtocol: String
-
+                
                 if configuration.tlsConfiguration == nil {
                     httpProtocol = "http"
                 } else {
                     httpProtocol = "https"
                 }
-
+                
                 self.uriPrefix = httpProtocol + "+unix: " + path
             }
         }

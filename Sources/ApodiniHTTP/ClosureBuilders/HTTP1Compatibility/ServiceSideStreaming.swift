@@ -9,24 +9,68 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
+
+
+extension AsyncSequence {
+    /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
+    func lk_firstFuture(on eventLoop: EventLoop, remainingObjectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+        let promise = eventLoop.makePromise(of: Element?.self)
+        Task {
+            var idx = 0
+            for try await element in self {
+                if idx == 0 {
+                    promise.succeed(element)
+                }
+                idx += 1
+                remainingObjectsHandler(element)
+            }
+            if idx == 0 {
+                promise.succeed(nil)
+            }
+        }
+        return promise.futureResult
+    }
+}
+
 
 extension Exporter {
-    // MARK: Service Streaming Closure
+    func buildServiceSideStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
+        let encoder = endpoint[Context.self].get(valueFor: ResponseEncoderHandlerMetadata.Key.self) ?? configuration.encoder
+        return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { response -> Data? in
+            guard let response = response else { return nil }
+            return try encoder.encode(response)
+        }
+    }
+    
     
     func buildServiceSideStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        using defaultValues: DefaultValueStore
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> where H.Response.Content == Blob {
+        return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { (response: Blob?) -> Data? in
+            precondition(response?.byteBuffer.readerIndex == 0)
+            return response?.byteBuffer.getAllData()
+        }
+    }
+    
+    
+    private func _buildServiceSideStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore,
+        encodeResponse: @escaping (H.Response.Content?) throws -> Data?
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        
         let abortAnyError = AbortTransformer<H>()
-            
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
-        return { (request: Vapor.Request) in
+        return { (request: LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> in
             let delegate = factory.instance()
-            
+            let httpResponseStream = LKDataStream()
+            httpResponseStream.debugName = "HTTPServerResponse"
             return [request]
                 .asAsyncSequence
                 .decode(using: strategy, with: request.eventLoop)
@@ -35,25 +79,32 @@ extension Exporter {
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    response.connectionEffect == .close
-                })
-                .collect()
-                .map { (responses: [Apodini.Response<H.Response.Content>]) in
-                    let status: Status? = responses.last?.status
-                    let information: InformationSet = responses.last?.information ?? []
-                    let content: [H.Response.Content] = responses.compactMap { response in
-                        response.content
+                .cancel(if: { $0.connectionEffect == .close })
+                .lk_firstFuture(
+                    on: request.eventLoop,
+                    remainingObjectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+                        defer {
+                            if response.connectionEffect == .close {
+                                httpResponseStream.close()
+                            }
+                        }
+                        do {
+                            if let data = try encodeResponse(response.content) {
+                                httpResponseStream.write(data)
+                            }
+                        } catch {
+                            // Error encoding the response data
+                            // TODO how should this be handled? Abort the entire reesponse?
+                        }
                     }
-                    let body = try configuration.encoder.encode(content)
-                    
-                    return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                          headers: HTTPHeaders(information),
-                                          body: Vapor.Response.Body(data: body))
-                }
-                .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
+                )
+                .map { firstResponse -> LKHTTPResponse in
+                    return LKHTTPResponse(
+                        version: request.version,
+                        status: HTTPResponseStatus(firstResponse?.status ?? .ok), // TODO is this a reasonable default?,
+                        headers: HTTPHeaders(firstResponse?.information ?? []),
+                        bodyStorage: .stream(httpResponseStream)
+                    )
                 }
         }
     }

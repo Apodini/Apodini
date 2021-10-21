@@ -32,13 +32,9 @@ public struct ApodiniError: Error {
     public typealias Option = AnyPropertyOption<ErrorOptionNameSpace>
     
     private let `type`: ErrorType
-
     private let reason: String?
-
     private let description: String?
-
     public let information: InformationSet
-    
     private let options: PropertyOptionSet<ErrorOptionNameSpace>
     
     internal init(
@@ -116,11 +112,11 @@ public struct ApodiniError: Error {
 
     public func detailed(by error: ApodiniError) -> ApodiniError {
         ApodiniError(
-                type: type,
-                reason: preserveOriginalReasoning(new: reason, previous: error.reason, "reason"),
-                description: preserveOriginalReasoning(new: description, previous: error.description, "description"),
-                information: error.information.merge(with: information),
-                PropertyOptionSet(lhs: error.options, rhs: options)
+            type: type,
+            reason: preserveOriginalReasoning(new: reason, previous: error.reason, "reason"),
+            description: preserveOriginalReasoning(new: description, previous: error.description, "description"),
+            information: error.information.merge(with: information),
+            PropertyOptionSet(lhs: error.options, rhs: options)
         )
     }
 

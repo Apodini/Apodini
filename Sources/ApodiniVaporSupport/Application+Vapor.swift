@@ -15,11 +15,12 @@ extension Vapor.Application {
         var app: Vapor.Application
 
         func didBoot(_ application: Apodini.Application) throws {
-            if let address = application.http.address {
-                try app.server.start(address: Vapor.BindAddress(from: address))
-            } else {
-                try app.server.start()
-            }
+//            if let address = application.http.address {
+//                try app.server.start(address: Vapor.BindAddress(from: address))
+//            } else {
+//                try app.server.start()
+//            }
+            try app.server.start(address: .init(from: application.http.address))
             try app.boot()
         }
 

@@ -8,10 +8,10 @@
 
 import Foundation
 import XCTest
-import Vapor
 @_implementationOnly import Runtime
 @testable import Apodini
 @testable import ApodiniDatabase
+
 
 final class DatabaseFieldPropertyTests: ApodiniTests {
     func testFieldPropertyVisitable() {
@@ -34,7 +34,8 @@ final class DatabaseFieldPropertyTests: ApodiniTests {
         XCTAssertNoThrow(try bird.$name.accept(ConcreteUpdatableFieldPropertyVisitor(updater: newValueContainer)))
         XCTAssert(bird.name == "FooBird")
     }
-
+    
+    // TODO why is this here? --> remove!
     func result(_ value: String) throws -> String {
         try XCTUnwrap(value)
     }

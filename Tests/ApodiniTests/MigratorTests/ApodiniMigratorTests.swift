@@ -11,7 +11,9 @@ import XCTest
 @testable import ApodiniMigration
 @testable import ApodiniMigrator
 @_implementationOnly import PathKit
-import XCTVapor
+@testable import ApodiniNetworking
+import XCTApodiniNetworking
+
 
 struct ThrowingHandler: Handler {
     @Apodini.Parameter var throwing: Throwing
@@ -99,7 +101,8 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(Self.migratorConfig.command._commandName, "migrator")
         XCTAssertEqual(Self.migratorConfig.command.configuration.subcommands.count, 3)
         
-        XCTAssert(app.vapor.app.routes.all.isEmpty)
+        //XCTAssert(app.vapor.app.routes.all.isEmpty)
+        XCTAssert(app.lkHttpServer.registeredRoutes.isEmpty)
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         
@@ -136,9 +139,10 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         start()
         
-        try app.vapor.app.test(.GET, path) { response in
+        //try app.vapor.app.test(.GET, path) { response in
+        try app.testable().test(.GET, path) { response in
             XCTAssertEqual(response.status, .ok)
-            XCTAssertNoThrow(try response.content.decode(Document.self, using: JSONDecoder()))
+            XCTAssertNoThrow(try response.bodyStorage.getFullBodyData(decodedAs: Document.self, using: JSONDecoder()))
         }
     }
     
@@ -186,9 +190,9 @@ final class ApodiniMigratorTests: ApodiniTests {
         start()
         
         let storedMigrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
-        try app.vapor.app.test(.GET, "guide") { response in
+        try app.testable().test(.GET, "guide") { response in
             XCTAssertEqual(response.status, .ok)
-            let migrationGuide = try response.content.decode(MigrationGuide.self, using: JSONDecoder())
+            let migrationGuide = try response.bodyStorage.getFullBodyData(decodedAs: MigrationGuide.self, using: JSONDecoder())
             XCTAssertEqual(storedMigrationGuide, migrationGuide)
         }
     }
@@ -200,9 +204,9 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         start()
         
-        try app.vapor.app.test(.GET, endpointPath) { response in
+        try app.testable().test(.GET, endpointPath) { response in
             XCTAssertEqual(response.status, .ok)
-            let migrationGuide = try response.content.decode(MigrationGuide.self, using: JSONDecoder())
+            let migrationGuide = try response.bodyStorage.getFullBodyData(decodedAs: MigrationGuide.self, using: JSONDecoder())
             XCTAssert(migrationGuide.changes.isEmpty)
         }
     }
@@ -219,7 +223,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         
-        try app.vapor.app.test(.GET, "not-found") { response in
+        try app.testable().test(.GET, "not-found") { response in
             XCTAssertEqual(response.status, .notFound)
         }
         
@@ -308,9 +312,9 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "api-spec") { response in
+        try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
-            let document = try response.content.decode(Document.self, using: JSONDecoder())
+            let document = try response.bodyStorage.getFullBodyData(decodedAs: Document.self, using: JSONDecoder())
             XCTAssertEqual(document.metaData.versionedServerPath, "http://1.2.3.4:56/789")
         }
     }

@@ -9,7 +9,7 @@
 @testable import Apodini
 import ApodiniAuthorizationJWT
 import ApodiniHTTPProtocol
-import ApodiniVaporSupport
+//import ApodiniVaporSupport
 import XCTApodini
 import NIOHTTP1
 

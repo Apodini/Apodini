@@ -11,6 +11,7 @@ import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
+
 struct TestStruct: Codable {
     var id = 1
     var someProp = "somesome"

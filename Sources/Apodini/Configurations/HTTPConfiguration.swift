@@ -14,9 +14,9 @@ import NIO
 /// command line arguments --hostname, --port and --bind or via the
 /// function `address`
 public final class HTTPConfiguration: Configuration {
-    enum Defaults {
-        static let hostname = "0.0.0.0"
-        static let port = 8080
+    public enum Defaults { // TODO we can make this internal again once BindAddress.hostname auto-replaces nil inputs w/ the default values!
+        public static let hostname = "0.0.0.0"
+        public static let port = 8080
     }
     
     enum HTTPConfigurationError: LocalizedError {
@@ -32,7 +32,7 @@ public final class HTTPConfiguration: Configuration {
         var recoverySuggestion: String? {
             switch self {
             case .incompatibleFlags:
-                return "Example usage of HTTPConfiguration: --hostname 0.0.0.0 --port 8080 or --bind 0.0.0.0:8080"
+                return "Example usage of HTTPConfiguration: --hostname \(Defaults.hostname) --port \(Defaults.port) or --bind \(Defaults.hostname):\(Defaults.port)"
             }
         }
     }
@@ -51,7 +51,7 @@ public final class HTTPConfiguration: Configuration {
                 let components = address.split(separator: ":")
                 let hostname = components.first.map { String($0) }
                 let port = components.last.flatMap { Int($0) }
-                self.address = .hostname(hostname, port: port)
+                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             case let (hostname, port, .none, .none):
                 self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
             default:

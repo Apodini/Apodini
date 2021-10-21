@@ -64,7 +64,7 @@ public struct VaporBlobResponseTransformer: ResultTransformer {
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<Vapor.Response, ApodiniError> {
-            .abort(error)
+        .abort(error)
     }
 }
 

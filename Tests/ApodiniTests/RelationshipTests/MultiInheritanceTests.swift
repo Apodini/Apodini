@@ -10,6 +10,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
+
 class MultiInheritanceTests: ApodiniTests {
     struct TestA: Content {
         var testA: String

@@ -137,9 +137,10 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         do {
             let proxyServer = try ProxyServer(
                 openApiDocument: deployedSystem.openApiDocument,
-                deployedSystem: deployedSystem
+                deployedSystem: deployedSystem,
+                port: self.port
             )
-            try proxyServer.run(port: self.port)
+            try proxyServer.run()
         } catch {
             Task.killAllInChildrenInProcessGroup()
             throw error

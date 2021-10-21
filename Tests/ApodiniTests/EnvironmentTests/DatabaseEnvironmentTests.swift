@@ -11,6 +11,7 @@ import protocol FluentKit.Database
 import XCTApodini
 @testable import Apodini
 
+
 final class DatabaseEnvironmentTests: ApodiniTests {
     struct DatabaseComponent: Handler {
         @Apodini.Environment(\.database) var database: Database

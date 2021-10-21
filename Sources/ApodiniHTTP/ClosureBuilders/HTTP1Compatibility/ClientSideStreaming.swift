@@ -9,38 +9,33 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
+
 
 extension Exporter {
-    // MARK: Client Streaming Closure
-    
     func buildClientSideStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        using defaultValues: DefaultValueStore
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
-        
         let abortAnyError = AbortTransformer<H>()
-        
-        let transformer = VaporResponseTransformer<H>(configuration.encoder)
-            
+        let transformer = LKHTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
-            guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
+        return { (request: LKHTTPRequest) in
+            //fatalError("TODO HANDLE TJIS!!!") // TODO re-enable this crash and implement it properly
+            //guard let requestCount = try! configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
+            guard let requestCount = try! configuration.decoder.decode(ArrayCount.self, from: request.bodyStorage.getFullBodyData() ?? .init()).count else {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
                     description: "Input for client side steaming endpoints must be an array at top level.")
             }
-            
             let delegate = factory.instance()
-            
             return Array(0..<requestCount)
-                .asAsyncSequence
                 .map { index in
                     (request, (request, index))
                 }
+                .asAsyncSequence
                 .decode(using: strategy, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
@@ -58,12 +53,13 @@ extension Exporter {
                         return response
                     }
                 }
-                .map { (response: Apodini.Response<H.Response.Content>) -> Vapor.Response in
-                    return try transformer.transform(input: response)
+                .map { (response: Apodini.Response<H.Response.Content>) -> LKHTTPResponse in
+                    return try! transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
+                    precondition(optionalResponse != nil)
+                    return optionalResponse ?? LKHTTPResponse(version: request.version, status: .ok, headers: [:]) // TODO what should this default request look like? old imoplementation somply returned an empty Vapor.Rwequest()
                 }
         }
     }

@@ -11,11 +11,11 @@ import ArgumentParser
 import Apodini
 import ApodiniExtension
 import ApodiniUtils
-import ApodiniVaporSupport
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
-@_implementationOnly import Vapor
+import ApodiniNetworking
 @_implementationOnly import AssociatedTypeRequirementsVisitor
+@_implementationOnly import AsyncHTTPClient
 
 
 extension AnyEndpointParameter {
@@ -42,17 +42,13 @@ struct ApodiniDeployError: Swift.Error {
 public final class ApodiniDeploy: Configuration {
     let configuration: ApodiniDeploy.ExporterConfiguration
     
-    public init(runtimes: [DeploymentProviderRuntime.Type] = [],
-                config: DeploymentConfig = .init()) {
-        self.configuration = ApodiniDeploy.ExporterConfiguration(
-                                runtimes: runtimes,
-                                config: config)
+    public init(runtimes: [DeploymentProviderRuntime.Type] = [], config: DeploymentConfig = .init()) {
+        self.configuration = ApodiniDeploy.ExporterConfiguration(runtimes: runtimes, config: config)
     }
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
         let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
-        
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: deployExporter)
     }
@@ -82,19 +78,27 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     let app: Apodini.Application
     let exporterConfiguration: ApodiniDeploy.ExporterConfiguration
-    var vaporApp: Vapor.Application { app.vapor.app }
+//    var vaporApp: Vapor.Application { app.vapor.app }
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
     
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
+    let httpClient: AsyncHTTPClient.HTTPClient
+    
     
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()) {
+         _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()
+    ) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
+        self.httpClient = .init(eventLoopGroupProvider: .shared(app.eventLoopGroup), configuration: .init())
         app.storage.set(ApplicationStorageKey.self, to: self)
+        app.lifecycle.use(
+            didBoot: { _ in fatalError("Just to check whether this gets called") },
+            shutdown: { [weak self] _ in try? self?.httpClient.syncShutdown() } // We have to shutdown the http client, and this seems to be the easiest way to hook into the lifecycle
+        )
     }
     
     
@@ -110,13 +114,16 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
-        vaporApp.add(Vapor.Route(
-            method: .POST,
-            path: ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
-            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
-            requestType: InternalInvocationResponder<H>.Request.self,
-            responseType: InternalInvocationResponder<H>.Response.self
-        ))
+        app.lkHttpServer.registerRoute(.POST, ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)]) { request in
+            InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint).respond(to: request)
+        }
+//        vaporApp.add(Vapor.Route(
+//            method: .POST,
+//            path: ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
+//            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
+//            requestType: InternalInvocationResponder<H>.Request.self,
+//            responseType: InternalInvocationResponder<H>.Response.self
+//        ))
     }
     
     

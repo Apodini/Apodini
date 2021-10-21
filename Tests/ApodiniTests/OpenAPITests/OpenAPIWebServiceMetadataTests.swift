@@ -13,6 +13,7 @@ import ApodiniREST
 @testable import ApodiniOpenAPI
 import OpenAPIKit
 
+
 final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisitor {
     struct ExampleWebService: WebService {
         var content: some Component {
@@ -85,7 +86,7 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
                 ),
                 version: "2.3.0"
             ),
-            servers: [.init(url: URL(string: "http://127.0.0.1:8080")!)],
+            servers: [.init(url: URL(string: "http://0.0.0.0:8080")!)],
             paths: [:],
             components: .init(),
             tags: [

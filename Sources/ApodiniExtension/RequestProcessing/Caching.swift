@@ -64,7 +64,7 @@ public class CachingRequest: WithRequest {
     /// When ``peak(_:)`` is called it will never request a value from the
     /// underlying `Request`, instead it solely queries its cache and returns
     /// any value stored there.
-    public func peak(_ parameter: UUID) -> Any? {
+    public func peak(_ parameter: UUID) -> Any? { // TODO is this supposed to be spelled `peek`?
         cache[parameter]
     }
 }

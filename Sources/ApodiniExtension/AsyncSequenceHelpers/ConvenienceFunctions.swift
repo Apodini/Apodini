@@ -39,7 +39,7 @@ public extension AsyncSequence {
         promise.completeWithAsync {
             try await self.first(where: { _ in true })
         }
-    
+        
         return promise.futureResult
     }
 }

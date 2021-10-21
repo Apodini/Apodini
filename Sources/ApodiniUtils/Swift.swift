@@ -39,6 +39,25 @@ extension Set {
 }
 
 
+// MARK: Array
+
+extension Array {
+    /// Returns a copy of the array, with the specified element appended to the end.
+    public func appending(_ element: Element) -> [Element] {
+        var copy = self
+        copy.append(element)
+        return copy
+    }
+    
+    /// Returns a copy of the array, with the specified elements appended to the end.
+    public func appending<S>(contentsOf elements: S) -> [Element] where S: Sequence, S.Element == Element {
+        var copy = self
+        copy.append(contentsOf: elements)
+        return copy
+    }
+}
+
+
 // MARK: Sequence
 
 extension Sequence {
@@ -49,6 +68,11 @@ extension Sequence {
     public func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>, ascending: Bool = true) -> [Element] {
         let sorted = self.sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
         return ascending ? sorted : sorted.reversed()
+    }
+    
+    
+    public func dropNilValues<T>() -> [T] where Element == Optional<T> {
+        return self.compactMap { $0 }
     }
 }
 
@@ -70,6 +94,21 @@ extension Collection {
             return nil
         }
         return try dropFirst().reduce(first, transform)
+    }
+    
+    /// Returns the index of the first element after the specified `otherIdx` for which the preducate evaluates to true
+    public func firstIndex(after otherIdx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
+        for idx in indices[otherIdx...] {
+            if try predicate(self[idx]) {
+                return idx
+            }
+        }
+        return nil
+    }
+    
+    /// Returns the index of the first element which compares equal to the specied element after the specified `otherIdx`
+    public func firstIndex(of element: Element, after otherIdx: Index) -> Index? where Element: Equatable {
+        return firstIndex(after: otherIdx, where: { $0 == element })
     }
 }
 

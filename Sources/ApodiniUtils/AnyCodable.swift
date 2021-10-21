@@ -36,9 +36,17 @@ extension AnyEncodable {
 public protocol AnyEncoder {
     /// Encode some `Encodable` object to `Data`
     func encode<E: Encodable>(_ value: E) throws -> Data
+    
+    /// The HTTP media type associated with the data format produced by this encoder.
+    /// Return `nil` if not applicable
+    var resultMediaTypeRawValue: String? { get }
 }
 
-extension JSONEncoder: AnyEncoder {}
+extension JSONEncoder: AnyEncoder {
+    public var resultMediaTypeRawValue: String? {
+        return "application/json; charset=utf-8"
+    }
+}
 
 
 /// Something that can decode `Decodable` objects from `Data`

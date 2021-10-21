@@ -9,8 +9,6 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
 
 
 extension HTTP {
@@ -22,7 +20,6 @@ extension HTTP {
         public let decoder: AnyDecoder
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
-        
         
         /// Initializes the configuration of the ``HTTP`` exporter
         /// - Parameters:

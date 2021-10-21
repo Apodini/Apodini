@@ -107,15 +107,10 @@ final class VaporWSRouter: Router {
     typealias ConnectionInformation = Vapor.Request
     
     private var registeredAtVapor = false
-    
     private let app: Application
-    
     private let logger: Logger
-    
     private let path: [PathComponent]
-    
     private var endpoints: [String: ContextOpener] = [:]
-    
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 

@@ -10,6 +10,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
+
 class RelationshipInstanceTests: ApodiniTests {
     let testRelationship = Relationship(name: "test")
 

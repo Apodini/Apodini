@@ -13,8 +13,7 @@ import ApodiniExtension
 import ApodiniUtils
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
-import ApodiniVaporSupport
-@_implementationOnly import Vapor
+@_implementationOnly import AsyncHTTPClient
 
 
 /// Helper type which stores an argument for a remote handler invocation.
@@ -202,23 +201,33 @@ extension RemoteHandlerInvocationManager {
                     .appendingPathComponent("__apodini")
                     .appendingPathComponent("invoke")
                     .appendingPathComponent(targetEndpoint[AnyHandlerIdentifier.self].rawValue)
-                return internalInterfaceExporter.vaporApp.client.post(
-                    Vapor.URI(url: requestUrl),
+                
+                
+                
+                return internalInterfaceExporter.httpClient.execute(request: try HTTPClient.Request.init(
+                    url: requestUrl,
+                    method: .POST,
                     headers: [:],
-                    beforeSend: { (clientReq: inout Vapor.ClientRequest) in
+                    body: try { () -> AsyncHTTPClient.HTTPClient.Body in
                         let input = InternalInvocationResponder<H>.Request(
                             parameters: try invocationParams.map { param -> InternalInvocationResponder<H>.Request.EncodedParameter in
-                                try .init(
-                                    stableIdentity: param.stableIdentity,
-                                    encodedValue: param.encodeValue(using: JSONEncoder())
-                                )
+                                try .init(stableIdentity: param.stableIdentity, encodedValue: param.encodeValue(using: JSONEncoder()))
                             }
                         )
-                        try clientReq.content.encode(input, using: JSONEncoder())
+                        return .data(try JSONEncoder().encode(input))
+                    }()
+                ))
+                .flatMapThrowing { (response: HTTPClient.Response) -> H.Response.Content in
+                    guard var responseBody = response.body else {
+                        throw ApodiniDeployError(message: "Unexpectly got empty response")
                     }
-                )
-                .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
-                    let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
+                    guard let handlerResponse = try responseBody.readJSONDecodable(
+                        InternalInvocationResponder<H>.Response.self,
+                        decoder: JSONDecoder(),
+                        length: responseBody.readableBytes
+                    ) else {
+                        throw ApodiniDeployError(message: "Unable to decode response body")
+                    }
                     switch handlerResponse.status {
                     case .success:
                         return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
@@ -229,6 +238,35 @@ extension RemoteHandlerInvocationManager {
                         )
                     }
                 }
+                
+                
+//                return internalInterfaceExporter.vaporApp.client.post(
+//                    Vapor.URI(url: requestUrl),
+//                    headers: [:],
+//                    beforeSend: { (clientReq: inout Vapor.ClientRequest) in
+//                        let input = InternalInvocationResponder<H>.Request(
+//                            parameters: try invocationParams.map { param -> InternalInvocationResponder<H>.Request.EncodedParameter in
+//                                try .init(
+//                                    stableIdentity: param.stableIdentity,
+//                                    encodedValue: param.encodeValue(using: JSONEncoder())
+//                                )
+//                            }
+//                        )
+//                        try clientReq.content.encode(input, using: JSONEncoder())
+//                    }
+//                )
+//                .flatMapThrowing { (clientResponse: ClientResponse) -> H.Response.Content in
+//                    let handlerResponse = try clientResponse.content.decode(InternalInvocationResponder<H>.Response.self)
+//                    switch handlerResponse.status {
+//                    case .success:
+//                        return try JSONDecoder().decode(H.Response.Content.self, from: handlerResponse.encodedData)
+//                    case .handlerError, .internalError:
+//                        throw RemoteInvocationResponseError(
+//                            context: handlerResponse.status == .handlerError ? .handlerError : .internalError,
+//                            recordedErrorMessage: try JSONDecoder().decode(String.self, from: handlerResponse.encodedData)
+//                        )
+//                    }
+//                }
             }
         } catch {
             return eventLoop.makeFailedFuture(error)
@@ -303,11 +341,11 @@ extension Endpoint {
 }
 
 
-extension Vapor.URI {
-    init(url: URL) {
-        self = Vapor.URI(scheme: url.scheme, host: url.host, port: url.port, path: url.path, query: url.query, fragment: url.fragment)
-    }
-}
+//extension Vapor.URI {
+//    init(url: URL) {
+//        self = Vapor.URI(scheme: url.scheme, host: url.host, port: url.port, path: url.path, query: url.query, fragment: url.fragment)
+//    }
+//}
 
 
 // MARK: Environment

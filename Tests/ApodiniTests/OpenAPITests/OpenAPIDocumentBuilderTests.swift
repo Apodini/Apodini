@@ -10,8 +10,8 @@ import XCTest
 import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
-@testable import ApodiniVaporSupport
 import ApodiniREST
+
 
 struct SomeTestStruct: Apodini.Content {
     var someProp = 4

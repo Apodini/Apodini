@@ -8,24 +8,29 @@
 
 import Foundation
 import ApodiniUtils
-import Vapor
+import ApodiniNetworking
 
-public protocol AnyEncoder: ApodiniUtils.AnyEncoder, ContentEncoder {}
 
-/// Default implementation of the `ContentEncoder` protocol that sets the content type to JSON
+//public protocol AnyEncoder: ApodiniUtils.AnyEncoder {}
+
+// TODO Is this REST-specific? No?? Move to Utils or Networking!
+
+/// Default implementation of the `ContentEncoder` protocol that sets the appropriate content type if possible
 extension AnyEncoder {
     /// Encodes the given object which conform to `Encodable` into the `Bytebuffer`
     /// - Parameters:
     ///    - encodable: The to be encoded object
     ///    - to: The ByteBuffer to encode to
     ///    - headers: The HTTP header to set the content type
-    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws where E: Encodable {
-        headers.contentType = .json
-        try body.writeBytes(self.encode(encodable))
+    public func encode<T: Encodable>(_ value: T, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws { // TOOD what about HTTP2 headers???
+        if let mediaType = self.resultMediaType {
+            headers[.contentType] = mediaType
+        }
+        try body.writeBytes(self.encode(value))
     }
 }
 
-public protocol AnyDecoder: ApodiniUtils.AnyDecoder, ContentDecoder {}
+//public protocol AnyDecoder: ApodiniUtils.AnyDecoder {}
 
 /// Default implementation of the `ContentDecoder` protocol
 extension AnyDecoder {
@@ -34,12 +39,12 @@ extension AnyDecoder {
     ///    - decodable: The type of the to be decoded object
     ///    - to: The ByteBuffer to encode from
     ///    - headers: The HTTP header to get the content type
-    public func decode<D>(_ decodable: D.Type, from body: ByteBuffer, headers: HTTPHeaders) throws -> D where D: Decodable {
+    public func decode<T: Decodable>(_: T.Type, from body: ByteBuffer, headers: HTTPHeaders) throws -> T {
+        // TODO this doesn't use the headers parameter at all!????
         let data = body.getData(at: body.readerIndex, length: body.readableBytes) ?? Data()
-        return try self.decode(D.self, from: data)
+        return try self.decode(T.self, from: data)
     }
 }
 
-extension JSONEncoder: AnyEncoder {}
-
-extension JSONDecoder: AnyDecoder {}
+//extension JSONEncoder: AnyEncoder {}
+//extension JSONDecoder: AnyDecoder {}

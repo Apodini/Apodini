@@ -52,7 +52,12 @@ let package = Package(
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
         
         // Migrator
-        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+        
+        // Lukas' playground
+        .executable(name: "LKTestWebService", targets: ["LKTestWebService"]),
+        .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"]),
+        .library(name: "ApodiniVaporSupportButTheOtherWayAround", targets: ["ApodiniVaporSupportButTheOtherWayAround"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
@@ -107,7 +112,10 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
+        
+        // Used by ApodiniDeploy. TODO implement our own version of this? Not sure why though...
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -171,7 +179,7 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
-                .product(name: "XCTVapor", package: "vapor"),
+                //.product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
             ],
@@ -199,7 +207,8 @@ let package = Package(
             name: "ApodiniDatabase",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
+                //.target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .product(name: "FluentKit", package: "fluent-kit")
             ]
         ),
@@ -212,6 +221,24 @@ let package = Package(
                 .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniGRPCv2",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniGraphQL",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking")
             ]
         ),
 
@@ -245,7 +272,7 @@ let package = Package(
         .testTarget(
             name: "ApodiniNotificationsTests",
             dependencies: [
-                .product(name: "XCTVapor", package: "vapor"),
+                //.product(name: "XCTVapor", package: "vapor"),
                 .target(name: "ApodiniNotifications"),
                 .target(name: "XCTApodini")
             ],
@@ -270,7 +297,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniOpenAPISecurity"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniVaporSupport"),
+                //.target(name: "ApodiniVaporSupport"),
                 .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
@@ -297,7 +324,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniVaporSupport")
+                .target(name: "ApodiniNetworking")
             ]
         ),
         
@@ -307,7 +334,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniVaporSupport")
+                .target(name: "ApodiniNetworking")
             ]
         ),
 
@@ -323,6 +350,7 @@ let package = Package(
             name: "ApodiniHTTPProtocol",
             dependencies: [
                 .target(name: "Apodini"),
+                .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio")
             ]
         ),
@@ -335,6 +363,33 @@ let package = Package(
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniLoggingSupport"),
                 .product(name: "Vapor", package: "vapor")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniVaporSupportButTheOtherWayAround",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .product(name: "Vapor", package: "vapor")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNetworking",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniExtension"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "NIOSSL", package: "swift-nio-ssl"),
+                .product(name: "NIOFoundationCompat", package: "swift-nio"),
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "Logging", package: "swift-log")
+//                .target(name: "NIO"),
             ]
         ),
         
@@ -427,7 +482,8 @@ let package = Package(
             name: "ApodiniMigration",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
+                //.target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),
@@ -443,7 +499,18 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniREST")
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "XCTApodiniNetworking")
+            ]
+        ),
+        
+        .target(
+            name: "XCTApodiniNetworking",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniNetworking"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
         
@@ -470,8 +537,10 @@ let package = Package(
             dependencies: [
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "XCTVapor", package: "vapor")
+                //.target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
+                //.product(name: "XCTVapor", package: "vapor"),
+                .target(name: "XCTApodiniNetworking")
             ]
         ),
         
@@ -481,7 +550,7 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniVaporSupport"),
-                .product(name: "XCTVapor", package: "vapor")
+                //.product(name: "XCTVapor", package: "vapor")
             ]
         ),
         
@@ -489,6 +558,14 @@ let package = Package(
             name: "ApodiniExtensionTests",
             dependencies: [
                 .target(name: "XCTApodini")
+            ]
+        ),
+        
+        
+        .testTarget(
+            name: "ApodiniUtilsTests",
+            dependencies: [
+                .target(name: "ApodiniUtils")
             ]
         ),
         
@@ -501,9 +578,11 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniVaporSupport"),
+                //.target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport")
+                .target(name: "ApodiniDeployRuntimeSupport"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
         
@@ -522,8 +601,8 @@ let package = Package(
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniVaporSupport"),
-                .product(name: "Vapor", package: "vapor"),
+                //.target(name: "ApodiniVaporSupport"),
+                //.product(name: "Vapor", package: "vapor"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
             ]
@@ -535,7 +614,7 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "XCTVapor", package: "vapor"),
+                //.product(name: "XCTVapor", package: "vapor"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
                 .product(name: "SotoApiGatewayV2", package: "soto"),
@@ -550,10 +629,12 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .target(name: "ApodiniDeployBuildSupport"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "DeploymentTargetLocalhostCommon"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
         .target(
@@ -627,6 +708,16 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .executableTarget(
+            name: "LKTestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniGRPCv2")
             ]
         )
     ]

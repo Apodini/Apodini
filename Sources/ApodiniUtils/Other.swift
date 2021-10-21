@@ -10,6 +10,7 @@ import Foundation
 
 
 /// The `Box` type can be used to wrap an object in a class
+@dynamicMemberLookup
 public class Box<T> {
     /// The value stored by the `Box`
     public var value: T
@@ -18,6 +19,10 @@ public class Box<T> {
     /// if `T` has reference semantics, establishing a strong reference to it.
     public init(_ value: T) {
         self.value = value
+    }
+    
+    public subscript<U>(dynamicMember keyPath: KeyPath<T, U>) -> U {
+        value[keyPath: keyPath]
     }
 }
 

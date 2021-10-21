@@ -8,9 +8,10 @@
 
 @testable import Apodini
 @testable import ApodiniREST
-import Vapor
 import Foundation
 import XCTApodini
+import ApodiniNetworking
+
 
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
@@ -84,7 +85,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<Vapor.Request, TestHandler>
+            var context: ConnectionContext<LKHTTPRequest, TestHandler>
 
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -104,13 +105,14 @@ class ObservedObjectTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
 
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
+//        let request = Vapor.Request(
+//            application: app.vapor.app,
+//            method: .POST,
+//            url: URI("http://example.de/test/a?param0=value0"),
+//            collectedBody: nil,
+//            on: app.eventLoopGroup.next()
+//        )
+        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         
         // initialize the observable object
         let testObservable = TestObservable()
@@ -138,21 +140,17 @@ class ObservedObjectTests: ApodiniTests {
         
         class MandatoryTestListener: ObservedListener {
             var eventLoop: EventLoop
-            
-            var context: ConnectionContext<Vapor.Request, TestHandler>
-            
+            var context: ConnectionContext<LKHTTPRequest, TestHandler>
             var wasCalled = false
-            
             let number: Int
             
-            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<Vapor.Request, TestHandler>) {
+            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<LKHTTPRequest, TestHandler>) {
                 self.eventLoop = eventLoop
                 self.context = context
                 self.number = number
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject,
-                                     _ event: TriggerEvent) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
                 wasCalled = true
             }
             
@@ -168,13 +166,14 @@ class ObservedObjectTests: ApodiniTests {
         let context1 = endpoint.createConnectionContext(for: exporter)
         let context2 = endpoint.createConnectionContext(for: exporter)
 
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
+//        let request = Vapor.Request(
+//            application: app.vapor.app,
+//            method: .POST,
+//            url: URI("http://example.de/test/a?param0=value0"),
+//            collectedBody: nil,
+//            on: app.eventLoopGroup.next()
+//        )
+        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         
         let testObservable = TestObservable()
         app.storage.set(\Keys.testObservable, to: testObservable)
@@ -209,7 +208,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<Vapor.Request, TestHandler>
+            var context: ConnectionContext<LKHTTPRequest, TestHandler>
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -233,12 +232,17 @@ class ObservedObjectTests: ApodiniTests {
 
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
+//        let request = Vapor.Request(
+//            application: app.vapor.app,
+//            method: .POST,
+//            url: URI("http://example.de/test/a?param0=value0"),
+//            collectedBody: nil,
+//            on: app.eventLoopGroup.next()
+//        )
+        let request = LKHTTPRequest(
             method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/a?param0=value0",
+            eventLoop: app.eventLoopGroup.next()
         )
         _ = try context.handle(request: request).wait()
         
@@ -278,13 +282,14 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
-            method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
-        )
+//        let request = Vapor.Request(
+//            application: app.vapor.app,
+//            method: .POST,
+//            url: URI("http://example.de/test/a?param0=value0"),
+//            collectedBody: nil,
+//            on: app.eventLoopGroup.next()
+//        )
+        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         _ = try context.handle(request: request).wait()
     }
     

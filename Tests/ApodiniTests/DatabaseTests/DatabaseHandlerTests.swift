@@ -10,14 +10,11 @@
 @testable import ApodiniDatabase
 @testable import ApodiniREST
 @_implementationOnly import Runtime
-import Vapor
+import ApodiniNetworking
 import XCTApodini
 
+
 final class DatabaseHandlerTests: ApodiniTests {
-    var vaporApp: Vapor.Application {
-        self.app.vapor.app
-    }
-    
     private func pathParameter(for handler: Any) throws -> Parameter<UUID> {
         let mirror = Mirror(reflecting: handler)
         let parameter = mirror.children.compactMap { $0.value as? Parameter<UUID> }.first
@@ -81,16 +78,19 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let uri = URI("http://example.de/test/id")
-        let request = Vapor.Request(
-            application: vaporApp,
-            method: .GET,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+//        let uri = URI("http://example.de/test/id")
+//        let request = Vapor.Request(
+//            application: vaporApp,
+//            method: .GET,
+//            url: uri,
+//            on: app.eventLoopGroup.next()
+//        )
+        let url = LKURL("http://example.de/test/id")
+        let request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let idParameter = try pathParameter(for: handler)
-        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         try XCTCheckResponse(
             context.handle(request: request),
@@ -120,13 +120,15 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        var uri = URI("http://example.de/test/bird?name=Mockingbird")
-        var request = Vapor.Request(
-            application: vaporApp,
-            method: .GET,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+//        var uri = URI("http://example.de/test/bird?name=Mockingbird")
+//        var request = Vapor.Request(
+//            application: vaporApp,
+//            method: .GET,
+//            url: uri,
+//            on: app.eventLoopGroup.next()
+//        )
+        var url: LKURL = "http://example.de/test/bird?name=Mockingbird"
+        var request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
         
@@ -134,13 +136,15 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(responseValue[0].name == "Mockingbird", responseValue.debugDescription)
         XCTAssert(responseValue[1].name == "Mockingbird", responseValue.debugDescription)
         
-        uri = URI("http://example.de/test/bird?name=Mockingbird&age=21")
-        request = Vapor.Request(
-            application: vaporApp,
-            method: .GET,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+//        uri = URI("http://example.de/test/bird?name=Mockingbird&age=21")
+//        request = Vapor.Request(
+//            application: vaporApp,
+//            method: .GET,
+//            url: uri,
+//            on: app.eventLoopGroup.next()
+//        )
+        url = "http://example.de/test/bird?name=Mockingbird&age=21"
+        request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let value = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
         
@@ -166,22 +170,27 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let bodyData = ByteBuffer(data: try JSONEncoder().encode(parameters))
-        
-        let uri = URI("http://example.de/test/id")
-        let request = Vapor.Request(
-            application: vaporApp,
+//        let uri = URI("http://example.de/test/id")
+//        let request = Vapor.Request(
+//            application: vaporApp,
+//            method: .PUT,
+//            url: uri,
+//            collectedBody: bodyData,
+//            on: app.eventLoopGroup.next()
+//        )
+        //let url: LKURL = "http://example.de/test/id"
+        let request = LKHTTPRequest(
             method: .PUT,
-            url: uri,
-            collectedBody: bodyData,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/id",
+            bodyStorage: .buffer(initialValue: try JSONEncoder().encode(parameters)),
+            eventLoop: app.eventLoopGroup.next()
         )
         guard let birdId = dbBird.id else {
             XCTFail("Object found in database has no id")
             return
         }
         let idParameter = try pathParameter(for: handler)
-        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed(Bird.self)?.content)
         
@@ -215,20 +224,23 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
         
-        let uri = URI("http://example.de/test/id")
-        let request = Vapor.Request(
-            application: vaporApp,
-            method: .PUT,
-            url: uri,
-            collectedBody: bodyData,
-            on: app.eventLoopGroup.next()
-        )
+//        let uri = URI("http://example.de/test/id")
+//        let request = Vapor.Request(
+//            application: vaporApp,
+//            method: .PUT,
+//            url: uri,
+//            collectedBody: bodyData,
+//            on: app.eventLoopGroup.next()
+//        )
+        let url: LKURL = "http://example.de/test/id"
+        let request = LKHTTPRequest(method: .PUT, url: url, bodyStorage: .buffer(bodyData), eventLoop: app.eventLoopGroup.next())
         guard let birdId = dbBird.id else {
             XCTFail("Object found in database has no id")
             return
         }
         let idParameter = try pathParameter(for: handler)
-        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         let responseValue = try XCTCheckResponse(
             context.handle(request: request),
@@ -259,13 +271,15 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let uri = URI("http://example.de/test/id")
-        let request = Vapor.Request(
-            application: vaporApp,
-            method: .PUT,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+//        let uri = URI("http://example.de/test/id")
+//        let request = Vapor.Request(
+//            application: vaporApp,
+//            method: .PUT,
+//            url: uri,
+//            on: app.eventLoopGroup.next()
+//        )
+        let url: LKURL = "http://example.de/test/id"
+        let request = LKHTTPRequest(method: .PUT, url: url, eventLoop: app.eventLoopGroup.next())
         
         guard let birdId = dbBird.id else {
             XCTFail("Object saved in database has no id")
@@ -273,7 +287,8 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         
         let idParameter = try pathParameter(for: handler)
-        request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
+        request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         try XCTCheckResponse(
             context.handle(request: request),

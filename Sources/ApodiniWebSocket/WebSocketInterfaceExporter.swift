@@ -41,13 +41,13 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let router: VaporWSRouter
 
     /// Initialize a `WebSocketInterfaceExporter` from an `Application`
-    init(_ app: Apodini.Application,
-         _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
+    init(_ app: Apodini.Application, _ exporterConfiguration: WebSocket.ExporterConfiguration = .init()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 
+    
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
@@ -108,7 +108,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         }
     }
 
-    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     

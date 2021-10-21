@@ -7,17 +7,18 @@
 //              
 
 import Apodini
-import Vapor
+import ApodiniNetworking
 
 struct RESTPathBuilder: PathBuilder {
-    private var pathComponents: [Vapor.PathComponent] = []
+    private(set) var pathComponents: [LKHTTPPathComponent] = []
     private var pathString: [String] = []
+    
     var pathDescription: String {
         pathString.joined(separator: "/")
     }
 
     mutating func append(_ string: String) {
-        pathComponents.append(.constant(string))
+        pathComponents.append(.verbatim(string))
         pathString.append(string)
     }
 
@@ -26,11 +27,11 @@ struct RESTPathBuilder: PathBuilder {
     }
 
     mutating func append<Type>(_ parameter: EndpointPathParameter<Type>) {
-        pathComponents.append(.parameter(parameter.pathId))
+        pathComponents.append(.namedParameter(parameter.pathId))
         pathString.append("{\(parameter.name)}")
     }
 
-    func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
-        app.routes.grouped(pathComponents)
-    }
+//    func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
+//        app.routes.grouped(pathComponents)
+//    }
 }

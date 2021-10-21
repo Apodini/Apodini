@@ -39,7 +39,12 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
     
     public func configure(_ app: Apodini.Application) throws {
-        app.http.address = .hostname(nil, port: currentNodeCustomLaunchInfo.port)
+        switch app.http.address {
+        case .hostname(let hostname, port: _):
+            app.http.address = .hostname(hostname, port: currentNodeCustomLaunchInfo.port)
+        case .unixDomainSocket(path: _):
+            fatalError("Expected a hostname-based address")
+        }
     }
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(

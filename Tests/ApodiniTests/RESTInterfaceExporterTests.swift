@@ -8,12 +8,12 @@
 
 @testable import Apodini
 @testable import ApodiniREST
-import Vapor
+import ApodiniNetworking
 import XCTApodini
+import XCTApodiniNetworking
+
 
 class RESTInterfaceExporterTests: ApodiniTests {
-    lazy var application = Vapor.Application(.testing)
-
     struct Parameters: Apodini.Content, Decodable, Equatable {
         var param0: String
         var param1: String?
@@ -123,18 +123,23 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let body = Bird(name: "Rudi", age: 12)
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
 
-        let uri = URI("http://example.de/test/a/b?param0=value0")
-
-        let request = Vapor.Request(
-                application: application,
-                method: .POST,
-                url: uri,
-                collectedBody: bodyData,
-                on: app.eventLoopGroup.next()
+//        let uri = URI("http://example.de/test/a/b?param0=value0")
+//        let request = Vapor.Request(
+//                application: application,
+//                method: .POST,
+//                url: uri,
+//                collectedBody: bodyData,
+//                on: app.eventLoopGroup.next()
+//        )
+        let request = LKHTTPRequest(
+            method: .POST,
+            url: "http://example.de/test/a/b?param0=value0",
+            bodyStorage: .buffer(bodyData),
+            eventLoop: app.eventLoopGroup.next()
         )
         // we hardcode the pathId currently here
-        request.parameters.set("\(handler.pathAParameter.id)", to: "a")
-        request.parameters.set("\(handler.pathBParameter.id)", to: "b")
+        request.setParameter(for: "\(handler.pathAParameter.id)", to: "a")
+        request.setParameter(for: "\(handler.pathBParameter.id)", to: "b")
 
         try XCTCheckResponse(
             context.handle(request: request),
@@ -153,9 +158,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -189,9 +194,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "uSEr/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -207,7 +212,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "USER/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "USER/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .notFound)
         }
     }
@@ -222,7 +227,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .notFound)
         }
     }
@@ -244,9 +249,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "uSEr/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -262,9 +267,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -280,9 +285,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSEr/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "uSEr/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -298,7 +303,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "uSErA/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "uSErA/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .notFound)
         }
     }
@@ -354,10 +359,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         webserviceWithoutRoot.accept(visitor)
         visitor.finishParsing()
 
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(DecodedLinksContainer.self)
-            let prefix = "http://127.0.0.1:8080"
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedLinksContainer.self)
+            let prefix = "http://0.0.0.0:8080"
             XCTAssertEqual(container.links, ["test1": prefix + "/test1", "test2": prefix + "/test2", "test3": prefix + "/test3"])
         }
     }
@@ -368,7 +373,8 @@ class RESTInterfaceExporterTests: ApodiniTests {
         var headers = HTTPHeaders()
         headers.add(name: .authorization, value: value)
 
-        let request = Vapor.Request(application: app.vapor.app, headers: headers, on: app.eventLoopGroup.next())
+        //let request = Vapor.Request(application: app.vapor.app, headers: headers, on: app.eventLoopGroup.next())
+        let request = LKHTTPRequest(method: .GET, url: "/", headers: headers, eventLoop: app.eventLoopGroup.next())
 
         var information = request.information
         information.insert(ETag("someTag", isWeak: true))
@@ -390,7 +396,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             func handle() -> Apodini.Response<String> {
                 Response.send(
                     "Paul",
-                    status: .created,
+                    status: .created, // TODO can we integrate our type-safe header stuff into the API allowing handlers to specify response headers?!
                     information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
                 )
             }
@@ -408,29 +414,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
-            XCTAssertEqual(response.headers["Content-Type"].first, "application/json; charset=utf-8")
-            XCTAssertEqual(response.headers["Test"].first, "Test")
+        try app.testable().test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers[.contentType], HTTPMediaType.json)
+            XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
-            
-            let firstPossibleJSON = """
-                {
-                  "data" : "Paul",
-                  "_links" : {
-                    "self" : "http://127.0.0.1:8080/v1"
-                  }
-                }
-                """
-            let secondPossibleJSON = """
-                {
-                  "_links" : {
-                    "self" : "http://127.0.0.1:8080/v1"
-                  },
-                  "data" : "Paul"
-                }
-                """
-            
-            XCTAssertTrue(response.body.string == firstPossibleJSON || response.body.string == secondPossibleJSON)
+            let responseJSON = try XCTUnwrapRESTResponse(String.self, from: response)
+            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://0.0.0.0:8080/v1"]))
         }
     }
     
@@ -457,11 +446,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.headers[.contentType], .pdf)
             XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")
-            XCTAssertEqual(response.headers["Test"].first, "Test")
+            XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
-            XCTAssertEqual(response.body.readableBytes, 0)
+            XCTAssertEqual(response.bodyStorage.readableBytes, 0)
         }
     }
 }

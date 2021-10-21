@@ -65,7 +65,7 @@ public protocol Information: AnyInformation where Self: InformationClass {
     /// - Parameters:
     ///   - key: The respective ``Key`` instance.
     ///   - rawValue: The respective ``InformationKey/RawValue``.
-    init(key: Key, rawValue: Key.RawValue)
+    init(key: Key, rawValue: Key.RawValue) // TODO were this one renamed to `init(key:value:)`, it could be satisfied using the default synthesised initialiser for structs!
 
     /// Initializes the ``Information`` from its respective ``InformationKey/KeyValue`` and the corresponding ``InformationKey/RawValue``.
     /// Not a default initializer is provided based on ``init(key:rawValue:)``

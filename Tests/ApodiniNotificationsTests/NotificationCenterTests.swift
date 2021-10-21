@@ -13,9 +13,10 @@ import XCTApodini
 import FluentKit
 import FCM
 import APNSwift
-import XCTVapor
 import Apodini
 @testable import ApodiniNotifications
+import XCTApodiniNetworking
+
 
 final class NotificationCenterTests: XCTApodiniTest {
     override func setUpWithError() throws {
@@ -103,7 +104,8 @@ final class NotificationCenterTests: XCTApodiniTest {
             .filter(\.$id == device.id)
             .with(\.$topics)
             .first()
-            .unwrap(or: Abort(.notFound))
+            //.unwrap(or: Abort(.notFound))
+            .unwrap(or: LKHTTPAbortError(status: .notFound))
             .wait()
             .transform()
  

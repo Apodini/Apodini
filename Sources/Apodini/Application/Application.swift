@@ -33,6 +33,20 @@ public protocol LifecycleHandler {
 }
 
 
+private struct LKClosureBasedLifecycleHandler: LifecycleHandler {
+    let didBootHandler: (Application) throws -> Void
+    let shutdownHandler: (Application) throws -> Void
+    
+    func didBoot(_ application: Application) throws {
+        try didBootHandler(application)
+    }
+    
+    func shutdown(_ application: Application) throws {
+        try shutdownHandler(application)
+    }
+}
+
+
 extension LifecycleHandler {
     /// server did boot
     public func didBoot(_ application: Application) throws { }
@@ -76,6 +90,7 @@ public final class Application {
     private var signalSources: [DispatchSourceSignal] = []
 
     /// Keeps track of all application lifecycle handlers
+    /// // TODO what if a lifecycle handler is added when the application is already running? Should that still trigger the `didBoot` action?
     public struct Lifecycle {
         var handlers: [LifecycleHandler]
         init() {
@@ -85,6 +100,10 @@ public final class Application {
         /// add lifecycle handler
         public mutating func use(_ handler: LifecycleHandler) {
             self.handlers.append(handler)
+        }
+        
+        public mutating func use(didBoot didBootHandler: @escaping (Application) throws -> Void, shutdown shutdownHandler: @escaping (Application) throws -> Void) {
+            use(LKClosureBasedLifecycleHandler(didBootHandler: didBootHandler, shutdownHandler: shutdownHandler))
         }
     }
 

@@ -7,9 +7,12 @@
 //              
 
 import Apodini
-import Vapor
 import NIO
-import ApodiniVaporSupport
+//import ApodiniVaporSupport
+import ApodiniUtils
+import ApodiniNetworking
+import Foundation
+
 
 /// Public Apodini Interface Exporter for REST
 public final class REST: Configuration {
@@ -70,15 +73,18 @@ extension REST {
 final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
-    let app: Vapor.Application
+    //let app: Vapor.Application
+    let app: Apodini.Application
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
-        self.app = app.vapor.app
-        self.configuration = REST.Configuration(app.vapor.app.http.server.configuration)
+         _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()
+    ) {
+        self.app = app
+        //self.app = app.vapor.app
+        self.configuration = REST.Configuration(app.http)
         self.exporterConfiguration = exporterConfiguration
     }
     
@@ -90,25 +96,33 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         let absolutePath = endpoint.absoluteRESTPath
         absolutePath.build(with: &pathBuilder)
 
-        let routesBuilder = pathBuilder.routesBuilder(app)
+        //let routesBuilder = pathBuilder.routesBuilder(app)
         
         let operation = endpoint[Operation.self]
 
-        let endpointHandler = RESTEndpointHandler(with: configuration,
-                                                  withExporterConfiguration: exporterConfiguration,
-                                                  for: endpoint,
-                                                  relationshipEndpoint,
-                                                  on: self)
-        endpointHandler.register(at: routesBuilder, using: operation)
+        let endpointHandler = RESTEndpointHandler(
+            with: configuration,
+            exporterConfiguration: exporterConfiguration,
+            for: endpoint,
+            relationshipEndpoint,
+            on: self
+        )
+        app.lkHttpServer.registerRoute(
+            HTTPMethod(operation),
+            pathBuilder.pathComponents,
+            responder: endpointHandler
+        )
 
-        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
+        app.logger.info("Exported '\(HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
 
         if relationshipEndpoint.inheritsRelationship {
             for selfRelationship in relationshipEndpoint.selfRelationships() where selfRelationship.destinationPath != absolutePath {
-                app.logger.info("""
-                                  - inherits from: \(Vapor.HTTPMethod(selfRelationship.operation).rawValue) \
-                                \(selfRelationship.destinationPath.asPathString())
-                                """)
+                app.logger.info(
+                    """
+                      - inherits from: \(HTTPMethod(selfRelationship.operation).rawValue) \
+                    \(selfRelationship.destinationPath.asPathString())
+                    """
+                )
             }
         }
         
@@ -133,9 +147,11 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 
             let relationships = relationshipModel.rootRelationships(for: .read)
 
-            let handler = RESTDefaultRootHandler(configuration: configuration,
-                                                 exporterConfiguration: exporterConfiguration,
-                                                 relationships: relationships)
+            let handler = RESTDefaultRootHandler(
+                configuration: configuration,
+                exporterConfiguration: exporterConfiguration,
+                relationships: relationships
+            )
             handler.register(on: app)
             
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
@@ -146,7 +162,8 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         }
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
+        //self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
+        app.lkHttpServer.isCaseInsensitiveRoutingEnabled = exporterConfiguration.caseInsensitiveRouting
     }
 }
 

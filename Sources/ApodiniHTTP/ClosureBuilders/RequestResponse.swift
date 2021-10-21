@@ -9,24 +9,20 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
+
 
 extension Exporter {
-    // MARK: Request Response Closure
-    
+    // TODO there's a lot of redundancy here!!!
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        using defaultValues: DefaultValueStore
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporResponseTransformer<H>(configuration.encoder)
-            
+        let transformer = LKHTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
+        return { (request: LKHTTPRequest) in
             let delegate = factory.instance()
-            
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
@@ -36,20 +32,15 @@ extension Exporter {
         }
     }
     
-    // MARK: Blob Request Response Closure
-    
-    func buildBlobRequestResponseClosure<H: Handler>(
+    func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
+        using defaultValues: DefaultValueStore
+    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> where H.Response.Content == Blob {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporBlobResponseTransformer()
-            
+        let transformer = LKHTTPBlobResponseTransformer()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
+        return { (request: LKHTTPRequest) in
             let delegate = factory.instance()
-            
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)

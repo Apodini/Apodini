@@ -7,17 +7,16 @@
 //              
 
 import XCTest
-import XCTVapor
 import XCTApodini
+import XCTApodiniNetworking
 import protocol FluentKit.Database
 @testable import Apodini
 @testable import ApodiniREST
-@testable import ApodiniVaporSupport
+
 
 final class GuardTests: ApodiniTests {
     private static var guardExpectation: XCTestExpectation?
-    
-    
+        
     func testGuard() throws {
         struct TestGuard: Guard {
             func check() {
@@ -48,14 +47,14 @@ final class GuardTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.vapor.app.test(.GET, "/v2/") { res in
+        try app.testable().test(.GET, "/v2/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
             waitForExpectations(timeout: 0, handler: nil)
         }
@@ -83,14 +82,14 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
         }
     }
@@ -133,14 +132,14 @@ final class GuardTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
             XCTAssertEqual(TestSyncGuard.collectedOrder, [2, 3, 4])
             waitForExpectations(timeout: 0, handler: nil)
@@ -161,14 +160,14 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
         }
     }
@@ -194,14 +193,14 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
         }
     }
@@ -232,14 +231,14 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == "Hello")
             waitForExpectations(timeout: 0, handler: nil)
         }

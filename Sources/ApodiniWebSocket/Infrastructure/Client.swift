@@ -10,15 +10,13 @@ import Foundation
 @_implementationOnly import Vapor
 @_implementationOnly import Logging
 
+
 /// A stateless client-implementation to `VaporWSRouter`. It cannot react to responses
 /// from the server but only collect them for the caller.
 struct StatelessClient {
     private let address: String
-    
     private let logger: Logger
-    
     private let eventLoop: EventLoop
-    
     private let ignoreErrors: Bool
     
     /// Create a `StatelessClient` that will connect to the given `address` once used. All operations
@@ -106,7 +104,7 @@ struct StatelessClient {
     private func sendOpen(context: UUID, on endpoint: String, to websocket: Vapor.WebSocket, promise: EventLoopPromise<Void>) {
         do {
             // create context on user endpoint
-            let message = try encode(OpenContextMessage(context: context, endpoint: endpoint))
+            let message = try OpenContextMessage(context: context, endpoint: endpoint).JSONEncodeToString()
             self.logger.debug(">>> \(message)")
             websocket.send(message, promise: promise)
         } catch {
@@ -117,7 +115,7 @@ struct StatelessClient {
     private func send<I: Encodable, O>(messages: [I], on context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
         for input in messages {
             do {
-                let message = try encode(ClientMessage(context: context, parameters: input))
+                let message = try ClientMessage(context: context, parameters: input).JSONEncodeToString()
                 self.logger.debug(">>> \(message)")
                 // create context on user endpoint
                 websocket.send(message)
@@ -131,7 +129,7 @@ struct StatelessClient {
     
     private func sendClose<O>(context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
         do {
-            let message = try encode(CloseContextMessage(context: context))
+            let message = try CloseContextMessage(context: context).JSONEncodeToString()
             self.logger.debug(">>> \(message)")
             // announce end of client-messages
             websocket.send(message)
@@ -152,7 +150,7 @@ struct StatelessClient {
         self.logger.debug("<<< \(string)")
         
         guard let data = string.data(using: .utf8) else {
-            promise.fail(ConversionError.couldNotDecodeUsingUTF8)
+            promise.fail(ConversionError.couldNotDecodeFromUTF8)
             // close connection
             _ = websocket.close()
             return
@@ -186,22 +184,39 @@ struct StatelessClient {
     }
 }
 
+
 private enum ServerError: Error {
     case message(String)
     case noMessage
 }
 
+
 private enum ConversionError: String, Error {
-    case couldNotEncodeUsingUTF8
-    case couldNotDecodeUsingUTF8
+    case couldNotEncodeToUTF8
+    case couldNotDecodeFromUTF8
 }
 
-private func encode<M: Encodable>(_ message: M) throws -> String {
-    let data = try JSONEncoder().encode(message)
-    
-    guard let stringMessage = String(data: data, encoding: String.Encoding.utf8) else {
-        throw ConversionError.couldNotEncodeUsingUTF8
+
+extension Encodable {
+    // TODO move this to ApodiniUtils!!! (this is not WebSockets-specific and therefore shouldn't be limited to just this IE...)
+    func JSONEncodeToString() throws -> String {
+        let data = try JSONEncoder().encode(self)
+        if let string = String(data: data, encoding: .utf8) {
+            return string
+        } else {
+            throw ConversionError.couldNotEncodeToUTF8
+        }
     }
-    
-    return stringMessage
 }
+
+
+//extension Decodable
+
+//private func encode<M: Encodable>(_ message: M) throws -> String {
+//    let data = try JSONEncoder().encode(message)
+//
+//    guard let stringMessage = String(data: data, encoding: String.Encoding.utf8) else {
+//        throw ConversionError.couldNotEncodeUsingUTF8
+//    }
+//    return stringMessage
+//}

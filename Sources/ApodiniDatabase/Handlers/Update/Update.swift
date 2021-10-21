@@ -8,7 +8,6 @@
 
 import Foundation
 import FluentKit
-@_implementationOnly import Vapor
 import Apodini
 
 /// A Handler that updates a `DatabaseModel` with the given id with the new object or single parameters of the request.

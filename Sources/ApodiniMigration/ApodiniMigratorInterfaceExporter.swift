@@ -10,7 +10,8 @@ import Foundation
 import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
-@_implementationOnly import ApodiniVaporSupport
+import ApodiniNetworking
+
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
 public struct MigratorDocumentStorageKey: Apodini.StorageKey {
@@ -95,10 +96,10 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             response = try TypeInformation(type: responseType)
         } catch {
             logger.error(
-                    """
-                    Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
-                    Using \(Data.self) for the response type.
-                    """
+                """
+                Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
+                Using \(Data.self) for the response type.
+                """
             )
             response = .scalar(.data)
         }
@@ -137,22 +138,24 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     private func setServerPath() {
-        var hostName: String?
-        var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
-            hostName = configuredHost
-            port = configuredPort
-        } else {
-            let configuration = app.vapor.app.http.server.configuration
-            hostName = configuration.hostname
-            port = configuration.port
-        }
-
-        if let hostName = hostName, let port = port {
-            let serverPath = "http\(app.http.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
-            self.serverPath = serverPath
-            document.setServerPath(serverPath)
-        }
+//        var hostName: String?
+//        var port: Int?
+//        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
+//            hostName = configuredHost
+//            port = configuredPort
+//        } else {
+//            let configuration = app.vapor.app.http.server.configuration
+//            hostName = configuration.hostname
+//            port = configuration.port
+//        }
+//
+//        if let hostName = hostName, let port = port {
+//            let serverPath = "http\(app.http.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
+//            self.serverPath = serverPath
+//            document.setServerPath(serverPath)
+//        }
+        self.serverPath = app.http.addressStringValue
+        document.setServerPath(serverPath)
     }
 
     private func handleDocument() {
@@ -190,7 +193,10 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         let itemName = I.itemName
         if var endpoint = exportOptions.endpoint {
             endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
-            app.vapor.app.get(endpoint.pathComponents) { _ -> String in
+            //app.vapor.app.get(endpoint.pathComponents) { _ -> String in
+            //    format.string(of: migratorItem)
+            //}
+            app.lkHttpServer.registerRoute(.GET, endpoint.lkHTTPPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")

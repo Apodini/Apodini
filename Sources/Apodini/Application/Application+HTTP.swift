@@ -25,8 +25,13 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 
 /// BindAddress
 public enum BindAddress: Equatable {
-    case hostname(_ hostname: String?, port: Int?)
+    case hostname(_ hostname: String, port: Int)
     case unixDomainSocket(path: String)
+    
+    // TODO make the types in the case above non-optional and add this as a fallback!
+//    public func hostname(_ hostname: String?, port: Int?) -> BindAddress {
+//        return .hostname(hostname ?? HTTPConfiguration.Defaults.hostname, port: port ?? HTTPConfiguration.Defaults.port)
+//    }
 }
 
 
@@ -41,14 +46,14 @@ extension Application {
         final class Storage {
             var supportVersions: Set<HTTPVersionMajor>
             var tlsConfiguration: TLSConfiguration?
-            var address: BindAddress?
+            var address: BindAddress // TODO make this non-nil!
 
 
             // swiftlint:disable discouraged_optional_collection
             init(
                 supportVersions: Set<HTTPVersionMajor>? = nil,
                 tlsConfiguration: TLSConfiguration? = nil,
-                address: BindAddress? = nil
+                address: BindAddress = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
             ) {
                 if let supportVersions = supportVersions {
                     self.supportVersions = supportVersions
@@ -88,7 +93,7 @@ extension Application {
         }
 
         /// HTTP Server address
-        public var address: BindAddress? {
+        public var address: BindAddress {
             get { storage.address }
             set { storage.address = newValue }
         }
@@ -99,6 +104,16 @@ extension Application {
 
         func initialize() {
             self.application.storage[Key.self] = .init()
+        }
+        
+        public var addressStringValue: String {
+            let httpProtocol = "http\(tlsConfiguration != nil ? "s" : "")"
+            switch address {
+            case .hostname(let hostname, let port):
+                return "\(httpProtocol)://\(hostname):\(port)"
+            case .unixDomainSocket(let path):
+                return "\(httpProtocol)+unix:\(path.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? path)" // TODO is the percent encoding here a good idea?
+            }
         }
     }
 }

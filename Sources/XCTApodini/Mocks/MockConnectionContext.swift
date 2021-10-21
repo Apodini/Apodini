@@ -11,8 +11,7 @@
 @testable import ApodiniExtension
 import struct Foundation.UUID
 @testable import ApodiniREST
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
 
 // MARK: Mock ConnectionContext
 
@@ -22,15 +21,10 @@ import Vapor
 /// takes care of observing the `Delegate`.
 public class ConnectionContext<Input, H: Handler> {
     let delegate: Delegate<H>
-    
     let strategy: AnyDecodingStrategy<Input>
-    
     let defaults: DefaultValueStore
-    
     var listeners: [ObservedListener] = []
-    
     var observation: Observation?
-    
     var latestRequest: MutabilityValidatingRequest<DefaultValueStore.DefaultInsertingRequest>?
     
     internal init(delegate: Delegate<H>, strategy: AnyDecodingStrategy<Input>, defaults: DefaultValueStore) {
@@ -49,21 +43,19 @@ public class ConnectionContext<Input, H: Handler> {
     public func handleAndReturnParameters(
         request: Input,
         eventLoop: EventLoop,
-        final: Bool = true) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
+        final: Bool = true
+    ) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
         if self.observation == nil {
             self.observation = delegate.register { event in
                 self.listeners.forEach { listener in listener.onObservedDidChange(self.delegate, event) }
             }
         }
-        
         let request = strategy
-                        .decodeRequest(from: request, with: (request as? RequestBasis) ?? DefaultRequestBasis(base: request), with: eventLoop)
-                        .insertDefaults(with: defaults)
+            .decodeRequest(from: request, with: (request as? RequestBasis) ?? DefaultRequestBasis(base: request), with: eventLoop)
+            .insertDefaults(with: defaults)
         
         self.latestRequest = latestRequest?.reduce(with: request) ?? MutabilityValidatingRequest(request)
-        
         let cachingRequest = latestRequest!.cache()
-        
         return cachingRequest.evaluate(on: delegate, final ? .end : .open).map { response in (response, cachingRequest.peak(_:)) }
     }
     
@@ -99,7 +91,7 @@ public protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
-extension Vapor.Request: WithEventLoop { }
+extension LKHTTPRequest: WithEventLoop { }
 
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
@@ -128,7 +120,7 @@ public protocol EndpointDecodingStrategyProvider {
 }
 
 extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
-    public var strategy: AnyEndpointDecodingStrategy<Vapor.Request> {
+    public var strategy: AnyEndpointDecodingStrategy<LKHTTPRequest> {
         ParameterTypeSpecific(
                             lightweight: LightweightStrategy(),
                             path: PathStrategy(useNameAsIdentifier: false),

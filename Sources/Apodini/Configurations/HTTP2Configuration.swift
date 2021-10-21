@@ -40,12 +40,12 @@ public final class HTTP2Configuration: Configuration {
             if let certURL = certURL, let keyURL = keyURL {
                 let certificates = try NIOSSLCertificate.fromPEMFile(certURL.path)
                 let privateKey = try NIOSSLPrivateKey(file: keyURL.path, format: .pem)
-                
                 app.http.supportVersions = [.one, .two]
-                app.http.tlsConfiguration = .forServer(
+                app.http.tlsConfiguration = .makeServerConfiguration(
                     certificateChain: certificates.map { .certificate($0) },
                     privateKey: .privateKey(privateKey)
                 )
+                app.http.tlsConfiguration!.applicationProtocols.append("h2")
                 
                 app.logger.info("Using HTTP/2 and TLS.")
             } else {

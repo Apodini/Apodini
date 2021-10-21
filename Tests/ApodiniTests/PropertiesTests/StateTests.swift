@@ -7,7 +7,6 @@
 //              
 
 @testable import Apodini
-import Vapor
 import XCTApodini
 
 class StateTests: ApodiniTests {

@@ -10,16 +10,14 @@
 @testable import ApodiniREST
 import ApodiniLoggingSupport
 import XCTApodini
-import Vapor
+@testable import ApodiniNetworking
+
 
 final class InformationRequestTests: XCTApodiniTest {
     func testInformationRequestWithRESTExporter() throws {
         struct InformationHandler: Handler {
             let testExpectations: (InformationSet) throws -> Void
-            
-            
             @Apodini.Environment(\.connection) var connection: Connection
-            
             
             func handle() -> Int {
                 do {
@@ -39,20 +37,23 @@ final class InformationRequestTests: XCTApodiniTest {
             let exporter = RESTInterfaceExporter(app)
             let context = endpoint.createConnectionContext(for: exporter)
             
-            
-            let firstRequest = Vapor.Request(
-                application: app.vapor.app,
+            let firstRequest = LKHTTPRequest(
+                remoteAddress: nil,
+                version: .http1_1,
                 method: .GET,
-                url: URI("https://ase.in.tum.de/schmiedmayer"),
+                url: "https://ase.in.tum.de/schmiedmayer",
                 headers: HTTPHeaders(header),
-                on: app.eventLoopGroup.next()
+                eventLoop: app.eventLoopGroup.next()
             )
             
             let countLoggingMetadataInformation = firstRequest
                 .information
                 .reduce(into: 0) { partialResult, info in
-                    if (info as? LoggingMetadataInformation) != nil {
+                    switch info {
+                    case is LoggingMetadataInformation, is LKHTTPRequest.ApodiniRequestInformationEntryHTTPVersion:
                         partialResult += 1
+                    default:
+                        break
                     }
                 }
             

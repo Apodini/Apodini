@@ -40,11 +40,8 @@ public struct Delegate<D> {
     }
     
     var delegateModel: D
-    
     let optionality: Optionality
-    
     var storage: Box<Storage>?
-    
     var initialStorage = Box(InitialStorage())
     
     /// Create a `Delegate` from the given struct `delegate`.

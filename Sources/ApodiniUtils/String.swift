@@ -50,4 +50,39 @@ extension String {
             .replacingOccurrences(of: "'", with: #"\'"#)
             .replacingOccurrences(of: "\"", with: #"\""#)
     }
+    
+    
+    /// Returns a copy of the string with the first character capitalised.
+    /// - Note: If you need the first character of every word capitalised, use `-[String capitalized]` instead
+    public var capitalisingFirstCharacter: String {
+        guard let first = self.first else {
+            return self
+        }
+        return "\(first.uppercased())\(self.dropFirst())"
+    }
+}
+
+
+extension StringProtocol {
+    public func trimmingLeadingAndTrailingWhitespace() -> SubSequence {
+        return self.trimmingLeadingWhitespace().trimmingTrailingWhitespace()
+    }
+    
+    public func trimmingLeadingWhitespace() -> SubSequence {
+        if let first = self.first, first.isWhitespace {
+            //return self[self.index(after: startIndex)...].lk_trimmingLeadingWhitespace()
+            return dropFirst().trimmingLeadingWhitespace()
+        } else {
+            return self[...]
+        }
+    }
+    
+    public func trimmingTrailingWhitespace() -> SubSequence {
+        if let last = self.last, last.isWhitespace {
+            //return self[self.index(after: startIndex)...].lk_trimmingLeadingWhitespace()
+            return dropLast().trimmingTrailingWhitespace()
+        } else {
+            return self[...]
+        }
+    }
 }

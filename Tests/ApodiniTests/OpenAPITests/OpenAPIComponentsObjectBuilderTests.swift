@@ -9,10 +9,10 @@
 import XCTest
 import OpenAPIKit
 @testable import Apodini
-@testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
 import ApodiniTypeInformation
 import ApodiniREST
+
 
 enum Test: String, Codable, CaseIterable {
     case unit
