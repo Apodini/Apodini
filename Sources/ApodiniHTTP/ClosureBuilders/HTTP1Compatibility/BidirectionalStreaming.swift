@@ -17,11 +17,11 @@ extension Exporter {
     func buildBidirectionalStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         let abortAnyError = AbortTransformer<H>()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: LKHTTPRequest) in
+        return { (request: HTTPRequest) in
             guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyStorage.getFullBodyData() ?? .init()).count else {
                 throw ApodiniError(
                     type: .badInput,
@@ -45,7 +45,7 @@ extension Exporter {
                     return response.connectionEffect == .close
                 })
                 .collect()
-                .map { (responses: [Apodini.Response<H.Response.Content>]) -> LKHTTPResponse in
+                .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
                     let status: Status? = responses.last?.status
                     let information: InformationSet = responses.last?.information ?? []
                     let content: [H.Response.Content] = responses.compactMap { response in
@@ -56,7 +56,7 @@ extension Exporter {
                     //return Vapor.Response(status: HTTPStatus(status ?? .ok),
                     //                      headers: HTTPHeaders(information),
                     //                      body: Vapor.Response.Body(data: body))
-                    return LKHTTPResponse(
+                    return HTTPResponse(
                         version: request.version, // TODO: since this seems to be evaluated in an async context, can we capture the request just like that?
                         status: HTTPResponseStatus(status ?? .ok),
                         headers: HTTPHeaders(information),
@@ -67,7 +67,7 @@ extension Exporter {
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
                     precondition(optionalResponse != nil)
-                    return optionalResponse ?? LKHTTPResponse(version: request.version, status: .ok, headers: [:]) // TODO what should this default request look like? old imoplementation somply returned an empty Vapor.Rwequest()
+                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:]) // TODO what should this default request look like? old imoplementation somply returned an empty Vapor.Rwequest()
                 }
         }
     }

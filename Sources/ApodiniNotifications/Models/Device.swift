@@ -116,7 +116,6 @@ extension FieldKey {
 
 public enum DeviceType: String, Codable, CaseIterable {
     static var name: FieldKey { .type }
-    
     case apns
 }
 

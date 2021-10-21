@@ -70,7 +70,6 @@ extension StringProtocol {
     
     public func trimmingLeadingWhitespace() -> SubSequence {
         if let first = self.first, first.isWhitespace {
-            //return self[self.index(after: startIndex)...].lk_trimmingLeadingWhitespace()
             return dropFirst().trimmingLeadingWhitespace()
         } else {
             return self[...]
@@ -79,7 +78,6 @@ extension StringProtocol {
     
     public func trimmingTrailingWhitespace() -> SubSequence {
         if let last = self.last, last.isWhitespace {
-            //return self[self.index(after: startIndex)...].lk_trimmingLeadingWhitespace()
             return dropLast().trimmingTrailingWhitespace()
         } else {
             return self[...]

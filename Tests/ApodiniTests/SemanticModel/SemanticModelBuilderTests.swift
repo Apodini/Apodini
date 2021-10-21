@@ -174,7 +174,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 //                                    method: .GET,
 //                                    url: "",
 //                                    on: app.eventLoopGroup.next())
-        let request = LKHTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
         
         try XCTCheckResponse(
             context.handle(request: request),
@@ -192,7 +192,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 //                                    method: .GET,
 //                                    url: "",
 //                                    on: app.eventLoopGroup.next())
-        let request = LKHTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
 
         try XCTCheckResponse(
             context.handle(request: request, final: false),
@@ -212,7 +212,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
 //                                    method: .GET,
 //                                    url: "",
 //                                    on: app.eventLoopGroup.next())
-        let request = LKHTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
 
         try XCTCheckResponse(
             context.handle(request: request),

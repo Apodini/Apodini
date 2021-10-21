@@ -38,7 +38,7 @@ extension Exporter {
     func buildServiceSideStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let encoder = endpoint[Context.self].get(valueFor: ResponseEncoderHandlerMetadata.Key.self) ?? configuration.encoder
         return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { response -> Data? in
             guard let response = response else { return nil }
@@ -50,7 +50,7 @@ extension Exporter {
     func buildServiceSideStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> where H.Response.Content == Blob {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
         return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { (response: Blob?) -> Data? in
             precondition(response?.byteBuffer.readerIndex == 0)
             return response?.byteBuffer.getAllData()
@@ -62,14 +62,14 @@ extension Exporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore,
         encodeResponse: @escaping (H.Response.Content?) throws -> Data?
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
         let abortAnyError = AbortTransformer<H>()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
-        return { (request: LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> in
+        return { (request: HTTPRequest) throws -> EventLoopFuture<HTTPResponse> in
             let delegate = factory.instance()
-            let httpResponseStream = LKDataStream()
+            let httpResponseStream = BodyStorage.Stream()
             httpResponseStream.debugName = "HTTPServerResponse"
             return [request]
                 .asAsyncSequence
@@ -98,8 +98,8 @@ extension Exporter {
                         }
                     }
                 )
-                .map { firstResponse -> LKHTTPResponse in
-                    return LKHTTPResponse(
+                .map { firstResponse -> HTTPResponse in
+                    return HTTPResponse(
                         version: request.version,
                         status: HTTPResponseStatus(firstResponse?.status ?? .ok), // TODO is this a reasonable default?,
                         headers: HTTPHeaders(firstResponse?.information ?? []),

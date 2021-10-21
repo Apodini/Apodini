@@ -4,7 +4,7 @@ import Logging
 import Foundation
 
 
-public enum LKHTTPPathComponent: Equatable, ExpressibleByStringLiteral {
+public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
     case verbatim(String)
     case namedParameter(String)
     case wildcardSingle
@@ -28,24 +28,24 @@ public enum LKHTTPPathComponent: Equatable, ExpressibleByStringLiteral {
 }
 
 
-extension Array: ExpressibleByStringLiteral, ExpressibleByExtendedGraphemeClusterLiteral, ExpressibleByUnicodeScalarLiteral where Element == LKHTTPPathComponent {
+extension Array: ExpressibleByStringLiteral, ExpressibleByExtendedGraphemeClusterLiteral, ExpressibleByUnicodeScalarLiteral where Element == HTTPPathComponent {
     public typealias StringLiteralType = String
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType.ExtendedGraphemeClusterLiteralType
     public typealias UnicodeScalarLiteralType = StringLiteralType.UnicodeScalarLiteralType
     
     public init(stringLiteral value: String) {
-        self = value.lkHTTPPathComponents
+        self = value.httpPathComponents
     }
 }
 
 
-extension Array where Element == LKHTTPPathComponent {
+extension Array where Element == HTTPPathComponent {
     public init(_ string: String) {
-        self = string.lkHTTPPathComponents
+        self = string.httpPathComponents
     }
     
     
-    public var lk_pathString: String {
+    public var httpPathString: String {
         return self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
@@ -87,7 +87,7 @@ extension Array where Element == LKHTTPPathComponent {
 
 
 extension String {
-    public var lkHTTPPathComponents: [LKHTTPPathComponent] {
+    public var httpPathComponents: [HTTPPathComponent] {
         return self.split(separator: "/").map { .init(string: $0) }
     }
 }
@@ -102,12 +102,11 @@ extension HTTPMethod: Hashable {
 
 
 
-// TODO pass the server's logger to this?
-final class LKHTTPRouter {
+final class HTTPRouter {
     struct Route { // Note that routes are explicitly immutable
         let method: HTTPMethod
-        let path: [LKHTTPPathComponent]
-        let responder: LKHTTPRouteResponder
+        let path: [HTTPPathComponent]
+        let responder: HTTPResponder
     }
     
     private(set) var routes: [HTTPMethod: [Route]] = [:]
@@ -136,12 +135,12 @@ final class LKHTTPRouter {
             fatalError()
         }
         routes[route.method]!.append(route)
-        logger.notice("[Router] added \(route.method.rawValue) route at '\(route.path.lk_pathString)'")
+        logger.notice("[Router] added \(route.method.rawValue) route at '\(route.path.httpPathString)'")
     }
     
     
     
-    func getRoute(for request: LKHTTPRequest) -> Route? {
+    func getRoute(for request: HTTPRequest) -> Route? {
         if let route = getRoute(for: request, overridingMethod: nil) {
             return route
         } else if request.method == .HEAD {
@@ -153,20 +152,20 @@ final class LKHTTPRouter {
     }
     
     
-    private func getRoute(for request: LKHTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
+    private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
         guard let candidates = routes[request.method] else {
             logger.error("[Router] Unable to find a route for \(request.method) request to '\(request.url)'")
             return nil
         }
         
         for route in candidates {
-            if let parameters = LKHTTPPathMatcher.match(
+            if let parameters = HTTPPathMatcher.match(
                 url: request.url,
                 against: route.path,
                 allowsCaseInsensitiveMatching: isCaseInsensitiveRoutingEnabled,
                 allowsEmptyMultiWildcards: false // TODO expose this via a property on the router??
             ) {
-                logger.info("[Router] matched '\(request.url)' to route at '\(route.path.lk_pathString)'")
+                logger.info("[Router] matched '\(request.url)' to route at '\(route.path.httpPathString)'")
                 request.populate(from: route, withParameters: parameters)
                 return route
             }

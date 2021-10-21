@@ -63,16 +63,16 @@ extension AnyHTTPHeaderName {
 
 
 
-struct GRPCv2HTTPResponder<H: Handler>: LKHTTPRouteResponder {
+struct GRPCv2HTTPResponder<H: Handler>: HTTPResponder {
     let endpoint: Endpoint<H>
     
-    func respond(to request: LKHTTPRequest) -> LKHTTPResponseConvertible {
+    func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
         // TODO enforce http2?? is that actually something we notice here? or does NIO abstract all of that away?
         guard
             let contentType = request.headers[.contentType],
             contentType.equalsIgnoringSuffix(.gRPC)
         else {
-            return LKHTTPResponse(version: request.version, status: .unsupportedMediaType, headers: [:])
+            return HTTPResponse(version: request.version, status: .unsupportedMediaType, headers: [:])
         }
         
         let messageEncoding: GRPCv2MessageEncoding
@@ -80,7 +80,7 @@ struct GRPCv2HTTPResponder<H: Handler>: LKHTTPRouteResponder {
             if let encoding = GRPCv2MessageEncoding(rawValue: suffix) {
                 messageEncoding = encoding
             } else {
-                return LKHTTPResponse(version: request.version, status: .unsupportedMediaType, headers: [:])
+                return HTTPResponse(version: request.version, status: .unsupportedMediaType, headers: [:])
             }
         } else {
             // If the content type header does not specify an encoding via the suffix, we assume protobuffers as the default
@@ -105,10 +105,10 @@ class GRPCv2Message {
 
 
 
-extension GRPCv2Message: LKHTTPResponseConvertible {
-    func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
+extension GRPCv2Message: HTTPResponseConvertible {
+    func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
         return request.eventLoop.makeFailedFuture(GRPCv2Error(message: "Not Yet Implemented"))
-//        let response = LKHTTPResponse(
+//        let response = HTTPResponse(
 //            version: request.version,
 //            status: .ok,
 //            headers: .init([

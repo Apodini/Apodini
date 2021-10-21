@@ -2,13 +2,13 @@ import Apodini
 
 
 private struct HTTPServerStorageKey: StorageKey {
-    typealias Value = LKNIOBasedHTTPServer
+    typealias Value = HTTPServer
 }
 
 
 extension Application {
     struct HTTPServerLifecycleHandler: Apodini.LifecycleHandler {
-        let httpServer: LKNIOBasedHTTPServer
+        let httpServer: HTTPServer
         
         func didBoot(_ application: Application) throws {
             try httpServer.start()
@@ -19,11 +19,11 @@ extension Application {
         }
     }
     
-    public var lkHttpServer: LKNIOBasedHTTPServer {
+    public var httpServer: HTTPServer {
         if let server = self.storage[HTTPServerStorageKey.self] {
             return server
         } else {
-            let server = LKNIOBasedHTTPServer(
+            let server = HTTPServer(
                 app: self // TODO does this introduce a retain cycle?
             )
             self.lifecycle.use(HTTPServerLifecycleHandler(httpServer: server))

@@ -63,7 +63,7 @@ final class OperationModifierTests: ApodiniTests {
             let data: String
         }
 
-        func expect(_ data: String, in response: LKHTTPResponse) throws {
+        func expect(_ data: String, in response: HTTPResponse) throws {
             XCTAssertEqual(response.status, .ok)
             let content = try response.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == data)

@@ -19,9 +19,9 @@ struct RESTDefaultRootHandler {
     // Registers a GET handler on root path
     func register(on app: Apodini.Application) {
         //app.get(use: self.handleRequest)
-        //app.lkHttpServer.registerRoute(.GET, [], handler: self.handleRequest)
-        //app.lkHttpServer.registerRoute(.GET, route: [], handler: self.handleRequest)
-        app.lkHttpServer.registerRoute(.GET, []) { request in
+        //app.httpServer.registerRoute(.GET, [], handler: self.handleRequest)
+        //app.httpServer.registerRoute(.GET, route: [], handler: self.handleRequest)
+        app.httpServer.registerRoute(.GET, []) { request in
             ResponseContainer(
                 Empty.self,
                 links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration)),
@@ -30,7 +30,7 @@ struct RESTDefaultRootHandler {
         }
     }
 
-//    func handleRequest(_: LKHTTPRequest) -> ResponseContainer {
+//    func handleRequest(_: HTTPRequest) -> ResponseContainer {
 //        ResponseContainer(
 //            Empty.self,
 //            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration)),
@@ -39,11 +39,11 @@ struct RESTDefaultRootHandler {
 //    }
     
 //    // TODO this used to be implenenbted in a way that it'd
-//    func handleRequest(request: LKHTTPRequest) -> ResponseContainer {
+//    func handleRequest(request: HTTPRequest) -> ResponseContainer {
 //        ResponseContainer(
 //            Empty.self,
 //            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration)),
 //            encoder: exporterConfiguration.encoder
-//        ).encodeResponse(for: <#T##LKHTTPRequest#>)
+//        ).encodeResponse(for: <#T##HTTPRequest#>)
 //    }
 }

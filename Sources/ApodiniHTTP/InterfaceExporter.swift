@@ -62,7 +62,7 @@ struct Exporter: InterfaceExporter {
         self.logger = app.logger
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
         //self.app.vapor.app.routes.caseInsensitive = configuration.caseInsensitiveRouting
-        app.lkHttpServer.isCaseInsensitiveRoutingEnabled = configuration.caseInsensitiveRouting // TODO what if we have both the REST and the HTTP IEs enabled, and their respective configurations specify different values for the routing case sensitivity???
+        app.httpServer.isCaseInsensitiveRoutingEnabled = configuration.caseInsensitiveRouting // TODO what if we have both the REST and the HTTP IEs enabled, and their respective configurations specify different values for the routing case sensitivity???
     }
     
     static let parameterNamespace: [ParameterNamespace] = .individual
@@ -73,28 +73,28 @@ struct Exporter: InterfaceExporter {
         switch knowledge.pattern {
         case .requestResponse:
             logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(knowledge.path)")
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
             logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .clientSideStream:
             logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .bidirectionalStream:
             logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
@@ -107,13 +107,13 @@ struct Exporter: InterfaceExporter {
         
         switch knowledge.pattern {
         case .requestResponse:
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
-            app.lkHttpServer.registerRoute(
+            app.httpServer.registerRoute(
                 knowledge.method,
                 knowledge.path,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
@@ -140,7 +140,7 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Decoding Strategies
     
-    func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<LKHTTPRequest> {
+    func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
             lightweight: LightweightStrategy(),
             path: PathStrategy(),
@@ -152,7 +152,7 @@ struct Exporter: InterfaceExporter {
         .typeErased
     }
     
-    func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(LKHTTPRequest, Int)> {
+    func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(HTTPRequest, Int)> {
         ParameterTypeSpecific(
             lightweight: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
             // TODO this used to be simply request.bodyData. What should it look like for stream-based requests????

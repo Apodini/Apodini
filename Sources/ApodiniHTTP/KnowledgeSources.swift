@@ -14,7 +14,7 @@ import ApodiniNetworking
 struct HTTPEndpointKnowledge: KnowledgeSource {
     let method: HTTPMethod
     let pattern: CommunicationalPattern
-    let path: [LKHTTPPathComponent]
+    let path: [HTTPPathComponent]
     let defaultValues: DefaultValueStore
     
     init<B>(_ blackboard: B) throws where B: Blackboard {

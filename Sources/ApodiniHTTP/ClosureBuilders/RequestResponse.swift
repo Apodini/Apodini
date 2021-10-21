@@ -17,11 +17,11 @@ extension Exporter {
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        let transformer = LKHTTPResponseTransformer<H>(configuration.encoder)
+        let transformer = HTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: LKHTTPRequest) in
+        return { (request: HTTPRequest) in
             let delegate = factory.instance()
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
@@ -35,11 +35,11 @@ extension Exporter {
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
-    ) -> (LKHTTPRequest) throws -> EventLoopFuture<LKHTTPResponse> where H.Response.Content == Blob {
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        let transformer = LKHTTPBlobResponseTransformer()
+        let transformer = HTTPBlobResponseTransformer()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: LKHTTPRequest) in
+        return { (request: HTTPRequest) in
             let delegate = factory.instance()
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)

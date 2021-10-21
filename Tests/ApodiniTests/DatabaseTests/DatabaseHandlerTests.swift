@@ -85,8 +85,8 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            url: uri,
 //            on: app.eventLoopGroup.next()
 //        )
-        let url = LKURL("http://example.de/test/id")
-        let request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
+        let url = URI("http://example.de/test/id")
+        let request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let idParameter = try pathParameter(for: handler)
         //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
@@ -127,8 +127,8 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            url: uri,
 //            on: app.eventLoopGroup.next()
 //        )
-        var url: LKURL = "http://example.de/test/bird?name=Mockingbird"
-        var request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
+        var url: URI = "http://example.de/test/bird?name=Mockingbird"
+        var request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let responseValue = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
         
@@ -144,7 +144,7 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            on: app.eventLoopGroup.next()
 //        )
         url = "http://example.de/test/bird?name=Mockingbird&age=21"
-        request = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
+        request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let value = try XCTUnwrap(try context.handle(request: request).wait().typed([Bird].self)?.content)
         
@@ -178,8 +178,8 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            collectedBody: bodyData,
 //            on: app.eventLoopGroup.next()
 //        )
-        //let url: LKURL = "http://example.de/test/id"
-        let request = LKHTTPRequest(
+        //let url: URI = "http://example.de/test/id"
+        let request = HTTPRequest(
             method: .PUT,
             url: "http://example.de/test/id",
             bodyStorage: .buffer(initialValue: try JSONEncoder().encode(parameters)),
@@ -232,8 +232,8 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            collectedBody: bodyData,
 //            on: app.eventLoopGroup.next()
 //        )
-        let url: LKURL = "http://example.de/test/id"
-        let request = LKHTTPRequest(method: .PUT, url: url, bodyStorage: .buffer(bodyData), eventLoop: app.eventLoopGroup.next())
+        let url: URI = "http://example.de/test/id"
+        let request = HTTPRequest(method: .PUT, url: url, bodyStorage: .buffer(bodyData), eventLoop: app.eventLoopGroup.next())
         guard let birdId = dbBird.id else {
             XCTFail("Object found in database has no id")
             return
@@ -278,8 +278,8 @@ final class DatabaseHandlerTests: ApodiniTests {
 //            url: uri,
 //            on: app.eventLoopGroup.next()
 //        )
-        let url: LKURL = "http://example.de/test/id"
-        let request = LKHTTPRequest(method: .PUT, url: url, eventLoop: app.eventLoopGroup.next())
+        let url: URI = "http://example.de/test/id"
+        let request = HTTPRequest(method: .PUT, url: url, eventLoop: app.eventLoopGroup.next())
         
         guard let birdId = dbBird.id else {
             XCTFail("Object saved in database has no id")

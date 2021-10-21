@@ -43,17 +43,15 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         app.http.supportVersions.insert(.two)
         app.http.tlsConfiguration?.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
         
-        app.lkHttpServer.registerRoute(.GET, "/lk/rocket") { request in
-            let response = LKHTTPResponse(
+        app.httpServer.registerRoute(.GET, "/lk/rocket") { request in
+            let response = HTTPResponse(
                 version: request.version,
                 status: .ok,
                 headers: .init {
                     $0[.contentType] = .init(string: "text/plain")!
                 },
-                //body: .init()
                 bodyStorage: .stream()
             )
-            //response.useStreamBody = true
             
             let idx = Box<Int>(5)
             func work() {
@@ -87,7 +85,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         let methodName = getMethodName(for: endpoint)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
-        app.lkHttpServer.registerRoute(
+        app.httpServer.registerRoute(
             .POST,
             [.verbatim(config.pathPrefix), .verbatim(config.serviceName), .verbatim(methodName)],
             responder: GRPCv2HTTPResponder(endpoint: endpoint)

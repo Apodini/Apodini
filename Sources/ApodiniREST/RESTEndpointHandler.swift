@@ -13,7 +13,7 @@ import ApodiniNetworking
 
 
 
-struct RESTEndpointHandler<H: Handler>: LKHTTPRouteResponder {
+struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
     let endpoint: Endpoint<H>
@@ -21,7 +21,7 @@ struct RESTEndpointHandler<H: Handler>: LKHTTPRouteResponder {
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     
-    private let strategy: AnyDecodingStrategy<LKHTTPRequest>
+    private let strategy: AnyDecodingStrategy<HTTPRequest>
     
     let defaultStore: DefaultValueStore
     
@@ -49,7 +49,7 @@ struct RESTEndpointHandler<H: Handler>: LKHTTPRouteResponder {
     }
     
 
-    func respond(to request: LKHTTPRequest) -> LKHTTPResponseConvertible {
+    func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
         let delegate = delegateFactory.instance()
         return strategy
             .decodeRequest(from: request, with: request.eventLoop)
@@ -66,7 +66,7 @@ struct RESTEndpointHandler<H: Handler>: LKHTTPRouteResponder {
                     )
                 }
             }
-            .flatMap { (response: Apodini.Response<EnrichedContent>) -> EventLoopFuture<LKHTTPResponse> in
+            .flatMap { (response: Apodini.Response<EnrichedContent>) -> EventLoopFuture<HTTPResponse> in
                 guard let enrichedContent = response.content else {
                     return ResponseContainer(Empty.self, status: response.status, information: response.information)
                         .encodeResponse(for: request)
@@ -80,7 +80,7 @@ struct RESTEndpointHandler<H: Handler>: LKHTTPRouteResponder {
                         information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
                     }
                     
-                    let httpResponse = LKHTTPResponse(
+                    let httpResponse = HTTPResponse(
                         version: request.version,
                         status: .ok, // TODO is this an acceptable default value???
                         headers: HTTPHeaders(information),

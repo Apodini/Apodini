@@ -14,11 +14,11 @@ import ApodiniNetworking
 
 // TODO transition this to ApodiniNetworking
 
-struct InternalInvocationResponder<H: Handler> {//: Vapor.Responder { // TODO make this a LKHTTPResponder in its own riught?
+struct InternalInvocationResponder<H: Handler> {//: Vapor.Responder { // TODO make this a HTTPResponder in its own riught?!!
     unowned let internalInterfaceExporter: ApodiniDeployInterfaceExporter
     let endpoint: Endpoint<H>
     
-    func respond(to httpRequest: LKHTTPRequest) -> LKHTTPResponseConvertible {
+    func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible {
         // Note: this function _must always_ return non-failed futures!!!
         // Otherwise the caller would not be able to differentiate between errors
         // caused by e.g. a bad connection, and errors caused by e.g. the invoked handler
@@ -29,7 +29,7 @@ struct InternalInvocationResponder<H: Handler> {//: Vapor.Responder { // TODO ma
             request = try httpRequest.bodyStorage.getFullBodyData(decodedAs: Request.self)
         } catch {
             //let vaporResponse = Vapor.Response(status: .internalServerError)
-            let httpResponse = LKHTTPResponse(version: httpRequest.version, status: .internalServerError, headers: [:])
+            let httpResponse = HTTPResponse(version: httpRequest.version, status: .internalServerError, headers: [:])
             do {
 //                try vaporResponse.content.encode(
 //                    Response(
@@ -58,8 +58,8 @@ struct InternalInvocationResponder<H: Handler> {//: Vapor.Responder { // TODO ma
             internalInterfaceExporter: internalInterfaceExporter,
             on: httpRequest.eventLoop
         )
-        .map { (handlerResponse: H.Response.Content) -> LKHTTPResponse in
-            let httpResponse = LKHTTPResponse(version: httpRequest.version, status: .ok, headers: [:])
+        .map { (handlerResponse: H.Response.Content) -> HTTPResponse in
+            let httpResponse = HTTPResponse(version: httpRequest.version, status: .ok, headers: [:])
             let encodedHandlerResponse: Data
             do {
                 do {
@@ -85,9 +85,9 @@ struct InternalInvocationResponder<H: Handler> {//: Vapor.Responder { // TODO ma
             }
             return httpResponse
         }
-        .flatMapErrorThrowing { (handlerError: Error) -> LKHTTPResponse in
+        .flatMapErrorThrowing { (handlerError: Error) -> HTTPResponse in
             // We end up here if the handler threw an error
-            let httpResponse = LKHTTPResponse(version: httpRequest.version, status: .ok, headers: [:])
+            let httpResponse = HTTPResponse(version: httpRequest.version, status: .ok, headers: [:])
             do {
                 //try httpResponse.encodeBody(Response(status: .handlerError, encodedData: try JSONEncoder().encode(handlerError.localizedDescription)))
                 try httpResponse.bodyStorage.write(encoding: Response(

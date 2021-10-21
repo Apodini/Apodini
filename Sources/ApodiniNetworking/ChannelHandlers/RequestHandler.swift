@@ -3,13 +3,13 @@ import NIOHTTP1
 import Foundation
 
 
-class LKHTTPServerRequestHandler: ChannelInboundHandler {
-    typealias InboundIn = LKHTTPRequest
-    typealias OutboundOut = LKHTTPResponse
+class HTTPServerRequestHandler: ChannelInboundHandler {
+    typealias InboundIn = HTTPRequest
+    typealias OutboundOut = HTTPResponse
     
-    private let responder: LKHTTPRouteResponder // TODO does this introduce a retain cycle?? (we're passing the server here, which holds a reference to the channel, to the pipeline of which this handler is added!!!!
+    private let responder: HTTPResponder // TODO does this introduce a retain cycle?? (we're passing the server here, which holds a reference to the channel, to the pipeline of which this handler is added!!!!
     
-    init(responder: LKHTTPRouteResponder) {
+    init(responder: HTTPResponder) {
         self.responder = responder
     }
     
@@ -20,7 +20,7 @@ class LKHTTPServerRequestHandler: ChannelInboundHandler {
             .respond(to: request)
             .makeHTTPResponse(for: request)
             .hop(to: context.eventLoop)
-            .whenComplete { (result: Result<LKHTTPResponse, Error>) in
+            .whenComplete { (result: Result<HTTPResponse, Error>) in
                 switch result {
                 case .failure(let error):
                     // NOTE: if we get an error here, that error is _NOT_ coming from the route's handler (since these error already got mapped into .internalServerError http responses previously in the chain...)
@@ -42,7 +42,7 @@ class LKHTTPServerRequestHandler: ChannelInboundHandler {
     }
     
     
-    private func handleResponse(_ response: LKHTTPResponse, context: ChannelHandlerContext) {
+    private func handleResponse(_ response: HTTPResponse, context: ChannelHandlerContext) {
         response.headers.setUnlessPresent(name: .date, value: Date()) // TODO do we really want to do this here?
         // TODO use thus to log errors/warning if responses are lacking certain headers (and then also move the header adjustments elsewhere!)
         context.write(self.wrapOutboundOut(response)).whenComplete { result in

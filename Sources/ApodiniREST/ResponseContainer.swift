@@ -59,8 +59,8 @@ public struct ResponseContainer: Encodable {
     }
     
     
-    public func encodeResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
-        let response = LKHTTPResponse(
+    public func encodeResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        let response = HTTPResponse(
             version: request.version,
             status: .ok,
             headers: HTTPHeaders(information)

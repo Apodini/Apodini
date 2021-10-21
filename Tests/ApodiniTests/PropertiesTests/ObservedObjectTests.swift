@@ -85,7 +85,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<LKHTTPRequest, TestHandler>
+            var context: ConnectionContext<HTTPRequest, TestHandler>
 
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -112,7 +112,7 @@ class ObservedObjectTests: ApodiniTests {
 //            collectedBody: nil,
 //            on: app.eventLoopGroup.next()
 //        )
-        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         
         // initialize the observable object
         let testObservable = TestObservable()
@@ -140,11 +140,11 @@ class ObservedObjectTests: ApodiniTests {
         
         class MandatoryTestListener: ObservedListener {
             var eventLoop: EventLoop
-            var context: ConnectionContext<LKHTTPRequest, TestHandler>
+            var context: ConnectionContext<HTTPRequest, TestHandler>
             var wasCalled = false
             let number: Int
             
-            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<LKHTTPRequest, TestHandler>) {
+            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<HTTPRequest, TestHandler>) {
                 self.eventLoop = eventLoop
                 self.context = context
                 self.number = number
@@ -173,7 +173,7 @@ class ObservedObjectTests: ApodiniTests {
 //            collectedBody: nil,
 //            on: app.eventLoopGroup.next()
 //        )
-        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         
         let testObservable = TestObservable()
         app.storage.set(\Keys.testObservable, to: testObservable)
@@ -208,7 +208,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<LKHTTPRequest, TestHandler>
+            var context: ConnectionContext<HTTPRequest, TestHandler>
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -239,7 +239,7 @@ class ObservedObjectTests: ApodiniTests {
 //            collectedBody: nil,
 //            on: app.eventLoopGroup.next()
 //        )
-        let request = LKHTTPRequest(
+        let request = HTTPRequest(
             method: .POST,
             url: "http://example.de/test/a?param0=value0",
             eventLoop: app.eventLoopGroup.next()
@@ -289,7 +289,7 @@ class ObservedObjectTests: ApodiniTests {
 //            collectedBody: nil,
 //            on: app.eventLoopGroup.next()
 //        )
-        let request = LKHTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .POST, url: "http://example.de/test/a?param0=value0", eventLoop: app.eventLoopGroup.next())
         _ = try context.handle(request: request).wait()
     }
     

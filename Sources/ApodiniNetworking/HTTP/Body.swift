@@ -44,117 +44,14 @@ extension NSLocking {
 
 
 
-public final class LKDataStream {
-    public typealias ObserverFn = (LKDataStream, Event) -> Void
-    
-    public enum Event {
-        /// New data was written to the stream, and the stream is still open
-        case write
-        /// The stream has been closed, and no new data has been written since the last time the observer was called
-        case close
-        /// New data has been written to the stream, and the stream is now closed
-        case writeAndClose
-    }
-    
-    static private(set) var streamAllocCount = 0
-    
-    public var debugName: String = "Stream"
-    
-    private let lock = NSRecursiveLock()
-    private var storage: ByteBuffer
-    private(set) public var isClosed = false
-    private var observer: ObserverFn?
-    
-    // Same as storage but there's no locking or thread safety for reading the data
-    public var unsafeStorage: ByteBuffer { storage }
-    
-    
-    public init(capacity: Int = 0) {
-        storage = ByteBufferAllocator().buffer(capacity: capacity)
-        Self.streamAllocCount += 1
-        print("streamAllocCount", Self.streamAllocCount)
-    }
-    
-    deinit {
-        // TODO we have a retain cycle somewhere here!
-        Self.streamAllocCount -= 1
-        print("streamAllocCount", Self.streamAllocCount)
-    }
-    
-    
-    /// Sets the stream's observer function.
-    /// The observer gets called when certain events occur on the stream, such as the stream being written to or closed
-    /// - Note: Pass nil to remove the current observer. The observer will automatically be removed when the stream is closed, since no further events will occur
-    /// - Note: Registering an observer on an already-closed stream will invoke the observer once (with the `.close` event), and then remove the observer from the stream
-    public func setObserver(_ fn: ObserverFn?) {
-        //lock.withLock { print("Setting new observer on \(Unmanaged.passUnretained(self).toOpaque())"); observer = fn }
-        lock.withLock {
-            if isClosed {
-                fn?(self, .close)
-                observer = nil
-            } else {
-                observer = fn
-            }
-        }
-    }
-    
-    
-    public var readableBytes: Int {
-        storage.readableBytes
-    }
-    
-    
-    public func write<T: __LKByteBufferWritable>(_ data: T) {
-        lock.withLock {
-            precondition(!isClosed, "Cannot write to closed stream")
-            data.write(to: &storage)
-            observer?(self, .write)
-        }
-    }
-    
-    public func writeAndClose<T: __LKByteBufferWritable>(_ data: T) {
-        lock.withLock {
-            precondition(!isClosed, "Cannot write to closed stream")
-            data.write(to: &storage)
-            isClosed = true
-            observer?(self, .writeAndClose)
-            setObserver(nil)
-        }
-    }
-    
-    /// Closes the stream, and informs the delegate that no further bytes will be written
-    public func close() {
-        lock.withLock {
-            precondition(!isClosed, "Cannot close stream more than once")
-            isClosed = true
-            observer?(self, .close)
-            setObserver(nil)
-        }
-    }
-    
-    public func readNewData() -> ByteBuffer? {
-        lock.withLock {
-            storage.readSlice(length: storage.readableBytes)
-        }
-    }
-    
-    internal func mutateStorage<Result>(_ block: (inout ByteBuffer) -> Result) -> Result {
-        lock.withLock {
-            block(&self.storage)
-        }
-    }
-}
-
-
-
 /// A container storing the body of a HTTP request or response, supporting both buffer and stream-based requests and responses
 /// - Note: Regarding the terminology of the methods declared on this type, we differentiate between the following:
 ///         - methods starting with `get`: these are non-consuming and will return the entire contents of the storage
 ///         - methods starting with `read`: these are consuming, and will a) return the contents of the storate written since the last read,
 ///             and b) move the storage's reader index to the end.
-public enum LKRequestResponseBodyStorage {
+public enum BodyStorage {
     case buffer(ByteBuffer)
-    case stream(LKDataStream)
+    case stream(Stream)
     
     
     /// Creates a buffer-based body stirage with a newly initialised buffer object
@@ -164,7 +61,7 @@ public enum LKRequestResponseBodyStorage {
     
     /// Creates a stream-based body storage with a newly initialised stream object
     public static func stream(initialCapacity: Int = 0) -> Self {
-        .stream(LKDataStream(capacity: initialCapacity))
+        .stream(Stream(capacity: initialCapacity))
     }
     
     public static func buffer<T: __LKByteBufferWritable>(initialValue: T) -> Self {
@@ -174,7 +71,7 @@ public enum LKRequestResponseBodyStorage {
     }
     
     public static func stream<T: __LKByteBufferWritable>(initialValue: T) -> Self {
-        var stream = Self.stream(LKDataStream())
+        var stream = Self.stream(Stream())
         stream.write(initialValue)
         return stream
     }
@@ -242,7 +139,7 @@ public enum LKRequestResponseBodyStorage {
     }
     
     /// Returns the underlying stream, if applicable
-    public var stream: LKDataStream? {
+    public var stream: Stream? {
         switch self {
         case .buffer:
             return nil
@@ -264,7 +161,7 @@ public enum LKRequestResponseBodyStorage {
     
     private mutating func visitMutating<Result>(
         buffer visitBuffer: (inout ByteBuffer) throws -> Result,
-        stream visitStream: (LKDataStream) throws -> Result
+        stream visitStream: (Stream) throws -> Result
     ) rethrows -> Result {
         switch self {
         case .buffer(var buffer):
@@ -282,6 +179,111 @@ public enum LKRequestResponseBodyStorage {
             buffer: { $0.reserveCapacity(capacity) },
             stream: { $0.mutateStorage { $0.reserveCapacity(capacity) } }
         )
+    }
+}
+
+
+
+extension BodyStorage {
+    public final class Stream {
+        public typealias ObserverFn = (Stream, Event) -> Void
+        
+        public enum Event {
+            /// New data was written to the stream, and the stream is still open
+            case write
+            /// The stream has been closed, and no new data has been written since the last time the observer was called
+            case close
+            /// New data has been written to the stream, and the stream is now closed
+            case writeAndClose
+        }
+        
+        static private(set) var streamAllocCount = 0
+        
+        public var debugName: String = "Stream"
+        
+        private let lock = NSRecursiveLock()
+        private var storage: ByteBuffer
+        private(set) public var isClosed = false
+        private var observer: ObserverFn?
+        
+        // Same as storage but there's no locking or thread safety for reading the data
+        public var unsafeStorage: ByteBuffer { storage }
+        
+        
+        public init(capacity: Int = 0) {
+            storage = ByteBufferAllocator().buffer(capacity: capacity)
+            Self.streamAllocCount += 1
+            print("streamAllocCount", Self.streamAllocCount)
+        }
+        
+        deinit {
+            // TODO we have a retain cycle somewhere here!
+            Self.streamAllocCount -= 1
+            print("streamAllocCount", Self.streamAllocCount)
+        }
+        
+        
+        /// Sets the stream's observer function.
+        /// The observer gets called when certain events occur on the stream, such as the stream being written to or closed
+        /// - Note: Pass nil to remove the current observer. The observer will automatically be removed when the stream is closed, since no further events will occur
+        /// - Note: Registering an observer on an already-closed stream will invoke the observer once (with the `.close` event), and then remove the observer from the stream
+        public func setObserver(_ fn: ObserverFn?) {
+            //lock.withLock { print("Setting new observer on \(Unmanaged.passUnretained(self).toOpaque())"); observer = fn }
+            lock.withLock {
+                if isClosed {
+                    fn?(self, .close)
+                    observer = nil
+                } else {
+                    observer = fn
+                }
+            }
+        }
+        
+        
+        public var readableBytes: Int {
+            storage.readableBytes
+        }
+        
+        
+        public func write<T: __LKByteBufferWritable>(_ data: T) {
+            lock.withLock {
+                precondition(!isClosed, "Cannot write to closed stream")
+                data.write(to: &storage)
+                observer?(self, .write)
+            }
+        }
+        
+        public func writeAndClose<T: __LKByteBufferWritable>(_ data: T) {
+            lock.withLock {
+                precondition(!isClosed, "Cannot write to closed stream")
+                data.write(to: &storage)
+                isClosed = true
+                observer?(self, .writeAndClose)
+                setObserver(nil)
+            }
+        }
+        
+        /// Closes the stream, and informs the delegate that no further bytes will be written
+        public func close() {
+            lock.withLock {
+                precondition(!isClosed, "Cannot close stream more than once")
+                isClosed = true
+                observer?(self, .close)
+                setObserver(nil)
+            }
+        }
+        
+        public func readNewData() -> ByteBuffer? {
+            lock.withLock {
+                storage.readSlice(length: storage.readableBytes)
+            }
+        }
+        
+        internal func mutateStorage<Result>(_ block: (inout ByteBuffer) -> Result) -> Result {
+            lock.withLock {
+                block(&self.storage)
+            }
+        }
     }
 }
 

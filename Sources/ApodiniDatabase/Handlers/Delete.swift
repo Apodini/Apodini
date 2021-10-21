@@ -21,8 +21,7 @@ public struct Delete<Model: DatabaseModel>: Handler {
     
     public func handle() -> EventLoopFuture<Status> {
         Model.find(id, on: database)
-            //.unwrap(orError: Abort(.notFound) )
-            .unwrap(orError: LKHTTPAbortError(status: .notFound))
+            .unwrap(orError: HTTPAbortError(status: .notFound))
             .flatMap { $0.delete(on: database ) }
             .transform(to: .noContent)
     }

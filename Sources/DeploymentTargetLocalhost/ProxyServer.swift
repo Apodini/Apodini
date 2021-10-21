@@ -23,7 +23,7 @@ class ProxyServer {
         let message: String
     }
     
-    fileprivate let httpServer: LKNIOBasedHTTPServer
+    fileprivate let httpServer: HTTPServer
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
     fileprivate var httpClient: AsyncHTTPClient.HTTPClient!
     
@@ -33,7 +33,7 @@ class ProxyServer {
     
     
     init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
-        self.httpServer = LKNIOBasedHTTPServer(eventLoopGroupProvider: .createNew, address: .hostname("0.0.0.0", port: port), logger: logger)
+        self.httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .hostname("0.0.0.0", port: port), logger: logger)
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(httpServer.eventLoopGroup))
         
         logger.notice("Registering Proxy Server Routes")
@@ -94,7 +94,7 @@ class ProxyServer {
 
 
 extension OpenAPI.Path {
-    func toHTTPPathComponentPath() -> [LKHTTPPathComponent] {
+    func toHTTPPathComponentPath() -> [HTTPPathComponent] {
         self.components.map { component in
             if component.hasPrefix("{") && component.hasSuffix("}") {
                 return .wildcardSingle
@@ -106,7 +106,7 @@ extension OpenAPI.Path {
 }
 
 
-private struct ProxyRequestResponder: LKHTTPRouteResponder {
+private struct ProxyRequestResponder: HTTPResponder {
     let proxyServer: ProxyServer
     let targetNode: DeployedSystemNode
     let endpointServiceType: Apodini.ServiceType
@@ -114,7 +114,7 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
     private var httpClient: HTTPClient { proxyServer.httpClient }
     private var logger: Logger { proxyServer.logger }
     
-    func respond(to incomingRequest: LKHTTPRequest) -> LKHTTPResponseConvertible {
+    func respond(to incomingRequest: HTTPRequest) -> HTTPResponseConvertible {
         guard let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self) else {
             fatalError("Unable to read node userInfo")
         }
@@ -127,7 +127,7 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
 ////            query: request.url.query,
 ////            fragment: request.url.fragment
 ////        )
-//        let url = LKURL(
+//        let url = URI(
 //            scheme: .http,
 //            hostname: "127.0.0.1",
 //            port: targetNodeLocalhostData.port,
@@ -191,7 +191,7 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
 //                    }
 //                }
 //            }()
-//        )).map { (clientResponse: AsyncHTTPClient.HTTPClient.Response) -> LKHTTPResponse in
+//        )).map { (clientResponse: AsyncHTTPClient.HTTPClient.Response) -> HTTPResponse in
 //            // Note: For some reason, Vapor will duplicate some header fields when sending this response back to the client.
 //            // The ones i noticed were `date` and `connection`, but that's probably not the full list.
 //            //let ignoredHeaderFields: [HTTPHeaders.HeaderName] = [.date, .connection]
@@ -205,7 +205,7 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
 ////            )
 //            // TODO properly handle the hop-by-hop headers!
 //            // TODO what about streaming client responses???? Does the AsyncHTTPClient even support that in the first place? Or does it just wait and then return everything at once?
-//            let response = LKHTTPResponse(
+//            let response = HTTPResponse(
 //                version: request.version,
 //                status: clientResponse.status,
 //                headers: HTTPHeaders(clientResponse.headers.filter { !ignoredHeaderFieldNames.contains($0.name) }),
@@ -217,7 +217,7 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
 //            return response
 //        }
         
-        let url = LKURL(
+        let url = URI(
             scheme: incomingRequest.url.scheme,
             hostname: incomingRequest.url.hostname,
             port: targetNodeLocalhostData.port,
@@ -262,13 +262,13 @@ private struct ProxyRequestResponder: LKHTTPRouteResponder {
 private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelegate {
     typealias Response = Void
     
-    private var response: LKHTTPResponse?
+    private var response: HTTPResponse?
     private let endpointServiceType: Apodini.ServiceType
-    private let httpResponsePromise: EventLoopPromise<LKHTTPResponse>
-    var httpResponseFuture: EventLoopFuture<LKHTTPResponse> { httpResponsePromise.futureResult }
+    private let httpResponsePromise: EventLoopPromise<HTTPResponse>
+    var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
     
     init(on eventLoop: EventLoop, endpointServiceType: Apodini.ServiceType) {
-        self.httpResponsePromise = eventLoop.makePromise(of: LKHTTPResponse.self)
+        self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointServiceType = endpointServiceType
     }
     
@@ -276,7 +276,7 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
         guard response == nil else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
-        response = LKHTTPResponse(
+        response = HTTPResponse(
             version: head.version,
             status: head.status,
             headers: head.headers,

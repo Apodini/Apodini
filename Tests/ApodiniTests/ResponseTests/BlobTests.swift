@@ -92,11 +92,11 @@ final class BlobTests: ApodiniTests {
 //                collectedBody: ByteBuffer(data: try JSONEncoder().encode(mimeType)),
 //                on: app.eventLoopGroup.next()
 //            )
-            let request = LKHTTPRequest(
+            let request = HTTPRequest(
                 remoteAddress: nil,
                 version: .http1_1,
                 method: .POST,
-                url: LKURL(string: "https://ase.in.tum.de/schmiedmayer?name=\(blobContent)")!,
+                url: URI(string: "https://ase.in.tum.de/schmiedmayer?name=\(blobContent)")!,
                 headers: [:],
                 bodyStorage: .buffer(initialValue: try JSONEncoder().encode(mimeType)),
                 eventLoop: app.eventLoopGroup.next()

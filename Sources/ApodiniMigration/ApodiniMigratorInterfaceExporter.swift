@@ -196,7 +196,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             //app.vapor.app.get(endpoint.pathComponents) { _ -> String in
             //    format.string(of: migratorItem)
             //}
-            app.lkHttpServer.registerRoute(.GET, endpoint.lkHTTPPathComponents) { _ -> String in
+            app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")

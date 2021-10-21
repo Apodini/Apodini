@@ -2,17 +2,17 @@ import NIO
 import NIOHTTP1
 import Foundation
 
-public final class LKHTTPResponse {
+public final class HTTPResponse {
     public var version: HTTPVersion
     public var status: HTTPResponseStatus
     public var headers: HTTPHeaders
-    public var bodyStorage: LKRequestResponseBodyStorage
+    public var bodyStorage: BodyStorage
     
     public init(
         version: HTTPVersion,
         status: HTTPResponseStatus,
         headers: HTTPHeaders,
-        bodyStorage: LKRequestResponseBodyStorage = .buffer()
+        bodyStorage: BodyStorage = .buffer()
     ) {
         self.version = version
         self.status = status
@@ -24,29 +24,29 @@ public final class LKHTTPResponse {
 
 
 /// A type which can be turned into a `HTTPResponse`
-public protocol LKHTTPResponseConvertible {
-    func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse>
+public protocol HTTPResponseConvertible {
+    func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse>
 }
 
 
-extension LKHTTPResponse: LKHTTPResponseConvertible {
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
+extension HTTPResponse: HTTPResponseConvertible {
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
         return request.eventLoop.makeSucceededFuture(self)
     }
 }
 
-extension EventLoopFuture: LKHTTPResponseConvertible where Value: LKHTTPResponseConvertible {
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
+extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConvertible {
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
         // TODO should this handle errors?
-        return self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<LKHTTPResponse> in
+        return self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<HTTPResponse> in
             switch result {
             case .success(let value):
                 return value.makeHTTPResponse(for: request)
             case .failure(let error):
-                if let error = error as? LKHTTPResponseConvertible {
+                if let error = error as? HTTPResponseConvertible {
                     return error.makeHTTPResponse(for: request)
                 } else {
-                    return request.eventLoop.makeSucceededFuture(LKHTTPResponse(
+                    return request.eventLoop.makeSucceededFuture(HTTPResponse(
                         version: request.version,
                         status: .internalServerError,
                         headers: [:],
@@ -59,9 +59,9 @@ extension EventLoopFuture: LKHTTPResponseConvertible where Value: LKHTTPResponse
 }
 
 
-extension String: LKHTTPResponseConvertible {
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(LKHTTPResponse(
+extension String: HTTPResponseConvertible {
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        return request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
             headers: [:],
@@ -70,9 +70,9 @@ extension String: LKHTTPResponseConvertible {
     }
 }
 
-extension Data: LKHTTPResponseConvertible {
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(LKHTTPResponse(
+extension Data: HTTPResponseConvertible {
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        return request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
             headers: [:],
@@ -81,9 +81,9 @@ extension Data: LKHTTPResponseConvertible {
     }
 }
 
-extension ByteBuffer: LKHTTPResponseConvertible {
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(LKHTTPResponse(
+extension ByteBuffer: HTTPResponseConvertible {
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        return request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
             headers: [:],
@@ -95,7 +95,8 @@ extension ByteBuffer: LKHTTPResponseConvertible {
 
 
 
-public struct LKHTTPAbortError: Swift.Error, LKHTTPResponseConvertible {
+/// An Error type which can be thrown in block-based `HTTPResponder`s that will be turned into HTTP error responses
+public struct HTTPAbortError: Swift.Error, HTTPResponseConvertible {
     let status: HTTPResponseStatus
     let message: String?
     
@@ -104,8 +105,8 @@ public struct LKHTTPAbortError: Swift.Error, LKHTTPResponseConvertible {
         self.message = message
     }
     
-    public func makeHTTPResponse(for request: LKHTTPRequest) -> EventLoopFuture<LKHTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(LKHTTPResponse(
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        return request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: status,
             headers: [:],

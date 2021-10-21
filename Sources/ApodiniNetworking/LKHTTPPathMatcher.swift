@@ -1,11 +1,11 @@
 import ApodiniUtils
 
 
-struct LKHTTPPathMatcher {
+struct HTTPPathMatcher {
     struct MatchResult: Hashable {
         /// The penalty associated with this match. Lower scores are better.
         fileprivate(set) var penaltyScore: Int = 0
-        fileprivate(set) var parameters = LKHTTPRequest.ParametersStorage()
+        fileprivate(set) var parameters = HTTPRequest.ParametersStorage()
     }
     
     
@@ -17,7 +17,7 @@ struct LKHTTPPathMatcher {
     
     // Input
     private let urlComponents: [String]
-    private let pathComponents: [LKHTTPPathComponent]
+    private let pathComponents: [HTTPPathComponent]
     
     // State
     private var urlComponentsIdx: Int = 0
@@ -29,11 +29,11 @@ struct LKHTTPPathMatcher {
     
     
     static func match(
-        url: LKURL,
-        against inputPathComponents: [LKHTTPPathComponent],
+        url: URI,
+        against inputPathComponents: [HTTPPathComponent],
         allowsCaseInsensitiveMatching: Bool,
         allowsEmptyMultiWildcards: Bool
-    ) -> LKHTTPRequest.ParametersStorage? {
+    ) -> HTTPRequest.ParametersStorage? {
         var path = url.path
         if path.hasPrefix("/") && path.count > 1 {
             path.removeFirst()
@@ -97,7 +97,7 @@ struct LKHTTPPathMatcher {
     
     private mutating func matchOne() -> MatchOneResult {
         let currentUrlComponent: String
-        let currentPathComponent: LKHTTPPathComponent
+        let currentPathComponent: HTTPPathComponent
         
         switch (urlComponents[safe: urlComponentsIdx], pathComponents[safe: pathComponentsIdx]) {
         case (.none, .none):

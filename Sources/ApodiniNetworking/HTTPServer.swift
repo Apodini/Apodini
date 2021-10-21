@@ -14,23 +14,6 @@ struct ApodiniNetworkingError: Swift.Error {
 }
 
 
-private class HTTPServer: NIO.ChannelInboundHandler {
-    typealias InboundIn = HTTPServerRequestPart
-    typealias OutboundOut = HTTPServerResponsePart
-    
-    
-    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-        print(#function)
-        fatalError()
-    }
-    
-    
-    func channelInactive(context: ChannelHandlerContext) {
-        print(#function)
-        fatalError()
-    }
-}
-
 
 
 class ErrorHandler: ChannelInboundHandler {
@@ -51,7 +34,7 @@ class ErrorHandler: ChannelInboundHandler {
 
 
 
-public final class LKNIOBasedHTTPServer {
+public final class HTTPServer {
     private struct ConfigStorage {
         let eventLoopGroup: EventLoopGroup
         let tlsConfiguration: TLSConfiguration?
@@ -67,7 +50,7 @@ public final class LKNIOBasedHTTPServer {
     
     
     private let config: Config
-    private let router: LKHTTPRouter
+    private let router: HTTPRouter
     
     private var channel: Channel?
     
@@ -129,11 +112,11 @@ public final class LKNIOBasedHTTPServer {
     init(app: Apodini.Application) {
         //self.app = app
         self.config = .app(app)
-        self.router = LKHTTPRouter(logger: app.logger)
+        self.router = HTTPRouter(logger: app.logger)
     }
     
     
-    internal var registeredRoutes: [LKHTTPRouter.Route] {
+    internal var registeredRoutes: [HTTPRouter.Route] {
         return router.allRoutes
     }
     
@@ -143,7 +126,7 @@ public final class LKNIOBasedHTTPServer {
         tlsConfiguration: TLSConfiguration? = nil,
         enableHTTP2: Bool = false,
         address: BindAddress,
-        logger: Logger = .init(label: "\(LKNIOBasedHTTPServer.self)")
+        logger: Logger = .init(label: "\(HTTPServer.self)")
     ) {
         let eventLoopGroup: EventLoopGroup = {
             switch eventLoopGroupProvider {
@@ -160,7 +143,7 @@ public final class LKNIOBasedHTTPServer {
             address: address,
             logger: logger
         ))
-        self.router = LKHTTPRouter(logger: logger)
+        self.router = HTTPRouter(logger: logger)
     }
     
     
@@ -190,22 +173,20 @@ public final class LKNIOBasedHTTPServer {
                     }
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
                     return channel.pipeline.addHandler(tlsHandler).flatMap { () -> EventLoopFuture<Void> in
-                        print("about to configure HTTP2SecureUpgrade")
                         return channel.configureHTTP2SecureUpgrade { channel in
-                            channel.lk_addApodiniNetworkingHTTP2Handlers(responder: self)
+                            channel.addApodiniNetworkingHTTP2Handlers(responder: self)
                         } http1ChannelConfigurator: { channel in
-                            channel.lk_addApodiniNetworkingHTTP1Handlers(responder: self)
+                            channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                         }
                     }.flatMapError { error in
-                        print("ERROR", error)
                         return channel.eventLoop.makeFailedFuture(error)
                     }
                 } else {
                     if enableHTTP2 {
                         // NOTE this doesn't make sense and (probably) doesn't work
-                        return channel.lk_addApodiniNetworkingHTTP2Handlers(responder: self)
+                        return channel.addApodiniNetworkingHTTP2Handlers(responder: self)
                     } else {
-                        return channel.lk_addApodiniNetworkingHTTP1Handlers(responder: self)
+                        return channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                     }
                 }
             }
@@ -254,71 +235,72 @@ public final class LKNIOBasedHTTPServer {
 
 
 
-/// A `HTTPRouteResponder` is a type that can respond to HTTP requests.
-public protocol LKHTTPRouteResponder {
+/// A `HTTPResponder` is a type that can respond to HTTP requests.
+public protocol HTTPResponder {
     /// Handle a request received by the server.
     /// - Note: The responder is responsible for converting errors thrown 
-    func respond(to request: LKHTTPRequest) -> LKHTTPResponseConvertible
+    func respond(to request: HTTPRequest) -> HTTPResponseConvertible
 }
 
 
-public struct LKDefaultHTTPRouteResponder: LKHTTPRouteResponder {
-    private let imp: (LKHTTPRequest) -> LKHTTPResponseConvertible
+public struct DefaultHTTPRouteResponder: HTTPResponder {
+    private let imp: (HTTPRequest) -> HTTPResponseConvertible
     
-    public init(_ imp: @escaping (LKHTTPRequest) -> LKHTTPResponseConvertible) {
+    public init(_ imp: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
         self.imp = imp
     }
     
-    public func respond(to request: LKHTTPRequest) -> LKHTTPResponseConvertible {
+    public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
         return imp(request)
     }
 }
 
 
-public protocol LKHTTPRouteBuilder {
-    func registerRoute(_ method: HTTPMethod, _ path: [LKHTTPPathComponent], handler: @escaping (LKHTTPRequest) -> LKHTTPResponseConvertible)
-    func registerRoute(_ method: HTTPMethod, _ path: [LKHTTPPathComponent], responder: LKHTTPRouteResponder)
+/// A type on which HTTP routes can be registered
+public protocol HTTPRoutesBuilder {
+    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) -> HTTPResponseConvertible)
+    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder)
 }
 
 
-public extension LKHTTPRouteBuilder {
-    func registerRoute(_ method: HTTPMethod, _ path: [LKHTTPPathComponent], handler: @escaping (LKHTTPRequest) throws -> LKHTTPResponseConvertible) {
-        self.registerRoute(method, path) { request -> LKHTTPResponseConvertible in
+public extension HTTPRoutesBuilder {
+    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) throws -> HTTPResponseConvertible) {
+        self.registerRoute(method, path) { request -> HTTPResponseConvertible in
             do {
                 return try handler(request)
             } catch {
-                return request.eventLoop.makeFailedFuture(error) as EventLoopFuture<LKHTTPResponse>
+                return request.eventLoop.makeFailedFuture(error) as EventLoopFuture<HTTPResponse>
             }
         }
     }
     
-    func registerRoute(_ method: HTTPMethod, _ path: [LKHTTPPathComponent], responder: LKHTTPRouteResponder) {
-        self.registerRoute(method, path) { request -> LKHTTPResponseConvertible in
+    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder) {
+        self.registerRoute(method, path) { request -> HTTPResponseConvertible in
             responder.respond(to: request)
         }
     }
 }
 
 
-extension LKNIOBasedHTTPServer: LKHTTPRouteBuilder {
-    public func registerRoute(_ method: HTTPMethod, _ path: [LKHTTPPathComponent], handler: @escaping (LKHTTPRequest) -> LKHTTPResponseConvertible) {
-        router.add(LKHTTPRouter.Route(
+extension HTTPServer: HTTPRoutesBuilder {
+    public func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
+        router.add(HTTPRouter.Route(
             method: method,
             path: path,
-            responder: LKDefaultHTTPRouteResponder(handler)
+            responder: DefaultHTTPRouteResponder(handler)
         ))
     }
 }
 
 
-extension LKNIOBasedHTTPServer: LKHTTPRouteResponder {
-    public func respond(to request: LKHTTPRequest) -> LKHTTPResponseConvertible {
+extension HTTPServer: HTTPResponder {
+    public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
         if let route = router.getRoute(for: request) {
             return route.responder
                 .respond(to: request)
                 .makeHTTPResponse(for: request)
         } else {
-            return LKHTTPResponse(version: request.version, status: .notFound, headers: [:])
+            return HTTPResponse(version: request.version, status: .notFound, headers: [:])
         }
     }
 }
@@ -326,7 +308,7 @@ extension LKNIOBasedHTTPServer: LKHTTPRouteResponder {
 
 
 extension Channel {
-    func lk_addApodiniNetworkingHTTP2Handlers(responder: LKHTTPRouteResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP2Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
             NIOHTTP2Handler(mode: .server, initialSettings: [
@@ -337,7 +319,7 @@ extension Channel {
             ]),
             // TODO do we want something in between here? swiftGRPC has an idle handler or smth like that, do we need that as well?
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
-                stream.lk_apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
+                stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
             },
             ErrorHandler(msg: "http2.channel.error")
         ])
@@ -345,24 +327,24 @@ extension Channel {
     
     
     
-    func lk_apodiniNetworkingInitializeHTTP2InboundStream(responder: LKHTTPRouteResponder) -> EventLoopFuture<Void> {
+    func apodiniNetworkingInitializeHTTP2InboundStream(responder: HTTPResponder) -> EventLoopFuture<Void> {
         return pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
-            LKHTTPServerRequestDecoder(),
-            LKHTTPServerResponseEncoder(),
-            LKHTTPServerRequestHandler(responder: responder),
+            HTTPServerRequestDecoder(),
+            HTTPServerResponseEncoder(),
+            HTTPServerRequestHandler(responder: responder),
             ErrorHandler(msg: "http2.stream.error")
         ])
     }
     
     
-    func lk_addApodiniNetworkingHTTP1Handlers(responder: LKHTTPRouteResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP1Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
         return pipeline.addHandlers([
             HTTPResponseEncoder(),
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
-            LKHTTPServerRequestDecoder(),
-            LKHTTPServerResponseEncoder(),
-            LKHTTPServerRequestHandler(responder: responder),
+            HTTPServerRequestDecoder(),
+            HTTPServerResponseEncoder(),
+            HTTPServerRequestHandler(responder: responder),
             // TODO add a HTTPServerUpgradeHandler ???
         ]).flatMap {
             self.pipeline.addHandler(ErrorHandler(msg: "configHTTP1Pipeline"))

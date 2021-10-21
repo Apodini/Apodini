@@ -119,14 +119,14 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
 //            app.vapor.app.get(exporterConfiguration.outputEndpoint.pathComponents) { _ -> String in
 //                output
 //            }
-            app.lkHttpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.lkHTTPPathComponents) { request in
-                //LKHTTPResponse(version: request.version, status: .ok, headers: [:], body: .init(string: output))
+            app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { request in
+                //HTTPResponse(version: request.version, status: .ok, headers: [:], body: .init(string: output))
                 output
             }
             
             // Register swagger-UI endpoint.
             //app.vapor.app.get(exporterConfiguration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
-            app.lkHttpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.lkHTTPPathComponents) { request -> LKHTTPResponse in
+            app.httpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.httpPathComponents) { request -> HTTPResponse in
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                       var html = try? String(contentsOfFile: htmlFile)
                 else {
@@ -134,13 +134,13 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
 //                    struct TODO_ReplaceThisWithAProperErrorType: Swift.Error {}
 //                    //throw NSError(domain: "Apodini.OpenAPI", code: 0, userInfo: [NSLocalizedDescriptionKey: "ugh god"]) // TODO use ApodiniError or whatever
 //                    throw TODO_ReplaceThisWithAProperErrorType()
-                    throw ApodiniNetworking.LKHTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
+                    throw ApodiniNetworking.HTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
                 }
                 // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.exporterConfiguration.outputEndpoint)
                 
                 //return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
-                return LKHTTPResponse(
+                return HTTPResponse(
                     version: request.version,
                     status: .ok,
                     headers: [ // TODO write an API to have this strongly typed!!!

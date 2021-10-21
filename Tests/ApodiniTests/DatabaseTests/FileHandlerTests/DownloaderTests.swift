@@ -36,8 +36,8 @@ final class DownloaderTests: FileHandlerTests {
 //            on: app.eventLoopGroup.next()
 //        )
         
-        let url: LKURL = "http://example.de/test/fileName"
-        let downloadRequest = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
+        let url: URI = "http://example.de/test/fileName"
+        let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let parameter = try FileUtilities.pathParameter(for: downloader)
         
@@ -79,8 +79,8 @@ final class DownloaderTests: FileHandlerTests {
 //            url: uri,
 //            on: app.eventLoopGroup.next()
 //        )
-        let url: LKURL = "http://example.de/test/fileName"
-        let downloadRequest = LKHTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
+        let url: URI = "http://example.de/test/fileName"
+        let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let parameter = try FileUtilities.pathParameter(for: downloader)
         

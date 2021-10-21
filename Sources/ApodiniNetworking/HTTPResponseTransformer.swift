@@ -3,25 +3,24 @@ import ApodiniExtension
 import ApodiniUtils
 import ApodiniHTTPProtocol
 
-// TODO move these to ApodiniHTTP? Or are they also useful/relevant to other IEs?
 
-public struct LKHTTPResponseTransformer<H: Handler>: ResultTransformer {
+public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
     private let encoder: AnyEncoder
     
     public init(_ encoder: AnyEncoder) {
         self.encoder = encoder
     }
     
-    public func transform(input: Apodini.Response<H.Response.Content>) throws -> LKHTTPResponse {
+    public func transform(input: Apodini.Response<H.Response.Content>) throws -> HTTPResponse {
         let body: ByteBuffer
         if let content = input.content {
             body = .init(data: try encoder.encode(content))
         } else {
             body = .init() // TODO what about responses with _no_ body? (as opposed to an empty one)
         }
-        return LKHTTPResponse(
-            //version: input.information[LKHTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key]!,
-            version: input.information[LKHTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
+        return HTTPResponse(
+            //version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key]!,
+            version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
                 // TODO we seem to be ending up here if this is a response created from an error thrown in a handler?
                 print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [1]")
                 return .http1_1 // just taking a guess idk
@@ -32,7 +31,7 @@ public struct LKHTTPResponseTransformer<H: Handler>: ResultTransformer {
         )
     }
     
-    public func handle(error: ApodiniError) -> ErrorHandlingStrategy<LKHTTPResponse, ApodiniError> {
+    public func handle(error: ApodiniError) -> ErrorHandlingStrategy<HTTPResponse, ApodiniError> {
         .abort(error)
     }
 }
@@ -40,10 +39,10 @@ public struct LKHTTPResponseTransformer<H: Handler>: ResultTransformer {
 
 
 
-public struct LKHTTPBlobResponseTransformer: ResultTransformer {
+public struct HTTPBlobResponseTransformer: ResultTransformer {
     public init() { }
     
-    public func transform(input: Apodini.Response<Blob>) -> LKHTTPResponse {
+    public func transform(input: Apodini.Response<Blob>) -> HTTPResponse {
         var body: ByteBuffer
         var information = input.information
         
@@ -55,9 +54,9 @@ public struct LKHTTPBlobResponseTransformer: ResultTransformer {
         } else {
             body = .init()
         }
-        return LKHTTPResponse(
+        return HTTPResponse(
             //version: input.request.version,
-            version: input.information[LKHTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
+            version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
                 print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [2]")
                 return .http1_1 // just taking a guess idk
             }(),
@@ -67,7 +66,7 @@ public struct LKHTTPBlobResponseTransformer: ResultTransformer {
         )
     }
     
-    public func handle(error: ApodiniError) -> ErrorHandlingStrategy<LKHTTPResponse, ApodiniError> {
+    public func handle(error: ApodiniError) -> ErrorHandlingStrategy<HTTPResponse, ApodiniError> {
         .abort(error)
     }
 }

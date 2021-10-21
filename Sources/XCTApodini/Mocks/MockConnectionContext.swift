@@ -91,7 +91,7 @@ public protocol WithEventLoop {
     var eventLoop: EventLoop { get }
 }
 
-extension LKHTTPRequest: WithEventLoop { }
+extension HTTPRequest: WithEventLoop { }
 
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
@@ -120,7 +120,7 @@ public protocol EndpointDecodingStrategyProvider {
 }
 
 extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
-    public var strategy: AnyEndpointDecodingStrategy<LKHTTPRequest> {
+    public var strategy: AnyEndpointDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
                             lightweight: LightweightStrategy(),
                             path: PathStrategy(useNameAsIdentifier: false),

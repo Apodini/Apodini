@@ -107,7 +107,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             relationshipEndpoint,
             on: self
         )
-        app.lkHttpServer.registerRoute(
+        app.httpServer.registerRoute(
             HTTPMethod(operation),
             pathBuilder.pathComponents,
             responder: endpointHandler
@@ -163,7 +163,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
         //self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
-        app.lkHttpServer.isCaseInsensitiveRoutingEnabled = exporterConfiguration.caseInsensitiveRouting
+        app.httpServer.isCaseInsensitiveRoutingEnabled = exporterConfiguration.caseInsensitiveRouting
     }
 }
 

@@ -37,7 +37,7 @@ final class InformationRequestTests: XCTApodiniTest {
             let exporter = RESTInterfaceExporter(app)
             let context = endpoint.createConnectionContext(for: exporter)
             
-            let firstRequest = LKHTTPRequest(
+            let firstRequest = HTTPRequest(
                 remoteAddress: nil,
                 version: .http1_1,
                 method: .GET,
@@ -50,7 +50,7 @@ final class InformationRequestTests: XCTApodiniTest {
                 .information
                 .reduce(into: 0) { partialResult, info in
                     switch info {
-                    case is LoggingMetadataInformation, is LKHTTPRequest.ApodiniRequestInformationEntryHTTPVersion:
+                    case is LoggingMetadataInformation, is HTTPRequest.ApodiniRequestInformationEntryHTTPVersion:
                         partialResult += 1
                     default:
                         break

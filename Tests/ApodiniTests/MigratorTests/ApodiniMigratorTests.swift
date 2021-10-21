@@ -102,7 +102,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(Self.migratorConfig.command.configuration.subcommands.count, 3)
         
         //XCTAssert(app.vapor.app.routes.all.isEmpty)
-        XCTAssert(app.lkHttpServer.registeredRoutes.isEmpty)
+        XCTAssert(app.httpServer.registeredRoutes.isEmpty)
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         

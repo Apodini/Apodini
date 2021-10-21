@@ -30,7 +30,7 @@ final class ResponseContainerTests: ApodiniTests {
         _ container: ResponseContainer,
         contentType: Content.Type = Content.self
     ) throws -> (HTTPResponseStatus, ExpectedContent<Content>) {
-        let request = LKHTTPRequest(
+        let request = HTTPRequest(
             remoteAddress: nil,
             version: .http1_1,
             method: .GET,

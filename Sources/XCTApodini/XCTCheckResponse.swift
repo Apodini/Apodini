@@ -31,18 +31,18 @@ extension WrappedRESTResponse: Equatable where T: Equatable {}
 
 
 /// Returns the decoded contents of a REST response
-public func XCTUnwrapRESTResponse<T: Decodable>(_: T.Type, from response: LKHTTPResponse) throws -> WrappedRESTResponse<T> {
+public func XCTUnwrapRESTResponse<T: Decodable>(_: T.Type, from response: HTTPResponse) throws -> WrappedRESTResponse<T> {
     try response.bodyStorage.getFullBodyData(decodedAs: WrappedRESTResponse<T>.self)
 }
 
 
 /// Returns the decoded contents of a REST response's `data` field
-public func XCTUnwrapRESTResponseData<T: Decodable>(_: T.Type, from response: LKHTTPResponse) throws -> T {
+public func XCTUnwrapRESTResponseData<T: Decodable>(_: T.Type, from response: HTTPResponse) throws -> T {
     try XCTUnwrapRESTResponse(T.self, from: response).data
 }
 
 
-extension LKRequestResponseBodyStorage {
+extension BodyStorage {
     @available(*, deprecated)
     public func getDecodedRESTResponseData<T: Codable>(_ type: T.Type) throws -> T {
         try self.getFullBodyData(decodedAs: WrappedRESTResponse<T>.self).data

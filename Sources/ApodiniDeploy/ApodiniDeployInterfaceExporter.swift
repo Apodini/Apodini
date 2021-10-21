@@ -66,6 +66,29 @@ public final class ApodiniDeploy: Configuration {
 }
 
 
+extension Apodini.Application.Lifecycle {
+    private struct BlockBasedLifecycleHandler: LifecycleHandler {
+        let didBootHandler: (Application) throws -> Void
+        let shutdownHandler: (Application) throws -> Void
+        
+        func didBoot(_ application: Application) throws {
+            try didBootHandler(application)
+        }
+        
+        func shutdown(_ application: Application) throws {
+            try shutdownHandler(application)
+        }
+    }
+    
+    public mutating func use(
+        didBoot didBootHandler: @escaping (Application) throws -> Void,
+        shutdown shutdownHandler: @escaping (Application) throws -> Void
+    ) {
+        use(BlockBasedLifecycleHandler(didBootHandler: didBootHandler, shutdownHandler: shutdownHandler))
+    }
+}
+
+
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
@@ -75,17 +98,13 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         typealias Value = ApodiniDeployInterfaceExporter
     }
     
-    
     let app: Apodini.Application
     let exporterConfiguration: ApodiniDeploy.ExporterConfiguration
+    let httpClient: AsyncHTTPClient.HTTPClient
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
-    
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
-    
-    let httpClient: AsyncHTTPClient.HTTPClient
-    
     
     init(_ app: Apodini.Application,
          _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()
@@ -127,7 +146,7 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
-        app.lkHttpServer.registerRoute(.POST, ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)]) { request in
+        app.httpServer.registerRoute(.POST, ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)]) { request in
             InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint).respond(to: request)
         }
     }

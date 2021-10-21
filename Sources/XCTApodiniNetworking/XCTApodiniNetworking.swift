@@ -4,13 +4,12 @@ import XCTest
 import AsyncHTTPClient
 
 
-
-public struct XCTLKHTTPRequest {
+public struct XCTHTTPRequest {
     public let version: HTTPVersion
     public let method: HTTPMethod
-    public let url: LKURL
+    public let url: URI
     public let headers: HTTPHeaders
-    public let body: ByteBuffer // TODO support streams here!
+    public let body: ByteBuffer
     
     fileprivate let file: StaticString
     fileprivate let line: UInt
@@ -18,7 +17,7 @@ public struct XCTLKHTTPRequest {
     public init(
         version: HTTPVersion,
         method: HTTPMethod,
-        url: LKURL,
+        url: URI,
         headers: HTTPHeaders = [:],
         body: ByteBuffer = .init(),
         file: StaticString = #file,
@@ -34,8 +33,6 @@ public struct XCTLKHTTPRequest {
     }
 }
 
-//struct XCTLKHTTPResponse {}
-
 
 /// How a tester --- absent of any further information --- should treat the expected body of a response.
 public enum XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType {
@@ -46,23 +43,17 @@ public enum XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodySto
 
 public protocol XCTApodiniNetworkingRequestResponseTester {
     func performTest(
-        _ request: XCTLKHTTPRequest,
+        _ request: XCTHTTPRequest,
         expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
-        responseStart: @escaping (LKHTTPResponse) throws -> Void,
-        responseEnd: (LKHTTPResponse) throws -> Void
+        responseStart: @escaping (HTTPResponse) throws -> Void,
+        responseEnd: (HTTPResponse) throws -> Void
     ) throws
-    
-//    func performServiceSideStreamingEndpointTest(
-//        _ request: XCTLKHTTPRequest,
-//        streamEventObserver: LKDataStream.ObserverFn?,
-//        fullResponseValidator: (LKHTTPResponse) throws -> Void
-//    ) throws
 }
 
 
 
-private func makeUrl(version: HTTPVersion, path: String) -> LKURL {
-    return LKURL(string: "\(version.major > 1 ? "https" : "http")://127.0.0.1:8000/\(path.hasPrefix("/") ? path.dropFirst() : path[...])")!
+private func makeUrl(version: HTTPVersion, path: String) -> URI {
+    return URI(string: "\(version.major > 1 ? "https" : "http")://127.0.0.1:8000/\(path.hasPrefix("/") ? path.dropFirst() : path[...])")!
 }
 
 extension XCTApodiniNetworkingRequestResponseTester {
@@ -75,50 +66,24 @@ extension XCTApodiniNetworkingRequestResponseTester {
         expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType = .buffer,
         file: StaticString = #file,
         line: UInt = #line,
-        responseStart: @escaping (LKHTTPResponse) throws -> () = { _ in },
-        responseEnd: (LKHTTPResponse) throws -> ()
+        responseStart: @escaping (HTTPResponse) throws -> () = { _ in },
+        responseEnd: (HTTPResponse) throws -> ()
     ) throws {
-        //self.performTest(LKHTTPRequest(method: <#T##HTTPMethod#>, url: <#T##LKURL#>, eventLoop: ))
         do {
-            try self.performTest(XCTLKHTTPRequest(
+            try self.performTest(XCTHTTPRequest(
                 version: version,
                 method: method,
-                //url: LKURL(stringLiteral: "\(version.major > 1 ? "https" : "http")://127.0.0.1:8000/\(path.hasPrefix("/") ? path.dropFirst() : path[...])"),
                 url: makeUrl(version: version, path: path),
                 headers: headers,
                 body: body,
                 file: file,
                 line: line
             ), expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd)
-            //try validateResponse(response)
         } catch {
             XCTFail("\(error)", file: file, line: line)
             throw error
         }
     }
-    
-//    public func testServiceSideStreaming(
-//        version: HTTPVersion = .http1_1,
-//        _ method: HTTPMethod,
-//        _ path: String,
-//        headers: HTTPHeaders = [:],
-//        body: ByteBuffer = .init(),
-//        file: StaticString = #file,
-//        line: UInt = #line,
-//        streamEventObserver: LKDataStream.ObserverFn?,
-//        validateResponse: (LKHTTPResponse) throws -> Void
-//    ) throws {
-//        do {
-//            try self.performServiceSideStreamingEndpointTest(
-//                XCTLKHTTPRequest(version: version, method: method, url: makeUrl(version: version, path: path), headers: headers, body: body),
-//                streamEventObserver: streamEventObserver,
-//                fullResponseValidator: validateResponse
-//            )
-//        } catch {
-//            XCTFail("\(error)", file: file, line: line)
-//            throw error
-//        }
-//    }
 }
 
 
@@ -127,7 +92,6 @@ extension XCTApodiniNetworkingRequestResponseTester {
 extension Apodini.Application {
     public enum TestingMethod: Hashable {
         case inMemory
-        //case actualRequests // this would be hell to implement
         case actualRequests(hostname: String?, port: Int?)
         
         public static var actualRequests: TestingMethod {
@@ -152,10 +116,10 @@ extension Apodini.Application {
         let testers: [XCTApodiniNetworkingRequestResponseTester]
         
         func performTest(
-            _ request: XCTLKHTTPRequest,
+            _ request: XCTHTTPRequest,
             expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
-            responseStart: @escaping (LKHTTPResponse) throws -> Void,
-            responseEnd: (LKHTTPResponse) throws -> Void
+            responseStart: @escaping (HTTPResponse) throws -> Void,
+            responseEnd: (HTTPResponse) throws -> Void
         ) throws {
             for tester in testers {
                 try tester.performTest(request, expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd)
@@ -168,19 +132,19 @@ extension Apodini.Application {
         let app: Apodini.Application
         
         func performTest(
-            _ request: XCTLKHTTPRequest,
+            _ request: XCTHTTPRequest,
             expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
-            responseStart: @escaping (LKHTTPResponse) throws -> Void,
-            responseEnd: (LKHTTPResponse) throws -> Void
+            responseStart: @escaping (HTTPResponse) throws -> Void,
+            responseEnd: (HTTPResponse) throws -> Void
         ) throws {
-            let httpRequest = LKHTTPRequest(
+            let httpRequest = HTTPRequest(
                 method: request.method,
                 url: request.url,
                 headers: request.headers,
-                bodyStorage: .buffer(request.body), // TODO add support for client-side-stream-based tests?
+                bodyStorage: .buffer(request.body),
                 eventLoop: app.eventLoopGroup.next()
             )
-            let response = try app.lkHttpServer.respond(to: httpRequest).makeHTTPResponse(for: httpRequest).wait()
+            let response = try app.httpServer.respond(to: httpRequest).makeHTTPResponse(for: httpRequest).wait()
             try responseEnd(response)
         }
     }
@@ -198,12 +162,12 @@ extension Apodini.Application {
         }
         
         func performTest(
-            _ request: XCTLKHTTPRequest,
+            _ request: XCTHTTPRequest,
             expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
-            responseStart: @escaping (LKHTTPResponse) throws -> Void,
-            responseEnd: (LKHTTPResponse) throws -> Void
+            responseStart: @escaping (HTTPResponse) throws -> Void,
+            responseEnd: (HTTPResponse) throws -> Void
         ) throws {
-            precondition(!app.lkHttpServer.isRunning)
+            precondition(!app.httpServer.isRunning)
             let address: (hostname: String, port: Int)
             switch app.http.address {
             case .hostname(let currentAppHostname, port: let currentAppPort):
@@ -212,33 +176,16 @@ extension Apodini.Application {
             case .unixDomainSocket(_):
                 fatalError("Expected a hostname-based http config")
             }
-//            try app.lkHttpServer.start()
-//            defer { try! app.lkHttpServer.shutdown() }
-//            let httpClient = AsyncHTTPClient.HTTPClient(eventLoopGroupProvider: .shared(app.eventLoopGroup))
-//            defer { try! httpClient.syncShutdown() }
-//            let response = try httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
-//                //url: request.url.pathIncludingQueryAndFragment,
-//                url: "http://\(address.hostname):\(address.port)\(request.url.pathIncludingQueryAndFragment)",
-//                method: request.method,
-//                headers: request.headers,
-//                body: .byteBuffer(request.body)
-//            ), delegate: ).wait()
-//            let httpResponse = LKHTTPResponse(
-//                version: response.version,
-//                status: response.status,
-//                headers: response.headers,
-//                //body: response.body ?? .init()
-//                bodyStorage: .buffer(response.body ?? .init())
-//            )
-//            try validator(httpResponse)
             
-            try app.lkHttpServer.start()
-            defer { try! app.lkHttpServer.shutdown() }
+            try app.httpServer.start()
+            defer {
+                try! app.httpServer.shutdown()
+            }
             
             let httpClient = AsyncHTTPClient.HTTPClient(eventLoopGroupProvider: .shared(app.eventLoopGroup))
-            defer { try! httpClient.syncShutdown() }
-            
-//            let httpResponsePromise = app.eventLoopGroup.next().makePromise(of: LKHTTPResponse.self)
+            defer {
+                try! httpClient.syncShutdown()
+            }
             
             let delegate = ActualRequestsTestHTTPClientResponseDelegate(
                 expectedBodyType: expectedBodyType,
@@ -250,31 +197,16 @@ extension Apodini.Application {
                     }
                 }
             )
-            
             let responseTask = httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
                 url: "\(request.url.scheme)://\(address.hostname):\(address.port)\(request.url.pathIncludingQueryAndFragment)",
                 method: request.method,
                 headers: request.headers,
-                body: .byteBuffer(request.body), // TODO support streams here!
+                body: .byteBuffer(request.body),
                 tlsConfiguration: .clientDefault
             ), delegate: delegate)
             
-            //let httpResponse = try httpResponsePromise.futureResult.wait()
             let httpResponse = try responseTask.wait()
             try responseEnd(httpResponse)
-            print("returning after validator")
-            
-//            let response = try httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
-//            ), delegate: ).wait()
-//            let httpResponse = LKHTTPResponse(
-//                version: response.version,
-//                status: response.status,
-//                headers: response.headers,
-//                //body: response.body ?? .init()
-//                bodyStorage: .buffer(response.body ?? .init())
-//            )
-//            try validator(httpResponse)
-            
         }
     }
 }
@@ -283,19 +215,19 @@ extension Apodini.Application {
 
 
 private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate {
-    typealias Response = LKHTTPResponse
+    typealias Response = HTTPResponse
     
     private let expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType
-    private let response: LKHTTPResponse
-    private let responseStart: (LKHTTPResponse) -> Void
+    private let response: HTTPResponse
+    private let responseStart: (HTTPResponse) -> Void
     
     fileprivate init(
         expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
-        responseStart: @escaping (LKHTTPResponse) -> Void
+        responseStart: @escaping (HTTPResponse) -> Void
     ) {
         self.expectedBodyType = expectedBodyType
         self.responseStart = responseStart
-        self.response = LKHTTPResponse(
+        self.response = HTTPResponse(
             version: .http1_1,
             status: .imATeapot,
             headers: [:],
@@ -333,9 +265,5 @@ private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTP
     func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
         print(#function, error)
         task.cancel()
-    }
-    
-    deinit {
-        print("-[\(Self.self) \(#function)]")
     }
 }

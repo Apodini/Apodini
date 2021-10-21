@@ -2,13 +2,13 @@ import NIO
 import NIOHTTP1
 
 
-class LKHTTPServerResponseEncoder: ChannelOutboundHandler {
+class HTTPServerResponseEncoder: ChannelOutboundHandler {
     private enum State {
         case ready
         case waitingOnStream
     }
     
-    typealias OutboundIn = LKHTTPResponse
+    typealias OutboundIn = HTTPResponse
     typealias OutboundOut = HTTPServerResponsePart
     
     private var state: State = .ready
@@ -43,7 +43,7 @@ class LKHTTPServerResponseEncoder: ChannelOutboundHandler {
         }
     }
     
-    private func handleStreamWrite(context: ChannelHandlerContext, stream: LKDataStream, promise: EventLoopPromise<Void>?) {
+    private func handleStreamWrite(context: ChannelHandlerContext, stream: BodyStorage.Stream, promise: EventLoopPromise<Void>?) {
         precondition(state == .waitingOnStream)
         // We've already handled part of this request, and now have to write the newly available data
         if stream.readableBytes > 0 {

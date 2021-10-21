@@ -52,8 +52,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
             else {
-                //throw Vapor.Abort(.internalServerError)
-                throw LKHTTPAbortError(status: .internalServerError)
+                throw HTTPAbortError(status: .internalServerError)
             }
 
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")

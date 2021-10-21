@@ -2,15 +2,15 @@ import NIO
 import NIOHTTP1
 
 
-class LKHTTPServerRequestDecoder: ChannelInboundHandler {
+class HTTPServerRequestDecoder: ChannelInboundHandler {
     typealias InboundIn = HTTPServerRequestPart
-    typealias InboundOut = LKHTTPRequest
+    typealias InboundOut = HTTPRequest
     
     private enum State {
         case ready
-        case awaitingBody(LKHTTPRequest)
-        //case readingStream(LKHTTPRequest) // TODO!!!!
-        case awaitingEnd(LKHTTPRequest)
+        case awaitingBody(HTTPRequest)
+        //case readingStream(HTTPRequest) // TODO!!!!
+        case awaitingEnd(HTTPRequest)
     }
     
     private var state: State = .ready
@@ -20,10 +20,10 @@ class LKHTTPServerRequestDecoder: ChannelInboundHandler {
         let request = unwrapInboundIn(data)
         switch (state, request) {
         case (.ready, .head(let reqHead)):
-            guard let url = LKURL(string: reqHead.uri) else {
+            guard let url = URI(string: reqHead.uri) else {
                 fatalError("received invalid url: '\(reqHead.uri)'")
             }
-            let request = LKHTTPRequest(
+            let request = HTTPRequest(
                 remoteAddress: context.channel.remoteAddress,
                 version: reqHead.version,
                 method: reqHead.method,

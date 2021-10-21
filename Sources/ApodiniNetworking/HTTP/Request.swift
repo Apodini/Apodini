@@ -7,7 +7,7 @@ import Foundation
 @_implementationOnly import struct Vapor.URLEncodedFormDecoder // TODO
 
 
-extension LKHTTPRequest {
+extension HTTPRequest {
     struct ApodiniRequestInformationEntryHTTPVersion: Apodini.Information {
         struct Key: InformationKey {
             typealias RawValue = HTTPVersion
@@ -31,14 +31,14 @@ extension LKHTTPRequest {
 }
 
 
-public final class LKHTTPRequest: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
+public final class HTTPRequest: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
         /// The requst's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``LKHTTPRouter.Route`` which contained single-path-component wildcards
+        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained single-path-component wildcards
         /// key: index of wildcard in path components array
         var singleComponentWildcards: [Int: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``LKHTTPRouter.Route`` which contained multi-path-component wildcards
+        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained multi-path-component wildcards
         /// key: index of wildcard in path components array
         var multipleComponentWildcards: [Int: [String]] = [:]
     }
@@ -47,14 +47,14 @@ public final class LKHTTPRequest: RequestBasis, CustomStringConvertible, CustomD
     public let remoteAddress: SocketAddress?
     public let version: HTTPVersion
     public let method: HTTPMethod
-    public let url: LKURL
+    public let url: URI
     public var headers: HTTPHeaders
-    public var bodyStorage: LKRequestResponseBodyStorage
+    public var bodyStorage: BodyStorage
     public let eventLoop: EventLoop
     
     /// For incoming requests from external clients processed through the HTTP server's router, the route this request matched against.
     /// - Note: This property is `nil` for manually constructed requests
-    internal var route: LKHTTPRouter.Route?
+    internal var route: HTTPRouter.Route?
     
     private var parameters = ParametersStorage()
     
@@ -63,9 +63,9 @@ public final class LKHTTPRequest: RequestBasis, CustomStringConvertible, CustomD
         remoteAddress: SocketAddress? = nil,
         version: HTTPVersion = .http1_1,
         method: HTTPMethod,
-        url: LKURL,
+        url: URI,
         headers: HTTPHeaders = [:],
-        bodyStorage: LKRequestResponseBodyStorage = .buffer(),
+        bodyStorage: BodyStorage = .buffer(),
         eventLoop: EventLoop
     ) {
         self.remoteAddress = remoteAddress
@@ -142,7 +142,7 @@ public final class LKHTTPRequest: RequestBasis, CustomStringConvertible, CustomD
         parameters.namedParameters[key] = value?.removingPercentEncoding // Doing the removePErcentEncoding to match Vapor's behaviour. TODO is this correct?
     }
     
-    internal func populate(from route: LKHTTPRouter.Route, withParameters parameters: ParametersStorage) {
+    internal func populate(from route: HTTPRouter.Route, withParameters parameters: ParametersStorage) {
         self.route = route
         self.parameters = parameters
     }

@@ -75,7 +75,7 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     
-    private func expect<T: Decodable & Comparable>(_ data: T, in response: LKHTTPResponse) throws {
+    private func expect<T: Decodable & Comparable>(_ data: T, in response: HTTPResponse) throws {
         XCTAssertEqual(response.status, .ok)
         let content = try response.bodyStorage.getFullBodyData(decodedAs: Content<T>.self)
         XCTAssert(content.data == data, "Expected \(data) but got \(content.data)")

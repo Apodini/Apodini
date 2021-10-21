@@ -255,7 +255,6 @@ let package = Package(
             name: "ApodiniNotifications",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniVaporSupport"),
                 .target(name: "ApodiniDatabase"),
                 .product(name: "APNSwift", package: "apnswift")
             ]

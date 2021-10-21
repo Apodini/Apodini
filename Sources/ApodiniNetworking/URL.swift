@@ -4,7 +4,9 @@ import ApodiniUtils
 
 
 // TODO this tyoe has a `.init(_: String)` ctor? (i.e. non-failible string init). Where is that coming from? can we get rid of it? Might be relayed to the string literal init, since it showed up around the same time...
-public struct LKURL: LosslessStringConvertible, ExpressibleByStringLiteral {
+
+/// A URL
+public struct URI: LosslessStringConvertible, ExpressibleByStringLiteral {
     public enum Scheme: String {
         case http
         case https

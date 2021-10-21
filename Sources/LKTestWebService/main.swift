@@ -25,15 +25,6 @@ class FakeTimer: Apodini.ObservableObject {
 
 
 
-
-//class LKRawDataEncoder: Encoder {
-//
-//}
-
-
-
-
-
 struct Rocket: Handler {
     @Parameter(.http(.query), .mutability(.constant)) var start: Int = 10
     

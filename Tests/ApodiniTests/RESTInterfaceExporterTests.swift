@@ -131,7 +131,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 //                collectedBody: bodyData,
 //                on: app.eventLoopGroup.next()
 //        )
-        let request = LKHTTPRequest(
+        let request = HTTPRequest(
             method: .POST,
             url: "http://example.de/test/a/b?param0=value0",
             bodyStorage: .buffer(bodyData),
@@ -374,7 +374,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         headers.add(name: .authorization, value: value)
 
         //let request = Vapor.Request(application: app.vapor.app, headers: headers, on: app.eventLoopGroup.next())
-        let request = LKHTTPRequest(method: .GET, url: "/", headers: headers, eventLoop: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", headers: headers, eventLoop: app.eventLoopGroup.next())
 
         var information = request.information
         information.insert(ETag("someTag", isWeak: true))
