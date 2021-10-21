@@ -31,6 +31,7 @@ public enum BindAddress: Equatable {
 
 
 extension Application {
+    /// The HTTPConfiguration of the Application
     public var httpConfiguration: HTTPConfiguration {
         guard let httpConfiguration = self.storage[HTTPConfigurationStorageKey.self] else {
             let defaultConfig = HTTPConfiguration()
