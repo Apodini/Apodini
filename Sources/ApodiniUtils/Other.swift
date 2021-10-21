@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import NIO
 
 
 /// The `Box` type can be used to wrap an object in a class

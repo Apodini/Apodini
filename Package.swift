@@ -125,7 +125,7 @@ let package = Package(
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Vapor", package: "vapor")
+                .product(name: "NIO", package: "swift-nio")
             ]
         ),
         

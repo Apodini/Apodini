@@ -73,6 +73,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     private let fileManager = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
+    private let programLifetime = ProgramLifetimeManager()
+    
     func run() throws {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
@@ -134,18 +136,26 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         }
         
         logger.notice("Starting proxy server")
+        let proxyServer: ProxyServer
         do {
-            let proxyServer = try ProxyServer(
+            proxyServer = try ProxyServer(
                 openApiDocument: deployedSystem.openApiDocument,
                 deployedSystem: deployedSystem,
                 port: self.port
             )
-            try proxyServer.run()
+            try proxyServer.start()
         } catch {
+            // An error occurred while initialising or starting the server
             Task.killAllInChildrenInProcessGroup()
             throw error
         }
-        logger.notice("exit.")
-        return
+        try programLifetime.start(on: proxyServer.eventLoopGroup.next()).wait()
+        Task.killAllInChildrenInProcessGroup() // just to be safe
+        do {
+            try proxyServer.stop()
+            logger.notice("Did shut down proxy server")
+        } catch {
+            logger.error("Error when trying to stop proxy server: \(error)")
+        }
     }
 }

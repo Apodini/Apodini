@@ -19,6 +19,7 @@ class LKHTTPServerRequestHandler: ChannelInboundHandler {
         responder
             .respond(to: request)
             .makeHTTPResponse(for: request)
+            .hop(to: context.eventLoop)
             .whenComplete { (result: Result<LKHTTPResponse, Error>) in
                 switch result {
                 case .failure(let error):

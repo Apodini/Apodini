@@ -97,4 +97,16 @@ public struct LKURL: LosslessStringConvertible, ExpressibleByStringLiteral {
         }
         return retval
     }
+    
+    
+    public func toNSURL() -> URL {
+        var components = URLComponents()
+        components.scheme = scheme.rawValue
+        components.host = hostname
+        components.port = port
+        components.path = path
+        components.query = rawQuery.isEmpty ? nil : rawQuery
+        components.fragment = fragment.isEmpty ? nil : fragment
+        return components.url!
+    }
 }

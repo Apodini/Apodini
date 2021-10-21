@@ -78,7 +78,6 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
     
     let app: Apodini.Application
     let exporterConfiguration: ApodiniDeploy.ExporterConfiguration
-//    var vaporApp: Vapor.Application { app.vapor.app }
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
@@ -96,9 +95,23 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         self.httpClient = .init(eventLoopGroupProvider: .shared(app.eventLoopGroup), configuration: .init())
         app.storage.set(ApplicationStorageKey.self, to: self)
         app.lifecycle.use(
-            didBoot: { _ in fatalError("Just to check whether this gets called") },
-            shutdown: { [weak self] _ in try? self?.httpClient.syncShutdown() } // We have to shutdown the http client, and this seems to be the easiest way to hook into the lifecycle
+            didBoot: { _ in },
+            shutdown: { [weak self] _ in
+                self?.shutdownHTTPClient()
+            }
         )
+    }
+    
+    private func shutdownHTTPClient() {
+        do {
+            try self.httpClient.syncShutdown()
+        } catch {
+            app.logger.error("[\(Self.self)] error shutting down httpClient: \(error)")
+        }
+    }
+    
+    deinit {
+        shutdownHTTPClient()
     }
     
     

@@ -43,7 +43,7 @@ class ErrorHandler: ChannelInboundHandler {
     }
     
     func errorCaught(context: ChannelHandlerContext, error: Error) {
-        print("\(Self.self)[msg: \(msg)] received error: \(error)")
+        print("\(Self.self)[msg: \(msg)][pid: \(ProcessInfo.processInfo.processIdentifier)] received error: \(error)")
         context.close(promise: nil)
     }
 }
@@ -217,11 +217,25 @@ public final class LKNIOBasedHTTPServer {
         
         switch address {
         case .hostname(let hostname, let port):
+            logger.info("Will bind to \(addressString)")
             channel = try bootstrap.bind(host: hostname, port: port).wait()
-            print("Did bind channel to http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)")
+            //logger.info("Server starting on http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)")
+            logger.info("Server starting on \(addressString)")
         case .unixDomainSocket(let path):
+            logger.info("Will bind to \(addressString)")
             channel = try bootstrap.bind(unixDomainSocketPath: path).wait()
-            print("Did bind channel to unix socket \(path)")
+            //logger.info("Server starting on unix socket \(path)")
+            logger.info("Server starting on \(addressString)")
+        }
+    }
+    
+    
+    private var addressString: String {
+        switch address {
+        case .hostname(let hostname, let port):
+            return "http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)"
+        case .unixDomainSocket(let path):
+            return "unix:\(path)" // TODO proper path!
         }
     }
     
@@ -229,10 +243,10 @@ public final class LKNIOBasedHTTPServer {
     public func shutdown() throws {
         // TODO what to do here? Just call close?
         if let channel = channel {
-            print("Closing channel")
+            print("Will shut down NIO channel bound to \(addressString)")
             try channel.close(mode: .all).wait()
             self.channel = nil
-            print("Channel closed")
+            print("Did shut down NIO channel bound to \(addressString)")
         }
     }
 }

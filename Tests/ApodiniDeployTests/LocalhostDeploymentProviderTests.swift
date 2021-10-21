@@ -80,7 +80,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             launchInCurrentProcessGroup: false
         )
         
-        let expectedNumberOfNodes = 6
+        let expectedNumberOfNodes = 7
         
         /// Expectation that the deployment provider runs, computes the deployment, and launches the web service.
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
@@ -147,7 +147,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
+            // This is determined by finding the text `Server starting on http://0.0.0.0:5001` three times,
             // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
@@ -174,18 +174,21 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             if startedServers.count == expectedNumberOfNodes + 1 {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 8080),
                     // the nodes
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5003),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5004),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5005)
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5006)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
-                // print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+                //print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+            } else {
+                //print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
             }
         }
         
@@ -212,7 +215,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             let url = try XCTUnwrap(URL(string: "http://127.0.0.1:8080\(path)"))
             return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
-                    XCTFail("Unexpected error in request: \(error.localizedDescription)")
+                    XCTFail("Unexpected error in request to '\(url)': \(error.localizedDescription)")
                     return
                 }
                 let msg = "request to '\(path)' failed."
@@ -277,9 +280,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // We give it 20 seconds just to be safe
         wait(
             for: [responseExpectationV1, responseExpectationV1Greeter, responseExpectationV1TextMut],
-            timeout: 20,
+            timeout: 15,
             enforceOrder: false
         )
+        
+        resetOutput()
+        stdioObserverHandle = nil
         
         
         // -------------------------------------- //
@@ -291,11 +297,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         stdioObserverHandle = task.observeOutput { _, data, _ in
             let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
+            handleOutput(text, printToStdout: true)
             for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
                 didShutDownNodesExpectation.fulfill()
                 NSLog("shutDownServers_a.fulfill() %i", didShutDownNodesExpectation.assertForOverFulfill)
             }
-            if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
+            if text.contains("Did shut down proxy server") {
                 didShutDownGateway.fulfill()
                 NSLog("shutDownServers_b.fulfill() %i", didShutDownGateway.assertForOverFulfill)
             }
@@ -310,5 +317,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         task = nil
         
         XCTAssertApodiniApplicationNotRunning()
+    }
+}
+
+
+extension CharacterSet {
+    static func joining(_ other: [CharacterSet]) -> CharacterSet {
+        return other.reduce(into: []) { $0.formUnion($1) }
     }
 }
