@@ -120,3 +120,10 @@ extension NSTextCheckingResult {
         return String(string[range])
     }
 }
+
+
+extension UUID: LosslessStringConvertible {
+    public init?(_ description: String) {
+        self.init(uuidString: description)
+    }
+}

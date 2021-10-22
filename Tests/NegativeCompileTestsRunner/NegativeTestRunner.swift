@@ -12,7 +12,9 @@ import XCTest
 
 class XCTBootstrap: XCTestCase {
     func testRunner() throws {
-//        return;
+        guard ProcessInfo.processInfo.environment["__CFBundleIdentifier"] != "com.apple.dt.Xcode" else {
+            throw XCTSkip()
+        }
         print("Bootstrapping negative test runner...")
         let runner = try NegativeTestRunner()
 
