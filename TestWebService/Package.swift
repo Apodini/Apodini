@@ -27,7 +27,6 @@ let package = Package(
             name: "TestWebService",
             dependencies: [
                 .product(name: "Apodini", package: "Apodini"),
-                .product(name: "ApodiniVaporSupport", package: "Apodini"),
                 .product(name: "ApodiniREST", package: "Apodini"),
                 .product(name: "ApodiniGRPC", package: "Apodini"),
                 .product(name: "ApodiniProtobuffer", package: "Apodini"),
