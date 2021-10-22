@@ -2,7 +2,7 @@ import NIO
 import NIOHTTP1
 
 
-class HTTPServerResponseEncoder: ChannelOutboundHandler {
+class HTTPServerResponseEncoder: ChannelOutboundHandler, RemovableChannelHandler {
     private enum State {
         case ready
         case waitingOnStream
@@ -55,4 +55,9 @@ class HTTPServerResponseEncoder: ChannelOutboundHandler {
             state = .ready
         }
     }
+    
+    // TODO what if we're removed while waiting on a stream?
+//    func removeHandler(context: ChannelHandlerContext, removalToken: ChannelHandlerContext.RemovalToken) {
+//        <#code#>
+//    }
 }

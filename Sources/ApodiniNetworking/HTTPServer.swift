@@ -4,6 +4,7 @@ import NIOHTTP1
 import NIOHTTP2
 import NIOSSL
 import NIOHPACK
+import NIOWebSocket
 import Foundation
 import Logging // TODO add this as an explict dependency in the PAckage file!!!
 
@@ -15,6 +16,8 @@ struct ApodiniNetworkingError: Swift.Error {
 
 
 
+
+public protocol WebSocketChannelHandler: ChannelInboundHandler where InboundIn == WebSocketFrame, OutboundOut == WebSocketFrame {}
 
 class ErrorHandler: ChannelInboundHandler {
     typealias InboundIn = Never
@@ -233,8 +236,6 @@ public final class HTTPServer {
 }
 
 
-
-
 /// A `HTTPResponder` is a type that can respond to HTTP requests.
 public protocol HTTPResponder {
     /// Handle a request received by the server.
@@ -307,6 +308,16 @@ extension HTTPServer: HTTPResponder {
 
 
 
+//public protocol WebSocketResponder {
+//    func respond(to request: )
+//}
+//
+//extension HTTPServer {
+//    public func registerRoute(_ path: [String], handler)
+//}
+
+
+
 extension Channel {
     func addApodiniNetworkingHTTP2Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
@@ -339,15 +350,58 @@ extension Channel {
     
     
     func addApodiniNetworkingHTTP1Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
-        return pipeline.addHandlers([
-            HTTPResponseEncoder(),
+        var httpHandlers: [RemovableChannelHandler] = []
+        let httpResponseEncoder = HTTPResponseEncoder()
+        httpHandlers += [
+            httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
             HTTPServerRequestDecoder(),
             HTTPServerResponseEncoder(),
-            HTTPServerRequestHandler(responder: responder),
-            // TODO add a HTTPServerUpgradeHandler ???
-        ]).flatMap {
-            self.pipeline.addHandler(ErrorHandler(msg: "configHTTP1Pipeline"))
+        ]
+        
+        let httpRequestHandler = HTTPServerRequestHandler(responder: responder)
+        
+//        let webSocketsUpgrader = NIOWebSocketServerUpgrader(
+//            shouldUpgrade: { (channel: Channel, reqHead: HTTPRequestHead) -> EventLoopFuture<HTTPHeaders?> in
+//                print("Should upgrade?", channel, reqHead)
+//                return channel.eventLoop.makeSucceededFuture([:])
+//            },
+//            upgradePipelineHandler: { (channel: Channel, reqHead: HTTPRequestHead) -> EventLoopFuture<Void> in
+//                // TODO do we want to do something here?
+//                return channel.eventLoop.makeSucceededVoidFuture()
+//                //channel.pipeline.addHandler(WebSocketsRequestHandler())
+//                //return .andAllComplete(httpHandlers.map { channel.pipeline.removeHandler($0) }, on: channel.eventLoop).flatMap {
+//                    //channel.pipeline.removeHandler(httpRequestHandler)
+//                //}
+//            }
+//        )
+//
+//        let upgrader = HTTPServerUpgradeHandler(
+//            upgraders: [webSocketsUpgrader],
+//            httpEncoder: httpResponseEncoder,
+//            extraHTTPHandlers: (httpHandlers.appending(httpRequestHandler)).filter { $0 !== httpResponseEncoder },
+//            upgradeCompletionHandler: { (context: ChannelHandlerContext) -> Void in print("upgrade complete!") }
+//        )
+        
+        let upgrader = LKHTTPUpgradeHandler(
+            handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
+        )
+        
+        httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [RemovableChannelHandler])
+        
+        return pipeline.addHandlers(httpHandlers).flatMap {
+            self.pipeline.addHandler(ErrorHandler(msg: "HTTP1Pipeline"))
         }
+        
+//        return pipeline.addHandlers([
+//            HTTPResponseEncoder(),
+//            ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
+//            HTTPServerRequestDecoder(),
+//            HTTPServerResponseEncoder(),
+//            HTTPServerRequestHandler(responder: responder),
+//            // TODO add a HTTPServerUpgradeHandler ???
+//        ]).flatMap {
+//            self.pipeline.addHandler(ErrorHandler(msg: "configHTTP1Pipeline"))
+//        }
     }
 }

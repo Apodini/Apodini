@@ -1,8 +1,10 @@
 import NIO
 import NIOHTTP1
+import NIOWebSocket
+import WebSocketKit
 import Foundation
 
-public final class HTTPResponse {
+public class HTTPResponse {
     public var version: HTTPVersion
     public var status: HTTPResponseStatus
     public var headers: HTTPHeaders
@@ -21,6 +23,46 @@ public final class HTTPResponse {
     }
 }
 
+
+/// A HTTP response that performs a protocol upgrade
+internal class HTTPUpgradingResponse: HTTPResponse {
+    enum Upgrade {
+        case webSocket(
+            maxFrameSize: Int,
+            shouldUpgrade: () -> EventLoopFuture<HTTPHeaders?>,
+            onUpgrade: (WebSocket) -> Void
+        )
+    }
+    
+    var upgrade: Upgrade
+    
+    init(version: HTTPVersion, status: HTTPResponseStatus, headers: HTTPHeaders, bodyStorage: BodyStorage = .buffer(), upgrade: Upgrade) {
+        self.upgrade = upgrade
+        super.init(version: version, status: status, headers: headers, bodyStorage: bodyStorage)
+    }
+}
+
+
+extension HTTPRequest {
+    /// Creates, in response to this request, a HTTP upgrade response for switching the protocol from HTTP to WebSocket.
+    public func makeWebSocketUpgradeResponse(
+        maxFrameSize: Int = 1 << 14,
+        shouldUpgrade: @escaping (HTTPRequest) -> EventLoopFuture<HTTPHeaders?> = { $0.eventLoop.makeSucceededFuture([:]) },
+        onUpgrade: @escaping (HTTPRequest, WebSocket) -> Void
+    ) -> HTTPResponse {
+        return HTTPUpgradingResponse(
+            version: self.version,
+            status: .switchingProtocols,
+            headers: [:],
+            bodyStorage: .buffer(),
+            upgrade: .webSocket(
+                maxFrameSize: maxFrameSize,
+                shouldUpgrade: { shouldUpgrade(self) },
+                onUpgrade: { onUpgrade(self, $0) }
+            )
+        )
+    }
+}
 
 
 /// A type which can be turned into a `HTTPResponse`

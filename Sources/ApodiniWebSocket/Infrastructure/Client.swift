@@ -7,7 +7,8 @@
 //              
 
 import Foundation
-@_implementationOnly import Vapor
+//@_implementationOnly import Vapor
+@_implementationOnly import WebSocketKit
 @_implementationOnly import Logging
 
 
@@ -62,7 +63,7 @@ struct StatelessClient {
         let response = eventLoop.makePromise(of: [O].self)
         var responses: [O] = []
         
-        _ = Vapor.WebSocket.connect(
+        _ = WebSocketKit.WebSocket.connect(
             to: self.address,
             on: eventLoop
         ) { websocket in
@@ -101,7 +102,7 @@ struct StatelessClient {
         return response.futureResult
     }
     
-    private func sendOpen(context: UUID, on endpoint: String, to websocket: Vapor.WebSocket, promise: EventLoopPromise<Void>) {
+    private func sendOpen(context: UUID, on endpoint: String, to websocket: WebSocketKit.WebSocket, promise: EventLoopPromise<Void>) {
         do {
             // create context on user endpoint
             let message = try OpenContextMessage(context: context, endpoint: endpoint).JSONEncodeToString()
@@ -112,7 +113,7 @@ struct StatelessClient {
         }
     }
     
-    private func send<I: Encodable, O>(messages: [I], on context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
+    private func send<I: Encodable, O>(messages: [I], on context: UUID, to websocket: WebSocketKit.WebSocket, promise: EventLoopPromise<O>) {
         for input in messages {
             do {
                 let message = try ClientMessage(context: context, parameters: input).JSONEncodeToString()
@@ -127,7 +128,7 @@ struct StatelessClient {
         }
     }
     
-    private func sendClose<O>(context: UUID, to websocket: Vapor.WebSocket, promise: EventLoopPromise<O>) {
+    private func sendClose<O>(context: UUID, to websocket: WebSocketKit.WebSocket, promise: EventLoopPromise<O>) {
         do {
             let message = try CloseContextMessage(context: context).JSONEncodeToString()
             self.logger.debug(">>> \(message)")
@@ -141,7 +142,7 @@ struct StatelessClient {
     }
     
     private func onText<O: Decodable>(
-        websocket: Vapor.WebSocket,
+        websocket: WebSocketKit.WebSocket,
         string: String,
         context: UUID,
         promise: EventLoopPromise<[O]>,

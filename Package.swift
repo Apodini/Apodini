@@ -110,7 +110,8 @@ let package = Package(
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0")
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -366,6 +367,7 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
+                .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "Vapor", package: "vapor"), // ein dorn in meinem auge
                 .product(name: "Logging", package: "swift-log")
@@ -378,10 +380,10 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
-                .product(name: "Vapor", package: "vapor"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ]

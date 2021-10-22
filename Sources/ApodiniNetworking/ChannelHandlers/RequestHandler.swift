@@ -1,9 +1,11 @@
 import NIO
 import NIOHTTP1
+import NIOWebSocket
+import WebSocketKit
 import Foundation
 
 
-class HTTPServerRequestHandler: ChannelInboundHandler {
+class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     typealias InboundIn = HTTPRequest
     typealias OutboundOut = HTTPResponse
     
@@ -65,5 +67,19 @@ class HTTPServerRequestHandler: ChannelInboundHandler {
             }
         }
     }
+    
+    // TODO what if were removed while waiting on some stream?
+//    func removeHandler(context: ChannelHandlerContext, removalToken: ChannelHandlerContext.RemovalToken) {
+//        <#code#>
+//    }
 }
 
+
+//class WebSocketsRequestHandler: ChannelInboundHandler {
+//    typealias InboundIn = WebSocketFrame
+//    typealias OutboundOut = WebSocketFrame
+//
+//    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+//        fatalError("TODO")
+//    }
+//}

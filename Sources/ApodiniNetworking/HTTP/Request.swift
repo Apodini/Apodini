@@ -31,7 +31,7 @@ extension HTTPRequest {
 }
 
 
-public final class HTTPRequest: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
+public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
         /// The requst's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
@@ -145,6 +145,15 @@ public final class HTTPRequest: RequestBasis, CustomStringConvertible, CustomDeb
     internal func populate(from route: HTTPRouter.Route, withParameters parameters: ParametersStorage) {
         self.route = route
         self.parameters = parameters
+    }
+    
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+    
+    public static func == (lhs: HTTPRequest, rhs: HTTPRequest) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 

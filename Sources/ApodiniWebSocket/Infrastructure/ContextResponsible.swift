@@ -6,11 +6,14 @@
 // SPDX-License-Identifier: MIT
 //              
 
-@_implementationOnly import Vapor
+//@_implementationOnly import Vapor
 import _Concurrency
 import NIOWebSocket
-import ApodiniExtension
+import WebSocketKit
 import ApodiniUtils
+import ApodiniExtension
+import Foundation
+import ApodiniNetworking
 
 
 protocol ContextResponsible {
@@ -57,7 +60,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     let inputReceiver: Subscribable
     
     convenience init(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, HTTPRequest) ->
             (default: I, output: AnyAsyncSequence<Message<O>>),
         con: ConnectionResponsible,
         context: UUID) {
@@ -72,17 +75,18 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
                 con.destruct(context)
             },
             close: con.close,
-            request: con.request)
+            initiatingRequest: con.initiatingRequest
+        )
     }
     
     init(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, Vapor.Request) -> (default: I, output: AnyAsyncSequence<Message<O>>),
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, HTTPRequest) -> (default: I, output: AnyAsyncSequence<Message<O>>),
         eventLoop: EventLoop,
         send: @escaping (O) -> Void,
         sendError: @escaping (Error) -> Void,
         destruct: @escaping () -> Void,
         close: @escaping (WebSocketErrorCode) -> Void,
-        request: Vapor.Request
+        initiatingRequest: HTTPRequest
     ) {
         let subscribable = Subscribable()
         
@@ -106,7 +110,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
             }
             .typeErased
         
-        let (defaultInput, output) = opener(outputToHandler, eventLoop, request)
+        let (defaultInput, output) = opener(outputToHandler, eventLoop, initiatingRequest)
         
         self.input = defaultInput
         

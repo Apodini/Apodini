@@ -149,7 +149,7 @@ struct LKTestWebService: Apodini.WebService {
         //HTTP2Configuration(cert: <#T##String?#>, keyPath: <#T##String?#>)
         HTTPConfiguration(hostname: "localhost")
         REST()
-        GRPCv2(serviceName: "LKTestWebService")
+        //GRPCv2(serviceName: "LKTestWebService")
 //        GRPCv2()
     }
 }

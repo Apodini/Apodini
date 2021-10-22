@@ -7,11 +7,18 @@ import Foundation
 
 
 /// A type which can be turned into a HTTP header field value
-public protocol HTTPHeaderFieldValueCodable {
+public protocol HTTPHeaderFieldValueCodable: Hashable {
     init?(httpHeaderFieldValue value: String) // TODO should this throw?
     
     func encodeToHTTPHeaderFieldValue() -> String
 }
+
+
+//extension HTTPHeaderFieldValueCodable {
+//    public func hash(into hasher: inout Hasher) {
+//        <#code#>
+//    }
+//}
 
 
 
@@ -135,7 +142,7 @@ extension __LKNIOHTTPHeadersType {
     /// - Returns: When reading: `nil` if the field is not present
     /// - Throws: When reading: if the field is present, but there was an error decoding its value. When writing: if there was an error encoding the new value
     /// /// - Note: Using this subscript to set HTTP2 header values will default the HPACKIndexable property to .indexable. If you don't want this, use the `add` or `replaceOrAdd` functions
-    public subscript<T: HTTPHeaderFieldValueCodable>(name: HTTPHeaderName<[T]>) -> [T]? {
+    public subscript<T: HTTPHeaderFieldValueCodable>(name: HTTPHeaderName<[T]>) -> [T] {
         get {
             switch name {
             case .setCookie:
@@ -150,20 +157,20 @@ extension __LKNIOHTTPHeadersType {
             }
         }
         set {
-            guard let newValues = newValue, !newValues.isEmpty else {
+            guard !newValue.isEmpty else {
                 remove(name: name.rawValue)
                 return
             }
             switch name {
             case .setCookie:
-                let encodedValues = newValues.map { $0.encodeToHTTPHeaderFieldValue() }
+                let encodedValues = newValue.map { $0.encodeToHTTPHeaderFieldValue() }
                 for value in encodedValues {
                     add(name: name.rawValue, value: value, indexing: .indexable)
                 }
             default:
                 add(
                     name: name.rawValue,
-                    value: newValues.map { $0.encodeToHTTPHeaderFieldValue() }.joined(separator: ", "),
+                    value: newValue.map { $0.encodeToHTTPHeaderFieldValue() }.joined(separator: ", "),
                     indexing: .indexable
                 )
             }
@@ -180,14 +187,80 @@ extension __LKNIOHTTPHeadersType {
 public extension AnyHTTPHeaderName {
     static let accept = HTTPHeaderName<[HTTPMediaType]>("Accept")
     static let authorization = HTTPHeaderName<AuthorizationHTTPHeaderValue>("Authorization")
-    static let connection = HTTPHeaderName<[String]>("Connection") // TODO use the dedicated type!
+    static let connection = HTTPHeaderName<[HTTPConnectionHeaderValue]>("Connection")
     static let contentType = HTTPHeaderName<HTTPMediaType>("Content-Type")
     static let date = HTTPHeaderName<Date>("Date")
     static let setCookie = HTTPHeaderName<[SetCookieHTTPHeaderValue]>("Set-Cookie")
     static let transferEncoding = HTTPHeaderName<[TransferCodingHTTPHeaderValue]>("Transfer-Encoding")
     static let server = HTTPHeaderName<String>("Server")
+    static let upgrade = HTTPHeaderName<[HTTPUpgradeHeaderValue]>("Upgrade")
     static let contentEncoding = HTTPHeaderName<[ContentEncodingHTTPHeaderValue]>("Content-Encoding")
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
+}
+
+
+
+public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
+    case close
+    case keepAlive
+    case upgrade
+    case other(String)
+    
+    public init?(httpHeaderFieldValue value: String) {
+        switch value.lowercased() {
+        case "close":
+            self = .close
+        case "keep-alive":
+            self = .keepAlive
+        case "upgrade":
+            self = .upgrade
+        default:
+            self = .other(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .close:
+            return "close"
+        case .keepAlive:
+            return "Keep-Alive"
+        case .upgrade:
+            return "Upgrade"
+        case .other(let value):
+            return value
+        }
+    }
+}
+
+
+
+public enum HTTPUpgradeHeaderValue: HTTPHeaderFieldValueCodable {
+    case http2
+    case webSocket
+    case other(String)
+    
+    public init?(httpHeaderFieldValue value: String) {
+        switch value {
+        case "HTTP/2.0", "HTTP/2":
+            self = .http2
+        case "websocket":
+            self = .webSocket
+        default:
+            self = .other(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .http2:
+            return "HTTP/2.0"
+        case .webSocket:
+            return "websocket"
+        case .other(let value):
+            return value
+        }
+    }
 }
 
 
@@ -336,23 +409,6 @@ public enum AuthorizationHTTPHeaderValue: HTTPHeaderFieldValueCodable {
         }
     }
 }
-
-
-
-// TODO
-//public enum ConnectionHTTPHeaderValue: HTTPHeaderFieldValueCodable {
-//    case close
-//    case keepAlive
-//    case other([String])
-//
-//    public init?(httpHeaderFieldValue value: String) {
-//        switch value {
-//        case "close":
-//            self = .close
-//            case "
-//        }
-//    }
-//}
 
 
 
