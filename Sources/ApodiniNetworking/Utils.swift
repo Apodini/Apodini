@@ -63,3 +63,15 @@ extension HTTPHeaders {
     }
 }
 
+
+extension EventLoopFuture {
+    public func flatMapAlways<NewValue>(
+        file: StaticString = #file,
+        line: UInt = #line,
+        _ block: @escaping (Result<Value, Error>) -> EventLoopFuture<NewValue>
+    ) -> EventLoopFuture<NewValue> {
+        let promise = self.eventLoop.makePromise(of: NewValue.self, file: file, line: line)
+        self.whenComplete { block($0).cascade(to: promise) }
+        return promise.futureResult
+    }
+}

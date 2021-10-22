@@ -12,7 +12,7 @@ import XCTest
 
 class XCTBootstrap: XCTestCase {
     func testRunner() throws {
-        return;
+//        return;
         print("Bootstrapping negative test runner...")
         let runner = try NegativeTestRunner()
 

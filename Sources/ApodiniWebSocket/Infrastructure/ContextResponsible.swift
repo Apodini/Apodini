@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//@_implementationOnly import Vapor
 import _Concurrency
 import NIOWebSocket
 import WebSocketKit

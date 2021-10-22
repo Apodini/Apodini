@@ -7,7 +7,6 @@
 //              
 
 import Foundation
-//@_implementationOnly import Vapor
 @_implementationOnly import WebSocketKit
 @_implementationOnly import Logging
 

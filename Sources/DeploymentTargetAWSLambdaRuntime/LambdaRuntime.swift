@@ -7,13 +7,10 @@
 //              
 
 import Foundation
-import Vapor
 import ArgumentParser
 import Apodini
-import ApodiniVaporSupport
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
-import VaporAWSLambdaRuntime
 import ApodiniOpenAPI
 import OpenAPIKit
 
@@ -41,7 +38,8 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     
     
     public func configure(_ app: Apodini.Application) throws {
-        app.vapor.app.servers.use(.lambda)
+        //app.vapor.app.servers.use(.lambda)
+        // TODO
     }
     
     

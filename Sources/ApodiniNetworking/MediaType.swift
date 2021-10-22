@@ -85,8 +85,10 @@ extension HTTPMediaType {
     public static let html = HTTPMediaType(type: "text", subtype: "html", parameters: ["charset": "utf-8"])
     public static let json = HTTPMediaType(type: "application", subtype: "json", parameters: ["charset": "utf-8"])
     public static let xml = HTTPMediaType(type: "application", subtype: "xml", parameters: ["charset": "utf-8"])
-    public static let gRPC = HTTPMediaType(type: "application", subtype: "grpc")
     public static let pdf = HTTPMediaType(type: "application", subtype: "pdf")
+    public static let gRPC = HTTPMediaType(type: "application", subtype: "grpc")
+    public static let gRPCProto = HTTPMediaType(type: "application", subtype: "grpc+proto")
+    public static let gRPCJSON = HTTPMediaType(type: "application", subtype: "grpc+json")
     // TODO add some more
     
 //    public enum CharsetParameterValue: String {

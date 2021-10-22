@@ -10,12 +10,10 @@ import Apodini
 import ApodiniUtils
 import ApodiniExtension
 import ApodiniLoggingSupport
-//import ApodiniVaporSupport
 import NIOWebSocket
 import WebSocketKit
 import Foundation
 import ApodiniNetworking
-//@_implementationOnly import Vapor
 
 // MARK: Exporter
 

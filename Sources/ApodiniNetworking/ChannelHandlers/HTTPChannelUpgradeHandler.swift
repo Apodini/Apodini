@@ -54,7 +54,7 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
             return
         }
         
-        let upgradeHeaderValues = request.headers[.upgrade] as [HTTPUpgradeHeaderValue] // TODO ideally the as wouldn't be necessary but for some reason swift seems to be picking up the vapor extension's subscript instead of our own? (even though we don't import vapor...)
+        let upgradeHeaderValues = request.headers[.upgrade]// as [HTTPUpgradeHeaderValue] // TODO ideally the as wouldn't be necessary but for some reason swift seems to be picking up the vapor extension's subscript instead of our own? (even though we don't import vapor...)
         
         if upgradeHeaderValues.contains(.webSocket) {
             state = .pendingWebSocketUpgrade(request)

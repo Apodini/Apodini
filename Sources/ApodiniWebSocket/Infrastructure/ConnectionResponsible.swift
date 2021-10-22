@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //              
 
-//@_implementationOnly import Vapor
 import ApodiniUtils
 import NIOWebSocket // TODO make this also @_implementationOnly?
 import Foundation

@@ -26,12 +26,6 @@ extension XMLEncoder: ApodiniUtils.AnyEncoder {
         let element: XML.Element = try self.encode(value)
         return element.xmlString.data(using: .utf8)!
     }
-    
-    /// Need to implement the encoder() function from the `ContentEncoder` protocol (Vapor) to set XML content type
-    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws where E: Encodable {
-        headers.contentType = .xml
-        try body.writeBytes(self.encode(encodable))
-    }
 }
 
 extension XMLDecoder: ApodiniUtils.AnyDecoder {

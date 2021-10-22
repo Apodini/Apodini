@@ -29,7 +29,6 @@ let package = Package(
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
-        .library(name: "ApodiniVaporSupport", targets: ["ApodiniVaporSupport"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
 
         // Authorization
@@ -92,7 +91,7 @@ let package = Package(
         .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
         
         // Deploy
-        .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
+        //.package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
         
@@ -212,7 +211,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding")
             ]
@@ -344,17 +343,6 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio")
             ]
         ),
-
-        .target(
-            name: "ApodiniVaporSupport",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniLoggingSupport"),
-                .product(name: "Vapor", package: "vapor")
-            ]
-        ),
         
         
         .target(
@@ -369,7 +357,7 @@ let package = Package(
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
-                .product(name: "Vapor", package: "vapor"), // ein dorn in meinem auge
+                .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Logging", package: "swift-log")
             ]
         ),
@@ -523,15 +511,6 @@ let package = Package(
         ),
         
         .testTarget(
-            name: "ApodiniVaporSupportTests",
-            dependencies: [
-                .target(name: "XCTApodini"),
-                .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniVaporSupport")
-            ]
-        ),
-        
-        .testTarget(
             name: "ApodiniExtensionTests",
             dependencies: [
                 .target(name: "XCTApodini")
@@ -655,8 +634,8 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
-                .target(name: "ApodiniOpenAPI"),
-                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+                .target(name: "ApodiniOpenAPI")
+                //.product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         ),
         

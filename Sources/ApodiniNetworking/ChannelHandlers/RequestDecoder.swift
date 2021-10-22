@@ -41,7 +41,8 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             fatalError("Invalid state: received unexpected head (was waiting for body)")
         case (.awaitingBody(let req), .body(let bodyBuffer)):
             print("Awaiting Body. Received Body. Body: \(bodyBuffer)")
-            if req.headers.first(name: .contentLength).map(Int.init) == bodyBuffer.readableBytes {
+            if req.headers[.contentLength] == bodyBuffer.readableBytes {
+            //if req.headers.first(name: .contentLength).map(Int.init) == bodyBuffer.readableBytes {
                 req.bodyStorage = .buffer(bodyBuffer)
                 state = .awaitingEnd(req)
             } else {

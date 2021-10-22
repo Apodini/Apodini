@@ -196,6 +196,7 @@ public extension AnyHTTPHeaderName {
     static let upgrade = HTTPHeaderName<[HTTPUpgradeHeaderValue]>("Upgrade")
     static let contentEncoding = HTTPHeaderName<[ContentEncodingHTTPHeaderValue]>("Content-Encoding")
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
+    static let eTag = HTTPHeaderName<String>("ETag") // TODO use the dedicated type?
 }
 
 
@@ -412,6 +413,12 @@ public enum AuthorizationHTTPHeaderValue: HTTPHeaderFieldValueCodable {
 
 
 
+// TODO?
+//public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
+//    case weak
+//}
+
+
 // MARK: Extensions for Well-Known HTTP Header Fields
 // TODO can we limit this in a way that eg for a request you cant set response header fields?
 
@@ -480,4 +487,3 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
             .joined(separator: ", ")
     }
 }
-

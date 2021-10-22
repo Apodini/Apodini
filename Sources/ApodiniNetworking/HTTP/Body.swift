@@ -23,6 +23,13 @@ extension Data: __LKByteBufferWritable {
 }
 
 
+extension Array: __LKByteBufferWritable where Element == UInt8 {
+    public func write(to byteBuffer: inout ByteBuffer) {
+        byteBuffer.writeBytes(self)
+    }
+}
+
+
 extension ByteBuffer: __LKByteBufferWritable {
     public func write(to byteBuffer: inout ByteBuffer) {
         var selfCopy = self // TODO this is bad insofar as it doesn't move the actual self's readerIndex
@@ -180,6 +187,47 @@ public enum BodyStorage {
             stream: { $0.mutateStorage { $0.reserveCapacity(capacity) } }
         )
     }
+    
+    
+    public func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
+        switch self {
+        case .stream(let stream):
+            // TODO ideally this would, once the stream ended, simply turn self into a .buffer with the collected data...
+            let promise = eventLoop.makePromise(of: ByteBuffer.self)
+            stream.setObserver { stream, event in
+                if stream.isClosed {
+                    promise.succeed(stream.readNewData() ?? .init())
+                }
+                // TODO what if the stream is never closed?
+            }
+            return promise.futureResult
+        case .buffer(let buffer):
+            return eventLoop.makeSucceededFuture(buffer)
+        }
+    }
+    
+    
+    public enum BodyStorageDrainResult {
+        case buffer(ByteBuffer)
+        case end
+    }
+    
+    public func drain(_ handler: @escaping (BodyStorageDrainResult) -> Void) {
+        switch self {
+        case .buffer(let buffer):
+            handler(.buffer(buffer))
+            handler(.end)
+        case .stream(let stream):
+            stream.setObserver { stream, event in
+                if stream.isClosed {
+                    if let buffer = stream.readNewData() {
+                        handler(.buffer(buffer))
+                    }
+                    handler(.end)
+                }
+            }
+        }
+    }
 }
 
 
@@ -227,13 +275,13 @@ extension BodyStorage {
         /// The observer gets called when certain events occur on the stream, such as the stream being written to or closed
         /// - Note: Pass nil to remove the current observer. The observer will automatically be removed when the stream is closed, since no further events will occur
         /// - Note: Registering an observer on an already-closed stream will invoke the observer once (with the `.close` event), and then remove the observer from the stream
-        public func setObserver(_ fn: ObserverFn?) {
-            //lock.withLock { print("Setting new observer on \(Unmanaged.passUnretained(self).toOpaque())"); observer = fn }
+        public func setObserver(allowOverwritingExistingObserver: Bool = false, _ fn: ObserverFn?) {
             lock.withLock {
                 if isClosed {
+                    precondition(self.observer == nil || fn == nil)
                     fn?(self, .close)
-                    observer = nil
                 } else {
+                    precondition(observer == nil || allowOverwritingExistingObserver, "Attempted to set an observer on a stream that already has an observer registered. If this is something you actually want (which probably isn't the case, considering that a stream can only have one observer, and that existing other observer would now no longer receive stream events), you can use the 'allowOverwritingExistingObserver' parameter to explicitly enable this behaviour.")
                     observer = fn
                 }
             }
@@ -246,6 +294,8 @@ extension BodyStorage {
         
         
         public func write<T: __LKByteBufferWritable>(_ data: T) {
+            // Note ideally this (and the other mutating write functions) would also take a promise/future parameter, or return smth; that would allow us to control when data is written to the stream.
+            // Otherwise we could, for very large streams, eventually run out of memory, which would be somewhat suboptimal
             lock.withLock {
                 precondition(!isClosed, "Cannot write to closed stream")
                 data.write(to: &storage)

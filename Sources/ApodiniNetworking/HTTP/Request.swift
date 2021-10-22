@@ -4,7 +4,7 @@ import ApodiniHTTPProtocol
 import NIO
 import NIOHTTP1
 import Foundation
-@_implementationOnly import struct Vapor.URLEncodedFormDecoder // TODO
+//@_implementationOnly import struct Vapor.URLEncodedFormDecoder // TODO
 
 
 extension HTTPRequest {
@@ -113,7 +113,10 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         guard case Optional<String?>.some(.some(let rawValue)) = url.queryItems[key] else {
             return nil
         }
-        return try URLEncodedFormDecoder().decode(T.self, from: rawValue)
+        //return try URLEncodedFormDecoder().decode(T.self, from: rawValue)
+        //print(#function, key, T.self, try? URLEncodedFormDecoder().decode(T.self, from: rawValue), try? URLQueryParameterValueDecoder().decode(T.self, from: rawValue));
+        //return (T.self as! LosslessStringConvertible.Type).init(rawValue) as! T?
+        return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
 //        //print(try? try URLEncodedFormDecoder().decode(T.self, from: rawValue), T.self is String.Type, "-[\(Self.self) \(#function)]<\(T.self)>(key='\(key)') value: \(rawValue)")
 //        if T.self == String.self {
 //            // TODO we have to decode the url-encoded (but not explicitly quoted) string query param into a normal string

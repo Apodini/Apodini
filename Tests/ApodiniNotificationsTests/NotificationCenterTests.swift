@@ -96,7 +96,7 @@ final class NotificationCenterTests: XCTApodiniTest {
             .filter(\.$id == device.id)
             .with(\.$topics)
             .first()
-            .unwrap(or: HTTPAbortError(status: .notFound))
+            .unwrap(orError: HTTPAbortError(status: .notFound))
             .wait()
             .transform()
  

@@ -41,10 +41,10 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             XCTAssertEqual(res.status, .ok)
             XCTAssertNoThrow(try res.bodyStorage.getFullBodyData(decodedAs: OpenAPI.Document.self, using: JSONDecoder()))
         }
-
-        //let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
-        var headers = HTTPHeaders()
-        headers.contentType = .html
+        
+        let headers = HTTPHeaders {
+            $0[.contentType] = .html
+        }
         
         try app.testable().test(.GET, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
@@ -87,9 +87,9 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             XCTAssertThrowsError(try res.bodyStorage.getFullBodyData(decodedAs: OpenAPI.Document.self, using: JSONDecoder()))
         }
 
-        //let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
-        var headers = HTTPHeaders()
-        headers.contentType = .html
+        let headers = HTTPHeaders {
+            $0[.contentType] = .html
+        }
 
         try app.testable().test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)

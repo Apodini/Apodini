@@ -12,7 +12,7 @@ public protocol Configuration {
     /// A method that handles the configuration of a service which is called by the `main` function.
     ///
     /// - Parameter
-    ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
+    ///    - app: The `Application` which is used to register the configuration in Apodini
     func configure(_ app: Application)
     
     /// A default CLI command that can be defined by the configuration.

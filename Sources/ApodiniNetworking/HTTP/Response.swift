@@ -4,6 +4,7 @@ import NIOWebSocket
 import WebSocketKit
 import Foundation
 
+
 public class HTTPResponse {
     public var version: HTTPVersion
     public var status: HTTPResponseStatus

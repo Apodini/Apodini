@@ -368,12 +368,13 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testInformation() throws {
+        let authToken = "UGF1bFNjaG1pZWRtYXllcjpTdXBlclNlY3JldFBhc3N3b3Jk"
         let value = "Basic UGF1bFNjaG1pZWRtYXllcjpTdXBlclNlY3JldFBhc3N3b3Jk"
+        
+        let headers = HTTPHeaders {
+            $0[.authorization] = .basic(credentials: authToken)
+        }
 
-        var headers = HTTPHeaders()
-        headers.add(name: .authorization, value: value)
-
-        //let request = Vapor.Request(application: app.vapor.app, headers: headers, on: app.eventLoopGroup.next())
         let request = HTTPRequest(method: .GET, url: "/", headers: headers, eventLoop: app.eventLoopGroup.next())
 
         var information = request.information
@@ -387,8 +388,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         XCTAssertNil(authorization.bearerToken)
 
         let restoredHeaders = HTTPHeaders(information)
-        XCTAssertEqual(restoredHeaders.first(name: .authorization), value)
-        XCTAssertEqual(restoredHeaders.first(name: .eTag), "W/\"someTag\"")
+        XCTAssertEqual(restoredHeaders[.authorization], .basic(credentials: authToken))
+        XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.authorization.rawValue), value)
+        XCTAssertEqual(restoredHeaders[.eTag], "W/\"someTag\"")
+        XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.eTag.rawValue), "W/\"someTag\"")
     }
     
     func testRESTInformation() throws {
