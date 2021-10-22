@@ -9,7 +9,7 @@ import Apodini
 
 
 struct Random: Handler {
-    @Parameter var number = Int.random()
+    @Parameter var number = Int.random(in: Int.min...Int.max)
     
     func handle() -> Int {
         number
