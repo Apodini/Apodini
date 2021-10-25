@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
         "state": {
           "branch": null,
-          "revision": "e7645362c051fb12c28ed290c6e7f6918596d25b",
-          "version": "3.1.0"
+          "revision": "b53fd38f5611c6b935427febb43d91b15be26c0d",
+          "version": "3.2.0"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/vapor/jwt-kit.git",
         "state": {
           "branch": null,
-          "revision": "ca2edf69a613f3d89354114f56cfd9921d2727d5",
-          "version": "4.2.6"
+          "revision": "1822bb0abf0a31a4b5078ec19061c548835253b5",
+          "version": "4.3.0"
         }
       },
       {
@@ -231,8 +231,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "801688207773d33d4b0c1e366eb3faa9a12c2137",
-          "version": "3.11.0"
+          "revision": "8587674e7e2499fd2017840973f416182025b02d",
+          "version": "3.12.1"
         }
       },
       {
