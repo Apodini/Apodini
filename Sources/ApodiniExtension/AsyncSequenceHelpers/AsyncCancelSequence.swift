@@ -54,7 +54,7 @@ extension AsyncCancelSequence {
 public extension AsyncSequence {
     /// Returns an asynchronous sequence, containing the initial, consecutive elements of the
     /// base sequence up until (and including) the first for which `cancel` returns `true`.
-    func cancel(if cancel: @escaping (Self.Element) async -> Bool) -> AsyncCancelSequence<Self> {
-        AsyncCancelSequence(self, cancel: cancel)
+    func cancelIf(_ predicate: @escaping (Self.Element) async -> Bool) -> AsyncCancelSequence<Self> {
+        AsyncCancelSequence(self, cancel: predicate)
     }
 }

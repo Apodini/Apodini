@@ -7,7 +7,7 @@
 //              
 
 import ApodiniUtils
-import NIOWebSocket // TODO make this also @_implementationOnly?
+@_implementationOnly import NIOWebSocket
 import Foundation
 import Logging
 @_implementationOnly import WebSocketKit
@@ -25,13 +25,18 @@ class ConnectionResponsible: Identifiable {
     private var endpoints: [String: ContextOpener]
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: WebSocketKit.WebSocket, initiatingRequest: HTTPRequest, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
+    init(
+        _ websocket: WebSocketKit.WebSocket,
+        initiatingRequest: HTTPRequest,
+        onClose: @escaping (ID) -> Void,
+        endpoints: [String: ContextOpener],
+        logger: Logger
+    ) {
         self.websocket = websocket
         self.onClose = onClose
         self.endpoints = endpoints
         self.logger = logger
         self.initiatingRequest = initiatingRequest
-        
         websocket.onText { websocket, message in
             var context: UUID?
             do {

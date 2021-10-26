@@ -4,16 +4,23 @@ import XCTest
 import AsyncHTTPClient
 
 
+/// Testing request
 public struct XCTHTTPRequest {
+    /// HTTP version
     public let version: HTTPVersion
+    /// HTTP method
     public let method: HTTPMethod
+    /// URI
     public let url: URI
+    /// headers
     public let headers: HTTPHeaders
+    /// body
     public let body: ByteBuffer
     
     fileprivate let file: StaticString
     fileprivate let line: UInt
     
+    /// Creates a testing request
     public init(
         version: HTTPVersion,
         method: HTTPMethod,
@@ -35,13 +42,22 @@ public struct XCTHTTPRequest {
 
 
 /// How a tester --- absent of any further information --- should treat the expected body of a response.
-public enum XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType {
+public enum XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType { // swiftlint:disable:this type_name
+    /// buffer
     case buffer
+    /// stream
     case stream
 }
 
 
+/// A proxy that can handle testing requests
 public protocol XCTApodiniNetworkingRequestResponseTester {
+    /// Perform a test
+    /// - parameter request: The request to be tested
+    /// - parameter expectedBodyType: Whether the response will be buffer- or stream-based
+    /// - parameter responseStart: Block that will be invoked when the response starts (useful when dealing with stream-based responses). May be called on a different thread than this function's caller's
+    /// - parameter responseEnd: Block that will be invoked when the response has ended. This is what should be used to perform tests etc against the response
+    /// - Note: This function is synchronous, meaning that it will only return once the response has been fully received and the `responseEnd` block has returned
     func performTest(
         _ request: XCTHTTPRequest,
         expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType,
@@ -51,12 +67,12 @@ public protocol XCTApodiniNetworkingRequestResponseTester {
 }
 
 
-
 private func makeUrl(version: HTTPVersion, path: String) -> URI {
-    return URI(string: "\(version.major > 1 ? "https" : "http")://127.0.0.1:8000/\(path.hasPrefix("/") ? path.dropFirst() : path[...])")!
+    URI(string: "\(version.major > 1 ? "https" : "http")://127.0.0.1:8000/\(path.hasPrefix("/") ? path.dropFirst() : path[...])")!
 }
 
 extension XCTApodiniNetworkingRequestResponseTester {
+    /// Initiates a test request
     public func test(
         version: HTTPVersion = .http1_1,
         _ method: HTTPMethod,
@@ -66,8 +82,8 @@ extension XCTApodiniNetworkingRequestResponseTester {
         expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType = .buffer,
         file: StaticString = #file,
         line: UInt = #line,
-        responseStart: @escaping (HTTPResponse) throws -> () = { _ in },
-        responseEnd: (HTTPResponse) throws -> ()
+        responseStart: @escaping (HTTPResponse) throws -> Void = { _ in },
+        responseEnd: (HTTPResponse) throws -> Void
     ) throws {
         do {
             try self.performTest(XCTHTTPRequest(
@@ -78,15 +94,15 @@ extension XCTApodiniNetworkingRequestResponseTester {
                 body: body,
                 file: file,
                 line: line
-            ), expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd)
+            ), expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd) // swiftlint:disable:this multiline_arguments line_length
+            // ^^ this is ironic, the only reason why we need to disable the line_length rule is
+            // because the preceding swiftlint comment pushed it over the limit...
         } catch {
             XCTFail("\(error)", file: file, line: line)
             throw error
         }
     }
 }
-
-
 
 
 extension Apodini.Application {
@@ -100,12 +116,13 @@ extension Apodini.Application {
     }
     
     
+    /// Creates a proxy application/request tester
     public func testable(_ methods: Set<TestingMethod> = [.inMemory]) -> XCTApodiniNetworkingRequestResponseTester {
-        return MultiplexingTester(testers: methods.map { method in
+        MultiplexingTester(testers: methods.map { method in
             switch method {
             case .inMemory:
                 return InMemoryTester(app: self)
-            case .actualRequests(let hostname, let port):
+            case let .actualRequests(hostname, port):
                 return ActualRequestsTester(app: self, hostname: hostname, port: port)
             }
         })
@@ -170,7 +187,7 @@ extension Apodini.Application {
             precondition(!app.httpServer.isRunning)
             let address: (hostname: String, port: Int)
             switch app.http.address {
-            case .hostname(let currentAppHostname, port: let currentAppPort):
+            case let .hostname(currentAppHostname, port: currentAppPort):
                 address = (hostname ?? currentAppHostname, port ?? currentAppPort)
                 app.http.address = .hostname(address.hostname, port: address.port)
             case .unixDomainSocket(_):
@@ -212,9 +229,7 @@ extension Apodini.Application {
 }
 
 
-
-
-private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate {
+private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate { // swiftlint:disable:this type_name
     typealias Response = HTTPResponse
     
     private let expectedBodyType: XCTApodiniNetworkingRequestResponseTesterResponseBodyExpectedBodyStorageType
@@ -240,7 +255,6 @@ private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTP
                 }
             }()
         )
-        self.response.bodyStorage.stream?.debugName = "HTTPClientResponse"
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {

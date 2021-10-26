@@ -75,8 +75,7 @@ final class ProtobufferInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
-        // TODO move this to the common __apodini path?
-        app.httpServer.registerRoute(.GET, ["apodini", "proto"]) { request in
+        app.httpServer.registerRoute(.GET, ["apodini", "proto"]) { _ in
             description
         }
     }

@@ -113,7 +113,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         
         self.input = defaultInput
         
-        _Concurrency.Task {
+        Task {
             do {
                 for try await message in output {
                     switch message {

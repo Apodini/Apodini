@@ -20,7 +20,7 @@ import SotoApiGatewayV2
 
 
 class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
-    private var task: Task! // swiftlint:disable:this implicitly_unwrapped_optional
+    private var task: ChildProcess! // swiftlint:disable:this implicitly_unwrapped_optional
     private var taskStdioObserverToken: AnyObject?
     
     
@@ -49,7 +49,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
-        task = Task(
+        task = ChildProcess(
             executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetAWSLambda"),
             arguments: [
                 srcRoot.path,
@@ -71,7 +71,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         )
         
         
-        let taskDidFinishExpectation = XCTestExpectation("Task did finish")
+        let taskDidFinishExpectation = XCTestExpectation("ChildProcess did finish")
         
         try task.launchAsync { [unowned self] terminationInfo in
             withoutContinuingAfterFailures {

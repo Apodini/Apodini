@@ -67,7 +67,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         (endpoint, rendpoint) = handler.mockRelationshipEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
-        headers[.contentType] = .gRPCProto
+        headers[.contentType] = .gRPC(.proto)
     }
 
     
@@ -186,7 +186,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self]
-        )(request).wait()
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
         let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -221,7 +221,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             factory: endpoint[DelegateFactory<GRPCTestHandler2, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self]
-        )(request).wait()
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
         let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -287,7 +287,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self]
-        )(request).wait()
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
         let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
@@ -394,7 +394,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             method: .POST,
             url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
             headers: headers,
-            bodyStorage:  .stream(),
+            bodyStorage: .stream(),
             eventLoop: group.next()
         )
         let stream = try XCTUnwrap(request.bodyStorage.stream)
@@ -406,7 +406,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             defaults: endpoint[DefaultValueStore.self]
         )(request)
             .whenSuccess { response in
-                guard let responseData = response.bodyStorage.readNewData() else { // TODO or getAllData?
+                guard let responseData = response.bodyStorage.readNewData() else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
                     return
                 }

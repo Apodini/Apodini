@@ -6,8 +6,7 @@ import NIOSSL
 import NIOHPACK
 import NIOWebSocket
 import Foundation
-import Logging // TODO add this as an explict dependency in the PAckage file!!!
-
+import Logging
 
 
 struct ApodiniNetworkingError: Swift.Error {
@@ -15,11 +14,7 @@ struct ApodiniNetworkingError: Swift.Error {
 }
 
 
-
-
-public protocol WebSocketChannelHandler: ChannelInboundHandler where InboundIn == WebSocketFrame, OutboundOut == WebSocketFrame {}
-
-class ErrorHandler: ChannelInboundHandler {
+private class ErrorHandler: ChannelInboundHandler {
     typealias InboundIn = Never
     
     let msg: String
@@ -35,10 +30,10 @@ class ErrorHandler: ChannelInboundHandler {
 }
 
 
-
-
+/// A NIO-based HTTP server.
 public final class HTTPServer {
     private struct ConfigStorage {
+        let eventLoopGroupProvider: NIOEventLoopGroupProvider
         let eventLoopGroup: EventLoopGroup
         let tlsConfiguration: TLSConfiguration?
         let enableHTTP2: Bool
@@ -57,15 +52,18 @@ public final class HTTPServer {
     
     private var channel: Channel?
     
+    /// Whether or not the server currently is running.
     public var isRunning: Bool {
-        return channel != nil // TODO is this good enough?
+        channel != nil
     }
     
+    /// Whether or not the server should enable case insensitivity when matching incoming requests to registered routes.
     public var isCaseInsensitiveRoutingEnabled: Bool {
         get { router.isCaseInsensitiveRoutingEnabled }
         set { router.isCaseInsensitiveRoutingEnabled = newValue }
     }
     
+    /// The server's event loop group
     public var eventLoopGroup: EventLoopGroup {
         switch config {
         case .app(let app):
@@ -75,6 +73,7 @@ public final class HTTPServer {
         }
     }
     
+    /// The server's TLS configuration
     public var tlsConfiguration: TLSConfiguration? {
         switch config {
         case .app(let app):
@@ -84,6 +83,7 @@ public final class HTTPServer {
         }
     }
     
+    /// Whether or not the server should enable HTTP/2
     public var enableHTTP2: Bool {
         switch config {
         case .app(let app):
@@ -93,6 +93,7 @@ public final class HTTPServer {
         }
     }
     
+    /// The server's bind address
     public var address: BindAddress {
         switch config {
         case .app(let app):
@@ -113,17 +114,22 @@ public final class HTTPServer {
     
     
     init(app: Apodini.Application) {
-        //self.app = app
         self.config = .app(app)
         self.router = HTTPRouter(logger: app.logger)
     }
     
     
     internal var registeredRoutes: [HTTPRouter.Route] {
-        return router.allRoutes
+        router.allRoutes
     }
     
     
+    /// Creates a new HTTP server
+    /// - parameter eventLoopGroupProvider: Where the server should be getting its event loop from.
+    /// - parameter tlsConfiguration: The server's TLS configuraton. Pass `nil` to disable TLS entirely.
+    /// - parameter enableHTTP2: Whether or not the server should enable HTTP/2. Note that enabling TLS will also enable HTTP/2, regardless of this flag's value.
+    /// - parameter address: The address to which the server should bind.
+    /// - parameter logger: The logger object used by the server.
     public init(
         eventLoopGroupProvider: NIOEventLoopGroupProvider,
         tlsConfiguration: TLSConfiguration? = nil,
@@ -136,10 +142,11 @@ public final class HTTPServer {
             case .shared(let eventLoopGroup):
                 return eventLoopGroup
             case .createNew:
-                return MultiThreadedEventLoopGroup.init(numberOfThreads: System.coreCount)
+                return MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
             }
         }()
         self.config = .custom(.init(
+            eventLoopGroupProvider: eventLoopGroupProvider,
             eventLoopGroup: eventLoopGroup,
             tlsConfiguration: tlsConfiguration,
             enableHTTP2: enableHTTP2,
@@ -151,14 +158,25 @@ public final class HTTPServer {
     
     
     deinit {
-        // TODO do we need to do something here?
-        print("-[\(Self.self) \(#function)]")
+        switch config {
+        case .app:
+            break
+        case .custom(let configStorage):
+            switch configStorage.eventLoopGroupProvider {
+            case .shared:
+                break
+            case .createNew:
+                try! self.eventLoopGroup.syncShutdownGracefully()
+            }
+        }
     }
     
     
+    /// Start the server.
+    /// This will attempt to open a NIO channel, bind it to the specified address, and set it up to handle incoming HTTP and HTTP2 requests, depending on the configuration options.
     public func start() throws {
         guard channel == nil else {
-            throw ApodiniNetworkingError(message: "Cannot start already-running serve")
+            throw ApodiniNetworkingError(message: "Cannot start already-running servers")
         }
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
@@ -175,15 +193,17 @@ public final class HTTPServer {
                         return channel.close(mode: .all)
                     }
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
-                    return channel.pipeline.addHandler(tlsHandler).flatMap { () -> EventLoopFuture<Void> in
-                        return channel.configureHTTP2SecureUpgrade { channel in
-                            channel.addApodiniNetworkingHTTP2Handlers(responder: self)
-                        } http1ChannelConfigurator: { channel in
-                            channel.addApodiniNetworkingHTTP1Handlers(responder: self)
+                    return channel.pipeline.addHandler(tlsHandler)
+                        .flatMap { () -> EventLoopFuture<Void> in
+                            return channel.configureHTTP2SecureUpgrade { channel in
+                                channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                            } http1ChannelConfigurator: { channel in
+                                channel.addApodiniNetworkingHTTP1Handlers(responder: self)
+                            }
                         }
-                    }.flatMapError { error in
-                        return channel.eventLoop.makeFailedFuture(error)
-                    }
+                        .flatMapError { error in
+                            channel.eventLoop.makeFailedFuture(error)
+                        }
                 } else {
                     if enableHTTP2 {
                         // NOTE this doesn't make sense and (probably) doesn't work
@@ -194,21 +214,18 @@ public final class HTTPServer {
                 }
             }
             .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
-        //    .childChannelOption(ChannelOptions.tcpOption(.tcp_nodelay), value: 1) // TODO is this the same as the line above?
             .childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         
         switch address {
-        case .hostname(let hostname, let port):
+        case let .hostname(hostname, port):
             logger.info("Will bind to \(addressString)")
             channel = try bootstrap.bind(host: hostname, port: port).wait()
-            //logger.info("Server starting on http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)")
             logger.info("Server starting on \(addressString)")
         case .unixDomainSocket(let path):
             logger.info("Will bind to \(addressString)")
             channel = try bootstrap.bind(unixDomainSocketPath: path).wait()
-            //logger.info("Server starting on unix socket \(path)")
             logger.info("Server starting on \(addressString)")
         }
     }
@@ -216,16 +233,15 @@ public final class HTTPServer {
     
     private var addressString: String {
         switch address {
-        case .hostname(let hostname, let port):
+        case let .hostname(hostname, port):
             return "http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)"
         case .unixDomainSocket(let path):
-            return "unix:\(path)" // TODO proper path!
+            return "unix:\(path)"
         }
     }
     
-    
+    /// Shut down the server, if it is running
     public func shutdown() throws {
-        // TODO what to do here? Just call close?
         if let channel = channel {
             print("Will shut down NIO channel bound to \(addressString)")
             try channel.close(mode: .all).wait()
@@ -239,12 +255,13 @@ public final class HTTPServer {
 /// A `HTTPResponder` is a type that can respond to HTTP requests.
 public protocol HTTPResponder {
     /// Handle a request received by the server.
-    /// - Note: The responder is responsible for converting errors thrown 
+    /// - Note: The responder is responsible for converting errors thrown when handling a request,
+    ///         ideally by turning them into `HTTPResponse`s with an appropriate status code.
     func respond(to request: HTTPRequest) -> HTTPResponseConvertible
 }
 
 
-public struct DefaultHTTPRouteResponder: HTTPResponder {
+public struct DefaultHTTPResponder: HTTPResponder {
     private let imp: (HTTPRequest) -> HTTPResponseConvertible
     
     public init(_ imp: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
@@ -252,19 +269,31 @@ public struct DefaultHTTPRouteResponder: HTTPResponder {
     }
     
     public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
-        return imp(request)
+        imp(request)
     }
 }
 
 
 /// A type on which HTTP routes can be registered
 public protocol HTTPRoutesBuilder {
+    /// Registers a new route on the HTTP server
+    /// - parameter method: The route's HTTP method
+    /// - parameter path: The route's path, expressed as a collection of path components
+    /// - parameter handler: A closure which will be called to handle requests reaching this route.
     func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) -> HTTPResponseConvertible)
+    /// Registers a new route on the HTTP server
+    /// - parameter method: The route's HTTP method
+    /// - parameter path: The route's path, expressed as a collection of path components
+    /// - parameter responder: The responder object responsible for responding to requests reaching this route
     func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder)
 }
 
 
 public extension HTTPRoutesBuilder {
+    /// Registers a new route on the HTTP server
+    /// - parameter method: The route's HTTP method
+    /// - parameter path: The route's path, expressed as a collection of path components
+    /// - parameter handler: A closure which will be called to handle requests reaching this route.
     func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) throws -> HTTPResponseConvertible) {
         self.registerRoute(method, path) { request -> HTTPResponseConvertible in
             do {
@@ -275,6 +304,10 @@ public extension HTTPRoutesBuilder {
         }
     }
     
+    /// Registers a new route on the HTTP server
+    /// - parameter method: The route's HTTP method
+    /// - parameter path: The route's path, expressed as a collection of path components
+    /// - parameter responder: The responder object responsible for responding to requests reaching this route
     func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder) {
         self.registerRoute(method, path) { request -> HTTPResponseConvertible in
             responder.respond(to: request)
@@ -288,7 +321,7 @@ extension HTTPServer: HTTPRoutesBuilder {
         router.add(HTTPRouter.Route(
             method: method,
             path: path,
-            responder: DefaultHTTPRouteResponder(handler)
+            responder: DefaultHTTPResponder(handler)
         ))
     }
 }
@@ -307,28 +340,16 @@ extension HTTPServer: HTTPResponder {
 }
 
 
-
-//public protocol WebSocketResponder {
-//    func respond(to request: )
-//}
-//
-//extension HTTPServer {
-//    public func registerRoute(_ path: [String], handler)
-//}
-
-
-
 extension Channel {
     func addApodiniNetworkingHTTP2Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
             NIOHTTP2Handler(mode: .server, initialSettings: [
-                HTTP2Setting(parameter: .maxConcurrentStreams, value: 50), // 100?
+                HTTP2Setting(parameter: .maxConcurrentStreams, value: 50),
                 HTTP2Setting(parameter: .maxHeaderListSize, value: HPACKDecoder.defaultMaxHeaderListSize),
-                HTTP2Setting(parameter: .maxFrameSize, value: 1 << 14), // swift-grpc uses 16384, which is 2^14? (ie 1<<14) ~~//2^!4?~~
+                HTTP2Setting(parameter: .maxFrameSize, value: 1 << 14),
                 HTTP2Setting(parameter: .initialWindowSize, value: targetWindowSize)
             ]),
-            // TODO do we want something in between here? swiftGRPC has an idle handler or smth like that, do we need that as well?
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
                 stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
             },
@@ -337,9 +358,8 @@ extension Channel {
     }
     
     
-    
     func apodiniNetworkingInitializeHTTP2InboundStream(responder: HTTPResponder) -> EventLoopFuture<Void> {
-        return pipeline.addHandlers([
+        pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
             HTTPServerRequestDecoder(),
             HTTPServerResponseEncoder(),
@@ -356,32 +376,10 @@ extension Channel {
             httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
             HTTPServerRequestDecoder(),
-            HTTPServerResponseEncoder(),
+            HTTPServerResponseEncoder()
         ]
         
         let httpRequestHandler = HTTPServerRequestHandler(responder: responder)
-        
-//        let webSocketsUpgrader = NIOWebSocketServerUpgrader(
-//            shouldUpgrade: { (channel: Channel, reqHead: HTTPRequestHead) -> EventLoopFuture<HTTPHeaders?> in
-//                print("Should upgrade?", channel, reqHead)
-//                return channel.eventLoop.makeSucceededFuture([:])
-//            },
-//            upgradePipelineHandler: { (channel: Channel, reqHead: HTTPRequestHead) -> EventLoopFuture<Void> in
-//                // TODO do we want to do something here?
-//                return channel.eventLoop.makeSucceededVoidFuture()
-//                //channel.pipeline.addHandler(WebSocketsRequestHandler())
-//                //return .andAllComplete(httpHandlers.map { channel.pipeline.removeHandler($0) }, on: channel.eventLoop).flatMap {
-//                    //channel.pipeline.removeHandler(httpRequestHandler)
-//                //}
-//            }
-//        )
-//
-//        let upgrader = HTTPServerUpgradeHandler(
-//            upgraders: [webSocketsUpgrader],
-//            httpEncoder: httpResponseEncoder,
-//            extraHTTPHandlers: (httpHandlers.appending(httpRequestHandler)).filter { $0 !== httpResponseEncoder },
-//            upgradeCompletionHandler: { (context: ChannelHandlerContext) -> Void in print("upgrade complete!") }
-//        )
         
         let upgrader = LKHTTPUpgradeHandler(
             handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
@@ -392,16 +390,5 @@ extension Channel {
         return pipeline.addHandlers(httpHandlers).flatMap {
             self.pipeline.addHandler(ErrorHandler(msg: "HTTP1Pipeline"))
         }
-        
-//        return pipeline.addHandlers([
-//            HTTPResponseEncoder(),
-//            ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
-//            HTTPServerRequestDecoder(),
-//            HTTPServerResponseEncoder(),
-//            HTTPServerRequestHandler(responder: responder),
-//            // TODO add a HTTPServerUpgradeHandler ???
-//        ]).flatMap {
-//            self.pipeline.addHandler(ErrorHandler(msg: "configHTTP1Pipeline"))
-//        }
     }
 }

@@ -5,8 +5,9 @@ import Foundation
 
 
 extension AnyEncoder {
+    /// Type-safe HTTP media type this encoder would encode into.
     public var resultMediaType: HTTPMediaType? {
-        return self.resultMediaTypeRawValue.flatMap { .init(string: $0) }
+        self.resultMediaTypeRawValue.flatMap { .init(string: $0) }
     }
 }
 
@@ -14,7 +15,7 @@ extension AnyEncoder {
 extension ByteBuffer {
     /// Reads all data currently in the byte buffer, without moving the reader index (i.e. non-consuming).
     public func getAllData() -> Data? {
-        return self.getData(at: 0, length: self.writerIndex)
+        self.getData(at: 0, length: self.writerIndex)
     }
 }
 
@@ -65,6 +66,7 @@ extension HTTPHeaders {
 
 
 extension EventLoopFuture {
+    /// Maps the future into another future, giving the caller the opportunity to map both success and failure values
     public func flatMapAlways<NewValue>(
         file: StaticString = #file,
         line: UInt = #line,

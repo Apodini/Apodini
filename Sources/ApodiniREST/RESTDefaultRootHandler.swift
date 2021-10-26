@@ -18,9 +18,6 @@ struct RESTDefaultRootHandler {
     
     // Registers a GET handler on root path
     func register(on app: Apodini.Application) {
-        //app.get(use: self.handleRequest)
-        //app.httpServer.registerRoute(.GET, [], handler: self.handleRequest)
-        //app.httpServer.registerRoute(.GET, route: [], handler: self.handleRequest)
         app.httpServer.registerRoute(.GET, []) { request in
             ResponseContainer(
                 Empty.self,
@@ -29,21 +26,4 @@ struct RESTDefaultRootHandler {
             ).encodeResponse(for: request)
         }
     }
-
-//    func handleRequest(_: HTTPRequest) -> ResponseContainer {
-//        ResponseContainer(
-//            Empty.self,
-//            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration)),
-//            encoder: exporterConfiguration.encoder
-//        )
-//    }
-    
-//    // TODO this used to be implenenbted in a way that it'd
-//    func handleRequest(request: HTTPRequest) -> ResponseContainer {
-//        ResponseContainer(
-//            Empty.self,
-//            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: configuration)),
-//            encoder: exporterConfiguration.encoder
-//        ).encodeResponse(for: <#T##HTTPRequest#>)
-//    }
 }

@@ -84,7 +84,7 @@ private struct _Decoder: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        return SingleValueContainer(rawValue: rawValue, codingPath: [], dateDecodingStrategy: dateDecodingStrategy)
+        SingleValueContainer(rawValue: rawValue, codingPath: [], dateDecodingStrategy: dateDecodingStrategy)
     }
     
     
@@ -100,7 +100,7 @@ private struct _Decoder: Decoder {
         }
         
         func decodeNil() -> Bool {
-            return rawValue.isEmpty // TODO what about empty strings? That's absolutely fine and should not be considered a nil value.
+            rawValue.isEmpty // NOTE what about empty strings? That's absolutely fine and should not be considered a nil value.
         }
         
         func decode<T: Decodable>(_ type: T.Type) throws -> T {
@@ -111,7 +111,6 @@ private struct _Decoder: Decoder {
                 if let result = queryParamValueDecodableTy.init(urlQueryParamValue: rawValue) {
                     return result as! T
                 } else {
-                    //throw DecodingError.typeMismatch(T.self, self.codingPath)
                     throw DecodingError.typeMismatch(T.self, DecodingError.Context(
                         codingPath: [],
                         debugDescription: "Unable to decode value. (\(URLQueryParameterValueDecodable.self) conformance returned nil.) Raw value: '\(rawValue)'",
@@ -134,13 +133,10 @@ private struct _Decoder: Decoder {
                     debugDescription: "Unable to decode value, because '\(T.self)' conforms neither to \(URLQueryParameterValueDecodable.self), nor to \(LosslessStringConvertible.self).",
                     underlyingError: nil
                 ))
-//                let decoder = _Decoder(data: data, codingPath: self.codingPath, configuration: configuration)
-//                return try T(from: decoder)
             }
         }
     }
 }
-
 
 
 /// A type which can be decoded from a URL query parameter value

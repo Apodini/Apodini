@@ -198,7 +198,6 @@ private enum ConversionError: String, Error {
 
 
 extension Encodable {
-    // TODO move this to ApodiniUtils!!! (this is not WebSockets-specific and therefore shouldn't be limited to just this IE...)
     func JSONEncodeToString() throws -> String {
         let data = try JSONEncoder().encode(self)
         if let string = String(data: data, encoding: .utf8) {
@@ -208,15 +207,3 @@ extension Encodable {
         }
     }
 }
-
-
-//extension Decodable
-
-//private func encode<M: Encodable>(_ message: M) throws -> String {
-//    let data = try JSONEncoder().encode(message)
-//
-//    guard let stringMessage = String(data: data, encoding: String.Encoding.utf8) else {
-//        throw ConversionError.couldNotEncodeUsingUTF8
-//    }
-//    return stringMessage
-//}

@@ -64,10 +64,12 @@ extension String {
 
 
 extension StringProtocol {
+    /// Returns a Substring with the receiver's leading and trailing whitespace removed
     public func trimmingLeadingAndTrailingWhitespace() -> SubSequence {
-        return self.trimmingLeadingWhitespace().trimmingTrailingWhitespace()
+        self.trimmingLeadingWhitespace().trimmingTrailingWhitespace()
     }
     
+    /// Returns a Substring with the receiver's leading whitespace removed
     public func trimmingLeadingWhitespace() -> SubSequence {
         if let first = self.first, first.isWhitespace {
             return dropFirst().trimmingLeadingWhitespace()
@@ -76,6 +78,7 @@ extension StringProtocol {
         }
     }
     
+    /// Returns a Substring with the receiver's trailing whitespace removed
     public func trimmingTrailingWhitespace() -> SubSequence {
         if let last = self.last, last.isWhitespace {
             return dropLast().trimmingTrailingWhitespace()

@@ -12,7 +12,6 @@ import XCTApodini
 class StateTests: ApodiniTests {
     struct CountGuard: Guard {
         @State var count: Int = 0
-        
         let callback: (Int) -> Void
         
         func check() {
@@ -78,19 +77,14 @@ class StateTests: ApodiniTests {
     
     func testStateKeepsStateValueType() throws {
         let eventLoop = app.eventLoopGroup.next()
-        
         var count: Int = 0
-        
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
-        
         let handler = TestHandler()
                         .transformed(CountTransformer())
                         .guarded(CountGuard(callback: assertion))
         
         let endpoint = handler.mockEndpoint()
-
         let exporter = MockExporter<String>()
-
         let context = endpoint.createConnectionContext(for: exporter)
         
         try XCTCheckResponse(
@@ -118,24 +112,18 @@ class StateTests: ApodiniTests {
     
     func testStateIsNotSharedReferenceType() throws {
         let eventLoop = app.eventLoopGroup.next()
-
         let count: Int = 0
-
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
-
         let handler = TestHandlerUsingClassType()
             .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
         
         let endpoint = handler.mockEndpoint()
-
         let exporter = MockExporter<String>()
-
         let context1 = endpoint.createConnectionContext(for: exporter)
         let context2 = endpoint.createConnectionContext(for: exporter)
 
-        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop).wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
@@ -147,25 +135,19 @@ class StateTests: ApodiniTests {
     
     func testStateIsNotSharedDifferentExportersReferenceType() throws {
         let eventLoop = app.eventLoopGroup.next()
-
         let count: Int = 0
-
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
-
         let handler = TestHandlerUsingClassType()
             .transformed(CountTransformerUsingClassType())
             .guarded(CountGuard(callback: assertion))
         
         let endpoint = handler.mockEndpoint()
-
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
-
         let context1 = endpoint.createConnectionContext(for: exporter1)
         let context2 = endpoint.createConnectionContext(for: exporter2)
 
-        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop).wait()
         
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
@@ -177,24 +159,18 @@ class StateTests: ApodiniTests {
 
     func testStateIsNotSharedValueType() throws {
         let eventLoop = app.eventLoopGroup.next()
-
         let count: Int = 0
-
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
-
         let handler = TestHandler()
             .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
         
         let endpoint = handler.mockEndpoint()
-
         let exporter = MockExporter<String>()
-
         let context1 = endpoint.createConnectionContext(for: exporter)
         let context2 = endpoint.createConnectionContext(for: exporter)
 
-        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop).wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(
@@ -206,25 +182,19 @@ class StateTests: ApodiniTests {
     
     func testStateIsNotSharedDifferentExportersValueType() throws {
         let eventLoop = app.eventLoopGroup.next()
-
         let count: Int = 0
-
         let assertion = { (number: Int) in  XCTAssertEqual(number, count) }
-
         let handler = TestHandler()
             .transformed(CountTransformer())
             .guarded(CountGuard(callback: assertion))
         
         let endpoint = handler.mockEndpoint()
-
         let exporter1 = MockExporter<String>()
         let exporter2 = MockExporter<String>()
-
         let context1 = endpoint.createConnectionContext(for: exporter1)
         let context2 = endpoint.createConnectionContext(for: exporter2)
 
-        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop)
-                .wait()
+        _ = try context1.handle(request: "Example Request", eventLoop: eventLoop).wait()
 
         // Call on this context should not be influenced by previous call. Thus do not increase `count`.
         try XCTCheckResponse(

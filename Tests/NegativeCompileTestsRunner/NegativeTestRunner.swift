@@ -327,11 +327,11 @@ class NegativeTestRunner {
         print("-----------------------------")
         print("Running command '\(command) \(arguments)'...")
 
-        guard let swiftBinary = Task.findExecutable(named: command) else {
+        guard let swiftBinary = ChildProcess.findExecutable(named: command) else {
             fatalError("Could not find '\(command)' executable!")
         }
 
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: swiftBinary,
             arguments: arguments.split(separator: " ").map { String($0) },
             workingDirectory: workingDirectory,

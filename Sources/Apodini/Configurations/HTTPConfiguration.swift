@@ -14,7 +14,7 @@ import NIO
 /// command line arguments --hostname, --port and --bind or via the
 /// function `address`
 public final class HTTPConfiguration: Configuration {
-    public enum Defaults { // TODO we can make this internal again once BindAddress.hostname auto-replaces nil inputs w/ the default values!
+    public enum Defaults {
         public static let hostname = "0.0.0.0"
         public static let port = 8080
     }

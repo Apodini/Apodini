@@ -9,6 +9,7 @@
 import XCTest
 import Apodini
 
+
 /// Overload for force unwrapping `Response` types.
 public func XCTUnwrap<T: Encodable>(
     _ expression: @autoclosure () throws -> Response<T>,
@@ -18,5 +19,3 @@ public func XCTUnwrap<T: Encodable>(
 ) throws -> T {
     try XCTUnwrap(try expression().content, message(), file: file, line: line)
 }
-
-

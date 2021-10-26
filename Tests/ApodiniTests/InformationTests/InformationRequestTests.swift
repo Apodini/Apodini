@@ -50,7 +50,7 @@ final class InformationRequestTests: XCTApodiniTest {
                 .information
                 .reduce(into: 0) { partialResult, info in
                     switch info {
-                    case is LoggingMetadataInformation, is HTTPRequest.ApodiniRequestInformationEntryHTTPVersion:
+                    case is LoggingMetadataInformation, is HTTPRequest.InformationEntryHTTPVersion:
                         partialResult += 1
                     default:
                         break

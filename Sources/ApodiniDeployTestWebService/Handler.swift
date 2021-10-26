@@ -88,7 +88,6 @@ struct LH_Greeter: Handler {
 }
 
 
-
 // MARK: - Lambda Components
 
 struct AWS_RandomNumberGenerator: InvocableHandler {

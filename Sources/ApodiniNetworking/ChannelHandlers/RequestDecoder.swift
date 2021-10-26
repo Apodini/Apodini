@@ -9,14 +9,13 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     private enum State {
         case ready
         case awaitingBody(HTTPRequest)
-        //case readingStream(HTTPRequest) // TODO!!!!
         case awaitingEnd(HTTPRequest)
     }
     
     private var state: State = .ready
     
     
-    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+    func channelRead(context: ChannelHandlerContext, data: NIOAny) { // swiftlint:disable:this cyclomatic_complexity
         let request = unwrapInboundIn(data)
         switch (state, request) {
         case (.ready, .head(let reqHead)):
@@ -37,29 +36,24 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             fatalError("Invalid state: received unexpected body (was waiting for head)")
         case (.ready, .end):
             fatalError("Invalid state: received unexpected end (was waiting for head)")
-        case (.awaitingBody, .head(_)):
+        case (.awaitingBody, .head):
             fatalError("Invalid state: received unexpected head (was waiting for body)")
-        case (.awaitingBody(let req), .body(let bodyBuffer)):
+        case let (.awaitingBody(req), .body(bodyBuffer)):
             print("Awaiting Body. Received Body. Body: \(bodyBuffer)")
             if req.headers[.contentLength] == bodyBuffer.readableBytes {
-            //if req.headers.first(name: .contentLength).map(Int.init) == bodyBuffer.readableBytes {
                 req.bodyStorage = .buffer(bodyBuffer)
                 state = .awaitingEnd(req)
             } else {
-                //req.bodyStorage = .stream(<#T##LKDataStream#>) // TODO
-                fatalError("TODO: implement") // NOTE: it's weird (i.e. bad) that none of the tests end up in this branch
+                fatalError("Not yet implemented")
             }
-        case (.awaitingBody(let req), .end(let endHeaders)):
-            //fatalError("Invalid state: received unexpected end (was waiting for body)")
-            print("Awaiting Body. Got End.", req, endHeaders)
+        case let (.awaitingBody(req), .end(endHeaders)):
             context.fireChannelRead(wrapInboundOut(req))
             state = .ready
-            break
         case (.awaitingEnd, .head):
             fatalError("Invalid state: received unexpected head (was waiting for end)")
         case (.awaitingEnd, .body):
             fatalError("Invalid state: received unexpected body (was waiting for end)")
-        case (.awaitingEnd(let req), .end(let endHeaders)):
+        case let (.awaitingEnd(req), .end(endHeaders)):
             print("Awaiting End. Got End.", req, endHeaders)
             context.fireChannelRead(wrapInboundOut(req))
             state = .ready

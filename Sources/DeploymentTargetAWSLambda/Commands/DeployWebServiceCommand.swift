@@ -205,7 +205,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             overwriteExisting: true
         )
         
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: Context.dockerBin,
             arguments: [
                 "build",
@@ -242,7 +242,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             ])
             return args
         }()
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: Context.dockerBin,
             arguments: taskArguments,
             workingDirectory: workingDirectory,

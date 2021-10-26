@@ -27,11 +27,6 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 public enum BindAddress: Equatable {
     case hostname(_ hostname: String, port: Int)
     case unixDomainSocket(path: String)
-    
-    // TODO make the types in the case above non-optional and add this as a fallback!
-//    public func hostname(_ hostname: String?, port: Int?) -> BindAddress {
-//        return .hostname(hostname ?? HTTPConfiguration.Defaults.hostname, port: port ?? HTTPConfiguration.Defaults.port)
-//    }
 }
 
 
@@ -46,8 +41,7 @@ extension Application {
         final class Storage {
             var supportVersions: Set<HTTPVersionMajor>
             var tlsConfiguration: TLSConfiguration?
-            var address: BindAddress // TODO make this non-nil!
-
+            var address: BindAddress
 
             // swiftlint:disable discouraged_optional_collection
             init(
@@ -106,13 +100,14 @@ extension Application {
             self.application.storage[Key.self] = .init()
         }
         
+        /// A string value expressing the address the web service would bind to
         public var addressStringValue: String {
             let httpProtocol = "http\(tlsConfiguration != nil ? "s" : "")"
             switch address {
-            case .hostname(let hostname, let port):
+            case let .hostname(hostname, port):
                 return "\(httpProtocol)://\(hostname):\(port)"
             case .unixDomainSocket(let path):
-                return "\(httpProtocol)+unix:\(path.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? path)" // TODO is the percent encoding here a good idea?
+                return "\(httpProtocol)+unix:\(path)"
             }
         }
     }

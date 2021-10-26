@@ -11,7 +11,6 @@ import NIO
 
 
 /// The `Box` type can be used to wrap an object in a class
-@dynamicMemberLookup
 public class Box<T> {
     /// The value stored by the `Box`
     public var value: T
@@ -20,10 +19,6 @@ public class Box<T> {
     /// if `T` has reference semantics, establishing a strong reference to it.
     public init(_ value: T) {
         self.value = value
-    }
-    
-    public subscript<U>(dynamicMember keyPath: KeyPath<T, U>) -> U {
-        value[keyPath: keyPath]
     }
 }
 
@@ -125,5 +120,23 @@ extension NSTextCheckingResult {
 extension UUID: LosslessStringConvertible {
     public init?(_ description: String) {
         self.init(uuidString: description)
+    }
+}
+
+
+extension NSLocking {
+    /// Requests the lock, then executes the specified closure, then relinquishes the lock, then returns the closure's result.
+    public func withLock<Result>(_ block: () -> Result) -> Result {
+        lock()
+        defer { unlock() }
+        return block()
+    }
+}
+
+
+extension CharacterSet {
+    /// Constructs a new `CharacterSet` by forming the union of the specified character sets.
+    public static func joining(_ other: [CharacterSet]) -> CharacterSet {
+        other.reduce(into: []) { $0.formUnion($1) }
     }
 }

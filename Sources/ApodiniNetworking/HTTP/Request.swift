@@ -3,34 +3,33 @@ import ApodiniExtension
 import ApodiniHTTPProtocol
 import NIO
 import NIOHTTP1
+import ApodiniLoggingSupport
 import Foundation
-//@_implementationOnly import struct Vapor.URLEncodedFormDecoder // TODO
 
 
 extension HTTPRequest {
-    struct ApodiniRequestInformationEntryHTTPVersion: Apodini.Information {
-        struct Key: InformationKey {
+    struct InformationEntryHTTPVersion: Apodini.Information {
+        struct Key: InformationKey { // swiftlint:disable nesting
             typealias RawValue = HTTPVersion
+            static let shared = Key("requestHTTPVersion")
             let key: String
             init(_ key: String) {
                 self.key = key
             }
         }
         
-        static let key = Key("requestHTTPVersion")
-        
-        let key: Key
+        var key: Key { .shared }
         let value: HTTPVersion
         
         init(key: Key, rawValue: HTTPVersion) {
-            precondition(key == Self.key, "Unexpected key value")
-            self.key = key
+            precondition(key == Key.shared, "Unexpected key value")
             self.value = rawValue
         }
     }
 }
 
 
+/// A HTTP request
 public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
         /// The requst's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
@@ -80,55 +79,48 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     public var information: InformationSet {
         InformationSet(headers.map { key, rawValue in
             AnyHTTPInformation(key: key, rawValue: rawValue)
-        })//.merge(with: self.loggingMetadata) // TODO
+        })
             .merge(with: [
-                ApodiniRequestInformationEntryHTTPVersion(key: ApodiniRequestInformationEntryHTTPVersion.key, rawValue: version)
+                InformationEntryHTTPVersion(key: .shared, rawValue: version)
             ])
+            .merge(with: self.loggingMetadata)
     }
     
     public var description: String {
-        return "\(Self.self)(TODO)"
+        "<\(Self.self) \(version.description) \(method.rawValue) \(url.stringValue)>"
     }
     
     public var debugDescription: String {
-        return self.description
+        self.description
     }
     
-    // TODO
-//    var loggingMetadata: [LoggingMetadataInformation] {
-//         [
-//            LoggingMetadataInformation(key: .init("VaporRequestDescription"), rawValue: .string(self.description)),
-//            LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
-//            LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
-//            LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),
-//            LoggingMetadataInformation(key: .init("route"), rawValue: .string(self.route?.description ?? "unknown")),
-//            LoggingMetadataInformation(key: .init("HTTPVersion"), rawValue: .string(self.version.description)),
-//            LoggingMetadataInformation(key: .init("url"), rawValue: .string(self.url.description))
-//         ]
-//    }
     
+    var loggingMetadata: [LoggingMetadataInformation] {
+         [
+            LoggingMetadataInformation(key: .init("ApodiniNetworkingRequestDescription"), rawValue: .string(self.description)),
+            //LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
+            //LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
+            //LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),
+            //LoggingMetadataInformation(key: .init("route"), rawValue: .string(self.route?.description ?? "unknown")),
+            //LoggingMetadataInformation(key: .init("HTTPVersion"), rawValue: .string(self.version.description)),
+            LoggingMetadataInformation(key: .init("url"), rawValue: .string(self.url.stringValue))
+         ]
+    }
+    
+    /// Read a query param value, decoded to the specified type.
+    /// - Note: This function adopts Apodini's requirement that only types conforming to the `LosslessStringConvertible` protocol may be used as query parameters.
+    ///         It may work with other types, but that's really just by accident.
     public func getQueryParam<T: Decodable>(for key: String, as _: T.Type = T.self) throws -> T? {
-        // TODO cache these? Apodini probably already does that so there's probably no need to duplicate this...
-        // TODO does Apodini handle stuff such as turning non-existent query params into empty strings if requested?
-        guard case Optional<String?>.some(.some(let rawValue)) = url.queryItems[key] else {
+        guard case Optional<String?>.some(.some(let rawValue)) = url.queryItems[key] else { // swiftlint:disable:this syntactic_sugar
             return nil
         }
-        //return try URLEncodedFormDecoder().decode(T.self, from: rawValue)
-        //print(#function, key, T.self, try? URLEncodedFormDecoder().decode(T.self, from: rawValue), try? URLQueryParameterValueDecoder().decode(T.self, from: rawValue));
-        //return (T.self as! LosslessStringConvertible.Type).init(rawValue) as! T?
         return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
-//        //print(try? try URLEncodedFormDecoder().decode(T.self, from: rawValue), T.self is String.Type, "-[\(Self.self) \(#function)]<\(T.self)>(key='\(key)') value: \(rawValue)")
-//        if T.self == String.self {
-//            // TODO we have to decode the url-encoded (but not explicitly quoted) string query param into a normal string
-//            return (rawValue.removingPercentEncoding! as! T)
-//        }
-//        return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!)
     }
     
     /// Returns the raw (i.e. stringly typed) value of the specified non-query parameter
     public func getParameterRawValue(_ name: String) -> String? {
-        // TODO what about values matched to wildcards? Do these ever get accessed?
-        return parameters.namedParameters[name]
+        // Note what about values matched to wildcards? Do these ever get accessed?
+        parameters.namedParameters[name]
     }
     
     /// Returns the value of the specified non-query parameter, decoded using the specified type
@@ -139,10 +131,10 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!)
     }
     
-    // TODO relax this and also allow non-string params? kinda like how we also allow non-string types when retrieving params...
+    
     /// Adds a non-query parameter to the request
     public func setParameter(for key: String, to value: String?) {
-        parameters.namedParameters[key] = value?.removingPercentEncoding // Doing the removePErcentEncoding to match Vapor's behaviour. TODO is this correct?
+        parameters.namedParameters[key] = value?.removingPercentEncoding
     }
     
     internal func populate(from route: HTTPRouter.Route, withParameters parameters: ParametersStorage) {
@@ -159,4 +151,3 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
-

@@ -11,6 +11,7 @@ public class ProgramLifetimeManager {
     /// Whether the program currently is running
     public var isRunning: Bool { promise != nil }
     
+    /// The Initialiser
     public init() {}
     
     /// Start a program lifecycle

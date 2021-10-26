@@ -44,7 +44,7 @@ public protocol AnyEncoder {
 
 extension JSONEncoder: AnyEncoder {
     public var resultMediaTypeRawValue: String? {
-        return "application/json; charset=utf-8"
+        "application/json; charset=utf-8"
     }
 }
 

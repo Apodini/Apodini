@@ -48,16 +48,12 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
         
         try app.testable().test(.GET, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
-
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
             else {
                 throw HTTPAbortError(status: .internalServerError)
             }
-
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")
-
-            //XCTAssertEqual(res.body, .init(string: html))
             XCTAssertEqual(res.bodyStorage.readNewDataAsString(), html)
         }
     }
@@ -93,16 +89,12 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
 
         try app.testable().test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
-
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
                 else {
                 return XCTFail("Missing Swagger-UI HTML resource.")
             }
-
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: configuredOutputEndpoint)
-
-            //XCTAssertEqual(res.body, .init(string: html))
             XCTAssertEqual(res.bodyStorage.readNewDataAsString(), html)
         }
     }

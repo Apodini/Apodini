@@ -35,7 +35,7 @@ public protocol InformationKey: Hashable {
     /// The type of the raw key value identifying the ``Information``.
     associatedtype KeyValue: Hashable
     /// The raw value associated with the implementation ``Information`` type.
-    associatedtype RawValue // TODO why is this called RawValue? when ir really just denotes the Value associated w/ the key...
+    associatedtype RawValue
 
     /// The raw value identifying the ``Information``.
     var key: KeyValue { get }

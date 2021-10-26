@@ -56,10 +56,16 @@ class EndToEndTests: XCTApodiniTest {
     class FakeTimer: Apodini.ObservableObject {
         @Apodini.Published private var _trigger = true
         
-        init() {  }
+        init() {
+            print("FakeTimer.init")
+        }
         
         func secondPassed() {
             _trigger.toggle()
+        }
+        
+        deinit {
+            print("FakeTimer.deinit")
         }
     }
 
@@ -159,20 +165,11 @@ class EndToEndTests: XCTApodiniTest {
     }
 
     func testRequestResponsePattern() throws {
-//        try app.vapor.app.testable(method: .inMemory).test(.GET, "/rr/Paul", body: nil) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Paul!")
-//        }
         try app.testable().test(.GET, "/rr/Paul") { response in
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.decodeBody(as: String.self, using: JSONDecoder()), "Hello, Paul!")
             XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Paul!")
         }
         
-//        try app.vapor.app.testable(method: .inMemory).test(.GET, "/rr/Andi?greeting=Wuzzup", body: nil) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Wuzzup, Andi!")
-//        }
         try app.testable().test(.GET, "/rr/Andi?greeting=Wuzzup") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Wuzzup, Andi!")
@@ -180,45 +177,17 @@ class EndToEndTests: XCTApodiniTest {
     }
     
     func testServiceSideStreamingPattern() throws {
-//        try app.vapor.app.testable(method: .inMemory).test(.GET, "/ss?start=10", body: nil) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
-//                "10...",
-//                "9...",
-//                "8...",
-//                "7...",
-//                "6...",
-//                "5...",
-//                "4...",
-//                "3...",
-//                "2...",
-//                "1...",
-//                "🚀🚀🚀 Launch !!! 🚀🚀🚀"
-//            ])
-//        }
-        
-//        let fullBodyReceivedExpectation = XCTestExpectation(description: "Full service-side stream body received")
-        
-//        HTTP2Configuration(
-//            cert: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
-//            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
-//        ).configure(app)
-        
         try app.testable([.actualRequests]).test(
             version: .http1_1,
             .GET,
             "/ss?start=10",
             expectedBodyType: .stream,
-            responseStart: { response in
-                response.bodyStorage.stream?.setObserver { stream, event in
-                    print("STREAM EVENT", event)
-                }
-            },
             responseEnd: { response in
                 XCTAssertEqual(response.status, .ok)
                 let responseStream = try XCTUnwrap(response.bodyStorage.stream)
                 XCTAssert(responseStream.isClosed)
-                let responseText = try XCTUnwrap(response.bodyStorage.readNewDataAsString()).trimmingLeadingAndTrailingWhitespace() // We want to get rid of leading and trailing newlines since that would mess up the line splitting
+                // We want to get rid of leading and trailing newlines since that would mess up the line splitting
+                let responseText = try XCTUnwrap(response.bodyStorage.readNewDataAsString()).trimmingLeadingAndTrailingWhitespace()
                 XCTAssertEqual(responseText.split(separator: "\n"), [
                     "10...",
                     "9...",
@@ -251,16 +220,12 @@ class EndToEndTests: XCTApodiniTest {
             [String: [String: String]]()
         ]
         
-//        try app.vapor.app.testable(method: .inMemory)
-//            .test(.GET, "/cs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-//                XCTAssertEqual(response.status, .ok)
-//                XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
-//            }
-        //try app.testable().test(.GET, "/cs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
         try app.testable().test(.GET, "/cs", body: .init(data: JSONEncoder().encode(body))) { response in
             XCTAssertEqual(response.status, .ok)
-            //print("LABEL", response.body.readString(length: response.body.readableBytes))
-            XCTAssertEqual(try! response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
+            XCTAssertEqual(
+                try! response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()),
+                "Hello, Germany, Taiwan and the World!"
+            )
         }
     }
     
@@ -279,15 +244,6 @@ class EndToEndTests: XCTApodiniTest {
             [String: [String: String]]()
         ]
         
-//        try app.vapor.app.testable(method: .inMemory)
-//            .test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-//                XCTAssertEqual(response.status, .ok)
-//                XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
-//                    "Hello, Germany!",
-//                    "Hello, Taiwan!",
-//                    "Hello, World!"
-//                ])
-//            }
         try app.testable().test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: [String].self, using: JSONDecoder()), [
@@ -299,30 +255,15 @@ class EndToEndTests: XCTApodiniTest {
     }
     
     func testBlob() throws {
-//        try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Paul", body: nil) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(response.body.string, "Hello, Paul!")
-//            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
-//            XCTAssertEqual(response.headers["Test"].first, "Test")
-//        }
         try app.testable().test(.GET, "/blob/Paul") { response in
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(response.body.string, "Hello, Paul!")
-            //XCTAssertEqual(response.body.readString(length: response.body.readableBytes), "Hello, Paul!")
             XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Hello, Paul!")
             XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
             XCTAssertEqual(response.headers["Test"].first, "Test")
         }
         
-//        try app.vapor.app.testable(method: .inMemory).test(.GET, "/blob/Andi?greeting=Wuzzup", body: nil) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(response.body.string, "Wuzzup, Andi!")
-//            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
-//            XCTAssertEqual(response.headers["Test"].first, "Test")
-//        }
         try app.testable().test(.GET, "/blob/Andi?greeting=Wuzzup") { response in
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(response.body.string, "Wuzzup, Andi!")
             XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Wuzzup, Andi!")
             XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
             XCTAssertEqual(response.headers["Test"].first, "Test")

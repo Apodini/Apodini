@@ -12,7 +12,6 @@ import ApodiniExtension
 import ApodiniNetworking
 
 
-
 struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
@@ -20,9 +19,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
-    
     private let strategy: AnyDecodingStrategy<HTTPRequest>
-    
     let defaultStore: DefaultValueStore
     
     init(
@@ -41,7 +38,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
         self.strategy = ParameterTypeSpecific(
             lightweight: LightweightStrategy(),
             path: PathStrategy(useNameAsIdentifier: false),
-            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
@@ -73,28 +70,19 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                 }
                 
                 if let blob = response.content?.response.typed(Blob.self) {
-                    //let vaporResponse = Vapor.Response()
-                    
                     var information = response.information
                     if let contentType = blob.type?.description {
                         information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
                     }
-                    
                     let httpResponse = HTTPResponse(
                         version: request.version,
-                        status: .ok, // TODO is this an acceptable default value???
+                        status: .ok,
                         headers: HTTPHeaders(information),
                         bodyStorage: .buffer(initialValue: blob.byteBuffer)
                     )
-                    
                     if let status = response.status {
                         httpResponse.status = HTTPResponseStatus(status)
                     }
-                    
-                    //vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
-                    //httpResponse.body = .init(buffer: blob.byteBuffer) // TODO is it really necessary to make a copy here?
-                    //httpResponse.bodyStorage.write(blob.byteBuffer) = .buffer(initialValue: blob.byteBuffer)
-                    
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 

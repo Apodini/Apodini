@@ -26,7 +26,7 @@ extension GRPCService {
         
         var lastMessage: GRPCMessage?
         
-        request.bodyStorage.drain { chunk in // swiftlint:disable:this closure_body_length
+        request.bodyStorage.drain { [unowned request] chunk in // swiftlint:disable:this closure_body_length
             switch chunk {
             case .buffer(let buffer):
                 guard let data = buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes) else {

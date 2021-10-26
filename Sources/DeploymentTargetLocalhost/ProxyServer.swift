@@ -13,7 +13,6 @@ import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostCommon
 import Logging
 import OpenAPIKit
-import class Apodini.AnyHandlerIdentifier
 import AsyncHTTPClient
 import ApodiniUtils
 
@@ -25,7 +24,7 @@ class ProxyServer {
     
     fileprivate let httpServer: HTTPServer
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
-    fileprivate var httpClient: AsyncHTTPClient.HTTPClient!
+    fileprivate let httpClient: AsyncHTTPClient.HTTPClient
     
     var eventLoopGroup: EventLoopGroup {
         httpServer.eventLoopGroup
@@ -33,7 +32,8 @@ class ProxyServer {
     
     
     init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
-        self.httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .hostname("0.0.0.0", port: port), logger: logger)
+        let httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .hostname("0.0.0.0", port: port), logger: logger)
+        self.httpServer = httpServer
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(httpServer.eventLoopGroup))
         
         logger.notice("Registering Proxy Server Routes")
@@ -119,104 +119,6 @@ private struct ProxyRequestResponder: HTTPResponder {
             fatalError("Unable to read node userInfo")
         }
         logger.notice("[Proxy] Incoming HTTP Request \(incomingRequest.url)")
-////        let url = Vapor.URI(
-////            scheme: "http",
-////            host: "127.0.0.1",
-////            port: targetNodeLocalhostData.port,
-////            path: request.url.path,
-////            query: request.url.query,
-////            fragment: request.url.fragment
-////        )
-//        let url = URI(
-//            scheme: .http,
-//            hostname: "127.0.0.1",
-//            port: targetNodeLocalhostData.port,
-//            path: request.url.path,
-//            rawQuery: request.url.rawQuery,
-//            fragment: request.url.fragment
-//        )
-//        proxyServer.logger.notice("forwarding request to '\(url)'")
-////        let clientResponseFuture = request.client.send(request.method, headers: request.headers, to: url) { (clientReq: inout ClientRequest) in
-////            clientReq.body = request.body.data
-////        }
-////        return clientResponseFuture.flatMap { clientResponse in
-////            // Note: For some reason, Vapor will duplicate some header fields when sending this response back to the client.
-////            // The ones i noticed were `date` and `connection`, but that's probably not the full list.
-////            let ignoredHeaderFields: [HTTPHeaders.Name] = [.date, .connection]
-////            let response = Response(
-////                status: clientResponse.status,
-////                //version, // `ClientResponse` doesn't have a version, we could use the default (what we're doing) or return the initial request's version
-////                headers: HTTPHeaders(clientResponse.headers.filter { !ignoredHeaderFields.contains(HTTPHeaders.Name($0.name)) }),
-////                body: clientResponse.body.map { Response.Body(buffer: $0) } ?? .empty
-////            )
-////            return proxyServer.app.eventLoopGroup.next().makeSucceededFuture(response)
-////        }
-////        let clientResponseFuture = proxyServer.httpClient.post(url: url, body: <#T##Body?#>, deadline: <#T##NIODeadline?#>) request.client.send(request.method, headers: request.headers, to: url) { (clientReq: inout ClientRequest) in
-////            clientReq.body = request.body.data
-////        }
-//
-//        //let xxxx = proxyServer.httpClient.post(url: url.stringValue, body: .data(request.bodyData), logger: proxyServer.logger)
-//        return proxyServer.httpClient.execute(request: try! HTTPClient.Request(
-//            url: url.stringValue,
-//            method: .POST,
-//            headers: request.headers,
-//            //body: .data(request.bodyStorage.getFullBodyData())
-//            body: { () -> AsyncHTTPClient.HTTPClient.Body in
-//                switch request.bodyStorage {
-//                case .buffer(let buffer):
-//                    return .byteBuffer(buffer)
-//                case .stream(let stream):
-//                    let streamEndPromise = request.eventLoop.makePromise(of: Void.self)
-//                    let numClosureInvocations = Box(0)
-//                    return .stream(length: nil) { (streamWriter: HTTPClient.Body.StreamWriter) -> EventLoopFuture<Void> in
-//                        print("DID CALL THE THING!!!") // TODO make sure this only gets called once!
-//                        numClosureInvocations.value += 1
-//                        precondition(numClosureInvocations.value == 1)
-//                        stream.setObserver { stream, event in
-//                            if let newData = stream.readNewData() {
-//                                try! streamWriter.write(IOData.byteBuffer(newData)).wait() // TODO is this (the wait) important?
-//                            }
-//                            if stream.isClosed {
-//                                streamEndPromise.succeed(())
-//                            }
-//                        }
-////                        stream.newDataWrittenHandler = { [unowned stream] in
-////                            // TODO this wont work bc it'd run into the already-taken lock and wait on that :/
-////                        }
-////                        stream.closeHandler = { [unowned stream] in
-////                            precondition(stream.isClosed)
-////                            streamEndPromise.succeed(())
-////                        }
-//                        return streamEndPromise.futureResult
-//                    }
-//                }
-//            }()
-//        )).map { (clientResponse: AsyncHTTPClient.HTTPClient.Response) -> HTTPResponse in
-//            // Note: For some reason, Vapor will duplicate some header fields when sending this response back to the client.
-//            // The ones i noticed were `date` and `connection`, but that's probably not the full list.
-//            //let ignoredHeaderFields: [HTTPHeaders.HeaderName] = [.date, .connection]
-//            let ignoredHeaderFieldNames: [String] = []// TODO check whether there are duplicate headers using the new setup!
-//            //let ignored2: [String] = [HTTPHeaders.AnyHeaderName.date, .connection].map(\.rawValue)
-////            let responsee = Response(
-////                status: clientResponse.status,
-////                //version, // `ClientResponse` doesn't have a version, we could use the default (what we're doing) or return the initial request's version
-////                headers: HTTPHeaders(clientResponse.headers.filter { !ignoredHeaderFields.contains(HTTPHeaders.Name($0.name)) }),
-////                body: clientResponse.body.map { Response.Body(buffer: $0) } ?? .empty
-////            )
-//            // TODO properly handle the hop-by-hop headers!
-//            // TODO what about streaming client responses???? Does the AsyncHTTPClient even support that in the first place? Or does it just wait and then return everything at once?
-//            let response = HTTPResponse(
-//                version: request.version,
-//                status: clientResponse.status,
-//                headers: HTTPHeaders(clientResponse.headers.filter { !ignoredHeaderFieldNames.contains($0.name) }),
-//                //body: clientResponse.body ?? .init()
-//                bodyStorage: .buffer(clientResponse.body ?? .init())
-//            )
-////            precondition(proxyServer.httpServer.eventLoopGroup.next() == request.eventLoop)
-//            //return proxyServer.app.eventLoopGroup.next().makeSucceededFuture(response)
-//            return response
-//        }
-        
         let url = URI(
             scheme: incomingRequest.url.scheme,
             hostname: incomingRequest.url.hostname,
@@ -225,8 +127,6 @@ private struct ProxyRequestResponder: HTTPResponder {
             rawQuery: incomingRequest.url.rawQuery,
             fragment: incomingRequest.url.fragment
         )
-        
-        
         let forwardingRequest = try! HTTPClient.Request(
             url: url.toNSURL(),
             method: incomingRequest.method,
@@ -256,7 +156,6 @@ private struct ProxyRequestResponder: HTTPResponder {
         return responseDelegate.httpResponseFuture
     }
 }
-
 
 
 private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelegate {

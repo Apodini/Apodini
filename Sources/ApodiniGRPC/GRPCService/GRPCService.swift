@@ -40,7 +40,7 @@ class GRPCService {
         guard let contentType = request.headers[.contentType] else {
             return false
         }
-        return contentType == .gRPC || contentType == .gRPCProto
+        return contentType == .gRPC || contentType == .gRPC(.proto)
     }
 
     /// Cuts the given data into the individual GRPC messages it represents.
@@ -117,8 +117,7 @@ extension GRPCService {
         // - 4 bytes:   length of the message
         var response = Data()
         var length = Int32(message.count).bigEndian
-        let lengthData = Data(bytes: &length,
-                              count: 4)
+        let lengthData = Data(bytes: &length, count: 4)
         response.append(UInt8(0))
         response.append(lengthData)
         response.append(message)
@@ -130,7 +129,7 @@ extension GRPCService {
         return HTTPResponse(
             version: .http2,
             status: .internalServerError,
-            headers: HTTPHeaders { $0[.contentType] = .gRPCProto },
+            headers: HTTPHeaders { $0[.contentType] = .gRPC(.proto) },
             bodyStorage: .buffer()
         )
     }
@@ -141,7 +140,7 @@ extension GRPCService {
             return HTTPResponse(
                 version: .http2,
                 status: .ok,
-                headers: HTTPHeaders { $0[.contentType] = .gRPCProto },
+                headers: HTTPHeaders { $0[.contentType] = .gRPC(.proto) },
                 bodyStorage: .buffer(initialValue: try encode(value))
             )
         } catch {

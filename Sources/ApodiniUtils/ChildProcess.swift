@@ -17,8 +17,8 @@ import Darwin
 
 
 /// A wrapper around `Foundation.Process` (née`NSTask`)
-public class Task {
-    private static let taskPool = ThreadSafeVariable<Set<Task>>([])
+public class ChildProcess {
+    private static let taskPool = ThreadSafeVariable<Set<ChildProcess>>([])
     private static var didRegisterAtexitHandler = false
     
     // value for argv[1] if we're supposed to turn into a child process invocation
@@ -26,7 +26,7 @@ public class Task {
         String(cString: ApodiniProcessIsChildInvocationWrapperCLIArgument)
     
     
-    public struct TaskError: Swift.Error {
+    public struct ChildProcessError: Swift.Error {
         public let message: String
     }
     
@@ -38,7 +38,7 @@ public class Task {
     /// Function type used to observe a task's output.
     /// 1st parameter indicates the origin of this specific event (stdout or stderr, unless the two were merged).
     /// 2nd parameter are the data written by the task. 3rd parameter is the task itself.
-    public typealias StdioObserverSignature = (StdioType, Data, Task) -> Void
+    public typealias StdioObserverSignature = (StdioType, Data, ChildProcess) -> Void
     private typealias StdioObserverRegistrationToken = Box<StdioObserverSignature>
     
     /// Info about why and how a task was terminated
@@ -106,12 +106,12 @@ public class Task {
     
     private func assertCanMutate() throws {
         guard !isRunning else {
-            throw TaskError(message: "Cannot mutate running task")
+            throw ChildProcessError(message: "Cannot mutate running task")
         }
     }
     
     
-    /// Creates a new `Task` object and configures it using the specified options
+    /// Creates a new `ChildProcess` object and configures it using the specified options
     /// - parameter captureOutput: A boolean value indicating whether the task should capture its child process' output.
     ///         If this value is `true`, the child's output (both stdout and stderr) will be available via the respective APIs.
     ///         Capturing output also means that the child's stdout and stderr will not show up in the parent's stdout and stderr.
@@ -162,7 +162,7 @@ public class Task {
             NotificationCenter.default.removeObserver(fileHandleObservers.1)
             stdioFileHandlesObserverTokens = nil
         }
-        print("Task.deinit")
+        print("-[\(Self.self) \(#function)")
     }
     
     
@@ -210,7 +210,7 @@ public class Task {
     public func launchSyncAndAssertSuccess() throws {
         let terminationInfo = try launchSync()
         guard terminationInfo.exitCode == EXIT_SUCCESS else {
-            fatalError("Task '\(self)' terminated with non-zero exit code \(terminationInfo.exitCode)")
+            fatalError("\(self) terminated with non-zero exit code \(terminationInfo.exitCode)")
         }
     }
     
@@ -234,9 +234,9 @@ public class Task {
 }
 
 
-// MARK: Task + Stdio Handling
+// MARK: ChildProcess + Stdio Handling
 
-extension Task {
+extension ChildProcess {
     /// Merge the task's stdout and stderr streams.
     /// This will redirect stderr to stdout.
     public func mergeStdoutAndStderr() throws {
@@ -344,18 +344,18 @@ extension Task {
 }
 
 
-extension Task: Hashable, Equatable {
+extension ChildProcess: Hashable, Equatable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(self))
     }
     
-    public static func == (lhs: Task, rhs: Task) -> Bool {
+    public static func == (lhs: ChildProcess, rhs: ChildProcess) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 
 
-extension Task: CustomStringConvertible {
+extension ChildProcess: CustomStringConvertible {
     public var description: String {
         var properties: [(String, Any)] = [
             ("executableUrl", executableUrl.path),
@@ -374,7 +374,7 @@ extension Task: CustomStringConvertible {
 }
 
 
-extension Task {
+extension ChildProcess {
     /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
     public static func killAllInChildrenInProcessGroup() {
         print(#function)
@@ -396,13 +396,13 @@ extension Task {
         }
         didRegisterAtexitHandler = true
         atexit {
-            Task.killAllInChildrenInProcessGroup()
+            ChildProcess.killAllInChildrenInProcessGroup()
         }
     }
 }
 
 
-extension Task {
+extension ChildProcess {
     /// Attempts to find the location of the executable with the specified name, by looking through the current environment's search paths.
     public static func findExecutable(named binaryName: String) -> URL? {
         guard let searchPaths = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {

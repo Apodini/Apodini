@@ -19,18 +19,17 @@ extension Application {
         }
     }
     
+    /// The application's underlying HTTP server.
     public var httpServer: HTTPServer {
         if let server = self.storage[HTTPServerStorageKey.self] {
             return server
         } else {
             let server = HTTPServer(
-                app: self // TODO does this introduce a retain cycle?
+                app: self
             )
             self.lifecycle.use(HTTPServerLifecycleHandler(httpServer: server))
             self.storage[HTTPServerStorageKey.self] = server
             return server
         }
     }
-    
-    
 }

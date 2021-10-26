@@ -296,7 +296,6 @@ extension Delegate: AnyObservedObject {
         }
         
         let observation = Observation(callback)
-
         store.value.observation = observation
         return observation
     }

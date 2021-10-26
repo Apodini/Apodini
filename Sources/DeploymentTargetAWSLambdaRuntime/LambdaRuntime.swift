@@ -38,8 +38,7 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     
     
     public func configure(_ app: Apodini.Application) throws {
-        //app.vapor.app.servers.use(.lambda)
-        // TODO
+        fatalError("Not yet implemented")
     }
     
     

@@ -80,6 +80,7 @@ extension Apodini.Application.Lifecycle {
         }
     }
     
+    /// Add a closure-based
     public mutating func use(
         didBoot didBootHandler: @escaping (Application) throws -> Void,
         shutdown shutdownHandler: @escaping (Application) throws -> Void
@@ -89,12 +90,21 @@ extension Apodini.Application.Lifecycle {
 }
 
 
+private struct ApodiniDeployLifecycleHandler: LifecycleHandler {
+    func didBoot(_ app: Application) throws {}
+    
+    func shutdown(_ app: Application) throws {
+        app.storage.get(ApodiniDeployInterfaceExporter.StorageKey.self)?.shutdownHTTPClient()
+    }
+}
+
+
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
-    struct ApplicationStorageKey: Apodini.StorageKey {
+    struct StorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }
     
@@ -112,25 +122,17 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.httpClient = .init(eventLoopGroupProvider: .shared(app.eventLoopGroup), configuration: .init())
-        app.storage.set(ApplicationStorageKey.self, to: self)
-        app.lifecycle.use(
-            didBoot: { _ in },
-            shutdown: { [weak self] _ in
-                self?.shutdownHTTPClient()
-            }
-        )
+        app.storage.set(StorageKey.self, to: self)
+        app.lifecycle.use(ApodiniDeployLifecycleHandler())
     }
     
-    private func shutdownHTTPClient() {
+    
+    fileprivate func shutdownHTTPClient() {
         do {
             try self.httpClient.syncShutdown()
         } catch {
             app.logger.error("[\(Self.self)] error shutting down httpClient: \(error)")
         }
-    }
-    
-    deinit {
-        shutdownHTTPClient()
     }
     
     
@@ -146,9 +148,11 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
-        app.httpServer.registerRoute(.POST, ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)]) { request in
-            InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint).respond(to: request)
-        }
+        app.httpServer.registerRoute(
+            .POST,
+            ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)],
+            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint)
+        )
     }
     
     

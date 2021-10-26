@@ -64,27 +64,3 @@ extension Handler {
         HandlerMetadataModifier(modifies: self, with: ServiceTypeHandlerMetadata(serviceType))
     }
 }
-
-
-
-
-// TODO give this a custom file!
-
-
-public struct ResponseEncoderHandlerMetadata: HandlerMetadataDefinition {
-    public struct Key: OptionalContextKey {
-        public typealias Value = AnyEncoder
-    }
-    public let value: Key.Value
-    
-    public init(_ encoder: AnyEncoder) {
-        self.value = encoder
-    }
-}
-
-
-extension Handler {
-    public func responseEncoder(_ encoder: AnyEncoder) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: ResponseEncoderHandlerMetadata(encoder))
-    }
-}

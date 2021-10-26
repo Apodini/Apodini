@@ -16,11 +16,10 @@ public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
         if let content = input.content {
             body = .init(data: try encoder.encode(content))
         } else {
-            body = .init() // TODO what about responses with _no_ body? (as opposed to an empty one)
+            body = .init()
         }
         return HTTPResponse(
-            //version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key]!,
-            version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
+            version: input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] ?? {
                 // TODO we seem to be ending up here if this is a response created from an error thrown in a handler?
                 print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [1]")
                 return .http1_1 // just taking a guess idk
@@ -37,17 +36,14 @@ public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
 }
 
 
-
-
 public struct HTTPBlobResponseTransformer: ResultTransformer {
     public init() { }
     
     public func transform(input: Apodini.Response<Blob>) -> HTTPResponse {
         var body: ByteBuffer
         var information = input.information
-        
         if let content = input.content {
-            body = .init(buffer: content.byteBuffer) // TODO is the copy necessary?
+            body = content.byteBuffer
             if let contentType = content.type?.description {
                 information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
             }
@@ -55,8 +51,7 @@ public struct HTTPBlobResponseTransformer: ResultTransformer {
             body = .init()
         }
         return HTTPResponse(
-            //version: input.request.version,
-            version: input.information[HTTPRequest.ApodiniRequestInformationEntryHTTPVersion.key] ?? {
+            version: input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] ?? {
                 print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [2]")
                 return .http1_1 // just taking a guess idk
             }(),
@@ -72,8 +67,6 @@ public struct HTTPBlobResponseTransformer: ResultTransformer {
 }
 
 
-
-// TODO why is this a private extension? is it useful somewhere else as well?
 private extension Apodini.Response {
     var responseStatus: HTTPResponseStatus {
         switch self.status {
@@ -88,4 +81,3 @@ private extension Apodini.Response {
         }
     }
 }
-

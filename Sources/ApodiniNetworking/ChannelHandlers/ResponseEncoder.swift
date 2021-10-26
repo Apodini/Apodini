@@ -13,10 +13,8 @@ class HTTPServerResponseEncoder: ChannelOutboundHandler, RemovableChannelHandler
     
     private var state: State = .ready
     
-    
     func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
         let response = unwrapOutboundIn(data)
-        
         switch state {
         case .ready:
             // We were waiting for incoming responses, and have now received one.
@@ -37,11 +35,11 @@ class HTTPServerResponseEncoder: ChannelOutboundHandler, RemovableChannelHandler
                 state = .waitingOnStream
                 handleStreamWrite(context: context, stream: stream, promise: promise)
             }
-            
         case .waitingOnStream:
             handleStreamWrite(context: context, stream: response.bodyStorage.stream!, promise: promise)
         }
     }
+    
     
     private func handleStreamWrite(context: ChannelHandlerContext, stream: BodyStorage.Stream, promise: EventLoopPromise<Void>?) {
         precondition(state == .waitingOnStream)
@@ -56,8 +54,8 @@ class HTTPServerResponseEncoder: ChannelOutboundHandler, RemovableChannelHandler
         }
     }
     
-    // TODO what if we're removed while waiting on a stream?
-//    func removeHandler(context: ChannelHandlerContext, removalToken: ChannelHandlerContext.RemovalToken) {
-//        <#code#>
-//    }
+    
+    func handlerRemoved(context: ChannelHandlerContext) {
+        precondition(state != .waitingOnStream, "Handler was removed from pipeline while waiting on a stream")
+    }
 }

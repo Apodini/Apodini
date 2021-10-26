@@ -22,9 +22,10 @@ extension Exporter {
         let transformer = HTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         return { (request: HTTPRequest) in
-            //fatalError("TODO HANDLE TJIS!!!") // TODO re-enable this crash and implement it properly
-            //guard let requestCount = try! configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
-            guard let requestCount = try! configuration.decoder.decode(ArrayCount.self, from: request.bodyStorage.getFullBodyData() ?? .init()).count else {
+            guard let requestCount = try! configuration.decoder.decode(
+                ArrayCount.self,
+                from: request.bodyStorage.getFullBodyData() ?? .init()
+            ).count else {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
@@ -43,9 +44,7 @@ extension Exporter {
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    response.connectionEffect == .close
-                })
+                .cancelIf { $0.connectionEffect == .close }
                 .compactMap { (response: Apodini.Response<H.Response.Content>) in
                     if response.connectionEffect == .open && response.content == nil {
                         return nil
@@ -59,7 +58,7 @@ extension Exporter {
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
                     precondition(optionalResponse != nil)
-                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:]) // TODO what should this default request look like? old imoplementation somply returned an empty Vapor.Rwequest()
+                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                 }
         }
     }

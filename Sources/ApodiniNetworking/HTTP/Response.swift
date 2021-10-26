@@ -5,12 +5,19 @@ import WebSocketKit
 import Foundation
 
 
+/// A HTTP response, i.e. a response to a `HTTPRequest`
 public class HTTPResponse {
+    /// This response's HTTP version
     public var version: HTTPVersion
+    /// The HTTP status code to be sent alongside this response
     public var status: HTTPResponseStatus
+    /// The HTTP headers to be sent alongside this response
     public var headers: HTTPHeaders
+    /// This response's body. This can be either a buffer-, or a stream-based body, see the `BodyStorage` type for more info.
     public var bodyStorage: BodyStorage
     
+    /// Creates a new `HTTPResponse` from the specified values.
+    /// - Note: Most of these intentionally do not have default values, this is to ensure that a caller doesn't accidentally construct incorrect responses, e.g. containing an incorrect HTTP version.
     public init(
         version: HTTPVersion,
         status: HTTPResponseStatus,
@@ -51,7 +58,7 @@ extension HTTPRequest {
         shouldUpgrade: @escaping (HTTPRequest) -> EventLoopFuture<HTTPHeaders?> = { $0.eventLoop.makeSucceededFuture([:]) },
         onUpgrade: @escaping (HTTPRequest, WebSocket) -> Void
     ) -> HTTPResponse {
-        return HTTPUpgradingResponse(
+        HTTPUpgradingResponse(
             version: self.version,
             status: .switchingProtocols,
             headers: [:],
@@ -66,22 +73,27 @@ extension HTTPRequest {
 }
 
 
-/// A type which can be turned into a `HTTPResponse`
+/// A type which can be turned into an `EventLoopFuture<HTTPResponse>`
 public protocol HTTPResponseConvertible {
+    /// Create an `EventLoopFuture<HTTPResponse>` in response to the `HTTPRequest`.
+    /// - Note: You can use this function to implement custom error handling for your types. If you return a failed EventLoopFuture,
+    ///         ApodiniNetworking will convert that into an error HTTP response for you.
+    ///         You also can implement this "failed future -> error response" conversion manually, by simply returning a succeeded EventLoopFuture
+    ///         where the contained value is your custom error `HTTPResponse` object.
     func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse>
 }
 
 
 extension HTTPResponse: HTTPResponseConvertible {
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(self)
+        request.eventLoop.makeSucceededFuture(self)
     }
 }
 
+
 extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConvertible {
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        // TODO should this handle errors?
-        return self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<HTTPResponse> in
+        self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<HTTPResponse> in
             switch result {
             case .success(let value):
                 return value.makeHTTPResponse(for: request)
@@ -92,8 +104,10 @@ extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConv
                     return request.eventLoop.makeSucceededFuture(HTTPResponse(
                         version: request.version,
                         status: .internalServerError,
-                        headers: [:],
-                        bodyStorage: .buffer(initialValue: "\(error)") // TODO this risks leaking internal error info!!!
+                        headers: HTTPHeaders {
+                            $0[.contentType] = .text
+                        },
+                        bodyStorage: .buffer(initialValue: "\(error)") // TODO this risks leaking internal error info!!! Are we fine w/ that?
                     ))
                 }
             }
@@ -104,18 +118,21 @@ extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConv
 
 extension String: HTTPResponseConvertible {
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(HTTPResponse(
+        request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
-            headers: [:],
+            headers: HTTPHeaders {
+                $0[.contentType] = .text
+            },
             bodyStorage: .buffer(initialValue: self)
         ))
     }
 }
+
 
 extension Data: HTTPResponseConvertible {
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(HTTPResponse(
+        request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
             headers: [:],
@@ -123,10 +140,11 @@ extension Data: HTTPResponseConvertible {
         ))
     }
 }
+
 
 extension ByteBuffer: HTTPResponseConvertible {
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(HTTPResponse(
+        request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: .ok,
             headers: [:],
@@ -134,8 +152,6 @@ extension ByteBuffer: HTTPResponseConvertible {
         ))
     }
 }
-
-
 
 
 /// An Error type which can be thrown in block-based `HTTPResponder`s that will be turned into HTTP error responses
@@ -149,7 +165,7 @@ public struct HTTPAbortError: Swift.Error, HTTPResponseConvertible {
     }
     
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
-        return request.eventLoop.makeSucceededFuture(HTTPResponse(
+        request.eventLoop.makeSucceededFuture(HTTPResponse(
             version: request.version,
             status: status,
             headers: [:],
@@ -157,5 +173,3 @@ public struct HTTPAbortError: Swift.Error, HTTPResponseConvertible {
         ))
     }
 }
-
-

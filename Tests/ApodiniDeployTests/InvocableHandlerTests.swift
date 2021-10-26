@@ -191,55 +191,32 @@ class InvocableHandlerTests: XCTApodiniTest {
         try app.testable().test(.GET, "/v1/f") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "F")
-            //try XCTAssertEqual(res.bodyStorage.getDecodedRESTResponseData(String.self), "F")
         }
-//        try app.vapor.app.test(.GET, "/v1/f") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "F")
-//        }
     }
     
     func testArrayBasedParameterPassing() throws {
         TestWebService().start(app: app)
-//        try app.vapor.app.test(
-//            .GET,
-//            "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
-//        ) { res in
-//            XCTAssertEqual(res.status, .ok)
-//            try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LUKAS!")
-//        }
         try app.testable().test(
             .GET,
             "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
         ) { res in
             XCTAssertEqual(res.status, .ok)
-            //try XCTAssertEqual(res.bodyStorage.getDecodedRESTResponseData(String.self), "Hello LUKAS!")
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "Hello LUKAS!")
         }
     }
     
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
         TestWebService().start(app: app)
-//        try app.vapor.app.test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
-//            XCTAssertEqual(res.status, .ok)
-//            try XCTAssertEqual(res.content.decodeRESTResponseData(String.self), "Hello LuKAs!")
-//        }
         try app.testable().test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
             XCTAssertEqual(res.status, .ok)
-            //try XCTAssertEqual(res.bodyStorage.getDecodedRESTResponseData(String.self), "Hello LuKAs!")
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "Hello LuKAs!")
         }
     }
     
     func testParametersStorageObjectBasedParameterPassing() throws {
         TestWebService().start(app: app)
-//        try app.vapor.app.test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
-//            XCTAssertEqual(res.status, .ok)
-//            try XCTAssertEqual(res.content.decodeRESTResponseData(Int.self), 12)
-//        }
         try app.testable().test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
             XCTAssertEqual(res.status, .ok)
-            //try XCTAssertEqual(res.bodyStorage.getDecodedRESTResponseData(Int.self), 12)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(Int.self, from: res), 12)
         }
     }

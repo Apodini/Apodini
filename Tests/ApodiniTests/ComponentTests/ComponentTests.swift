@@ -8,7 +8,6 @@
 
 import ApodiniUtils
 @testable import Apodini
-//@testable import ApodiniVaporSupport
 @testable import ApodiniREST
 import XCTest
 import XCTApodini
@@ -30,12 +29,14 @@ class ComponentTests: ApodiniTests {
         XCTAssertRuntimeFailure(preconditionTypeIsStruct((() -> Void).self))
     }
     
+    
     func testTupleComponentErrors() throws {
         struct NoComponent {}
         let failingTupleComponent = TupleComponent((NoComponent(), NoComponent()))
         let syntaxTreeVisitor = SyntaxTreeVisitor()
         XCTAssertRuntimeFailure(failingTupleComponent.accept(syntaxTreeVisitor))
     }
+    
     
     func testAnyComponentTypeErasure() throws {
         struct TestWebService: WebService {
@@ -54,15 +55,10 @@ class ComponentTests: ApodiniTests {
         //try app.vapor.app.test(.GET, "/v1/") { res in
         try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
-            
-            struct Content: Decodable {
-                let data: String
-            }
-            
-            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
-            XCTAssert(content.data == "Hello")
+            XCTAssertEqual(try XCTUnwrapRESTResponseData(String.self, from: res), "Hello")
         }
     }
+    
     
     func testAnyHandlerTypeErasure() throws {
         struct TestWebService: WebService {
@@ -77,17 +73,9 @@ class ComponentTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        
-        //try app.vapor.app.test(.GET, "/v1/") { res in
         try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
-            
-            struct Content: Decodable {
-                let data: String
-            }
-            
-            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
-            XCTAssert(content.data == "Hello")
+            XCTAssertEqual(try XCTUnwrapRESTResponseData(String.self, from: res), "Hello")
         }
     }
 }

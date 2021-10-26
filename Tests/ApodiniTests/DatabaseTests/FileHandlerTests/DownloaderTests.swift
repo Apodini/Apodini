@@ -28,14 +28,6 @@ final class DownloaderTests: FileHandlerTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        let uri = URI("http://example.de/test/fileName")
-//        let downloadRequest = Vapor.Request(
-//            application: app.vapor.app,
-//            method: .GET,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
-        
         let url: URI = "http://example.de/test/fileName"
         let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
@@ -72,13 +64,6 @@ final class DownloaderTests: FileHandlerTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        let uri = URI("http://example.de/test/fileName")
-//        let downloadRequest = Vapor.Request(
-//            application: app.vapor.app,
-//            method: .GET,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
         let url: URI = "http://example.de/test/fileName"
         let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         

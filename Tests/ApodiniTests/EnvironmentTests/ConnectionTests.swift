@@ -97,7 +97,6 @@ final class ConnectionTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        //try app.vapor.app.test(.GET, "/v1/") { res in
         try app.testable().test(.GET, "/v1/") { res in
             // TODO this test probably was wrong before the Vapor rewrite.
             // It checks whether the body contains the specified address, but the thing is:

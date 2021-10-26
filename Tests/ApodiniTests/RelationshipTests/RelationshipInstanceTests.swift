@@ -144,8 +144,10 @@ class RelationshipInstanceTests: ApodiniTests {
     }
 
     func testWebserviceCyclic() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceCyclic),
-                                "RelationshipBuilder should reject cyclic relationship!")
+        XCTAssertRuntimeFailure(
+            RelationshipTestContext(app: self.app, service: self.webserviceCyclic),
+            "RelationshipBuilder should reject cyclic relationship!"
+        )
     }
 
 
@@ -158,8 +160,10 @@ class RelationshipInstanceTests: ApodiniTests {
     }
 
     func testWebserviceNoDestinations() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceNoDestinations),
-                                "RelationshipBuilder should reject relationship instances without destinations!")
+        XCTAssertRuntimeFailure(
+            RelationshipTestContext(app: self.app, service: self.webserviceNoDestinations),
+            "RelationshipBuilder should reject relationship instances without destinations!"
+        )
     }
 
 
@@ -172,7 +176,9 @@ class RelationshipInstanceTests: ApodiniTests {
     }
 
     func testWebserviceNoSources() {
-        XCTAssertRuntimeFailure(RelationshipTestContext(app: self.app, service: self.webserviceNoSources),
-                                "RelationshipBuilder should reject relationship instances without sources!")
+        XCTAssertRuntimeFailure(
+            RelationshipTestContext(app: self.app, service: self.webserviceNoSources),
+            "RelationshipBuilder should reject relationship instances without sources!"
+        )
     }
 }

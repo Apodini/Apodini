@@ -71,8 +71,10 @@ extension Sequence {
     }
     
     
-    public func dropNilValues<T>() -> [T] where Element == Optional<T> {
-        return self.compactMap { $0 }
+    /// Returns the elements of the sequence, as an array consisting only of nonnull elements.
+    /// - Note: This only removes one level of nullability. If you have nested optionals, you'll have to take care of that separately.
+    public func dropNilValues<T>() -> [T] where Element == T? {
+        self.compactMap { $0 }
     }
 }
 
@@ -108,7 +110,7 @@ extension Collection {
     
     /// Returns the index of the first element which compares equal to the specied element after the specified `otherIdx`
     public func firstIndex(of element: Element, after otherIdx: Index) -> Index? where Element: Equatable {
-        return firstIndex(after: otherIdx, where: { $0 == element })
+        firstIndex(after: otherIdx, where: { $0 == element })
     }
 }
 

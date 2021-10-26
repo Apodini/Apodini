@@ -18,6 +18,7 @@ let package = Package(
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
         .library(name: "ApodiniExtension", targets: ["ApodiniExtension"]),
+        .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
@@ -51,11 +52,7 @@ let package = Package(
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
         
         // Migrator
-        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
-        
-        // Lukas' playground
-        .executable(name: "LKTestWebService", targets: ["LKTestWebService"]),
-        .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"])
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
@@ -215,24 +212,6 @@ let package = Package(
                 .target(name: "ProtobufferCoding")
             ]
         ),
-        
-        .target(
-            name: "ApodiniGRPCv2",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworking")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniGraphQL",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworking")
-            ]
-        ),
 
         .target(
             name: "ApodiniJobs",
@@ -350,6 +329,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniLoggingSupport"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -658,16 +638,6 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
-            ]
-        ),
-        
-        .executableTarget(
-            name: "LKTestWebService",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniGRPCv2")
             ]
         )
     ]

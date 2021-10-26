@@ -122,15 +122,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let body = Bird(name: "Rudi", age: 12)
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(body))
-
-//        let uri = URI("http://example.de/test/a/b?param0=value0")
-//        let request = Vapor.Request(
-//                application: application,
-//                method: .POST,
-//                url: uri,
-//                collectedBody: bodyData,
-//                on: app.eventLoopGroup.next()
-//        )
+        
         let request = HTTPRequest(
             method: .POST,
             url: "http://example.de/test/a/b?param0=value0",
@@ -390,7 +382,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let restoredHeaders = HTTPHeaders(information)
         XCTAssertEqual(restoredHeaders[.authorization], .basic(credentials: authToken))
         XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.authorization.rawValue), value)
-        XCTAssertEqual(restoredHeaders[.eTag], "W/\"someTag\"")
+        XCTAssertEqual(restoredHeaders[.eTag], .weak("W/\"someTag\""))
         XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.eTag.rawValue), "W/\"someTag\"")
     }
     
@@ -399,7 +391,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             func handle() -> Apodini.Response<String> {
                 Response.send(
                     "Paul",
-                    status: .created, // TODO can we integrate our type-safe header stuff into the API allowing handlers to specify response headers?!
+                    status: .created,
                     information: [AnyHTTPInformation(key: "Test", rawValue: "Test")]
                 )
             }

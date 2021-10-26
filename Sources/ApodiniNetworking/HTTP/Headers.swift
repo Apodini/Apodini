@@ -4,31 +4,32 @@ import NIOHPACK
 import ApodiniUtils
 import Foundation
 
+// swiftlint:disable redundant_string_enum_value
 
 
 /// A type which can be turned into a HTTP header field value
 public protocol HTTPHeaderFieldValueCodable: Hashable {
-    init?(httpHeaderFieldValue value: String) // TODO should this throw?
+    /// Attempts to decode the string as a HTTP header value
+    init?(httpHeaderFieldValue value: String)
     
+    /// Encodes the receiver to a HTTP header value
     func encodeToHTTPHeaderFieldValue() -> String
 }
 
 
-//extension HTTPHeaderFieldValueCodable {
-//    public func hash(into hasher: inout Hasher) {
-//        <#code#>
-//    }
-//}
-
-
-
 /// A type which represents HTTP1 or HTTP2 headers
 public protocol __LKNIOHTTPHeadersType {
+    /// Initialises the headers type from a sequence of key-value pairs
     init(_ headers: [(String, String)])
+    /// Checks whether at least one header entry exists for the specified key
     func contains(name: String) -> Bool
+    /// Adds a header entry
     mutating func add(name: String, value: String, indexing: HPACKIndexing)
+    /// Removes a header entry
     mutating func remove(name: String)
+    /// Adds a header entry, removing any existing enties with the same key if necessary
     mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing)
+    /// Fetches all values for the specified key 
     subscript(name: String) -> [String] { get }
 }
 
@@ -47,7 +48,7 @@ extension NIOHTTP1.HTTPHeaders: __LKNIOHTTPHeadersType {
 }
 
 
-
+/// An untyped HTTP/1 or HTTP/2 header key.
 public class AnyHTTPHeaderName: Equatable {
     public let rawValue: String
     internal init(_ value: String) {
@@ -55,7 +56,7 @@ public class AnyHTTPHeaderName: Equatable {
     }
     
     public static func == (lhs: AnyHTTPHeaderName, rhs: AnyHTTPHeaderName) -> Bool {
-        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 
@@ -68,42 +69,29 @@ public class AnyHTTPHeaderName: Equatable {
 ///         On the other hand, `let contentEncoding = HeaderName<[HTTPContentEncoding]>("Content-Encoding")` would define a multi-value header, which can contain one or more values, and may also appear multiple times itself.
 /// See also: https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
 public class HTTPHeaderName<T: HTTPHeaderFieldValueCodable>: AnyHTTPHeaderName {
-    public override init(_ value: String) {
+    override public init(_ value: String) {
         super.init(value)
     }
 }
 
 
-public struct __TypecheckedHeaderInitKeyValuePair {
-    fileprivate let key: String
-    fileprivate let encodedValue: String
-    
-    public init<T>(_ name: HTTPHeaderName<T>, _ value: T) {
-        self.key = name.rawValue
-        self.encodedValue = value.encodeToHTTPHeaderFieldValue()
-    }
-}
-
-
-
-
 extension __LKNIOHTTPHeadersType {
-    public init<S>(_ elements: S) where S: Sequence, S.Element == __TypecheckedHeaderInitKeyValuePair {
-        self.init(elements.map { ($0.key, $0.encodedValue) })
-    }
-    
-    
+    /// Creates a new headers struct, giving the caller the opportunity to initialise it via the closure.
+    /// - Note: The reason this initialiser exists is to offer a type-safe way of declaring immutable headers objects.
+    ///         The underlying problem here is that Swift doesn't support variadic generics, meaning that (since the type-safe header
+    ///         names are implemented via generics) you wouldn't be able to pass more than one generic key-value pair to the initialiser.
+    ///         This initialiser wors around that by giving the caller the ability to access a mutable version of the headers
+    ///         struct (which can be modified using the type-safe API), while still allowing the caller to store the resulting value into an immutable object.
+    ///         Sinice the block is non-escaping, immediately evaluated, and evaluated only once, this is semantically equivalent to declaring a mutable headers object and modifying that.
     public init(_ block: (inout Self) throws -> Void) rethrows {
         self.init([])
         try block(&self)
     }
     
-    
     /// Checks whether at least one entry exists for the specified name
     public func isPresent<T>(_ name: HTTPHeaderName<T>) -> Bool {
-        return self.contains(name: name.rawValue)
+        self.contains(name: name.rawValue)
     }
-    
     
     /// Sets the spefified value for `name`, if no entry for that key already exists
     public mutating func setUnlessPresent<T: HTTPHeaderFieldValueCodable>(
@@ -116,7 +104,6 @@ extension __LKNIOHTTPHeadersType {
         }
         self.add(name: name.rawValue, value: value().encodeToHTTPHeaderFieldValue(), indexing: indexing)
     }
-    
     
     /// Access a single-value typed header field
     /// - Returns: When reading: `nil` if the field is not present
@@ -137,7 +124,6 @@ extension __LKNIOHTTPHeadersType {
         }
     }
     
-    
     /// Access a multi-value typed header field
     /// - Returns: When reading: `nil` if the field is not present
     /// - Throws: When reading: if the field is present, but there was an error decoding its value. When writing: if there was an error encoding the new value
@@ -147,13 +133,13 @@ extension __LKNIOHTTPHeadersType {
             switch name {
             case .setCookie:
                 // Set-Cookie requires special handling because we can't split or join its values in a comma separator
-                return self[name.rawValue].map { T.init(httpHeaderFieldValue: $0)! }
+                return self[name.rawValue].map { T(httpHeaderFieldValue: $0)! }
             default:
                 // All other headers can be split on commmas
                 return self[name.rawValue]
                     .flatMap { $0.split(separator: ",") }
                     .map { $0.trimmingLeadingWhitespace() }
-                    .map { T(httpHeaderFieldValue: String($0))! } // TODO error handling!
+                    .map { T(httpHeaderFieldValue: String($0))! }
             }
         }
         set {
@@ -179,26 +165,35 @@ extension __LKNIOHTTPHeadersType {
 }
 
 
-
-
 // MARK: List of HTTP Header Names
 
- 
-public extension AnyHTTPHeaderName {
-    static let accept = HTTPHeaderName<[HTTPMediaType]>("Accept")
-    static let authorization = HTTPHeaderName<AuthorizationHTTPHeaderValue>("Authorization")
-    static let connection = HTTPHeaderName<[HTTPConnectionHeaderValue]>("Connection")
-    static let contentType = HTTPHeaderName<HTTPMediaType>("Content-Type")
-    static let date = HTTPHeaderName<Date>("Date")
-    static let setCookie = HTTPHeaderName<[SetCookieHTTPHeaderValue]>("Set-Cookie")
-    static let transferEncoding = HTTPHeaderName<[TransferCodingHTTPHeaderValue]>("Transfer-Encoding")
-    static let server = HTTPHeaderName<String>("Server")
-    static let upgrade = HTTPHeaderName<[HTTPUpgradeHeaderValue]>("Upgrade")
-    static let contentEncoding = HTTPHeaderName<[ContentEncodingHTTPHeaderValue]>("Content-Encoding")
-    static let contentLength = HTTPHeaderName<Int>("Content-Length")
-    static let eTag = HTTPHeaderName<String>("ETag") // TODO use the dedicated type?
-}
 
+public extension AnyHTTPHeaderName {
+    /// The `Accept` HTTP header field
+    static let accept = HTTPHeaderName<[HTTPMediaType]>("Accept")
+    /// The `Authorization` HTTP header field
+    static let authorization = HTTPHeaderName<AuthorizationHTTPHeaderValue>("Authorization")
+    /// The `Connection` HTTP header field
+    static let connection = HTTPHeaderName<[HTTPConnectionHeaderValue]>("Connection")
+    /// The `Content-Type` HTTP header field
+    static let contentType = HTTPHeaderName<HTTPMediaType>("Content-Type")
+    /// The `Date` HTTP header field
+    static let date = HTTPHeaderName<Date>("Date")
+    /// The `Set-Cookie` HTTP header field
+    static let setCookie = HTTPHeaderName<[SetCookieHTTPHeaderValue]>("Set-Cookie")
+    /// The `Transfer-Encoding` HTTP header field
+    static let transferEncoding = HTTPHeaderName<[TransferCodingHTTPHeaderValue]>("Transfer-Encoding")
+    /// The `Server` HTTP header field
+    static let server = HTTPHeaderName<String>("Server")
+    /// The `Upgrade` HTTP header field
+    static let upgrade = HTTPHeaderName<[HTTPUpgradeHeaderValue]>("Upgrade")
+    /// The `Content-Encoding` HTTP header field
+    static let contentEncoding = HTTPHeaderName<[ContentEncodingHTTPHeaderValue]>("Content-Encoding")
+    /// The `Content-Length` HTTP header field
+    static let contentLength = HTTPHeaderName<Int>("Content-Length")
+    /// The `ETag` HTTP header field
+    static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
+}
 
 
 public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
@@ -235,7 +230,6 @@ public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
 }
 
 
-
 public enum HTTPUpgradeHeaderValue: HTTPHeaderFieldValueCodable {
     case http2
     case webSocket
@@ -265,7 +259,6 @@ public enum HTTPUpgradeHeaderValue: HTTPHeaderFieldValueCodable {
 }
 
 
-
 public enum TransferCodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable {
     case chunked = "chunked"
     case compress = "compress"
@@ -277,7 +270,7 @@ public enum TransferCodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable {
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        return self.rawValue
+        self.rawValue
     }
 }
 
@@ -286,14 +279,14 @@ public enum ContentEncodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable 
     case gzip = "gzip"
     case compress = "compress"
     case deflate = "deflate"
-    case br = "br"
+    case br = "br" // swiftlint:disable:this identifier_name
     
     public init?(httpHeaderFieldValue value: String) {
         self.init(rawValue: value)
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        return self.rawValue
+        self.rawValue
     }
 }
 
@@ -312,8 +305,8 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     public let maxAge: Int?
     public let domain: String?
     public let path: String?
-    public let secure: Bool?
-    public let httpOnly: Bool?
+    public let secure: Bool? // swiftlint:disable:this discouraged_optional_boolean
+    public let httpOnly: Bool? // swiftlint:disable:this discouraged_optional_boolean
     public let sameSite: SameSite?
     
     /// Create a new `SetCookieHeaderValue` object from the specified values.
@@ -325,8 +318,8 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
         maxAge: Int?,
         domain: String?,
         path: String?,
-        secure: Bool?,
-        httpOnly: Bool?,
+        secure: Bool?, // swiftlint:disable:this discouraged_optional_boolean
+        httpOnly: Bool?, // swiftlint:disable:this discouraged_optional_boolean
         sameSite: SameSite?
     ) {
         self.cookieName = cookieName
@@ -335,14 +328,14 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
         self.maxAge = maxAge
         self.domain = domain
         self.path = path
-        self.secure = sameSite == SameSite.none ? true : secure // TODO write a test for this!
+        self.secure = sameSite == SameSite.none ? true : secure
         self.httpOnly = httpOnly
         self.sameSite = sameSite
     }
     
     
     public init?(httpHeaderFieldValue value: String) {
-        fatalError("TODO")
+        fatalError("Not yet implemented")
     }
     
     
@@ -374,8 +367,6 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
 }
 
 
-
-
 public enum AuthorizationHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     case basic(credentials: String)
     /// See [RFC6750](https://datatracker.ietf.org/doc/html/rfc6750)
@@ -405,23 +396,35 @@ public enum AuthorizationHTTPHeaderValue: HTTPHeaderFieldValueCodable {
             return "Basic \(credentials)"
         case .bearer(let token):
             return "Bearer \(token)"
-        case .other(let type, let credentials):
+        case let .other(type, credentials):
             return "\(type) \(credentials)"
         }
     }
 }
 
 
+public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
+    case weak(String)
+    case strong(String)
+    
+    public init?(httpHeaderFieldValue value: String) {
+        if value.hasPrefix("W/") {
+            self = .weak(value)
+        } else {
+            self = .strong(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .weak(let value), .strong(let value):
+            return value
+        }
+    }
+}
 
-// TODO?
-//public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
-//    case weak
-//}
 
-
-// MARK: Extensions for Well-Known HTTP Header Fields
-// TODO can we limit this in a way that eg for a request you cant set response header fields?
-
+// MARK: Extensions for raw types that may appear as HTTP header field values
 
 
 extension String: HTTPHeaderFieldValueCodable {
@@ -441,10 +444,9 @@ extension Int: HTTPHeaderFieldValueCodable {
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        return String(self)
+        String(self)
     }
 }
-
 
 
 extension Date: HTTPHeaderFieldValueCodable {
@@ -465,7 +467,7 @@ extension Date: HTTPHeaderFieldValueCodable {
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        return Self.httpDateFormatter.string(from: self)
+        Self.httpDateFormatter.string(from: self)
     }
 }
 
@@ -474,7 +476,7 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
     public init?(httpHeaderFieldValue value: String) {
         self.init()
         for component in value.split(separator: ",") {
-            guard let headerValue = Element.init(httpHeaderFieldValue: String(component.trimmingLeadingWhitespace())) else {
+            guard let headerValue = Element(httpHeaderFieldValue: String(component.trimmingLeadingWhitespace())) else {
                 return nil
             }
             self.append(headerValue)
@@ -482,8 +484,7 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        return self
-            .map { $0.encodeToHTTPHeaderFieldValue() }
+        self.map { $0.encodeToHTTPHeaderFieldValue() }
             .joined(separator: ", ")
     }
 }

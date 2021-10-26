@@ -337,12 +337,14 @@ final class ApodiniMigratorTests: ApodiniTests {
         let swiftFiles = try testDirectory.recursiveSwiftFiles().map { $0.lastComponent }
         
         let modelNames = document.allModels().map { $0.typeString + .swift }
-        
-        modelNames.forEach { XCTAssert(swiftFiles.contains($0)) }
+        for modelName in modelNames {
+            XCTAssert(swiftFiles.contains(modelName))
+        }
         
         let endpointFileNames = document.endpoints.map { $0.response.nestedTypeString + "+Endpoint" + .swift }.unique()
-        
-        endpointFileNames.forEach { XCTAssert(swiftFiles.contains($0)) }
+        for fileName in endpointFileNames {
+            XCTAssert(swiftFiles.contains(fileName))
+        }
 
         XCTAssert(swiftFiles.contains("Handler.swift"))
         XCTAssert(swiftFiles.contains("NetworkingService.swift"))

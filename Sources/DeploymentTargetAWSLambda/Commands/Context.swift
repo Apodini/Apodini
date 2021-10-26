@@ -81,7 +81,7 @@ enum Context {
     }
     
     private static func _findExecutable(_ name: String) -> URL {
-        guard let url = Task.findExecutable(named: name) else {
+        guard let url = ChildProcess.findExecutable(named: name) else {
             fatalError("Unable to find executable '\(name)'")
         }
         return url

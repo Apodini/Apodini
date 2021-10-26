@@ -18,9 +18,9 @@ public struct WrappedRESTResponse<T: Decodable>: Decodable {
         case links = "_links"
     }
     public let data: T
-    public let links: [String: String]?
+    public let links: [String: String]? // swiftlint:disable:this discouraged_optional_collection
     
-    public init(data: T, links: [String: String]? = nil) {
+    public init(data: T, links: [String: String]? = nil) { // swiftlint:disable:this discouraged_optional_collection
         self.data = data
         self.links = links
     }
@@ -39,14 +39,6 @@ public func XCTUnwrapRESTResponse<T: Decodable>(_: T.Type, from response: HTTPRe
 /// Returns the decoded contents of a REST response's `data` field
 public func XCTUnwrapRESTResponseData<T: Decodable>(_: T.Type, from response: HTTPResponse) throws -> T {
     try XCTUnwrapRESTResponse(T.self, from: response).data
-}
-
-
-extension BodyStorage {
-    @available(*, deprecated)
-    public func getDecodedRESTResponseData<T: Codable>(_ type: T.Type) throws -> T {
-        try self.getFullBodyData(decodedAs: WrappedRESTResponse<T>.self).data
-    }
 }
 
 

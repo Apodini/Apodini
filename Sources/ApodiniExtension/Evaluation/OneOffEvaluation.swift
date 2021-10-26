@@ -76,7 +76,11 @@ internal extension Delegate where D: Handler {
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(
+        _ trigger: TriggerEvent,
+        using request: Request,
+        with state: ConnectionState = .end
+    ) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         promise.completeWithAsync {
             try await self.evaluate(trigger, using: request, with: state)
@@ -84,7 +88,11 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-    func evaluate(_ trigger: TriggerEvent, using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(
+        _ trigger: TriggerEvent,
+        using request: Request,
+        with state: ConnectionState = .end
+    ) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
         guard !trigger.cancelled else {
             self.setChanged(to: false, reason: trigger)

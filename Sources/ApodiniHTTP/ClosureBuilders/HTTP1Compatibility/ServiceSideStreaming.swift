@@ -39,10 +39,13 @@ extension Exporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
-        let encoder = endpoint[Context.self].get(valueFor: ResponseEncoderHandlerMetadata.Key.self) ?? configuration.encoder
+        let encoder = configuration.encoder
         return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { response -> Data? in
-            guard let response = response else { return nil }
-            return try encoder.encode(response)
+            if let response = response {
+                return try encoder.encode(response)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -51,7 +54,7 @@ extension Exporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
-        return _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { (response: Blob?) -> Data? in
+        _buildServiceSideStreamingClosure(for: endpoint, using: defaultValues) { (response: Blob?) -> Data? in
             precondition(response?.byteBuffer.readerIndex == 0)
             return response?.byteBuffer.getAllData()
         }
@@ -70,7 +73,6 @@ extension Exporter {
         return { (request: HTTPRequest) throws -> EventLoopFuture<HTTPResponse> in
             let delegate = factory.instance()
             let httpResponseStream = BodyStorage.Stream()
-            httpResponseStream.debugName = "HTTPServerResponse"
             return [request]
                 .asAsyncSequence
                 .decode(using: strategy, with: request.eventLoop)
@@ -79,7 +81,7 @@ extension Exporter {
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
-                .cancel(if: { $0.connectionEffect == .close })
+                .cancelIf { $0.connectionEffect == .close }
                 .lk_firstFuture(
                     on: request.eventLoop,
                     remainingObjectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
@@ -94,14 +96,14 @@ extension Exporter {
                             }
                         } catch {
                             // Error encoding the response data
-                            // TODO how should this be handled? Abort the entire reesponse?
+                            logger.error("Error encoding part of response: \(error)")
                         }
                     }
                 )
                 .map { firstResponse -> HTTPResponse in
                     return HTTPResponse(
                         version: request.version,
-                        status: HTTPResponseStatus(firstResponse?.status ?? .ok), // TODO is this a reasonable default?,
+                        status: HTTPResponseStatus(firstResponse?.status ?? .ok),
                         headers: HTTPHeaders(firstResponse?.information ?? []),
                         bodyStorage: .stream(httpResponseStream)
                     )

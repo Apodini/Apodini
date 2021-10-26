@@ -116,37 +116,24 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(configuration: self.exporterConfiguration) {
             // Register OpenAPI specification endpoint.
-//            app.vapor.app.get(exporterConfiguration.outputEndpoint.pathComponents) { _ -> String in
-//                output
-//            }
-            app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { request in
-                //HTTPResponse(version: request.version, status: .ok, headers: [:], body: .init(string: output))
+            app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { _ in
                 output
             }
-            
             // Register swagger-UI endpoint.
-            //app.vapor.app.get(exporterConfiguration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
             app.httpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.httpPathComponents) { request -> HTTPResponse in
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                       var html = try? String(contentsOfFile: htmlFile)
                 else {
-//                    //throw Vapor.Abort(.internalServerError)
-//                    struct TODO_ReplaceThisWithAProperErrorType: Swift.Error {}
-//                    //throw NSError(domain: "Apodini.OpenAPI", code: 0, userInfo: [NSLocalizedDescriptionKey: "ugh god"]) // TODO use ApodiniError or whatever
-//                    throw TODO_ReplaceThisWithAProperErrorType()
-                    throw ApodiniNetworking.HTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
+                    throw HTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
                 }
                 // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.exporterConfiguration.outputEndpoint)
-                
-                //return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
                 return HTTPResponse(
                     version: request.version,
                     status: .ok,
-                    headers: [ // TODO write an API to have this strongly typed!!!
-                        "Content-Type": "text/html; charset=UTF-8"
-                    ],
-                    //body: .init(string: html)
+                    headers: HTTPHeaders {
+                        $0[.contentType] = .html
+                    },
                     bodyStorage: .buffer(initialValue: html)
                 )
             }

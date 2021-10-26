@@ -9,7 +9,7 @@
 import APNSwift
 
 /// The `Payload` is used to configure plattform specific settings of a `Notification`.
-public struct Payload { // TODO is still needed, considering that we have only one property left?
+public struct Payload {
     /// APNS specific payload.
     public let apnsPayload: APNSPayload?
     

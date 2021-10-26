@@ -13,7 +13,6 @@ import ApodiniNetworking
 
 
 extension Exporter {
-    // TODO there's a lot of redundancy here!!!
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore

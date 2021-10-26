@@ -14,6 +14,7 @@ import ApodiniAuthorization
 import ApodiniAuthorizationBasicScheme
 import ApodiniAuthorizationBearerScheme
 
+
 class ApodiniAuthorizationTests: XCTApodiniTest {
     struct TestWebService: WebService {
         var content: some Component {

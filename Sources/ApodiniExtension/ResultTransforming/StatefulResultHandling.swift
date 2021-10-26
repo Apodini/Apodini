@@ -25,12 +25,12 @@ extension AsyncSequence {
     /// causes a the error to be thrown`.
     public func transform<T: ResultTransformer>(using transformer: T)
         -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
-        self.cancel(if: { result in
+        self.cancelIf { result in
             if case let .success(response) = result {
                 return response.connectionEffect == .close
             }
             return false
-        })
+        }
         .compactMap { result throws -> Result<T.Output, Error>? in
             switch result {
             case let .success(response):
@@ -62,12 +62,12 @@ extension AsyncSequence {
     /// causes a completion with `.failure(_:)`.
     public func transform<T: ResultTransformer, C: Encodable>(using transformer: T)
     -> AnyAsyncSequence<T.Output> where T.Input == Response<C>, Element == Result<Response<C>, Error> {
-        self.cancel(if: { result in
+        self.cancelIf { result in
             if case let .success(response) = result {
                 return response.connectionEffect == .close
             }
             return false
-        })
+        }
         .map { result throws -> Result<T.Output, Error> in
             switch result {
             case let .success(response):
@@ -104,7 +104,7 @@ private extension AsyncSequence {
                     }
                 }
             }
-            .cancel(if: { cancel, _ in cancel })
+            .cancelIf { cancel, _ in cancel }
             .map { _, output in output }
             .typeErased
     }

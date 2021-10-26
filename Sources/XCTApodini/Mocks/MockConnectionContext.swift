@@ -53,10 +53,11 @@ public class ConnectionContext<Input, H: Handler> {
         let request = strategy
             .decodeRequest(from: request, with: (request as? RequestBasis) ?? DefaultRequestBasis(base: request), with: eventLoop)
             .insertDefaults(with: defaults)
-        
         self.latestRequest = latestRequest?.reduce(with: request) ?? MutabilityValidatingRequest(request)
         let cachingRequest = latestRequest!.cache()
-        return cachingRequest.evaluate(on: delegate, final ? .end : .open).map { response in (response, cachingRequest.peak(_:)) }
+        return cachingRequest
+            .evaluate(on: delegate, final ? .end : .open)
+            .map { response in (response, cachingRequest.peak(_:)) }
     }
     
     /// Evaluate the inner `Delegate` based on the given `event`.
@@ -67,7 +68,6 @@ public class ConnectionContext<Input, H: Handler> {
         guard let request = self.latestRequest else {
             fatalError("Mock ConnectionContext tried to handle event before a Request was present.")
         }
-        
         return delegate.evaluate(event, using: request.cache(), with: .open)
     }
     
@@ -96,16 +96,20 @@ extension HTTPRequest: WithEventLoop { }
 extension Endpoint {
     /// Create a ``ConnectionContext`` for a ApodiniExtension `LegacyInterfaceExporter`.
     public func createConnectionContext<IE: LegacyInterfaceExporter>(for exporter: IE) -> ConnectionContext<IE.ExporterRequest, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H, IE>.self].instance(),
-                          strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
-                          defaults: self[DefaultValueStore.self])
+        ConnectionContext(
+            delegate: self[DelegateFactory<H, IE>.self].instance(),
+            strategy: InterfaceExporterLegacyStrategy(exporter).applied(to: self).typeErased,
+            defaults: self[DefaultValueStore.self]
+        )
     }
     
     /// Create a ``ConnectionContext`` for any object that can provide a fitting strategy for decoding its ``EndpointDecodingStrategyProvider/Input``.
     public func createConnectionContext<IE: EndpointDecodingStrategyProvider>(for exporter: IE) -> ConnectionContext<IE.Input, H> {
-        ConnectionContext(delegate: self[DelegateFactory<H, RESTInterfaceExporter>.self].instance(),
-                          strategy: exporter.strategy.applied(to: self).typeErased,
-                          defaults: self[DefaultValueStore.self])
+        ConnectionContext(
+            delegate: self[DelegateFactory<H, RESTInterfaceExporter>.self].instance(),
+            strategy: exporter.strategy.applied(to: self).typeErased,
+            defaults: self[DefaultValueStore.self]
+        )
     }
 }
 
@@ -122,9 +126,9 @@ public protocol EndpointDecodingStrategyProvider {
 extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     public var strategy: AnyEndpointDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
-                            lightweight: LightweightStrategy(),
-                            path: PathStrategy(useNameAsIdentifier: false),
-                            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+            lightweight: LightweightStrategy(),
+            path: PathStrategy(useNameAsIdentifier: false),
+            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).typeErased
     }
 }

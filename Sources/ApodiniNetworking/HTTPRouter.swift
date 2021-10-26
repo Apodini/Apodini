@@ -28,7 +28,8 @@ public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
 }
 
 
-extension Array: ExpressibleByStringLiteral, ExpressibleByExtendedGraphemeClusterLiteral, ExpressibleByUnicodeScalarLiteral where Element == HTTPPathComponent {
+extension Array: ExpressibleByStringLiteral, ExpressibleByExtendedGraphemeClusterLiteral, ExpressibleByUnicodeScalarLiteral
+where Element == HTTPPathComponent {
     public typealias StringLiteralType = String
     public typealias ExtendedGraphemeClusterLiteralType = StringLiteralType.ExtendedGraphemeClusterLiteralType
     public typealias UnicodeScalarLiteralType = StringLiteralType.UnicodeScalarLiteralType
@@ -40,13 +41,15 @@ extension Array: ExpressibleByStringLiteral, ExpressibleByExtendedGraphemeCluste
 
 
 extension Array where Element == HTTPPathComponent {
+    /// Constructs an array of path components from a path string
     public init(_ string: String) {
-        self = string.httpPathComponents
+        self = string.split(separator: "/").map { .init(string: $0) }
     }
     
     
+    /// Constructs a string from the path components
     public var httpPathString: String {
-        return self.reduce(into: "") { partialResult, pathComponent in
+        self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
             case .verbatim(let value):
@@ -62,14 +65,15 @@ extension Array where Element == HTTPPathComponent {
     }
     
     
+    /// Returns the furst index of the parameter with the specified name, `nil` if no such parameter exists
     public func firstIndex(ofParameterWithName name: String) -> Int? {
-        return self.firstIndex(of: .namedParameter(name))
+        self.firstIndex(of: .namedParameter(name))
     }
     
     
     /// A string representing the "effective path" formed by this array of path components, in a form that allows comparing multiple paths for equality in terms of the HTTP server's routing behaviour
     public var effectivePath: String {
-        return self.reduce(into: "") { partialResult, pathComponent in
+        self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
             case .verbatim(let value):
@@ -87,11 +91,11 @@ extension Array where Element == HTTPPathComponent {
 
 
 extension String {
+    /// The string split into an array of path components
     public var httpPathComponents: [HTTPPathComponent] {
-        return self.split(separator: "/").map { .init(string: $0) }
+        .init(self)
     }
 }
-
 
 
 extension HTTPMethod: Hashable {
@@ -99,7 +103,6 @@ extension HTTPMethod: Hashable {
         hasher.combine(self.rawValue)
     }
 }
-
 
 
 final class HTTPRouter {
@@ -110,14 +113,8 @@ final class HTTPRouter {
     }
     
     private(set) var routes: [HTTPMethod: [Route]] = [:]
-    
-    var allRoutes: [Route] {
-        routes.flatMap(\.value)
-    }
-    
     private let logger: Logger
-    
-    var isCaseInsensitiveRoutingEnabled: Bool = false
+    var isCaseInsensitiveRoutingEnabled = false
     
     
     init(logger: Logger) {
@@ -125,19 +122,22 @@ final class HTTPRouter {
     }
     
     
+    var allRoutes: [Route] {
+        routes.flatMap(\.value)
+    }
+    
+    
     func add(_ route: Route) {
         if routes[route.method] == nil {
             routes[route.method] = []
         }
-        // TODO potential problem with the path conflicting stuff: if we adopt vapor's behaviour of sending HEAD requests to GET endpoints, does this need to be reflected in the conflict detection/handling?
         if case let effectivePath = route.path.effectivePath, routes[route.method]!.contains(where: { $0.path.effectivePath == effectivePath }) {
             logger.error("Cannot register multiple routes at same effective path '\(effectivePath)'")
-            fatalError()
+            fatalError("Invalid operation")
         }
         routes[route.method]!.append(route)
         logger.notice("[Router] added \(route.method.rawValue) route at '\(route.path.httpPathString)'")
     }
-    
     
     
     func getRoute(for request: HTTPRequest) -> Route? {
@@ -163,7 +163,7 @@ final class HTTPRouter {
                 url: request.url,
                 against: route.path,
                 allowsCaseInsensitiveMatching: isCaseInsensitiveRoutingEnabled,
-                allowsEmptyMultiWildcards: false // TODO expose this via a property on the router??
+                allowsEmptyMultiWildcards: false // NOTE do we want to expose this via a property on the router??
             ) {
                 logger.info("[Router] matched '\(request.url)' to route at '\(route.path.httpPathString)'")
                 request.populate(from: route, withParameters: parameters)
@@ -174,4 +174,3 @@ final class HTTPRouter {
         return nil
     }
 }
-

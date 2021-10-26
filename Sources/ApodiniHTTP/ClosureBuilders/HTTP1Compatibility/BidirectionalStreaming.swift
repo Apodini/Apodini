@@ -21,8 +21,11 @@ extension Exporter {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         let abortAnyError = AbortTransformer<H>()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: HTTPRequest) in
-            guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyStorage.getFullBodyData() ?? .init()).count else {
+        return { (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
+            guard let requestCount = try configuration.decoder.decode(
+                ArrayCount.self,
+                from: request.bodyStorage.getFullBodyData() ?? .init()
+            ).count else {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
@@ -41,9 +44,7 @@ extension Exporter {
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    return response.connectionEffect == .close
-                })
+                .cancelIf { $0.connectionEffect == .close }
                 .collect()
                 .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
                     let status: Status? = responses.last?.status
@@ -52,22 +53,17 @@ extension Exporter {
                         response.content
                     }
                     let body = try configuration.encoder.encode(content)
-                    
-                    //return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                    //                      headers: HTTPHeaders(information),
-                    //                      body: Vapor.Response.Body(data: body))
                     return HTTPResponse(
-                        version: request.version, // TODO: since this seems to be evaluated in an async context, can we capture the request just like that?
+                        version: request.version,
                         status: HTTPResponseStatus(status ?? .ok),
                         headers: HTTPHeaders(information),
-                        //body: .init(data: body)
-                        bodyStorage: .buffer(initialValue: body) // TODO strem!!
+                        bodyStorage: .buffer(initialValue: body)
                     )
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
                     precondition(optionalResponse != nil)
-                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:]) // TODO what should this default request look like? old imoplementation somply returned an empty Vapor.Rwequest()
+                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                 }
         }
     }

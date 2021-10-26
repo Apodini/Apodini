@@ -85,13 +85,6 @@ final class BlobTests: ApodiniTests {
         
         
         func makeRequest(blobContent: String, mimeType: MimeType) throws {
-//            let request = Vapor.Request(
-//                application: app.vapor.app,
-//                method: .POST,
-//                url: URI("https://ase.in.tum.de/schmiedmayer?name=\(blobContent)"),
-//                collectedBody: ByteBuffer(data: try JSONEncoder().encode(mimeType)),
-//                on: app.eventLoopGroup.next()
-//            )
             let request = HTTPRequest(
                 remoteAddress: nil,
                 version: .http1_1,
@@ -103,10 +96,7 @@ final class BlobTests: ApodiniTests {
             )
             
             let response = try endpointHandler.respond(to: request).makeHTTPResponse(for: request).wait()
-            //let byteBuffer = try XCTUnwrap(response.body)
             let responseString = try XCTUnwrap(response.bodyStorage.readNewDataAsString())
-                
-            //XCTAssertEqual(byteBuffer.getString(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes), blobContent)
             XCTAssertEqual(responseString, blobContent)
         }
 

@@ -60,9 +60,9 @@ struct Exporter: InterfaceExporter {
         self.app = app
         self.configuration = configuration
         self.logger = app.logger
-        // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        //self.app.vapor.app.routes.caseInsensitive = configuration.caseInsensitiveRouting
-        app.httpServer.isCaseInsensitiveRoutingEnabled = configuration.caseInsensitiveRouting // TODO what if we have both the REST and the HTTP IEs enabled, and their respective configurations specify different values for the routing case sensitivity???
+        // Note: a thing to consider here is that we might want to have per-route case sensitivity.
+        // For example, if the REST IE wants case-insensitive routing, but the HTTP IE does not, that'd somehow need to be supported.
+        app.httpServer.isCaseInsensitiveRoutingEnabled = configuration.caseInsensitiveRouting
     }
     
     static let parameterNamespace: [ParameterNamespace] = .individual
@@ -146,7 +146,7 @@ struct Exporter: InterfaceExporter {
             path: PathStrategy(),
             content: NumberOfContentParameterAwareStrategy
                 .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
-                .transformedToVaporRequestBasedStrategy()
+                .transformedToHTTPRequestBasedStrategy()
         )
         .applied(to: endpoint)
         .typeErased
@@ -155,21 +155,14 @@ struct Exporter: InterfaceExporter {
     func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(HTTPRequest, Int)> {
         ParameterTypeSpecific(
             lightweight: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
-            // TODO this used to be simply request.bodyData. What should it look like for stream-based requests????
-                //.transformed { request, index in (request.bodyData, index) },
-                .transformed { (request, index) in
-                    print("HMMM.1", request, index)
-                    return (request.bodyStorage.getFullBodyData() ?? Data(), index)
+                .transformed { request, index in
+                    (request.bodyStorage.getFullBodyData() ?? Data(), index)
                 },
             path: PathStrategy().transformed { request, _ in request },
             content: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
-                //.transformed { request, index in (request.bodyData, index) }
-                // TODO not sure about this one!
                 .transformed { request, index in
-                    print("HMMM.2", request, index)
-                    return (request.bodyStorage.getFullBodyData() ?? Data(), index)
+                    (request.bodyStorage.getFullBodyData() ?? Data(), index)
                 }
-            
         )
         .applied(to: endpoint)
         .typeErased

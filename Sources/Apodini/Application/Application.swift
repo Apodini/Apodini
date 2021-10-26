@@ -76,7 +76,6 @@ public final class Application {
     private var signalSources: [DispatchSourceSignal] = []
 
     /// Keeps track of all application lifecycle handlers
-    /// // TODO what if a lifecycle handler is added when the application is already running? Should that still trigger the `didBoot` action?
     public struct Lifecycle {
         var handlers: [LifecycleHandler]
         init() {

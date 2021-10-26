@@ -16,7 +16,7 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
     
     private enum State: Equatable {
         case ready
-        case pendingWebSocketUpgrade(HTTPRequest/*, TODO*/)
+        case pendingWebSocketUpgrade(HTTPRequest)
     }
     
     
@@ -49,20 +49,19 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
         
         guard request.headers[.connection].contains(.upgrade) else {
             logger.notice("Received non-upgrade request while in ready state")
-            // TODO remove ourselves from the pipeline?
+            // NOTE it might be a good idea to use this as an opportunity to remove ourselves from the pipeline?
             context.fireChannelRead(data)
             return
         }
         
-        let upgradeHeaderValues = request.headers[.upgrade]// as [HTTPUpgradeHeaderValue] // TODO ideally the as wouldn't be necessary but for some reason swift seems to be picking up the vapor extension's subscript instead of our own? (even though we don't import vapor...)
+        let upgradeHeaderValues = request.headers[.upgrade]
         
         if upgradeHeaderValues.contains(.webSocket) {
             state = .pendingWebSocketUpgrade(request)
             logger.notice("Received WebSocket upgrade request")
             context.fireChannelRead(data)
         } else {
-            // TODO either somehow handle this, or just ignore it and move on
-            fatalError("Unhandled upgrade thing?")
+            fatalError("Received unexpected Upgrade handler (value: '\(upgradeHeaderValues)')")
         }
     }
     
@@ -82,8 +81,8 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
                 // Just pipe this through and hope for the best
                 state = .ready
                 context.write(data, promise: promise)
-                // TODO what if there's buffered data at this point?
-                // Also, this might be a good point to remove outselves from the pipeline
+                // Note: as above, this might be a good point to remove ourselves from the pipeline.
+                // Also, it might be necessary to write back the buffered data at this point.
                 logger.notice("Response is not the expected upgrade response. Handling as normal")
                 return
             }
@@ -91,9 +90,9 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
             case let .webSocket(maxFrameSize, shouldUpgrade, onUpgrade):
                 let webSocketUpgrader = NIOWebSocketServerUpgrader(
                     maxFrameSize: maxFrameSize,
-                    automaticErrorHandling: false, // TODO do we want this on or off? default is true, but Vapor sets it to false...
-                    shouldUpgrade: { channel, requestHead in shouldUpgrade() },
-                    upgradePipelineHandler: { channel, requestHead in
+                    automaticErrorHandling: false,
+                    shouldUpgrade: { _, _ in shouldUpgrade() },
+                    upgradePipelineHandler: { channel, _ in
                         WebSocket.server(on: channel, onUpgrade: onUpgrade)
                     }
                 )
@@ -111,18 +110,19 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
                         self.logger.notice("Mapping headers")
                         response.headers = headers
                         context.write(self.wrapOutboundOut(response), promise: promise)
-                    }.flatMap { () -> EventLoopFuture<Void> in
+                    }
+                    .flatMap { () -> EventLoopFuture<Void> in
                         self.logger.notice("Removing handlers")
                         let handlers: [RemovableChannelHandler] = [self] + self.handlersToRemoveOnWebSocketUpgrade
                         return .andAllComplete(handlers.map { handler in
                             return context.pipeline.removeHandler(handler)
                         }, on: context.eventLoop)
-                    }.flatMap { () -> EventLoopFuture<Void> in
+                    }
+                    .flatMap { () -> EventLoopFuture<Void> in
                         self.logger.notice("Calling upgrader.upgrade")
                         return webSocketUpgrader.upgrade(context: context, upgradeRequest: head)
-                    //}.flatMap {
-                        //return context.pipeline.removeHandler(buffer)
-                    }.cascadeFailure(to: promise)
+                    }
+                    .cascadeFailure(to: promise)
             }
         }
     }
@@ -138,38 +138,4 @@ class LKHTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Remov
             context.fireChannelReadComplete()
         }
     }
-    
-//    func removeHandler(context: ChannelHandlerContext, removalToken: ChannelHandlerContext.RemovalToken) {
-//        // We have been formally removed from the pipeline. We should send any buffered data we have.
-//        // Note that we loop twice. This is because we want to guard against being reentrantly called from fireChannelReadComplete.
-//
-//        if !bufferedData.isEmpty {
-//            for data in bufferedData {
-//                context.fireChannelRead(data)
-//            }
-//            bufferedData.removeAll()
-//            context.fireChannelReadComplete()
-//        }
-//
-//        // Copied from NIO's default implementation, since we can't simply call that directly
-//        precondition(context.handler === self)
-//        context.leavePipeline(removalToken: removalToken)
-//    }
 }
-
-
-//class LKWebSocketsUpgradeHandler: HTTPServerProtocolUpgrader {
-//    let supportedProtocol: String = "websocket"
-//
-//    var requiredUpgradeHeaders: [String]
-//
-//    func buildUpgradeResponse(channel: Channel, upgradeRequest: HTTPRequestHead, initialResponseHeaders: HTTPHeaders) -> EventLoopFuture<HTTPHeaders> {
-//        <#code#>
-//    }
-//
-//    func upgrade(context: ChannelHandlerContext, upgradeRequest: HTTPRequestHead) -> EventLoopFuture<Void> {
-//        <#code#>
-//    }
-//
-//
-//}

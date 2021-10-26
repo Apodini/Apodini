@@ -47,7 +47,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
-    private var task: Task! // swiftlint:disable:this implicitly_unwrapped_optional
+    private var task: ChildProcess! // swiftlint:disable:this implicitly_unwrapped_optional
     private var stdioObserverHandle: AnyObject! // swiftlint:disable:this implicitly_unwrapped_optional
     private var currentPhase: TestPhase = .launchWebService
     
@@ -67,7 +67,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
-        task = Task(
+        task = ChildProcess(
             executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost"),
             arguments: [srcRoot.path, "--product-name", Self.apodiniDeployTestWebServiceTargetName],
             captureOutput: true,
@@ -94,10 +94,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             assertForOverFulfill: true
         )
         /// Expectation that the gateway server is shut down
-        let didShutDownGateway = XCTestExpectation("Task did terminate")
+        let didShutDownGateway = XCTestExpectation("ChildProcess did terminate")
         didShutDownGateway.assertForOverFulfill = true
         /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
-        let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
+        let taskDidTerminateExpectation = XCTestExpectation("ChildProcess did terminate")
         taskDidTerminateExpectation.assertForOverFulfill = true
         
         /// The output collected for the current phase, separated by newlines
@@ -313,12 +313,5 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         task = nil
         
         XCTAssertApodiniApplicationNotRunning()
-    }
-}
-
-
-extension CharacterSet {
-    static func joining(_ other: [CharacterSet]) -> CharacterSet {
-        return other.reduce(into: []) { $0.formUnion($1) }
     }
 }

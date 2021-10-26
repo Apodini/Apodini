@@ -78,13 +78,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        let uri = URI("http://example.de/test/id")
-//        let request = Vapor.Request(
-//            application: vaporApp,
-//            method: .GET,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
         let url = URI("http://example.de/test/id")
         let request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
@@ -120,13 +113,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        var uri = URI("http://example.de/test/bird?name=Mockingbird")
-//        var request = Vapor.Request(
-//            application: vaporApp,
-//            method: .GET,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
         var url: URI = "http://example.de/test/bird?name=Mockingbird"
         var request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
@@ -136,13 +122,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         XCTAssert(responseValue[0].name == "Mockingbird", responseValue.debugDescription)
         XCTAssert(responseValue[1].name == "Mockingbird", responseValue.debugDescription)
         
-//        uri = URI("http://example.de/test/bird?name=Mockingbird&age=21")
-//        request = Vapor.Request(
-//            application: vaporApp,
-//            method: .GET,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
         url = "http://example.de/test/bird?name=Mockingbird&age=21"
         request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
@@ -170,15 +149,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        let uri = URI("http://example.de/test/id")
-//        let request = Vapor.Request(
-//            application: vaporApp,
-//            method: .PUT,
-//            url: uri,
-//            collectedBody: bodyData,
-//            on: app.eventLoopGroup.next()
-//        )
-        //let url: URI = "http://example.de/test/id"
         let request = HTTPRequest(
             method: .PUT,
             url: "http://example.de/test/id",
@@ -224,14 +194,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         let bodyData = ByteBuffer(data: try JSONEncoder().encode(updatedBird))
         
-//        let uri = URI("http://example.de/test/id")
-//        let request = Vapor.Request(
-//            application: vaporApp,
-//            method: .PUT,
-//            url: uri,
-//            collectedBody: bodyData,
-//            on: app.eventLoopGroup.next()
-//        )
         let url: URI = "http://example.de/test/id"
         let request = HTTPRequest(method: .PUT, url: url, bodyStorage: .buffer(bodyData), eventLoop: app.eventLoopGroup.next())
         guard let birdId = dbBird.id else {
@@ -239,7 +201,6 @@ final class DatabaseHandlerTests: ApodiniTests {
             return
         }
         let idParameter = try pathParameter(for: handler)
-        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         let responseValue = try XCTCheckResponse(
@@ -271,13 +232,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-//        let uri = URI("http://example.de/test/id")
-//        let request = Vapor.Request(
-//            application: vaporApp,
-//            method: .PUT,
-//            url: uri,
-//            on: app.eventLoopGroup.next()
-//        )
         let url: URI = "http://example.de/test/id"
         let request = HTTPRequest(method: .PUT, url: url, eventLoop: app.eventLoopGroup.next())
         
@@ -287,7 +241,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         }
         
         let idParameter = try pathParameter(for: handler)
-        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         try XCTCheckResponse(

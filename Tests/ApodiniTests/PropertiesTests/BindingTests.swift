@@ -129,12 +129,10 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
         let selectedCountry = "Germany"
         try app.testable().test(.GET, "country/\(selectedCountry)") { response in
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertTrue(response.body.string.contains(selectedCountry))
             XCTAssertTrue(try XCTUnwrap(response.bodyStorage.readNewDataAsString()).contains(selectedCountry))
         }
         try app.testable().test(.GET, "country/\(selectedCountry)/optional") { response in
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertTrue(response.body.string.contains(selectedCountry))
             XCTAssertTrue(try XCTUnwrap(response.bodyStorage.readNewDataAsString()).contains(selectedCountry))
         }
 
@@ -150,7 +148,6 @@ final class BindingTests: ApodiniTests, EnvironmentAccessible {
 
         try app.testable().test(.GET, "/featured") { response in
             XCTAssertEqual(response.status, .ok)
-            // swiftlint:disable force_unwrapping
             XCTAssertTrue(try XCTUnwrap(response.bodyStorage.readNewDataAsString()).contains(featured!))
         }
 

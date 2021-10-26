@@ -38,10 +38,7 @@ struct HTTPPathMatcher {
         if path.hasPrefix("/") && path.count > 1 {
             path.removeFirst()
         }
-//        if !path.hasSuffix("/") {
-//            path.append("/")
-//        }
-        if path.isEmpty || path == "/" { // TODO the 2nd case probably never happens bc we'd remove the slash above???!!!!!!!
+        if path.isEmpty || path == "/" {
             // We're accessing the root path, which means that there are no parameters, be it named or wildcard.
             if inputPathComponents.isEmpty {
                 return .init()
@@ -95,7 +92,7 @@ struct HTTPPathMatcher {
     }
     
     
-    private mutating func matchOne() -> MatchOneResult {
+    private mutating func matchOne() -> MatchOneResult { // swiftlint:disable:this cyclomatic_complexity
         let currentUrlComponent: String
         let currentPathComponent: HTTPPathComponent
         
@@ -106,14 +103,13 @@ struct HTTPPathMatcher {
             potentialMatches.insert(wipResult)
             wipResult = .init()
             return .successAndReturn
-        case (.none, .some(_)):
+        case (.none, .some):
             // We've run out of url components, but there's still path components waiting to be matched
-            // TODO differentiate how we respond, based on the specific remaining path component? probably not necessary since the only one that would be allowed to match here would be the wildcard, which is already handled below...
             return .abort
-        case (.some(_), .none):
+        case (.some, .none):
             // We still have url components to match, but no path components to match them against
             return .abort
-        case (.some(let urlComponent), .some(let pathComponent)):
+        case let (.some(urlComponent), .some(pathComponent)):
             currentUrlComponent = urlComponent
             currentPathComponent = pathComponent
         }
@@ -136,7 +132,7 @@ struct HTTPPathMatcher {
         
         case .wildcardSingle:
             wipResult.parameters.singleComponentWildcards[pathComponentsIdx] = currentUrlComponent
-            wipResult.penaltyScore += 1 // i penalty per matched wildcard
+            wipResult.penaltyScore += 1 // one penalty point per matched wildcard
             urlComponentsIdx += 1
             pathComponentsIdx += 1
             return .successAndContinue
@@ -151,10 +147,11 @@ struct HTTPPathMatcher {
             // with different assumptions as to how long the wildcard should be
             for wildcardLength in (allowsEmptyMultiWildcards ? 0 : 1)..<(urlComponents.endIndex - urlComponentsIdx) {
                 var copy = self
-                copy.wipResult.parameters.multipleComponentWildcards[copy.pathComponentsIdx] = Array(copy.urlComponents[copy.urlComponentsIdx...(copy.urlComponentsIdx + wildcardLength)])
+                copy.wipResult.parameters.multipleComponentWildcards[copy.pathComponentsIdx] =
+                    Array(copy.urlComponents[copy.urlComponentsIdx...(copy.urlComponentsIdx + wildcardLength)])
                 copy.urlComponentsIdx += wildcardLength
                 copy.pathComponentsIdx += 1
-                copy.wipResult.penaltyScore += wildcardLength * 1 // one penalty per matched wildcard component // TODO adjust this value?
+                copy.wipResult.penaltyScore += wildcardLength * 2 // two penalty points per matched wildcard component
                 if let result = copy.match() {
                     potentialMatches.insert(result)
                     potentialMatches.formUnion(copy.potentialMatches)
@@ -164,4 +161,3 @@ struct HTTPPathMatcher {
         }
     }
 }
-

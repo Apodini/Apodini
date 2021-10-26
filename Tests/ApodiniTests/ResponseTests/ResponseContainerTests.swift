@@ -25,7 +25,6 @@ final class ResponseContainerTests: ApodiniTests {
     }
     
     
-    
     private func getExpectedContent<Content>(
         _ container: ResponseContainer,
         contentType: Content.Type = Content.self
