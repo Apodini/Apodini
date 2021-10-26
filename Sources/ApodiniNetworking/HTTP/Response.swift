@@ -15,6 +15,14 @@ public class HTTPResponse {
     public var headers: HTTPHeaders
     /// This response's body. This can be either a buffer-, or a stream-based body, see the `BodyStorage` type for more info.
     public var bodyStorage: BodyStorage
+    /// Whether the request handler should ignore the value in the `version` property, and instead use the request's version.
+    /// This option should be avoided if possible, and it really just here to accomodate very specific edge cases in which a response
+    /// is created in a context where the matching HTTP request is not available, and we want to defer the selection of the HTTP version
+    /// to the HTTPServer's request handler. In that case, you can pass any value to the initializer's version parameter, and then later,
+    /// by setting this property to `true`, tell the server to ignore that value, and instead use the HTTP version found in the request object.
+    /// - Note: This option will only affect the HTTP version the HTTP server writes into a response.
+    ///         It has no effect in other situations, such as manually invoking handlers as part of the test suite.
+    public var httpServerShouldIgnoreHTTPVersionAndInsteadMatchRequest = false // swiftlint:disable:this identifier_name
     
     /// Creates a new `HTTPResponse` from the specified values.
     /// - Note: Most of these intentionally do not have default values, this is to ensure that a caller doesn't accidentally construct incorrect responses, e.g. containing an incorrect HTTP version.
@@ -107,7 +115,8 @@ extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConv
                         headers: HTTPHeaders {
                             $0[.contentType] = .text
                         },
-                        bodyStorage: .buffer(initialValue: "\(error)") // TODO this risks leaking internal error info!!! Are we fine w/ that?
+                        // NOTE: this could potentially leak internal error messages
+                        bodyStorage: .buffer(initialValue: "\(error)")
                     ))
                 }
             }

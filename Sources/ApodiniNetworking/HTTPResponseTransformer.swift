@@ -18,16 +18,18 @@ public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
         } else {
             body = .init()
         }
-        return HTTPResponse(
-            version: input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] ?? {
-                // TODO we seem to be ending up here if this is a response created from an error thrown in a handler?
-                print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [1]")
-                return .http1_1 // just taking a guess idk
-            }(),
+        let response = HTTPResponse(
+            version: .http1_1, // placeholder, actual value will be set below
             status: input.responseStatus,
             headers: HTTPHeaders(input.information),
             bodyStorage: .buffer(body)
         )
+        if let httpVersion = input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] {
+            response.version = httpVersion
+        } else {
+            response.httpServerShouldIgnoreHTTPVersionAndInsteadMatchRequest = true
+        }
+        return response
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<HTTPResponse, ApodiniError> {
@@ -50,15 +52,18 @@ public struct HTTPBlobResponseTransformer: ResultTransformer {
         } else {
             body = .init()
         }
-        return HTTPResponse(
-            version: input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] ?? {
-                print("UNEXPECTEDLY FOUND A NIL VALUE WHEN ATTEMPTING TO READ REQUEST HTTP VERSION. TODO FIX THIS THIS IS PROBABLY BAD [2]")
-                return .http1_1 // just taking a guess idk
-            }(),
+        let response = HTTPResponse(
+            version: .http1_1, // placeholder, actual value will be set below
             status: input.responseStatus,
             headers: HTTPHeaders(information),
             bodyStorage: .buffer(body)
         )
+        if let httpVersion = input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] {
+            response.version = httpVersion
+        } else {
+            response.httpServerShouldIgnoreHTTPVersionAndInsteadMatchRequest = true
+        }
+        return response
     }
     
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<HTTPResponse, ApodiniError> {

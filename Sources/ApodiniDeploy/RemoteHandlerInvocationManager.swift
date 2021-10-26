@@ -201,7 +201,7 @@ extension RemoteHandlerInvocationManager {
                     .appendingPathComponent("__apodini")
                     .appendingPathComponent("invoke")
                     .appendingPathComponent(targetEndpoint[AnyHandlerIdentifier.self].rawValue)
-                return internalInterfaceExporter.httpClient.execute(request: try HTTPClient.Request.init(
+                return internalInterfaceExporter.httpClient.execute(request: try HTTPClient.Request(
                     url: requestUrl,
                     method: .POST,
                     headers: [:],

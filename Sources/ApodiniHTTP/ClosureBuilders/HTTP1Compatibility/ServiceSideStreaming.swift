@@ -14,7 +14,7 @@ import ApodiniNetworking
 
 extension AsyncSequence {
     /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
-    func lk_firstFuture(on eventLoop: EventLoop, remainingObjectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+    func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         Task {
             var idx = 0
@@ -23,7 +23,7 @@ extension AsyncSequence {
                     promise.succeed(element)
                 }
                 idx += 1
-                remainingObjectsHandler(element)
+                objectsHandler(element)
             }
             if idx == 0 {
                 promise.succeed(nil)
@@ -82,9 +82,9 @@ extension Exporter {
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancelIf { $0.connectionEffect == .close }
-                .lk_firstFuture(
+                .firstFutureAndForEach(
                     on: request.eventLoop,
-                    remainingObjectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+                    objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
                         defer {
                             if response.connectionEffect == .close {
                                 httpResponseStream.close()

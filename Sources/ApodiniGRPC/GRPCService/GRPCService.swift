@@ -126,7 +126,7 @@ extension GRPCService {
 
     /// Builds a `Vapor.Response` with an empty payload.
     func makeResponse() -> HTTPResponse {
-        return HTTPResponse(
+        HTTPResponse(
             version: .http2,
             status: .internalServerError,
             headers: HTTPHeaders { $0[.contentType] = .gRPC(.proto) },

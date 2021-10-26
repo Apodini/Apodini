@@ -138,7 +138,7 @@ private struct ProxyRequestResponder: HTTPResponder {
                 case .stream(let stream):
                     return .stream(length: nil) { [unowned httpClient] streamWriter -> EventLoopFuture<Void> in
                         let promise = httpClient.eventLoopGroup.next().makePromise(of: Void.self)
-                        stream.setObserver { stream, event in
+                        stream.setObserver { stream, _ in
                             if let buffer = stream.readNewData() {
                                 try! streamWriter.write(.byteBuffer(buffer)).wait()
                             }
@@ -151,7 +151,10 @@ private struct ProxyRequestResponder: HTTPResponder {
                 }
             }()
         )
-        let responseDelegate = AsyncHTTPClientForwardingResonseDelegate(on: httpClient.eventLoopGroup.next(), endpointServiceType: endpointServiceType)
+        let responseDelegate = AsyncHTTPClientForwardingResonseDelegate(
+            on: httpClient.eventLoopGroup.next(),
+            endpointServiceType: endpointServiceType
+        )
         _ = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate)
         return responseDelegate.httpResponseFuture
     }

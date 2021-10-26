@@ -28,6 +28,9 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
                     // NOTE: if we get an error here, that error is _NOT_ coming from the route's handler (since these error already got mapped into .internalServerError http responses previously in the chain...)
                     fatalError("Unexpectedly got a failed future: \(error)")
                 case .success(let httpResponse):
+                    if httpResponse.httpServerShouldIgnoreHTTPVersionAndInsteadMatchRequest {
+                        httpResponse.version = request.version
+                    }
                     switch httpResponse.bodyStorage {
                     case .buffer:
                         self.handleResponse(httpResponse, context: context)
