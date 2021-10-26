@@ -27,6 +27,25 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 public enum BindAddress: Equatable {
     case hostname(_ hostname: String? = HTTPConfiguration.Defaults.hostname, port: Int? = HTTPConfiguration.Defaults.port)
     case unixDomainSocket(path: String)
+    
+    public static func address(_ address: String) -> BindAddress {
+        let components = address.split(separator: ":")
+        let hostname = components.first.map { String($0) }
+        let port = components.last.flatMap { Int($0) }
+        return .hostname(hostname, port: port)
+    }
+}
+
+
+/// TLSFilePaths for configuration in HTTPConfiguration
+public struct TLSFilePaths {
+    let certificatePath: String
+    let keyPath: String
+    
+    public init(certificatePath: String, keyPath: String) {
+        self.certificatePath = certificatePath
+        self.keyPath = keyPath
+    }
 }
 
 
