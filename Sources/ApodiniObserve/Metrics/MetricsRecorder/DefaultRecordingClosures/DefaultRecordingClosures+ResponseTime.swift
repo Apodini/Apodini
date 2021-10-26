@@ -10,7 +10,7 @@ import Metrics
 import Dispatch
 
 public extension DefaultRecordingClosures {
-    /// Records the response time of a ``Handler``
+    /// Records the response time of a `Handler`
     struct ResponseTime: DefaultRecorder {
         public static let before: BeforeRecordingClosure = { _, _, relay in
             relay["sinceDispatchTimeNanoseconds"] = String(DispatchTime.now().uptimeNanoseconds)

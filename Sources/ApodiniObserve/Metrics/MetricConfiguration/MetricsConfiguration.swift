@@ -12,11 +12,19 @@ import ApodiniVaporSupport
 import Metrics
 import SystemMetrics
 
+/// The `Configuration` for the `ApodiniMetric` types.
 public class MetricsConfiguration: Configuration {
+    /// Holds the configured `MetricsFactory`'s
     let metricHandlerConfigurations: [MetricHandlerConfiguration]
+    /// Holds the configured `SystemMetrics.Configuration`
     let systemMetricsConfiguration: SystemMetricsConfiguration
+    /// Publicly store the used `MetricsFactory`
     public static var factories: [MetricsFactory] = []
     
+    /// Initializes the ``MetricsConfiguration`` with an arbitrary number of ``MetricHandlerConfiguration`` as well as a single ``SystemMetricsConfiguration``
+    /// - Parameters:
+    ///   - handlerConfiguration: Arbitrary number of ``MetricHandlerConfiguration`` that specify the to be used metric backends
+    ///   - systemMetricsConfiguration: Specifies the collection of system metrics via a ``SystemMetricsConfiguration``
     public init(handlerConfiguration: MetricHandlerConfiguration..., systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
         self.metricHandlerConfigurations = handlerConfiguration
         self.systemMetricsConfiguration = systemMetricsConfiguration
@@ -26,6 +34,8 @@ public class MetricsConfiguration: Configuration {
         }
     }
     
+    /// Configures the `Application`for the `ApodiniMetric` types
+    /// - Parameter app: The to be configured `Application`
     public func configure(_ app: Application) {
         // Bootstrap all passed MetricHandlers
         MetricsSystem.bootstrap(
@@ -57,7 +67,7 @@ public class MetricsConfiguration: Configuration {
                 configuration
             )
             
-            // Sadly the interval property is internal :/ (maybe create a PR for SwiftPrometheus that makes these properties public?)
+            // Sadly, the interval property is internal
             //app.logger.info("System metrics collected in an interval of \(configuration.interval)")
         }
         

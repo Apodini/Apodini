@@ -10,9 +10,9 @@ import Apodini
 import ApodiniExtension
 import ApodiniUtils
 
-/// An ``IntefaceExporter``that writes information from the ``Blackboard`` to the ``Environment`` of the ``Delegate``
+/// An `IntefaceExporter`that writes information from the `Blackboard` to the `Environment` of the delegating `Handler`
 public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
-    /// Contains all the necessary information from the ``Blackboard``, then accessed via the ``Environment`` property wrapper of the ``ApodiniLogger``
+    /// Contains all the necessary information from the `Blackboard`, then accessed via the `Environment` property wrapper within a delegating `Handler`
     public struct BlackboardObserveMetadata: EnvironmentAccessible {
         public struct BlackboardObserveMetadata {
             let endpointName: String
@@ -34,6 +34,10 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
     let app: Apodini.Application
     let exporterConfiguration: LoggerConfiguration
     
+    /// Internal initializer for the exporter
+    /// - Parameters:
+    ///   - app: The Apodini `Application`
+    ///   - exporterConfiguration: The appropriate exporter configuration
     init(_ app: Apodini.Application,
          _ exporterConfiguration: LoggerConfiguration) {
         self.app = app
@@ -48,28 +52,31 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
         self.exportOntoBlackboard(endpoint)
     }
     
-    /// Writes information from the ``Blackboard`` into the ``Envionment`` of the ``Delegate`` so it is accessible from the ``ApodiniLogger`` via the ``Envionment`` property wrapper
+    /// Writes information from the `Blackboard` into the `Envionment` of the `Delegate` so it is accessible from a delegating `Handler` via the `Envionment` property wrapper
     private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
-        // Information which is required for the LoggingMetadata of the ApodiniLogger
-        let blackboardMetadata = BlackboardObserveMetadata.BlackboardObserveMetadata(
-            endpointName: Self.extractRawEndpointName(endpoint.description),
-            endpointParameters: endpoint[EndpointParameters.self],
-            parameters: endpoint[All<ParameterRetriever>.self].elements,
-            operation: endpoint[Operation.self],
-            endpointPathComponents: endpoint[EndpointPathComponents.self],
-            context: endpoint[Context.self],
-            anyEndpointSource: endpoint[AnyEndpointSource.self],
-            handleReturnType: endpoint[HandleReturnType.self],
-            responseType: endpoint[ResponseType.self],
-            serviceType: endpoint[ServiceType.self],
-            communicationalPattern: endpoint[CommunicationalPattern.self]
+        delegate.environment(
+            \BlackboardObserveMetadata.value,
+             BlackboardObserveMetadata.BlackboardObserveMetadata(
+                 endpointName: Self.extractRawEndpointName(endpoint.description),
+                 endpointParameters: endpoint[EndpointParameters.self],
+                 parameters: endpoint[All<ParameterRetriever>.self].elements,
+                 operation: endpoint[Operation.self],
+                 endpointPathComponents: endpoint[EndpointPathComponents.self],
+                 context: endpoint[Context.self],
+                 anyEndpointSource: endpoint[AnyEndpointSource.self],
+                 handleReturnType: endpoint[HandleReturnType.self],
+                 responseType: endpoint[ResponseType.self],
+                 serviceType: endpoint[ServiceType.self],
+                 communicationalPattern: endpoint[CommunicationalPattern.self]
+             )
         )
-        
-        delegate.environment(\BlackboardObserveMetadata.value, blackboardMetadata)
     }
     
+    /// Extract the raw name from the endpoint from a generic type string
+    /// - Parameter endpointName: String containing the generic type string
+    /// - Returns: Raw name of the endpoint
     private static func extractRawEndpointName(_ endpointName: String) -> String {
         guard let splitted = endpointName.components(separatedBy: "<").last,
               let rawEndpointName = splitted.split(separator: ",").first else {

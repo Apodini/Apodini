@@ -11,19 +11,23 @@ import ApodiniLoggingSupport
 import Logging
 
 @propertyWrapper
+/// A `DynamicProperty` that provides aggregated context information wihtin a `Handler`
+/// Is used by the ``ApodiniLogger`` as well as the `RecordingHandler` to attach context information to the telemetry data
 public struct LoggingMetadata: DynamicProperty {
-    /// The ``Connection`` of the associated handler
-    /// The actual ``Request`` resides here
+    /// The `Connection` of the associated handler
+    /// The actual `Request` resides here
     @Environment(\.connection)
     private var connection: Connection
     
-    /// Metadata from ``BlackBoard`` and data regarding the ``Exporter`` that is injected into the environment of the ``Handler``
+    /// Metadata from `BlackBoard` and data regarding the `Exporter` that is injected into the environment of the `Handler`
     @ObserveMetadata
     var observeMetadata
     
+    /// Property that holds the built `Logger.Metadata` instance
     @State
     private var builtMetadata: Logger.Metadata = [:]
     
+    /// Represent the built `Logger.Metadata` instance
     public var wrappedValue: Logger.Metadata {
         if builtMetadata.isEmpty {
             let request = connection.request
@@ -63,10 +67,12 @@ public struct LoggingMetadata: DynamicProperty {
         return builtMetadata
     }
     
+    /// Default empty initializor
     public init() {}
 }
 
 private extension LoggingMetadata {
+    /// Holds `Logger.Metadata` regarding the `Endpoint` like name, operation, and parameters
     private var endpointMetadata: Logger.Metadata {
         [
             "name": .string(self.observeMetadata.blackboardMetadata.endpointName),
@@ -85,6 +91,7 @@ private extension LoggingMetadata {
         ]
     }
     
+    /// Holds `Logger.Metadata` regarding the used `Exporter`like type and parameter namespace
     private var exporterMetadata: Logger.Metadata {
         [
             "type": .string(String(describing: self.observeMetadata.exporterMetadata.exporterType)),
@@ -92,6 +99,7 @@ private extension LoggingMetadata {
         ]
     }
     
+    /// Holds `Logger.Metadata` regarding the `Connection` like address or state
     private var connectionMetadata: Logger.Metadata {
         [
             "remoteAddress": .string(self.connection.remoteAddress?.description ?? "unknown"),
@@ -100,6 +108,7 @@ private extension LoggingMetadata {
         ]
     }
     
+    /// Provides `Logger.Metadata` regarding the `Information` set of a `Request`, for example HTTP headers
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
             if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
@@ -109,6 +118,7 @@ private extension LoggingMetadata {
         }
     }
     
+    /// Provides `Logger.Metadata` regarding the raw `Information` set of a `Request`, depends on the `Exporter` type
     private func getRawRequestMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
             if let loggingMetadataInformation = info as? LoggingMetadataInformationClass,
@@ -118,6 +128,7 @@ private extension LoggingMetadata {
         }
     }
     
+    /// Provides `Logger.Metadata` regarding the `Request` like parameters
     private func getRequestMetadata(from request: Request) -> Logger.Metadata {
         var builtRequestMetadata: Logger.Metadata = [:]
         
@@ -139,7 +150,7 @@ private extension LoggingMetadata {
 }
 
 private extension LoggingMetadata {
-    /// Converts a ``Codable`` parameter to ``Logger.MetadataValue``
+    /// Converts a ``Codable`` parameter to `Logger.MetadataValue`
     private static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
         do {
             let encodedParameter = try parameter.encodeToJSON()

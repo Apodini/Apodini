@@ -17,7 +17,9 @@ public struct MetricsStorageKey: StorageKey {
 public struct MetricsStorageValue {
     /// The stored `MetricsConfiguration`
     public let configuration: MetricsConfiguration
-
+    
+    /// Creates the storage value that relates to a ``MetricsStorageKey``
+    /// - Parameter configuration: The stored ``MetricsConfiguration``
     internal init(configuration: MetricsConfiguration) {
         self.configuration = configuration
     }

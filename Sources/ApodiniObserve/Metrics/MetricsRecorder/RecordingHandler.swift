@@ -43,11 +43,14 @@ extension Handler {
     }
 }
 
+/// A `Handler` used to automatically instrument the `WebService` by executing recording closures before and after regular `Handler`s
 internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsRecorder {
     @ApodiniLogger
     private var logger
     
+    /// The delegated `Handler`
     let handler: Delegate<D>
+    /// The ``MetricsRecorder`` wrapping the `Handler`
     let recorder: Delegate<R>
     
     func handle() async throws -> D.Response {

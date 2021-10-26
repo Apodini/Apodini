@@ -9,23 +9,32 @@
 import Apodini
 import Metrics
 
-/// A wrapped version of the ``Metrics.Gauge`` of swift-metrics
 @propertyWrapper
+/// A wrapped version of the `Metrics.Gauge` of swift-metrics
 public struct ApodiniGauge: DynamicProperty {
+    /// Holds the built `Metrics.Gauge`
     @State
     private var builtGauge: Metrics.Gauge?
+    /// Holds the context information for the metric type
     @ObserveMetadata
     var observeMetadata
+    /// Holds the built dimensions for the metric type
     @State
     var dimensions: [(String, String)]
     
+    /// The label of the metric type
     let label: String
     
+    /// Initializer for the ``ApodiniGauge``
+    /// - Parameters:
+    ///   - label: Label of the metric type
+    ///   - dimensions: User-provided dimensions for the metirc type
     public init(label: String, dimensions: [(String, String)] = []) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
     }
     
+    /// Holds the built `Metrics.Gauge` including the context information
     public var wrappedValue: Metrics.Gauge {
         if self.builtGauge == nil {
             self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))

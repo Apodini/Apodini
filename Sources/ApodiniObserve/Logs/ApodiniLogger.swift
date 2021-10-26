@@ -11,7 +11,7 @@ import Apodini
 import Logging
 
 @propertyWrapper
-/// A ``DynamicProperty`` that allows logging of an associated handler
+/// A `DynamicProperty` that allows logging of an associated `Handler`
 /// Can be configured with a certain logLevel, so what messages should actually be logged and which shouldn't
 /// Automatically attaches metadata from the handler to the built logger so the developer gets easy insights into the system
 public struct ApodiniLogger: DynamicProperty {
@@ -57,7 +57,13 @@ public struct ApodiniLogger: DynamicProperty {
         self.init(logLevel: nil)
     }
     
-    /// Creates a new `@ApodiniLogger`with further user-defined configurations
+    /// Creates a new ``ApodiniLogger`` that can be used as an `DynamicProperty` within a `Handler`
+    /// - Parameters:
+    ///   - id: A unique identifier of the ``ApodiniLogger``
+    ///   - label: A preferably unique label of the ``ApodiniLogger``
+    ///   - logLevel: Local `Logger.Level` that overwrites the globally configured log level
+    ///   - metadataLevel: The amount of context information automatically attached to log entries created with the ``ApodiniLogger``
+    ///   - logHandler: Local `LogHandler` that overwrites the globally configured `LogHandler`
     public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil, metadataLevel: MetadataLevel = .all, logHandler: ((String) -> LogHandler)? = nil) {
         self.id = id
         self.logLevel = logLevel
@@ -66,6 +72,7 @@ public struct ApodiniLogger: DynamicProperty {
         self.logHandler = logHandler
     }
     
+    /// Represents the built `Logging.Logger` with already attached context information
     public var wrappedValue: Logger {
         let observeMetadata = self.observeMetadata
         
@@ -163,13 +170,14 @@ public struct ApodiniLogger: DynamicProperty {
     }
 }
 
-///
+/// Indicates the level of automatically attached `Metadata`
 public enum MetadataLevel {
     case all
     case reduced
     case none
     case custom(metadata: [String])
     
+    /// The keys of the context information that should be attached to the logs
     var metadataKeys: [String] {
         switch self {
         case .all:
