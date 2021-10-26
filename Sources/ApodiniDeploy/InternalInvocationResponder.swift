@@ -70,7 +70,7 @@ struct InternalInvocationResponder<H: Handler>: HTTPResponder {
             do {
                 try httpResponse.bodyStorage.write(encoding: Response(
                     status: .handlerError,
-                    encodedData: try JSONEncoder().encode(handlerError.localizedDescription) // ^^ same as above
+                    encodedData: try JSONEncoder().encode(handlerError.localizedDescription)
                 ))
             } catch {
                 httpResponse.status = .internalServerError
