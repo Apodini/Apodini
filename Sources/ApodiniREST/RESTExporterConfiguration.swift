@@ -10,47 +10,6 @@ import Apodini
 import Vapor
 
 extension REST {
-    /// Configuration of the RESTful Interface
-    public struct Configuration {
-        let bindAddress: Apodini.BindAddress
-        let uriPrefix: String
-
-        init(_ app: Apodini.Application) {
-            let configuration = app.httpConfiguration
-            self.bindAddress = configuration.bindAddress
-
-            switch bindAddress {
-            case let .hostname(configuredHost, port: configuredPort):
-                let httpProtocol: String
-                var port = ""
-
-                if configuration.tlsConfiguration == nil {
-                    httpProtocol = "http://"
-                    if configuredPort != 80 {
-                        port = ":\(configuredPort!)"
-                    }
-                } else {
-                    httpProtocol = "https://"
-                    if configuredPort != 443 {
-                        port = ":\(configuredPort!)"
-                    }
-                }
-
-                self.uriPrefix = httpProtocol + configuredHost! + port
-            case let .unixDomainSocket(path):
-                let httpProtocol: String
-
-                if configuration.tlsConfiguration == nil {
-                    httpProtocol = "http"
-                } else {
-                    httpProtocol = "https"
-                }
-
-                self.uriPrefix = httpProtocol + "+unix: " + path
-            }
-        }
-    }
-    
     /// Configuration of the `RESTInterfaceExporter`
     public struct ExporterConfiguration {
         /// The to be used `AnyEncoder` for encoding responses of the `RESTInterfaceExporter`

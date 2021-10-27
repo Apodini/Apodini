@@ -61,7 +61,6 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         self.documentBuilder = OpenAPIDocumentBuilder(
             configuration: self.exporterConfiguration
         )
-        setApplicationServer(from: app)
         updateStorage()
     }
     
@@ -85,22 +84,10 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         exporterConfiguration.license = webService.context.get(valueFor: LicenseMetadata.self)
         exporterConfiguration.tags = webService.context.get(valueFor: TagDescriptionMetadata.self)
         exporterConfiguration.externalDocumentation = webService.context.get(valueFor: WebServiceExternalDocumentationMetadata.self)
+        exporterConfiguration.serverUrls.insert(URL(string: app.httpConfiguration.uriPrefix)!)
 
         serveSpecification()
         updateStorage()
-    }
-    
-    private func setApplicationServer(from app: Apodini.Application) {
-        let isHttps = app.httpConfiguration.tlsConfiguration != nil
-        var hostName: String?
-        var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.httpConfiguration.bindAddress {
-            hostName = configuredHost
-            port = configuredPort
-        }
-        if let hostName = hostName, let port = port, let url = URL(string: "\(isHttps ? "https" : "http")://\(hostName):\(port)") {
-            self.exporterConfiguration.serverUrls.insert(url)
-        }
     }
     
     private func updateStorage() {

@@ -24,28 +24,45 @@ public final class HTTPConfiguration: Configuration {
         public static let port = 80
     }
     
-    enum HTTPConfigurationError: LocalizedError {
-        case incompatibleFlags
-
-        var errorDescription: String? {
-            switch self {
-            case .incompatibleFlags:
-                return "The command line arguments for HTTPConfiguration are invalid."
-            }
-        }
-
-        var recoverySuggestion: String? {
-            switch self {
-            case .incompatibleFlags:
-                return "Example usage of HTTPConfiguration: --hostname 0.0.0.0 --port 8080 or --bind 0.0.0.0:8080"
-            }
-        }
-    }
     
     public var bindAddress: BindAddress
     public var supportVersions: Set<HTTPVersionMajor> = [.one]
     public var tlsConfiguration: TLSConfiguration?
-    private var tlsUnsuccessful: Bool = false
+    private var tlsUnsuccessful = false
+    
+    
+    public var uriPrefix: String {
+        switch self.bindAddress {
+        case let .hostname(configuredHost, port: configuredPort):
+            let httpProtocol: String
+            var port = ""
+            
+            if self.tlsConfiguration == nil {
+                httpProtocol = "http://"
+                if configuredPort != 80 {
+                    port = ":\(configuredPort!)"
+                }
+            } else {
+                httpProtocol = "https://"
+                if configuredPort != 443 {
+                    port = ":\(configuredPort!)"
+                }
+            }
+            
+            return httpProtocol + configuredHost! + port
+        case let .unixDomainSocket(path):
+            let httpProtocol: String
+            
+            if self.tlsConfiguration == nil {
+                httpProtocol = "http"
+            } else {
+                httpProtocol = "https"
+            }
+            
+            return httpProtocol + "+unix: " + path
+        }
+    }
+    
     
     /// initalize HTTPConfiguration
     public init(bindAddress: BindAddress? = nil, tlsFilePaths: TLSFilePaths? = nil) {
@@ -67,6 +84,7 @@ public final class HTTPConfiguration: Configuration {
         }
     }
 
+    
     /// Configure application
     public func configure(_ app: Application) {
         if supportVersions.contains(.two) {

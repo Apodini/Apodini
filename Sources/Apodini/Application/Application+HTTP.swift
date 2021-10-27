@@ -42,6 +42,11 @@ public struct TLSFilePaths {
     let certificatePath: String
     let keyPath: String
     
+    /// Create a new `TLSFilePaths`
+    ///
+    /// - parameters:
+    ///     - certificatePath: Path to your certificate pem file.
+    ///     - keyPath: Path to your key pem file.
     public init(certificatePath: String, keyPath: String) {
         self.certificatePath = certificatePath
         self.keyPath = keyPath

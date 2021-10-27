@@ -75,7 +75,7 @@ final class BlobTests: ApodiniTests {
         
         let exporter = RESTInterfaceExporter(app)
         let endpointHandler = RESTEndpointHandler(
-            with: REST.Configuration(app),
+            with: app,
             withExporterConfiguration: REST.ExporterConfiguration(),
             for: endpoint,
             rendpoint,

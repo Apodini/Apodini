@@ -11,8 +11,7 @@ import XCTest
 
 final class HTTPConfigurationTests: ApodiniTests {
     func testSettingAddress() throws {
-        HTTPConfiguration()
-            .address(.hostname("1.2.3.4", port: 56))
+        HTTPConfiguration(bindAddress: .hostname("1.2.3.4", port: 56))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
@@ -20,8 +19,7 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
 
     func testSettingSocket() throws {
-        HTTPConfiguration()
-            .address(.unixDomainSocket(path: "/tmp/test"))
+        HTTPConfiguration(bindAddress: .unixDomainSocket(path: "/tmp/test"))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
@@ -29,7 +27,7 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments() throws {
-        HTTPConfiguration(port: 56)
+        HTTPConfiguration(bindAddress: .hostname(port: 56))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
@@ -37,40 +35,15 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments1() throws {
-        HTTPConfiguration(hostname: "1.2.3.4")
+        HTTPConfiguration(bindAddress: .hostname("1.2.3.4"))
            .configure(app)
 
        XCTAssertNotNil(app.httpConfiguration.bindAddress)
        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 80))
    }
     
-    func testCommandLineArguments2() throws {
-        HTTPConfiguration(hostname: "1.2.3.4", port: 56)
-            .configure(app)
-
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 56))
-    }
-    
     func testCommandLineArguments3() throws {
-        HTTPConfiguration(bind: "1.2.3.4:56")
-            .configure(app)
-
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 56))
-    }
-    
-    func testCommandLineArguments4() throws {
-        HTTPConfiguration(socketPath: "/tmp/test")
-            .configure(app)
-
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .unixDomainSocket(path: "/tmp/test"))
-    }
-    
-    func testCommandLineArgumentOverwrite() {
-        HTTPConfiguration(bind: "1.2.3.4:56")
-            .address(.hostname("7.8.9.10", port: 1112))
+        HTTPConfiguration(bindAddress: .address("1.2.3.4:56"))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
