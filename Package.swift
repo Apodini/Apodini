@@ -57,7 +57,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.45.0"),
-        .package(url: "https://github.com/vapor/fluent-kit.git", branch: "async-await"),
+        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`.
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
@@ -76,8 +76,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
         // HTTP/2 support for SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.17.0"),
-        // Swift logging API
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.0")),
@@ -105,9 +103,12 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Apodini Observe
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
-        .package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
+        //.package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
+        .package(url: "https://github.com/fabianfett/swift-metrics-extras.git", branch: "ff-add-metrics-test-utils"),
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
+        .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
@@ -646,6 +647,23 @@ let package = Package(
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
             ]
-        )
+        ),
+        
+        .testTarget(
+            name: "ApodiniObserveTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SwiftLogTesting", package: "swift-log-testing"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus"),
+                .product(name: "XCTVapor", package: "vapor")
+            ]
+        ),
     ]
 )

@@ -15,20 +15,20 @@ import Logging
 /// Can be configured with a certain logLevel, so what messages should actually be logged and which shouldn't
 /// Automatically attaches metadata from the handler to the built logger so the developer gets easy insights into the system
 public struct ApodiniLogger: DynamicProperty {
-    /// The ``Connection`` of the associated handler
-    /// The actual ``Request`` resides here
+    /// The `Connection` of the associated handler
+    /// The actual `Request` resides here
     @Environment(\.connection)
     private var connection
     
-    /// The ``Storage`` of the ``Application``
+    /// The `Storage` of the `Application`
     @Environment(\.storage)
     private var storage
     
-    /// The ``Logger`` of the ``Application``
+    /// The `Logging.Logger` of the `Application`
     @Environment(\.logger)
     private var logger
     
-    /// Aggregated``Logging.Metadata``
+    /// Aggregated`Logging.Metadata`
     @LoggingMetadata
     var loggingMetadata
     
@@ -37,17 +37,17 @@ public struct ApodiniLogger: DynamicProperty {
         self._loggingMetadata.observeMetadata
     }
     
-    /// Property that holds the built ``Logger`` instance
+    /// Property that holds the built `Logging.Logger` instance
     @State
     private var builtLogger: Logger?
     
-    /// A unique ID that identifies the ``Logger`` over the lifetime of the associated ``Handler``
+    /// A unique ID that identifies the `Logging.Logger` over the lifetime of the associated `Handler`
     private let id: UUID
     /// The logLevel (deciding over what messages should be logged), can be configured via multiple configuration possibilities and prioritizations
     private let logLevel: Logger.Level?
-    /// A user-defined label of the built ``Logger``, else a standard default value
+    /// A user-defined label of the built `Logging.Logger`, else a standard default value
     private let label: String?
-    /// A user-defined factory for the ``Logger``
+    /// A user-defined factory for the `Logging.Logger`
     private let logHandler: ((String) -> LogHandler)?
     /// A user-defined level of automatic metadata aggregation
     private let metadataLevel: MetadataLevel
@@ -99,7 +99,7 @@ public struct ApodiniLogger: DynamicProperty {
             // Insert built metadata into the logger
             loggingMetadata
                 // User-defined setting what metadata should be automatically aggregated
-                .filter{ metadataKey, _ in
+                .filter { metadataKey, _ in
                     self.metadataLevel.metadataKeys.contains(metadataKey)
                 }
                 .forEach { metadataKey, metadataValue in
@@ -145,7 +145,7 @@ public struct ApodiniLogger: DynamicProperty {
             // Connection stays open since these communicational patterns allow for any amount of client messages
             switch observeMetadata.blackboardMetadata.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
-                // Insert built metadata into the logger
+                // Refresh metadata
                 loggingMetadata
                     // Filter for metadata that could have changed
                     .filter { metadataKey, _ in
@@ -158,6 +158,9 @@ public struct ApodiniLogger: DynamicProperty {
                     .forEach { metadataKey, metadataValue in
                         builtLogger?[metadataKey: metadataKey] = metadataValue
                     }
+            case .serviceSideStream:
+                // Refresh metadata
+                builtLogger?[metadataKey: "connection"] = loggingMetadata["connection"]
             default: break
             }
         }

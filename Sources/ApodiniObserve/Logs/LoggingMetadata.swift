@@ -52,14 +52,17 @@ public struct LoggingMetadata: DynamicProperty {
             // Therfore the metadata chould have changed and we need to reevaluate it
             switch self.observeMetadata.blackboardMetadata.communicationalPattern {
             case .clientSideStream, .bidirectionalStream:
-                // Write connection metadata
+                // Refresh connection metadata
                 builtMetadata["connection"] = .dictionary(self.connectionMetadata)
                 
-                // Write request metadata
+                // Refresh request metadata
                 builtMetadata["request"] = .dictionary(self.getRequestMetadata(from: connection.request)
                                                                     .merging(
                                                                         self.getRawRequestMetadata(from: connection.information)
                                                                     ) { _, new in new })
+            case .serviceSideStream:
+                // Refresh connection metadata
+                builtMetadata["connection"] = .dictionary(self.connectionMetadata)
             default: break
             }
         }
@@ -81,7 +84,7 @@ private extension LoggingMetadata {
             }),
             "operation": .string(self.observeMetadata.blackboardMetadata.operation.description),
             "endpointPath": .string(String(self.observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-                partialResult.append(contentsOf: endpointPath.description + "<")
+                partialResult.append(contentsOf: endpointPath.description + "/")
             }).dropLast())),
             "version": .string(self.observeMetadata.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
             "handlerType": .string(String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType)),
