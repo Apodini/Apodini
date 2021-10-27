@@ -17,7 +17,7 @@ extension AnyEncoder {
     ///    - encodable: The to be encoded object
     ///    - to: The ByteBuffer to encode to
     ///    - headers: The HTTP header to set the content type
-    public func encode<T: Encodable, Headers: __LKNIOHTTPHeadersType>(_ value: T, to body: inout ByteBuffer, headers: inout Headers) throws {
+    public func encode<T: Encodable, Headers: __ANNIOHTTPHeadersType>(_ value: T, to body: inout ByteBuffer, headers: inout Headers) throws {
         if let mediaType = self.resultMediaType {
             headers[.contentType] = mediaType
         }

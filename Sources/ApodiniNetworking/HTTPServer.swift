@@ -389,7 +389,7 @@ extension Channel {
         
         let httpRequestHandler = HTTPServerRequestHandler(responder: responder)
         
-        let upgrader = LKHTTPUpgradeHandler(
+        let upgrader = HTTPUpgradeHandler(
             handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
         )
         

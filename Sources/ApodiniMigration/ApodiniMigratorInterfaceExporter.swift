@@ -138,22 +138,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     private func setServerPath() {
-//        var hostName: String?
-//        var port: Int?
-//        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
-//            hostName = configuredHost
-//            port = configuredPort
-//        } else {
-//            let configuration = app.vapor.app.http.server.configuration
-//            hostName = configuration.hostname
-//            port = configuration.port
-//        }
-//
-//        if let hostName = hostName, let port = port {
-//            let serverPath = "http\(app.http.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
-//            self.serverPath = serverPath
-//            document.setServerPath(serverPath)
-//        }
         self.serverPath = app.http.addressStringValue
         document.setServerPath(serverPath)
     }
@@ -193,9 +177,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         let itemName = I.itemName
         if var endpoint = exportOptions.endpoint {
             endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
-            //app.vapor.app.get(endpoint.pathComponents) { _ -> String in
-            //    format.string(of: migratorItem)
-            //}
             app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }

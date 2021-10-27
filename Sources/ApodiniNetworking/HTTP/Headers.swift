@@ -15,7 +15,7 @@ import Foundation
 // swiftlint:disable redundant_string_enum_value
 
 
-/// A type which can be turned into a HTTP header field value
+/// A type which represents a HTTP header field value
 public protocol HTTPHeaderFieldValueCodable: Hashable {
     /// Attempts to decode the string as a HTTP header value
     init?(httpHeaderFieldValue value: String)
@@ -26,7 +26,7 @@ public protocol HTTPHeaderFieldValueCodable: Hashable {
 
 
 /// A type which represents HTTP1 or HTTP2 headers
-public protocol __LKNIOHTTPHeadersType {
+public protocol __ANNIOHTTPHeadersType {
     /// Initialises the headers type from a sequence of key-value pairs
     init(_ headers: [(String, String)])
     /// Checks whether at least one header entry exists for the specified key
@@ -42,10 +42,10 @@ public protocol __LKNIOHTTPHeadersType {
 }
 
 
-extension NIOHPACK.HPACKHeaders: __LKNIOHTTPHeadersType {}
+extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {}
 
 
-extension NIOHTTP1.HTTPHeaders: __LKNIOHTTPHeadersType {
+extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
     public mutating func add(name: String, value: String, indexing: HPACKIndexing) {
         add(name: name, value: value)
     }
@@ -83,7 +83,7 @@ public class HTTPHeaderName<T: HTTPHeaderFieldValueCodable>: AnyHTTPHeaderName {
 }
 
 
-extension __LKNIOHTTPHeadersType {
+extension __ANNIOHTTPHeadersType {
     /// Creates a new headers struct, giving the caller the opportunity to initialise it via the closure.
     /// - Note: The reason this initialiser exists is to offer a type-safe way of declaring immutable headers objects.
     ///         The underlying problem here is that Swift doesn't support variadic generics, meaning that (since the type-safe header
