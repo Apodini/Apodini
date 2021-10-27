@@ -37,19 +37,28 @@ public enum BindAddress: Equatable {
 }
 
 
-/// TLSFilePaths for configuration in HTTPConfiguration
-public struct TLSFilePaths {
-    let certificatePath: String
-    let keyPath: String
+/// Builds the TLS configuration from given paths for use in HTTPConfiguration
+public struct TLSConfigurationBuilder {
+    let tlsConfiguration: TLSConfiguration
     
     /// Create a new `TLSFilePaths`
     ///
     /// - parameters:
     ///     - certificatePath: Path to your certificate pem file.
     ///     - keyPath: Path to your key pem file.
-    public init(certificatePath: String, keyPath: String) {
-        self.certificatePath = certificatePath
-        self.keyPath = keyPath
+    public init?(certificatePath: String, keyPath: String) {
+        do {
+            let certificate = try NIOSSLCertificate.fromPEMFile(certificatePath)
+            let privateKey = try NIOSSLPrivateKey(file: keyPath, format: .pem)
+
+            self.tlsConfiguration = .makeServerConfiguration(
+                certificateChain: certificate.map { .certificate($0) },
+                privateKey: .privateKey(privateKey)
+            )
+        } catch {
+            print("Error while creating TLS Configuration: \(error)")
+            return nil
+        }
     }
 }
 

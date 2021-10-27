@@ -28,7 +28,6 @@ public final class HTTPConfiguration: Configuration {
     public var bindAddress: BindAddress
     public var supportVersions: Set<HTTPVersionMajor> = [.one]
     public var tlsConfiguration: TLSConfiguration?
-    private var tlsUnsuccessful = false
     
     
     public var uriPrefix: String {
@@ -65,22 +64,12 @@ public final class HTTPConfiguration: Configuration {
     
     
     /// initalize HTTPConfiguration
-    public init(bindAddress: BindAddress? = nil, tlsFilePaths: TLSFilePaths? = nil) {
+    public init(bindAddress: BindAddress? = nil, tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
         self.bindAddress = bindAddress ?? .hostname(Defaults.hostname, port: Defaults.port)
         
-        do {
-            if let paths = tlsFilePaths {
-                let certificates = try NIOSSLCertificate.fromPEMFile(paths.certificatePath)
-                let privateKey = try NIOSSLPrivateKey(file: paths.keyPath, format: .pem)
-                
-                self.supportVersions.insert(.two)
-                self.tlsConfiguration = .makeServerConfiguration(
-                    certificateChain: certificates.map { .certificate($0) },
-                    privateKey: .privateKey(privateKey)
-                )
-            }
-        } catch {
-            self.tlsUnsuccessful = true
+        if let tlsConfigBuilder = tlsConfigurationBuilder {
+            self.supportVersions.insert(.two)
+            self.tlsConfiguration = tlsConfigBuilder.tlsConfiguration
         }
     }
 
@@ -89,10 +78,8 @@ public final class HTTPConfiguration: Configuration {
     public func configure(_ app: Application) {
         if supportVersions.contains(.two) {
             app.logger.info("Using HTTP/2 and TLS.")
-        } else if tlsUnsuccessful {
-            app.logger.warning("Error while enabling HTTP/2. Starting without HTTP/2.")
         } else {
-            app.logger.info("No TLSFilePaths path provided. Starting without HTTP/2.")
+            app.logger.info("Starting without HTTP/2. and TLS")
         }
         
         app.storage[HTTPConfigurationStorageKey.self] = self
