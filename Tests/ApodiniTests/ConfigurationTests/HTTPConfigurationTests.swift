@@ -11,11 +11,11 @@ import XCTest
 
 final class HTTPConfigurationTests: ApodiniTests {
     func testSettingAddress() throws {
-        HTTPConfiguration(bindAddress: .hostname("1.2.3.4", port: 56))
+        HTTPConfiguration(bindAddress: .interface("1.2.3.4", port: 56))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 56))
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 56))
     }
 
     func testSettingSocket() throws {
@@ -27,19 +27,19 @@ final class HTTPConfigurationTests: ApodiniTests {
     }
     
     func testCommandLineArguments() throws {
-        HTTPConfiguration(bindAddress: .hostname(port: 56))
+        HTTPConfiguration(bindAddress: .interface(HTTPConfiguration.Defaults.bindAddress, port: 56))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("localhost", port: 56))
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface(HTTPConfiguration.Defaults.bindAddress, port: 56))
     }
     
     func testCommandLineArguments1() throws {
-        HTTPConfiguration(bindAddress: .hostname("1.2.3.4"))
+        HTTPConfiguration(bindAddress: .interface("1.2.3.4"))
            .configure(app)
 
        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-       XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 80))
+       XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 80))
    }
     
     func testCommandLineArguments3() throws {
@@ -47,6 +47,6 @@ final class HTTPConfigurationTests: ApodiniTests {
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .hostname("1.2.3.4", port: 56))
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 56))
     }
 }

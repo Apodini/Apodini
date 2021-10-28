@@ -80,7 +80,7 @@ public extension Apodini.Application {
 extension Vapor.BindAddress {
     init(from address: Apodini.BindAddress) {
         switch address {
-        case let .hostname(host, port):
+        case let .interface(host, port):
             self = .hostname(host, port: port)
         case .unixDomainSocket(let path):
             self = .unixDomainSocket(path: path)

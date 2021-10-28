@@ -298,7 +298,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             
             var configuration: Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
-                HTTPConfiguration(bindAddress: .hostname("1.2.3.4", port: 56))
+                HTTPConfiguration(bindAddress: .interface("1.2.3.4", port: 56))
             }
             
             var metadata: Metadata {

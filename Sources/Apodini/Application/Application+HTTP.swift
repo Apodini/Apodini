@@ -25,14 +25,31 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 
 /// BindAddress
 public enum BindAddress: Equatable {
-    case hostname(_ hostname: String? = HTTPConfiguration.Defaults.hostname, port: Int? = HTTPConfiguration.Defaults.port)
+    case interface(_ address: String, port: Int? = nil)
     case unixDomainSocket(path: String)
     
     public static func address(_ address: String) -> BindAddress {
         let components = address.split(separator: ":")
-        let hostname = components.first.map { String($0) }
+        let address = components.first.map { String($0) }
         let port = components.last.flatMap { Int($0) }
-        return .hostname(hostname, port: port)
+        return .interface(address!, port: port)
+    }
+}
+
+
+/// Hostname
+public struct Hostname {
+    let address: String
+    let port: Int?
+    
+    /// Create a new `TLSFilePaths`
+    ///
+    /// - parameters:
+    ///     - address: Address part of hostname.
+    ///     - port: Port of hostname.
+    public init(address: String, port: Int) {
+        self.address = address
+        self.port = port
     }
 }
 

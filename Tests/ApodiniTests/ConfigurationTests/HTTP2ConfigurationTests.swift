@@ -27,7 +27,7 @@ final class HTTP2ConfigurationTests: ApodiniTests {
     
     
     func testValidFile() throws {
-        HTTPConfiguration(tlsFilePaths: TLSFilePaths(certificatePath: try certPath().path, keyPath: try keyPath().path))
+        HTTPConfiguration(tlsConfigurationBuilder: TLSConfigurationBuilder(certificatePath: try certPath().path, keyPath: try keyPath().path))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)

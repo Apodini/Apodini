@@ -139,7 +139,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private func setServerPath() {
         var hostName: String?
         var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.httpConfiguration.bindAddress {
+        if case let .interface(configuredHost, port: configuredPort) = app.httpConfiguration.bindAddress {
             hostName = configuredHost
             port = configuredPort
         } else {

@@ -14,62 +14,78 @@ import NIOSSL
 ///
 /// Examples of config via code:
 /// ```
-/// HTTPConfiguration(bindAddress: .hostname(port: 443), tlsFilePaths: TLSFilePaths(certificatePath: "/some/path/cert.pem", keyPath: "/some/path/key.pem"))
+/// HTTPConfiguration(bindAddress: .interface(port: 443), tlsFilePaths: TLSFilePaths(certificatePath: "/some/path/cert.pem", keyPath: "/some/path/key.pem"))
 /// HTTPConfiguration(bindAddress: .address("localhost:8080"))
 /// ```
 public final class HTTPConfiguration: Configuration {
     /// Default values for bindAddress
     public enum Defaults {
-        public static let hostname = "localhost"
-        public static let port = 80
+        public static let address = "localhost"
+        public static let httpPort = 80
+        public static let httpsPort = 443
+        public static let bindAddress = "0.0.0.0"
     }
     
     
     public var bindAddress: BindAddress
+    public var hostname: Hostname
     public var supportVersions: Set<HTTPVersionMajor> = [.one]
     public var tlsConfiguration: TLSConfiguration?
     
     
     public var uriPrefix: String {
-        switch self.bindAddress {
-        case let .hostname(configuredHost, port: configuredPort):
             let httpProtocol: String
             var port = ""
             
             if self.tlsConfiguration == nil {
                 httpProtocol = "http://"
-                if configuredPort != 80 {
-                    port = ":\(configuredPort!)"
+                if hostname.port != 80 {
+                    port = ":\(hostname.port)"
                 }
             } else {
                 httpProtocol = "https://"
-                if configuredPort != 443 {
-                    port = ":\(configuredPort!)"
+                if hostname.port != 443 {
+                    port = ":\(hostname.port)"
                 }
             }
             
-            return httpProtocol + configuredHost! + port
-        case let .unixDomainSocket(path):
-            let httpProtocol: String
-            
-            if self.tlsConfiguration == nil {
-                httpProtocol = "http"
-            } else {
-                httpProtocol = "https"
-            }
-            
-            return httpProtocol + "+unix: " + path
-        }
+        return httpProtocol + hostname.address + port
     }
     
     
     /// initalize HTTPConfiguration
-    public init(bindAddress: BindAddress? = nil, tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
-        self.bindAddress = bindAddress ?? .hostname(Defaults.hostname, port: Defaults.port)
+    public init(hostname: Hostname? = nil, bindAddress: BindAddress? = nil, tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
+        var defaultPort = Defaults.httpPort
         
         if let tlsConfigBuilder = tlsConfigurationBuilder {
             self.supportVersions.insert(.two)
             self.tlsConfiguration = tlsConfigBuilder.tlsConfiguration
+            defaultPort = Defaults.httpsPort
+        }
+        
+        if let bindAddress = bindAddress {
+            switch bindAddress {
+            case let .interface(address, port):
+                if port != nil {
+                    self.bindAddress = bindAddress
+                } else {
+                    self.bindAddress = .interface(address, port: defaultPort)
+                }
+            case .unixDomainSocket:
+                self.bindAddress = bindAddress
+            }
+        } else {
+            self.bindAddress = .interface(Defaults.bindAddress, port: defaultPort)
+        }
+
+        if let hostname = hostname {
+            if hostname.port == nil {
+                self.hostname = Hostname(address: hostname.address, port: defaultPort)
+            } else {
+                self.hostname = hostname
+            }
+        } else {
+            self.hostname = Hostname(address: Defaults.address, port: defaultPort)
         }
     }
 
