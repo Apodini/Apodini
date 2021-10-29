@@ -58,7 +58,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             return
         }
         
-        runShellCommand(.killPort(8080))
+        runShellCommand(.killPort(80))
         runShellCommand(.killPort(5000))
         runShellCommand(.killPort(5001))
         runShellCommand(.killPort(5002))
@@ -174,7 +174,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             if startedServers.count == expectedNumberOfNodes + 1 {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 80),
                     // the nodes
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
@@ -209,7 +209,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
         ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:8080\(path)"))
+            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:80\(path)"))
             return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
                     XCTFail("Unexpected error in request: \(error.localizedDescription)")
