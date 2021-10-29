@@ -11,13 +11,13 @@ import XCTApodini
 import XCTVapor
 import ApodiniVaporSupport
 import Vapor
-import Logging
-import ApodiniObserve
+@testable import Logging
+@testable import ApodiniObserve
 import ApodiniHTTP
 @testable import Apodini
 @testable import SwiftLogTesting
 
-// swiftlint:disable closure_body_length
+// swiftlint:disable closure_body_length lower_acl_than_parent
 class ApodiniLoggerTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
@@ -31,6 +31,10 @@ class ApodiniLoggerTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        let config = LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
+        
+        app = Self.configureLogger(app, loggerConfiguration: config)
+        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
@@ -42,6 +46,36 @@ class ApodiniLoggerTests: XCTestCase {
         app.shutdown()
         
         XCTAssertApodiniApplicationNotRunning()
+    }
+    
+    // Copied from the source code of ApodiniObserve to bootstrap the LoggingSystem internally
+    // (required for the tests, as the LoggingSystem only allows to be configured once per process)
+    public static func configureLogger(_ app: Apodini.Application, loggerConfiguration: LoggerConfiguration) -> Apodini.Application {
+        // Execute configuration closure of LogHandlers
+        loggerConfiguration.configureLogHandlers()
+        
+        // Bootstrap the logging system
+        LoggingSystem.bootstrapInternal { label in
+            MultiplexLogHandler(
+                loggerConfiguration.logHandlers.map { logHandler in
+                    logHandler(label)
+                }
+            )
+        }
+        
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, loggerConfiguration)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
+        // Write configuration to the storage
+        app.storage.set(LoggerConfiguration.LoggingStorageKey.self,
+                        to: LoggerConfiguration.LoggingStorageValue(logger: app.logger, configuration: loggerConfiguration))
+        
+        return app
     }
     
     struct RequestResponse: Handler {
@@ -206,7 +240,6 @@ class ApodiniLoggerTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
-        LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
     }
 
     @ComponentBuilder

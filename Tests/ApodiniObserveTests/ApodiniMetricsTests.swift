@@ -11,13 +11,14 @@ import XCTApodini
 import XCTVapor
 import ApodiniVaporSupport
 import Vapor
-import Metrics
-import ApodiniObserve
+@testable import CoreMetrics
+@testable import Metrics
+@testable import ApodiniObserve
 import ApodiniHTTP
 @testable import Apodini
 @testable import MetricsTestUtils
 
-// swiftlint:disable closure_body_length
+// swiftlint:disable closure_body_length lower_acl_than_parent
 class ApodiniMetricsTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
@@ -40,6 +41,27 @@ class ApodiniMetricsTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        let config = MetricsConfiguration(handlerConfiguration: MetricPushHandlerConfiguration(factory: Self.testMetricsFactory),
+                                          systemMetricsConfiguration: .on(
+                                            configuration: .init(
+                                                pollInterval: .seconds(10),
+                                                // Without custom dataProvider, only Linux metrics are supported
+                                                dataProvider: nil,
+                                                labels: .init(
+                                                    prefix: "process_",
+                                                    virtualMemoryBytes: "virtual_memory_bytes",
+                                                    residentMemoryBytes: "resident_memory_bytes",
+                                                    startTimeSeconds: "start_time_seconds",
+                                                    cpuSecondsTotal: "cpu_seconds_total",
+                                                    maxFds: "max_fds",
+                                                    openFds: "open_fds"
+                                                )
+                                            )
+                                        )
+        )
+        
+        app = Self.configureMetrics(app, metricsConfiguration: config)
+        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
@@ -51,6 +73,46 @@ class ApodiniMetricsTests: XCTestCase {
         app.shutdown()
         
         XCTAssertApodiniApplicationNotRunning()
+    }
+    
+    // Copied from the source code of ApodiniObserve to bootstrap the MetricsSystem internally
+    // (required for the tests, as the MetricsSystem only allows to be configured once per process)
+    public static func configureMetrics(_ app: Apodini.Application, metricsConfiguration: MetricsConfiguration) -> Apodini.Application {
+        // Bootstrap all passed MetricHandlers
+        MetricsSystem.bootstrapInternal(
+            MultiplexMetricsHandler(
+                factories: metricsConfiguration.metricHandlerConfigurations.map { $0.factory }
+            )
+        )
+        
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, metricsConfiguration)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
+        metricsConfiguration.metricHandlerConfigurations.forEach { metricHandlerConfiguration in
+            if let metricPullHandlerConfiguration = metricHandlerConfiguration as? MetricPullHandlerConfiguration {
+                let endpoint = metricPullHandlerConfiguration.endpoint.hasPrefix("/")
+                                ? metricPullHandlerConfiguration.endpoint
+                                : "/\(metricPullHandlerConfiguration.endpoint)"
+                
+                app.vapor.app.get(endpoint.pathComponents) { req -> EventLoopFuture<String> in
+                    metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
+                }
+                
+                // Inform developer about which MetricsHandler serves the metrics data on what endpoint
+                app.logger.info("Metrics data of \(metricPullHandlerConfiguration.factory.self) served on \(metricPullHandlerConfiguration.endpoint)")
+            }
+        }
+        
+        // Write configuration to the storage
+        app.storage.set(MetricsConfiguration.MetricsStorageKey.self,
+                        to: MetricsConfiguration.MetricsStorageValue(configuration: metricsConfiguration))
+        
+        return app
     }
     
     struct Greeter: Handler {
@@ -80,24 +142,6 @@ class ApodiniMetricsTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
-        MetricsConfiguration(handlerConfiguration: MetricPushHandlerConfiguration(factory: Self.testMetricsFactory),
-                             systemMetricsConfiguration: .on(
-                                configuration: .init(
-                                    pollInterval: .seconds(10),
-                                    // Without custom dataProvider, only Linux metrics are supported
-                                    dataProvider: nil,
-                                    labels: .init(
-                                        prefix: "process_",
-                                        virtualMemoryBytes: "virtual_memory_bytes",
-                                        residentMemoryBytes: "resident_memory_bytes",
-                                        startTimeSeconds: "start_time_seconds",
-                                        cpuSecondsTotal: "cpu_seconds_total",
-                                        maxFds: "max_fds",
-                                        openFds: "open_fds"
-                                    )
-                                )
-                            )
-        )
     }
 
     @ComponentBuilder

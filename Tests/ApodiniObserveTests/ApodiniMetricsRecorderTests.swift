@@ -35,6 +35,15 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        let loggerConfig = LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
+        let metricsConfig = MetricsConfiguration(
+            handlerConfiguration: MetricPushHandlerConfiguration(factory: Self.testMetricsFactory),
+            systemMetricsConfiguration: .default
+        )
+        
+        app = ApodiniLoggerTests.configureLogger(app, loggerConfiguration: loggerConfig)
+        app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: metricsConfig)
+        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
@@ -85,11 +94,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
-        LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
-        MetricsConfiguration(
-            handlerConfiguration: MetricPushHandlerConfiguration(factory: Self.testMetricsFactory),
-            systemMetricsConfiguration: .default
-        )
     }
 
     @ComponentBuilder

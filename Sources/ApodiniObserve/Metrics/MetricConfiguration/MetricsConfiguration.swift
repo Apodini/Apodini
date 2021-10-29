@@ -14,6 +14,23 @@ import SystemMetrics
 
 /// The `Configuration` for the `ApodiniMetric` types.
 public class MetricsConfiguration: Configuration {
+    /// The storage key for Metrics-related information
+    public struct MetricsStorageKey: StorageKey {
+        public typealias Value = MetricsStorageValue
+    }
+
+    /// The storage value for Metrics-related information.
+    public struct MetricsStorageValue {
+        /// The stored `MetricsConfiguration`
+        public let configuration: MetricsConfiguration
+        
+        /// Creates the storage value that relates to a ``MetricsStorageKey``
+        /// - Parameter configuration: The stored ``MetricsConfiguration``
+        internal init(configuration: MetricsConfiguration) {
+            self.configuration = configuration
+        }
+    }
+    
     /// Holds the configured `MetricsFactory`'s
     let metricHandlerConfigurations: [MetricHandlerConfiguration]
     /// Holds the configured `SystemMetrics.Configuration`

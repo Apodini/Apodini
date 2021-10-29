@@ -83,13 +83,18 @@ private extension LoggingMetadata {
                     .string(parameter.debugDescription)
             }),
             "operation": .string(self.observeMetadata.blackboardMetadata.operation.description),
-            "endpointPath": .string(String(self.observeMetadata.blackboardMetadata.
-                                           endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-                partialResult.append(contentsOf: endpointPath.description + "/")
-            })
-            .dropLast())),
-            "version": .string(self.observeMetadata.blackboardMetadata.
-                               context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
+            "endpointPath": .string(
+                String(
+                    self.observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "") { partialResult, endpointPath in
+                        partialResult.append(contentsOf: endpointPath.description + "/")
+                    }
+                    .dropLast()
+                )
+            ),
+            "version": .string(
+                self.observeMetadata.blackboardMetadata.context.get(
+                    valueFor: APIVersionContextKey.self
+                )?.debugDescription ?? "unknown"),
             "handlerType": .string(ObserveMetadataExporter.extractRawEndpointName(
                 String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType))
             ),

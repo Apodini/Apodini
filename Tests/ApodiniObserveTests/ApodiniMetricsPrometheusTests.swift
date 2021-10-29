@@ -38,6 +38,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: Self.metricsConfiguration)
+        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
@@ -90,7 +92,6 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
-        metricsConfiguration
     }
 
     @ComponentBuilder
