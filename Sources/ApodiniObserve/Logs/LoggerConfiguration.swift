@@ -60,16 +60,7 @@ public final class LoggerConfiguration: Configuration {
     /// Configures the `Application`for the ``ApodiniLogger``
     /// - Parameter app: The to be configured `Application`
     public func configure(_ app: Application) {
-        // Instanciate exporter
-        let loggerExporter = ObserveMetadataExporter(app, self)
-        
-        // Insert exporter into `InterfaceExporterStorage`
-        app.registerExporter(exporter: loggerExporter)
-        
-        // Write configuration to the storage
-        app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
-        
-        // Execute configuration function of LogHandlers
+        // Execute configuration closure of LogHandlers
         self.configureLogHandlers()
         
         // Bootstrap the logging system
@@ -80,5 +71,16 @@ public final class LoggerConfiguration: Configuration {
                 }
             )
         }
+        
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, self)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
+        // Write configuration to the storage
+        app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
     }
 }

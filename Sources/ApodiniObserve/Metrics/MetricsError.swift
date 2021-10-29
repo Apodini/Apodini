@@ -12,9 +12,4 @@ public enum MetricsError: String {
     case prometheusNotYetBootstrapped = """
     Metric Type was created without bootstrapping the MetricsSystem first
     """
-    
-    /// Error in which a Metric was accessed before it was initialized
-    case metricAccessedBeforeBeeingInitialized = """
-    Wrapped value of metric was accessed before beeing initialized
-    """
 }

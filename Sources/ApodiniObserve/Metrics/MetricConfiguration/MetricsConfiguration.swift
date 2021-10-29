@@ -44,6 +44,14 @@ public class MetricsConfiguration: Configuration {
             )
         )
         
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, self)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
         // For Pull-based MetricHandlers, the developer is required to provide an
         // web endpoint and a closure that returns the to be exposed metrics data
         // at the previously provided web endpoint
@@ -67,7 +75,7 @@ public class MetricsConfiguration: Configuration {
                 configuration
             )
             
-            // Sadly, the interval property is internal
+            // Sadly, the interval property is internal, maybe this will change in future versions
             //app.logger.info("System metrics collected in an interval of \(configuration.interval)")
         }
         

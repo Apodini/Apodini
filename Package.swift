@@ -654,6 +654,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
+                .target(name: "ApodiniObserveMetricsPrometheus"),
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniVaporSupport"),
@@ -661,9 +662,10 @@ let package = Package(
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "MetricsTestUtils", package: "swift-metrics-extras"),
                 .product(name: "SwiftPrometheus", package: "SwiftPrometheus"),
                 .product(name: "XCTVapor", package: "vapor")
             ]
-        ),
+        )
     ]
 )

@@ -11,14 +11,14 @@ import ApodiniObserve
 import Metrics
 import Prometheus
 
-@propertyWrapper
 /// A wrapped version of the ``PromSummary`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
-public struct PrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty {
+@propertyWrapper
+public struct ApodiniPrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: DynamicProperty {
     @State
     private var builtSummary: PromSummary<T, U>?
     
-    let name: String
+    let label: String
     let type: T.Type
     let helpText: String?
     let capacity: Int
@@ -27,13 +27,13 @@ public struct PrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: Dynam
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ name: String,
+    public init(label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 capacity: Int = Prometheus.defaultSummaryCapacity,
                 quantiles: [Double] = Prometheus.defaultQuantiles,
                 withLabelType: U.Type = DimensionSummaryLabels.self as! U.Type) {
-        self.name = name
+        self.label = label
         self.type = type
         self.helpText = helpText
         self.capacity = capacity
@@ -43,9 +43,9 @@ public struct PrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: Dynam
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ name: String) where T == Int64, U == DimensionSummaryLabels {
+    public init(label: String) where T == Int64, U == DimensionSummaryLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(name, helpText: nil)
+        self.init(label: label, helpText: nil)
     }
     
     public var wrappedValue: PromSummary<T, U> {
@@ -56,7 +56,7 @@ public struct PrometheusSummary<T: DoubleRepresentable, U: SummaryLabels>: Dynam
 
             self.builtSummary = prometheus.createSummary(
                 forType: self.type,
-                named: self.prometheusLabelSanitizer.sanitize(self.name),
+                named: self.prometheusLabelSanitizer.sanitize(self.label),
                 helpText: self.helpText,
                 capacity: self.capacity,
                 quantiles: self.quantiles,

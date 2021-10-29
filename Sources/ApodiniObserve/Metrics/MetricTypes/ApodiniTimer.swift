@@ -9,8 +9,8 @@
 import Apodini
 import Metrics
 
-@propertyWrapper
 /// A wrapped version of the `Metrics.Timer` of swift-metrics
+@propertyWrapper
 public struct ApodiniTimer: DynamicProperty {
     /// Holds the built `Metrics.Timer`
     @State
@@ -26,21 +26,29 @@ public struct ApodiniTimer: DynamicProperty {
     let label: String
     /// The unit of the metric type
     let displayUnit: TimeUnit
+    /// Indicates the level of automatically attached metadata
+    let metadataLevel: MetricsMetadataLevel
     
     /// Initializer for the ``ApodiniTimer``
     /// - Parameters:
     ///   - label: Label of the metric type
     ///   - dimensions: User-provided dimensions for the metirc type
-    public init(label: String, dimensions: [(String, String)] = [], preferredDisplayUnit displayUnit: TimeUnit = TimeUnit.milliseconds) {
+    public init(label: String,
+                dimensions: [(String, String)] = [],
+                preferredDisplayUnit displayUnit: TimeUnit = .milliseconds,
+                metadataLevel: MetricsMetadataLevel = .all) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
         self.displayUnit = displayUnit
+        self.metadataLevel = metadataLevel
     }
     
     /// Holds the built `Metrics.Timer` including the context information
     public var wrappedValue: Metrics.Timer {
         if self.builtTimer == nil {
-            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            if case .all = self.metadataLevel {
+                self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            }
             self.builtTimer = .init(label: self.label,
                                     dimensions: self.dimensions,
                                     preferredDisplayUnit: self.displayUnit)
@@ -51,5 +59,15 @@ public struct ApodiniTimer: DynamicProperty {
         }
         
         return builtTimer
+    }
+}
+
+public extension Metrics.Timer {
+    /// Add, change, or remove a dimension item.
+    @inlinable
+    subscript(dimensionsKey: String) -> String? {
+        self.dimensions.first { key, _ in
+            key == dimensionsKey
+        }?.1
     }
 }

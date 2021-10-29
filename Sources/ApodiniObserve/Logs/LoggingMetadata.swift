@@ -10,9 +10,9 @@ import Apodini
 import ApodiniLoggingSupport
 import Logging
 
-@propertyWrapper
-/// A `DynamicProperty` that provides aggregated context information wihtin a `Handler`
+/// A `DynamicProperty` that provides aggregated context information within a `Handler`
 /// Is used by the ``ApodiniLogger`` as well as the `RecordingHandler` to attach context information to the telemetry data
+@propertyWrapper
 public struct LoggingMetadata: DynamicProperty {
     /// The `Connection` of the associated handler
     /// The actual `Request` resides here
@@ -83,11 +83,16 @@ private extension LoggingMetadata {
                     .string(parameter.debugDescription)
             }),
             "operation": .string(self.observeMetadata.blackboardMetadata.operation.description),
-            "endpointPath": .string(String(self.observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
+            "endpointPath": .string(String(self.observeMetadata.blackboardMetadata.
+                                           endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
                 partialResult.append(contentsOf: endpointPath.description + "/")
-            }).dropLast())),
-            "version": .string(self.observeMetadata.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
-            "handlerType": .string(String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType)),
+            })
+            .dropLast())),
+            "version": .string(self.observeMetadata.blackboardMetadata.
+                               context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"),
+            "handlerType": .string(ObserveMetadataExporter.extractRawEndpointName(
+                String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType))
+            ),
             "handlerReturnType": .string(String(describing: self.observeMetadata.blackboardMetadata.handleReturnType.type)),
             "serviceType": .string(self.observeMetadata.blackboardMetadata.serviceType.rawValue),
             "communicationalPattern": .string(self.observeMetadata.blackboardMetadata.communicationalPattern.rawValue)

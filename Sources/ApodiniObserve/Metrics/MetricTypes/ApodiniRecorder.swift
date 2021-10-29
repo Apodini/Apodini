@@ -9,8 +9,8 @@
 import Apodini
 import Metrics
 
-@propertyWrapper
 /// A wrapped version of the `Metrics.Recorder` of swift-metrics
+@propertyWrapper
 public struct ApodiniRecorder: DynamicProperty {
     /// Holds the built `Metrics.Recorder`
     @State
@@ -26,21 +26,26 @@ public struct ApodiniRecorder: DynamicProperty {
     let label: String
     /// The aggregation toggle of the metric type
     let aggregate: Bool
+    /// Indicates the level of automatically attached metadata
+    let metadataLevel: MetricsMetadataLevel
     
     /// Initializer for the ``ApodiniRecorder``
     /// - Parameters:
     ///   - label: Label of the metric type
     ///   - dimensions: User-provided dimensions for the metirc type
-    public init(label: String, dimensions: [(String, String)] = [], aggregate: Bool = true) {
+    public init(label: String, dimensions: [(String, String)] = [], aggregate: Bool = true, metadataLevel: MetricsMetadataLevel = .all) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
         self.aggregate = aggregate
+        self.metadataLevel = metadataLevel
     }
     
     /// Holds the built `Metrics.Recorder` including the context information
     public var wrappedValue: Metrics.Recorder {
         if self.builtRecorder == nil {
-            self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            if case .all = self.metadataLevel {
+                self.dimensions.append(contentsOf: DefaultRecordingClosures.defaultDimensions(observeMetadata))
+            }
             self.builtRecorder = .init(label: self.label, dimensions: self.dimensions, aggregate: self.aggregate)
         }
         
@@ -49,5 +54,15 @@ public struct ApodiniRecorder: DynamicProperty {
         }
         
         return builtRecorder
+    }
+}
+
+public extension Metrics.Recorder {
+    /// Add, change, or remove a dimension item.
+    @inlinable
+    subscript(dimensionsKey: String) -> String? {
+        self.dimensions.first { key, _ in
+            key == dimensionsKey
+        }?.1
     }
 }

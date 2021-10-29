@@ -32,14 +32,14 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
     }
     
     let app: Apodini.Application
-    let exporterConfiguration: LoggerConfiguration
+    let exporterConfiguration: Configuration
     
     /// Internal initializer for the exporter
     /// - Parameters:
     ///   - app: The Apodini `Application`
     ///   - exporterConfiguration: The appropriate exporter configuration
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: LoggerConfiguration) {
+         _ exporterConfiguration: Configuration) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
     }
@@ -58,26 +58,26 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
         
         delegate.environment(
             \BlackboardObserveMetadata.value,
-             BlackboardObserveMetadata.BlackboardObserveMetadata(
-                 endpointName: Self.extractRawEndpointName(endpoint.description),
-                 endpointParameters: endpoint[EndpointParameters.self],
-                 parameters: endpoint[All<ParameterRetriever>.self].elements,
-                 operation: endpoint[Operation.self],
-                 endpointPathComponents: endpoint[EndpointPathComponents.self],
-                 context: endpoint[Context.self],
-                 anyEndpointSource: endpoint[AnyEndpointSource.self],
-                 handleReturnType: endpoint[HandleReturnType.self],
-                 responseType: endpoint[ResponseType.self],
-                 serviceType: endpoint[ServiceType.self],
-                 communicationalPattern: endpoint[CommunicationalPattern.self]
-             )
+            BlackboardObserveMetadata.BlackboardObserveMetadata(
+                endpointName: Self.extractRawEndpointName(endpoint.description),
+                endpointParameters: endpoint[EndpointParameters.self],
+                parameters: endpoint[All<ParameterRetriever>.self].elements,
+                operation: endpoint[Operation.self],
+                endpointPathComponents: endpoint[EndpointPathComponents.self],
+                context: endpoint[Context.self],
+                anyEndpointSource: endpoint[AnyEndpointSource.self],
+                handleReturnType: endpoint[HandleReturnType.self],
+                responseType: endpoint[ResponseType.self],
+                serviceType: endpoint[ServiceType.self],
+                communicationalPattern: endpoint[CommunicationalPattern.self]
+            )
         )
     }
     
     /// Extract the raw name from the endpoint from a generic type string
     /// - Parameter endpointName: String containing the generic type string
     /// - Returns: Raw name of the endpoint
-    private static func extractRawEndpointName(_ endpointName: String) -> String {
+    static func extractRawEndpointName(_ endpointName: String) -> String {
         guard let splitted = endpointName.components(separatedBy: "<").last,
               let rawEndpointName = splitted.split(separator: ",").first else {
                   return endpointName

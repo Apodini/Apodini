@@ -11,14 +11,14 @@ import ApodiniObserve
 import Metrics
 import Prometheus
 
-@propertyWrapper
 /// A wrapped version of the ``PromHistogram`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
-public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProperty {
+@propertyWrapper
+public struct ApodiniPrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: DynamicProperty {
     @State
     private var builtHistogram: PromHistogram<T, U>?
     
-    let name: String
+    let label: String
     let type: T.Type
     let helpText: String?
     let buckets: Buckets
@@ -26,12 +26,12 @@ public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: D
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ name: String,
+    public init(label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 buckets: Buckets = .defaultBuckets,
                 withLabelType: U.Type = DimensionHistogramLabels.self as! U.Type) {
-        self.name = name
+        self.label = label
         self.type = type
         self.helpText = helpText
         self.buckets = buckets
@@ -40,12 +40,12 @@ public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: D
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ name: String) where T == Int64, U == DimensionHistogramLabels {
+    public init(label: String) where T == Int64, U == DimensionHistogramLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(name, helpText: nil)
+        self.init(label: label, helpText: nil)
     }
     
-    public var wrappedValue: PromHistogram<T, U> {        
+    public var wrappedValue: PromHistogram<T, U> {
         if self.builtHistogram == nil {
             guard let prometheus = try? MetricsSystem.prometheus() else {
                 fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
@@ -53,7 +53,7 @@ public struct PrometheusHistogram<T: DoubleRepresentable, U: HistogramLabels>: D
 
             self.builtHistogram = prometheus.createHistogram(
                 forType: self.type,
-                named: self.prometheusLabelSanitizer.sanitize(self.name),
+                named: self.prometheusLabelSanitizer.sanitize(self.label),
                 helpText: self.helpText,
                 buckets: self.buckets,
                 labels: self.withLabelType

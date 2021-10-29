@@ -8,8 +8,9 @@
 
 import Apodini
 
+/// A `DynamicProperty` that provides the raw context information within a `Handler`
+/// It is used by the ``LoggingMetadata`` to provide raw context information about the execution of a `Handler`
 @propertyWrapper
-/// 
 public struct ObserveMetadata: DynamicProperty {
     public typealias BlackboardMetadata = ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata
     public typealias ExporterMetadata = ExporterTypeObserveMetadata.ExporterTypeObserveMetadata

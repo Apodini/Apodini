@@ -8,22 +8,22 @@
 
 import XCTest
 import XCTApodini
+import XCTVapor
 import ApodiniVaporSupport
 import Vapor
+import Logging
+import ApodiniObserve
 import ApodiniHTTP
 @testable import Apodini
-import XCTVapor
-import Logging
 @testable import SwiftLogTesting
-@testable import ApodiniObserve
 
+// swiftlint:disable closure_body_length
 class ApodiniLoggerTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
     
     static let loggingLabel = "logger.test"
     static let loggerUUID = UUID()
-    static var firstRun = true
     
     override class func setUp() {
         super.setUp()
@@ -239,7 +239,7 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
         
         try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse/Philipp", body: nil) { response in
-            XCTAssertEqual (1, container.messages.count)
+            XCTAssertEqual(1, container.messages.count)
             let logMessage = container.messages[0]
             
             // Assert log message, level etc.
@@ -258,7 +258,13 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(2, exporterMetadata.count)
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
+                ]
+            ))
             
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -291,8 +297,12 @@ class ApodiniLoggerTests: XCTestCase {
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
             XCTAssertEqual(9, endpointMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .path) var name: String"),
-                                                                                 .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")]))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .path) var name: String"),
+                    .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")
+                ]
+            ))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse"))
@@ -335,7 +345,7 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
         
         try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse2/Philipp", body: nil) { response in
-            XCTAssertEqual (1, container.messages.count)
+            XCTAssertEqual(1, container.messages.count)
             let logMessage = container.messages[0]
             
             // Assert log message, level etc.
@@ -354,7 +364,13 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(2, exporterMetadata.count)
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
+                ]
+            ))
             
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -378,8 +394,12 @@ class ApodiniLoggerTests: XCTestCase {
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
             XCTAssertEqual(9, endpointMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .path) var name: String"),
-                                                                                 .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")]))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .path) var name: String"),
+                    .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")
+                ]
+            ))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse2"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse2"))
@@ -416,10 +436,9 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
         
         try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse3/Philipp", body: nil) { response in
-            XCTAssertEqual (1, container.messages.count)
+            XCTAssertEqual(1, container.messages.count)
             if container.messages.count != 1 {
-                XCTFail()
-
+                XCTFail("Log message count isn't correct")
             }
             let logMessage = container.messages[0]
             
@@ -449,9 +468,9 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
         
         try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse4/Philipp", body: nil) { response in
-            XCTAssertEqual (1, container.messages.count)
+            XCTAssertEqual(1, container.messages.count)
             if container.messages.count != 1 {
-                XCTFail()
+                XCTFail("Log message count isn't correct")
             }
             let logMessage = container.messages[0]
             
@@ -473,8 +492,12 @@ class ApodiniLoggerTests: XCTestCase {
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
             XCTAssertEqual(9, endpointMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .path) var name: String"),
-                                                                                 .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")]))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .path) var name: String"),
+                    .string("@Parameter(HTTPParameterMode = .query) var greeting: String?")
+                ]
+            ))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse4"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse4"))
@@ -496,7 +519,7 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
         
         try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/serverSideStreaming?start=10", body: nil) { response in
-            XCTAssertEqual (11, container.messages.count)
+            XCTAssertEqual(11, container.messages.count)
             // First message, begin of stream
             let firstLogMessage = container.messages[0]
             
@@ -516,7 +539,13 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(2, exporterMetadata.count)
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
+                ]
+            ))
             
             // Request metdata
             var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -548,8 +577,16 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(9, endpointMetadata.count)
             var parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
-            if !(parameterEndpointMetadata == .array([.string("@Parameter(Mutability = .constant, HTTPParameterMode = .query) var start: Int = 10")]) ||
-                 parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .query, Mutability = .constant) var start: Int = 10")])) {
+            if !(parameterEndpointMetadata == .array(
+                    [
+                        .string("@Parameter(Mutability = .constant, HTTPParameterMode = .query) var start: Int = 10")
+                    ]
+                ) ||
+                parameterEndpointMetadata == .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query, Mutability = .constant) var start: Int = 10")
+                    ]
+                )) {
                 XCTFail("Endpoint Parameters not correct")
             }
 
@@ -587,7 +624,13 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(2, exporterMetadata.count)
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
+                ]
+            ))
             
             // Request metdata
             requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -619,8 +662,16 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(9, endpointMetadata.count)
             parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
-            if !(parameterEndpointMetadata == .array([.string("@Parameter(Mutability = .constant, HTTPParameterMode = .query) var start: Int = 10")]) ||
-                 parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .query, Mutability = .constant) var start: Int = 10")])) {
+            if !(parameterEndpointMetadata == .array(
+                    [
+                        .string("@Parameter(Mutability = .constant, HTTPParameterMode = .query) var start: Int = 10")
+                    ]
+                ) ||
+                parameterEndpointMetadata == .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query, Mutability = .constant) var start: Int = 10")
+                    ]
+                )) {
                 XCTFail("Endpoint Parameters not correct")
             }
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
@@ -675,7 +726,7 @@ class ApodiniLoggerTests: XCTestCase {
         
         try Self.app.vapor.app.testable(method: .inMemory)
             .test(.GET, "/clientSideStreaming", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-                XCTAssertEqual (4, container.messages.count)
+                XCTAssertEqual(4, container.messages.count)
                 // First log messsage
                 var logMessage = container.messages[0]
                 
@@ -695,7 +746,13 @@ class ApodiniLoggerTests: XCTestCase {
                 
                 XCTAssertEqual(2, exporterMetadata.count)
                 XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                    [
+                        .string("[lightweight]"),
+                        .string("[content]"),
+                        .string("[path]")
+                    ]
+                ))
                 
                 // Request metdata
                 var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -732,7 +789,11 @@ class ApodiniLoggerTests: XCTestCase {
                 var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
                 
                 XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .query) var country: String?")]))
+                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                    ]
+                ))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
@@ -803,7 +864,13 @@ class ApodiniLoggerTests: XCTestCase {
                 
                 XCTAssertEqual(2, exporterMetadata.count)
                 XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                    [
+                        .string("[lightweight]"),
+                        .string("[content]"),
+                        .string("[path]")
+                    ]
+                ))
                 
                 // Request metdata
                 requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -840,7 +907,11 @@ class ApodiniLoggerTests: XCTestCase {
                 endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
                 
                 XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .query) var country: String?")]))
+                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                    ]
+                ))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
@@ -883,7 +954,7 @@ class ApodiniLoggerTests: XCTestCase {
         
         try Self.app.vapor.app.testable(method: .inMemory)
             .test(.GET, "/bidirectionalStreaming", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-                XCTAssertEqual (4, container.messages.count)
+                XCTAssertEqual(4, container.messages.count)
                 // First log messsage
                 var logMessage = container.messages[0]
                 
@@ -903,7 +974,13 @@ class ApodiniLoggerTests: XCTestCase {
                 
                 XCTAssertEqual(2, exporterMetadata.count)
                 XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                    [
+                        .string("[lightweight]"),
+                        .string("[content]"),
+                        .string("[path]")
+                    ]
+                ))
                 
                 // Request metdata
                 var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -940,7 +1017,11 @@ class ApodiniLoggerTests: XCTestCase {
                 var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
                 
                 XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .query) var country: String?")]))
+                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                    ]
+                ))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
@@ -1011,7 +1092,13 @@ class ApodiniLoggerTests: XCTestCase {
                 
                 XCTAssertEqual(2, exporterMetadata.count)
                 XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([.string("[lightweight]"), .string("[content]"), .string("[path]")]))
+                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                    [
+                        .string("[lightweight]"),
+                        .string("[content]"),
+                        .string("[path]")
+                    ]
+                ))
                 
                 // Request metdata
                 requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -1048,7 +1135,11 @@ class ApodiniLoggerTests: XCTestCase {
                 endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
                 
                 XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array([.string("@Parameter(HTTPParameterMode = .query) var country: String?")]))
+                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                    [
+                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                    ]
+                ))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
                 XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))

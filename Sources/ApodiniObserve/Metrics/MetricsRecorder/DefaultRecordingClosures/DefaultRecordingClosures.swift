@@ -40,7 +40,8 @@ public enum DefaultRecordingClosures {
             ("endpoint", observeMetadata.blackboardMetadata.endpointName),
             ("endpoint_path", String(observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
                 partialResult.append(contentsOf: endpointPath.description + "/")
-            }).dropLast())),
+            })
+            .dropLast())),
             ("exporter", "\(observeMetadata.exporterMetadata.exporterType)"),
             ("operation", observeMetadata.blackboardMetadata.operation.rawValue),
             ("communicational_pattern", observeMetadata.blackboardMetadata.communicationalPattern.rawValue),

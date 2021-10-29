@@ -14,7 +14,7 @@ public extension DefaultRecordingClosures {
     struct ErrorRate: DefaultRecorder {
         public static let before: BeforeRecordingClosure = { _, _, _ in }
         
-        public static var afterException: AfterExceptionRecordingClosure? = { observeMetadata, _, error, _ in            
+        public static var afterException: AfterExceptionRecordingClosure? = { observeMetadata, _, error, _ in
             let counter = Metrics.Counter(
                 label: "error_counter",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata) +

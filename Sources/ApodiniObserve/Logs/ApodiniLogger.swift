@@ -10,10 +10,10 @@ import Foundation
 import Apodini
 import Logging
 
-@propertyWrapper
 /// A `DynamicProperty` that allows logging of an associated `Handler`
 /// Can be configured with a certain logLevel, so what messages should actually be logged and which shouldn't
 /// Automatically attaches metadata from the handler to the built logger so the developer gets easy insights into the system
+@propertyWrapper
 public struct ApodiniLogger: DynamicProperty {
     /// The `Connection` of the associated handler
     /// The actual `Request` resides here
@@ -64,7 +64,11 @@ public struct ApodiniLogger: DynamicProperty {
     ///   - logLevel: Local `Logger.Level` that overwrites the globally configured log level
     ///   - metadataLevel: The amount of context information automatically attached to log entries created with the ``ApodiniLogger``
     ///   - logHandler: Local `LogHandler` that overwrites the globally configured `LogHandler`
-    public init(id: UUID = UUID(), label: String? = nil, logLevel: Logger.Level? = nil, metadataLevel: MetadataLevel = .all, logHandler: ((String) -> LogHandler)? = nil) {
+    public init(id: UUID = UUID(),
+                label: String? = nil,
+                logLevel: Logger.Level? = nil,
+                metadataLevel: MetadataLevel = .all,
+                logHandler: ((String) -> LogHandler)? = nil) {
         self.id = id
         self.logLevel = logLevel
         self.label = label
@@ -152,7 +156,7 @@ public struct ApodiniLogger: DynamicProperty {
                         metadataKey == "connection" || metadataKey == "request"
                     }
                     // User-defined setting what metadata should be automatically aggregated
-                    .filter{ metadataKey, _ in
+                    .filter { metadataKey, _ in
                         self.metadataLevel.metadataKeys.contains(metadataKey)
                     }
                     .forEach { metadataKey, metadataValue in
@@ -173,24 +177,30 @@ public struct ApodiniLogger: DynamicProperty {
     }
 }
 
-/// Indicates the level of automatically attached `Metadata`
-public enum MetadataLevel {
-    case all
-    case reduced
-    case none
-    case custom(metadata: [String])
-    
-    /// The keys of the context information that should be attached to the logs
-    var metadataKeys: [String] {
-        switch self {
-        case .all:
-            return ["connection", "request", "information", "endpoint", "exporter"]
-        case .reduced:
-            return ["request", "endpoint", "exporter"]
-        case .none:
-            return []
-        case .custom(let customMetadata):
-            return customMetadata
+extension ApodiniLogger {
+    /// Indicates the level of automatically attached `Metadata`
+    public enum MetadataLevel {
+        /// All metadata
+        case all
+        /// Reduced metadata (so only "request", "endpoint", "exporter")
+        case reduced
+        /// No metadata at all
+        case none
+        /// Pass the metadata keys that should be automatically attached
+        case custom(metadata: [String])
+        
+        /// The keys of the context information that should be attached to the logs
+        var metadataKeys: [String] {
+            switch self {
+            case .all:
+                return ["connection", "request", "information", "endpoint", "exporter"]
+            case .reduced:
+                return ["request", "endpoint", "exporter"]
+            case .none:
+                return []
+            case .custom(let customMetadata):
+                return customMetadata
+            }
         }
     }
 }

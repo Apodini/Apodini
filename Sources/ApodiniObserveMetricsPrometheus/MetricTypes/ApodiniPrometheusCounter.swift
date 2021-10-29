@@ -11,14 +11,14 @@ import ApodiniObserve
 import Metrics
 import Prometheus
 
-@propertyWrapper
-/// A wrapped version of the ``PromGauge`` of SwiftPrometheus
+/// A wrapped version of the ``PromCounter`` of SwiftPrometheus
 /// Provides raw access to the metric types of SwiftPrometheus which are closly related to Prometheus itself, unlike swift-metrics
-public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicProperty {
+@propertyWrapper
+public struct ApodiniPrometheusCounter<T: Numeric, U: MetricLabels>: DynamicProperty {
     @State
-    private var builtGauge: PromGauge<T, U>?
-
-    let name: String
+    private var builtCounter: PromCounter<T, U>?
+    
+    let label: String
     let type: T.Type
     let helpText: String?
     let initialValue: T
@@ -26,12 +26,12 @@ public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicP
     
     let prometheusLabelSanitizer: PrometheusLabelSanitizer
     
-    public init(_ name: String,
+    public init(label: String,
                 type: T.Type = Int64.self as! T.Type,
                 helpText: String? = nil,
                 initialValue: T = 0,
                 withLabelType: U.Type = DimensionLabels.self as! U.Type) {
-        self.name = name
+        self.label = label
         self.type = type
         self.helpText = helpText
         self.initialValue = initialValue
@@ -40,20 +40,20 @@ public struct PrometheusGauge<T: DoubleRepresentable, U: MetricLabels>: DynamicP
         self.prometheusLabelSanitizer = PrometheusLabelSanitizer()
     }
     
-    public init(_ name: String) where T == Int64, U == DimensionLabels {
+    public init(label: String) where T == Int64, U == DimensionLabels {
         // Need to pass one additional value to not result in infinite recursion
-        self.init(name, helpText: nil)
+        self.init(label: label, helpText: nil)
     }
     
-    public var wrappedValue: PromGauge<T, U> {
+    public var wrappedValue: PromCounter<T, U> {
         guard let prometheus = try? MetricsSystem.prometheus() else {
             fatalError(MetricsError.prometheusNotYetBootstrapped.rawValue)
         }
-
-        // No need to cache the created Metric since the `createGauge()` does exactly that
-        return prometheus.createGauge(
+        
+        // No need to cache the created Metric since the `createCounter()` does exactly that
+        return prometheus.createCounter(
             forType: self.type,
-            named: self.prometheusLabelSanitizer.sanitize(self.name),
+            named: self.prometheusLabelSanitizer.sanitize(self.label),
             helpText: self.helpText,
             initialValue: self.initialValue,
             withLabelType: self.withLabelType
