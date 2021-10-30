@@ -47,7 +47,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
         guard
             let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self),
-            let url = URL(string: "http://localhost:\(LLI.port)")
+            let url = URL(string: "http://127.0.0.1:\(LLI.port)")
         else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: identifier,
