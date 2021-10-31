@@ -54,7 +54,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             .cache()
             .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
-                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
+                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peek(_:) ?? { _ in nil }
                 return responseAndRequest.response.typeErasured.map { content in
                     EnrichedContent(
                         for: relationshipEndpoint,

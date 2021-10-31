@@ -94,17 +94,20 @@ extension XCTApodiniNetworkingRequestResponseTester {
         responseEnd: (HTTPResponse) throws -> Void
     ) throws {
         do {
-            try self.performTest(XCTHTTPRequest(
-                version: version,
-                method: method,
-                url: makeUrl(version: version, path: path),
-                headers: headers,
-                body: body,
-                file: file,
-                line: line
-            ), expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd) // swiftlint:disable:this multiline_arguments line_length
-            // ^^ this is ironic, the only reason why we need to disable the line_length rule is
-            // because the preceding swiftlint comment pushed it over the limit...
+            try self.performTest(
+                XCTHTTPRequest(
+                    version: version,
+                    method: method,
+                    url: makeUrl(version: version, path: path),
+                    headers: headers,
+                    body: body,
+                    file: file,
+                    line: line
+                ),
+                expectedBodyType: expectedBodyType,
+                responseStart: responseStart,
+                responseEnd: responseEnd
+            )
         } catch {
             XCTFail("\(error)", file: file, line: line)
             throw error
