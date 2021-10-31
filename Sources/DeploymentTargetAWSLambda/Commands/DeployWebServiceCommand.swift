@@ -146,8 +146,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
 
         let awsIntegration = AWSIntegration(
             awsRegionName: awsRegion,
-            awsCredentials: Context.makeAWSCredentialProviderFactory(profileName: awsProfileName)//,
-            //tmpDirUrl: self.tmpDirUrl
+            awsCredentials: Context.makeAWSCredentialProviderFactory(profileName: awsProfileName)
         )
         
         if awsApiGatewayApiId == "_createNew" {

@@ -95,7 +95,6 @@ struct HTTPPathMatcher {
             } else {
                 fatalError("Multiple match results with same penalty.")
             }
-            //return potentialMatches.min { $0.score < $1.score }
         }
     }
     

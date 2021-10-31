@@ -204,7 +204,7 @@ public enum BodyStorage {
     public mutating func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
         visitMutating(
             buffer: { buffer in
-                return eventLoop.makeSucceededFuture(buffer.readSlice(length: buffer.readableBytes) ?? .init())
+                eventLoop.makeSucceededFuture(buffer.readSlice(length: buffer.readableBytes) ?? .init())
             },
             stream: { stream in
                 // Note: ideally this would, once the stream ended, simply turn self into a .buffer with the collected data...

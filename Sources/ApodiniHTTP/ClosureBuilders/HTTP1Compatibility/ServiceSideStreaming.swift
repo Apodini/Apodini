@@ -101,7 +101,7 @@ extension Exporter {
                     }
                 )
                 .map { firstResponse -> HTTPResponse in
-                    return HTTPResponse(
+                    HTTPResponse(
                         version: request.version,
                         status: HTTPResponseStatus(firstResponse?.status ?? .ok),
                         headers: HTTPHeaders(firstResponse?.information ?? []),

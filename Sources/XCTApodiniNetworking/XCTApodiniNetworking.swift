@@ -198,7 +198,7 @@ extension Apodini.Application {
             case let .hostname(currentAppHostname, port: currentAppPort):
                 address = (hostname ?? currentAppHostname, port ?? currentAppPort)
                 app.http.address = .hostname(address.hostname, port: address.port)
-            case .unixDomainSocket(_):
+            case .unixDomainSocket:
                 fatalError("Expected a hostname-based http config")
             }
             

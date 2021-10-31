@@ -70,8 +70,9 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.31.0")),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
-        // HTTP/2 support for SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.17.0"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
@@ -104,9 +105,7 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0")
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),

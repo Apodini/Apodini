@@ -101,7 +101,7 @@ extension __ANNIOHTTPHeadersType {
         self.contains(name: name.rawValue)
     }
     
-    /// Sets the spefified value for `name`, if no entry for that key already exists
+    /// Sets the specified value for `name`, if no entry for that key already exists
     public mutating func setUnlessPresent<T: HTTPHeaderFieldValueCodable>(
         name: HTTPHeaderName<T>,
         value: @autoclosure () -> T,
@@ -143,7 +143,7 @@ extension __ANNIOHTTPHeadersType {
                 // Set-Cookie requires special handling because we can't split or join its values in a comma separator
                 return self[name.rawValue].map { T(httpHeaderFieldValue: $0)! }
             default:
-                // All other headers can be split on commmas
+                // All other headers can be split on commas
                 return self[name.rawValue]
                     .flatMap { $0.split(separator: ",") }
                     .map { $0.trimmingLeadingWhitespace() }

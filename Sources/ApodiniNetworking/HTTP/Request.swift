@@ -40,12 +40,12 @@ extension HTTPRequest {
 /// A HTTP request
 public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
-        /// The requst's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
+        /// The request's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained single-path-component wildcards
+        /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained single-path-component wildcards
         /// key: index of wildcard in path components array
         var singleComponentWildcards: [Int: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained multi-path-component wildcards
+        /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained multi-path-component wildcards
         /// key: index of wildcard in path components array
         var multipleComponentWildcards: [Int: [String]] = [:]
     }

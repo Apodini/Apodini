@@ -86,7 +86,7 @@ extension Array where Element == HTTPPathComponent {
             switch pathComponent {
             case .verbatim(let value):
                 partialResult.append("v[\(value)]")
-            case .namedParameter(_):
+            case .namedParameter:
                 partialResult.append(":")
             case .wildcardSingle:
                 partialResult.append("*")

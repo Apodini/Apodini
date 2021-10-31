@@ -8,7 +8,6 @@
 
 import Apodini
 import NIO
-//import ApodiniVaporSupport
 import ApodiniUtils
 import ApodiniNetworking
 import Foundation
@@ -73,33 +72,25 @@ extension REST {
 final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
-    //let app: Vapor.Application
     let app: Apodini.Application
     let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
-    init(_ app: Apodini.Application,
-         _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()
-    ) {
+    init(_ app: Apodini.Application, _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app
-        //self.app = app.vapor.app
         self.configuration = REST.Configuration(app.http)
         self.exporterConfiguration = exporterConfiguration
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
-        
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
         let absolutePath = endpoint.absoluteRESTPath
         absolutePath.build(with: &pathBuilder)
-
-        //let routesBuilder = pathBuilder.routesBuilder(app)
         
         let operation = endpoint[Operation.self]
-
         let endpointHandler = RESTEndpointHandler(
             with: configuration,
             exporterConfiguration: exporterConfiguration,
@@ -162,7 +153,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         }
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        //self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
         app.httpServer.isCaseInsensitiveRoutingEnabled = exporterConfiguration.caseInsensitiveRouting
     }
 }

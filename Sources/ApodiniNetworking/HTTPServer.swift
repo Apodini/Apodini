@@ -203,7 +203,7 @@ public final class HTTPServer {
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
                     return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
-                            return channel.configureHTTP2SecureUpgrade { channel in
+                            channel.configureHTTP2SecureUpgrade { channel in
                                 channel.addApodiniNetworkingHTTP2Handlers(responder: self)
                             } http1ChannelConfigurator: { channel in
                                 channel.addApodiniNetworkingHTTP1Handlers(responder: self)
@@ -221,8 +221,8 @@ public final class HTTPServer {
                     }
                 }
             }
-            .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
-            .childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
+            //.childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
+            //.childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         

@@ -53,7 +53,7 @@ extension Exporter {
                     }
                 }
                 .map { (response: Apodini.Response<H.Response.Content>) -> HTTPResponse in
-                    return try! transformer.transform(input: response)
+                    try! transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in

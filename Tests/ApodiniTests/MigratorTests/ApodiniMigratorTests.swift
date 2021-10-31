@@ -101,7 +101,6 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(Self.migratorConfig.command._commandName, "migrator")
         XCTAssertEqual(Self.migratorConfig.command.configuration.subcommands.count, 3)
         
-        //XCTAssert(app.vapor.app.routes.all.isEmpty)
         XCTAssert(app.httpServer.registeredRoutes.isEmpty)
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
@@ -139,7 +138,6 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         start()
         
-        //try app.vapor.app.test(.GET, path) { response in
         try app.testable().test(.GET, path) { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertNoThrow(try response.bodyStorage.getFullBodyData(decodedAs: Document.self, using: JSONDecoder()))

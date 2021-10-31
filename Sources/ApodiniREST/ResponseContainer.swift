@@ -65,7 +65,6 @@ public struct ResponseContainer: Encodable {
             status: .ok,
             headers: HTTPHeaders(information)
         )
-        //response.headers = HTTPHeaders(information)
         
         switch status {
         case .noContent where !containsNoContent:
@@ -82,7 +81,6 @@ public struct ResponseContainer: Encodable {
                 var buffer = ByteBuffer()
                 try self.encoder.encode(self, to: &buffer, headers: &response.headers)
                 response.bodyStorage = .buffer(buffer)
-                    //try response.content.encode(self, using: self.encoder)
             }
         } catch {
             return request.eventLoop.makeFailedFuture(error)

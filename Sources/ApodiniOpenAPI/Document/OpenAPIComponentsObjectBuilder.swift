@@ -11,7 +11,6 @@ import Apodini
 import ApodiniREST
 import ApodiniUtils
 import ApodiniTypeInformation
-//import ApodiniVaporSupport
 import OpenAPIKit
 
 /// Constants for building specification compatible schema names.

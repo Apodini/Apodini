@@ -123,7 +123,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
                         self.logger.notice("Removing handlers")
                         let handlers: [RemovableChannelHandler] = [self] + self.handlersToRemoveOnWebSocketUpgrade
                         return .andAllComplete(handlers.map { handler in
-                            return context.pipeline.removeHandler(handler)
+                            context.pipeline.removeHandler(handler)
                         }, on: context.eventLoop)
                     }
                     .flatMap { () -> EventLoopFuture<Void> in
