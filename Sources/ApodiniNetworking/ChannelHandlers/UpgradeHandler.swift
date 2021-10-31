@@ -15,7 +15,7 @@ import Logging
 
 
 /// A removable channel handler which can be used to upgrade HTTP1 requests to a different protocol.
-/// Heavily insired by Vapor's equivalent of this
+/// Heavily inspired by Vapor's equivalent of this
 class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, RemovableChannelHandler {
     typealias InboundIn = HTTPRequest
     typealias InboundOut = HTTPRequest

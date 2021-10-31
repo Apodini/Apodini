@@ -102,7 +102,7 @@ public struct URI: LosslessStringConvertible {
     }
     
     
-    /// Constructs, from this `URL`, a `Foundation.URL`
+    /// Constructs, from this `URI`, a `Foundation.URL`
     public func toNSURL() -> URL {
         var components = URLComponents()
         components.scheme = scheme.rawValue

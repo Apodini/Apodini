@@ -17,7 +17,7 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     typealias InboundIn = HTTPRequest
     typealias OutboundOut = HTTPResponse
     
-    private let responder: HTTPResponder // TODO does this introduce a retain cycle?? (we're passing the server here, which holds a reference to the channel, to the pipeline of which this handler is added!!!!
+    private let responder: HTTPResponder
     private var isCurrentlyWaitingOnSomeStream = false
     
     init(responder: HTTPResponder) {

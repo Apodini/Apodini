@@ -97,16 +97,10 @@ final class ConnectionTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        try app.testable().test(.GET, "/v1/") { res in
-            // TODO this test probably was wrong before the Vapor rewrite.
-            // It checks whether the body contains the specified address, but the thing is:
-            // 1. there's two places where the body could contain the address (the data field, and the links field)
-            // 2. the vapor-based version of the test used `app.vapor.app.test(.GET, ...)`. meaning that it'd use the .inMemory testing method, which doesnt actually send requests (and instead routes them directly internally), meaning that the remote address was already nil back when this was using vapor, and the reason why the test never failed before was that the response alwo contained the checked-for text in the links field
-            // TODO is all of this correct?
+        try app.testable([.actualRequests]).test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
-            //print("AAAAAAAAA", String.init(data: res.bodyData, encoding: .utf8))
-            //XCTAssert(res.body.string.contains("127.0.0.1:8080"))
-            XCTAssert(try XCTUnwrap(res.bodyStorage.readNewDataAsString()).contains("0.0.0.0:8080"))
+            let remoteAddressResponse = try XCTUnwrapRESTResponseData(String.self, from: res)
+            XCTAssert(remoteAddressResponse.contains("127.0.0.1"))
         }
     }
 }

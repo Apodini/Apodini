@@ -105,13 +105,22 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     
     var loggingMetadata: [LoggingMetadataInformation] {
          [
-            LoggingMetadataInformation(key: .init("ApodiniNetworkingRequestDescription"), rawValue: .string(self.description)),
-            //LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
-            //LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
-            //LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),
-            //LoggingMetadataInformation(key: .init("route"), rawValue: .string(self.route?.description ?? "unknown")),
-            //LoggingMetadataInformation(key: .init("HTTPVersion"), rawValue: .string(self.version.description)),
-            LoggingMetadataInformation(key: .init("url"), rawValue: .string(self.url.stringValue))
+            LoggingMetadataInformation(
+                key: .init("ApodiniNetworkingRequestDescription"),
+                rawValue: .string(self.description)
+            ),
+            LoggingMetadataInformation(
+                key: .init("HTTPContentType"),
+                rawValue: .string(self.headers[.contentType]?.encodeToHTTPHeaderFieldValue() ?? "unknown")
+            ),
+            LoggingMetadataInformation(
+                key: .init("HTTPVersion"),
+                rawValue: .string(self.version.description)
+            ),
+            LoggingMetadataInformation(
+                key: .init("url"),
+                rawValue: .string(self.url.stringValue)
+            )
          ]
     }
     

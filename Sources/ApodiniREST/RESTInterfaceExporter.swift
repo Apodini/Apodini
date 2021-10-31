@@ -130,23 +130,18 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 
     func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
-        
         let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model
         
         if root.node.endpoints[.read] == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
-
             let relationships = relationshipModel.rootRelationships(for: .read)
-
             let handler = RESTDefaultRootHandler(
                 configuration: configuration,
                 exporterConfiguration: exporterConfiguration,
                 relationships: relationships
             )
             handler.register(on: app)
-            
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
-            
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
             }

@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniNetworking
 
+
 struct RESTPathBuilder: PathBuilder {
     private(set) var pathComponents: [HTTPPathComponent] = []
     private var pathString: [String] = []

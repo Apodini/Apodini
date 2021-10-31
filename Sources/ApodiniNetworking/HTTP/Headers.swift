@@ -35,7 +35,7 @@ public protocol __ANNIOHTTPHeadersType {
     mutating func add(name: String, value: String, indexing: HPACKIndexing)
     /// Removes a header entry
     mutating func remove(name: String)
-    /// Adds a header entry, removing any existing enties with the same key if necessary
+    /// Adds a header entry, removing any existing entities with the same key if necessary
     mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing)
     /// Fetches all values for the specified key 
     subscript(name: String) -> [String] { get }
@@ -88,9 +88,9 @@ extension __ANNIOHTTPHeadersType {
     /// - Note: The reason this initialiser exists is to offer a type-safe way of declaring immutable headers objects.
     ///         The underlying problem here is that Swift doesn't support variadic generics, meaning that (since the type-safe header
     ///         names are implemented via generics) you wouldn't be able to pass more than one generic key-value pair to the initialiser.
-    ///         This initialiser wors around that by giving the caller the ability to access a mutable version of the headers
+    ///         This initialiser works around that by giving the caller the ability to access a mutable version of the headers
     ///         struct (which can be modified using the type-safe API), while still allowing the caller to store the resulting value into an immutable object.
-    ///         Sinice the block is non-escaping, immediately evaluated, and evaluated only once, this is semantically equivalent to declaring a mutable headers object and modifying that.
+    ///         Since the block is non-escaping, immediately evaluated, and evaluated only once, this is semantically equivalent to declaring a mutable headers object and modifying that.
     public init(_ block: (inout Self) throws -> Void) rethrows {
         self.init([])
         try block(&self)

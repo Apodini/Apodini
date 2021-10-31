@@ -121,14 +121,14 @@ public final class HTTPServer {
     }
     
     
-    init(app: Apodini.Application) {
-        self.config = .app(app)
-        self.router = HTTPRouter(logger: app.logger)
+    internal var registeredRoutes: [HTTPRouter.Route] {
+        router.allRoutes
     }
     
     
-    internal var registeredRoutes: [HTTPRouter.Route] {
-        router.allRoutes
+    init(app: Apodini.Application) {
+        self.config = .app(app)
+        self.router = HTTPRouter(logger: app.logger)
     }
     
     
@@ -221,8 +221,6 @@ public final class HTTPServer {
                     }
                 }
             }
-            //.childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
-            //.childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         
