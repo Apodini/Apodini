@@ -37,7 +37,6 @@ enum LoggerMetadataIntermediateRepresentation: Codable {
     case array([LoggerMetadataIntermediateRepresentation])
     case dictionary([String: LoggerMetadataIntermediateRepresentation])
     
-    
     var metadataValue: Logger.MetadataValue {
         switch self {
         case .null:
