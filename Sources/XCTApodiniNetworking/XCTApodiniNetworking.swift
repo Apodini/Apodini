@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if DEBUG || RELEASE_TESTING
+
 import Apodini
 @_exported import ApodiniNetworking
 import XCTest
@@ -292,3 +294,5 @@ private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTP
         task.cancel()
     }
 }
+
+#endif // DEBUG || RELEASE_TESTING
