@@ -11,7 +11,6 @@ import Apodini
 import XCTest
 import ApodiniDatabase
 import ApodiniUtils
-@testable import ApodiniNetworking
 
 
 open class XCTApodiniTest: XCTestCase {
