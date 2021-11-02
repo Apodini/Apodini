@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 ## :recycle: Current situation & Problem
 *Describe the current situation (if possible with and exemplary (or real) code snippet and/or where this is used)*
+*Please link any open issue that is addressed with this PR*
 
 ## :bulb: Proposed solution
 *Describe the solution and how this affects the project and internal structure*
@@ -31,3 +32,8 @@ SPDX-License-Identifier: MIT
 
 ### Reviewer Nudging
 *Where should the reviewer start, where is a good entry point?*
+
+### Code of Conduct & Contributing Guidelines 
+
+By submitting creating this pull request, you agree to follow our [Code of Conduct](https://github.com/Apodini/.github/blob/main/CODE_OF_CONDUCT.md) and [Contributing Guidelines](https://github.com/Apodini/.github/blob/main/CONTRIBUTING.md):
+- [ ] I agree to follow the [Code of Conduct](https://github.com/Apodini/.github/blob/main/CODE_OF_CONDUCT.md) and [Contributing Guidelines](https://github.com/Apodini/.github/blob/main/CONTRIBUTING.md).
