@@ -97,7 +97,7 @@ final class ConnectionTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        try app.testable([.actualRequests]).test(.GET, "/v1/") { res in
+        try app.testable([.inMemory]).test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             let remoteAddressResponse = try XCTUnwrapRESTResponseData(String.self, from: res)
             XCTAssert(remoteAddressResponse.contains("127.0.0.1"))
