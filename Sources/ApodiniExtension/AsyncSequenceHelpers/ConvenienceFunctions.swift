@@ -35,11 +35,9 @@ public extension AsyncSequence {
     /// `AsyncSequence`, the error thrown while retrieving the first element, or nil if the sequence is empty.
     func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
-        
         promise.completeWithAsync {
             try await self.first(where: { _ in true })
         }
-        
         return promise.futureResult
     }
 }

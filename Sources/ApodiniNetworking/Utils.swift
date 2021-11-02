@@ -29,8 +29,7 @@ extension ByteBuffer {
 
 
 extension HTTPResponseStatus {
-    /// Creates a `Vapor``HTTPStatus` based on an `Apodini` `Status`.
-    /// - Parameter status: The `Apodini` `Status` that should be transformed in a `Vapor``HTTPStatus`
+    /// Creates a `HTTPResponseStatus` based on an `Apodini.Status`.
     public init(_ status: Apodini.Status) {
         switch status {
         case .ok:
@@ -47,8 +46,7 @@ extension HTTPResponseStatus {
 
 
 extension HTTPMethod {
-    /// Creates a `Vapor``HTTPMethod` based on an `Apodini` `Operation`.
-    /// - Parameter operation: The `Apodini` `Operation` that should be transformed in a `Vapor``HTTPMethod`
+    /// Creates a `HTTPMethod` based on an `Apodini.Operation`
     public init(_ operation: Apodini.Operation) {
         switch operation {
         case .create:
@@ -65,8 +63,7 @@ extension HTTPMethod {
 
 
 extension HTTPHeaders {
-    /// Creates a `Vapor``HTTPHeaders` instance based on an `Apodini` `Information` array.
-    /// - Parameter information: The `Apodini` `Information` array that should be transformed in a `Vapor``HTTPHeaders` instance
+    /// Initialises a `HTTPHeaders` object with the contents of the specified `InformationSet`
     public init(_ information: InformationSet) {
         self.init(information.compactMap { ($0 as? HTTPHeaderInformationClass)?.entry })
     }

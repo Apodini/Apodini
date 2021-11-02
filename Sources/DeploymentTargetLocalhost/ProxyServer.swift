@@ -128,7 +128,7 @@ private struct ProxyRequestResponder: HTTPResponder {
             fragment: incomingRequest.url.fragment
         )
         let forwardingRequest = try! HTTPClient.Request(
-            url: url.toNSURL(),
+            url: URL(url),
             method: incomingRequest.method,
             headers: incomingRequest.headers,
             body: { () -> HTTPClient.Body in

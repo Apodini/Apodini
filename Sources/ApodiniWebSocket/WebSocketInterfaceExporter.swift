@@ -66,8 +66,6 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
                 ) in
             // We need a new `Delegate` for each connection
             let delegate = factory.instance()
-            print("WS request", request, clientInput)
-            
             let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
