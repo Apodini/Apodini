@@ -186,6 +186,9 @@ public final class HTTPServer {
         guard channel == nil else {
             throw ApodiniNetworkingError(message: "Cannot start already-running servers")
         }
+        guard !(enableHTTP2 && tlsConfiguration == nil) else {
+            throw ApodiniNetworkingError(message: "Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
+        }
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
             .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
@@ -214,8 +217,7 @@ public final class HTTPServer {
                         }
                 } else {
                     if enableHTTP2 {
-                        // NOTE this doesn't make sense and (probably) doesn't work
-                        return channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                        fatalError("Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
                     } else {
                         return channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                     }
