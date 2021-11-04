@@ -51,7 +51,7 @@ public class MetricsConfiguration: Configuration {
         }
     }
     
-    /// Configures the `Application`for the `ApodiniMetric` types
+    /// Configures the `Application` for the `ApodiniMetric` types
     /// - Parameter app: The to be configured `Application`
     public func configure(_ app: Application) {
         // Bootstrap all passed MetricHandlers
