@@ -58,7 +58,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             return
         }
         
-        runShellCommand(.killPort(80))
+        runShellCommand(.killPort(8080))
         runShellCommand(.killPort(5000))
         runShellCommand(.killPort(5001))
         runShellCommand(.killPort(5002))
@@ -147,7 +147,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://0.0.0.0:5001` three times,
+            // This is determined by finding the text `Server starting on http://127.0.0.1:5001` three times,
             // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
@@ -174,14 +174,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             if startedServers.count == expectedNumberOfNodes + 1 {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 80),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
                     // the nodes
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005)
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5003),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5004),
+                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5005)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
@@ -209,7 +209,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
         ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://0.0.0.0:80\(path)"))
+            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:8080\(path)"))
             return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
                     XCTFail("Unexpected error in request: \(error.localizedDescription)")
