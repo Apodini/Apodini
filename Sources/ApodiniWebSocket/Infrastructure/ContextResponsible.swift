@@ -7,7 +7,6 @@
 //              
 
 @_implementationOnly import Vapor
-import _Concurrency
 import NIOWebSocket
 import ApodiniExtension
 import ApodiniUtils
