@@ -27,9 +27,9 @@ extension Component {
 }
 
 extension Handler {
-    /// Use a`MetricsRecorder` to record metrics from an incoming request of a `Component`
+    /// Use a `MetricsRecorder` to record metrics from an incoming request of a `Handler`
     /// - Parameter recorder: The `MetricsRecorder` used to record metrics from an incoming request
-    /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
+    /// - Returns: Returns a modified `Handler` wrapped by the `MetricsRecorder`
     public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Response>> {
         self.delegated(by: RecordingHandlerInitializer(recorder: recorder))
     }
