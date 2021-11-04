@@ -20,11 +20,11 @@ jobs:
     uses: Apodini/.github/.github/workflows/build-and-test.yml@main
     with:
       packagename: Apodini
-      xcodebuildpostfix: -Package
+      usexcodebuild: false
   build_and_test_web_service:
     name: Build and Test Test Web Service
     uses: Apodini/.github/.github/workflows/build-and-test.yml@main
     with:
       path: ./TestWebService
       packagename: TestWebService
-      xcodebuildpostfix: -Package
+      usexcodebuild: false
