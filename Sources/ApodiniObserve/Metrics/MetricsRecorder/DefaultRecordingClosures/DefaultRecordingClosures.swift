@@ -10,7 +10,7 @@
 
 /// Specifies default RecordingClosures that can be easily extended and reused
 public enum DefaultRecordingClosures {
-    /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``s
+    /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
     public static func buildDefaultRecordingClosures(_ defaultRecorders: [DefaultRecorder.Type])
     -> ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
@@ -27,7 +27,7 @@ public enum DefaultRecordingClosures {
         )
     }
     
-    /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``s (overload as a variadic function)
+    /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s (overload as a variadic function)
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
     public static func buildDefaultRecordingClosures(_ defaultRecorders: DefaultRecorder.Type...)
     -> ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
@@ -51,7 +51,7 @@ public enum DefaultRecordingClosures {
     }
 }
 
-/// Bundle ``DefaultRecorder``s in certain categories
+/// Bundle ``DefaultRecorder``'s in certain categories
 public extension DefaultRecordingClosures {
     /// Records all default metrics (so responseTime, requestCounter and errorRate) from the execution of a `Handler`
     static var all: ([DefaultRecorder.BeforeRecordingClosure],
@@ -64,7 +64,7 @@ public extension DefaultRecordingClosures {
         )
     }
     
-    /// Records only the response time from the execution of a`Handler`
+    /// Records only the response time from the execution of a `Handler`
     static var responseTime: ([DefaultRecorder.BeforeRecordingClosure],
                               [DefaultRecorder.AfterRecordingClosure],
                               [DefaultRecorder.AfterExceptionRecordingClosure]) {
