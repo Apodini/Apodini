@@ -57,7 +57,7 @@ public enum SystemMetricsConfiguration {
     case off
     
     /// System metrics will be collected with a default `SystemMetrics.Configuration` which collect only Linux metrics with default labels in an one second interval
-    public static var `default`: SystemMetricsConfiguration =
+    public static let `default`: SystemMetricsConfiguration =
         .on(
             configuration: .init(
                 pollInterval: .seconds(1),
