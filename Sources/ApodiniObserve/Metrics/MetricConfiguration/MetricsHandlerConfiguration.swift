@@ -28,7 +28,7 @@ public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
     /// Inizializes a ``MetricPullHandlerConfiguration``
     /// - Parameters:
     ///   - factory: The `MetricsFactory` that should be used as a metrics backend
-    ///   - endpoint: Nme of the web endpoint where the metrics data is provided
+    ///   - endpoint: Name of the web endpoint where the metrics data is provided
     ///   - collect: A closure that collects the metrics data that is then provided via a web endpoint
     public init(factory: MetricsFactory, endpoint: String, collect: @escaping (EventLoopPromise<String>) -> EventLoopFuture<String>) {
         self.factory = factory
