@@ -30,7 +30,7 @@ public struct ApodiniHistogram: DynamicProperty {
     /// Initializer for the ``ApodiniHistogram``
     /// - Parameters:
     ///   - label: Label of the metric type
-    ///   - dimensions: User-provided dimensions for the metirc type
+    ///   - dimensions: User-provided dimensions for the metric type
     public init(label: String, dimensions: [(String, String)] = [], metadataLevel: MetricsMetadataLevel = .all) {
         self.label = label
         self._dimensions = State(wrappedValue: dimensions)
