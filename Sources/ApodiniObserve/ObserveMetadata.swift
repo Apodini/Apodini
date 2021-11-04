@@ -27,7 +27,7 @@ public struct ObserveMetadata: DynamicProperty {
     /// Holds the built `Blackboard` metadata
     @State
     private var builtBlackboardMetadata: BlackboardMetadata?
-    /// Holds the built `InterfaceExporter`metadata
+    /// Holds the built `InterfaceExporter` metadata
     @State
     private var builtExporterMetadata: ExporterMetadata?
     
