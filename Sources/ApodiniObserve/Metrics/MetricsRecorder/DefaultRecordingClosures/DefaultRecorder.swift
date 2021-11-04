@@ -29,7 +29,7 @@ public protocol DefaultRecorder {
     static var afterException: AfterExceptionRecordingClosure? { get }
 }
 
-/// Default implementations of ``DefaultRecorder``, so that the developer doesn't have that much of an programming code overhead while implementing a recoreder
+/// Default implementations of ``DefaultRecorder``, so that the developer doesn't have that much of a programming code overhead when implementing a recorder.
 public extension DefaultRecorder {
     /// Since `after`closure will barly be used, provide a default nil for it
     static var after: AfterRecordingClosure? { nil }
