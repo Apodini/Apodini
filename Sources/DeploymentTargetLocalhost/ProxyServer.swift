@@ -66,6 +66,7 @@ class ProxyServer {
             logger.notice("shutdown")
             app.shutdown()
         }
+        app.http.server.configuration.hostname = "0.0.0.0"
         app.http.server.configuration.port = port
         logger.notice("Starting Vapor application")
         try app.run()
