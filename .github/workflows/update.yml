@@ -1,23 +1,23 @@
 #
 # This source file is part of the Apodini open source project
 #
-# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+# SPDX-FileCopyrightText: 2021 Paul Schmiedmayer and the project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 #
 # SPDX-License-Identifier: MIT
 #
 
-name: Swift Package Update
+name: Update
 
 on:
   schedule:
     - cron:  '0 0 * * 1'
   workflow_dispatch:
-  
+
 jobs:
   createPR:
     name: Create Pull Request
     container:
-      image: swift:latest
+      image: swift:focal
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -25,7 +25,7 @@ jobs:
       run: swift --version
     - name: Update Swift Packages
       run: swift package update
-    - name: Update Swift Packages for Test WebService
+    - name: Update Swift Packages Test Web Service
       run: swift package update
       working-directory: ./TestWebService
     - uses: peter-evans/create-pull-request@v3

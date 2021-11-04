@@ -6,17 +6,16 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: REUSE Compliance Check
+name: Release
 
 on:
-  pull_request:
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
-  reuse:
-    name: REUSE Compliance Check
-    runs-on: ubuntu-latest
-    steps: 
-    - uses: actions/checkout@v2
-    - name: REUSE Compliance Check
-      uses: fsfe/reuse-action@v1
+  docs:
+    name: Generate Docs
+    uses: Apodini/.github/.github/workflows/docs.yml@main
+    with:
+      packagename: Apodini

@@ -8,11 +8,10 @@
 
 @testable import Apodini
 import ApodiniREST
+import NIOCore
 import XCTApodini
 import XCTVapor
 import XCTest
-
-import _NIOConcurrency
 
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"

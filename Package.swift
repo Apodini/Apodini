@@ -13,7 +13,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v11)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -69,8 +69,7 @@ let package = Package(
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        // Update to 2.32 or higher once https://github.com/swift-server/swift-aws-lambda-runtime tags a new release with swift-nio 2.32 or higher
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.31.0")),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.33.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
         // HTTP/2 support for SwiftNIO
@@ -78,12 +77,9 @@ let package = Package(
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "0.0.4")),
-        .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
-        // restore original package url once https://github.com/wickwirew/Runtime/pull/93
-        // and https://github.com/wickwirew/Runtime/pull/95 are merged
-        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.1"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.0.1"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
@@ -98,16 +94,16 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.1")),
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.3")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -150,8 +146,11 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "_NIOConcurrency", package: "swift-nio"),
+                .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -177,6 +176,9 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
