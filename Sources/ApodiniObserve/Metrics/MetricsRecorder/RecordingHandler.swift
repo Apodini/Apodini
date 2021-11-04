@@ -10,7 +10,7 @@ import Apodini
 import Logging
 
 extension Component {
-    /// Use a`MetricsRecorder` to record metrics from an incoming request of a `Component`
+    /// Use a `MetricsRecorder` to record metrics from an incoming request of a `Component`
     /// - Parameter recorder: The `MetricsRecorder` used to record metrics from an incoming request
     /// - Returns: Returns a modified `Component` wrapped by the `MetricsRecorder`
     public func record<R: MetricsRecorder>(_ recorder: R) -> DelegationModifier<Self, RecordingHandlerInitializer<R, Never>> {
