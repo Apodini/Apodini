@@ -7,7 +7,7 @@
 //
 
 /// A ``DefaultRecorder`` requires to implement default closures that are executed before and after a `Handler` is called
-public protocol DefaultRecorder {    
+public protocol DefaultRecorder {
     /// Executed before handler is executed
     static var before: DefaultRecordingClosures.Types.Before { get }
     /// Executed after handler is executed (even if an exception is thrown)

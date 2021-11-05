@@ -17,19 +17,3 @@ public enum RecordingClosures<Key: Hashable, Value> {
     /// The closure type of a closure which is executed if the handler throws an exception
     public typealias AfterException = (ObserveMetadata.Value, Logger.Metadata, Error, [Key: Value]) -> Void
 }
-
-public struct DefaultMetricsRecorde2: MetricsRecorder {
-    public var before: [RecordingClosures<String, String>.Before]
-    
-    public var after: [RecordingClosures<String, String>.After]
-    
-    public var afterException: [RecordingClosures<String, String>.AfterException]
-    
-    public init(before: [RecordingClosures<String, String>.Before], after: [RecordingClosures<String, String>.After], afterException: [RecordingClosures<String, String>.AfterException]) {
-        <#code#>
-    }
-    
-
-    
-
-}
