@@ -10,9 +10,11 @@
 
 /// Specifies default RecordingClosures that can be easily extended and reused
 public enum DefaultRecordingClosures {
-    /// Specialized metrics recording closures, used in the ``DefaultRecorder``
+    /// Specialized closure type to record metrics before the `Handler` execution, utilizes by the ``DefaultRecorder``
     public typealias Before = RecordingClosures<String, String>.Before
+    /// Specialized closure type to record metrics after the `Handler` execution, utilizes by the ``DefaultRecorder``
     public typealias After = RecordingClosures<String, String>.After
+    /// Specialized closure type to record metrics after an exception during the `Handler` execution, utilizes by the ``DefaultRecorder``
     public typealias AfterException = RecordingClosures<String, String>.AfterException
     
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s
