@@ -12,11 +12,11 @@ import Dispatch
 public extension DefaultRecordingClosures {
     /// Records the response time of a `Handler`
     struct ResponseTime: DefaultRecorder {
-        public static let before: BeforeRecordingClosure = { _, _, relay in
+        public static let before: DefaultRecordingClosures.Types.Before = { _, _, relay in
             relay["sinceDispatchTimeNanoseconds"] = String(DispatchTime.now().uptimeNanoseconds)
         }
         
-        public static let after: AfterRecordingClosure? = { observeMetadata, _, relay in
+        public static let after: DefaultRecordingClosures.Types.After? = { observeMetadata, _, relay in
             let timer = Metrics.Timer(
                 label: "response_time_nanoseconds",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata),

@@ -10,10 +10,13 @@
 
 /// Specifies default RecordingClosures that can be easily extended and reused
 public enum DefaultRecordingClosures {
+    /// Specialized metrics recording closures, used in the ``DefaultRecorder``
+    public typealias Types = RecordingClosures<String, String>
+    
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
     public static func buildDefaultRecordingClosures(_ defaultRecorders: [DefaultRecorder.Type])
-    -> ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    -> ([DefaultRecordingClosures.Types.Before], [DefaultRecordingClosures.Types.After], [DefaultRecordingClosures.Types.AfterException]) {
         (
             defaultRecorders.compactMap { defaultRecorder in
                 defaultRecorder.before
@@ -30,7 +33,7 @@ public enum DefaultRecordingClosures {
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s (overload as a variadic function)
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
     public static func buildDefaultRecordingClosures(_ defaultRecorders: DefaultRecorder.Type...)
-    -> ([DefaultRecorder.BeforeRecordingClosure], [DefaultRecorder.AfterRecordingClosure], [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    -> ([DefaultRecordingClosures.Types.Before], [DefaultRecordingClosures.Types.After], [DefaultRecordingClosures.Types.AfterException]) {
         Self.buildDefaultRecordingClosures(defaultRecorders)
     }
     
@@ -54,9 +57,9 @@ public enum DefaultRecordingClosures {
 /// Bundle ``DefaultRecorder``'s in certain categories
 public extension DefaultRecordingClosures {
     /// Records all default metrics (so responseTime, requestCounter and errorRate) from the execution of a `Handler`
-    static var all: ([DefaultRecorder.BeforeRecordingClosure],
-                     [DefaultRecorder.AfterRecordingClosure],
-                     [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    static var all: ([DefaultRecordingClosures.Types.Before],
+                     [DefaultRecordingClosures.Types.After],
+                     [DefaultRecordingClosures.Types.AfterException]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ResponseTime.self,
             DefaultRecordingClosures.RequestCounter.self,
@@ -65,27 +68,27 @@ public extension DefaultRecordingClosures {
     }
     
     /// Records only the response time from the execution of a `Handler`
-    static var responseTime: ([DefaultRecorder.BeforeRecordingClosure],
-                              [DefaultRecorder.AfterRecordingClosure],
-                              [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    static var responseTime: ([DefaultRecordingClosures.Types.Before],
+                              [DefaultRecordingClosures.Types.After],
+                              [DefaultRecordingClosures.Types.AfterException]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ResponseTime.self
         )
     }
     
     /// Records only the request counter from the execution of a `Handler`
-    static var requestCounter: ([DefaultRecorder.BeforeRecordingClosure],
-                                [DefaultRecorder.AfterRecordingClosure],
-                                [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    static var requestCounter: ([DefaultRecordingClosures.Types.Before],
+                                [DefaultRecordingClosures.Types.After],
+                                [DefaultRecordingClosures.Types.AfterException]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.RequestCounter.self
         )
     }
     
     /// Records only the error rate from the execution of a `Handler`
-    static var errorRate: ([DefaultRecorder.BeforeRecordingClosure],
-                           [DefaultRecorder.AfterRecordingClosure],
-                           [DefaultRecorder.AfterExceptionRecordingClosure]) {
+    static var errorRate: ([DefaultRecordingClosures.Types.Before],
+                           [DefaultRecordingClosures.Types.After],
+                           [DefaultRecordingClosures.Types.AfterException]) {
         Self.buildDefaultRecordingClosures(
             DefaultRecordingClosures.ErrorRate.self
         )

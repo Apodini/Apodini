@@ -11,7 +11,7 @@ import Metrics
 public extension DefaultRecordingClosures {
     /// Records the request counter of a `Handler`
     struct RequestCounter: DefaultRecorder {
-        public static let before: BeforeRecordingClosure = { observeMetadata, _, _ in
+        public static let before: DefaultRecordingClosures.Types.Before = { observeMetadata, _, _ in
             let counter = Metrics.Counter(
                 label: "request_counter",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata)

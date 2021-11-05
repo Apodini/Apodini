@@ -6,33 +6,20 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Logging
-
 /// A ``DefaultRecorder`` requires to implement default closures that are executed before and after a `Handler` is called
-public protocol DefaultRecorder {
-    /// The key of the relay dictionary, defaults to a String
-    typealias Key = String
-    /// The value of the relay dictionary, defaults to a String
-    typealias Value = String
-    /// The closure type of a default closure which is executed before the handler is processed
-    typealias BeforeRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, inout [Key: Value]) -> Void
-    /// The closure type of a default closure which is executed after the handler is processed (also in case of an exception)
-    typealias AfterRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, [Key: Value]) -> Void
-    /// The closure type of a default closure which is executed if the handler throws an exception
-    typealias AfterExceptionRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Error, [Key: Value]) -> Void
-    
+public protocol DefaultRecorder {    
     /// Executed before handler is executed
-    static var before: BeforeRecordingClosure { get }
+    static var before: DefaultRecordingClosures.Types.Before { get }
     /// Executed after handler is executed (even if an exception is thrown)
-    static var after: AfterRecordingClosure? { get }
+    static var after: DefaultRecordingClosures.Types.After? { get }
     /// Executed only after handler is executed and an exception is thrown
-    static var afterException: AfterExceptionRecordingClosure? { get }
+    static var afterException: DefaultRecordingClosures.Types.AfterException? { get }
 }
 
 /// Default implementations of ``DefaultRecorder``, so that the developer doesn't have that much of a programming code overhead when implementing a recorder.
 public extension DefaultRecorder {
     /// Since `after`closure will barly be used, provide a default nil for it
-    static var after: AfterRecordingClosure? { nil }
+    static var after: DefaultRecordingClosures.Types.After? { nil }
     /// Since `afterException` closure will barly be used, provide a default nil for it
-    static var afterException: AfterExceptionRecordingClosure? { nil }
+    static var afterException: DefaultRecordingClosures.Types.AfterException? { nil }
 }

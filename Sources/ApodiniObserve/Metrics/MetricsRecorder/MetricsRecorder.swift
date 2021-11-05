@@ -10,24 +10,17 @@ import Logging
 
 /// Can be used to specify what metrics schould be recorded from `Component`s
 public protocol MetricsRecorder {
-    /// The key of the to be used relay dictionary
-    associatedtype Key: Hashable
-    /// The value of the to be used relay dictionary
-    associatedtype Value
-    
-    /// The closure type of a closure which is executed before the handler is processed
-    typealias BeforeRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, inout [Key: Value]) -> Void
-    /// The closure type of a closure which is executed after the handler is processed (also in case of an exception)
-    typealias AfterRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, [Key: Value]) -> Void
-    /// The closure type of a closure which is executed if the handler throws an exception
-    typealias AfterExceptionRecordingClosure = (ObserveMetadata.Value, Logger.Metadata, Error, [Key: Value]) -> Void
+    /// The key of the to be used relay dictionary, defaults to a String
+    associatedtype Key: Hashable = String
+    /// The value of the to be used relay dictionary, defaults to a String
+    associatedtype Value = String
     
     /// Recording closure that is executed before handler is executed
-    var before: [BeforeRecordingClosure] { get }
+    var before: [RecordingClosures<Key, Value>.Before] { get }
     /// Recording closure that is executed after handler is executed (even if an exception is thrown)
-    var after: [AfterRecordingClosure] { get }
+    var after: [RecordingClosures<Key, Value>.After] { get }
     /// Recording closure that is executed only after handler is executed and an exception is thrown
-    var afterException: [AfterExceptionRecordingClosure] { get }
+    var afterException: [RecordingClosures<Key, Value>.AfterException] { get }
     
     /// Ability to combine (add) multiple ``MetricsRecorder`` together
     static func +<M: MetricsRecorder>(left: Self, right: M) -> Self where Self.Key == M.Key, Self.Value == M.Value
@@ -37,7 +30,11 @@ public protocol MetricsRecorder {
     ///   - before: The closure type of a closure which is executed before the handler is processed
     ///   - after: The closure type of a closure which is executed after the handler is processed (also in case of an exception)
     ///   - afterException: The closure type of a closure which is executed if the handler throws an exception
-    init(before: [BeforeRecordingClosure], after: [AfterRecordingClosure], afterException: [AfterExceptionRecordingClosure])
+    init(
+            before: [RecordingClosures<Key, Value>.Before],
+            after: [RecordingClosures<Key, Value>.After],
+            afterException: [RecordingClosures<Key, Value>.AfterException]
+        )
 }
 
 /// Provide default recording closures
@@ -67,9 +64,9 @@ public extension MetricsRecorder where Self == DefaultMetricsRecorder {
     }
 }
 
-/// Allows to combine different ``MetricsRecorder``s
+/// Allows to combine different ``MetricsRecorder``'s
 public extension MetricsRecorder {
-    /// Overload the + operator to simply combine different ``MetricsRecorder``s
+    /// Overload the + operator to simply combine different ``MetricsRecorder``'s
     static func +<M: MetricsRecorder>(left: Self, right: M) -> Self where Key == M.Key, Value == M.Value {
         Self(
             before: left.before + right.before,
@@ -84,13 +81,15 @@ public struct DefaultMetricsRecorder: MetricsRecorder {
     public typealias Key = String
     public typealias Value = String
     
-    public var before: [BeforeRecordingClosure]
+    public var before: [RecordingClosures<Key, Value>.Before]
+    public var after: [RecordingClosures<Key, Value>.After]
+    public var afterException: [RecordingClosures<Key, Value>.AfterException]
     
-    public var after: [AfterRecordingClosure]
-    
-    public var afterException: [AfterExceptionRecordingClosure]
-    
-    public init(before: [BeforeRecordingClosure] = [], after: [AfterRecordingClosure] = [], afterException: [AfterExceptionRecordingClosure] = []) {
+    public init(
+            before: [RecordingClosures<Key, Value>.Before] = [],
+            after: [RecordingClosures<Key, Value>.After] = [],
+            afterException: [RecordingClosures<Key, Value>.AfterException] = []
+        ) {
         self.before = before
         self.after = after
         self.afterException = afterException
