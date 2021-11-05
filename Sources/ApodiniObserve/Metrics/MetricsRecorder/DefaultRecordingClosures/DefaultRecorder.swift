@@ -9,17 +9,17 @@
 /// A ``DefaultRecorder`` requires to implement default closures that are executed before and after a `Handler` is called
 public protocol DefaultRecorder {
     /// Executed before handler is executed
-    static var before: DefaultRecordingClosures.Types.Before { get }
+    static var before: DefaultRecordingClosures.Before { get }
     /// Executed after handler is executed (even if an exception is thrown)
-    static var after: DefaultRecordingClosures.Types.After? { get }
+    static var after: DefaultRecordingClosures.After? { get }
     /// Executed only after handler is executed and an exception is thrown
-    static var afterException: DefaultRecordingClosures.Types.AfterException? { get }
+    static var afterException: DefaultRecordingClosures.AfterException? { get }
 }
 
 /// Default implementations of ``DefaultRecorder``, so that the developer doesn't have that much of a programming code overhead when implementing a recorder.
 public extension DefaultRecorder {
     /// Since `after`closure will barly be used, provide a default nil for it
-    static var after: DefaultRecordingClosures.Types.After? { nil }
+    static var after: DefaultRecordingClosures.After? { nil }
     /// Since `afterException` closure will barly be used, provide a default nil for it
-    static var afterException: DefaultRecordingClosures.Types.AfterException? { nil }
+    static var afterException: DefaultRecordingClosures.AfterException? { nil }
 }

@@ -12,9 +12,9 @@ import Apodini
 public extension DefaultRecordingClosures {
     /// Records the error rate of a `Handler`
     struct ErrorRate: DefaultRecorder {
-        public static let before: DefaultRecordingClosures.Types.Before = { _, _, _ in }
+        public static let before: DefaultRecordingClosures.Before = { _, _, _ in }
         
-        public static var afterException: DefaultRecordingClosures.Types.AfterException? = { observeMetadata, _, error, _ in
+        public static var afterException: DefaultRecordingClosures.AfterException? = { observeMetadata, _, error, _ in
             let counter = Metrics.Counter(
                 label: "error_counter",
                 dimensions: DefaultRecordingClosures.defaultDimensions(observeMetadata) +
