@@ -79,7 +79,7 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.0")),
-        .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
@@ -110,12 +110,10 @@ let package = Package(
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
         // Apodini Migrator
-        // fix package version until https://github.com/Apodini/Apodini/pull/374 gets merged
-        //.package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .exact("0.1.2")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.3")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
