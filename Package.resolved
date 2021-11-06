@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "6a883750c1f63cc0f86946dce3afe1aaa5d9b8b2",
-          "version": "0.1.2"
+          "revision": "89b94476fa70fc621ab6b9f4a8bba0c215afa521",
+          "version": "0.1.3"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "f6f92e6d3704bd72ffb4d00e302c98476fe65854",
-          "version": "1.9.0"
+          "revision": "748c026f4dc93c0b9d05fe43a07d3922ca126744",
+          "version": "1.10.0"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
         "state": {
           "branch": null,
-          "revision": "5c5b7f0a01017785e3d265fa5d04f0e0b5b3a733",
-          "version": "0.1.0"
+          "revision": "06cac46a958fdf700054f12f682b5c8f27577c9f",
+          "version": "0.1.1"
         }
       },
       {
@@ -411,8 +411,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "d733fb10c513f8d8b38eb4df55392736d4179198",
-          "version": "4.50.0"
+          "revision": "68233685fd1a943e8772634e02abfec076dcb8f4",
+          "version": "4.52.1"
         }
       },
       {
