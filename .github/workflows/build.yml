@@ -17,18 +17,13 @@ on:
 jobs:
   build_and_test:
     name: Build and Test
-    uses: Apodini/.github/.github/workflows/build-and-test.yml@main
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@main
     with:
       packagename: Apodini
-      usexcodebuild: false
-      aptgetdependencies: libsqlite3-dev lsof zsh
-      yumdependencies: sqlite-devel
+      codecoverage: true
   build_and_test_web_service:
     name: Build and Test Test Web Service
-    uses: Apodini/.github/.github/workflows/build-and-test.yml@main
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@main
     with:
       path: ./TestWebService
       packagename: TestWebService
-      usexcodebuild: false
-      aptgetdependencies: libsqlite3-dev lsof zsh
-      yumdependencies: sqlite-devel
