@@ -110,7 +110,9 @@ let package = Package(
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
+        // fix package version until https://github.com/Apodini/Apodini/pull/374 gets merged
+        //.package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .exact("0.1.2")),
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0"))
