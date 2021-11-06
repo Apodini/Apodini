@@ -20,7 +20,7 @@ jobs:
       packagename: Apodini
       codecoverage: true
   build_and_test_web_service:
-    name: Build and Test Test Web Service
+    name: Test Web Service
     uses: Apodini/Apodini/.github/workflows/build-and-test.yml@feature/ciimprovements
     with:
       path: ./TestWebService

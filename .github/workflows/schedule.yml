@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: Update
+name: Schedule
 
 on:
   schedule:
