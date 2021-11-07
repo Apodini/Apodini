@@ -103,7 +103,7 @@ let package = Package(
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
         .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
         // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
-        // is versioned and already contains test functionalities
+        // is versioned and already contains test functionality
         .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
         .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         
