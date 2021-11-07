@@ -186,7 +186,7 @@ private extension ProtobufferInterfaceExporter {
                 .init(
                     name: gRPCMethodName(from: endpoint),
                     input: handlerMessage,
-                    ouput: outputNode.value // TODO rename output!?
+                    ouput: outputNode.value
                 )
             ]
         )
