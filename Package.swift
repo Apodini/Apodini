@@ -13,7 +13,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v12)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -100,11 +100,13 @@ let package = Package(
         
         // Apodini Observe
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
-        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
-        //.package(url: "https://github.com/apple/swift-metrics-extras.git", branch: "main"),
-        .package(url: "https://github.com/fabianfett/swift-metrics-extras.git", branch: "ff-add-metrics-test-utils"),
-        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
+        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
+        // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
+        // is versioned and already contains test functionalities
+        .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
+        
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.3")),
 

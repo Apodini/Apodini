@@ -345,11 +345,11 @@
       },
       {
         "package": "swift-metrics-extras",
-        "repositoryURL": "https://github.com/fabianfett/swift-metrics-extras.git",
+        "repositoryURL": "https://github.com/Apodini/swift-metrics-extras.git",
         "state": {
-          "branch": "ff-add-metrics-test-utils",
-          "revision": "7872e9961cd0f19d8931c243f8f027d4469083e4",
-          "version": null
+          "branch": null,
+          "revision": "a5f54d453519af7f1d6c83d03e045463bb9e659e",
+          "version": "0.1.0"
         }
       },
       {
