@@ -69,8 +69,7 @@ let package = Package(
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        // Update to 2.32 or higher once https://github.com/swift-server/swift-aws-lambda-runtime tags a new release with swift-nio 2.32 or higher
+        // Event-driven network application framework for high performance protocol servers & clients, non-blocking
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.33.0")),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
