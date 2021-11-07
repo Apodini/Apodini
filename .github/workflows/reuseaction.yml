@@ -6,19 +6,17 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: Create Release
+name: REUSE Compliance Check
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
+  reuse:
+    name: REUSE Compliance Check
     runs-on: ubuntu-latest
-    steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v0.1.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    steps: 
+    - uses: actions/checkout@v2
+    - name: REUSE Compliance Check
+      uses: fsfe/reuse-action@v1

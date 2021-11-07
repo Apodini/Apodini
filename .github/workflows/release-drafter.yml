@@ -6,19 +6,17 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: Create Release
+name: Release Drafter
 
 on:
   push:
-    tags:
-      - '*.*.*'
-  workflow_dispatch:
+    branches:
+      - develop
 
 jobs:
-  build:
+  update_release_draft:
     runs-on: ubuntu-latest
     steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v0.1.5
+      - uses: release-drafter/release-drafter@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

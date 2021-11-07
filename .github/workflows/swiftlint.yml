@@ -6,19 +6,21 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: Create Release
+name: SwiftLint
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
+  swiftlint:
+    name: SwiftLint
     runs-on: ubuntu-latest
     steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v0.1.5
+      - uses: actions/checkout@v1
+      - name: GitHub Action for SwiftLint
+        uses: norio-nomura/action-swiftlint@3.2.1
+        with:
+          args: --strict
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          DIFF_BASE: ${{ github.base_ref }}
