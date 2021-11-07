@@ -183,11 +183,11 @@
       },
       {
         "package": "Runtime",
-        "repositoryURL": "https://github.com/Supereg/Runtime.git",
+        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
         "state": {
           "branch": null,
-          "revision": "596e22a518bb3f8177cd796cd77e5386098a33f8",
-          "version": "2.2.3"
+          "revision": "dad03135d7701a4e7b3a4051e75d6b37bd8e178e",
+          "version": "2.2.4"
         }
       },
       {

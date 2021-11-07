@@ -79,10 +79,7 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
-        .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
-        // restore original package url once https://github.com/wickwirew/Runtime/pull/93
-        // and https://github.com/wickwirew/Runtime/pull/95 are merged
-        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
@@ -90,10 +87,6 @@ let package = Package(
         
         // Deploy
         .package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
-        // vapor-aws-lambda-runtime isn't currently updated to include the latest swift-aws-lambda-runtime which is required
-        // to use the latest swift-nio package. Therefore we pin the version manually. May be removed with an updated
-        // version of the above package.
-        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", .upToNextMajor(from: "0.5.2")),
         .package(url: "https://github.com/soto-project/soto.git", from: "5.10.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.4.0"),
         
@@ -605,10 +598,7 @@ let package = Package(
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
                 .target(name: "ApodiniOpenAPI"),
-                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime"),
-
-                // Only added to silence the 'warning: dependency 'swift-aws-lambda-runtime' is not used by any target'
-                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
+                .product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
             ]
         ),
         
