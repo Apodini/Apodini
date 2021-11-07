@@ -15,13 +15,13 @@ on:
 jobs:
   build_and_test:
     name: Build and Test
-    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@feature/ciimprovements
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@main
     with:
       packagename: Apodini
       codecoverage: true
   build_and_test_web_service:
     name: Test Web Service
-    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@feature/ciimprovements
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@main
     with:
       path: ./TestWebService
       packagename: TestWebService
