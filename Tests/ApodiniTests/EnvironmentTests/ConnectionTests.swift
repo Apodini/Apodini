@@ -12,6 +12,7 @@ import NIOCore
 import XCTApodini
 import XCTVapor
 import XCTest
+import NIO
 
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"

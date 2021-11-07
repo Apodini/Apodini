@@ -11,6 +11,7 @@ import ApodiniUtils
 import NIOCore
 import XCTest
 import XCTApodini
+import NIO
 
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
