@@ -10,7 +10,7 @@
 import ApodiniUtils
 import XCTest
 import XCTApodini
-import _NIOConcurrency
+import NIO
 
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {

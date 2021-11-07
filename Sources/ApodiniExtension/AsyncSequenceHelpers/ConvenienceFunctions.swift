@@ -9,7 +9,6 @@
 
 import _Concurrency
 import NIO
-import _NIOConcurrency
 
 public extension AsyncSequence {
     /// A shorthand for combining this sequence and ``Tail`` using `flatMap`.
@@ -36,7 +35,7 @@ public extension AsyncSequence {
     func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         
-        promise.completeWithAsync {
+        promise.completeWithTask {
             try await self.first(where: { _ in true })
         }
     
