@@ -7,8 +7,6 @@
 //
 
 
-import _Concurrency
-
 /// An `AsyncSequence` that only contains the result of a single async closure.
 public struct Just<Element>: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl

@@ -9,7 +9,7 @@
 import Apodini
 import ApodiniUtils
 import Foundation
-import _NIOConcurrency
+import NIOCore
 
 /// A wrapper which contains the input-output pair of a `Delegate`'s evaluation.
 public struct ResponseWithRequest<C: Encodable>: WithRequest {

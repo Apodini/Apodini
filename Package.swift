@@ -13,7 +13,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v11)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -76,8 +76,8 @@ let package = Package(
         // HTTP/2 support for SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.17.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.0.0")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.0")),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.1"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.0.1"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
@@ -93,7 +93,7 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.1")),
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
@@ -152,8 +152,11 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "_NIOConcurrency", package: "swift-nio"),
+                .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -179,6 +182,9 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 

@@ -6,19 +6,16 @@
 # SPDX-License-Identifier: MIT
 #
 
-name: Create Release
+name: Release
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v0.1.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  docs:
+    name: Generate Docs
+    uses: Apodini/.github/.github/workflows/docs.yml@main
+    with:
+      packagename: Apodini

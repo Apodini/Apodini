@@ -1,0 +1,33 @@
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@feature/ciimprovements
+    with:
+      packagename: Apodini
+      codecoverage: true
+  build_and_test_web_service:
+    name: Test Web Service
+    uses: Apodini/Apodini/.github/workflows/build-and-test.yml@feature/ciimprovements
+    with:
+      path: ./TestWebService
+      packagename: TestWebService
+  reuse_action:
+    name: REUSE Compliance Check
+    uses: Apodini/.github/.github/workflows/reuse.yml@main
+  swiftlint:
+    name: SwiftLint
+    uses: Apodini/.github/.github/workflows/swiftlint.yml@main
