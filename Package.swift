@@ -80,9 +80,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "1.0.0")),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
-        // restore original package url once https://github.com/wickwirew/Runtime/pull/93
-        // and https://github.com/wickwirew/Runtime/pull/95 are merged
-        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
