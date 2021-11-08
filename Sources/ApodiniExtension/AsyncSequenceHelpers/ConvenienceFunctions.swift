@@ -8,7 +8,6 @@
 
 
 import NIO
-import NIOCore
 
 public extension AsyncSequence {
     /// A shorthand for combining this sequence and ``Tail`` using `flatMap`.

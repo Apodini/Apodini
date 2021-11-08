@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "89b94476fa70fc621ab6b9f4a8bba0c215afa521",
-          "version": "0.1.3"
+          "revision": "c2bb44275a82ec61de70e114d07eafc803d73f41",
+          "version": "0.1.4"
         }
       },
       {
@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "41f4beb6396ad8c8fdff6092bcdba018d9b87f4e",
-          "version": "5.7.2"
+          "revision": "988f0d906f5c76cf93c88fa5820f7c72e4b8fd98",
+          "version": "5.8.0"
         }
       },
       {
@@ -240,8 +240,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "d2930e8fcf9c33162b9fcc1d522bc975e2d4179b",
-          "version": "1.0.1"
+          "revision": "83b23d940471b313427da226196661856f6ba3e0",
+          "version": "0.4.4"
         }
       },
       {

@@ -8,6 +8,7 @@
 
 import Apodini
 import Foundation
+import NIO
 
 
 extension Component {

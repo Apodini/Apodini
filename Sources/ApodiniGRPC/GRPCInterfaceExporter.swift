@@ -26,7 +26,7 @@ public final class GRPC: Configuration {
     }
     
     public func configure(_ app: Apodini.Application) {
-        /// Instanciate exporter
+        /// Instantiate exporter
         let grpcExporter = GRPCInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -44,7 +44,7 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
     var services: [String: GRPCService]
     var parameters: [UUID: Int]
 
-    /// Initalize `GRPCInterfaceExporter` from `Application`
+    /// Initialize `GRPCInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: GRPC.ExporterConfiguration = GRPC.ExporterConfiguration()) {
         self.app = app
@@ -68,7 +68,7 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
             }
 
         // expose the new component via a GRPCService
-        // currently unary enpoints are considered here
+        // currently unary endpoints are considered here
         let service: GRPCService
         if let existingService = services[serviceName] {
             service = existingService
@@ -113,7 +113,7 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
             // If this occurs, something went fundamentally wrong in usage
             // of the GRPC exporter.
             // Each parameter should get a default field tag assigned
-            // above in the export() funtction.
+            // above in the export() function.
             fatalError("No default or explicit field tag available")
         }
 
@@ -126,7 +126,7 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
 
         do {
             // we need to wrap the type into a struct to
-            // actually have a messsage.
+            // actually have a message.
             let wrappedType = RequestWrapper<Type>.self
             // set the fieldNumber to the one annotated at the
             // parameter, or use default interference if none is
