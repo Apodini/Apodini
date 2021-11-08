@@ -8,7 +8,7 @@
 
 import Apodini
 import Foundation
-import _NIOConcurrency
+import NIO
 
 
 extension Component {
