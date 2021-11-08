@@ -58,6 +58,8 @@ public final class HTTPServer {
     private let config: Config
     private let router: HTTPRouter
     
+    private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
+    
     private var channel: Channel?
     
     /// Whether or not the server currently is running.
@@ -204,7 +206,11 @@ public final class HTTPServer {
                     return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
                             return channel.configureHTTP2SecureUpgrade { channel in
-                                channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                                //channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                                channel.addApodiniNetworkingHTTP2Handlers(
+                                    inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
+                                    httpResponder: self
+                                )
                             } http1ChannelConfigurator: { channel in
                                 channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                             }
@@ -215,7 +221,11 @@ public final class HTTPServer {
                 } else {
                     if enableHTTP2 {
                         // NOTE this doesn't make sense and (probably) doesn't work
-                        return channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                        //return channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                        return channel.addApodiniNetworkingHTTP2Handlers(
+                            inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
+                            httpResponder: self
+                        )
                     } else {
                         return channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                     }
@@ -256,6 +266,19 @@ public final class HTTPServer {
             self.channel = nil
             print("Did shut down NIO channel bound to \(addressString)")
         }
+    }
+    
+    
+    // MARK: Configuration
+    
+    public func addIncomingHTTP2StreamConfigurationHandler(
+        forContentTypes contentTypes: Set<HTTPMediaType>,
+        configurationHandler: @escaping (Channel) -> EventLoopFuture<Void>
+    ) {
+        customHTTP2StreamConfigurationMappings.append(.init(
+            triggeringContentTypes: contentTypes,
+            action: .configureHTTP2Stream(configurationHandler)
+        ))
     }
 }
 
@@ -349,7 +372,10 @@ extension HTTPServer: HTTPResponder {
 
 
 extension Channel {
-    func addApodiniNetworkingHTTP2Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP2Handlers(
+        inboundStreamConfigMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping],
+        httpResponder: HTTPResponder
+    ) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
             NIOHTTP2Handler(mode: .server, initialSettings: [
@@ -359,15 +385,22 @@ extension Channel {
                 HTTP2Setting(parameter: .initialWindowSize, value: targetWindowSize)
             ]),
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
-                stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
+                //stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
+                stream.pipeline.addHandler(
+                    HTTP2InboundStreamConfigurator(configuration: .init(
+                        mappings: inboundStreamConfigMappings,
+                        defaultAction: .forwardToHTTP1Handler(httpResponder)
+                    ))
+                )
             },
             ErrorHandler(msg: "http2.channel.error")
         ])
     }
     
     
-    func apodiniNetworkingInitializeHTTP2InboundStream(responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(responder: HTTPResponder) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
+            //HTTP2ServerRequestDecoder(),
             HTTP2FramePayloadToHTTP1ServerCodec(),
             HTTPServerRequestDecoder(),
             HTTPServerResponseEncoder(),

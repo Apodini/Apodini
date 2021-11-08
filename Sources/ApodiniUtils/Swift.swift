@@ -55,6 +55,10 @@ extension Array {
         copy.append(contentsOf: elements)
         return copy
     }
+    
+    public mutating func sort<T: Comparable>(by keyPath: KeyPath<Element, T>) {
+        self = sorted(by: keyPath)
+    }
 }
 
 
@@ -69,7 +73,6 @@ extension Sequence {
         let sorted = self.sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
         return ascending ? sorted : sorted.reversed()
     }
-    
     
     /// Returns the elements of the sequence, as an array consisting only of nonnull elements.
     /// - Note: This only removes one level of nullability. If you have nested optionals, you'll have to take care of that separately.

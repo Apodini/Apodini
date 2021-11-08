@@ -11,7 +11,7 @@ import NIO
 
 
 /// The `Box` type can be used to wrap an object in a class
-public class Box<T> {
+public final class Box<T>: Hashable {
     /// The value stored by the `Box`
     public var value: T
     
@@ -20,11 +20,21 @@ public class Box<T> {
     public init(_ value: T) {
         self.value = value
     }
+    
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+    
+    public static func == (lhs: Box, rhs: Box) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
 }
+
 
 /// The `Boxed` property wrapper can be used to wrap an object in a class
 @propertyWrapper
-public class Boxed<T> {
+public final class Boxed<T> {
     /// The value stored by the `Boxed` property wrapper
     public var wrappedValue: T
     
@@ -34,13 +44,14 @@ public class Boxed<T> {
     }
 }
 
+
 /// A weak reference to an object of class type
-public struct Weak<T: AnyObject> {
+public final class Weak<T: AnyObject> {
     /// The value stored by the `Box`
     public weak var value: T?
     
     /// Creates a new box filled with the specified value, establishing a weak reference.
-    public init(_ value: T) {
+    public init(_ value: T?) {
         self.value = value
     }
 }
@@ -140,3 +151,38 @@ extension CharacterSet {
         other.reduce(into: []) { $0.formUnion($1) }
     }
 }
+
+
+/// Assert that an implication holds
+public func precondition(
+    _ condition: @autoclosure () -> Bool,
+    implies implication: @autoclosure () -> Bool,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #file, line: UInt = #line
+) {
+    precondition(!condition() || implication(), message(), file: file, line: line)
+}
+
+
+/// A type that can be initialised using a 0-arity iniitialiser
+public protocol DefaultInitialisable {
+    init()
+}
+
+extension Int: DefaultInitialisable {}
+extension UInt: DefaultInitialisable {}
+extension Int8: DefaultInitialisable {}
+extension Int16: DefaultInitialisable {}
+extension Int32: DefaultInitialisable {}
+extension Int64: DefaultInitialisable {}
+extension UInt8: DefaultInitialisable {}
+extension UInt16: DefaultInitialisable {}
+extension UInt32: DefaultInitialisable {}
+extension UInt64: DefaultInitialisable {}
+extension Float: DefaultInitialisable {}
+extension Double: DefaultInitialisable {}
+extension String: DefaultInitialisable {}
+extension Array: DefaultInitialisable {}
+extension Set: DefaultInitialisable {}
+extension Dictionary: DefaultInitialisable {}
+

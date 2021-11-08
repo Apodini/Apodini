@@ -84,4 +84,17 @@ extension EventLoopFuture {
         self.whenComplete { block($0).cascade(to: promise) }
         return promise.futureResult
     }
+    
+//    /// Fulfills the given `EventLoopPromise<Void>` with the results from this `EventLoopFuture`.
+//    public func cascade(to promise: EventLoopPromise<Void>?) {
+//        guard let promise = promise else { return }
+//        self.whenComplete { result in
+//            switch result {
+//            case .success:
+//                promise.succeed(())
+//            case .failure(let error):
+//                promise.fail(error)
+//            }
+//        }
+//    }
 }

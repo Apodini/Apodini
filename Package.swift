@@ -52,7 +52,11 @@ let package = Package(
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
         
         // Migrator
-        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
+        .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+        
+        // Lukas' playground
+        .library(name: "ApodiniGRPCv2", targets: ["ApodiniGRPCv2"]),
+        .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
@@ -81,6 +85,7 @@ let package = Package(
         // restore original package url once https://github.com/wickwirew/Runtime/pull/93
         // and https://github.com/wickwirew/Runtime/pull/95 are merged
         // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
+        //.package(url: "https://github.com/PSchmiedmayer/Runtime", .branch("master")),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
@@ -638,6 +643,32 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniGRPCv2",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniTypeReflection"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .executableTarget(
+            name: "LKTestWebService",
+            dependencies: [
+                .target(name: "ApodiniGRPCv2"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "Apodini")
             ]
         )
     ]

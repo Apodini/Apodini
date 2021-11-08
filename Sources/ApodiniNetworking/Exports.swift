@@ -9,3 +9,4 @@
 @_exported import NIO
 @_exported import NIOHTTP1
 @_exported import NIOHTTP2
+@_exported import NIOHPACK

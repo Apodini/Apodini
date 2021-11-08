@@ -39,10 +39,16 @@ public protocol __ANNIOHTTPHeadersType {
     mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing)
     /// Fetches all values for the specified key 
     subscript(name: String) -> [String] { get }
+    /// Fetches all key-value entries in this headers data structure
+    var entries: [(String, String, HPACKIndexing)] { get }
 }
 
 
-extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {}
+extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {
+    public var entries: [(String, String, HPACKIndexing)] {
+        self.map { ($0.name, $0.value, $0.indexable) }
+    }
+}
 
 
 extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
@@ -52,6 +58,10 @@ extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
     
     public mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing) {
         replaceOrAdd(name: name, value: value)
+    }
+    
+    public var entries: [(String, String, HPACKIndexing)] {
+        self.map { ($0.name, $0.value, .indexable) }
     }
 }
 
@@ -84,6 +94,19 @@ public class HTTPHeaderName<T: HTTPHeaderFieldValueCodable>: AnyHTTPHeaderName {
 
 
 extension __ANNIOHTTPHeadersType {
+    /// Initialises a new empty headers struct
+    public init() {
+        self.init([])
+    }
+    
+    /// Initialises a new headers struct with the specified entries
+    public init(_ elements: [(String, String, HPACKIndexing)]) {
+        self.init()
+        for (name, value, indexing) in elements {
+            add(name: name, value: value, indexing: indexing)
+        }
+    }
+    
     /// Creates a new headers struct, giving the caller the opportunity to initialise it via the closure.
     /// - Note: The reason this initialiser exists is to offer a type-safe way of declaring immutable headers objects.
     ///         The underlying problem here is that Swift doesn't support variadic generics, meaning that (since the type-safe header
@@ -99,6 +122,11 @@ extension __ANNIOHTTPHeadersType {
     /// Checks whether at least one entry exists for the specified name
     public func isPresent<T>(_ name: HTTPHeaderName<T>) -> Bool {
         self.contains(name: name.rawValue)
+    }
+    
+    /// Removes all entries for the specified header name
+    public mutating func remove<T>(_ name: HTTPHeaderName<T>) {
+        remove(name: name.rawValue)
     }
     
     /// Sets the spefified value for `name`, if no entry for that key already exists
@@ -169,6 +197,35 @@ extension __ANNIOHTTPHeadersType {
                 )
             }
         }
+    }
+    
+    /// Lowercases, in-place, all header names.
+    public mutating func lowercaseAllHeaderNames() {
+        self = withLowercasedHeaderNames()
+    }
+    
+    /// Returns a copy of the struct where all header names are lowercased
+    public func withLowercasedHeaderNames() -> Self {
+        Self(entries.map { ($0.lowercased(), $1, $2) })
+    }
+    
+    
+    /// Makes, to this headers object, the modificatios required to ensure that they can be handed over to NIO to form a HTTP/2 HEADERS frame
+    public mutating func applyHTTP2Validations() {
+        self = applyingHTTP2Validations()
+    }
+    
+    public func applyingHTTP2Validations() -> Self {
+        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        for (headerName, headerValue, indexing) in entries {
+            if headerName.hasPrefix(":") {
+                pseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
+            } else {
+                nonPseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
+            }
+        }
+        return Self(pseudoHeaderEntries.sorted(by: \.0).appending(contentsOf: nonPseudoHeaderEntries.sorted(by: \.0)))
     }
 }
 

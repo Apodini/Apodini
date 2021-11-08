@@ -52,8 +52,8 @@ extension FixedWidthInteger {
     
     /// Returns a string representation of the base-2 encoded integer value
     public var binaryString: String {
-        (0..<Self.bitWidth).reduce(into: "") { string, idx in
-            string += self[bitAt: idx] ? "1" : "0"
-        }
+        String((0..<Self.bitWidth).reduce(into: []) { (chars: inout [Character], idx) in
+            chars.append(self[bitAt: idx] ? "1" : "0")
+        }.reversed())
     }
 }

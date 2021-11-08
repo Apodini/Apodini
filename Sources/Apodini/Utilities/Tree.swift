@@ -130,9 +130,10 @@ extension Node {
         let partialResults = try children.map { child in
             try child.reduce(nextPartialResult)
         }
-
         return try nextPartialResult(partialResults, value)
     }
+    
+    //public func reduce<Result>(into initialResult: Result, _ block: () // TODO!
 
     /// Calls the given closure on each value in the node.
     /// - Parameter body: A closure that takes a value of the node as a parameter.
