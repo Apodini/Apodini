@@ -25,6 +25,9 @@ jobs:
     with:
       path: ./TestWebService
       packagename: TestWebService
+  docker_test:
+    name: Docker Test
+    uses: Apodini/Apodini/.github/workflows/docker-test.yml@feature/ciimprovements
   reuse_action:
     name: REUSE Compliance Check
     uses: Apodini/.github/.github/workflows/reuse.yml@main
