@@ -494,7 +494,7 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
         
 //        let decoder = ProtobufMessageDecoder(buffer: message.payload)
 //        decoder.debugPrintFieldsInfo()
-        try! ProtobufMessageLayoutDecoder.getFields(in: message.payload).debugPrintFieldsInfo()
+        //try! ProtobufMessageLayoutDecoder.getFields(in: message.payload).debugPrintFieldsInfo()
         
         
         let reflectionRequest: ReflectionRequest
@@ -506,10 +506,12 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
             fatalError("\(error)")
         }
         
-        var messageOut = GRPCv2MessageOut(headers: HPACKHeaders(), payload: ByteBuffer(), shouldCloseStream: false)
-        messageOut.headers[.contentType] = .gRPC(.proto)
+//        var messageOut = GRPCv2MessageOut(headers: HPACKHeaders(), payload: ByteBuffer(), shouldCloseStream: false)
+//        messageOut.headers[.contentType] = .gRPC(.proto)
         
-        print("reflection request: \(reflectionRequest)")
+        let responsePayload: ByteBuffer
+        
+        //print("reflection request: \(reflectionRequest)")
         
         let _reflectionResponse: ReflectionResponse
         
@@ -526,20 +528,18 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
                     messageResponse: .fileDescriptorResponse(FileDescriptorResponse(fileDescriptors: [fileDescriptor]))
                 )
                 _reflectionResponse = response
-                try LKProtobufferEncoder().encode(response, into: &messageOut.payload)
+                responsePayload = try LKProtobufferEncoder().encode(response)
             case .fileContainingSymbol(let symbol):
-                print("FILE CONTAINING SYMBOL", symbol)
                 guard let fileDescriptor = server.fileDescriptor(forSymbol: symbol) else {
                     fatalError()
                 }
-                print("RETURNING", fileDescriptor)
                 let response = ReflectionResponse(
                     validHost: reflectionRequest.host,
                     originalRequest: reflectionRequest,
                     messageResponse: .fileDescriptorResponse(FileDescriptorResponse(fileDescriptors: [fileDescriptor]))
                 )
                 _reflectionResponse = response
-                try LKProtobufferEncoder().encode(response, into: &messageOut.payload)
+                responsePayload = try LKProtobufferEncoder().encode(response)
 //                var messageOut = GRPCv2MessageOut(
 //                    headers: HPACKHeaders {
 //                        // TODO what do we want here?
@@ -572,16 +572,16 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
             case .listServices(let inputStr):
                 let response = server.handleListServicesReflectionRequest(reflectionRequest)
                 _reflectionResponse = response
-                try LKProtobufferEncoder().encode(response, into: &messageOut.payload)
+                responsePayload = try LKProtobufferEncoder().encode(response)
             }
         } catch {
             return context.eventLoop.makeFailedFuture(error)
         }
         
-        let data = messageOut.payload.getData(at: 0, length: messageOut.payload.writerIndex)!
-        try! data.write(to: URL(fileURLWithPath: "/Users/lukas/temp/ApodiniRawProtoOut"))
+//        let data = messageOut.payload.getData(at: 0, length: messageOut.payload.writerIndex)!
+//        try! data.write(to: URL(fileURLWithPath: "/Users/lukas/temp/ApodiniRawProtoOut"))
         
-        let decodedResponse = try! LKProtobufferDecoder().decode(ReflectionResponse.self, from: messageOut.payload)
+        let decodedResponse = try! LKProtobufferDecoder().decode(ReflectionResponse.self, from: responsePayload)
 //        print("validHost", decodedResponse.validHost == _reflectionResponse.validHost)
 //        print("origRequest", decodedResponse.originalRequest == _reflectionResponse.originalRequest)
 //        print("messageResponse", decodedResponse.messageResponse == _reflectionResponse.messageResponse)
@@ -592,7 +592,13 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
 //        debugPrint("DECO", decodedResponse)
         precondition(decodedResponse == _reflectionResponse)
 //        fatalError()
-        return context.eventLoop.makeSucceededFuture(messageOut)
+        return context.eventLoop.makeSucceededFuture(.singleMessage(
+            headers: HPACKHeaders {
+                $0[.contentType] = .gRPC(.proto)
+            },
+            payload: responsePayload,
+            closeStream: false
+        ))
     }
 }
 

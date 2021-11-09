@@ -247,7 +247,7 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
     }
     
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
-        print(#function, context, message)
+        print(Self.self, #function, message.serviceAndMethodName)
         
         let reqBasis = DefaultRequestBasis(base: message, remoteAddress: nil, information: []) // TODO!!
         
@@ -257,16 +257,19 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
             .cache()
             .evaluate(on: delegate)
         return responseFuture.map { (response: Apodini.Response<H.Response.Content>) -> GRPCv2MessageOut in
-            var messageOut = GRPCv2MessageOut(
-                headers: HPACKHeaders {
-                    $0[.contentType] = .gRPC(.proto)
-                },
-                payload: ByteBuffer(), // TODO proto-encode the response into the buffer!
-                shouldCloseStream: response.connectionEffect == .close
-            )
-            print(response)
+            let headers = HPACKHeaders {
+                $0[.contentType] = .gRPC(.proto)
+            }
+//            var messageOut = GRPCv2MessageOut(
+//                headers: HPACKHeaders {
+//                    $0[.contentType] = .gRPC(.proto)
+//                },
+//                payload: ByteBuffer(), // TODO proto-encode the response into the buffer!
+//                shouldCloseStream: response.connectionEffect == .close
+//            )
+//            print(response)
             guard let responseContent = response.content else {
-                return messageOut
+                return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true) // TODO keep open based on handler type?
             }
             switch self.endpointContext.endpointResponseType! {
             case .builtinEmptyType, .primitive, .enumTy, .refdMessageType:
@@ -275,7 +278,9 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
                 if let underlyingType = underlyingType {
                     precondition(underlyingType == type(of: responseContent))
                     // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
-                    try! LKProtobufferEncoder().encode(responseContent, into: &messageOut.payload)
+                    //try! LKProtobufferEncoder().encode(responseContent, into: &messageOut.payload)
+                    let payload = try! LKProtobufferEncoder().encode(responseContent)
+                    return .singleMessage(headers: headers, payload: payload, closeStream: true)
                 } else {
                     // If there is no underlying type, the handler returns something primitive which we'll have to manually wrap into a message
                     precondition(fields.count == 1)
@@ -284,10 +289,11 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
                     let encoder = _LKProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef)
                     var keyedEncoder = encoder.container(keyedBy: FakeCodingKey.self)
                     try! keyedEncoder.encode(responseContent, forKey: .init(intValue: fieldNumber))
-                    messageOut.payload = dstBufferRef.value
+                    //messageOut.payload = dstBufferRef.value
+                    return .singleMessage(headers: headers, payload: dstBufferRef.value, closeStream: true)
                 }
             }
-            return messageOut
+            //return messageOut
         }
         
     }

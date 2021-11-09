@@ -132,7 +132,7 @@ struct GRPCv2MessageIn {
 
 
 
-struct GRPCv2MessageOut {
+struct GRPCv2MessageOut_OLD {
     var headers: HPACKHeaders
     var payload: ByteBuffer
     var shouldCloseStream: Bool // TODO remove this in favour of a somewhat smarter approach
@@ -143,42 +143,81 @@ struct GRPCv2MessageOut {
 }
 
 
-
-private protocol GRPCv2ServerResponseStreamDelegate: AnyObject {
-    func responseStream(_ responseStream: GRPCv2ServerResponseStream, writeHeaderFrame headers: HPACKHeaders)
-    func responseStream(_ responseStream: GRPCv2ServerResponseStream, sendMessage message: GRPCv2MessageOut)
-    func responseStream(_ responseStream: GRPCv2ServerResponseStream, closeStreamWithTrailers trailers: HPACKHeaders)
-}
-
-/// A "handle" representing a stream on which a server response is relayed back to a client.
-class GRPCv2ServerResponseStream {
-    private weak var delegate: GRPCv2ServerResponseStreamDelegate?
+/// The result of an RPC invocation.
+/// Note that the differentiation here between `singleMessage` and `stream` is not necessarily equivalent to gRPC's differentiation between unary and stream-based methods.
+/// `singleMessage` is intended for situations where a call results in one response message, regardless of whether or not the connection is to be kept open or closed.
+/// (e.g.: unary connections, bidirectional connections where every client request gets answered with exactly one server response, etc.)
+/// `stream` is intended for situations where a single client request may result in multiple responses.
+enum GRPCv2MessageOut {
+    /// A single gRPC message.
+    /// - parameter headers: The headers to be sent with this message. Note that headers will only be written once to a HTTP/2 stream.
+    /// - parameter payload: The gRPC message data to be written.
+    /// - parameter closeStream: Whether after sending this message, the connection to the client (i.e. the underlying HTTP/2 stream) should be closed.
+    case singleMessage(headers: HPACKHeaders, payload: ByteBuffer, closeStream: Bool)
+    /// A RPC resulted in a stream-based response.
+    case stream(HPACKHeaders, BufferedStream<(ByteBuffer, closeStream: Bool)>)
     
-    fileprivate init(delegate: GRPCv2ServerResponseStreamDelegate) {
-        self.delegate = delegate
-    }
-    
-    func startResponse(headers: HPACKHeaders) {
-        delegate!.responseStream(self, writeHeaderFrame: headers)
-    }
-    
-    func sendMessage(_ message: GRPCv2MessageOut, isFinal: Bool) {
-        delegate!.responseStream(self, sendMessage: message)
-        if isFinal {
-            // If this was the final message, we'll just infer that this is a non-error stream closure
-            closeStream(withStatus: GRPCv2Status(code: .ok, message: nil))
+    var headers: HPACKHeaders {
+        switch self {
+        case .singleMessage(let headers, _, _), .stream(let headers, _):
+            return headers
         }
-    }
-    
-    func closeStream(withStatus status: GRPCv2Status) {
-        let trailers = HPACKHeaders {
-            status.encode(into: &$0)
-        }
-        delegate!.responseStream(self, closeStreamWithTrailers: trailers)
     }
 }
 
 
+class BufferedStream<Element> {
+    typealias ObserverFn = (Element) -> Void
+    
+    private let lock = NSLock()
+    private var buffer = CircularBuffer<Element>()
+    private var observer: ObserverFn?
+    private var isClosed = false
+    
+    init() {}
+    
+    func setObserver(_ observerFn: ObserverFn?) {
+        lock.withLock {
+            if let newObserver = observerFn {
+                precondition(self.observer == nil, "Cannot set multiple observers on stream")
+                for element in buffer {
+                    newObserver(element)
+                }
+                buffer.removeAll()
+                if !isClosed {
+                    // Only actually set the observer if the stream is still open.
+                    self.observer = newObserver
+                }
+            } else {
+                self.observer = nil
+            }
+        }
+    }
+    
+    func write(_ element: Element) {
+        write(element, closeStream: false)
+    }
+    
+    func writeAndClose(_ element: Element) {
+        write(element, closeStream: true)
+    }
+    
+    private func write(_ element: Element, closeStream: Bool) {
+        lock.withLock {
+            precondition(!isClosed, "Cannot write to closed stream")
+            if let observer = observer {
+                precondition(buffer.isEmpty) // If we have an observer, we expect the buffer to be empty
+                observer(element)
+            } else {
+                buffer.append(element)
+            }
+            if closeStream {
+                self.isClosed = true
+                self.observer = nil
+            }
+        }
+    }
+}
 
 
 
@@ -245,6 +284,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
             }
             switch dataFrame.data {
             case .byteBuffer(let buffer):
+                print("Got a DATA frame")
 //                print()
 //                print("As string:")
 //                print(buffer.getString(at: 0, length: buffer.writerIndex) as Any)
@@ -257,12 +297,23 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                 case let .handlingStream(initialHeaders, messageCollectionCtx):
                     //case let .handlingStream(headers, messageCollectionCtx):
                     var dataFrameDataBuffer = buffer
+//                    if dataFrameDataBuffer.readableBytes == 0 && dataFrame.endStream {
+//                        print("Reveived empty DATA frame w/ END_STREAM flag set")
+//                        self.state = .ready
+//                        return
+//                    }
+                    if dataFrameDataBuffer.readableBytes == 0 && dataFrame.endStream {
+                        context.fireChannelRead(self.wrapInboundOut(.closeStream))
+                        self.state = .ready
+                        return
+                    }
                     let didReadForPrevMessage: Bool
                     if let messageCollectionCtx = messageCollectionCtx {
                         if dataFrameDataBuffer.readableBytes >= messageCollectionCtx.numMissingPayloadBytes {
                             // The DATA frame contains more bytes than what we're missing, so we just consume the ones belonging to us, turn that into a message, and move on
                             let remainingBytes = dataFrameDataBuffer.readSlice(length: messageCollectionCtx.numMissingPayloadBytes)!
                             messageCollectionCtx.buffer.writeImmutableBuffer(remainingBytes)
+                            print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(GRPCv2MessageIn(
                                 requestHeaders: initialHeaders,
                                 payload: messageCollectionCtx.buffer,
@@ -319,6 +370,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                         precondition(messageCtx.numMissingPayloadBytes > 0, implies: dataFrameDataBuffer.readableBytes == 0) // If there's payload byted missing, we must've reached the end of the current DATA frame
                         if messageCtx.numMissingPayloadBytes == 0 {
                             let messageIn = GRPCv2MessageIn(requestHeaders: initialHeaders, payload: messageCtx.buffer, eventLoop: context.eventLoop)
+                            print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(messageIn)))
                             state = .handlingStream(initialHeaders: initialHeaders, messageCollectionCtx: nil)
                         } else {
@@ -329,7 +381,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                     }
                     if dataFrame.endStream {
                         print("Setting state to .ready bc we received a END_STREAM flag[b]")
-                        context.fireChannelRead(wrapInboundOut(.closeStream))
                         state = .ready
                     }
                 }
@@ -337,7 +388,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                 fatalError("Got unexpected FileRegion when expecting ByteBuffer: \(fileRegion)")
             }
         case .headers(let headers):
-            print("Got some headers: \(headers) (endStream: \(headers.endStream))")
+            //print("Got some headers: \(headers) (endStream: \(headers.endStream))")
             switch state {
             case .ready:
                 //let messageBodyRef = Box(ByteBuffer())
@@ -420,6 +471,7 @@ class GRPCv2StreamConnectionContext {
     fileprivate let rpcHandler: GRPCv2StreamRPCHandler
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
+    fileprivate var tmp_method: String = ""
     
     fileprivate init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCv2StreamRPCHandler) {
         self.eventLoop = eventLoop
@@ -521,6 +573,7 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
         
         /// A call resulted in a message
         case message(GRPCv2MessageOut, GRPCv2StreamConnectionContext)
+        case closeStream(trailers: HPACKHeaders, msg: String)
     }
     
     private /*unowned?*/ let server: GRPCv2Server
@@ -545,7 +598,7 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
                 // A nil return value indicates that the method does not exist.
                 // gRPC says we have to handle this by responding w/ the corresponding status code
                 print("Attempted to open channel to non-existing method '\(serviceName)/\(methodName)'")
-                context.writeAndFlush(
+                context.write(
                     wrapOutboundOut(.error(GRPCv2Status(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found."), nil)),
                     promise: nil
                 )
@@ -557,6 +610,7 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
                 initialRequestHeaders: headers,
                 rpcHandler: rpcHandler
             )
+            self.connectionCtx!.tmp_method = headers[.pathPseudoHeader]!
             self.connectionCtx!.handleStreamOpen()
         case .message(let messageIn):
             guard let connectionCtx = connectionCtx else {
@@ -576,46 +630,13 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
                     }
                 }
         case .closeStream:
+            print("Received .closeStream on \(connectionCtx?.tmp_method)")
             // TODO do we need to do something here?
+            self.connectionCtx?.handleStreamClose()
+            context.write(wrapOutboundOut(.closeStream(trailers: HPACKHeaders(), msg: "connectionCtx.\(connectionCtx?.tmp_method)")), promise: nil)
+            self.connectionCtx = nil
             break
         }
-        
-//        if connectionCtx == nil {
-//            let (serviceName, methodName) = messageIn.serviceAndMethodName
-//            guard let rpcHandler = server.makeStreamRPCHandler(toService: serviceName, method: methodName) else {
-//                // A nil return value indicates that the method does not exist.
-//                // gRPC says we have to handle this by responding w/ the corresponding status code
-//                context.writeAndFlush(
-//                    wrapOutboundOut(.immediateError(GRPCv2Status(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found.")))
-//                )
-//                return
-//            }
-//            self.connectionCtx = GRPCv2StreamConnectionContext(
-//                eventLoop: context.eventLoop,
-//                initialRequestHeaders: messageIn.requestHeaders, // TODO move the headers out of there, we don't want/need them in every single message!
-//                rpcHandler: <#T##GRPCv2StreamRPCHandler#>
-//            )
-//        }
-//
-//        let rpcHandler = self.rpcHandler!
-//
-//        server.handle(messageIn)
-//            .hop(to: context.eventLoop) // Just to be sure
-//            .whenComplete { (result: Result<GRPCv2MessageOut, Error>) in
-//                switch result {
-//                case .success(let messageOut):
-//                    context.writeAndFlush(self.wrapOutboundOut(messageOut), promise: nil) // TODO promise?
-//                case .failure(let error):
-//                    let errorResponse = GRPCv2MessageOut(
-//                        headers: HPACKHeaders {
-//                            $0[.contentType] = .gRPC(.proto)
-//                        },
-//                        payload: ByteBuffer(),
-//                        shouldCloseStream: true // TODO AAAGH FUCK
-//                    )
-//                    context.writeAndFlush(self.wrapOutboundOut(errorResponse), promise: nil) // TODO promise?
-//                }
-//            }
     }
     
     func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
@@ -635,6 +656,7 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
     
     
     func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        //precondition(!didWriteHeadersFrame) // TODO we can remove this variable!
         let response = unwrapOutboundIn(data)
         
         switch response {
@@ -648,14 +670,14 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
                 endStream: true,
                 paddingBytes: nil
             ))
-            context.writeAndFlush(wrapOutboundOut(trailersFrame))
+            context.write(wrapOutboundOut(trailersFrame))
                 .flatMap {
                     connectionCtx?.handleStreamClose()
                     return context.close()
                 }
                 .cascade(to: promise)
             return
-        case let .message(message, connectionCtx):
+        case let .message(message, connectionCtx): // TODO rename message here to response or smth like that?
             if !didWriteHeadersFrame {
                 var headers = message.headers
                 headers[.statusPseudoHeader] = .ok
@@ -666,45 +688,75 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
                     endStream: false,
                     paddingBytes: nil // TODO?
                 ))
-                print("Writing HEADERS frame", headersFrame)
-                context.write(wrapOutboundOut(headersFrame), promise: nil)
+                print("Writing HEADERS frame", headersFrame, connectionCtx.tmp_method)
+                context.writeAndFlush(wrapOutboundOut(headersFrame), promise: nil)
                 didWriteHeadersFrame = true
             }
-            do {
-                let messageLength = message.payload.writerIndex
-                precondition(messageLength <= numericCast(UInt32.max))
-                var buffer = ByteBufferAllocator().buffer(capacity: message.payload.writerIndex + 5)
-                buffer.writeInteger(UInt8(0)) // indicate that we have no compression. TODO add compression?
-                buffer.writeInteger(UInt32(messageLength), endianness: .big, as: UInt32.self)
-                buffer.writeImmutableBuffer(message.payload)
-                let dataFrame = HTTP2Frame.FramePayload.data(.init(
-                    data: .byteBuffer(buffer),
-                    endStream: false,
-                    paddingBytes: nil
-                ))
-                print("Writing DATA frame", dataFrame)
-                //context.write(self.wrapOutboundOut(dataFrame), promise: message.shouldCloseStream ? nil : promise)
-                context.writeAndFlush(wrapOutboundOut(dataFrame)).whenComplete { _ in
-                    print("Writing DATA Frame done (prom: \(promise))")
-                    if !message.shouldCloseStream {
-                        promise?.succeed(())
-                    }
+            switch message {
+            case let .singleMessage(_, payload, closeStream):
+                // TODO this one will resolve the promise directly after writing one message, regardless of whether the stream is kept open or not, whereas the one in the other branch below will only resolve the promise once the stream is closed.! FIX!!!!!
+                writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
+                break
+            case .stream(_, let stream):
+                stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
+                    print("GRPC STREAM EVENT", payload.readableBytes, closeStream)
+                    self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
                 }
             }
-            if message.shouldCloseStream {
-                let trailers = HTTP2Frame.FramePayload.headers(.init(
-                    headers: HPACKHeaders {
-                        GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
-                    }.applyingHTTP2Validations(),
-                    priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
-                    endStream: true,
-                    paddingBytes: nil
-                ))
-                print("trailers: \(trailers)")
-                print("Writing TRAILERS frame")
-                connectionCtx.handleStreamClose()
-                context.writeAndFlush(self.wrapOutboundOut(trailers), promise: promise)
+            do {
+//                let messageLength = message.payload.writerIndex
+//                precondition(messageLength <= numericCast(UInt32.max))
+//                var buffer = ByteBufferAllocator().buffer(capacity: message.payload.writerIndex + 5)
+//                buffer.writeInteger(UInt8(0)) // indicate that we have no compression. TODO add compression?
+//                buffer.writeInteger(UInt32(messageLength), endianness: .big, as: UInt32.self)
+//                buffer.writeImmutableBuffer(message.payload)
+//                let dataFrame = HTTP2Frame.FramePayload.data(.init(
+//                    data: .byteBuffer(buffer),
+//                    endStream: false,
+//                    paddingBytes: nil
+//                ))
+//                print("Writing DATA frame", dataFrame)
+//                //context.write(self.wrapOutboundOut(dataFrame), promise: message.shouldCloseStream ? nil : promise)
+//                context.writeAndFlush(wrapOutboundOut(dataFrame)).whenComplete { _ in
+//                    print("Writing DATA Frame done (prom: \(promise))")
+//                    if !message.shouldCloseStream {
+//                        promise?.succeed(())
+//                    }
+//                }
             }
+        case .closeStream(let trailers, let msg):
+//            let trailers = HTTP2Frame.FramePayload.headers(.init(
+//                headers: HPACKHeaders {
+//                    GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
+//                }.applyingHTTP2Validations(),
+//                priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
+//                endStream: true,
+//                paddingBytes: nil
+//            ))
+//            print("trailers: \(trailers)")
+//            print("Writing TRAILERS frame")
+//            context.writeAndFlush(wrapOutboundOut(trailers)).whenComplete { result in
+//                print("WROTE TRAILERS", result)
+//                context.close(mode: .all).whenComplete { result in
+//                    print("CHANNEL CLOSE", result)
+//                    promise?.succeed(())
+//                }
+//            }
+            writeTrailers(context: context, msg: msg).cascade(to: promise)
+//            if message.shouldCloseStream {
+//                let trailers = HTTP2Frame.FramePayload.headers(.init(
+//                    headers: HPACKHeaders {
+//                        GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
+//                    }.applyingHTTP2Validations(),
+//                    priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
+//                    endStream: true,
+//                    paddingBytes: nil
+//                ))
+//                print("trailers: \(trailers)")
+//                print("Writing TRAILERS frame")
+//                connectionCtx.handleStreamClose()
+//                context.writeAndFlush(self.wrapOutboundOut(trailers), promise: promise)
+//            }
         }
         
 //        if !didWriteHeaderFrame {
@@ -752,6 +804,83 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
 //        print("trailers: \(trailers)")
 //        print("Writing TRAILERS frame")
 //        context.writeAndFlush(self.wrapOutboundOut(trailers), promise: promise)
+    }
+    
+    
+    private func writeLengthPrefixedMessage(
+        _ payload: ByteBuffer,
+        closeStream: Bool,
+        connectionContext: GRPCv2StreamConnectionContext,
+        channelHandlerContext: ChannelHandlerContext,
+        promise: EventLoopPromise<Void>?
+    ) {
+        let messageLength = payload.writerIndex
+        precondition(messageLength <= numericCast(UInt32.max))
+        var buffer = ByteBufferAllocator().buffer(capacity: payload.writerIndex + 5)
+        buffer.writeInteger(UInt8(0)) // indicate that we have no compression. TODO add compression?
+        buffer.writeInteger(UInt32(messageLength), endianness: .big, as: UInt32.self)
+        buffer.writeImmutableBuffer(payload)
+        let dataFrame = HTTP2Frame.FramePayload.data(.init(
+            data: .byteBuffer(buffer),
+            endStream: false,
+            paddingBytes: nil
+        ))
+        print("Writing DATA frame for \(connectionContext.tmp_method)", dataFrame)
+        //context.write(self.wrapOutboundOut(dataFrame), promise: message.shouldCloseStream ? nil : promise)
+        channelHandlerContext.writeAndFlush(wrapOutboundOut(dataFrame)).whenComplete { _ in
+            print("Writing DATA Frame done (prom: \(promise))")
+            if !closeStream {
+                promise?.succeed(())
+            }
+        }
+        
+        if closeStream {
+            writeTrailers(context: channelHandlerContext, msg: connectionContext.tmp_method).cascade(to: promise)
+//            let trailers = HTTP2Frame.FramePayload.headers(.init(
+//                headers: HPACKHeaders {
+//                    GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
+//                }.applyingHTTP2Validations(),
+//                priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
+//                endStream: true,
+//                paddingBytes: nil
+//            ))
+//            print("trailers: \(trailers)")
+//            print("Writing TRAILERS frame")
+//            connectionContext.handleStreamClose()
+//            //channelHandlerContext.writeAndFlush(self.wrapOutboundOut(trailers), promise: promise)
+//            channelHandlerContext.write(self.wrapOutboundOut(trailers)).whenComplete { _ in
+////                //channelHandlerContext.close(mode: .all, promise: promise)
+////                channelHandlerContext.close(mode: .all).whenComplete { result in
+////                    print(result)
+////                    fatalError()
+////                }
+//                print("Wrote stream-closing Trailers frame")
+//                channelHandlerContext.close(mode: .all).cascade(to: promise)
+//            }
+        }
+    }
+    
+    
+    private func writeTrailers(context: ChannelHandlerContext, msg: String) -> EventLoopFuture<Void> {
+        let trailers = HTTP2Frame.FramePayload.headers(.init(
+            headers: HPACKHeaders {
+                GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
+            }.applyingHTTP2Validations(),
+            priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
+            endStream: true,
+            paddingBytes: nil
+        ))
+        print("trailers: \(trailers)")
+        print("Writing TRAILERS frame for \(msg)")
+        //channelHandlerContext.writeAndFlush(self.wrapOutboundOut(trailers), promise: promise)
+        return context.writeAndFlush(self.wrapOutboundOut(trailers))
+//            .flatMap {
+//                context.close(mode: .all)
+//                    .flatMapAlways { result in
+//                        print(result)
+//                        fatalError()
+//                    }
+//            }
     }
     
     

@@ -357,18 +357,17 @@ class HardcodedGreeter: GRPCv2StreamRPCHandler {
     }
     
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
-        print(Self.self, #function)
-        print(message)
+        print(Self.self, #function, message.serviceAndMethodName)
         do {
             let request = try LKProtobufferDecoder().decode(GreeterRequest.self, from: message.payload)
             print(request)
             let response = GreeterResponse(message: "Hello, \(request.name)!!!!")
-            let messageOut = GRPCv2MessageOut(
+            let messageOut = GRPCv2MessageOut.singleMessage(
                 headers: HPACKHeaders {
                     $0[.contentType] = .gRPC(.proto)
                 },
                 payload: try LKProtobufferEncoder().encode(response),
-                shouldCloseStream: true
+                closeStream: true
             )
             return context.eventLoop.makeSucceededFuture(messageOut)
         } catch {
