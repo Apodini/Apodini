@@ -119,7 +119,7 @@ class ApodiniLoggerTests: XCTestCase {
         }
     }
     
-    struct ComplexParameter: Codable {
+    struct ComplexParameter: Codable, Equatable {
         var string: String
         var int: Int
         var double: Double
@@ -602,19 +602,13 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse5 HTTP/1.1\ncontent-length: 107\n"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse5"))
-            let body = try XCTUnwrap(requestMetadata["HTTPBody"])
-            print(body)
-            if (body != .string("""
-            {"bool":true,"string":"test","double":1.2,"int":1,\
-            "array":["test2"],"dictionary":{"1":"test3","2":"test4"}}
-            """))
-            &&
-            (body != .string("""
-            {"bool":true,"string":"test","double":1.2,"int":1,\
-            "array":["test2"],"dictionary":{"2":"test4","1":"test3"}}
-            """)) {
-                XCTFail("HTTPBody is not correct!")
+            let bodyString = try XCTUnwrap(requestMetadata["HTTPBody"]?.metadataString)
+            guard let bodyDate = bodyString.data(using: .utf8) else {
+                XCTFail("HTTP Body couldn't be checked")
+                return
             }
+            let complexParameter = try JSONDecoder().decode(ComplexParameter.self, from: bodyDate)
+            XCTAssertEqual(complexParameter, complexParameter)
     
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -1290,6 +1284,14 @@ extension Logger.MetadataValue {
     var metadataArray: [Logger.Metadata.Value]? {   // swiftlint:disable:this discouraged_optional_collection
         if case .array(let array) = self {
             return array
+        }
+        
+        return nil
+    }
+    
+    var metadataString: String? {
+        if case .string(let string) = self {
+            return string
         }
         
         return nil
