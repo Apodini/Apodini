@@ -11,7 +11,7 @@ import ApodiniREST
 import XCTApodini
 import XCTApodiniNetworking
 import XCTest
-import _NIOConcurrency
+import NIO
 
 
 final class ConnectionTests: ApodiniTests {
