@@ -100,7 +100,6 @@ public struct URI: LosslessStringConvertible {
         }
         return retval
     }
-    
 }
 
 

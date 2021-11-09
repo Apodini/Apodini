@@ -5,6 +5,13 @@
 //
 // SPDX-License-Identifier: MIT
 //
+//
+// This code is based on the Vapor project: https://github.com/vapor/vapor
+//
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
+//
+// SPDX-License-Identifier: MIT
+//
 
 import Apodini
 import NIO
