@@ -6,6 +6,7 @@ import Foundation
 import ApodiniUtils
 //import ApodiniTypeReflection
 import ApodiniTypeInformation
+import ApodiniNetworking
 
 
 
@@ -295,10 +296,69 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
             }
             //return messageOut
         }
-        
     }
+    
+    
+    private func handleServiceSide(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+        //let httpResponseStream = BodyStorage.Stream()
+        let responsesStream = GRPCv2MessageOut.Stream()
+        let abortAnyError = AbortTransformer<H>()
+        return [message]
+            .asAsyncSequence
+            .decode(using: decodingStrategy, with: context.eventLoop)
+            .insertDefaults(with: defaults)
+            .cache()
+            .subscribe(to: delegate)
+            .evaluate(on: delegate)
+            .transform(using: abortAnyError)
+            .cancelIf { $0.connectionEffect == .close }
+            .firstFutureAndForEach(
+                on: context.eventLoop,
+                objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+//                    defer {
+//                        if response.connectionEffect == .close {
+//                            // TODO presumably this would get turned into an empty DATA frame (followed by the trailers)?
+//                            // can we somehow skip the empty frame and directly translate this into sending trailers? (maybe by adding support for nil payloads?)
+//                            responsesStream.writeAndClose((ByteBuffer(), closeStream: true))
+//                        }
+//                    }
+                    do {
+                        if let content = response.content {
+                            let buffer = try LKProtobufferEncoder().encode(content)
+                            responsesStream.write((buffer, closeStream: response.connectionEffect == .close))
+                        } else {
+                            // TODO presumably this would get turned into an empty DATA frame (followed by the trailers)?
+                            // can we somehow skip the empty frame and directly translate this into sending trailers? (maybe by adding support for nil payloads?)
+                            responsesStream.write((ByteBuffer(), closeStream: response.connectionEffect == .close))
+                        }
+                    } catch {
+                        // Error encoding the response data
+                        print("Error encoding part of response: \(error)")
+                    }
+                }
+            )
+            .map { firstResponse -> GRPCv2MessageOut in
+                return GRPCv2MessageOut.stream(
+                    HPACKHeaders {
+                        $0[.contentType] = .gRPC(.proto)
+                    },
+                    responsesStream
+                )
+            }
+    }
+
 }
 
+
+private struct AbortTransformer<H: Handler>: ResultTransformer {
+    func handle(error: ApodiniError) -> ErrorHandlingStrategy<Apodini.Response<H.Response.Content>, Error> {
+        .abort(error)
+    }
+    
+    func transform(input: Apodini.Response<H.Response.Content>) -> Apodini.Response<H.Response.Content> {
+        input
+    }
+}
 
 
 //// TODO move somewhere else

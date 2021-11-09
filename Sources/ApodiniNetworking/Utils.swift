@@ -84,17 +84,26 @@ extension EventLoopFuture {
         self.whenComplete { block($0).cascade(to: promise) }
         return promise.futureResult
     }
-    
-//    /// Fulfills the given `EventLoopPromise<Void>` with the results from this `EventLoopFuture`.
-//    public func cascade(to promise: EventLoopPromise<Void>?) {
-//        guard let promise = promise else { return }
-//        self.whenComplete { result in
-//            switch result {
-//            case .success:
-//                promise.succeed(())
-//            case .failure(let error):
-//                promise.fail(error)
-//            }
-//        }
-//    }
+}
+
+
+extension AsyncSequence {
+    /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
+    public func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+        let promise = eventLoop.makePromise(of: Element?.self)
+        Task {
+            var idx = 0
+            for try await element in self {
+                if idx == 0 {
+                    promise.succeed(element)
+                }
+                idx += 1
+                objectsHandler(element)
+            }
+            if idx == 0 {
+                promise.succeed(nil)
+            }
+        }
+        return promise.futureResult
+    }
 }

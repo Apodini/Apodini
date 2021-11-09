@@ -1,5 +1,6 @@
 import Apodini
 import ApodiniNetworking
+import ApodiniExtension
 import NIO
 import NIOHTTP2
 import NIOHPACK
@@ -107,13 +108,14 @@ extension HTTPResponseStatus: HTTPHeaderFieldValueCodable {
 }
 
 
-struct GRPCv2MessageIn {
+struct GRPCv2MessageIn: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
+    let remoteAddress: SocketAddress?
     /// The HTTP/2 headers sent with the initial HTTP request that initiated this stream
     let requestHeaders: HPACKHeaders
     /// The payload of this message
     let payload: ByteBuffer
     /// The event loop on which this message was received
-    let eventLoop: EventLoop
+    let eventLoop: EventLoop // TODO remove this? We have the context which gets passed along everywhere...
     
     
     var targetServiceName: String {
@@ -128,8 +130,26 @@ struct GRPCv2MessageIn {
         let splitPath = requestHeaders[.pathPseudoHeader]!.split(separator: "/")
         return (String(splitPath[0]), String(splitPath[1]))
     }
+    
+    var description: String {
+        ///"\(Self.self)(headers: \()"
+        var retval = "\(Self.self)("
+        retval.append("headers: ")
+        retval.append("\(requestHeaders.map { "\($0.name)=\($0.value)" })")
+        retval.append(", payload: \(payload)")
+        retval.append(")")
+        return retval
+    }
+    
+    var debugDescription: String {
+        description
+    }
+    
+    
+    var information: InformationSet {
+        [] // TODO?
+    }
 }
-
 
 
 struct GRPCv2MessageOut_OLD {
@@ -149,13 +169,14 @@ struct GRPCv2MessageOut_OLD {
 /// (e.g.: unary connections, bidirectional connections where every client request gets answered with exactly one server response, etc.)
 /// `stream` is intended for situations where a single client request may result in multiple responses.
 enum GRPCv2MessageOut {
+    typealias Stream = BufferedStream<(ByteBuffer, closeStream: Bool)>
     /// A single gRPC message.
     /// - parameter headers: The headers to be sent with this message. Note that headers will only be written once to a HTTP/2 stream.
     /// - parameter payload: The gRPC message data to be written.
     /// - parameter closeStream: Whether after sending this message, the connection to the client (i.e. the underlying HTTP/2 stream) should be closed.
     case singleMessage(headers: HPACKHeaders, payload: ByteBuffer, closeStream: Bool)
     /// A RPC resulted in a stream-based response.
-    case stream(HPACKHeaders, BufferedStream<(ByteBuffer, closeStream: Bool)>)
+    case stream(HPACKHeaders, Stream)
     
     var headers: HPACKHeaders {
         switch self {
@@ -315,6 +336,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                             messageCollectionCtx.buffer.writeImmutableBuffer(remainingBytes)
                             print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(GRPCv2MessageIn(
+                                remoteAddress: context.channel.remoteAddress,
                                 requestHeaders: initialHeaders,
                                 payload: messageCollectionCtx.buffer,
                                 eventLoop: context.eventLoop
@@ -369,7 +391,12 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                         precondition(messageCtx.numMissingPayloadBytes >= 0) // Make sure we haven't read more than we want to
                         precondition(messageCtx.numMissingPayloadBytes > 0, implies: dataFrameDataBuffer.readableBytes == 0) // If there's payload byted missing, we must've reached the end of the current DATA frame
                         if messageCtx.numMissingPayloadBytes == 0 {
-                            let messageIn = GRPCv2MessageIn(requestHeaders: initialHeaders, payload: messageCtx.buffer, eventLoop: context.eventLoop)
+                            let messageIn = GRPCv2MessageIn(
+                                remoteAddress: context.channel.remoteAddress,
+                                requestHeaders: initialHeaders,
+                                payload: messageCtx.buffer,
+                                eventLoop: context.eventLoop
+                            )
                             print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(messageIn)))
                             state = .handlingStream(initialHeaders: initialHeaders, messageCollectionCtx: nil)

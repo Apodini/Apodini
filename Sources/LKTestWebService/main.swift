@@ -32,6 +32,40 @@ struct Rocket: Handler {
     
     @ObservedObject var timer = FakeTimer()
     
+    func handle() -> Apodini.Response<String> {
+        DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 2) {
+            print("tick")
+            timer.secondPassed()
+        }
+        counter += 1
+        
+        if counter == start {
+            print("Sending .final")
+            //return .final(.init(.init(string: "🚀🚀🚀 Launch !!! 🚀🚀🚀\n"), type: .text(.plain, parameters: ["charset": "utf-8"])))
+            return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀\n")
+        } else {
+            print("Sending .send(\(start - counter))")
+            return .send("\(start - counter)...\n")
+            //return .send(.init(.init(string: "\(start - counter)...\n"), type: .text(.plain, parameters: ["charset": "utf-8"])))
+        }
+    }
+    
+    
+    var metadata: AnyHandlerMetadata {
+        Pattern(.serviceSideStream)
+        ServiceType(.serviceStreaming)
+    }
+}
+
+
+
+struct RocketBlob: Handler {
+    @Parameter(.http(.query), .mutability(.constant)) var start: Int = 10
+    
+    @State var counter = -1
+    
+    @ObservedObject var timer = FakeTimer()
+    
     func handle() -> Apodini.Response<Blob> {
         DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 2) {
             print("tick")
@@ -134,9 +168,13 @@ struct LKTestWebService: Apodini.WebService {
             Greeter2()
                 .gRPCv2MethodName("greet2")
         }
-        Group("ss") {
+        Group("rocket") {
             Rocket()
                 .gRPCv2MethodName("rocket")
+        }
+        Group("rocketBlob") {
+            RocketBlob()
+                .gRPCv2MethodName("rocketBlob")
         }
         Group("throw") {
             ThrowingHandler()
