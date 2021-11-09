@@ -165,7 +165,8 @@ public struct ApodiniLogger: DynamicProperty {
             case .serviceSideStream:
                 // Refresh metadata
                 builtLogger?[metadataKey: "connection"] = loggingMetadata["connection"]
-            default: break
+            case .requestResponse:
+                break
             }
         }
         

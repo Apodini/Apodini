@@ -31,10 +31,6 @@ class ApodiniLoggerTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
-        let config = LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
-        
-        app = Self.configureLogger(app, loggerConfiguration: config)
-        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
@@ -46,36 +42,6 @@ class ApodiniLoggerTests: XCTestCase {
         app.shutdown()
         
         XCTAssertApodiniApplicationNotRunning()
-    }
-    
-    // Copied from the source code of ApodiniObserve to bootstrap the LoggingSystem internally
-    // (required for the tests, as the LoggingSystem only allows to be configured once per process)
-    public static func configureLogger(_ app: Apodini.Application, loggerConfiguration: LoggerConfiguration) -> Apodini.Application {
-        // Execute configuration closure of LogHandlers
-        loggerConfiguration.configureLogHandlers()
-        
-        // Bootstrap the logging system
-        LoggingSystem.bootstrapInternal { label in
-            MultiplexLogHandler(
-                loggerConfiguration.logHandlers.map { logHandler in
-                    logHandler(label)
-                }
-            )
-        }
-        
-        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
-            // Instanciate exporter
-            let metadataExporter = ObserveMetadataExporter(app, loggerConfiguration)
-            
-            // Insert exporter into `InterfaceExporterStorage`
-            app.registerExporter(exporter: metadataExporter)
-        }
-        
-        // Write configuration to the storage
-        app.storage.set(LoggerConfiguration.LoggingStorageKey.self,
-                        to: LoggerConfiguration.LoggingStorageValue(logger: app.logger, configuration: loggerConfiguration))
-        
-        return app
     }
     
     struct RequestResponse: Handler {
@@ -138,6 +104,28 @@ class ApodiniLoggerTests: XCTestCase {
             logger.info("Hello world!")
             return "\(greeting ?? "Hello"), \(name)!"
         }
+    }
+    
+    struct RequestResponse5: Handler {
+        @Parameter(.http(.body)) var complexParameter: ComplexParameter
+        
+        @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel,
+                       metadataLevel: .custom(metadata: ["request"]))
+        var logger
+
+        func handle() -> String {
+            logger.info("Hello world!")
+            return "Hi!"
+        }
+    }
+    
+    struct ComplexParameter: Codable {
+        var string: String
+        var int: Int
+        var double: Double
+        var bool: Bool
+        var array: [String]
+        var dictionary: [Int: String]
     }
     
     class FakeTimer: Apodini.ObservableObject {
@@ -240,6 +228,7 @@ class ApodiniLoggerTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
+        LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
     }
 
     @ComponentBuilder
@@ -255,6 +244,9 @@ class ApodiniLoggerTests: XCTestCase {
         }
         Group("requestResponse4") {
             RequestResponse4()
+        }
+        Group("requestResponse5") {
+            RequestResponse5()
         }
         Group("serverSideStreaming") {
             ServerSideStreaming()
@@ -280,7 +272,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 55)
+            XCTAssertEqual(logMessage.line, 55)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -306,7 +298,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse/:name"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("null"))
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("nil"))
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse/Philipp HTTP/1.1\ncontent-length: 0\n"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse/Philipp"))
@@ -386,7 +378,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .debug)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 73)
+            XCTAssertEqual(logMessage.line, 73)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -412,7 +404,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse2/:name"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("null"))
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("nil"))
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse2/Philipp HTTP/1.1\ncontent-length: 0\n"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse2/Philipp"))
@@ -480,7 +472,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 88)
+            XCTAssertEqual(logMessage.line, 89)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -512,7 +504,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 88)
+            XCTAssertEqual(logMessage.line, 104)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -547,6 +539,94 @@ class ApodiniLoggerTests: XCTestCase {
         container.reset()
     }
     
+    func testRequestResponsePattern5() throws {
+        let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
+        container.reset()
+        
+        let complexParameter = ComplexParameter(
+            string: "test",
+            int: 1,
+            double: 1.2,
+            bool: true,
+            array: ["test2"],
+            dictionary: [
+                1: "test3",
+                2: "test4"
+            ]
+        )
+        
+        let body = try JSONEncoder().encodeAsByteBuffer(complexParameter, allocator: .init())
+        
+        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse5", body: body) { response in
+            XCTAssertEqual(1, container.messages.count)
+            if container.messages.count != 1 {
+                XCTFail("Log message count isn't correct")
+            }
+            let logMessage = container.messages[0]
+            
+            // Assert log message, level etc.
+            XCTAssertEqual(logMessage.message, "Hello world!")
+            XCTAssertEqual(logMessage.level, .info)
+            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.function, "handle()")
+            XCTAssertEqual(logMessage.line, 117)
+
+            // Assert metadata
+            let metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(2, metadata.count)
+            
+            // Logger UUID metadata
+            XCTAssertNotNil(try XCTUnwrap(metadata["logger-uuid"]))
+            
+            // Request metdata
+            let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse5"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
+            
+            let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            let parameter = try XCTUnwrap(parameterRequestMetadata["complexParameter"]?.metadataDictionary)
+            XCTAssertEqual(parameter.count, 6)
+            let dictionary = try XCTUnwrap(parameter["dictionary"]?.metadataDictionary)
+            XCTAssertEqual(dictionary.count, 2)
+            XCTAssertEqual(try XCTUnwrap(dictionary["1"]), .string("test3"))
+            XCTAssertEqual(try XCTUnwrap(dictionary["2"]), .string("test4"))
+            let array = try XCTUnwrap(parameter["array"]?.metadataArray)
+            XCTAssertEqual(1, array.count)
+            let firstArrayElement = try XCTUnwrap(array.first)
+            XCTAssertEqual(firstArrayElement, .string("test2"))
+            XCTAssertEqual(try XCTUnwrap(parameter["double"]), .string("1.2"))
+            XCTAssertEqual(try XCTUnwrap(parameter["int"]), .string("1"))
+            XCTAssertEqual(try XCTUnwrap(parameter["string"]), .string("test"))
+            
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse5 HTTP/1.1\ncontent-length: 107\n"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse5"))
+            let body = try XCTUnwrap(requestMetadata["HTTPBody"])
+            print(body)
+            if (body != .string("""
+            {"bool":true,"string":"test","double":1.2,"int":1,\
+            "array":["test2"],"dictionary":{"1":"test3","2":"test4"}}
+            """))
+            &&
+            (body != .string("""
+            {"bool":true,"string":"test","double":1.2,"int":1,\
+            "array":["test2"],"dictionary":{"2":"test4","1":"test3"}}
+            """)) {
+                XCTFail("HTTPBody is not correct!")
+            }
+    
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
+            
+            
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi!")
+        }
+        
+        container.reset()
+    }
+    
     func testServiceSideStreamingPattern() throws {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
@@ -561,7 +641,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(firstLogMessage.level, .info)
             XCTAssertEqual(firstLogMessage.file, #file)
             XCTAssertEqual(firstLogMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 55)
+            XCTAssertEqual(firstLogMessage.line, 158)
 
             // Assert metadata
             var metadata = try XCTUnwrap(firstLogMessage.metadata)
@@ -646,7 +726,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(eleventhLogMessage.level, .info)
             XCTAssertEqual(eleventhLogMessage.file, #file)
             XCTAssertEqual(eleventhLogMessage.function, "handle()")
-            //XCTAssertEqual(logMessage.line, 55)
+            XCTAssertEqual(eleventhLogMessage.line, 155)
 
             // Assert metadata
             metadata = try XCTUnwrap(eleventhLogMessage.metadata)
@@ -768,7 +848,7 @@ class ApodiniLoggerTests: XCTestCase {
                 XCTAssertEqual(logMessage.level, .info)
                 XCTAssertEqual(logMessage.file, #file)
                 XCTAssertEqual(logMessage.function, "handle()")
-                //XCTAssertEqual(logMessage.line, 55)
+                XCTAssertEqual(logMessage.line, 193)
 
                 // Assert metadata
                 var metadata = try XCTUnwrap(logMessage.metadata)
@@ -874,7 +954,7 @@ class ApodiniLoggerTests: XCTestCase {
                 requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
                 
                 parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("null"))      // Empty country
+                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
                 
                 // Connection metadata
                 connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
@@ -912,7 +992,7 @@ class ApodiniLoggerTests: XCTestCase {
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /clientSideStreaming"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
                 parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("null"))     // No more data
+                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /clientSideStreaming HTTP/1.1\ncontent-length: 67\n"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/clientSideStreaming"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
@@ -996,7 +1076,7 @@ class ApodiniLoggerTests: XCTestCase {
                 XCTAssertEqual(logMessage.level, .info)
                 XCTAssertEqual(logMessage.file, #file)
                 XCTAssertEqual(logMessage.function, "handle()")
-                //XCTAssertEqual(logMessage.line, 55)
+                XCTAssertEqual(logMessage.line, 217)
 
                 // Assert metadata
                 var metadata = try XCTUnwrap(logMessage.metadata)
@@ -1102,7 +1182,7 @@ class ApodiniLoggerTests: XCTestCase {
                 requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
                 
                 parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("null"))      // Empty country
+                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
                 
                 // Connection metadata
                 connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
@@ -1140,7 +1220,7 @@ class ApodiniLoggerTests: XCTestCase {
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /bidirectionalStreaming"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
                 parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("null"))     // No more data
+                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /bidirectionalStreaming HTTP/1.1\ncontent-length: 67\n"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/bidirectionalStreaming"))
                 XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
@@ -1202,6 +1282,14 @@ extension Logger.MetadataValue {
     var metadataDictionary: Logger.Metadata? {
         if case .dictionary(let dictionary) = self {
             return dictionary
+        }
+        
+        return nil
+    }
+    
+    var metadataArray: [Logger.Metadata.Value]? {
+        if case .array(let array) = self {
+            return array
         }
         
         return nil

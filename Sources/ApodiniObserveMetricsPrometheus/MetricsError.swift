@@ -11,5 +11,7 @@ import ApodiniObserve
 /// Possible error types during the `ApodiniMetric` types process
 public extension MetricsError {
     /// Error in which Prometheus wasn't bootstrapped yet
-    static let prometheusNotYetBootstrapped = MetricsError(rawValue: "Metric Type was created without bootstrapping the MetricsSystem first")
+    static let prometheusNotYetBootstrapped: MetricsError = {
+        .init(rawValue: "Metric Type was created without bootstrapping the MetricsSystem first")
+    }()
 }

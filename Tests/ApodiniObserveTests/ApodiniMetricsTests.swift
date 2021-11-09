@@ -128,14 +128,19 @@ class ApodiniMetricsTests: XCTestCase {
         func handle() -> String {
             counter.increment()
             counter.increment(by: 3)
+            var metadata = counter["endpoint"]
             counter2.increment(by: 99)
             gauge.record(2.56)
+            metadata = gauge["endpoint"]
             histogram.record(3.1415)
+            metadata = histogram["endpoint"]
             recorder.record(9.91)
+            metadata = recorder["endpoint"]
             timer.record(.milliseconds(11))
+            metadata = timer["endpoint"]
             ApodiniMetricsTests.counter1Dimensions = counter.dimensions
             ApodiniMetricsTests.greeterDimensions = gauge.dimensions
-            return "Hello, \(name)!"
+            return "Hello, \(metadata!)!"
         }
     }
     
@@ -236,7 +241,7 @@ class ApodiniMetricsTests: XCTestCase {
             }
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Greeter!")
         }
     }
 }

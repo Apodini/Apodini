@@ -63,7 +63,8 @@ public struct LoggingMetadata: DynamicProperty {
             case .serviceSideStream:
                 // Refresh connection metadata
                 builtMetadata["connection"] = .dictionary(self.connectionMetadata)
-            default: break
+            case .requestResponse:
+                break
             }
         }
         

@@ -23,7 +23,7 @@ import ApodiniHTTP
 class ApodiniMetricsPrometheusTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
-    static let metricsConfiguration = MetricsConfiguration(prometheusHandlerConfiguration: .defaultPrometheus, systemMetricsConfiguration: .default)
+    static var metricsConfiguration: MetricsConfiguration!
     
     static let counterLabel = "test_counter"
     static let gaugeLabel = "test_gauge"
@@ -38,6 +38,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        Self.metricsConfiguration = MetricsConfiguration(prometheusHandlerConfiguration: .defaultPrometheus, systemMetricsConfiguration: .default)
+        Self.metricsConfiguration = MetricsConfiguration(prometheusHandlerConfiguration: .defaultPrometheusWithConfig(), systemMetricsConfiguration: .default)
         app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: Self.metricsConfiguration)
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
