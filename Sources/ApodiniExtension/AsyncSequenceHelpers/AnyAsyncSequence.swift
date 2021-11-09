@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import _Concurrency
 
 /// A type-erased version of a `AsyncSequence` that contains values of type `Element`.
 public struct AnyAsyncSequence<Element>: AsyncSequence {

@@ -10,7 +10,6 @@ import Apodini
 import Foundation
 import NIO
 
-
 extension Component {
     func asRoute() -> DelegationModifier<Self, TripWeatherRouteInitializer<Never>> {
         self.delegated(by: TripWeatherRouteInitializer())

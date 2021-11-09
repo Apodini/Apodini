@@ -8,6 +8,7 @@
 
 @testable import Apodini
 import ApodiniUtils
+import NIOCore
 import XCTest
 import XCTApodini
 import NIO

@@ -6,9 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import Foundation
-import _Concurrency
+
 
 /// An `AsyncSequence` that allows for debugging the events defined by the `AsyncSequence` protocol
 /// and its `AsyncIterator` child.

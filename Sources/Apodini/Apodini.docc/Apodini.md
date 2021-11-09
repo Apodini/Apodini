@@ -64,7 +64,7 @@ If you want to get a bit more details first or need some support in building you
 - <doc:BuildingBlocks>
 - <doc:Metadata>
 - <doc:AllAboutReuse>
-<!-- TODO: Configuration with Swift Argument Parser -->
+- <doc:CommandLineArguments>
 - <doc:StatefulHandlers>
 - <doc:InformationAPI>
 - <doc:UnitTesting>
@@ -77,6 +77,7 @@ Here are some links to internal and external packages you might find helpful whe
 - <doc:Authorization>
 - <doc:PushNotifications>
 - <doc:Jobs>
+- <doc:Observe>
 
 ### Advanced
 

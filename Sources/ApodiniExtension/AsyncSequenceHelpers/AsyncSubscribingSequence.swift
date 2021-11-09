@@ -6,9 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import Foundation
-import _Concurrency
+
 
 /// An element that might signal the completion of a sequence/stream of elements.
 public protocol CompletionCandidate {

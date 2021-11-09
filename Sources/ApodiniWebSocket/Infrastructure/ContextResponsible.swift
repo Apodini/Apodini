@@ -7,7 +7,6 @@
 //              
 
 @_implementationOnly import Vapor
-import _Concurrency
 import NIOWebSocket
 import ApodiniExtension
 import ApodiniUtils
@@ -93,7 +92,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         
         let outputToHandler = sequence
             .prefix(while: { (event: InputEvent) in
-                if case .input(_) = event {
+                if case .input = event {
                     return true
                 }
                 return false
