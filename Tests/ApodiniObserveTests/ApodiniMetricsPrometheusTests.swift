@@ -39,7 +39,10 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
         configuration.configure(app)
         
         Self.metricsConfiguration = MetricsConfiguration(prometheusHandlerConfiguration: .defaultPrometheus, systemMetricsConfiguration: .default)
-        Self.metricsConfiguration = MetricsConfiguration(prometheusHandlerConfiguration: .defaultPrometheusWithConfig(), systemMetricsConfiguration: .default)
+        Self.metricsConfiguration = MetricsConfiguration(
+            prometheusHandlerConfiguration: .defaultPrometheusWithConfig(),
+            systemMetricsConfiguration: .default
+        )
         app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: Self.metricsConfiguration)
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))

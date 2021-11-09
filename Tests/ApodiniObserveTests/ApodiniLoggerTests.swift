@@ -17,7 +17,7 @@ import ApodiniHTTP
 @testable import Apodini
 @testable import SwiftLogTesting
 
-// swiftlint:disable closure_body_length lower_acl_than_parent
+// swiftlint:disable closure_body_length
 class ApodiniLoggerTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
@@ -1287,7 +1287,7 @@ extension Logger.MetadataValue {
         return nil
     }
     
-    var metadataArray: [Logger.Metadata.Value]? {
+    var metadataArray: [Logger.Metadata.Value]? {   // swiftlint:disable:this discouraged_optional_collection
         if case .array(let array) = self {
             return array
         }
