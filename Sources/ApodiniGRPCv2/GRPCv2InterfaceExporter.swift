@@ -112,7 +112,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) -> () {
-        let commPattern = endpoint[ServiceType.self]
+        let commPattern = endpoint[CommunicationalPattern.self]
         let methodName = getMethodName(for: endpoint)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
@@ -301,21 +301,16 @@ private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDec
 
 
 
+/// Helper type that stores information about an endpoint.
+/// The main use case of this is to share the mapping of an endpoint's input and output protobuffer
+/// message types with other parts of the interface exporter that need to access this information.
 class GRPCv2EndpointContext: Hashable {
-    private var parameterNameFieldNumberMapping: [String: Int] = [:] // TODO make private aga9n?
+    let communicationalPattern: CommunicationalPattern
     var endpointRequestType: ProtoTypeDerivedFromSwift?
     var endpointResponseType: ProtoTypeDerivedFromSwift?
     
-    init() {}
-    
-    func addMapping(fromParamName parameterName: String, toFieldNumber fieldNumber: Int) {
-        //precondition(parameterNameFieldNumberMapping[parameterName] == nil)
-        //parameterNameFieldNumberMapping[parameterName] = fieldNumber
-    }
-    
-    func fieldNumber(forParamName parameterName: String) -> Int? {
-        //parameterNameFieldNumberMapping[parameterName]
-        nil
+    init(communicationalPattern: CommunicationalPattern) {
+        self.communicationalPattern = communicationalPattern
     }
     
     func hash(into hasher: inout Hasher) {

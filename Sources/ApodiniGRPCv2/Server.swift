@@ -142,7 +142,7 @@ class GRPCService {
 class GRPCMethod {
     let name: String
     fileprivate(set) var packageName: String? // Nil until the method is added to a service
-    let type: ServiceType
+    let type: CommunicationalPattern
     let inputFQTN: String
     let outputFQTN: String
     private let streamRPCHandlerMaker: () -> GRPCv2StreamRPCHandler
@@ -155,13 +155,13 @@ class GRPCMethod {
         schema: GRPCv2SchemaManager
     ) {
         self.name = name
-        self.type = endpoint[ServiceType.self]
+        self.type = endpoint[CommunicationalPattern.self]
         
         // TODO is it important that we do the defaults load only once, instead of every time a connection is opened?
         let defaults = endpoint[DefaultValueStore.self]
         
         self.streamRPCHandlerMaker = { () -> GRPCv2StreamRPCHandler in
-            switch endpoint[ServiceType.self] {
+            switch endpoint[CommunicationalPattern.self] {
             case .unary:
                 return _UnaryStreamRPCHandler<H>(
                     delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
@@ -202,7 +202,7 @@ class GRPCMethod {
     }
     
     
-    init(name: String, type: ServiceType, inputFQTN: String, outputFQTN: String, streamRPCHandlerMaker: @escaping () -> GRPCv2StreamRPCHandler) {
+    init(name: String, type: CommunicationalPattern, inputFQTN: String, outputFQTN: String, streamRPCHandlerMaker: @escaping () -> GRPCv2StreamRPCHandler) {
         self.name = name
         self.type = type
         self.inputFQTN = inputFQTN
@@ -249,11 +249,23 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
     
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
         print(Self.self, #function, message.serviceAndMethodName)
+        switch endpointContext.communicationalPattern {
+        case .requestResponse:
+            return handleUnary(message: message, context: context)
+        case .clientSideStream:
+            fatalError()
+        case .serviceSideStream:
+            return handleServiceSideStream(message: message, context: context)
+        case .bidirectionalStream:
+            fatalError()
+        }
         
-        let reqBasis = DefaultRequestBasis(base: message, remoteAddress: nil, information: []) // TODO!!
-        
+    }
+    
+    
+    private func handleUnary(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
-            .decodeRequest(from: message, with: reqBasis, with: context.eventLoop)
+            .decodeRequest(from: message, with: message, with: context.eventLoop)
             .insertDefaults(with: defaults)
             .cache()
             .evaluate(on: delegate)
@@ -261,14 +273,6 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
             let headers = HPACKHeaders {
                 $0[.contentType] = .gRPC(.proto)
             }
-//            var messageOut = GRPCv2MessageOut(
-//                headers: HPACKHeaders {
-//                    $0[.contentType] = .gRPC(.proto)
-//                },
-//                payload: ByteBuffer(), // TODO proto-encode the response into the buffer!
-//                shouldCloseStream: response.connectionEffect == .close
-//            )
-//            print(response)
             guard let responseContent = response.content else {
                 return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true) // TODO keep open based on handler type?
             }
@@ -279,7 +283,6 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
                 if let underlyingType = underlyingType {
                     precondition(underlyingType == type(of: responseContent))
                     // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
-                    //try! LKProtobufferEncoder().encode(responseContent, into: &messageOut.payload)
                     let payload = try! LKProtobufferEncoder().encode(responseContent)
                     return .singleMessage(headers: headers, payload: payload, closeStream: true)
                 } else {
@@ -290,17 +293,17 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
                     let encoder = _LKProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef)
                     var keyedEncoder = encoder.container(keyedBy: FakeCodingKey.self)
                     try! keyedEncoder.encode(responseContent, forKey: .init(intValue: fieldNumber))
-                    //messageOut.payload = dstBufferRef.value
                     return .singleMessage(headers: headers, payload: dstBufferRef.value, closeStream: true)
                 }
             }
-            //return messageOut
         }
     }
     
+    private func handleClientSideStream(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+        
+    }
     
-    private func handleServiceSide(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
-        //let httpResponseStream = BodyStorage.Stream()
+    private func handleServiceSideStream(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
         let responsesStream = GRPCv2MessageOut.Stream()
         let abortAnyError = AbortTransformer<H>()
         return [message]
@@ -345,6 +348,10 @@ class _UnaryStreamRPCHandler<H: Handler>: GRPCv2StreamRPCHandler {
                     responsesStream
                 )
             }
+    }
+    
+    private func handleBidirectionalStream(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+        
     }
 
 }

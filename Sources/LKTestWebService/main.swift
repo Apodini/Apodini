@@ -53,7 +53,6 @@ struct Rocket: Handler {
     
     var metadata: AnyHandlerMetadata {
         Pattern(.serviceSideStream)
-        ServiceType(.serviceStreaming)
     }
 }
 
