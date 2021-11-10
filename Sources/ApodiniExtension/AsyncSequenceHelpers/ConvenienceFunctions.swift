@@ -7,7 +7,6 @@
 //
 
 
-import _Concurrency
 import NIO
 
 public extension AsyncSequence {

@@ -29,7 +29,7 @@ extension Logger.MetadataValue: Encodable {
 
 /// IntermediateRepresentation to convert any ``Encodable`` data type to ``Logger.MetadataValue``
 enum LoggerMetadataIntermediateRepresentation: Codable {
-    case null
+    case `nil`
     case bool(Bool)
     case int(Int)
     case double(Double)
@@ -37,11 +37,10 @@ enum LoggerMetadataIntermediateRepresentation: Codable {
     case array([LoggerMetadataIntermediateRepresentation])
     case dictionary([String: LoggerMetadataIntermediateRepresentation])
     
-    
     var metadataValue: Logger.MetadataValue {
         switch self {
-        case .null:
-            return .string("null")
+        case .nil:
+            return .string("nil")
         case let .bool(bool):
             return .string("\(bool)")
         case let .int(int):
@@ -61,7 +60,7 @@ enum LoggerMetadataIntermediateRepresentation: Codable {
         let container = try decoder.singleValueContainer()
          
         if container.decodeNil() {
-            self = .null
+            self = .nil
         } else if let bool = try? container.decode(Bool.self) {
             self = .bool(bool)
         } else if let int = try? container.decode(Int.self) {

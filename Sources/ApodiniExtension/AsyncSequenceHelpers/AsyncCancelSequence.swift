@@ -6,9 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import Foundation
-import _Concurrency
 
 
 /// An `AsyncSequence` that behaves similar to `AsyncPrefixWhileSequence`, but keeps one more
