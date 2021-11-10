@@ -20,6 +20,12 @@ extension Application {
         func append(_ exporter: AnyInterfaceExporter) {
             self.interfaceExporters.append(exporter)
         }
+        
+        func checkRegisteredExporter<T: InterfaceExporter>(exporterType: T.Type) -> Bool {
+            self.interfaceExporters.contains { interfaceExporter in
+                type(of: interfaceExporter) == exporterType
+            }
+        }
     }
     
     private enum InterfaceExporterKey: StorageKey {
@@ -46,5 +52,12 @@ extension Application {
     public func registerExporter<T: InterfaceExporter>(exporter instance: T) -> Self {
         interfaceExporterStorage.append(AnyInterfaceExporter(instance))
         return self
+    }
+    
+    /// Checks if an `InterfaceExporter` is already registered.
+    /// - Parameter instance: The instance of the `InterfaceExporter` to register.
+    /// - Returns: `true` if the `InterfaceExporter` type is already registered, `false` if the type isn't registered yet
+    public func checkRegisteredExporter<T: InterfaceExporter>(exporterType: T.Type) -> Bool {
+        interfaceExporterStorage.checkRegisteredExporter(exporterType: exporterType)
     }
 }

@@ -9,7 +9,7 @@
 import Logging
 import Apodini
 
-/// A ``Configuration`` for the ``Logger``.
+/// The `Configuration` for the ``ApodiniLogger``.
 public final class LoggerConfiguration: Configuration {
     /// The storage key for Logging-related information.
     public struct LoggingStorageKey: StorageKey {
@@ -29,36 +29,38 @@ public final class LoggerConfiguration: Configuration {
         }
     }
     
+    /// The globally configured `Logger.Level`
     let logLevel: Logger.Level
+    /// The to be used `LogHandler`'s
     let logHandlers: [(String) -> LogHandler]
+    /// The custom configuration closure that can be used by the developer to set up the to be used`LogHandler`'s
     let configureLogHandlers: () -> Void
     
-    /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers`
+    /// initalize ``LoggerConfiguration`` with the `logLevel` and the to be used backend `LogHandler`'s
+    /// - Parameters:
+    ///   - logHandlers: Arbitrary number of `LogHandler`s that represent the to be used logging backends
+    ///   - logLevel: Specifies the global log level for the ``ApodiniLogger``
     public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
         self.configureLogHandlers = {}
     }
     
-    /// initalize `LoggerConfiguration` with the `logLevel` and the to be used backend `logHandlers` as well as a closure to configure the `logHandlers`
+    /// initalize ``LoggerConfiguration`` with the `logLevel` and the to be used backend `LogHandler`'s
+    /// - Parameters:
+    ///   - logHandlers: Arbitrary number of `LogHandler`s that represent the to be used logging backends
+    ///   - logLevel: Specifies the global log level for the ``ApodiniLogger``
+    ///   - configureLogHandlers: A custom closure that is able to statically set up the to be used `LogHandler`'s
     public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level, configureLogHandlers: @escaping () -> Void) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
         self.configureLogHandlers = configureLogHandlers
     }
     
-    /// Configure application
+    /// Configures the `Application`for the ``ApodiniLogger``
+    /// - Parameter app: The to be configured `Application`
     public func configure(_ app: Application) {
-        // Instanciate exporter
-        let loggerExporter = LoggerExporter(app, self)
-        
-        // Insert exporter into `InterfaceExporterStorage`
-        app.registerExporter(exporter: loggerExporter)
-        
-        // Write configuration to the storage
-        app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
-        
-        // Execute configuration function of LogHandlers
+        // Execute configuration closure of LogHandlers
         self.configureLogHandlers()
         
         // Bootstrap the logging system
@@ -69,5 +71,16 @@ public final class LoggerConfiguration: Configuration {
                 }
             )
         }
+        
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, self)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
+        // Write configuration to the storage
+        app.storage.set(LoggingStorageKey.self, to: LoggingStorageValue(logger: app.logger, configuration: self))
     }
 }

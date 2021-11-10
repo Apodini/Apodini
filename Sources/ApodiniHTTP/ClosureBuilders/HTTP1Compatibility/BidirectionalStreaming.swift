@@ -47,7 +47,7 @@ extension Exporter {
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
                 .cancel(if: { response in
-                    return response.connectionEffect == .close
+                    response.connectionEffect == .close
                 })
                 .collect()
                 .map { (responses: [Apodini.Response<H.Response.Content>]) in

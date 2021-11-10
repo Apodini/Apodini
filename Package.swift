@@ -50,6 +50,7 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniObserveMetricsPrometheus", targets: ["ApodiniObserveMetricsPrometheus"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"])
@@ -58,9 +59,9 @@ let package = Package(
         .package(url: "https://github.com/vapor/vapor.git", from: "4.52.0"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
-        // Used by the `NotificationCenter` to send push notifications to `APNS`.
+        // Used by the `NotificationCenter` to send push notifications to `APNS`
         .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
-        // Used by the `NotificationCenter` to send push notifications to `FCM`.
+        // Used by the `NotificationCenter` to send push notifications to `FCM`
         .package(url: "https://github.com/MihaelIsaev/FCM.git", from: "2.11.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
@@ -74,8 +75,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.16.0"),
         // HTTP/2 support for SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.18.0"),
-        // Swift logging API
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.4")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.1"),
@@ -98,6 +97,15 @@ let package = Package(
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
+        
+        // Apodini Observe
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
+        .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
+        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
+        // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
+        // is versioned and already contains test functionality
+        .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.4")),
@@ -619,7 +627,10 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "Logging", package: "swift-log")
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras")
             ]
         ),
         
@@ -628,6 +639,35 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserveMetricsPrometheus",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniObserveTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .target(name: "ApodiniObserveMetricsPrometheus"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniVaporSupport"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SwiftLogTesting", package: "swift-log-testing"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "MetricsTestUtils", package: "swift-metrics-extras"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus"),
+                .product(name: "XCTVapor", package: "vapor")
             ]
         )
     ]
