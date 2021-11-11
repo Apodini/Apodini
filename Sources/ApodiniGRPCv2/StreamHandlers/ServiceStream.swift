@@ -30,16 +30,7 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
 //                    }
                     do {
                         if let content = response.content {
-//                            print("CONTENT: \(content)")
-//                            let buffer = try! LKProtobufferEncoder().encode(content)
-//                            print(buffer.lk_getAllBytes().description)
-//                            try! ProtobufMessageLayoutDecoder.getFields(in: buffer).debugPrintFieldsInfo()
-//                            if let decodableTy = H.Response.Content.self as? Decodable.Type {
-//                                let decoder = _LKProtobufferDecoder(codingPath: [], buffer: buffer)
-//                                let decoded = try! decodableTy.init(from: decoder)
-//                                print("DECODED: \(decoded)")
-//                            }
-                            let buffer = try! self.encodeResponseIntoProtoMessage(content)
+                            let buffer = try self.encodeResponseIntoProtoMessage(content)
                             responsesStream.write((buffer, closeStream: response.connectionEffect == .close))
                         } else {
                             // TODO presumably this would get turned into an empty DATA frame (followed by the trailers)?

@@ -7,10 +7,11 @@ import Foundation
 private var cachedCodingKeysEnumCases: [ObjectIdentifier: [Runtime.Case]] = [:]
 
 extension CodingKey {
-    func getProtoFieldNumber() -> Int { // TODO we can remove this bc we now require intValue to be nonnil.
+    func getProtoFieldNumber() -> Int {
         if let intValue = self.intValue {
             return intValue
-        } else if let enumCases = cachedCodingKeysEnumCases[ObjectIdentifier(Self.self)] {
+        }
+        if let enumCases = cachedCodingKeysEnumCases[ObjectIdentifier(Self.self)] {
             if let idx = enumCases.firstIndex(where: { $0.name == self.stringValue }) {
                 return idx + 1
             }
@@ -240,5 +241,74 @@ func LKGetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
         return .TYPE_MESSAGE
     } else {
         fatalError("Unsupported type '\(type)'")
+    }
+}
+
+
+
+/// what a type becomes when coding it in protobuf
+enum LKProtoCodingKind {
+    case message
+    case primitive
+    case `enum`
+    // TODO give oneofs a dedicated case here?
+}
+
+/// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
+func LKGetProtoCodingKind(_ type: Any.Type) -> LKProtoCodingKind? {
+    let conformsToMessageProtocol = (type as? LKProtobufferMessage.Type) != nil
+//    if ((type as? Encodable) == nil) || ((type as? Decodable) == nil) {
+//        // A type which conforms neiter to en- nor to decodable
+//    }
+    
+    let isPrimitiveProtoType = (type as? LKProtobufferPrimitive.Type) != nil
+    
+    if type == Never.self {
+        // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
+        return .message
+    }
+    
+    guard (type as? Codable.Type) != nil else {
+        // A type which isn't codable couldn't be en- or decoded in the first place
+        fatalError()
+        return nil
+    }
+    
+    if (type as? LKProtobufferPrimitive.Type) != nil {
+        // The type is a primitive
+        precondition(!conformsToMessageProtocol)
+        return .primitive
+    }
+    
+    guard let TI = try? typeInfo(of: type) else {
+        fatalError()
+        return nil
+    }
+    
+    switch TI.kind {
+    case .struct:
+        // The type is a struct, it is codable, but it is not a primitive.
+        // What is it?
+        // (Jpkes on you i dont know either,,,)
+        
+        // This is the point where we'd like to just be able to assume that it's a message, but I'm not really comfortable w/ thhat...
+        return .message
+        fatalError()
+    case .enum:
+        let isSimpleEnum = (type as? LKAnyProtobufferEnum.Type) != nil
+        let isComplexEnum = (type as? LKAnyProtobufferEnumWithAssociatedValues.Type) != nil
+        switch (isSimpleEnum, isComplexEnum) { // TODO the protocol names  here in the error messages aren't perfectly correct but we can't use the actual one bc reasons
+        case (false, false):
+            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(LKAnyProtobufferEnum.self)' nor to '\(LKAnyProtobufferEnumWithAssociatedValues.self)'")
+        case (true, false):
+            return .enum
+        case (false, true):
+            return .enum // TODO use a dedicated case????
+        case (true, true):
+            fatalError("Invalid enum, type: The '\(LKAnyProtobufferEnum.self)' and '\(LKAnyProtobufferEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
+        }
+    default:
+        // just return nil...!!!
+        fatalError()
     }
 }

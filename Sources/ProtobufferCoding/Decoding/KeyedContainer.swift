@@ -10,9 +10,7 @@ private let fuckingHellThisIsSoBad = ThreadSpecificVariable<Box<Decodable.Type>>
 extension KeyedDecodingContainerProtocol {
     @_disfavoredOverload
     func decode(_ type: Decodable.Type, forKey key: Key) throws -> Decodable {
-        //fatalError("\(#function) not implemented in '\(Self.self)'")
         precondition(fuckingHellThisIsSoBad.currentValue == nil)
-        //fuckingHellThisIsSoBad.currentValue!.value = type
         fuckingHellThisIsSoBad.currentValue = Box(type)
         let helperResult = try decode(LKDecodeTypeErasedDecodableTypeHelper.self, forKey: key)
         precondition(fuckingHellThisIsSoBad.currentValue == nil)
@@ -36,58 +34,32 @@ private struct LKDecodeTypeErasedDecodableTypeHelper: Decodable {
 }
 
 
-
-public struct FakeCodingKey: CodingKey { // TODO better name. Or remove entirely?!!!
-    /// Guaranteed to be non-nil, but has to be nullable to satisfy the `CodingKey` protocol
-    public let intValue: Int?
-    
-    public init(intValue: Int) {
-        self.intValue = intValue
-    }
-    
-    public init?(stringValue: String) {
-        fatalError()
-    }
-    public var stringValue: String {
-        fatalError()
-    }
-}
-
-
-// TODO make internal!
-public struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
-    public let codingPath: [CodingKey]
+struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
+    let codingPath: [CodingKey]
     private let buffer: ByteBuffer
     let fields: LKProtobufFieldsMapping
     
-    public var allKeys: [Key] {
+    var allKeys: [Key] {
         fatalError()
     }
     
-    public init(codingPath: [CodingKey], buffer: ByteBuffer) throws {
+    init(codingPath: [CodingKey], buffer: ByteBuffer) throws {
         self.codingPath = codingPath
         self.buffer = buffer
         self.fields = try ProtobufMessageLayoutDecoder.getFields(in: buffer)
     }
     
-    /// - Note: This will produce unexpected results for some situatioins, e.g. in cases there the absence of a value indicates the presence of an empty value.
-    public func contains(_ key: Key) -> Bool {
-//        guard let intValue = key.intValue else {
-//            // TODO or just return false? If there's no int key, we can't index into the buffer, therefore the buffer doesn't contain the field.
-//            fatalError("CodingKey \(key) has no int value. Required for decoding protobuf messages")
-//        }
-        //precondition(try! key.intValue! == key.defaultProtoRawValue())
+    /// - Note: This will produce unexpected results for some situations, e.g. in cases there the absence of a value indicates the presence of an empty value.
+    func contains(_ key: Key) -> Bool {
         return fields.contains(fieldNumber: key.getProtoFieldNumber())
     }
     
-    public func decodeNil(forKey key: Key) throws -> Bool {
-        // proto3 doesn't have nullable fields, so we just always return false...
+    func decodeNil(forKey key: Key) throws -> Bool {
+        // proto3 doesn't really have nullable fields, so we just always return false...
         return false
-//        // Note: this might pruduce unexpected results when called for
-//        fatalError("Not yet implemented (key: \(key))")
     }
     
-    public func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
+    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return false
         }
@@ -102,47 +74,10 @@ public struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: Keyed
         }
     }
     
-    public func decode(_ type: String.Type, forKey key: Key) throws -> String {
-//        guard let fieldNumber = key.intValue else {
-//            throw DecodingError
-//        }
-//        fatalError("Not yet implemented")
-        //precondition(try! key.intValue! == key.defaultProtoRawValue())
+    func decode(_ type: String.Type, forKey key: Key) throws -> String {
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return ""
         }
-//        switch fieldInfo.valueInfo {
-//        case let .lengthDelimited(length, dataOffset):
-//            guard let bytes = buffer.getBytes(at: fieldInfo.valueOffset + dataOffset, length: length) else {
-//                // NIO says the `getBytes` function only returns nil if the data is not readable
-//                throw DecodingError.dataCorruptedError(in: self, debugDescription: "No data")
-//            }
-//            if let string = String(bytes: bytes, encoding: .utf8) {
-//                return string
-//            } else {
-//                throw DecodingError.dataCorruptedError(
-//                    forKey: key,
-//                    in: self,
-//                    debugDescription: "Cannot decode UTF-8 string from bytes \(bytes.description(maxLength: 25))."
-//                )
-//            }
-////        case let .lengthDelimited(length, dataOffset):
-////            if let string = buffer.getString(at: fieldInfo.valueOffset + dataOffset, length: length, encoding: .utf8) {
-////                return string
-////            } else {
-////                throw DecodingError.dataCorruptedError(
-////                    forKey: key,
-////                    in: self,
-////                    debugDescription: "Unable to decode a UTF-8 string. (Underlying bytes: \(valueBuffer.getBytes(at: 0, length: min(25, valueBuffer.readableBytes)) as Any))"
-////                )
-////            }
-//        case .varInt, ._32Bit, ._64Bit:
-//            throw DecodingError.typeMismatch(String.self, DecodingError.Context(
-//                codingPath: codingPath,
-//                debugDescription: "Cannot read \(String.self) from field with wire type \(fieldInfo.wireType)",
-//                underlyingError: nil
-//            ))
-//        }
         return try _LKTryDeocdeProtoString(
             in: buffer,
             fieldValueInfo: fieldInfo.valueInfo,
@@ -152,107 +87,96 @@ public struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: Keyed
                 DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: errorDesc)
             }
         )
-//        return try _LKTryDeocdeProtoString(in: buffer, fieldInfo: fieldInfo, codingPath: codingPath, makeDataCorruptedError: { errorDescription in
-//            DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: errorDescription)
-//        })
     }
     
-    public func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
+    func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
+    func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return 0 // TODO is this the right approach?
         }
         return Int(try buffer.getVarInt(at: fieldInfo.valueOffset))
+    }
+    
+    func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
+    func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
-    }
-    
-    public func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
+    func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return 0
         }
         return Int32(try buffer.getVarInt(at: fieldInfo.valueOffset))
     }
     
-    public func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
+    func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
+    func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
+    func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
+    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
+    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
+    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
     //@_disfavoredOverload
-    public func decode<T: Decodable>(_: T.Type, forKey key: Key) throws -> T {
+    func decode<T: Decodable>(_: T.Type, forKey key: Key) throws -> T {
         try _decode(T.self, forKey: key, keyOffset: nil) as! T
     }
     
     
     //@_disfavoredOverload
-    public func decode<T: Decodable>(_: T.Type, forKey key: Key, keyOffset: Int?) throws -> T {
+    func decode<T: Decodable>(_: T.Type, forKey key: Key, keyOffset: Int?) throws -> T {
         try _decode(T.self, forKey: key, keyOffset: keyOffset) as! T
     }
     
     
     
-    public func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
+    func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
         fatalError("Not yet implemented (type: \(type), key: \(key))")
     }
     
-    public func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+    func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         fatalError("Not yet implemented (key: \(key))")
     }
     
-    public func superDecoder() throws -> Decoder {
+    func superDecoder() throws -> Decoder {
         fatalError("Not yet implemented")
     }
     
-    public func superDecoder(forKey key: Key) throws -> Decoder {
+    func superDecoder(forKey key: Key) throws -> Decoder {
         fatalError("Not yet implemented (key: \(key))")
     }
     
     
     // MARK: the type stuff
     
-    private func getFieldInfoAndBytes(forKey key: Any, atOffset keyOffset: Int?) throws -> (fieldInfo: LKProtobufFieldsMapping.FieldInfo, fieldBytes: ByteBuffer) {
-        guard let key = key as? Key else {
-            fatalError() // TODO throw!
-        }
-//        guard let fieldNumber = key.intValue else {
-//            fatalError()
-//        }
+    private func getFieldInfoAndBytes(forKey key: Key, atOffset keyOffset: Int?) throws -> (fieldInfo: LKProtobufFieldsMapping.FieldInfo, fieldBytes: ByteBuffer) {
         let fieldNumber = key.getProtoFieldNumber()
-        //precondition(try! key.intValue! == key.defaultProtoRawValue())
         guard fieldNumber > 0 else {
             fatalError()
         }
@@ -262,17 +186,15 @@ public struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: Keyed
         } else {
             fieldInfo = fields.getLast(forFieldNumber: fieldNumber)
         }
-        //guard let fieldInfo = fields.getLast(forFieldNumber: fieldNumber) else {
-        //    fatalError()
-        //}
         guard let fieldInfo = fieldInfo else {
             fatalError()
         }
         return (fieldInfo, buffer.getSlice(at: fieldInfo.keyOffset, length: fieldInfo.fieldLength)!)
     }
     
+    
     private func getFieldInfoAndValueBytes(
-        forKey key: Any,
+        forKey key: Key,
         atOffset keyOffset: Int?
     ) throws -> (fieldInfo: LKProtobufFieldsMapping.FieldInfo, valueBytes: ByteBuffer) {
         let (fieldInfo, fieldBytes) = try getFieldInfoAndBytes(forKey: key, atOffset: keyOffset)
@@ -281,10 +203,7 @@ public struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: Keyed
     }
     
     
-    public func _decode(_ type: Decodable.Type, forKey key: Key, keyOffset: Int?) throws -> Any {
-        guard let key = key as? Key else {
-            fatalError("Got invalid key")
-        }
+    func _decode(_ type: Decodable.Type, forKey key: Key, keyOffset: Int?) throws -> Any {
         //try decode(T.self, for) as! T
         if type == LKDecodeTypeErasedDecodableTypeHelper.self {
         //if T.self is LKDecodeTypeErasedDecodableTypeHelper.Type {

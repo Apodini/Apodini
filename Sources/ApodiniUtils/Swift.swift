@@ -243,4 +243,32 @@ extension Array {
         }
         return desc + "]"
     }
+    
+    /// Removes the first occurrence of the specified object from the array.
+    /// - returns: The index from which the object was removed, `nil` if the object was not found in the array
+    @discardableResult
+    public mutating func removeFirstOccurrence(of element: Element) -> Int? where Element: Equatable {
+        if let idx = firstIndex(of: element) {
+            remove(at: idx)
+            return idx
+        } else {
+            return nil
+        }
+    }
+    
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S>(_ other: S) where Element: Hashable, S: Sequence, S.Element == Element {
+        let otherAsSet = Set(other)
+        self = filter { !otherAsSet.contains($0) }
+    }
+    
+    
+    /// Performs an in-place map operation.
+    public mutating func mapInPlace(_ transform: (inout Element) throws -> Void) rethrows {
+        for idx in indices {
+            var element = self[idx]
+            try transform(&element)
+            self[idx] = element
+        }
+    }
 }

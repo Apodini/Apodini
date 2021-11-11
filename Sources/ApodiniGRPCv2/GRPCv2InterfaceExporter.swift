@@ -280,22 +280,11 @@ private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDec
         case .builtinEmptyType, .enumTy, .primitive, .refdMessageType:
             fatalError()
         case let .compositeMessage(name: _, underlyingType: _, nestedOneofTypes: _, fields):
-            guard let fieldNumber = fields.first(where: { $0.name == name })?.fieldNumber else {
+            guard let field = fields.first(where: { $0.name == name }) else {
                 fatalError() // TODO throw
             }
-            // TODO use a struct to decode this instead of directly accessing the internal decoder!!
-            let decoder = _LKProtobufferDecoder(codingPath: [], buffer: input.payload)
-            let keyedDecoder = try decoder.container(keyedBy: FakeCodingKey.self) // TODO maybe cache this instead of re-running the thing for every param request?! (the issue is that the keyedDecoder will read the message's proto format)
-            return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldNumber))
-            //fatalError("-[\(Self.self) \(#function)] name: \(name), input: \(input)")
+            return try LKProtobufferDecoder().decode(T.self, from: input.payload, atField: field)
         }
-//        guard let fieldNumber = endpointContext.fieldNumber(forParamName: name) else {
-//            fatalError() // TODO throw
-//        }
-//        let decoder = _LKProtobufferDecoder(codingPath: [], buffer: input.payload)
-//        let keyedDecoder = try decoder.container(keyedBy: FakeCodingKey.self) // TODO maybe cache this instead of re-running the thing for every param request?! (the issue is that the keyedDecoder will read the message's proto format)
-//        return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldNumber))
-//        //fatalError("-[\(Self.self) \(#function)] name: \(name), input: \(input)")
     }
 }
 

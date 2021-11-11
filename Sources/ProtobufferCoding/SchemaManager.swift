@@ -1,5 +1,6 @@
 import Foundation
 import Apodini
+import ApodiniUtils
 @_implementationOnly import Runtime
 
 
@@ -14,44 +15,6 @@ extension __ProtoNS_Google_Protobuf {
 }
 
 
-//protocol __LKProtobufferCodableBase {
-//    associatedtype CodingKeys: RawRepresentable & LKProtobufferMessageCodingKeys & CaseIterable where Self.CodingKeys.RawValue == Int
-//}
-//
-//protocol LKProtobufferEncodable: Encodable & __LKProtobufferCodableBase {}
-//protocol LKProtobufferDecodable: Decodable & __LKProtobufferCodableBase {}
-//typealias LKProtobufferCodable = LKProtobufferEncodable & LKProtobufferDecodable
-
-
-
-//extension LKProtobufferMessage where Self: LKProtobufferEncodable {
-//    static func getCodingKeysType() -> LKProtobufferMessageCodingKeys.Type {
-//        Self.CodingKeys.self
-//    }
-//}
-//
-//extension LKProtobufferMessage where Self: LKProtobufferDecodable {
-//    static func getCodingKeysType() -> LKProtobufferMessageCodingKeys.Type {
-//        Self.CodingKeys.self
-//    }
-//}
-
-
-
-protocol AnyGRPCv2ScalarWrappingMessage: Codable, LKProtobufferMessage {
-    init(value: Any)
-}
-
-
-struct GRPCv2ScalarWrappingMessage<T: Codable>: Codable, LKProtobufferMessage {
-    let value: T
-    
-    enum CodingKeys: Int, CodingKey {
-        case value = 1
-    }
-}
-
-
 
 // Used to unify the typename handling for messages and enums
 private protocol __LKProtoTypeDescriptorProtocol {
@@ -60,12 +23,6 @@ private protocol __LKProtoTypeDescriptorProtocol {
 extension DescriptorProto: __LKProtoTypeDescriptorProtocol {}
 extension EnumDescriptorProto: __LKProtoTypeDescriptorProtocol {}
 
-//enum GRPCv2HandlerParamsProtobufferMessageType {
-//    /// google.protobuf.Empty
-//    case builtinEmptyType
-//    case messageType(LKProtobufferMessage.Type)
-//    case compositeMessageType([String: Any]) // TODO make this indirect and map onto the enum?
-//}
 
 
 
@@ -151,11 +108,6 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
     case primitive(LKProtobufferPrimitive.Type) // TOdO set the type to LKProtoPrimitive.Type
     /// `google.protobuf.Empty`
     case builtinEmptyType
-    //case bytes // TODO or just model this as .primitive([UInt8].self)?
-//    /// A type which is already a protobuffer message type in its own right.
-//    case messageType(name: String, underlying: Any.Type)
-    //case wrappingPrimitive(name: String, LKProtobufferPrimitive.Type) // TODO!!!!
-    //indirect case compositeMessage(name: String, underlying: Any.Type?, fields: [String: ProtoTypeDerivedFromSwift]) // TOdO rename to just message?
     indirect case compositeMessage(name: Typename, underlyingType: Any.Type?, nestedOneofTypes: [OneofType], fields: [MessageField]) // TOdO rename to just message?
     case enumTy(name: Typename, enumType: LKAnyProtobufferEnum.Type, cases: [EnumCase]) // TODO set the type to LKProtoEnum or whatever its called!
     
@@ -189,7 +141,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.isEqual(to: rhs, onlyCheckSemanticEquivalence: true)
+        lhs.isEqual(to: rhs, onlyCheckSemanticEquivalence: false)
     }
     
     /// - parameter onlyCheckSemanticEquivalence: whether the equality checking should be relaxed to return true if two objects are structurally different, but semantically equivalent. (e.g.: comparing a message type ref to a message type with the same name)
@@ -280,76 +232,8 @@ struct Counter {
 
 
 
-//struct TypenameInfo {
-//    let fullyQualifiedTypename: String
-//    let moduleName: String
-//    let simpleTypename: String
-//    let nameWithoutModule: String
-//
-//    init(_ type: Any.Type) {
-//        let fullTypename = String(reflecting: type)
-//        fullyQualifiedTypename = fullTypename
-//        let components = fullTypename
-//            .components(separatedBy: ".")
-//            .filter { !$0.hasPrefix("(unknown context at") }
-//        precondition(!components.contains { $0.hasPrefix("(unknown context at") })
-//        moduleName = components.first!
-//        simpleTypename = components.last!
-//        nameWithoutModule = components.count > 1 ? components.dropFirst().joined(separator: ".") : components[0]
-//    }
-//}
 
-//struct TypenameInfo {
-//    let fullyQualifiedTypename: String
-//    let moduleName: String
-//    let simpleTypename: String
-//    //let nameWithoutModule: String
-//
-//    init(_ type: Any.Type) {
-//        let fullTypename = String(reflecting: type)
-//        let components = fullTypename
-//            .components(separatedBy: ".")
-//            .filter { !$0.hasPrefix("(unknown context at") }
-//        if let protonNamespaceType = type as? __Proto_TypeInNamespace.Type {
-//            fullyQualifiedTypename = "[\(protonNamespaceType.namespace)].\(components.dropFirst().joined(separator: "."))"
-//        } else {
-//            fullyQualifiedTypename = fullTypename
-//        }
-//        moduleName = components.first!
-//        simpleTypename = components.last!
-//        //nameWithoutModule = components.count > 1 ? components.dropFirst().joined(separator: ".") : components[0]
-//    }
-//}
-
-
-public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just ProtoSchema!
-    func getTypename(_ type: Any.Type) -> ProtoTypeDerivedFromSwift.Typename {
-        let typenameComponents = String(reflecting: type)
-            .components(separatedBy: ".")
-            .filter { !$0.hasPrefix("(unknown context at") }
-        return ProtoTypeDerivedFromSwift.Typename(
-            packageName: { () -> String in
-                if let namespacedTy = type as? __Proto_TypeInNamespace.Type {
-                    return namespacedTy.namespace
-                } else {
-                    return self.defaultPackageName
-                }
-            }(),
-            //typename: typenameComponents.dropFirst().joined(separator: ".")
-            typename: {
-                var components = Array(typenameComponents.dropFirst())
-                precondition(!components.isEmpty)
-                if let typeWithCustomTypenameTy = type as? __Proto_TypeWithCustomProtoName.Type {
-                    components[components.endIndex - 1] = typeWithCustomTypenameTy.protoTypeName
-                }
-                return components.joined(separator: ".")
-            }()
-        )
-    }
-    
-//    private static var hardcodedTypenamePrefixes: [ObjectIdentifier: String] = [
-//        //ObjectIdentifier(FileDescriptorProto.self): "grpc.reflection.v1alpha"
-//    ]
+public class ProtoSchema {
     // Key: Handler type
     private var endpointMessageMappings: [ObjectIdentifier: EndpointProtoMessageTypes] = [:]
     private var messageTypesTypenameCounter = Counter()
@@ -511,6 +395,31 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
     }
     
     
+    private func getTypename(_ type: Any.Type) -> ProtoTypeDerivedFromSwift.Typename {
+        let typenameComponents = String(reflecting: type)
+            .components(separatedBy: ".")
+            .filter { !$0.hasPrefix("(unknown context at") }
+        return ProtoTypeDerivedFromSwift.Typename(
+            packageName: { () -> String in
+                if let namespacedTy = type as? __Proto_TypeInNamespace.Type {
+                    return namespacedTy.namespace
+                } else {
+                    return self.defaultPackageName
+                }
+            }(),
+            //typename: typenameComponents.dropFirst().joined(separator: ".")
+            typename: {
+                var components = Array(typenameComponents.dropFirst())
+                precondition(!components.isEmpty)
+                if let typeWithCustomTypenameTy = type as? __Proto_TypeWithCustomProtoName.Type {
+                    components[components.endIndex - 1] = typeWithCustomTypenameTy.protoTypeName
+                }
+                return components.joined(separator: ".")
+            }()
+        )
+    }
+    
+    
     @discardableResult
     private func collectTypes(in protoType: ProtoTypeDerivedFromSwift) -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
@@ -554,20 +463,13 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
         underlyingType: Any.Type?,
         elements: [(String, Any.Type)]
     ) -> ProtoTypeDerivedFromSwift {
-//        let allElements: [(String, Any.Type)] = elements.flatMap { (name, type) in
-//            if let assocEnumTy = type as? LKAnyProtobufferEnumWithAssociatedValues.Type {
-//            } else {
-//                return [(name, type)]
-//            }
-//        }
-        
         let underlyingTypeFieldNumbersMapping: [String: Int]? = {
             guard let messageTy = underlyingType as? LKAnyProtobufferCodableWithCustomFieldMapping.Type else {
                 return nil
             }
+            // intentionally not using the getProtoFieldNumber thing here bc the user -- by declaring conformance to the LKAnyProtobufferCodableWithCustomFieldMapping protocol --- has stated that they want to provide a custom mapping (which we expect to be nonnil)
             return .init(uniqueKeysWithValues: messageTy.getCodingKeysType().allCases.map { ($0.stringValue, $0.intValue!) })
         }()
-        
         let (allElements, nestedOneofTypes) = elements.enumerated().reduce(
             into: ([], []) as (Set<ProtoTypeDerivedFromSwift.MessageField>, Set<ProtoTypeDerivedFromSwift.OneofType>)
         ) { (partialResult, arg0) in
@@ -580,6 +482,7 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
                 let TI = try! typeInfo(of: assocEnumTy)
                 precondition(TI.kind == .enum)
                 let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: assocEnumTy.getCodingKeysType().allCases.map {
+                    // intentionally not using the getProtoFieldNumber thing here bc the LKAnyProtobufferEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
                     ($0.stringValue, $0.intValue!)
                 })
                 newFields = TI.cases.map { enumCase in
@@ -593,8 +496,6 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
                     )
                 }
                 precondition(partialResult.1.insert(ProtoTypeDerivedFromSwift.OneofType(
-                    //name: ".\(TypenameInfo(assocEnumTy).nameWithoutModule)",
-                    //name: ".\(TypenameInfo(assocEnumTy).fullyQualifiedTypename)",
                     name: getTypename(assocEnumTy).typename, // TODO is this the correct property to use here?
                     underlyingType: assocEnumTy,
                     fields: newFields
@@ -627,71 +528,13 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
                 precondition(partialResult.0.insert(field).inserted, "Duplicate fields in message!") // TODO better error here!
             }
         }
-        
-//        if let endpointContext = endpointContext {
-//            for messageField in allElements {
-//                endpointContext.addMapping(fromParamName: messageField.name, toFieldNumber: messageField.fieldNumber)
-//            }
-//        }
-        
         return .compositeMessage(
             name: typename,
             underlyingType: underlyingType,
             nestedOneofTypes: Array(nestedOneofTypes),
             fields: Array(allElements)
         )
-        
-        
-//        let codingKeysTy = enumTy.getCodingKeysType()
-//        let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: codingKeysTy.allCases.map {
-//            ($0.stringValue, $0.intValue!)
-//        })
-//        return cacheRetval(.oneof(name: typenameWithoutModule, underlyingType: enumTy, fields: TI.cases.map { enumCase in
-//            precondition((enumCase.payloadType as? __LKProtobufRepeatedValueCodable.Type) == nil)
-//            return ProtoTypeDerivedFromSwift.MessageField(
-//                name: enumCase.name,
-//                fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
-//                type: protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false),
-//                isRepeated: false // TODO is repetition inside a oneof allowed?
-//            )
-//        }))
-//
-//        return .compositeMessage(
-//            name: typename,
-//            underlyingType: underlyingType,
-//            nestedOneofTypes: <#T##Set<ProtoTypeDerivedFromSwift.OneofType>#>,
-//            fields: <#T##[ProtoTypeDerivedFromSwift.MessageField]#>
-//        )
-//
-//        return .compositeMessage(name: typename, underlying: underlying, fields: elements.enumerated().map { (idx, element) in
-//            let (name, type) = element
-//            return .init(
-//                name: name,
-//                fieldNumber: idx + 1,
-//                //type: protoType(for: type, allowPrimitiveOutput: true),
-//                type: { () -> ProtoTypeDerivedFromSwift in
-//                    if let repeatedType = type as? __LKProtobufRepeatedValueCodable.Type, (type as? __LKProtobufferBytesMappedType.Type) == nil {
-//                        return protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
-//                    } else {
-//                        return protoType(for: type, requireTopLevelCompatibleOutput: false)
-//                    }
-//                }(),
-//                isRepeated: (type as? __LKProtobufRepeatedValueCodable.Type) != nil
-//            )
-//        })
     }
-    
-    
-    
-//    func getFullTypename(_ type: Any.Type) -> String {
-//        String(reflecting: type)
-//    }
-//
-//    func getTypenameWithoutModule(_ type: Any.Type) -> String {
-//        String(getFullTypename(type).drop(while: { $0 != "." }))
-//    }
-    
-    
     
     
     private struct CachedProtoTypeResult: Hashable {
@@ -900,60 +743,23 @@ public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just Pro
                     precondition($0.0.name == String(String(reflecting: $0.1).split(separator: ".").last!))
                     return .init(name: $0.0.name, value: $0.1.rawValue)
                 }
-                //return cacheRetval(.enumTy(name: ".\(typenameInfo.nameWithoutModule)", enumType: type, cases: enumCases))
-                //return cacheRetval(.enumTy(name: ".\(typenameInfo.fullyQualifiedTypename)", enumType: type, cases: enumCases))
                 if requireTopLevelCompatibleOutput {
                     fatalError()
                 } else {
                     return cacheRetval(.enumTy(name: typename, enumType: enumTy, cases: enumCases))
                 }
             } else if let enumTy = type as? LKAnyProtobufferEnumWithAssociatedValues.Type {
-                fatalError() // shouldn't end up here anymore since enums w/ assoc values are handled as part of processing a message's fields into a composite.
-//                let codingKeysTy = enumTy.getCodingKeysType()
-//                let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: codingKeysTy.allCases.map {
-//                    ($0.stringValue, $0.intValue!)
-//                })
-//                return cacheRetval(.oneof(name: typenameWithoutModule, underlyingType: enumTy, fields: TI.cases.map { enumCase in
-//                    precondition((enumCase.payloadType as? __LKProtobufRepeatedValueCodable.Type) == nil)
-//                    return ProtoTypeDerivedFromSwift.MessageField(
-//                        name: enumCase.name,
-//                        fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
-//                        type: protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false),
-//                        isRepeated: false // TODO is repetition inside a oneof allowed?
-//                    )
-//                }))
+                fatalError() // shouldn't end up here since enums w/ assoc values are handled as part of processing a message's fields into a composite.
+            } else {
+                fatalError("Encountered an enum type which implements neither '\(LKAnyProtobufferEnum.self)' nor '\(LKAnyProtobufferEnumWithAssociatedValues.self)'. This is highly irregular.")
             }
-            fatalError()
         }
-//        if let messageType = type as? LKProtobufferMessage.Type {
-//            return .messageType(messageType)
-//        } else if let protobufferPrimitiveType = type as? LKProtobufferPrimitive.Type {
-//            return .wrappingPrimitive(protobufferPrimitiveType)
-//        } else if let TI = try? typeInfo(of: type) {
-//            switch TI.kind {
-//            case .struct:
-//                if TI.properties.isEmpty {
-//                    return .builtinEmptyType
-//                } else {
-//                    // It's a struct. IT's non-empty. We have to somehow handle this.
-//                    print(type)
-//                    fatalError()
-//                }
-//            case .enum:
-//                // TODO. this one is indeed a bit tricky bc we have to a) handle the enum, and b) also introduce a enum type into the proto thing
-//                // ALSO, we have to make sure that the enum uses int raw values. Can we access these? We might need to require the enum be CaseIterable. Which would break enums w/ assoc values... fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck fuck
-//                fatalError() // TODO
-//            default:
-//                fatalError("TI kind \(TI.kind) is not supported (atm)")
-//            }
-//        } else {
-//            // fuck
-//            fatalError("TODO???")
-//        }
     }
 }
 
 
+
+// TODO optional detection. should move this to the utils target. probably already have the exact same thing there.
 
 protocol AnyOptional {
     static var wrappedType: Any.Type { get }
@@ -965,7 +771,7 @@ extension Optional: AnyOptional {
 
 
 
-extension GRPCv2SchemaManager {
+extension ProtoSchema {
     /// Seals the schema, i.e. not allowing any further types to be added, and resolves the types that have been added so far into a proto descriptor
     public func finalize() {
         guard !isFinalized else {
@@ -990,18 +796,16 @@ extension GRPCv2SchemaManager {
                 }
                 return EnumDescriptorProto(
                     name: typename.mangled, // We keep the full typename since we need that for the type containment checks...
-                    //values: <#T##[EnumValueDescriptorProto]#>,
                     values: { () -> [EnumValueDescriptorProto] in
                         cases.map { enumCase -> EnumValueDescriptorProto in
                             EnumValueDescriptorProto(
                                 name: enumCase.name,
                                 number: enumCase.value,
-                                options: nil//<#T##EnumValueOptions?#> // TODO we could use this to mark enum cases as deprecated, although there's no way of reading e.g. a swift @deprecatd annotation, so that's probably not overly useful...
+                                options: nil // NOTE we could use this to mark enum cases as deprecated, although there's no way of reading e.g. a swift @deprecatd annotation, so that's probably not overly useful...
                             )
                         }
                     }(),
-                    options: nil, // <#T##EnumOptions?#>,
-                    //reservedRanges: <#T##[EnumDescriptorProto.EnumReservedRange]#>,
+                    options: nil,
                     reservedRanges: { () -> [EnumDescriptorProto.EnumReservedRange] in
                         if let protoEnumTy = enumType as? LKAnyProtobufferEnum.Type {
                             return protoEnumTy.reservedRanges.map { .init(start: $0.lowerBound, end: $0.upperBound) }
@@ -1097,27 +901,7 @@ extension GRPCv2SchemaManager {
                 return msgTypeDesc
             }
         }
-        
-//        func handleTopLevelTypes<T: __LKProtoTypeDescriptorProtocol>(_ array: inout [T]) {
-//            array.mapInPlace { typeDesc in
-//                let name = typeDesc.name
-//                let nameComponents = name.split(separator: ".")
-//                precondition(name.hasPrefix(".") && nameComponents.count == 1 && nameComponents[0] == name.dropFirst())
-//                typeDesc.name = String(nameComponents[0])
-//            }
-//            array.sort(by: \.name)
-//        }
-//
-//        handleTopLevelTypes(&finalisedTopLevelEnumTypes)
-//        handleTopLevelTypes(&finalisedTopLevelMessageTypes)
     }
-    
-    
-//    private func getPAckageName(_ string: String) -> String {
-//        let endIdx = string.firstIndex(of: "]")!
-//        let packageName = string[string.index(after: string.startIndex)..<endIdx]
-//        return String(packageName)
-//    }
     
     
     private func getParentTypename(_ typename: String) -> String? {
@@ -1139,10 +923,6 @@ extension GRPCv2SchemaManager {
             return .init(packageName: typename.packageName, typename: components.dropLast().joined(separator: "."))
         }
     }
-    
-//    private func getLastTypenameComponent(_ typename: String) -> String {
-//        return String(typename.split(separator: ".").last!)
-//    }
     
     
     private func mapMessageType(_ protoType: ProtoTypeDerivedFromSwift, topLevelEnumTypes: inout [EnumDescriptorProto]) -> DescriptorProto? {
@@ -1169,12 +949,10 @@ extension GRPCv2SchemaManager {
             }
             return DescriptorProto(
                 name: messageTypename.mangled, // Same as with enums, we intentionally keep the full name so that the type containment handling works correctly.
-                //fields: <#T##[FieldDescriptorProto]#>,
                 fields: fields.map { field -> FieldDescriptorProto in
                     FieldDescriptorProto(
                         name: field.name,
                         number: Int32(fieldNumbersMapping[field.name]!),
-                        //label: nil, // <#T##FieldDescriptorProto.Label?#> optional/repeated/required
                         label: { () -> FieldDescriptorProto.Label? in
                             // TODO this is where we need to detect arrays and turn them into a repeated field! (and also we probably should adjust the name, although that shouldn't be happening here but rather in the type napper.
                             if field.isRepeated {
@@ -1183,7 +961,6 @@ extension GRPCv2SchemaManager {
                                 return nil
                             }
                         }(),
-                        //type: <#T##FieldDescriptorProto.FieldType?#>,
                         type: { () -> FieldDescriptorProto.FieldType? in
                             switch field.type {
                             case .builtinEmptyType:
@@ -1212,8 +989,8 @@ extension GRPCv2SchemaManager {
                                 return typename.fullyQualified
                             }
                         }(),
-                        extendee: nil, //<#T##String?#>,
-                        defaultValue: nil, //<#T##String?#>,
+                        extendee: nil,
+                        defaultValue: nil, //<#T##String?#>, // TODO?
                         oneofIndex: { () -> Int32? in
                             // If set, gives the index of a oneof in the containing type's oneof_decl
                             // list.  This field is a member of that oneof.
@@ -1271,9 +1048,8 @@ extension GRPCv2SchemaManager {
                         proto3Optional: false
                     )
                 },
-                extensions: [], //<#T##[FieldDescriptorProto]#>,
-                nestedTypes: [], // <#T##[DescriptorProto]#>, // TODO!!!!
-                //enumTypes: [], //<#T##[EnumDescriptorProto]#>,
+                extensions: [],
+                nestedTypes: [],
                 enumTypes: { () -> [EnumDescriptorProto] in
                     // All enum types nested in this message.
                     // Other than nested messages, this is actually simple to obtain (because we first process enums, meaning that by the time we end up here, we already have all enums processed.
@@ -1311,7 +1087,7 @@ extension GRPCv2SchemaManager {
                         )
                     }
                 }(),
-                extensionRanges: [], // <#T##[DescriptorProto.ExtensionRange]#>,
+                extensionRanges: [],
                 oneofDecls: { () -> [OneofDescriptorProto] in
                     nestedOneofTypes.map { oneofType -> OneofDescriptorProto in
                         OneofDescriptorProto(
@@ -1320,204 +1096,10 @@ extension GRPCv2SchemaManager {
                         )
                     }
                 }(),
-                options: nil, //<#T##MessageOptions?#>,
+                options: nil,
                 reservedRanges: [], // <#T##[DescriptorProto.ReservedRange]#>, // TODO is this somewhing we want to support? would be trivial to add to the Message protocol...
                 reservedNames: [] // <#T##[String]#> // same as reservedRanges above...
             )
-        }
-    }
-}
-
-
-
-
-
-
-
-// MARK: OTHER
-
-
-
-
-
-/// what a type becomes when coding it in protobuf
-enum LKProtoCodingKind {
-    case message
-    case primitive
-    case `enum`
-    // TODO give oneofs a dedicated case here?
-}
-
-/// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
-func LKGetProtoCodingKind(_ type: Any.Type) -> LKProtoCodingKind? {
-    let conformsToMessageProtocol = (type as? LKProtobufferMessage.Type) != nil
-//    if ((type as? Encodable) == nil) || ((type as? Decodable) == nil) {
-//        // A type which conforms neiter to en- nor to decodable
-//    }
-    
-    let isPrimitiveProtoType = (type as? LKProtobufferPrimitive.Type) != nil
-    
-    if type == Never.self {
-        // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
-        return .message
-    }
-    
-    guard (type as? Codable.Type) != nil else {
-        // A type which isn't codable couldn't be en- or decoded in the first place
-        fatalError()
-        return nil
-    }
-    
-    if (type as? LKProtobufferPrimitive.Type) != nil {
-        // The type is a primitive
-        precondition(!conformsToMessageProtocol)
-        return .primitive
-    }
-    
-    guard let TI = try? typeInfo(of: type) else {
-        fatalError()
-        return nil
-    }
-    
-    switch TI.kind {
-    case .struct:
-        // The type is a struct, it is codable, but it is not a primitive.
-        // What is it?
-        // (Jpkes on you i dont know either,,,)
-        
-        // This is the point where we'd like to just be able to assume that it's a message, but I'm not really comfortable w/ thhat...
-        return .message
-        fatalError()
-    case .enum:
-        let isSimpleEnum = (type as? LKAnyProtobufferEnum.Type) != nil
-        let isComplexEnum = (type as? LKAnyProtobufferEnumWithAssociatedValues.Type) != nil
-        switch (isSimpleEnum, isComplexEnum) { // TODO the protocol names  here in the error messages aren't perfectly correct but we can't use the actual one bc reasons
-        case (false, false):
-            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(LKAnyProtobufferEnum.self)' nor to '\(LKAnyProtobufferEnumWithAssociatedValues.self)'")
-        case (true, false):
-            return .enum
-        case (false, true):
-            return .enum // TODO use a dedicated case????
-        case (true, true):
-            fatalError("Invalid enum, type: The '\(LKAnyProtobufferEnum.self)' and '\(LKAnyProtobufferEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
-        }
-    default:
-        // just return nil...!!!
-        fatalError()
-    }
-}
-
-
-
-
-// MARK: Utilz
-
-struct Stack<Element> {
-    private var storage: [Element]
-    
-    init() {
-        storage = []
-    }
-    
-    init<S>(_ other: S) where S: Sequence, S.Element == Element {
-        storage = Array(other)
-    }
-    
-    
-    var isEmpty: Bool { storage.isEmpty }
-    var count: Int { storage.count }
-    
-    mutating func push(_ element: Element) {
-        storage.append(element)
-    }
-    
-    @discardableResult
-    mutating func pop() -> Element? {
-        guard !isEmpty else {
-            return nil
-        }
-        return storage.removeLast()
-    }
-    
-    func peek() -> Element? {
-        storage.last
-    }
-}
-
-extension Stack: ExpressibleByArrayLiteral {
-    init(arrayLiteral elements: Element...) {
-        self.init(elements)
-    }
-}
-
-
-extension Stack: Collection {
-    typealias Index = Array<Element>.Index
-    
-    var startIndex: Index {
-        storage.startIndex
-    }
-    
-    var endIndex: Index {
-        storage.endIndex
-    }
-    
-    subscript(index: Index) -> Element {
-        storage[index]
-    }
-    
-    func index(after idx: Index) -> Index {
-        storage.index(after: idx)
-    }
-}
-
-
-extension Stack where Element == Any.Type {
-    func contains(_ other: Element) -> Bool {
-        let identifier = ObjectIdentifier(other)
-        return contains { ObjectIdentifier($0) == identifier }
-    }
-}
-
-
-
-
-
-extension Array {
-    /// Removes the first occurrence of the specified object from the array.
-    /// - returns: The index from which the object was removed, `nil` if the object was not found in the array
-    @discardableResult
-    mutating func removeFirstOccurrence(of element: Element) -> Int? where Element: Equatable {
-        if let idx = firstIndex(of: element) {
-            remove(at: idx)
-            return idx
-        } else {
-            return nil
-        }
-    }
-    
-    mutating func subtract<S>(_ other: S) where Element: Hashable, S: Sequence, S.Element == Element {
-        let otherAsSet = Set(other)
-        self = filter { !otherAsSet.contains($0) }
-    }
-    
-    
-    mutating func mapInPlace(_ transform: (inout Element) throws -> Void) rethrows {
-        for idx in indices {
-            var element = self[idx]
-            try transform(&element)
-            self[idx] = element
-        }
-    }
-}
-
-
-extension Dictionary {
-    mutating func mapValuesInPlace(_ transform: (Key, inout Value) throws -> Void) rethrows {
-        for key in keys {
-            var value = self[key]!
-            try transform(key, &value)
-            self[key] = value
         }
     }
 }

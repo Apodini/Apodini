@@ -17,22 +17,32 @@ public struct LKProtobufferDecoder {
         let decoder = _LKProtobufferDecoder(codingPath: [], buffer: buffer)
         return try T(from: decoder)
     }
+    
+    public func decode<T: Decodable>(
+        _: T.Type,
+        from buffer: ByteBuffer,
+        atField fieldInfo: ProtoTypeDerivedFromSwift.MessageField
+    ) throws -> T {
+        let decoder = _LKProtobufferDecoder(codingPath: [], buffer: buffer)
+        let keyedDecoder = try decoder.container(keyedBy: FakeCodingKey.self)
+        return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber))
+    }
 }
 
 
 // TODO make internal!
-public class _LKProtobufferDecoder: Decoder {
-    public let codingPath: [CodingKey]
-    public let userInfo: [CodingUserInfoKey : Any]
-    public let buffer: ByteBuffer
+class _LKProtobufferDecoder: Decoder {
+    let codingPath: [CodingKey]
+    let userInfo: [CodingUserInfoKey : Any]
+    let buffer: ByteBuffer
     
-    public init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], buffer: ByteBuffer) {
+    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], buffer: ByteBuffer) {
         self.codingPath = codingPath
         self.userInfo = userInfo
         self.buffer = buffer
     }
     
-    public func container<Key: CodingKey>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
+    func container<Key: CodingKey>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
 //        print("-[\(Self.self) \(#function)] \(type)")
         return try KeyedDecodingContainer(_LKProtobufferDecoderKeyedDecodingContainer<Key>(
             codingPath: self.codingPath,
@@ -40,16 +50,16 @@ public class _LKProtobufferDecoder: Decoder {
         ))
     }
     
-    public func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         fatalError("Not (yet?) implemented")
     }
     
-    public func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
         // NOTE: We really don't want to end up here, except for cases where the caller knows what it's doing.
         return LKProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
     }
     
-    public func _internalContainer<Key: CodingKey>(keyedBy _: Key.Type) throws -> _LKProtobufferDecoderKeyedDecodingContainer<Key> {
+    func _internalContainer<Key: CodingKey>(keyedBy _: Key.Type) throws -> _LKProtobufferDecoderKeyedDecodingContainer<Key> {
         return try _LKProtobufferDecoderKeyedDecodingContainer<Key>(codingPath: codingPath, buffer: buffer)
     }
 }

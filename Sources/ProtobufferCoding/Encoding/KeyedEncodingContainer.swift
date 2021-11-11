@@ -87,14 +87,8 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
             // Empty strings are simply omitted from the buffer
             return
         }
-        //dataWriter.writeKey(forFieldNumber: key.intValue!, wireType: .lengthDelimited)
-        //let len = dataWriter.writeLengthDelimited(value.utf8)
-        
         dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
         dstBufferRef.value.writeProtoLengthDelimited(value.utf8)
-        
-//        print(len, value.count)
-        //fatalError("Not yet implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Double, forKey key: Key) throws {
@@ -107,10 +101,8 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     
     mutating func encode(_ value: Int, forKey key: Key) throws {
         // TODO should this skip writing zerro values?
-        //dataWriter.writeKey(forFieldNumber: key.intValue!, wireType: .varInt) // TODO use the wire type guesser???
         dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
         dstBufferRef.value.writeProtoVarInt(value)
-        //fatalError("Not yet implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Int8, forKey key: Key) throws {

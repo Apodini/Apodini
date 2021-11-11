@@ -22,7 +22,7 @@ class GRPCv2Server {
     private(set) var fileDescriptors: [(symbols: Set<String>, fileDescriptor: FileDescriptorProto)] = []
     
     let defaultPackageName: String
-    let schema: GRPCv2SchemaManager
+    let schema: ProtoSchema
     
     init(defaultPackageName: String) {
         self.defaultPackageName = defaultPackageName
@@ -152,7 +152,7 @@ class GRPCMethod {
         endpoint: Endpoint<H>,
         endpointContext: GRPCv2EndpointContext,
         decodingStrategy: AnyDecodingStrategy<GRPCv2MessageIn>,
-        schema: GRPCv2SchemaManager
+        schema: ProtoSchema
     ) {
         self.name = name
         self.type = endpoint[CommunicationalPattern.self]

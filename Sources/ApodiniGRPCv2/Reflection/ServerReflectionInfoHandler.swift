@@ -71,7 +71,7 @@ extension __ProtoNS_GRPC_Reflection_V1Alpha {
 }
 
 
-protocol LKIgnoreInReflection_REF: __ProtoNS_GRPC_Reflection_V1Alpha {}
+//protocol LKIgnoreInReflection_REF: __ProtoNS_GRPC_Reflection_V1Alpha {}
 
 struct FakeEncoder {
     func testWithGenerics<T: Encodable>(_ value: T) {}
@@ -79,7 +79,7 @@ struct FakeEncoder {
 }
 
 
-private struct ExtensionRequest: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
+private struct ExtensionRequest: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let containingType: String
     let extensionNumber: Int32
     enum CodingKeys: Int, CodingKey {
@@ -89,10 +89,10 @@ private struct ExtensionRequest: Codable, LKProtobufferMessage, Equatable, LKIgn
 }
 
 
-private struct ReflectionRequest: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF, __Proto_TypeWithCustomProtoName {
+private struct ReflectionRequest: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, __Proto_TypeWithCustomProtoName {
     static var protoTypeName: String { "ServerReflectionRequest" }
     
-    enum MessageRequest: LKProtobufferEnumWithAssociatedValues, Equatable, LKIgnoreInReflection_REF {
+    enum MessageRequest: LKProtobufferEnumWithAssociatedValues, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
         case fileByFilename(String)
         case fileContainingSymbol(String)
         case fileContainingExtension(ExtensionRequest)
@@ -152,9 +152,7 @@ private struct ReflectionRequest: Codable, LKProtobufferMessage, Equatable, LKIg
 // MARK: ReflectionResponse
 
 
-private struct FileDescriptorResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
-    //let rawBytes: [[UInt8]] // TODO this is another serialised message?????
-    //let rawBytes: [FieldDescriptorProto] // TODO we can use thie directly!
+private struct FileDescriptorResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let fileDescriptors: [FileDescriptorProto]
     
     enum CodingKeys: Int, CodingKey {
@@ -163,7 +161,7 @@ private struct FileDescriptorResponse: Codable, LKProtobufferMessage, Equatable,
 }
 
 
-private struct ExtensionNumberResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
+private struct ExtensionNumberResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let baseTypeName: String
     let extensionNumber: [Int32]
     
@@ -174,7 +172,7 @@ private struct ExtensionNumberResponse: Codable, LKProtobufferMessage, Equatable
 }
 
 
-private struct ListServiceResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
+private struct ListServiceResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let services: [ServiceResponse]
     
     enum CodingKeys: Int, CodingKey {
@@ -183,7 +181,7 @@ private struct ListServiceResponse: Codable, LKProtobufferMessage, Equatable, LK
 }
 
 
-private struct ServiceResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
+private struct ServiceResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let name: String
     
     enum CodingKeys: Int, CodingKey {
@@ -192,7 +190,7 @@ private struct ServiceResponse: Codable, LKProtobufferMessage, Equatable, LKIgno
 }
 
 
-private struct ErrorResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF {
+private struct ErrorResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let errorCode: Int32
     let errorMessage: String
     
@@ -207,10 +205,10 @@ func TODO_REMOVE_getReflectionAPIRelatedProtoTypess() -> [Any.Type] {
     [ReflectionResponse.self] // TODO return also the request type and check whether the type handling thing properly uses the cached result...
 }
 
-private struct ReflectionResponse: Codable, LKProtobufferMessage, Equatable, LKIgnoreInReflection_REF, __Proto_TypeWithCustomProtoName {
+private struct ReflectionResponse: Codable, LKProtobufferMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, __Proto_TypeWithCustomProtoName {
     static var protoTypeName: String { "ServerReflectionResponse" }
     
-    enum MessageResponse: LKProtobufferEnumWithAssociatedValues, Equatable, LKIgnoreInReflection_REF {
+    enum MessageResponse: LKProtobufferEnumWithAssociatedValues, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
         case fileDescriptorResponse(FileDescriptorResponse)
         case allExtensionNumbersResponse(ExtensionNumberResponse)
         case listServicesResponse(ListServiceResponse)
@@ -262,11 +260,6 @@ private struct ReflectionResponse: Codable, LKProtobufferMessage, Equatable, LKI
 
 
 
-//protocol LKProtoMessageProotocolNEW {
-//    associatedtype CodingKeys: RawRepresentable & CodingKey & CaseIterable where Self.CodingKeys.RawValue == Int
-//}
-
-
 enum TestEnum: LKProtobufferEnumWithAssociatedValues, Equatable {
     case int(Int)
     case float(Float)
@@ -283,8 +276,6 @@ enum TestEnum: LKProtobufferEnumWithAssociatedValues, Equatable {
     static func makeEnumCase(forCodingKey codingKey: CodingKeys, payload: Any?) -> TestEnum {
         switch codingKey {
         case .int:
-            //print(type(of: payload), payload)
-            //fatalError()
             return .int(payload as! Int)
         case .float:
             return .float(payload as! Float)
