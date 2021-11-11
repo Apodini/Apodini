@@ -176,12 +176,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     // the gateway
                     StartedServerInfo(ipAddress: "127.0.0.1", port: 8080),
                     // the nodes
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5000),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5001),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5002),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5003),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5004),
-                    StartedServerInfo(ipAddress: "127.0.0.1", port: 5005)
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
