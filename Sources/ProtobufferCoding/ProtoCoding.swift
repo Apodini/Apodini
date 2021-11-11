@@ -25,38 +25,15 @@ extension CodingKey {
     }
 }
 
-//func ~= (lhs: Any.Type, rhs: Any.Type) -> Bool {
-//    lhs == rhs
-//}
 
-//func LKWireTypeForType(_ type: Any.Type) -> WireType? {
-//    switch type {
-//    case Int.self:
-//        return .varInt
-//    default:
-//        return nil
-//    }
-//}
-
-
-func LKShouldSkipEncodingBecauseEmptyValue(_ value: Any) -> Bool {
-    switch value {
-    case let string as String:
-        return string.isEmpty
-    default:
-        return false
-    }
-}
-
-
-enum LKProtoDecodingError: Swift.Error {
+enum ProtoDecodingError: Swift.Error {
     case noData
     case foundDeprecatedWireType(WireType, tag: Int, offset: Int)
     case other(String)
 }
 
 
-enum LKProtoEncodingError: Swift.Error {
+enum ProtoEncodingError: Swift.Error {
     case other(String)
 }
 
@@ -99,7 +76,7 @@ extension ByteBuffer {
     /// - returns: the read number, or `nil` if we were unable to read a number (e.g. because there's no data left to be read)
     mutating func readVarInt() throws -> UInt64 {
         guard readableBytes > 0 else {
-            throw LKProtoDecodingError.noData
+            throw ProtoDecodingError.noData
         }
         var bytes: [UInt8] = [
             readInteger(endianness: .little, as: UInt8.self)! // We know there's at least one byte.
@@ -107,7 +84,7 @@ extension ByteBuffer {
         while (bytes.last! & (1 << 7)) != 0 {
             // we have another byte to parse
             guard let nextByte = readInteger(endianness: .little, as: UInt8.self) else {
-                throw LKProtoDecodingError.other(
+                throw ProtoDecodingError.other(
                     "Unexpectedly found no byte to read (even though the VarInt's previous byte indicated that there's be one)"
                 )
             }
@@ -187,7 +164,7 @@ extension ByteBuffer {
     
     mutating func readProtoFloat() throws -> Float {
         guard let bitPattern = readInteger(endianness: .little, as: UInt32.self) else {
-            throw LKProtoDecodingError.noData
+            throw ProtoDecodingError.noData
         }
         return Float(bitPattern: bitPattern)
     }
@@ -201,7 +178,7 @@ extension ByteBuffer {
     
     mutating func readProtoDouble() throws -> Double {
         guard let bitPattern = readInteger(endianness: .little, as: UInt64.self) else {
-            throw LKProtoDecodingError.noData
+            throw ProtoDecodingError.noData
         }
         return Double(bitPattern: bitPattern)
     }
@@ -217,7 +194,7 @@ extension ByteBuffer {
 
 
 
-func LKGetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
+func GetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
     if type == Int.self || type == Int64.self { // TODO this will break on a system where Int != Int64
         return .TYPE_INT64
     } else if type == UInt.self || type == UInt64.self {  // TODO this will break on a system where UInt != UInt64
@@ -237,7 +214,7 @@ func LKGetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
         return .TYPE_STRING
     } else if type == Array<UInt8>.self || type == Data.self {
         return .TYPE_BYTES
-    } else if LKGetProtoCodingKind(type) == .message {
+    } else if GetProtoCodingKind(type) == .message {
         return .TYPE_MESSAGE
     } else {
         fatalError("Unsupported type '\(type)'")
@@ -247,7 +224,7 @@ func LKGetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
 
 
 /// what a type becomes when coding it in protobuf
-enum LKProtoCodingKind {
+enum ProtoCodingKind {
     case message
     case primitive
     case `enum`
@@ -255,13 +232,13 @@ enum LKProtoCodingKind {
 }
 
 /// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
-func LKGetProtoCodingKind(_ type: Any.Type) -> LKProtoCodingKind? {
-    let conformsToMessageProtocol = (type as? LKProtobufferMessage.Type) != nil
+func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? {
+    let conformsToMessageProtocol = (type as? ProtobufMessage.Type) != nil
 //    if ((type as? Encodable) == nil) || ((type as? Decodable) == nil) {
 //        // A type which conforms neiter to en- nor to decodable
 //    }
     
-    let isPrimitiveProtoType = (type as? LKProtobufferPrimitive.Type) != nil
+    let isPrimitiveProtoType = (type as? ProtobufPrimitive.Type) != nil
     
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
@@ -274,7 +251,7 @@ func LKGetProtoCodingKind(_ type: Any.Type) -> LKProtoCodingKind? {
         return nil
     }
     
-    if (type as? LKProtobufferPrimitive.Type) != nil {
+    if (type as? ProtobufPrimitive.Type) != nil {
         // The type is a primitive
         precondition(!conformsToMessageProtocol)
         return .primitive
@@ -295,17 +272,17 @@ func LKGetProtoCodingKind(_ type: Any.Type) -> LKProtoCodingKind? {
         return .message
         fatalError()
     case .enum:
-        let isSimpleEnum = (type as? LKAnyProtobufferEnum.Type) != nil
-        let isComplexEnum = (type as? LKAnyProtobufferEnumWithAssociatedValues.Type) != nil
+        let isSimpleEnum = (type as? AnyProtobufEnum.Type) != nil
+        let isComplexEnum = (type as? AnyProtobufEnumWithAssociatedValues.Type) != nil
         switch (isSimpleEnum, isComplexEnum) { // TODO the protocol names  here in the error messages aren't perfectly correct but we can't use the actual one bc reasons
         case (false, false):
-            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(LKAnyProtobufferEnum.self)' nor to '\(LKAnyProtobufferEnumWithAssociatedValues.self)'")
+            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(AnyProtobufEnum.self)' nor to '\(AnyProtobufEnumWithAssociatedValues.self)'")
         case (true, false):
             return .enum
         case (false, true):
             return .enum // TODO use a dedicated case????
         case (true, true):
-            fatalError("Invalid enum, type: The '\(LKAnyProtobufferEnum.self)' and '\(LKAnyProtobufferEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
+            fatalError("Invalid enum, type: The '\(AnyProtobufEnum.self)' and '\(AnyProtobufEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
         }
     default:
         // just return nil...!!!

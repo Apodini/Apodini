@@ -35,7 +35,7 @@ import Foundation
 //}
 
 
-public struct LKProtobufferEncoder {
+public struct ProtobufferEncoder {
     public init() {}
     
     public func encode<T: Encodable>(_ value: T) throws -> ByteBuffer {
@@ -46,7 +46,7 @@ public struct LKProtobufferEncoder {
     
     public func encode<T: Encodable>(_ value: T, into buffer: inout ByteBuffer) throws {
         let dstBufferRef = Box(ByteBuffer())
-        let encoder = _LKProtobufferEncoder(codingPath: [], userInfo: [:], dstBufferRef: dstBufferRef)
+        let encoder = _ProtobufferEncoder(codingPath: [], userInfo: [:], dstBufferRef: dstBufferRef)
         try value.encode(to: encoder)
         buffer.writeImmutableBuffer(dstBufferRef.value)
     }
@@ -63,8 +63,8 @@ public struct LKProtobufferEncoder {
         asField field: ProtoTypeDerivedFromSwift.MessageField
     ) throws {
         let dstBufferRef = Box(ByteBuffer())
-        let encoder = _LKProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef)
-        var keyedEncoder = encoder.container(keyedBy: FakeCodingKey.self)
+        let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef)
+        var keyedEncoder = encoder.container(keyedBy: FixedCodingKey.self)
         try keyedEncoder.encode(value, forKey: .init(intValue: field.fieldNumber))
         buffer.writeImmutableBuffer(dstBufferRef.value)
     }
@@ -72,7 +72,7 @@ public struct LKProtobufferEncoder {
 
 
 
-class _LKProtobufferEncoder: Encoder {
+class _ProtobufferEncoder: Encoder {
     let codingPath: [CodingKey]
     let userInfo: [CodingUserInfoKey : Any]
     let dstBufferRef: Box<ByteBuffer>
@@ -84,18 +84,18 @@ class _LKProtobufferEncoder: Encoder {
     }
     
     func container<Key: CodingKey>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
-        KeyedEncodingContainer(LKProtobufferKeyedEncodingContainer(
+        KeyedEncodingContainer(ProtobufferKeyedEncodingContainer(
             codingPath: codingPath,
             dstBufferRef: dstBufferRef
         ))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        LKProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
+        ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        LKProtobufferSingleValueEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
+        ProtobufferSingleValueEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
     }
 }
 

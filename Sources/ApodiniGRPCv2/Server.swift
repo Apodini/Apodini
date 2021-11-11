@@ -31,14 +31,12 @@ class GRPCv2Server {
     
     
     func service(named serviceName: String, inPackage packageName: String) -> GRPCService? {
-        //services.first { name == "\($0.packageName).\($0.name)" }
         services.first { $0.packageName == packageName && $0.name == serviceName }
     }
     
     
     @discardableResult
     func createService(name: String, associatedWithPackage packageName: String) -> GRPCService {
-        //precondition(!services.contains { $0.name == name }, "gRPC service names must be unique")
         precondition(service(named: name, inPackage: packageName) == nil, "gRPC service names must be unique")
         let service = GRPCService(name: name, packageName: packageName)
         services.append(service)
@@ -181,44 +179,12 @@ class GRPCMethod {
             case .bidirectionalStream:
                 fatalError()
             }
-//            switch endpoint[CommunicationalPattern.self] {
-//            case .requestResponse:
-//                return _UnaryStreamRPCHandler<H>(
-//                    delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
-//                    strategy: decodingStrategy,
-//                    defaults: defaults,
-//                    endpointContext: endpointContext
-//                )
-//            case .clientSideStream:
-//                fatalError()
-//            case .serviceSideStream:
-//                fatalError()
-//            case .bidirectionalStream:
-//                fatalError()
-//            }
         }
-//        let outTy = try! ApodiniTypeInformation.TypeInformation.init(type: H.Response.Content.self)
-//        print(outTy)
-//        fatalError()
         let messageTypes = try! schema.endpointProtoMessageTypes(for: endpoint)
         endpointContext.endpointRequestType = messageTypes.input
         endpointContext.endpointResponseType = messageTypes.output
         self.inputFQTN = messageTypes.input.fullyQualifiedTypename // TODO we can remove the xFQTN properties!!!
         self.outputFQTN = messageTypes.output.fullyQualifiedTypename
-//        print("\n\n\n\n\n")
-//        print("handler: \(endpoint.handler)")
-//        print("messageTypes: \(messageTypes)")
-//        self.inputFQTN = messageTypes.input.fullyQualifiedTypename
-//        self.outputFQTN = messageTypes.output.fullyQualifiedTypename
-//        //precondition(self.inputFQTN == endpointContext.endpointRequestType!.fullyQualifiedTypename)
-//        switch messageTypes.input {
-//        case let .compositeMessage(name, underlyingType: .none, nestedOneofTypes, fields):
-//            let dict1: [String: Int] = .init(uniqueKeysWithValues: fields.map { ($0.name, $0.fieldNumber) })
-//            precondition(dict1 == endpointContext.parameterNameFieldNumberMapping)
-//        default:
-//            break
-//        }
-//        precondition(self.outputFQTN == endpointContext.endpointResponseType!.fullyQualifiedTypename)
     }
     
     
@@ -231,35 +197,10 @@ class GRPCMethod {
     }
     
     
-    // TODO this function isn't needed anymore!
     func makeStreamConnectionContext() -> GRPCv2StreamRPCHandler {
         streamRPCHandlerMaker()
     }
 }
-
-
-
-
-//// TODO move somewhere else
-//extension FileDescriptorProto {
-//    func containsSymbol(_ symbolName: String) -> Bool {
-//        let components = symbolName.components(separatedBy: ".")
-//        switch components.count {
-//        case 1:
-//            return services.contains { $0.name == symbolName }
-//        case 2:
-//            // syntax: package.type or package.service
-//            return self.package == components[0] && (
-//                services.contains { $0.name == components[1] }
-//                || messageTypes.contains { $0.name == components[1] }
-//                || enumTypes.contains { $0.name == components[1] }
-//            )
-//        case 3:
-//            // syntax: package.service.method
-//        }
-//        fatalError()
-//    }
-//}
 
 
 extension FileDescriptorProto {

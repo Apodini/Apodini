@@ -3,10 +3,10 @@ import Foundation
 
 
 /// A single-value decoding container, which supports decoding a single unkeyed value.
-struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
+struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     let codingPath: [CodingKey]
     private let buffer: ByteBuffer
-    private let fieldInfo: LKProtobufFieldsMapping.FieldInfo?
+    private let fieldInfo: ProtobufFieldInfo?
     
     /// The buffer should point to the start of a key-value pair // TODO outdated comment, in reality the buffer usually points to the value, and we can ignore the key.
     init(codingPath: [CodingKey], buffer: ByteBuffer) {
@@ -29,7 +29,7 @@ struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: Bool.Type) throws -> Bool {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     func decode(_ type: String.Type) throws -> String {
@@ -87,7 +87,6 @@ struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: Double.Type) throws -> Double {
-        //fatalError("Not yet implemented (type: \(type))")
         assertWireTypeIfPresent(._64Bit)
         return try buffer.getProtoDouble(at: fieldInfo?.valueOffset ?? buffer.readerIndex)
     }
@@ -95,26 +94,22 @@ struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     func decode(_ type: Float.Type) throws -> Float {
         assertWireTypeIfPresent(._32Bit)
         return try buffer.getProtoFloat(at: fieldInfo?.valueOffset ?? buffer.readerIndex)
-        //fatalError("Not yet implemented (type: \(type))")
     }
     
     func decode(_ type: Int.Type) throws -> Int {
         assertWireTypeIfPresent(.varInt)
         return Int(try buffer.getVarInt(at: fieldInfo?.valueOffset ?? buffer.readerIndex))
-        //fatalError("Not yet implemented (type: \(type))")
     }
     
     func decode(_ type: Int8.Type) throws -> Int8 {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     func decode(_ type: Int16.Type) throws -> Int16 {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     func decode(_ type: Int32.Type) throws -> Int32 {
-//        assertWireTypeIfPresent(.varInt)
-//        fatalError("Not yet implemented (type: \(type))")
         try decodeVarInt(type)
     }
     
@@ -127,11 +122,11 @@ struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: UInt8.Type) throws -> UInt8 {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     func decode(_ type: UInt16.Type) throws -> UInt16 {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     func decode(_ type: UInt32.Type) throws -> UInt32 {
@@ -143,7 +138,7 @@ struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode<T: Decodable>(_ type: T.Type) throws -> T {
-        fatalError("Not yet implemented (type: \(type))")
+        fatalError("Not implemented (type: \(type))")
     }
     
     

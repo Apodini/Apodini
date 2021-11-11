@@ -37,7 +37,7 @@ private struct LKDecodeTypeErasedDecodableTypeHelper: Decodable {
 struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let codingPath: [CodingKey]
     private let buffer: ByteBuffer
-    let fields: LKProtobufFieldsMapping
+    let fields: ProtobufFieldsMapping
     
     var allKeys: [Key] {
         fatalError()
@@ -90,11 +90,11 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
@@ -105,11 +105,11 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
@@ -120,27 +120,27 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     func decode(_ type: Int64.Type, forKey key: Key) throws -> Int64 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: UInt.Type, forKey key: Key) throws -> UInt {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     //@_disfavoredOverload
@@ -157,30 +157,30 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     
     
     func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
-        fatalError("Not yet implemented (type: \(type), key: \(key))")
+        fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-        fatalError("Not yet implemented (key: \(key))")
+        fatalError("Not implemented (key: \(key))")
     }
     
     func superDecoder() throws -> Decoder {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     func superDecoder(forKey key: Key) throws -> Decoder {
-        fatalError("Not yet implemented (key: \(key))")
+        fatalError("Not implemented (key: \(key))")
     }
     
     
     // MARK: the type stuff
     
-    private func getFieldInfoAndBytes(forKey key: Key, atOffset keyOffset: Int?) throws -> (fieldInfo: LKProtobufFieldsMapping.FieldInfo, fieldBytes: ByteBuffer) {
+    private func getFieldInfoAndBytes(forKey key: Key, atOffset keyOffset: Int?) throws -> (fieldInfo: ProtobufFieldInfo, fieldBytes: ByteBuffer) {
         let fieldNumber = key.getProtoFieldNumber()
         guard fieldNumber > 0 else {
             fatalError()
         }
-        let fieldInfo: LKProtobufFieldsMapping.FieldInfo?
+        let fieldInfo: ProtobufFieldInfo?
         if let keyOffset = keyOffset {
             fieldInfo = fields.allFields.first { $0.tag == fieldNumber && $0.keyOffset == keyOffset }
         } else {
@@ -196,7 +196,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     private func getFieldInfoAndValueBytes(
         forKey key: Key,
         atOffset keyOffset: Int?
-    ) throws -> (fieldInfo: LKProtobufFieldsMapping.FieldInfo, valueBytes: ByteBuffer) {
+    ) throws -> (fieldInfo: ProtobufFieldInfo, valueBytes: ByteBuffer) {
         let (fieldInfo, fieldBytes) = try getFieldInfoAndBytes(forKey: key, atOffset: keyOffset)
         let keyLength = fieldInfo.valueOffset - fieldInfo.keyOffset
         return (fieldInfo, fieldBytes.getSlice(at: keyLength, length: fieldBytes.readableBytes - keyLength)!)
@@ -214,16 +214,13 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
                 value: try _decode(type, forKey: key, keyOffset: keyOffset), // TODO this decode call used to go to the old implementation below (commented out)
                 originalType: type
             )
-            //} else if T.self is LKProtobufferEmbeddedOneofType.Type {
-        } else if (type as? LKProtobufferEmbeddedOneofType.Type) != nil {
-            precondition((type as? LKProtobufferEmbeddedOneofType.Type) != nil)
+        } else if (type as? _ProtobufEmbeddedType.Type) != nil {
             // We're asked to decode an embedded type (currently only oneof, as far as i'm aware),
             // which means what we need to ignore the coding key.
             // Note: since oneofs can't be repeated (TODO check!) we can ignore a potentially specified offset here
             precondition(keyOffset == nil)
-            return try type.init(from: _LKProtobufferDecoder(codingPath: codingPath, buffer: buffer))
-        //} else if T.self is LKProtobufferMessage.Type {
-        } else if ((type as? LKProtobufferMessage.Type) != nil) || (type == Array<UInt8>.self) || (type == Data.self) {
+            return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
+        } else if ((type as? ProtobufMessage.Type) != nil) || (type == Array<UInt8>.self) || (type == Data.self) {
             // We're asked to decode an embedded message, or a lump of bytes.
             // Embedded messages are essentially the same as normal key-value pairs, but we have to drop the preceding length delimiter first.
             // Same goes for byte fields, the only difference here is that we don't have to decode them into a concrete type.
@@ -233,45 +230,19 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
             let length = Int(try adjustedValueBytes.readVarInt())
             precondition(adjustedValueBytes.readableBytes >= length)
             precondition(fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex))
-            if (type as? LKProtobufferMessage.Type) != nil {
-                return try type.init(from: _LKProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
+            if (type as? ProtobufMessage.Type) != nil {
+                return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
             } else if type == Array<UInt8>.self {
                 return Array<UInt8>(buffer: adjustedValueBytes)
             } else if type == Data.self {
                 return Data(buffer: adjustedValueBytes)
             } else {
+                // unreacahable
                 fatalError()
             }
-//        } else if (type as? LKProtobufferMessage.Type) != nil {
-//            // We're asked to decode an embedded message.
-//            // Embedded messages are essentially the same as normal key-value pairs, but we have to drop the preceding length delimiter first
-//            let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-//            precondition(fieldInfo.wireType == .lengthDelimited)
-//            var adjustedValueBytes = valueBytes
-//            let length = Int(try adjustedValueBytes.readVarInt())
-//            print("AVB", adjustedValueBytes.readableBytes, adjustedValueBytes.lk_getAllBytes())
-//            precondition(adjustedValueBytes.readableBytes >= length)
-//            precondition(fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex))
-//            return try type.init(from: _LKProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
-//        //} else if T.self is __LKProtobufRepeatedValueCodable.Type {
-//        } else if (type == Array<UInt8>.self) || (type == Data.self) {
-//            let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-//            print(self.buffer.lk_getAllBytes().count)
-//            var adjustedValueBytes = valueBytes
-//            let length = Int(try adjustedValueBytes.readVarInt())
-//            precondition(fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex))
-//            if type == Array<UInt8>.self {
-//                return Array<UInt8>(buffer: adjustedValueBytes)
-//            } else if type == Data.self {
-//                return Data(buffer: adjustedValueBytes)
-//            }
-//            fatalError()
-//        } else if type == Data.self {
-            fatalError()
-        } else if let repeatedValueCodableTy = type as? __LKProtobufRepeatedValueCodable.Type {
-            precondition((type as? __LKProtobufRepeatedValueCodable.Type) != nil)
-            let decoder = _LKProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
-            let retval = try repeatedValueCodableTy.init(
+        } else if let protobufRepeatedTy = type as? ProtobufRepeated.Type {
+            let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
+            let retval = try protobufRepeatedTy.init(
                 decodingFrom: decoder,
                 forKey: key,
                 atFields: fields.getAll(forFieldNumber: key.getProtoFieldNumber())
@@ -279,7 +250,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
             return retval
         } else {
             let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-            let _A = try type.init(from: _LKProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+            let _A = try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
             return _A
         }
         

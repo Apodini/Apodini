@@ -33,19 +33,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCv2StreamRPCHandler {
     func handleStreamClose(context: GRPCv2StreamConnectionContext) {}
     
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
-//        print(Self.self, #function, message.serviceAndMethodName)
-//        switch endpointContext.communicationalPattern {
-//        case .requestResponse:
-//            return handleUnary(message: message, context: context)
-//        case .clientSideStream:
-//            fatalError()
-//        case .serviceSideStream:
-//            return handleServiceSideStream(message: message, context: context)
-//        case .bidirectionalStream:
-//            fatalError()
-//        }
         fatalError("Abstract. Implement in subclass.")
-        
     }
     
     
@@ -57,14 +45,13 @@ class StreamRPCHandlerBase<H: Handler>: GRPCv2StreamRPCHandler {
             if let underlyingType = underlyingType {
                 precondition(underlyingType == type(of: responseContent))
                 // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
-                let payload = try LKProtobufferEncoder().encode(responseContent)
+                let payload = try ProtobufferEncoder().encode(responseContent)
                 return payload
                 //return .singleMessage(headers: headers, payload: payload, closeStream: true)
             } else {
                 // If there is no underlying type, the handler returns something primitive which we'll have to manually wrap into a message
                 precondition(fields.count == 1)
-                let fieldNumber = fields[0].fieldNumber
-                return try LKProtobufferEncoder().encode(responseContent, asField: fields[0])
+                return try ProtobufferEncoder().encode(responseContent, asField: fields[0])
             }
         }
     }

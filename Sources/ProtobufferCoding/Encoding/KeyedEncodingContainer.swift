@@ -5,62 +5,7 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-private let fuckingHellThisIsSoBad_Encode = ThreadSpecificVariable<Box<Encodable.Type>>() // TODO this is unused!
-
-
-//extension KeyedEncodingContainerProtocol {
-//    @_disfavoredOverload
-//    func encode(_ value: Encodable, forKey key: Key) throws {
-//        precondition(fuckingHellThisIsSoBad.currentValue == nil)
-//        fuckingHellThisIsSoBad.currentValue = Box(type)
-//        let helperResult = try decode(LKDecodeTypeErasedDecodableTypeHelper.self, forKey: key)
-//        precondition(fuckingHellThisIsSoBad.currentValue == nil)
-//        return helperResult.value as! Decodable
-//    }
-//}
-//
-//
-//private struct LKDecodeTypeErasedDecodableTypeHelper: Decodable {
-//    let value: Any
-//    let originalType: Decodable.Type
-//
-//    init(value: Any, originalType: Decodable.Type) {
-//        self.value = value
-//        self.originalType = originalType
-//    }
-//
-//    init(from decoder: Decoder) throws {
-//        fatalError("Should be unreachable. If you end up here, that means that you used a decoder which didn't properly handle the \(Self.self) type.")
-//    }
-//}
-
-
-
-///// A protobuffer field (consisting of key and value) that is already encoded into the `bytes` property
-//struct _LKAlreadyEncodedProtoField: Encodable {
-//    private(set) var bytes = ByteBuffer()
-//
-//    init(fieldNumber: Int, value: Encodable) throws {
-//        guard !LKShouldSkipEncodingBecauseEmptyValue(value) else {
-//            return
-//        }
-//        let dataWriter = _LKProtobufferDataWriter()
-//        guard let wireType = LKGuessWireType(value) else {
-//            fatalError("Unable to guess wire type for value of type '\(type(of: value))'")
-//        }
-//        dataWriter.writeKey(forFieldNumber: fieldNumber, wireType: wireType)
-//        let encoder = _LKProtobufferEncoder(codingPath: [], dataWriter: dataWriter)
-//        try value.encode(to: encoder)
-//        bytes.writeImmutableBuffer(dataWriter.buffer)
-//    }
-//
-//    func encode(to encoder: Encoder) throws {
-//        fatalError("Don't call directly. The encoder should have a special check for this type.")
-//    }
-//}
-
-
-struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
+struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
     
@@ -70,7 +15,7 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     }
     
     mutating func encodeNil(forKey key: Key) throws {
-        fatalError("Not yet implemented (key: \(key))")
+        fatalError("Not implemented (key: \(key))")
     }
     
     mutating func encode(_ value: Bool, forKey key: Key) throws {
@@ -78,12 +23,10 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
             dstBufferRef.value.writeProtoVarInt(UInt8(1))
         }
-        //fatalError("Not yet implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: String, forKey key: Key) throws {
         guard !value.isEmpty else {
-            precondition(LKShouldSkipEncodingBecauseEmptyValue(value) == true)
             // Empty strings are simply omitted from the buffer
             return
         }
@@ -92,11 +35,11 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     }
     
     mutating func encode(_ value: Double, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Float, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Int, forKey key: Key) throws {
@@ -106,11 +49,11 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     }
     
     mutating func encode(_ value: Int8, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Int16, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: Int32, forKey key: Key) throws {
@@ -120,31 +63,30 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     }
     
     mutating func encode(_ value: Int64, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: UInt, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: UInt8, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: UInt16, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: UInt32, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode(_ value: UInt64, forKey key: Key) throws {
-        fatalError("Not yet implemented (value: \(value), key: \(key))")
+        fatalError("Not implemented (value: \(value), key: \(key))")
     }
     
     mutating func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
-//        print("-[\(Self.self) \(#function)] value: (\(T.self)), key: \(key), T is EmbeddedOneof: \(value is LKProtobufferEmbeddedOneofType)")
         try _encode(value, forKey: key)
     }
     
@@ -156,16 +98,16 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
             dstBufferRef.value.writeProtoLengthDelimited(sequence)
         }
         
-        if value is LKProtobufferEmbeddedOneofType {
-            // We're encoding an (embedded) oneof type, which means that we completely ignore the key and simply encode the set value as if it were a normal field
-            let encoder = _LKProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef)
+        if value is _ProtobufEmbeddedType {
+            // We're encoding an embedded type (i.e. a oneof), which means that we completely ignore the key and simply encode the set value as if it were a normal field
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef)
             try value.encode(to: encoder)
-        } else if value is LKProtobufferMessage {
+        } else if value is ProtobufMessage {
             // We're encoding a message. In this case, we need to encode the value length-delimited
             let bufferRef = Box(ByteBuffer())
-            let encoder = _LKProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef)
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef)
             try value.encode(to: encoder)
-            self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: LKGuessWireType(value)!)
+            self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
             precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
         } else if let string = value as? String {
             try encode(string, forKey: key)
@@ -179,18 +121,15 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
             //dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
             //dstBufferRef.value.writeProtoLengthDelimited(data)
             encodeLengthDelimitedKeyedBytes(data)
-        } else if let repeatedValueCodable = value as? __LKProtobufRepeatedValueCodable {
+        } else if let protobufRepeatedTy = value as? ProtobufRepeated {
             let oldWriterIndex = dstBufferRef.value.writerIndex
-            let encoder = _LKProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef)
-            try repeatedValueCodable.encodeElements(to: encoder, forKey: key)
-//            let newBuf = dstBufferRef.value.getSlice(at: oldWriterIndex, length: dstBufferRef.value.writerIndex - oldWriterIndex)!
-//            print(newBuf)
-//            LKNoop()
+            let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef)
+            try protobufRepeatedTy.encodeElements(to: encoder, forKey: key)
         } else {
             let result = AnySequenceATRVisitor.run(value: value) { (element: Any) in
                 fatalError() // This shouldn't be needed anymore since we're using the RepeatedValueCodable thing above...
                 guard let encodable = element as? Encodable else {
-                    throw LKProtoEncodingError.other("HMMM \(type(of: element)) \(element)")
+                    throw ProtoEncodingError.other("HMMM \(type(of: element)) \(element)")
                 }
                 try self._encode(encodable, forKey: key)
             }
@@ -213,8 +152,8 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
             // a struct like String (where the length-encoding would already have happened), or a struct like MyCustomStructWhatever (where
             // we'd need to apply length-encoding)
             // TODO what if `value.encode` doesn't write anything to the buffer? in that case we'd ideally remove the key!!!!!
-            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: LKGuessWireType(value)!)
-            let encoder = _LKProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef)
+            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef)
             try value.encode(to: encoder)
         }
     }
@@ -222,11 +161,14 @@ struct LKProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContain
     
     mutating func nestedContainer<NestedKey: CodingKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> {
         //fatalError("Not yet implemented (keyType: \(keyType), key: \(key))")
-        return KeyedEncodingContainer(LKProtobufferKeyedEncodingContainer<NestedKey>(codingPath: codingPath.appending(key), dstBufferRef: dstBufferRef))
+        return KeyedEncodingContainer(ProtobufferKeyedEncodingContainer<NestedKey>(
+            codingPath: codingPath.appending(key),
+            dstBufferRef: dstBufferRef
+        ))
     }
     
     mutating func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
-        fatalError("Not yet implemented (key: \(key))")
+        fatalError("Not implemented (key: \(key))")
     }
     
     mutating func superEncoder() -> Encoder {
@@ -283,9 +225,6 @@ struct AnyEncodableEncodeIntoKeyedEncodingContainerATRVisitor: AnyEncodableATRVi
     let containerContainer: AnyKeyedEncodingContainerContainerProtocol
     
     func callAsFunction<T: Encodable>(_ value: T) -> Result<Void, Error> {
-        //.init(catching: { try encoder.encode(value) })
-        //.init(catching: { try containerBox.value.encode(value, forKey: key) })
         .init(catching: { try containerContainer.encode(value) })
     }
 }
-

@@ -23,7 +23,7 @@ enum WireType: UInt8, Hashable {
 
 /// Attempts to guess the protobuf wire type of the specified type.
 /// - Note: This function should only be called with types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
-func LKGuessWireType(_ type: Any.Type) -> WireType? {
+func GuessWireType(_ type: Any.Type) -> WireType? {
     if type == String.self {
         return .lengthDelimited
     } else if type == Int.self {
@@ -40,11 +40,12 @@ func LKGuessWireType(_ type: Any.Type) -> WireType? {
             return .lengthDelimited
         case .enum:
             // TODO do something based on the raw value?
-            if (type as? LKProtobufferEmbeddedOneofType.Type) != nil {
+            if (type as? AnyProtobufEnumWithAssociatedValues.Type) != nil {
+                // should be unreachable, so we can probably remove this check
                 // TODO we have to ignore the key, and the wire type is determined based on the value set!!!
                 //return .lengthDelimited
             }
-            if (type as? LKAnyProtobufferEnum.Type) != nil {
+            if (type as? AnyProtobufEnum.Type) != nil {
                 return .varInt
             }
             fatalError("Unhandled: \(type)") // TODO how should this be handled?
@@ -83,7 +84,7 @@ func LKGuessWireType(_ type: Any.Type) -> WireType? {
 
 /// Attempts to guess the protobuf wire type of the specified value.
 /// - Note: This function should only be called with values of types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
-func LKGuessWireType(_ value: Any) -> WireType? { // TODO remove this function!
-    return LKGuessWireType(type(of: value))
+func GuessWireType(_ value: Any) -> WireType? { // TODO remove this function!
+    return GuessWireType(type(of: value))
 }
 

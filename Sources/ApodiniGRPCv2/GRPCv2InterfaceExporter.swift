@@ -60,48 +60,14 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         self.server = .init(defaultPackageName: defaultPackageName)
         // Configure HTTP/2
         app.http.supportVersions.insert(.two)
-        app.http.tlsConfiguration?.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
+        app.http.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
         
         // Create the default service (we only support one atm, but this implementation could also support multiple services
         server.createService(name: config.serviceName, associatedWithPackage: defaultPackageName)
         server.createService(name: Self.serverReflectionServiceName, associatedWithPackage: Self.serverReflectionPackageName)
         
-        for ty in TODO_REMOVE_getReflectionAPIRelatedProtoTypess() {
-            server.schema.informAboutMessageType(ty as! LKProtobufferMessage.Type)
-        }
+        ServerReflectionInfoRPCHandler.registerReflectionServiceTypesWithSchema(server.schema)
         server.schema.informAboutMessageType(FileDescriptorSet.self) // we're just gonna hope that this will be enough to pull in the entire Descriptors file...
-//        fatalError()
-        
-//        app.httpServer.registerRoute(.GET, "/lk/rocket") { request in
-//            let response = HTTPResponse(
-//                version: request.version,
-//                status: .ok,
-//                headers: .init {
-//                    $0[.contentType] = .init(string: "text/plain")!
-//                },
-//                bodyStorage: .stream()
-//            )
-//
-//            let idx = Box<Int>(5)
-//            func work() {
-//                print("work")
-//                switch idx.value {
-//                case ...0:
-//                    print("done.")
-//                    response.bodyStorage.stream!.writeAndClose("LAUNCH!")
-//                default:
-//                    print("writing \(idx)")
-//                    response.bodyStorage.write("\(idx.value)...\n")
-//                    idx.value -= 1
-//                    DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + 1) {
-//                        work()
-//                    }
-//                }
-//            }
-//            work()
-//            print("return first")
-//            return response
-//        }
     }
     
     deinit {
@@ -132,8 +98,6 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
                 schema: server.schema
             )
         )
-        
-        //let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint).typeErased
     }
     
     
@@ -175,7 +139,9 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
                 type: .bidirectionalStream,
                 inputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionRequest",
                 outputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionResponse",
-                streamRPCHandlerMaker: { [unowned self] in makeServerReflectionStreamRPCHandler() }
+                streamRPCHandlerMaker: { [unowned self] in
+                    ServerReflectionInfoRPCHandler(server: self.server)
+                }
             )
         )
         
@@ -193,6 +159,17 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         // Makes the types managed by the schema ready for use by the reflection API
         server.schema.finalize()
         server.createFileDescriptors()
+        
+        /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
+        /// - NOTE this might not necessarily be the most dessirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
+        app.httpServer.registerRoute(.GET, ["__apodini", "grpc_schema"]) { req -> HTTPResponse in
+            let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
+                $0[.contentType] = .json(charset: .utf8)
+            })
+            let allFileDescriptors = FileDescriptorSet(files: self.server.fileDescriptors.map(\.fileDescriptor))
+            try response.bodyStorage.write(encoding: allFileDescriptors, using: JSONEncoder())
+            return response
+        }
         
         app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPC, .gRPC(.proto), .gRPC(.json)]) { channel in
             channel.pipeline.addHandlers([
@@ -238,14 +215,6 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
 
 
 
-extension GRPCv2InterfaceExporter {
-    private func makeServerReflectionStreamRPCHandler() -> GRPCv2StreamRPCHandler {
-        ServerReflectionInfoRPCHandler(server: self.server)
-    }
-}
-
-
-
 
 struct GRPCv2EndpointDecodingStrategy: EndpointDecodingStrategy {
     typealias Input = GRPCv2MessageIn
@@ -283,7 +252,7 @@ private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDec
             guard let field = fields.first(where: { $0.name == name }) else {
                 fatalError() // TODO throw
             }
-            return try LKProtobufferDecoder().decode(T.self, from: input.payload, atField: field)
+            return try ProtobufferDecoder().decode(T.self, from: input.payload, atField: field)
         }
     }
 }
@@ -315,7 +284,7 @@ class GRPCv2EndpointContext: Hashable {
 
 
 
-struct GreeterRequest: Codable, LKProtobufferMessage {
+struct GreeterRequest: Codable, ProtobufMessage {
     let name: String
 //    enum CodingKeys: Int, CodingKey {
 //        case name = 1
@@ -323,7 +292,7 @@ struct GreeterRequest: Codable, LKProtobufferMessage {
 }
 
 
-struct GreeterResponse: Codable, LKProtobufferMessage {
+struct GreeterResponse: Codable, ProtobufMessage {
     let message: String
 //    enum CodingKeys: Int, CodingKey {
 //        case message = 1
@@ -343,14 +312,14 @@ class HardcodedGreeter: GRPCv2StreamRPCHandler {
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
         print(Self.self, #function, message.serviceAndMethodName)
         do {
-            let request = try LKProtobufferDecoder().decode(GreeterRequest.self, from: message.payload)
+            let request = try ProtobufferDecoder().decode(GreeterRequest.self, from: message.payload)
             print(request)
             let response = GreeterResponse(message: "Hello, \(request.name)!!!!")
             let messageOut = GRPCv2MessageOut.singleMessage(
                 headers: HPACKHeaders {
                     $0[.contentType] = .gRPC(.proto)
                 },
-                payload: try LKProtobufferEncoder().encode(response),
+                payload: try ProtobufferEncoder().encode(response),
                 closeStream: true
             )
             return context.eventLoop.makeSucceededFuture(messageOut)

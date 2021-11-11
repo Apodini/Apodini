@@ -6,7 +6,7 @@ import ApodiniUtils
 
 
 
-public struct LKProtobufferDecoder {
+public struct ProtobufferDecoder {
     public init() {}
     
     public func decode<T: Decodable>(_: T.Type, from data: Data) throws -> T {
@@ -14,7 +14,7 @@ public struct LKProtobufferDecoder {
     }
     
     public func decode<T: Decodable>(_: T.Type, from buffer: ByteBuffer) throws -> T {
-        let decoder = _LKProtobufferDecoder(codingPath: [], buffer: buffer)
+        let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
         return try T(from: decoder)
     }
     
@@ -23,15 +23,14 @@ public struct LKProtobufferDecoder {
         from buffer: ByteBuffer,
         atField fieldInfo: ProtoTypeDerivedFromSwift.MessageField
     ) throws -> T {
-        let decoder = _LKProtobufferDecoder(codingPath: [], buffer: buffer)
-        let keyedDecoder = try decoder.container(keyedBy: FakeCodingKey.self)
+        let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
+        let keyedDecoder = try decoder.container(keyedBy: FixedCodingKey.self)
         return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber))
     }
 }
 
 
-// TODO make internal!
-class _LKProtobufferDecoder: Decoder {
+class _ProtobufferDecoder: Decoder {
     let codingPath: [CodingKey]
     let userInfo: [CodingUserInfoKey : Any]
     let buffer: ByteBuffer
@@ -56,7 +55,7 @@ class _LKProtobufferDecoder: Decoder {
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         // NOTE: We really don't want to end up here, except for cases where the caller knows what it's doing.
-        return LKProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
+        return ProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
     }
     
     func _internalContainer<Key: CodingKey>(keyedBy _: Key.Type) throws -> _LKProtobufferDecoderKeyedDecodingContainer<Key> {
@@ -68,7 +67,7 @@ class _LKProtobufferDecoder: Decoder {
 /// Attempts to decode a proto-encoded string
 func _LKTryDeocdeProtoString(
     in buffer: ByteBuffer,
-    fieldValueInfo: LKProtobufFieldsMapping.FieldInfo.ValueInfo,
+    fieldValueInfo: ProtobufFieldInfo.ValueInfo,
     fieldValueOffset: Int,
     codingPath: [CodingKey],
     makeDataCorruptedError: (String) -> Error

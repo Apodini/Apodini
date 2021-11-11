@@ -5,53 +5,56 @@ import Foundation
 
 // MARK: Protocols and shit
 
-/// Protocol indicating that the type is not nested, but rather directly embdeded into its parent type
-public protocol LKProtobufferEmbeddedOneofType {}
+/// Conforming to this protocol indicates that a (message) type does not get encoded into a nested field,
+/// but rather direct into its parent type (i.e. the type of which it is a property).
+/// - Note: This is an internal protocol, which currently is only used for handling enums w/ associated values, and should not be conformed to outside this module.
+public protocol _ProtobufEmbeddedType {}
 
 
 
-
-public protocol LKAnyProtobufferMessageCodingKeys: Swift.CodingKey {
+public protocol AnyProtobufMessageCodingKeys: Swift.CodingKey {
     static var allCases: [Self] { get }
 }
 
-public protocol LKProtobufferMessageCodingKeys: LKAnyProtobufferMessageCodingKeys & CaseIterable {}
+public protocol ProtobufMessageCodingKeys: AnyProtobufMessageCodingKeys & CaseIterable {}
 
 
 
-public protocol LKAnyProtobufferCodableWithCustomFieldMapping {
-    static func getCodingKeysType() -> LKAnyProtobufferMessageCodingKeys.Type
+public protocol AnyProtobufTypeWithCustomFieldMapping {
+    static func getCodingKeysType() -> AnyProtobufMessageCodingKeys.Type
 }
 
-public protocol LKProtobufferCodableWithCustomFieldMapping: LKAnyProtobufferCodableWithCustomFieldMapping {
-    associatedtype CodingKeys: RawRepresentable & CaseIterable & LKAnyProtobufferMessageCodingKeys where Self.CodingKeys.RawValue == Int
+public protocol ProtobufTypeWithCustomFieldMapping: AnyProtobufTypeWithCustomFieldMapping {
+    associatedtype CodingKeys: RawRepresentable & CaseIterable & AnyProtobufMessageCodingKeys where Self.CodingKeys.RawValue == Int
 }
 
-public extension LKProtobufferCodableWithCustomFieldMapping {
-    static func getCodingKeysType() -> LKAnyProtobufferMessageCodingKeys.Type {
+public extension ProtobufTypeWithCustomFieldMapping {
+    static func getCodingKeysType() -> AnyProtobufMessageCodingKeys.Type {
         CodingKeys.self
     }
 }
 
 
-public protocol LKProtobufferMessage {}
-public typealias LKProtobufferMessageWithCustomFieldMapping = LKProtobufferMessage & LKProtobufferCodableWithCustomFieldMapping
+/// A type that is to become a  `message` type in protobuf.
+public protocol ProtobufMessage {}
+
+public typealias ProtobufMessageWithCustomFieldMapping = ProtobufMessage & ProtobufTypeWithCustomFieldMapping
 
 
 
 
 /// A type which can become a primitive field in a protobuffer message
-public protocol LKProtobufferPrimitive {}
+public protocol ProtobufPrimitive {}
 
-extension Bool: LKProtobufferPrimitive {}
-extension Int: LKProtobufferPrimitive {}
-extension String: LKProtobufferPrimitive {}
-extension Int64: LKProtobufferPrimitive {}
-extension UInt64: LKProtobufferPrimitive {}
-extension Int32: LKProtobufferPrimitive {}
-extension UInt32: LKProtobufferPrimitive {}
-extension Float: LKProtobufferPrimitive {}
-extension Double: LKProtobufferPrimitive {}
+extension Bool: ProtobufPrimitive {}
+extension Int: ProtobufPrimitive {}
+extension String: ProtobufPrimitive {}
+extension Int64: ProtobufPrimitive {}
+extension UInt64: ProtobufPrimitive {}
+extension Int32: ProtobufPrimitive {}
+extension UInt32: ProtobufPrimitive {}
+extension Float: ProtobufPrimitive {}
+extension Double: ProtobufPrimitive {}
 // TODO add some more
 
 
@@ -61,7 +64,7 @@ extension Double: LKProtobufferPrimitive {}
 
 
 
-public struct LKEmptyMessage: Codable, LKProtobufferMessage {}
+public struct EmptyMessage: Codable, ProtobufMessage {}
 
 
 
@@ -69,22 +72,36 @@ public struct LKEmptyMessage: Codable, LKProtobufferMessage {}
 
 
 /// A type which is mapped to the `bytes` type
-public protocol __LKProtobufferBytesMappedType: LKProtobufferPrimitive {}
+public protocol ProtobufBytesMapped: ProtobufPrimitive {}
 
-extension Data: __LKProtobufferBytesMappedType {}
-extension Array: __LKProtobufferBytesMappedType, LKProtobufferPrimitive where Element == UInt8 {}
+extension Data: ProtobufBytesMapped {}
+extension Array: ProtobufBytesMapped, ProtobufPrimitive where Element == UInt8 {} // TODO can/should we remove the primitive conformance here?
 
 
 
 
 // MARK: Package & Typename
 
-public protocol __Proto_TypeInNamespace {
-    static var namespace: String { get }
+
+public struct ProtobufPackageName: RawRepresentable, Hashable {
+    public static let `default` = Self("<default>") // intentionally using a string that would be an invalid package name...
+    public let rawValue: String
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
 }
 
-public protocol __Proto_TypeWithCustomProtoName {
-    static var protoTypeName: String { get }
+/// A type which can specify the protobuf package into which it belongs
+public protocol ProtoTypeInPackage {
+    static var package: ProtobufPackageName { get }
+}
+
+
+public protocol ProtoTypeWithCustomProtoName { // TODO what about having message/enum/assocEnum inherit from this, simply using the current typename as the default value?
+    static var protoTypename: String { get }
 }
 
 
@@ -92,20 +109,20 @@ public protocol __Proto_TypeWithCustomProtoName {
 // MARK: Repeated
 
 /// A type which can be encoded into a `repeated` field.
-protocol __LKProtobufRepeatedValueCodable {
+protocol ProtobufRepeated {
     static var elementType: Any.Type { get }
     static var isPacked: Bool { get }
-    init<Key: CodingKey>(decodingFrom decoder: Decoder, forKey key: Key, atFields fields: [LKProtobufFieldsMapping.FieldInfo]) throws
+    init<Key: CodingKey>(decodingFrom decoder: Decoder, forKey key: Key, atFields fields: [ProtobufFieldInfo]) throws
     /// Encodes the object's elements into the encoder, keyed by the specified key.
     func encodeElements<Key: CodingKey>(to encoder: Encoder, forKey key: Key) throws
 }
 
 
-extension Array: __LKProtobufRepeatedValueCodable where Element: Codable {
+extension Array: ProtobufRepeated where Element: Codable {
     static var elementType: Any.Type { Element.self }
     
     static var isPacked: Bool {
-        switch LKGuessWireType(Element.self)! {
+        switch GuessWireType(Element.self)! {
         case .varInt, ._32Bit, ._64Bit:
             return true
         case .lengthDelimited, .startGroup, .endGroup:
@@ -113,11 +130,11 @@ extension Array: __LKProtobufRepeatedValueCodable where Element: Codable {
         }
     }
     
-    init<Key: CodingKey>(decodingFrom decoder: Decoder, forKey key: Key, atFields fields: [LKProtobufFieldsMapping.FieldInfo]) throws {
+    init<Key: CodingKey>(decodingFrom decoder: Decoder, forKey key: Key, atFields fields: [ProtobufFieldInfo]) throws {
         if Self.isPacked {
             fatalError()
         } else {
-            let keyedContainer = try (decoder as! _LKProtobufferDecoder)._internalContainer(keyedBy: Key.self)
+            let keyedContainer = try (decoder as! _ProtobufferDecoder)._internalContainer(keyedBy: Key.self)
             //let keyedContainer = decoder.container(keyedBy: Key.self)
             let fields2 = keyedContainer.fields.getAll(forFieldNumber: key.getProtoFieldNumber())
             precondition(fields == fields2)
@@ -128,7 +145,7 @@ extension Array: __LKProtobufRepeatedValueCodable where Element: Codable {
     }
     
     func encodeElements<Key: CodingKey>(to encoder: Encoder, forKey key: Key) throws {
-        precondition(encoder is _LKProtobufferEncoder)
+        precondition(encoder is _ProtobufferEncoder)
         if Self.isPacked {
             fatalError()
         } else {

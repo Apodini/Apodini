@@ -19,13 +19,23 @@ import Foundation
 //}
 
 
-
-public struct FileDescriptorSet: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
-    public let files: [FileDescriptorProto]
+protocol ProtoMessageInGoogleProtobufPackage: ProtobufMessage {}
+extension ProtoMessageInGoogleProtobufPackage {
+    public static var package: ProtobufPackageName { .init("google.protobuf") }
 }
 
 
-public struct FileDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+// TODO having this conform to ProtobufMessage and the Google thing separately works, but having it conform to only the protocol declared above does not... WHY?
+public struct FileDescriptorSet: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
+    public let files: [FileDescriptorProto]
+    
+    public init(files: [FileDescriptorProto]) {
+        self.files = files
+    }
+}
+
+
+public struct FileDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     /// file name, relative to root of source tree
     public let name: String
     /// e.g. "foo", "foo.bar", etc.
@@ -58,7 +68,7 @@ public struct FileDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCu
     public let syntax: String
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
         case package = 2
         case dependencies = 3
@@ -93,7 +103,7 @@ public struct FileDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCu
 
 
 /// Describes a message type.
-public struct DescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct DescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     public var name: String
     
     public let fields: [FieldDescriptorProto]
@@ -102,7 +112,7 @@ public struct DescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustom
     public var nestedTypes: [DescriptorProto]
     public var enumTypes: [EnumDescriptorProto]
     
-    public struct ExtensionRange: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+    public struct ExtensionRange: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
         public let start: Int32?
         public let end: Int32?
         public let options: ExtensionRangeOptions?
@@ -115,7 +125,7 @@ public struct DescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustom
     /// Range of reserved tag numbers. Reserved tag numbers may not be used by
     /// fields or extension ranges in the same message. Reserved ranges may
     /// not overlap.
-    public struct ReservedRange: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+    public struct ReservedRange: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
         /// Inclusive.
         public let start: Int32?
         /// Exclusive.
@@ -128,7 +138,7 @@ public struct DescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustom
     public let reservedNames: [String]
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
         case fields = 2
         case extensions = 6
@@ -144,7 +154,7 @@ public struct DescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustom
 
 
 
-public struct ExtensionRangeOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct ExtensionRangeOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     /// The parser stores options it doesn't recognize here. See above.
 //  repeated UninterpretedOption uninterpreted_option = 999;
     public let uninterpretedOptions: [UninterpretedOption]
@@ -153,7 +163,7 @@ public struct ExtensionRangeOptions: Codable, Hashable, LKProtobufferMessageWith
 //  // Clients can define custom options in extensions of this message. See above.
 //  extensions 1000 to max;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case uninterpretedOptions = 999
     }
 }
@@ -161,9 +171,8 @@ public struct ExtensionRangeOptions: Codable, Hashable, LKProtobufferMessageWith
 
 
 /// Describes a field within a message.
-public struct FieldDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
-    //enum FieldType: Int, Codable, LKProtobufferEnum {
-    public enum FieldType: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+public struct FieldDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
+    public enum FieldType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // 0 is reserved for errors.
         // Order is weird for historical reasons.
         case TYPE_DOUBLE = 1
@@ -196,7 +205,7 @@ public struct FieldDescriptorProto: Codable, Hashable, LKProtobufferMessageWithC
         case TYPE_SINT64 = 18;  // Uses ZigZag encoding.
     }
     
-    public enum Label: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+    public enum Label: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // 0 is reserved for errors
         case LABEL_OPTIONAL = 1;
         case LABEL_REQUIRED = 2;
@@ -276,7 +285,7 @@ public struct FieldDescriptorProto: Codable, Hashable, LKProtobufferMessageWithC
     public let proto3Optional: Bool //  optional bool proto3_optional = 17;
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
         case number = 3
         case label = 4
@@ -295,7 +304,7 @@ public struct FieldDescriptorProto: Codable, Hashable, LKProtobufferMessageWithC
 
 
 /// Describes a oneof.
-public struct OneofDescriptorProto: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+public struct OneofDescriptorProto: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
     public let name: String?
     public let options: OneofOptions?
 }
@@ -304,7 +313,7 @@ public struct OneofDescriptorProto: Codable, LKProtobufferMessage, Hashable, __P
 
 
 /// Describes an enum type.
-public struct EnumDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct EnumDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //  optional string name = 1;
     public var name: String
 
@@ -320,7 +329,7 @@ public struct EnumDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCu
     // Note that this is distinct from DescriptorProto.ReservedRange in that it
     // is inclusive such that it can appropriately represent the entire int32
     // domain.
-    public struct EnumReservedRange: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+    public struct EnumReservedRange: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
         public let start: Int32?  // Inclusive.
         public let end: Int32?    // Inclusive.
     }
@@ -337,7 +346,7 @@ public struct EnumDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCu
     public let reservedNames: [String]
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
         case values = 2
         case options = 3
@@ -347,7 +356,7 @@ public struct EnumDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCu
 }
 
 /// Describes a value within an enum.
-public struct EnumValueDescriptorProto: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+public struct EnumValueDescriptorProto: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
 //  optional string name = 1;
     public let name: String
 //  optional int32 number = 2;
@@ -359,7 +368,7 @@ public struct EnumValueDescriptorProto: Codable, LKProtobufferMessage, Hashable,
 
 
 /// Describes a service.
-public struct ServiceDescriptorProto: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+public struct ServiceDescriptorProto: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
 //  optional string name = 1;
     public let name: String
 //  repeated MethodDescriptorProto method = 2;
@@ -377,7 +386,7 @@ public struct ServiceDescriptorProto: Codable, LKProtobufferMessage, Hashable, _
 
 
 /// Describes a method of a service.
-public struct MethodDescriptorProto: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //  optional string name = 1;
     public let name: String
 
@@ -399,7 +408,7 @@ public struct MethodDescriptorProto: Codable, Hashable, LKProtobufferMessageWith
     public let serverStreaming: Bool
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
         case inputType = 2
         case outputType = 3
@@ -424,7 +433,7 @@ public struct MethodDescriptorProto: Codable, Hashable, LKProtobufferMessageWith
 // MARK: Options
 
 
-public struct FileOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //    // Sets the Java package where classes generated from this .proto will be
 //    // placed.  By default, the proto package is used, but this is often
 //    // inappropriate because proto packages do not normally start with backwards
@@ -458,7 +467,7 @@ public struct FileOptions: Codable, Hashable, LKProtobufferMessageWithCustomFiel
 //    optional bool java_string_check_utf8 = 27 [default = false];
     
     // Generated classes can be optimized for speed or code size.
-    public enum OptimizeMode: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+    public enum OptimizeMode: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         case SPEED = 1;          // Generate complete code for parsing, serialization,
                             // etc.
         case CODE_SIZE = 2;     // Use ReflectionOps to implement these methods.
@@ -548,7 +557,7 @@ public struct FileOptions: Codable, Hashable, LKProtobufferMessageWithCustomFiel
 //
 //    reserved 38;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case optimizeMode = 9
         case deprecated = 23
         case uninterpretedOptions = 999
@@ -558,7 +567,7 @@ public struct FileOptions: Codable, Hashable, LKProtobufferMessageWithCustomFiel
 
 
 
-public struct MessageOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //    // Set true to use the old proto1 MessageSet wire format for extensions.
 //    // This is provided for backwards-compatibility with the MessageSet wire
 //    // format.  You should not use this for any other reason:  It's less
@@ -624,15 +633,15 @@ public struct MessageOptions: Codable, Hashable, LKProtobufferMessageWithCustomF
 //    // Clients can define custom options in extensions of this message. See above.
 //    extensions 1000 to max;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 3
     }
 }
 
 
 
-public struct FieldOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
-    public enum CType: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+public struct FieldOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
+    public enum CType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         /// Default mode.
         case STRING = 0;
         case CORD = 1;
@@ -664,7 +673,7 @@ public struct FieldOptions: Codable, Hashable, LKProtobufferMessageWithCustomFie
     // goog.math.Integer.
 //    optional JSType jstype = 6 [default = JS_NORMAL];
     public let jsType: JSType?
-    public enum JSType: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+    public enum JSType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // Use the default type.
         case JS_NORMAL = 0;
         
@@ -728,7 +737,7 @@ public struct FieldOptions: Codable, Hashable, LKProtobufferMessageWithCustomFie
 //    reserved 4;  // removed jtype
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case ctype = 1
         case packed = 2
         case jsType = 6
@@ -741,7 +750,7 @@ public struct FieldOptions: Codable, Hashable, LKProtobufferMessageWithCustomFie
 
 
 
-public struct OneofOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct OneofOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // The parser stores options it doesn't recognize here. See above.
 //  repeated UninterpretedOption uninterpreted_option = 999;
     public let uninterpretedOptions: [UninterpretedOption]
@@ -749,14 +758,14 @@ public struct OneofOptions: Codable, Hashable, LKProtobufferMessageWithCustomFie
 //  // Clients can define custom options in extensions of this message. See above.
 //  extensions 1000 to max;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case uninterpretedOptions = 999
     }
 }
 
 
 
-public struct EnumOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct EnumOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // Set this option to true to allow mapping different tag names to the same
     // value.
 //    optional bool allow_alias = 2;
@@ -778,7 +787,7 @@ public struct EnumOptions: Codable, Hashable, LKProtobufferMessageWithCustomFiel
 //    // Clients can define custom options in extensions of this message. See above.
 //    extensions 1000 to max;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case allowAlias = 2
         case deprecated = 3
         case uninterpretedOptions = 999
@@ -787,7 +796,7 @@ public struct EnumOptions: Codable, Hashable, LKProtobufferMessageWithCustomFiel
 
 
 
-public struct EnumValueOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct EnumValueOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
   // Is this enum value deprecated?
   // Depending on the target platform, this can emit Deprecated annotations
   // for the enum value, or it will be completely ignored; in the very least,
@@ -803,7 +812,7 @@ public struct EnumValueOptions: Codable, Hashable, LKProtobufferMessageWithCusto
 //  extensions 1000 to max;
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 1
         case uninterpretedOptions = 999
     }
@@ -814,7 +823,7 @@ public struct EnumValueOptions: Codable, Hashable, LKProtobufferMessageWithCusto
 
 
 
-public struct ServiceOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct ServiceOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // Note:  Field numbers 1 through 32 are reserved for Google's internal RPC
     //   framework.  We apologize for hoarding these numbers to ourselves, but
     //   we were already using them long before we decided to release Protocol
@@ -834,7 +843,7 @@ public struct ServiceOptions: Codable, Hashable, LKProtobufferMessageWithCustomF
 //    // Clients can define custom options in extensions of this message. See above.
 //    extensions 1000 to max;
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 33
         case uninterpretedOptions = 999
     }
@@ -843,7 +852,7 @@ public struct ServiceOptions: Codable, Hashable, LKProtobufferMessageWithCustomF
 
 
 
-public struct MethodOptions: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct MethodOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // Note:  Field numbers 1 through 32 are reserved for Google's internal RPC
     //   framework.  We apologize for hoarding these numbers to ourselves, but
     //   we were already using them long before we decided to release Protocol
@@ -859,7 +868,7 @@ public struct MethodOptions: Codable, Hashable, LKProtobufferMessageWithCustomFi
     // Is this method side-effect-free (or safe in HTTP parlance), or idempotent,
     // or neither? HTTP based RPC implementation may choose GET verb for safe
     // methods, and PUT verb for idempotent methods instead of the default POST.
-    public enum IdempotencyLevel: Int32, LKProtobufferEnum, __ProtoNS_Google_Protobuf {
+    public enum IdempotencyLevel: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         case IDEMPOTENCY_UNKNOWN = 0;
         case NO_SIDE_EFFECTS = 1;  // implies idempotent
         case IDEMPOTENT = 2;       // idempotent, but may have side effects
@@ -875,7 +884,7 @@ public struct MethodOptions: Codable, Hashable, LKProtobufferMessageWithCustomFi
 //    extensions 1000 to max;
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 33
         case idempotencyLevel = 34
         case uninterpretedOptions = 999
@@ -890,13 +899,13 @@ public struct MethodOptions: Codable, Hashable, LKProtobufferMessageWithCustomFi
 // options protos in descriptor objects (e.g. returned by Descriptor::options(),
 // or produced by Descriptor::CopyTo()) will never have UninterpretedOptions
 // in them.
-public struct UninterpretedOption: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+public struct UninterpretedOption: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // The name of the uninterpreted option.  Each string represents a segment in
     // a dot-separated name.  is_extension is true iff a segment represents an
     // extension (denoted with parentheses in options specs in .proto files).
     // E.g.,{ ["foo", false], ["bar.baz", true], ["qux", false] } represents
     // "foo.(bar.baz).qux".
-    public struct NamePart: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+    public struct NamePart: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
 //        required string name_part = 1;
 //        required bool is_extension = 2;
         public let namePart: String
@@ -921,7 +930,7 @@ public struct UninterpretedOption: Codable, Hashable, LKProtobufferMessageWithCu
     public let aggregateValue: String?
     
     
-    public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+    public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case names = 2
         case identifierValue = 3
         case positiveIntValue = 4
@@ -939,7 +948,7 @@ public struct UninterpretedOption: Codable, Hashable, LKProtobufferMessageWithCu
 
 // Encapsulates information about the original source file from which a
 // FileDescriptorProto was generated.
-public struct SourceCodeInfo: Codable, Hashable, LKProtobufferMessage, __ProtoNS_Google_Protobuf {
+public struct SourceCodeInfo: Codable, Hashable, ProtobufMessage, _ProtoPackage_Google_Protobuf {
     // A Location identifies a piece of source code in a .proto file which
     // corresponds to a particular definition.  This information is intended
     // to be useful to IDEs, code indexers, documentation generators, and similar
@@ -985,7 +994,7 @@ public struct SourceCodeInfo: Codable, Hashable, LKProtobufferMessage, __ProtoNS
     //   be recorded in the future.
 //    repeated Location location = 1;
     public let locations: [Location]
-    public struct Location: Codable, Hashable, LKProtobufferMessageWithCustomFieldMapping, __ProtoNS_Google_Protobuf {
+    public struct Location: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
         // Identifies which part of the FileDescriptorProto was defined at this
         // location.
         //
@@ -1074,7 +1083,7 @@ public struct SourceCodeInfo: Codable, Hashable, LKProtobufferMessage, __ProtoNS
 //        repeated string leading_detached_comments = 6;
         public let leadingDetachedComments: [String]
         
-        public enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
+        public enum CodingKeys: Int, ProtobufMessageCodingKeys {
             case path = 1
             case span = 2
             case leadingComments = 3
@@ -1088,12 +1097,12 @@ public struct SourceCodeInfo: Codable, Hashable, LKProtobufferMessage, __ProtoNS
 // Describes the relationship between generated code and its original source
 // file. A GeneratedCodeInfo message is associated with only one generated
 // source file, but may contain references to different source .proto files.
-public struct GeneratedCodeInfo: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+public struct GeneratedCodeInfo: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
     // An Annotation connects some span of text in generated code to an element
     // of its generating .proto file.
 //    repeated Annotation annotation = 1;
     public let annotatioins: [Annotation]
-    public struct Annotation: Codable, LKProtobufferMessage, Hashable, __ProtoNS_Google_Protobuf {
+    public struct Annotation: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
         // Identifies the element in the original source .proto file. This field
         // is formatted the same as SourceCodeInfo.Location.path.
 //        repeated int32 path = 1 [packed = true];

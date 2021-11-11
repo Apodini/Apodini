@@ -3,7 +3,7 @@ import ApodiniUtils
 import Foundation
 
 
-struct LKProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
+struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
     
@@ -17,7 +17,7 @@ struct LKProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Bool) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: String) throws {
@@ -29,27 +29,22 @@ struct LKProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     
     mutating func encode(_ value: Double) throws {
         dstBufferRef.value.writeProtoDouble(value)
-        //fatalError("Not yet implemented")
     }
     
     mutating func encode(_ value: Float) throws {
-        //dataWriter.write(value)
         dstBufferRef.value.writeProtoFloat(value)
-        //fatalError("Not yet implemented")
     }
     
     mutating func encode(_ value: Int) throws {
-        //dataWriter.writeVarInt(value)
         dstBufferRef.value.writeProtoVarInt(value)
-        //fatalError("Not yet implemented")
     }
     
     mutating func encode(_ value: Int8) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: Int16) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: Int32) throws {
@@ -57,27 +52,27 @@ struct LKProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Int64) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: UInt) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: UInt8) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: UInt16) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: UInt32) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: UInt64) throws {
-        fatalError("Not yet implemented")
+        fatalError("Not implemented")
     }
     
     mutating func encode<T: Encodable>(_ value: T) throws {

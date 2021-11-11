@@ -7,11 +7,12 @@ import ApodiniUtils
 
 
 
-protocol LKIgnoreInReflection {}
+// TODO we probably should remove this?
+protocol _ProtoIgnoreInReflection {}
 
-protocol __ProtoNS_Google_Protobuf: __Proto_TypeInNamespace {}
-extension __ProtoNS_Google_Protobuf {
-    public static var namespace: String { "google.protobuf" }
+protocol _ProtoPackage_Google_Protobuf: ProtoTypeInPackage {}
+extension _ProtoPackage_Google_Protobuf {
+    public static var package: ProtobufPackageName { .init("google.protobuf") }
 }
 
 
@@ -32,7 +33,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         public let fieldNumber: Int
         public let type: ProtoTypeDerivedFromSwift
         public let isRepeated: Bool
-        public let containingOneof: LKAnyProtobufferEnumWithAssociatedValues.Type?
+        public let containingOneof: AnyProtobufEnumWithAssociatedValues.Type?
         
         public func hash(into hasher: inout Hasher) {
             hasher.combine(name)
@@ -58,7 +59,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
     
     public struct OneofType: Hashable {
         public let name: String
-        public let underlyingType: LKAnyProtobufferEnumWithAssociatedValues.Type
+        public let underlyingType: AnyProtobufEnumWithAssociatedValues.Type
         /// The fields belonging to this oneof. Note that the field numbers here are w/in the context of the type containing a oneof field definition (ie the struct where one of the struct's properties is of a oneof type)
         public let fields: [MessageField]
         
@@ -105,13 +106,13 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
     }
     
     /// A type which is a protobuffer primitive, such as Strings, Ints, Doubles, etc
-    case primitive(LKProtobufferPrimitive.Type) // TOdO set the type to LKProtoPrimitive.Type
+    case primitive(ProtobufPrimitive.Type)
     /// `google.protobuf.Empty`
     case builtinEmptyType
     indirect case compositeMessage(name: Typename, underlyingType: Any.Type?, nestedOneofTypes: [OneofType], fields: [MessageField]) // TOdO rename to just message?
-    case enumTy(name: Typename, enumType: LKAnyProtobufferEnum.Type, cases: [EnumCase]) // TODO set the type to LKProtoEnum or whatever its called!
+    case enumTy(name: Typename, enumType: AnyProtobufEnum.Type, cases: [EnumCase])
     
-    case refdMessageType(Typename) // A message type which is referenced by its (fully qualified, TODO!!!) name only. Used to break recursion when dealing with recursive types.
+    case refdMessageType(Typename) // A message type which is referenced by its name only. Used to break recursion when dealing with recursive types.
     
     public static var bytes: Self { .primitive([UInt8].self) }
     
@@ -174,7 +175,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         case .builtinEmptyType:
             return ".google.protobuf.Empty"
         case .primitive(let type):
-            switch LKGetProtoFieldType(type) {
+            switch GetProtoFieldType(type) {
             case .TYPE_DOUBLE:
                 return "double"
             case .TYPE_FLOAT:
@@ -273,11 +274,11 @@ public class ProtoSchema {
     
     
     private func makeUniqueMessageTypename() -> String {
-        return "LK_Message\(messageTypesTypenameCounter.get())"
+        return "LK_Message\(messageTypesTypenameCounter.get())" // TODO
     }
     
     private func makeUniqueEnumTypename() -> String {
-        return "LK_Enum\(enumTypesTypenameCounter.get())"
+        return "LK_Enum\(enumTypesTypenameCounter.get())" // TODO
     }
     
     
@@ -308,13 +309,13 @@ public class ProtoSchema {
         let parameters = endpoint.parameters
         if parameters.count == 0 {
             // If there are no parameters, we map to the empty message type.
-            return protoType(for: LKEmptyMessage.self, requireTopLevelCompatibleOutput: true)
+            return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: true)
         } else if parameters.count == 1 {
             let param = parameters[0]
             print("param.type:", param.propertyType)
-            print("asMessage:", (param.propertyType as? LKProtobufferMessage.Type))
+            print("asMessage:", (param.propertyType as? ProtobufMessage.Type))
             // If there's only one parameter, and that parameter is a ProtobufferMessage, we can simply use that directly as the rpc's input.
-//            if let protobufMessageType = param.propertyType as? LKProtobufferMessage.Type {
+//            if let protobufMessageType = param.propertyType as? ProtobufMessage.Type {
 //                precondition(!param.nilIsValidValue) // TODO handleOptionals
 //                return .messageType(protobufMessageType)
 //            }
@@ -396,13 +397,14 @@ public class ProtoSchema {
     
     
     private func getTypename(_ type: Any.Type) -> ProtoTypeDerivedFromSwift.Typename {
+        // TODO properly handle generic instantiations here! pretty sure that wouldn't be compatible w/ the proto naming rules.
         let typenameComponents = String(reflecting: type)
             .components(separatedBy: ".")
             .filter { !$0.hasPrefix("(unknown context at") }
         return ProtoTypeDerivedFromSwift.Typename(
             packageName: { () -> String in
-                if let namespacedTy = type as? __Proto_TypeInNamespace.Type {
-                    return namespacedTy.namespace
+                if let typeInPackageTy = type as? ProtoTypeInPackage.Type {
+                    return typeInPackageTy.package.rawValue
                 } else {
                     return self.defaultPackageName
                 }
@@ -411,8 +413,8 @@ public class ProtoSchema {
             typename: {
                 var components = Array(typenameComponents.dropFirst())
                 precondition(!components.isEmpty)
-                if let typeWithCustomTypenameTy = type as? __Proto_TypeWithCustomProtoName.Type {
-                    components[components.endIndex - 1] = typeWithCustomTypenameTy.protoTypeName
+                if let typeWithCustomTypenameTy = type as? ProtoTypeWithCustomProtoName.Type {
+                    components[components.endIndex - 1] = typeWithCustomTypenameTy.protoTypename
                 }
                 return components.joined(separator: ".")
             }()
@@ -450,7 +452,7 @@ public class ProtoSchema {
     
     
     @discardableResult
-    public func informAboutMessageType(_ type: LKProtobufferMessage.Type) -> ProtoTypeDerivedFromSwift {
+    public func informAboutMessageType(_ type: ProtobufMessage.Type) -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let result = protoType(for: type, requireTopLevelCompatibleOutput: false)
         collectTypes(in: result)
@@ -464,10 +466,10 @@ public class ProtoSchema {
         elements: [(String, Any.Type)]
     ) -> ProtoTypeDerivedFromSwift {
         let underlyingTypeFieldNumbersMapping: [String: Int]? = {
-            guard let messageTy = underlyingType as? LKAnyProtobufferCodableWithCustomFieldMapping.Type else {
+            guard let messageTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type else {
                 return nil
             }
-            // intentionally not using the getProtoFieldNumber thing here bc the user -- by declaring conformance to the LKAnyProtobufferCodableWithCustomFieldMapping protocol --- has stated that they want to provide a custom mapping (which we expect to be nonnil)
+            // intentionally not using the getProtoFieldNumber thing here bc the user -- by declaring conformance to the AnyProtobufTypeWithCustomFieldMapping protocol --- has stated that they want to provide a custom mapping (which we expect to be nonnil)
             return .init(uniqueKeysWithValues: messageTy.getCodingKeysType().allCases.map { ($0.stringValue, $0.intValue!) })
         }()
         let (allElements, nestedOneofTypes) = elements.enumerated().reduce(
@@ -477,16 +479,16 @@ public class ProtoSchema {
             //let (fieldName, fieldType) = field
             let (idx, (fieldName, fieldType)) = arg0
             let newFields: [ProtoTypeDerivedFromSwift.MessageField]
-            if let assocEnumTy = fieldType as? LKAnyProtobufferEnumWithAssociatedValues.Type {
+            if let assocEnumTy = fieldType as? AnyProtobufEnumWithAssociatedValues.Type {
                 // TODO do something w/ the fieldNAme in here? in proto, the oneofs do have names, although i'm not sure where they get used, if at all...
                 let TI = try! typeInfo(of: assocEnumTy)
                 precondition(TI.kind == .enum)
                 let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: assocEnumTy.getCodingKeysType().allCases.map {
-                    // intentionally not using the getProtoFieldNumber thing here bc the LKAnyProtobufferEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
+                    // intentionally not using the getProtoFieldNumber thing here bc the AnyProtobufEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
                     ($0.stringValue, $0.intValue!)
                 })
                 newFields = TI.cases.map { enumCase in
-                    precondition((enumCase.payloadType as? __LKProtobufRepeatedValueCodable.Type) == nil)
+                    precondition((enumCase.payloadType as? ProtobufRepeated.Type) == nil)
                     return ProtoTypeDerivedFromSwift.MessageField.init(
                         name: enumCase.name,
                         fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
@@ -514,13 +516,13 @@ public class ProtoSchema {
                         }
                     }(),
                     type: { () -> ProtoTypeDerivedFromSwift in
-                        if let repeatedType = fieldType as? __LKProtobufRepeatedValueCodable.Type, (fieldType as? __LKProtobufferBytesMappedType.Type) == nil {
+                        if let repeatedType = fieldType as? ProtobufRepeated.Type, (fieldType as? ProtobufBytesMapped.Type) == nil {
                             return protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
                         } else {
                             return protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
                         }
                     }(),
-                    isRepeated: (fieldType as? __LKProtobufRepeatedValueCodable.Type) != nil,
+                    isRepeated: (fieldType as? ProtobufRepeated.Type) != nil,
                     containingOneof: nil
                 )]
             }
@@ -594,7 +596,7 @@ public class ProtoSchema {
         )
         
         if currentTypesStack.contains(cacheKey) {
-            precondition(LKGetProtoCodingKind(type) == .message)
+            precondition(GetProtoCodingKind(type) == .message)
             //return .refdMessageType(".\(typenameInfo.nameWithoutModule)")
             //return .refdMessageType(".\(typenameInfo.fullyQualifiedTypename)")
             return .refdMessageType(typename)
@@ -627,24 +629,20 @@ public class ProtoSchema {
             return protoType(for: optionalTy.wrappedType, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
         } else if type == Never.self {
             //return cacheRetval(.builtinEmptyType)
-            return protoType(for: LKEmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+            return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
         } else if type == Array<UInt8>.self || type == Data.self {
             if requireTopLevelCompatibleOutput {
                 fatalError("TODO!")
             } else {
                 return cacheRetval(.bytes)
             }
-        } else if type == LKEmptyMessage.self {
+        } else if type == EmptyMessage.self {
             // TODO we might need special handling here, insofar as we want probably want one definition of the empty type per package...
-            return cacheRetval(.compositeMessage(name: typename, underlyingType: LKEmptyMessage.self, nestedOneofTypes: [], fields: []))
+            return cacheRetval(.compositeMessage(name: typename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))
         }
         
-//        if fullTypename.contains("MessageResponse") {
-//            fatalError()
-//        }
-        
         let TI = try! typeInfo(of: type)
-        let protoCodingKind = LKGetProtoCodingKind(type)
+        let protoCodingKind = GetProtoCodingKind(type)
         
         switch protoCodingKind {
         case nil:
@@ -659,7 +657,7 @@ public class ProtoSchema {
                 switch TI.properties.count {
                 case 0:
                     //return cacheRetval(.builtinEmptyType)
-                    return protoType(for: LKEmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+                    return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
                 default:
 //                    return .compositeMessage(
 //                        name: messageName,
@@ -695,9 +693,9 @@ public class ProtoSchema {
 //            case .scalar, .dictionary, .repeated, .reference:
 //                fatalError("unreachable?")
 //            }
-            //return .messageType(type as! LKProtobufferMessage.Type)
+            //return .messageType(type as! ProtobufMessage.Type)
         case .primitive:
-            guard let primitiveTy = type as? LKProtobufferPrimitive.Type else {
+            guard let primitiveTy = type as? ProtobufPrimitive.Type else {
                 fatalError()
             }
             if !requireTopLevelCompatibleOutput {
@@ -736,7 +734,7 @@ public class ProtoSchema {
 //                ))
             }
         case .enum:
-            if let enumTy = type as? LKAnyProtobufferEnum.Type {
+            if let enumTy = type as? AnyProtobufEnum.Type {
                 precondition(TI.cases.count == enumTy.allCases.count)
                 let enumCases: [ProtoTypeDerivedFromSwift.EnumCase] = zip(TI.cases, enumTy.allCases).map {
                     //print(String(reflecting: $0.1))
@@ -748,10 +746,10 @@ public class ProtoSchema {
                 } else {
                     return cacheRetval(.enumTy(name: typename, enumType: enumTy, cases: enumCases))
                 }
-            } else if let enumTy = type as? LKAnyProtobufferEnumWithAssociatedValues.Type {
+            } else if let enumTy = type as? AnyProtobufEnumWithAssociatedValues.Type {
                 fatalError() // shouldn't end up here since enums w/ assoc values are handled as part of processing a message's fields into a composite.
             } else {
-                fatalError("Encountered an enum type which implements neither '\(LKAnyProtobufferEnum.self)' nor '\(LKAnyProtobufferEnumWithAssociatedValues.self)'. This is highly irregular.")
+                fatalError("Encountered an enum type which implements neither '\(AnyProtobufEnum.self)' nor '\(AnyProtobufEnumWithAssociatedValues.self)'. This is highly irregular.")
             }
         }
     }
@@ -791,7 +789,7 @@ extension ProtoSchema {
             case .primitive, .builtinEmptyType, .compositeMessage, .refdMessageType:
                 fatalError()
             case let .enumTy(typename, enumType, cases):
-                guard (enumType as? LKIgnoreInReflection.Type) == nil else {
+                guard (enumType as? _ProtoIgnoreInReflection.Type) == nil else {
                     return nil
                 }
                 return EnumDescriptorProto(
@@ -807,14 +805,14 @@ extension ProtoSchema {
                     }(),
                     options: nil,
                     reservedRanges: { () -> [EnumDescriptorProto.EnumReservedRange] in
-                        if let protoEnumTy = enumType as? LKAnyProtobufferEnum.Type {
+                        if let protoEnumTy = enumType as? AnyProtobufEnum.Type {
                             return protoEnumTy.reservedRanges.map { .init(start: $0.lowerBound, end: $0.upperBound) }
                         } else {
                             return []
                         }
                     }(),
                     reservedNames: { () -> [String] in
-                        if let protoEnumTy = enumType as? LKAnyProtobufferEnum.Type {
+                        if let protoEnumTy = enumType as? AnyProtobufEnum.Type {
                             return Array(protoEnumTy.reservedNames)
                         } else {
                             return []
@@ -936,11 +934,11 @@ extension ProtoSchema {
         case .refdMessageType:
             fatalError() // Shouldn't be a problem since this function only gets called for top-level types. riiiight?
         case let .compositeMessage(messageTypename, underlyingType, nestedOneofTypes, fields):
-            guard (underlyingType as? LKIgnoreInReflection.Type) == nil else {
+            guard (underlyingType as? _ProtoIgnoreInReflection.Type) == nil else {
                 return nil
             }
             let fieldNumbersMapping: [String: Int]
-            if let protoCodableWithCodingKeysTy = underlyingType as? LKAnyProtobufferCodableWithCustomFieldMapping.Type {
+            if let protoCodableWithCodingKeysTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type {
                 let codingKeys = protoCodableWithCodingKeysTy.getCodingKeysType().allCases
                 fieldNumbersMapping = .init(uniqueKeysWithValues: codingKeys.map { ($0.stringValue, $0.intValue!) }) // intentionally not using the getProtoFieldNumber thing here bc we want the user to define int values (and, in fact, require it so the force unwrap shouldn't be a problem anyway)
             } else {
@@ -966,7 +964,7 @@ extension ProtoSchema {
                             case .builtinEmptyType:
                                 return .TYPE_MESSAGE
                             case .primitive(let type):
-                                return LKGetProtoFieldType(type)
+                                return GetProtoFieldType(type)
                             case .compositeMessage, .refdMessageType:
                                 return .TYPE_MESSAGE
                             case .enumTy:
@@ -1066,9 +1064,6 @@ extension ProtoSchema {
 //                        )
 //                    }
                     let nestedEnumTypes = topLevelEnumTypes.filter { enumTypeDesc in
-                        if messageTypename.mangled.contains("FieldOptions") {
-                            LKNoop()
-                        }
                         guard let expectedParentTypename = getParentTypename(enumTypeDesc.name) else {
                             return false
                         }

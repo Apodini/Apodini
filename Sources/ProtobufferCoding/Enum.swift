@@ -1,7 +1,7 @@
 import Foundation
 
 
-public protocol LKAnyProtobufferEnum {
+public protocol AnyProtobufEnum {
     static var allCases: [Self] { get }
     var rawValue: Int32 { get }
     static var reservedRanges: Set<ClosedRange<Int32>> { get }
@@ -10,10 +10,10 @@ public protocol LKAnyProtobufferEnum {
 
 
 /// A Swift enum type which can be stored into protobuffer messages.
-public protocol LKProtobufferEnum: LKAnyProtobufferEnum, Codable, CaseIterable, RawRepresentable where RawValue == Int32 {}
+public protocol ProtobufEnum: AnyProtobufEnum, Codable, CaseIterable, RawRepresentable where RawValue == Int32 {}
 
 
-public extension LKProtobufferEnum {
+public extension ProtobufEnum {
     static var reservedRanges: Set<ClosedRange<Int32>> { [] }
     static var reservedNames: Set<String> { [] }
 }
