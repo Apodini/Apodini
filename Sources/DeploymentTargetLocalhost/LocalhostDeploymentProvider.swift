@@ -29,7 +29,7 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     var inputPackageDir: String
     
     @Option(help: "The port on which the API should listen")
-    var port: Int = 8080
+    var port: Int = 80
     
     @Option(help: "The port number for the first-launched child process")
     var endpointProcessesBasePort: Int = 5000

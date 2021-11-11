@@ -92,7 +92,7 @@ After installing `swagger-codegen`, invoke it as follows, for instance to genera
 swagger-codegen generate -i OPEN_API_INPUT -l typescript-angular -o OUTPUT_DIR
 ```
 
-where `OPEN_API_INPUT` is the URL to the OAS document served by your Apodini `WebService`, e.g., `http://localhost:8080/openapi` by default. 
+where `OPEN_API_INPUT` is the URL to the OAS document served by your Apodini `WebService`, e.g., `http://localhost/openapi` by default. 
 
 ## Providing Customized API Descriptions
 
