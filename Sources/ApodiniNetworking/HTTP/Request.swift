@@ -130,6 +130,25 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
                 rawValue: .string(self.url.pathIncludingQueryAndFragment)
             ),
          ]
+        switch bodyStorage {
+        case .buffer(let buffer):
+            metadata.append(LoggingMetadataInformation(
+                key: .init("HTTPBody"),
+                rawValue: .string(buffer.getString(at: buffer.readerIndex, length: max(150, buffer.readableBytes)) ?? "")
+            ))
+        case .stream(let stream):
+            if let buffer = stream.readNewData() {
+                metadata.append(LoggingMetadataInformation(
+                    key: .init("HTTPBody"),
+                    rawValue: .string(buffer.getString(at: buffer.readerIndex, length: max(150, buffer.readableBytes)) ?? "")
+                ))
+            } else {
+                metadata.append(LoggingMetadataInformation(
+                    key: .init("HTTPBody"),
+                    rawValue: .string("")
+                ))
+            }
+        }
         if let route = route {
             metadata.append(LoggingMetadataInformation(
                 key: .init("route"),
