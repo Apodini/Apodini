@@ -1,62 +1,16 @@
-import Apodini
-import ApodiniTypeInformation
-import Runtime
 import Foundation
+import Apodini
+@_implementationOnly import Runtime
 
 
 
-
-
-// MARK: Protocols and shit
-
-/// Protocol indicating that the type is not nested, but rather directly embdeded into its parent type
-protocol LKProtobufferEmbeddedOneofType {}
-
-
-
-
-protocol LKAnyProtobufferMessageCodingKeys: Swift.CodingKey {
-    static var allCases: [Self] { get }
-}
-
-protocol LKProtobufferMessageCodingKeys: LKAnyProtobufferMessageCodingKeys & CaseIterable {}
-
-
-
-protocol LKAnyProtobufferCodableWithCustomFieldMapping {
-    static func getCodingKeysType() -> LKAnyProtobufferMessageCodingKeys.Type
-}
-
-protocol LKProtobufferCodableWithCustomFieldMapping: LKAnyProtobufferCodableWithCustomFieldMapping {
-    associatedtype CodingKeys: RawRepresentable & CaseIterable & LKAnyProtobufferMessageCodingKeys where Self.CodingKeys.RawValue == Int
-}
-
-extension LKProtobufferCodableWithCustomFieldMapping {
-    static func getCodingKeysType() -> LKAnyProtobufferMessageCodingKeys.Type {
-        CodingKeys.self
-    }
-}
 
 
 protocol LKIgnoreInReflection {}
 
-
-protocol __Proto_TypeInNamespace {
-    static var namespace: String { get }
-}
-
-protocol __Proto_TypeWithCustomProtoName {
-    static var protoTypeName: String { get }
-}
-
 protocol __ProtoNS_Google_Protobuf: __Proto_TypeInNamespace {}
 extension __ProtoNS_Google_Protobuf {
-    static var namespace: String { "google.protobuf" }
-}
-
-protocol __ProtoNS_GRPC_Reflection_V1Alpha: __Proto_TypeInNamespace {}
-extension __ProtoNS_GRPC_Reflection_V1Alpha {
-    static var namespace: String { "grpc.reflection.v1alpha" }
+    public static var namespace: String { "google.protobuf" }
 }
 
 
@@ -70,10 +24,6 @@ extension __ProtoNS_GRPC_Reflection_V1Alpha {
 
 
 
-protocol LKProtobufferMessage {}
-typealias LKProtobufferMessageWithCustomFieldMapping = LKProtobufferMessage & LKProtobufferCodableWithCustomFieldMapping
-
-
 //extension LKProtobufferMessage where Self: LKProtobufferEncodable {
 //    static func getCodingKeysType() -> LKProtobufferMessageCodingKeys.Type {
 //        Self.CodingKeys.self
@@ -85,61 +35,6 @@ typealias LKProtobufferMessageWithCustomFieldMapping = LKProtobufferMessage & LK
 //        Self.CodingKeys.self
 //    }
 //}
-
-
-/// A type which can become a primitive field in a protobuffer message
-protocol LKProtobufferPrimitive {}
-
-extension Bool: LKProtobufferPrimitive {}
-extension Int: LKProtobufferPrimitive {}
-extension String: LKProtobufferPrimitive {}
-extension Int64: LKProtobufferPrimitive {}
-extension UInt64: LKProtobufferPrimitive {}
-extension Int32: LKProtobufferPrimitive {}
-extension UInt32: LKProtobufferPrimitive {}
-extension Float: LKProtobufferPrimitive {}
-extension Double: LKProtobufferPrimitive {}
-// TODO add some more
-
-
-
-
-
-
-//struct LKProtobufferReservedEnumRange {
-//    /// Inclusive
-//    let start: Int32
-//    /// Inclusive
-//    let end: Int32
-//}
-
-
-
-protocol LKAnyProtobufferEnum {
-
-//protocol LKProtobufferEnum { //}: RawRepresentable where RawValue == Int32 {
-    static var allCases: [Self] { get }
-    var rawValue: Int32 { get }
-    static var reservedRanges: Set<ClosedRange<Int32>> { get }
-    static var reservedNames: Set<String> { get }
-}
-
-
-protocol LKProtobufferEnum: LKAnyProtobufferEnum, Codable, CaseIterable, RawRepresentable where RawValue == Int32 {}
-
-extension LKProtobufferEnum {
-    static var reservedRanges: Set<ClosedRange<Int32>> { [] }
-    static var reservedNames: Set<String> { [] }
-}
-
-
-
-// MARK: The type handling stuff
-
-
-
-
-struct LKEmptyMessage: Codable, LKProtobufferMessage {}
 
 
 
@@ -173,15 +68,16 @@ extension EnumDescriptorProto: __LKProtoTypeDescriptorProtocol {}
 //}
 
 
-enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
-    struct MessageField: Hashable {
-        let name: String
-        let fieldNumber: Int
-        let type: ProtoTypeDerivedFromSwift
-        let isRepeated: Bool
-        let containingOneof: LKAnyProtobufferEnumWithAssociatedValues.Type?
+
+public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
+    public struct MessageField: Hashable {
+        public let name: String
+        public let fieldNumber: Int
+        public let type: ProtoTypeDerivedFromSwift
+        public let isRepeated: Bool
+        public let containingOneof: LKAnyProtobufferEnumWithAssociatedValues.Type?
         
-        func hash(into hasher: inout Hasher) {
+        public func hash(into hasher: inout Hasher) {
             hasher.combine(name)
             hasher.combine(fieldNumber)
             hasher.combine(type)
@@ -189,7 +85,7 @@ enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
             hasher.combine(containingOneof.map(ObjectIdentifier.init))
         }
         
-        static func == (lhs: Self, rhs: Self) -> Bool {
+        public static func == (lhs: Self, rhs: Self) -> Bool {
             return lhs.name == rhs.name
                 && lhs.fieldNumber == rhs.fieldNumber
                 && lhs.type == rhs.type
@@ -198,47 +94,47 @@ enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         }
     }
     
-    struct EnumCase: Hashable {
-        let name: String
-        let value: Int32
+    public struct EnumCase: Hashable {
+        public let name: String
+        public let value: Int32
     }
     
-    struct OneofType: Hashable {
-        let name: String
-        let underlyingType: LKAnyProtobufferEnumWithAssociatedValues.Type
+    public struct OneofType: Hashable {
+        public let name: String
+        public let underlyingType: LKAnyProtobufferEnumWithAssociatedValues.Type
         /// The fields belonging to this oneof. Note that the field numbers here are w/in the context of the type containing a oneof field definition (ie the struct where one of the struct's properties is of a oneof type)
-        let fields: [MessageField]
+        public let fields: [MessageField]
         
-        func hash(into hasher: inout Hasher) {
+        public func hash(into hasher: inout Hasher) {
             hasher.combine(name)
             hasher.combine(ObjectIdentifier(underlyingType))
             hasher.combine(fields)
         }
         
-        static func == (lhs: Self, rhs: Self) -> Bool {
+        public static func == (lhs: Self, rhs: Self) -> Bool {
             return lhs.name == rhs.name
                 && ObjectIdentifier(lhs.underlyingType) == ObjectIdentifier(rhs.underlyingType)
                 && lhs.fields == rhs.fields
         }
     }
     
-    struct Typename: Hashable {
-        let packageName: String
-        let typename: String
-        var mangled: String {
+    public struct Typename: Hashable {
+        public let packageName: String
+        public let typename: String
+        public var mangled: String {
             "[\(packageName)].\(typename)"
         }
-        var fullyQualified: String {
+        public var fullyQualified: String {
             ".\(packageName).\(typename)" // TODO do we want the initial period here?
         }
-        init(packageName: String, typename: String) {
+        public init(packageName: String, typename: String) {
             // TODO use a regex here!!!
             precondition(!packageName.hasPrefix("."))
             precondition(!typename.hasPrefix("."))
             self.packageName = packageName
             self.typename = typename
         }
-        init(mangled string: String) {
+        public init(mangled string: String) {
             precondition(string.hasPrefix("["))
             let packageEndIdx = string.firstIndex(of: "]")!
             //self.packageName = String(string[string.index(after: string.startIndex)..<packageEndIdx])
@@ -265,9 +161,9 @@ enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
     
     case refdMessageType(Typename) // A message type which is referenced by its (fully qualified, TODO!!!) name only. Used to break recursion when dealing with recursive types.
     
-    static var bytes: Self { .primitive([UInt8].self) }
+    public static var bytes: Self { .primitive([UInt8].self) }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         // TODO this hashable conformance is broken, insofar as `hash(a) == hash(b) =/=> a == b` (which should ideally hold)
         switch self {
         case .primitive(let type):
@@ -292,12 +188,12 @@ enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         }
     }
     
-    static func == (lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.isEqual(to: rhs, onlyCheckSemanticEquivalence: true)
     }
     
     /// - parameter onlyCheckSemanticEquivalence: whether the equality checking should be relaxed to return true if two objects are structurally different, but semantically equivalent. (e.g.: comparing a message type ref to a message type with the same name)
-    func isEqual(to other: Self, onlyCheckSemanticEquivalence: Bool) -> Bool {
+    public func isEqual(to other: Self, onlyCheckSemanticEquivalence: Bool) -> Bool {
         switch (self, other) {
         case (.primitive(let lhsTy), .primitive(let rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
@@ -321,10 +217,10 @@ enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         }
     }
     
-    var fullyQualifiedTypename: String {
+    public var fullyQualifiedTypename: String {
         switch self {
         case .builtinEmptyType:
-            return GRPCv2InterfaceExporter.EmptyTypeFullyQualifiedTypeName
+            return ".google.protobuf.Empty"
         case .primitive(let type):
             switch LKGetProtoFieldType(type) {
             case .TYPE_DOUBLE:
@@ -426,7 +322,7 @@ struct Counter {
 //}
 
 
-class GRPCv2SchemaManager {
+public class GRPCv2SchemaManager { // TODO rename ProtoSchemaManager or just ProtoSchema!
     func getTypename(_ type: Any.Type) -> ProtoTypeDerivedFromSwift.Typename {
         let typenameComponents = String(reflecting: type)
             .components(separatedBy: ".")
@@ -476,17 +372,17 @@ class GRPCv2SchemaManager {
     private(set) var fileDescriptors: [FileDescriptorProto] = []
     
     
-    init(defaultPackageName: String) {
+    public init(defaultPackageName: String) {
         self.defaultPackageName = defaultPackageName
     }
     
     
-    func messageTypeDescriptors(forPackage packageName: String) -> [DescriptorProto] {
+    public func messageTypeDescriptors(forPackage packageName: String) -> [DescriptorProto] {
         precondition(isFinalized, "Cannot access message type descriptors: Schema not yet finalized")
         return finalizedTopLevelMessageTypesByPackage[packageName] ?? []
     }
     
-    func enumTypeDescriptors(forPackage packageName: String) -> [EnumDescriptorProto] {
+    public func enumTypeDescriptors(forPackage packageName: String) -> [EnumDescriptorProto] {
         precondition(isFinalized, "Cannot access enum type descriptors: Schema not yet finalized")
         return finalizedTopLevelEnumTypesByPackage[packageName] ?? []
     }
@@ -501,24 +397,21 @@ class GRPCv2SchemaManager {
     }
     
     
-    struct EndpointProtoMessageTypes {
-        let input: ProtoTypeDerivedFromSwift
-        let output: ProtoTypeDerivedFromSwift
+    public struct EndpointProtoMessageTypes {
+        public let input: ProtoTypeDerivedFromSwift
+        public let output: ProtoTypeDerivedFromSwift
     }
     
     
     // TODO rename to registerEndpointTypes or informAboutEndpoint or smth like that
-    func endpointProtoMessageTypes<H: Handler>(
-        for endpoint: Endpoint<H>,
-        endpointContext: GRPCv2EndpointContext
-    ) throws -> EndpointProtoMessageTypes {
+    public func endpointProtoMessageTypes<H: Handler>(for endpoint: Endpoint<H>) throws -> EndpointProtoMessageTypes {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         if let types = endpointMessageMappings[ObjectIdentifier(H.self)] {
             return types
         } else {
             let types = EndpointProtoMessageTypes(
-                input: collectTypes(in: try parametersMessageType(for: endpoint, endpointContext: endpointContext)),
-                output: collectTypes(in: try responseMessageType(for: endpoint, endpointContext: endpointContext))
+                input: collectTypes(in: try parametersMessageType(for: endpoint)),
+                output: collectTypes(in: try responseMessageType(for: endpoint))
             )
             endpointMessageMappings[ObjectIdentifier(H.self)] = types
             return types
@@ -526,15 +419,11 @@ class GRPCv2SchemaManager {
     }
     
     
-    func parametersMessageType<H: Handler>(
-        for endpoint: Endpoint<H>,
-        endpointContext: GRPCv2EndpointContext
-    ) throws -> ProtoTypeDerivedFromSwift {
+    func parametersMessageType<H: Handler>(for endpoint: Endpoint<H>) throws -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let parameters = endpoint.parameters
         if parameters.count == 0 {
             // If there are no parameters, we map to the empty message type.
-            //return .builtinEmptyType
             return protoType(for: LKEmptyMessage.self, requireTopLevelCompatibleOutput: true)
         } else if parameters.count == 1 {
             let param = parameters[0]
@@ -552,8 +441,7 @@ class GRPCv2SchemaManager {
                 requireTopLevelCompatibleOutput: true,
                 singleParamHandlingContext: .init(
                     paramName: param.name,
-                    wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input"), // TODO +"Request"?
-                    endpointContext: endpointContext
+                    wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input") // TODO +"Request"?
                 )
             )
             
@@ -595,7 +483,7 @@ class GRPCv2SchemaManager {
     }
     
     
-    func responseMessageType<H: Handler>(for endpoint: Endpoint<H>, endpointContext: GRPCv2EndpointContext) throws -> ProtoTypeDerivedFromSwift {
+    func responseMessageType<H: Handler>(for endpoint: Endpoint<H>) throws -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         //return try wrapSingleType(H.Response.Content.self as! Codable.Type)
         print(H.self, "\(H.self)", String(describing: H.self), String(reflecting: H.self), String(reflecting: H.Response.Content.self))
@@ -604,11 +492,9 @@ class GRPCv2SchemaManager {
             requireTopLevelCompatibleOutput: true,
                singleParamHandlingContext: .init(
                 paramName: "value",
-                wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Response"),
-                endpointContext: endpointContext
+                wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Response")
             )
         )
-        endpointContext.endpointResponseType = endpointResponseType
         return endpointResponseType
 //        let type = try TypeInformation(type: H.Response.Content.self)
 //        print(H.Response.Content.self)
@@ -655,7 +541,7 @@ class GRPCv2SchemaManager {
     
     
     @discardableResult
-    func informAboutMessageType(_ type: LKProtobufferMessage.Type) -> ProtoTypeDerivedFromSwift {
+    public func informAboutMessageType(_ type: LKProtobufferMessage.Type) -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let result = protoType(for: type, requireTopLevelCompatibleOutput: false)
         collectTypes(in: result)
@@ -666,8 +552,7 @@ class GRPCv2SchemaManager {
     private func combineIntoCompoundMessageType(
         typename: ProtoTypeDerivedFromSwift.Typename,
         underlyingType: Any.Type?,
-        elements: [(String, Any.Type)],
-        endpointContext: GRPCv2EndpointContext? = nil
+        elements: [(String, Any.Type)]
     ) -> ProtoTypeDerivedFromSwift {
 //        let allElements: [(String, Any.Type)] = elements.flatMap { (name, type) in
 //            if let assocEnumTy = type as? LKAnyProtobufferEnumWithAssociatedValues.Type {
@@ -743,11 +628,11 @@ class GRPCv2SchemaManager {
             }
         }
         
-        if let endpointContext = endpointContext {
-            for messageField in allElements {
-                endpointContext.addMapping(fromParamName: messageField.name, toFieldNumber: messageField.fieldNumber)
-            }
-        }
+//        if let endpointContext = endpointContext {
+//            for messageField in allElements {
+//                endpointContext.addMapping(fromParamName: messageField.name, toFieldNumber: messageField.fieldNumber)
+//            }
+//        }
         
         return .compositeMessage(
             name: typename,
@@ -835,7 +720,6 @@ class GRPCv2SchemaManager {
     private struct SingleParamHandlingContext: Hashable {
         let paramName: String
         let wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename
-        let endpointContext: GRPCv2EndpointContext
     }
     
     /// Returns a proto type representing the Swift type `type` in a proto definition.
@@ -982,16 +866,14 @@ class GRPCv2SchemaManager {
                     return cacheRetval(combineIntoCompoundMessageType(
                         typename: singleParamHandlingContext.wrappingMessageTypename,
                         underlyingType: nil,
-                        elements: [(singleParamHandlingContext.paramName, primitiveTy)],
-                        endpointContext: singleParamHandlingContext.endpointContext
+                        elements: [(singleParamHandlingContext.paramName, primitiveTy)]
                     ))
                 } else {
                     fatalError("TODO do we ever end up here???")
                     return cacheRetval(combineIntoCompoundMessageType(
                         typename: .init(packageName: defaultPackageName, typename: "\(makeUniqueMessageTypename())"), // TODO come up w/ better method names!
                         underlyingType: nil,
-                        elements: [("value", primitiveTy)],
-                        endpointContext: nil
+                        elements: [("value", primitiveTy)]
                     ))
                 }
 //                return cacheRetval(combineIntoCompoundMessageType(
@@ -1085,7 +967,7 @@ extension Optional: AnyOptional {
 
 extension GRPCv2SchemaManager {
     /// Seals the schema, i.e. not allowing any further types to be added, and resolves the types that have been added so far into a proto descriptor
-    func finalize() {
+    public func finalize() {
         guard !isFinalized else {
             return
         }
@@ -1324,7 +1206,8 @@ extension GRPCv2SchemaManager {
                             case .primitive:
                                 return nil
                             case .builtinEmptyType:
-                                return GRPCv2InterfaceExporter.EmptyTypeFullyQualifiedTypeName
+                                fatalError() // TODO we also need to include the file defining this type!!!!
+                                return field.type.fullyQualifiedTypename
                             case .compositeMessage(let typename, _, _, _), .enumTy(let typename, _, _), .refdMessageType(let typename):
                                 return typename.fullyQualified
                             }

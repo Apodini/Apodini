@@ -8,7 +8,7 @@
 
 import Foundation
 import Apodini
-import ApodiniGRPC
+import ApodiniGRPC_old
 
 extension Protobuffer {
     struct ExporterConfiguration {

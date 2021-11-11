@@ -8,7 +8,7 @@
 
 import XCTest
 @testable import Apodini
-@testable import ApodiniGRPC
+@testable import ApodiniGRPC_old
 import XCTApodiniNetworking
 
 final class GRPCServiceTests: ApodiniTests {

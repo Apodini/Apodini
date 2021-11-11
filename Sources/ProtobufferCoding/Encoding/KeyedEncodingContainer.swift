@@ -5,7 +5,7 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-private let fuckingHellThisIsSoBad_Encode = ThreadSpecificVariable<Box<Encodable.Type>>()
+private let fuckingHellThisIsSoBad_Encode = ThreadSpecificVariable<Box<Encodable.Type>>() // TODO this is unused!
 
 
 //extension KeyedEncodingContainerProtocol {

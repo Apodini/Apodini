@@ -8,8 +8,8 @@
 
 import XCTest
 @testable import Apodini
-@testable import ApodiniProtobuffer
-@testable import ApodiniGRPC
+@testable import ApodiniProtobuffer_old
+@testable import ApodiniGRPC_old
 @testable import ApodiniTypeReflection
 import XCTApodiniNetworking
 

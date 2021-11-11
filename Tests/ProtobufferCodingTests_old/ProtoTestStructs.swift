@@ -7,7 +7,7 @@
 //              
 
 import Foundation
-@testable import ProtobufferCoding
+@testable import ProtobufferCoding_old
 
 // swiftlint:disable discouraged_optional_boolean
 struct ProtoTestMessage<T: Codable>: Codable {

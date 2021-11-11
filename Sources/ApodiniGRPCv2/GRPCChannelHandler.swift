@@ -727,7 +727,9 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
             case .stream(_, let stream):
                 stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
                     print("GRPC STREAM EVENT", payload.readableBytes, closeStream)
-                    self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
+                    context.eventLoop.execute {
+                        self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
+                    }
                 }
             }
             do {

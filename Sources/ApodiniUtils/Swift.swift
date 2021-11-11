@@ -79,7 +79,29 @@ extension Sequence {
     public func dropNilValues<T>() -> [T] where Element == T? {
         self.compactMap { $0 }
     }
+    
+    /// Returns a set created by mapping the elements of the sequence using the specified block
+    public func mapIntoSet<Result: Hashable>(_ transform: (Element) throws -> Result) rethrows -> Set<Result> {
+        var retval = Set<Result>()
+        retval.reserveCapacity(self.underestimatedCount)
+        for element in self {
+            retval.insert(try transform(element))
+        }
+        return retval
+    }
+    
+    /// Returns the number of elements in the sequence that satisfy the predicate.
+    public func count(where predicate: (Element) -> Bool) -> Int {
+        var retval = 0
+        for element in self {
+            if predicate(element) {
+                retval += 1
+            }
+        }
+        return retval
+    }
 }
+
 
 
 // MARK: Collection
@@ -195,5 +217,30 @@ extension Date {
         fmt.locale = Locale(identifier: "en_US")
         fmt.dateFormat = formatString
         return fmt.string(from: self)
+    }
+}
+
+
+extension Array {
+    /// Returns a string descriptioin of the elements of this array,
+    /// containing as many elements as fit until the resulting string exceeds `maxLength` characters.
+    public func description(maxLength: Int) -> String {
+        guard !isEmpty else {
+            return "[]"
+        }
+        var desc = "["
+        for (idx, element) in self.enumerated() {
+            if idx != startIndex {
+                desc.append(", ")
+            }
+            let elementDesc = String(describing: element)
+            if desc.count + elementDesc.count + 1 > maxLength {
+                // The resulting string would be too large, don't add the desc
+                return desc + ", ...]"
+            } else {
+                desc += ", \(elementDesc)"
+            }
+        }
+        return desc + "]"
     }
 }

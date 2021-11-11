@@ -7,7 +7,7 @@
 //              
 
 import Apodini
-import ApodiniGRPC
+import ApodiniGRPC_old
 import ApodiniTypeReflection
 import ApodiniUtils
 import ApodiniNetworking

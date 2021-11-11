@@ -4,6 +4,8 @@ import ApodiniNetworking
 import ApodiniUtils
 import Logging
 import Dispatch
+import ProtobufferCoding
+import Foundation
 
 
 
@@ -37,10 +39,6 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
     //static let serverReflectionServiceName = "\(serverReflectionPackageName).ServerReflection"
     static let serverReflectionServiceName = "ServerReflection"
     static let serverReflectionMethodName = "ServerReflectionInfo"
-    
-    
-    // TODO this doesn't belong here.
-    static let EmptyTypeFullyQualifiedTypeName = ".google.protobuf.Empty"
     
     private let app: Application
     private let config: GRPCv2 // would love to have a "GRPCConfig" typename or smth like that here, but that'd make the public API ugly and weird... :/
@@ -121,7 +119,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
             server.createService(name: serviceName, associatedWithPackage: defaultPackageName)
         }
         
-        let endpointContext = GRPCv2EndpointContext()
+        let endpointContext = GRPCv2EndpointContext(communicationalPattern: endpoint[CommunicationalPattern.self])
         
         server.addMethod(
             toServiceNamed: serviceName,
@@ -174,7 +172,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
             inPackage: Self.serverReflectionPackageName,
             GRPCMethod(
                 name: Self.serverReflectionMethodName,
-                type: .bidirectional,
+                type: .bidirectionalStream,
                 inputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionRequest",
                 outputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionResponse",
                 streamRPCHandlerMaker: { [unowned self] in makeServerReflectionStreamRPCHandler() }
@@ -186,7 +184,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         
         server.addMethod(toServiceNamed: config.serviceName, inPackage: defaultPackageName, GRPCMethod(
             name: "SayHello",
-            type: .unary,
+            type: .requestResponse,
             inputFQTN: "GreeterRequest",//greeterIn.fullyQualifiedTypename,
             outputFQTN: "GreeterResponse",//greeterOut.fullyQualifiedTypename,
             streamRPCHandlerMaker: { HardcodedGreeter() }
@@ -268,6 +266,7 @@ struct GRPCv2EndpointDecodingStrategy: EndpointDecodingStrategy {
 }
 
 
+
 private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
     typealias Element = T
     typealias Input = GRPCv2MessageIn
@@ -284,6 +283,7 @@ private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDec
             guard let fieldNumber = fields.first(where: { $0.name == name })?.fieldNumber else {
                 fatalError() // TODO throw
             }
+            // TODO use a struct to decode this instead of directly accessing the internal decoder!!
             let decoder = _LKProtobufferDecoder(codingPath: [], buffer: input.payload)
             let keyedDecoder = try decoder.container(keyedBy: FakeCodingKey.self) // TODO maybe cache this instead of re-running the thing for every param request?! (the issue is that the keyedDecoder will read the message's proto format)
             return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldNumber))
@@ -369,97 +369,4 @@ class HardcodedGreeter: GRPCv2StreamRPCHandler {
             fatalError()
         }
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-// MARK: TMP
-
-
-
-struct LKTestPerson: Codable, LKProtobufferMessage, Equatable, LKProtobufferCodableWithCustomFieldMapping {
-    enum Gender: Int32, LKProtobufferEnum {
-        case male = 0
-        case female = 1
-    }
-    
-    let name: String
-    let age: Int
-    let gender: Gender
-    let parents: [String]
-    
-    enum CodingKeys: Int, LKProtobufferMessageCodingKeys {
-        case name = 12
-        case age = 14
-        case gender = 512
-        case parents = 14006
-    }
-}
-
-
-func testProtoCoding<T: LKProtobufferMessage & Codable & Equatable>(_ input: T) {
-    let encoded = try! LKProtobufferEncoder().encode(input)
-    print(T.self)
-    try! ProtobufMessageLayoutDecoder.getFields(in: encoded).debugPrintFieldsInfo()
-    let decoded = try! LKProtobufferDecoder().decode(T.self, from: encoded)
-    precondition(decoded == input)
-}
-
-
-
-func doTheThing(server: GRPCv2Server) {
-    return;
-    let schema = GRPCv2SchemaManager(defaultPackageName: "fuck")
-    schema.informAboutMessageType(FileDescriptorSet.self)
-    schema.finalize()
-    
-    
-    do {
-        var buffer = ByteBuffer()
-        buffer.writeProtoVarInt(Int(300))
-        buffer.moveReaderIndex(to: 0)
-        precondition(try! Int(buffer.getVarInt(at: 0)) == 300)
-    }
-    
-    testProtoCoding(LKTestPerson(name: "Lukas", age: 23, gender: .male, parents: ["Sandra", "Stefan"]))
-    
-    
-    let field = FieldDescriptorProto(
-        name: "abc",
-        number: 1,
-        label: nil,
-        type: .TYPE_STRING,
-        typename: nil,
-        extendee: nil,
-        defaultValue: nil,
-        oneofIndex: nil,
-        jsonName: nil,
-        options: nil,
-        proto3Optional: false
-    )
-    testProtoCoding(field)
-    
-    let typeDesc = DescriptorProto(
-        name: "TestMessage",
-        fields: [field],
-        extensions: [],
-        nestedTypes: [],
-        enumTypes: [],
-        extensionRanges: [],
-        oneofDecls: [],
-        options: nil,
-        reservedRanges: [],
-        reservedNames: []
-    )
-    testProtoCoding(typeDesc)
-    
-//    fatalError()
 }

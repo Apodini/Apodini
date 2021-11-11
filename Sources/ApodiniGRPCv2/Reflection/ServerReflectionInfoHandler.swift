@@ -1,10 +1,10 @@
 import Apodini
-import ProtobufferCoding
 import Runtime
 import ApodiniUtils
 import Foundation
 import NIOHPACK
 import AssociatedTypeRequirementsVisitor
+import ProtobufferCoding
 
 
 ////struct ServerReflectionInfoHandler: Handler {
@@ -61,130 +61,16 @@ import AssociatedTypeRequirementsVisitor
 //}
 
 
-protocol LKAnyProtobufferEnumWithAssociatedValues: LKAnyProtobufferCodableWithCustomFieldMapping {}
-
-// TODO update this to use the "PRotobufferTypeWithCustomFieldMapping" protocol? That'd also give us the ability to get the field numbers from the type...
-protocol LKProtobufferEnumWithAssociatedValues: LKAnyProtobufferEnumWithAssociatedValues, Codable, LKProtobufferEmbeddedOneofType, LKProtobufferCodableWithCustomFieldMapping {
-    //associatedtype CodingKeys: Swift.CodingKey & RawRepresentable & CaseIterable where CodingKeys.RawValue == Int
-    
-    static func makeEnumCase(forCodingKey codingKey: CodingKeys, payload: Any?) -> Self
-    var getCodingKeyAndPayload: (CodingKeys, Any?) { get }
-//    func encodeCodingKeyAndPayload(to encoder: Encoder) throws
-}
-
-
-extension LKProtobufferEnumWithAssociatedValues {
-    init(from decoder: Decoder) throws { // TODO this will only work with the LKProtobufferDecoder!!!!!!
-        let keyedContainer = try decoder.container(keyedBy: CodingKeys.self)
-        let CodingKeysTI = try typeInfo(of: CodingKeys.self)
-        precondition(CodingKeysTI.kind == .enum)
-        let SelfTI = try typeInfo(of: Self.self)
-        precondition(SelfTI.kind == .enum)
-        let fieldNumbersByCaseName: [String: Int] = .init(uniqueKeysWithValues: CodingKeys.allCases.map { ($0.stringValue, $0.rawValue) })
-        for enumCaseTI in CodingKeysTI.cases {
-            let tagValue = fieldNumbersByCaseName[enumCaseTI.name]!
-            let enumCase = CodingKeys(intValue: tagValue)!
-//            print(tagValue, enumCaseTI, keyedContainer.contains(enumCase))
-            if keyedContainer.contains(enumCase) {
-                let selfCaseIdx = SelfTI.cases.firstIndex { $0.name == enumCaseTI.name }!
-                let selfCaseTI = SelfTI.cases[selfCaseIdx]//.first(where: { $0.name == enumCaseTI.name })!
-                let payloadTy = selfCaseTI.payloadType!
-//                print(payloadTy, payloadTy as? Decodable.Type, type(of: payloadTy as! Decodable.Type) as? Decodable.Protocol)
-                guard let payloadDecodableTy = payloadTy as? Decodable.Type else {
-                    fatalError("Enum payload must be Decodable")
-                }
-//                print(payloadTy, LKGetTypeMemoryLayoutSize(payloadTy))
-//                print(Decodable.self, MemoryLayout<Decodable>.size)
-//                print(Decodable.Type.self, MemoryLayout<Decodable.Type>.size)
-//                print(Decodable.Protocol.self, MemoryLayout<Decodable.Protocol>.size)
-//                if let rawBytesSupportingKeyedContainer = keyedContainer as? LKRawBytesSupportingKeyedDecodingContainer {
-////                    let buffer = try rawDataSupportingKeyedContainer.getRawBytes(forKey: enumCase)
-////                    let decoder = _LKProtobufferDecoder(codingPath: rawBytesSupportingKeyedContainer, userInfo: <#T##[CodingUserInfoKey : Any]#>, buffer: <#T##ByteBuffer#>)
-////                    let payloadValue = (payloadTy as! Decodable.Type)
-//                    let payloadValue = try rawBytesSupportingKeyedContainer.decode(payloadDecodableTy, forKey: enumCase)
-//                    print("PAYLOAD VALUE", payloadValue)
-//                }
-//                fuckingHellThisIsSoBad.currentValue!.value = payloadDecodableTy
-//                let decodingInfo = try keyedContainer.decode(LKDecodeTypeErasedDecodableTypeHelper.self, forKey: enumCase)
-//                print(decodingInfo)
-                //keyedContainer.decode(<#T##type: Decodable.Protocol##Decodable.Protocol#>, forKey: <#T##CaseIterable & CodingKey & RawRepresentable#>)
-                //let payloadValue = try keyedContainer.decode(payloadDecodableTy, forKey: enumCase)
-                //print(enumCase, payloadValue)
-                let payloadValue = try keyedContainer.decode(payloadDecodableTy, forKey: enumCase)
-                //print("PAYLOAD VALUE", payloadValue)
-//                print("Self.size", MemoryLayout<Self>.size)
-                self = Self.makeEnumCase(forCodingKey: enumCase, payload: payloadValue)
-                return
-            }
-        }
-//        for enumCase in CodingKeys.allCases {
-//            //let tag = enumCase.rawValue
-//            print(enumCase, enumCase.rawValue, enumCase.stringValue, enumCase.intValue)
-//            let tag = enumCase.rawValue
-//        }
-        fatalError()
-    }
-    
-    
-    func encode(to encoder: Encoder) throws {
-        precondition(encoder is _LKProtobufferEncoder)
-//        // TODO somehow get the current coding key and payload dynamically!
-//        let TI1 = try typeInfo(of: type(of: self))
-//        let TI2 = try typeInfo(of: Self.self)
-//        print(TI1)
-//        print(TI2)
-        let (codingKey, payload) = self.getCodingKeyAndPayload
-        let _0 = String(describing: self.getCodingKeyAndPayload)
-        let _1 = String(describing: self.getCodingKeyAndPayload2)
-        precondition(_0 == _1, "\(_0) != \(_1)")
-
-        //var singleValueContainer = encoder.singleValueContainer()
-        //try singleValueContainer.encode(try _LKAlreadyEncodedProtoField(fieldNumber: codingKey.intValue!, value: payload as! Encodable))
-        
-        var keyedEncodingContainer = encoder.container(keyedBy: CodingKeys.self)
-        let containerContainer = _KeyedEncodingContainerContainer<CodingKeys>.init(key: codingKey, keyedEncodingContainer: keyedEncodingContainer)
-        let encodableATRVisitor = AnyEncodableEncodeIntoKeyedEncodingContainerATRVisitor(containerContainer: containerContainer)
-        switch encodableATRVisitor(payload as! Encodable) {
-        case nil:
-            fatalError("Nil")
-        case .failure(let error):
-            fatalError("Error: \(error)")
-        case .success:
-            //fatalError("Success")
-            break
-        }
-        keyedEncodingContainer = containerContainer.keyedEncodingContainer
-
-//        let FE = FakeEncoder()
-//        FE.testWithGenerics(payload as! Encodable)
-//        FE.testWithoutGenerics(payload as! Encodable)
-//        keyedContainer.encode(payload as! Encodable, forKey: codingKey)
-//        let encodableATRVisitor = AnyEncodableEncodeIntoKeyedEncodingContainerATRVisitor(containerBox: Box(keyedContainer), key: codingKey)
-//        switch encodableATRVisitor(payload as! Encodable) {
-//        case nil:
-//            fatalError("Nil result")
-//        case .failure(let error):
-//            fatalError("Error: \(error)")
-//        case .success:
-//            fatalError("Success")
-//        }
-//        keyedContainer = encodableATRVisitor.containerBox.value
-//        try encodeCodingKeyAndPayload(to: encoder) // TODO get rid of this and use the code above instead!
-    }
-    
-    
-    var getCodingKeyAndPayload2: (CodingKeys, Any?) {
-        let selfMirror = Mirror(reflecting: self)
-        let (caseName, payload) = selfMirror.children.first!
-        let codingKey = Self.CodingKeys.allCases.first { $0.stringValue == caseName }!
-        return (codingKey, isNil(payload) ? nil : payload)
-    }
-}
-
-
 
 //protocol LKIgnoreInReflection_REF: LKIgnoreInReflection {}
 //protocol LKIgnoreInReflection_REF: LKIgnoreInReflection, __ProtoNS_GRPC_Reflection_V1Alpha {}
+
+protocol __ProtoNS_GRPC_Reflection_V1Alpha: __Proto_TypeInNamespace {}
+extension __ProtoNS_GRPC_Reflection_V1Alpha {
+    public static var namespace: String { "grpc.reflection.v1alpha" }
+}
+
+
 protocol LKIgnoreInReflection_REF: __ProtoNS_GRPC_Reflection_V1Alpha {}
 
 struct FakeEncoder {
@@ -763,8 +649,8 @@ extension GRPCv2Server {
                             inputType: method.inputFQTN,
                             outputType: method.outputFQTN,
                             options: nil,
-                            clientStreaming: method.type == .clientStreaming || method.type == .bidirectional,
-                            serverStreaming: method.type == .serviceStreaming || method.type == .bidirectional
+                            clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
+                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
                         )
                     },
                     options: nil // TODO use this to deprecate services? Add an option via a modifier?
@@ -875,61 +761,3 @@ extension GRPCv2Server {
 //        return instance.run()
 //    }
 //}
-
-
-
-
-
-
-
-
-func LKGetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
-    if type == Int.self || type == Int64.self { // TODO this will break on a system where Int != Int64
-        return .TYPE_INT64
-    } else if type == UInt.self || type == UInt64.self {  // TODO this will break on a system where UInt != UInt64
-        return .TYPE_UINT64
-    } else if type == Int32.self {
-        return .TYPE_INT32
-    } else if type == UInt32.self {
-        return .TYPE_UINT32
-    //} else if type == Int16.self || type == UInt16.self // TODO add support for these? and then simply map them to the smallest int where they'd fit. Also add the corresponding logic to the en/decoder!
-    } else if type == Bool.self {
-        return .TYPE_BOOL
-    } else if type == Float.self {
-        return .TYPE_FLOAT
-    } else if type == Double.self {
-        return .TYPE_DOUBLE
-    } else if type == String.self {
-        return .TYPE_STRING
-    } else if type == Array<UInt8>.self || type == Data.self {
-        return .TYPE_BYTES
-    } else if LKGetProtoCodingKind(type) == .message {
-        return .TYPE_MESSAGE
-    } else {
-        fatalError("Unsupported type '\(type)'")
-    }
-}
-
-
-
-extension Sequence {
-    func mapIntoSet<Result: Hashable>(_ transform: (Element) throws -> Result) rethrows -> Set<Result> {
-        var retval = Set<Result>()
-        retval.reserveCapacity(self.underestimatedCount)
-        for element in self {
-            retval.insert(try transform(element))
-        }
-        return retval
-    }
-    
-    
-    func count(where predicate: (Element) -> Bool) -> Int {
-        var retval = 0
-        for element in self {
-            if predicate(element) {
-                retval += 1
-            }
-        }
-        return retval
-    }
-}

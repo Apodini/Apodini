@@ -2,31 +2,6 @@ import NIO
 import Foundation
 
 
-// TODO move this to ApodiniUtils
-extension Array {
-    /// Returns a string descriptioin of the elements of this array,
-    /// containing as many elements as fit until the resulting string exceeds `maxLength` characters.
-    func description(maxLength: Int) -> String {
-        guard !isEmpty else {
-            return "[]"
-        }
-        var desc = "["
-        for (idx, element) in self.enumerated() {
-            if idx != startIndex {
-                desc.append(", ")
-            }
-            let elementDesc = String(describing: element)
-            if desc.count + elementDesc.count + 1 > maxLength {
-                // The resulting string would be too large, don't add the desc
-                return desc + ", ...]"
-            } else {
-                desc += ", \(elementDesc)"
-            }
-        }
-        return desc + "]"
-    }
-}
-
 /// A single-value decoding container, which supports decoding a single unkeyed value.
 struct LKProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     let codingPath: [CodingKey]

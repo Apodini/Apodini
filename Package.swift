@@ -21,16 +21,17 @@ let package = Package(
         .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
-        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
+        .library(name: "ApodiniGRPC_old", targets: ["ApodiniGRPC_old"]),
         .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
         .library(name: "ApodiniNotifications", targets: ["ApodiniNotifications"]),
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
-        .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
+        .library(name: "ApodiniProtobuffer_old", targets: ["ApodiniProtobuffer_old"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
         // Authorization
         .library(name: "ApodiniAuthorization", targets: ["ApodiniAuthorization"]),
@@ -166,10 +167,10 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGRPC_old"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniProtobuffer_old"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
@@ -208,13 +209,13 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniGRPC",
+            name: "ApodiniGRPC_old",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding_old")
             ]
         ),
 
@@ -280,13 +281,13 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniProtobuffer",
+            name: "ApodiniProtobuffer_old",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniTypeReflection"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC")
+                .target(name: "ProtobufferCoding_old"),
+                .target(name: "ApodiniGRPC_old")
             ]
         ),
 
@@ -411,10 +412,10 @@ let package = Package(
             ]
         ),
 
-        // ProtobufferCoding
+        // ProtobufferCoding_old
 
         .target(
-            name: "ProtobufferCoding",
+            name: "ProtobufferCoding_old",
             dependencies: [
                 .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime")
@@ -423,9 +424,9 @@ let package = Package(
         ),
 
         .testTarget(
-            name: "ProtobufferCodingTests",
+            name: "ProtobufferCodingTests_old",
             dependencies: [
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding_old")
             ]
         ),
         
@@ -475,8 +476,8 @@ let package = Package(
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniProtobuffer"),
+                .target(name: "ApodiniGRPC_old"),
+                .target(name: "ApodiniProtobuffer_old"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
@@ -654,9 +655,20 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniTypeReflection"),
+                .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Runtime", package: "Runtime"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
             ]
         ),
@@ -665,7 +677,6 @@ let package = Package(
             name: "LKTestWebService",
             dependencies: [
                 .target(name: "ApodiniGRPCv2"),
-                .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "Apodini")

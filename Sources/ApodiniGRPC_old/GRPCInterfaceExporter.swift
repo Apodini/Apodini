@@ -11,7 +11,7 @@ import NIO
 import Apodini
 import ApodiniExtension
 @_implementationOnly import NIOHPACK
-@_implementationOnly import ProtobufferCoding
+@_implementationOnly import ProtobufferCoding_old
 
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {

@@ -10,7 +10,7 @@ import Foundation
 import NIO
 import Apodini
 import ApodiniUtils
-@_implementationOnly import ProtobufferCoding
+@_implementationOnly import ProtobufferCoding_old
 import ApodiniNetworking
 
 

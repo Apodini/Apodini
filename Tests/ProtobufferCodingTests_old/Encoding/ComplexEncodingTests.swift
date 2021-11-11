@@ -8,7 +8,7 @@
 
 import Foundation
 import XCTest
-@testable import ProtobufferCoding
+@testable import ProtobufferCoding_old
 
 class ComplexEncodingTests: XCTestCase {
     let expectedComplexMessage = Data([

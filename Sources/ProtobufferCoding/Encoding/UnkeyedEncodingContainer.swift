@@ -20,7 +20,7 @@ struct LKProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         fatalError()
     }
     
-    mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+    mutating func nestedContainer<NestedKey: CodingKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> {
         fatalError("Not yet implemented (keyType: \(keyType))")
     }
     
