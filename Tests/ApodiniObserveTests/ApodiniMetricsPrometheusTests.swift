@@ -8,9 +8,7 @@
 
 import XCTest
 import XCTApodini
-import XCTVapor
-import ApodiniVaporSupport
-import Vapor
+import XCTApodiniNetworking
 import Metrics
 @testable import Prometheus
 @testable import ApodiniObserve
@@ -110,7 +108,7 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
     }
     
     func testApodiniMetricTypesWithPrometheusHandler() throws {
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/Philipp") { response in
             guard let prometheusFactory = Self.metricsConfiguration.metricHandlerConfigurations[0].factory as? PrometheusMetricsFactory else {
                 XCTFail("Prometheus Factory couldn't be extracted")
                 return
@@ -137,8 +135,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(gauge._type, .gauge)
             // As the metric value is private we have to collect the string and then check the assertions
             let gaugeString = gauge.collect()
-            XCTAssertContains(gaugeString, Self.gaugeLabel)
-            XCTAssertContains(gaugeString, "2.56")
+            XCTAssert(gaugeString.contains(Self.gaugeLabel))
+            XCTAssert(gaugeString.contains("2.56"))
             
             // Histogram
             guard let histogram: PromHistogram<Double, DimensionHistogramLabels> =
@@ -150,8 +148,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(histogram.name, Self.histrogramLabel)
             XCTAssertEqual(histogram._type, .histogram)
             let histrogramString = histogram.collect()
-            XCTAssertContains(histrogramString, Self.histrogramLabel)
-            XCTAssertContains(histrogramString, "3.1415")
+            XCTAssert(histrogramString.contains(Self.histrogramLabel))
+            XCTAssert(histrogramString.contains("3.1415"))
             
             // Recorder
             guard let recorder: PromHistogram<Double, DimensionHistogramLabels> =
@@ -163,8 +161,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(recorder.name, Self.recorderLabel)
             XCTAssertEqual(recorder._type, .histogram)
             let recorderString = recorder.collect()
-            XCTAssertContains(recorderString, Self.recorderLabel)
-            XCTAssertContains(recorderString, "9.91")
+            XCTAssert(recorderString.contains(Self.recorderLabel))
+            XCTAssert(recorderString.contains("9.91"))
             
             // Timer
             guard let timer: PromSummary<Int64, DimensionSummaryLabels> =
@@ -176,8 +174,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(timer.name, Self.timerLabel)
             XCTAssertEqual(timer._type, .summary)
             let timerString = timer.collect()
-            XCTAssertContains(timerString, Self.timerLabel)
-            XCTAssertContains(timerString, "11")
+            XCTAssert(timerString.contains(Self.timerLabel))
+            XCTAssert(timerString.contains("11"))
             
             // Cleanup
             prometheusClient.removeMetric(counter)
@@ -187,12 +185,13 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             prometheusClient.removeMetric(timer)
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!") // TODO
+            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
         }
     }
     
     func testApodiniPrometheusMetricTypesWithPrometheusHandler() throws {
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter2/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter2/Philipp") { response in
             guard let prometheusFactory = Self.metricsConfiguration.metricHandlerConfigurations[0].factory as? PrometheusMetricsFactory else {
                 XCTFail("Prometheus Factory couldn't be extracted")
                 return
@@ -219,8 +218,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(gauge._type, .gauge)
             // As the metric value is private we have to collect the string and then check the assertions
             let gaugeString = gauge.collect()
-            XCTAssertContains(gaugeString, Self.gaugeLabel)
-            XCTAssertContains(gaugeString, "256")
+            XCTAssert(gaugeString.contains(Self.gaugeLabel))
+            XCTAssert(gaugeString.contains("256"))
             
             // Histogram
             guard let histogram: PromHistogram<Int64, DimensionHistogramLabels> =
@@ -232,8 +231,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(histogram.name, Self.histrogramLabel)
             XCTAssertEqual(histogram._type, .histogram)
             let histrogramString = histogram.collect()
-            XCTAssertContains(histrogramString, Self.histrogramLabel)
-            XCTAssertContains(histrogramString, "31415")
+            XCTAssert(histrogramString.contains(Self.histrogramLabel))
+            XCTAssert(histrogramString.contains("31415"))
             
             // Summary
             guard let summary: PromSummary<Int64, DimensionSummaryLabels> =
@@ -245,8 +244,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             XCTAssertEqual(summary.name, Self.summaryLabel)
             XCTAssertEqual(summary._type, .summary)
             let summaryString = summary.collect()
-            XCTAssertContains(summaryString, Self.summaryLabel)
-            XCTAssertContains(summaryString, "11000000")
+            XCTAssert(summaryString.contains(Self.summaryLabel))
+            XCTAssert(summaryString.contains("11000000"))
             
             // Cleanup
             prometheusClient.removeMetric(counter)
@@ -255,7 +254,8 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             prometheusClient.removeMetric(summary)
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!") // TODO
+            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
         }
     }
 }

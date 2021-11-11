@@ -104,7 +104,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     
     
     var loggingMetadata: [LoggingMetadataInformation] {
-         [
+        var metadata: [LoggingMetadataInformation] = [
             LoggingMetadataInformation(
                 key: .init("ApodiniNetworkingRequestDescription"),
                 rawValue: .string(self.description)
@@ -120,8 +120,23 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
             LoggingMetadataInformation(
                 key: .init("url"),
                 rawValue: .string(self.url.stringValue)
-            )
+            ),
+            LoggingMetadataInformation(
+                key: .init("url.path"),
+                rawValue: .string(self.url.path)
+            ),
+            LoggingMetadataInformation(
+                key: .init("url.pathAndQuery"),
+                rawValue: .string(self.url.pathIncludingQueryAndFragment)
+            ),
          ]
+        if let route = route {
+            metadata.append(LoggingMetadataInformation(
+                key: .init("route"),
+                rawValue: .string("\(route.method) \(route.path.httpPathString)")
+            ))
+        }
+        return metadata
     }
     
     /// Read a query param value, decoded to the specified type.

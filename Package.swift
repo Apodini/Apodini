@@ -98,7 +98,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
         
         // Apodini Observe
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
         .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
         // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
@@ -638,7 +637,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniVaporSupport"),
+                .target(name: "ApodiniNetworking"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras")
@@ -671,14 +670,12 @@ let package = Package(
                 .target(name: "ApodiniObserveMetricsPrometheus"),
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniVaporSupport"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras"),
-                .product(name: "SwiftPrometheus", package: "SwiftPrometheus"),
-                .product(name: "XCTVapor", package: "vapor")
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
             ]
         )
     ]

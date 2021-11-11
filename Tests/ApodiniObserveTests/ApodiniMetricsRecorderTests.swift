@@ -8,9 +8,7 @@
 
 import XCTest
 import XCTApodini
-import XCTVapor
-import ApodiniVaporSupport
-import Vapor
+import XCTApodiniNetworking
 import Logging
 import Metrics
 import ApodiniObserve
@@ -133,7 +131,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.Exporter")
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/first/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/first/Philipp") { response in
             // Counter
             let counter = try Self.testMetricsFactory.expectCounter(Self.counterLabel, Self.greeterDimensions)
             
@@ -288,7 +286,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.Exporter")
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/second/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/second/Philipp") { response in
             // Counter
             let counter = try Self.testMetricsFactory.expectCounter(Self.counterLabel, Self.greeterDimensions)
             
@@ -429,7 +427,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.Exporter")
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/third/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/third/Philipp") { response in
             // Counter
             let counter = try Self.testMetricsFactory.expectCounter(Self.counterLabel, Self.greeterDimensions)
             
@@ -551,7 +549,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.Exporter")
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/forth/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/forth/Philipp") { response in
             // Counter
             let counter = try Self.testMetricsFactory.expectCounter(Self.counterLabel, Self.greeterDimensions)
             
