@@ -34,21 +34,21 @@ public final class HTTPConfiguration: Configuration {
     
     
     public var uriPrefix: String {
-            let httpProtocol: String
-            var port = ""
-            
-            if self.tlsConfiguration == nil {
-                httpProtocol = "http://"
-                if hostname.port != 80 {
-                    port = ":\(hostname.port)"
-                }
-            } else {
-                httpProtocol = "https://"
-                if hostname.port != 443 {
-                    port = ":\(hostname.port)"
-                }
+        let httpProtocol: String
+        var port = ""
+        
+        if self.tlsConfiguration == nil {
+            httpProtocol = "http://"
+            if hostname.port != 80 {
+                port = ":\(hostname.port!)"
             }
-            
+        } else {
+            httpProtocol = "https://"
+            if hostname.port != 443 {
+                port = ":\(hostname.port!)"
+            }
+        }
+        
         return httpProtocol + hostname.address + port
     }
     
@@ -63,25 +63,22 @@ public final class HTTPConfiguration: Configuration {
             defaultPort = Defaults.httpsPort
         }
         
-        if let bindAddress = bindAddress {
-            switch bindAddress {
-            case let .interface(address, port):
-                if port != nil {
-                    self.bindAddress = bindAddress
-                } else {
-                    self.bindAddress = .interface(address, port: defaultPort)
-                }
-            case .unixDomainSocket:
-                self.bindAddress = bindAddress
-            }
-        } else {
+        switch bindAddress {
+        case let .interface(address, nil):
+            self.bindAddress = .interface(address, port: defaultPort)
+        case .interface:
+            self.bindAddress = bindAddress!
+        case .unixDomainSocket:
+            self.bindAddress = bindAddress!
+        default:
             self.bindAddress = .interface(Defaults.bindAddress, port: defaultPort)
         }
 
         if let hostname = hostname {
-            if hostname.port == nil {
+            switch (hostname.address, hostname.port) {
+            case (_, nil):
                 self.hostname = Hostname(address: hostname.address, port: defaultPort)
-            } else {
+            default:
                 self.hostname = hostname
             }
         } else {
@@ -95,7 +92,7 @@ public final class HTTPConfiguration: Configuration {
         if supportVersions.contains(.two) {
             app.logger.info("Using HTTP/2 and TLS.")
         } else {
-            app.logger.info("Starting without HTTP/2. and TLS")
+            app.logger.info("Starting without HTTP/2 and TLS")
         }
         
         app.storage[HTTPConfigurationStorageKey.self] = self

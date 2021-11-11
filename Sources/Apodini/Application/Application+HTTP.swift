@@ -42,12 +42,12 @@ public struct Hostname {
     let address: String
     let port: Int?
     
-    /// Create a new `TLSFilePaths`
+    /// Create a new `Hostname`
     ///
     /// - parameters:
     ///     - address: Address part of hostname.
     ///     - port: Port of hostname.
-    public init(address: String, port: Int) {
+    public init(address: String, port: Int? = nil) {
         self.address = address
         self.port = port
     }
@@ -58,7 +58,7 @@ public struct Hostname {
 public struct TLSConfigurationBuilder {
     let tlsConfiguration: TLSConfiguration
     
-    /// Create a new `TLSFilePaths`
+    /// Create a new `TLSConfigurationBuilder`
     ///
     /// - parameters:
     ///     - certificatePath: Path to your certificate pem file.

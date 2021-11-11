@@ -128,31 +128,12 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        setServerPath()
+        document.setServerPath(app.httpConfiguration.uriPrefix)
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
         
         handleDocument()
         handleMigrationGuide()
-    }
-
-    private func setServerPath() {
-        var hostName: String?
-        var port: Int?
-        if case let .interface(configuredHost, port: configuredPort) = app.httpConfiguration.bindAddress {
-            hostName = configuredHost
-            port = configuredPort
-        } else {
-            let configuration = app.vapor.app.http.server.configuration
-            hostName = configuration.hostname
-            port = configuration.port
-        }
-
-        if let hostName = hostName, let port = port {
-            let serverPath = "http\(app.httpConfiguration.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
-            self.serverPath = serverPath
-            document.setServerPath(serverPath)
-        }
     }
 
     private func handleDocument() {
