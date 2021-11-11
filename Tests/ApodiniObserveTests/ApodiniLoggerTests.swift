@@ -146,16 +146,18 @@ class ApodiniLoggerTests: XCTestCase {
         
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
-        func handle() -> Apodini.Response<String> {
+        func handle() -> Apodini.Response<Blob> {
             timer.secondPassed()
             counter += 1
             
             if counter == start {
                 logger.info("Hello world - Launch!")
-                return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀")
+                //return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀")
+                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
             } else {
                 logger.info("Hello world - Countdown!")
-                return .send("\(start - counter)...")
+                //return .send("\(start - counter)...")
+                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
             }
         }
         
@@ -435,8 +437,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
@@ -452,7 +453,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(response.status, .ok)
             //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi, Paul!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hi, Paul!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hi, Paul!")
         }
         
         container.reset()
@@ -485,7 +486,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(response.status, .ok)
             //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
@@ -537,7 +538,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(response.status, .ok)
             //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
@@ -607,7 +608,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse5 HTTP/1.1\ncontent-length: 107\n"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse5"))
             let bodyString = try XCTUnwrap(requestMetadata["HTTPBody"]?.metadataString)
-            guard let bodyDate = bodyString.data(using: .utf8) else {
+            guard let bodyDate = bodyString.data(using: .utf8) else { // TODO date?
                 XCTFail("HTTP Body couldn't be checked")
                 return
             }
@@ -619,8 +620,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hi!")
         }
         
         container.reset()
@@ -802,7 +802,11 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.bodyStorage.readNewData(decodedAs: [String].self, using: JSONDecoder()), [
+            let responseStream = try XCTUnwrap(response.bodyStorage.stream)
+            XCTAssert(responseStream.isClosed)
+            // We want to get rid of leading and trailing newlines since that would mess up the line splitting
+            let responseText = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString()).trimmingLeadingAndTrailingWhitespace()
+            XCTAssertEqual(responseText.split(separator: "\n"), [
                 "10...",
                 "9...",
                 "8...",
@@ -1041,8 +1045,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("67"))
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Germany, Taiwan and the World!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
         }
         
         container.reset()
