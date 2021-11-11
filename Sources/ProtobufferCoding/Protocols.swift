@@ -2,9 +2,6 @@ import Foundation
 
 
 
-
-// MARK: Protocols and shit
-
 /// Conforming to this protocol indicates that a (message) type does not get encoded into a nested field,
 /// but rather direct into its parent type (i.e. the type of which it is a property).
 /// - Note: This is an internal protocol, which currently is only used for handling enums w/ associated values, and should not be conformed to outside this module.
