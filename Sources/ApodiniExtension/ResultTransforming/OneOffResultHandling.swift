@@ -48,7 +48,7 @@ extension EventLoopFuture {
             }
         }
         .flatMapErrorThrowing { error in
-            return try self.handleError(transformer, error)
+            try self.handleError(transformer, error)
         }
     }
     

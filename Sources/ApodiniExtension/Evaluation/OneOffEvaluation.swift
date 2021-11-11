@@ -9,7 +9,7 @@
 import Apodini
 import ApodiniUtils
 import Foundation
-import _NIOConcurrency
+import NIO
 
 /// A wrapper which contains the input-output pair of a `Delegate`'s evaluation.
 public struct ResponseWithRequest<C: Encodable>: WithRequest {
@@ -53,36 +53,36 @@ internal extension Delegate where D: Handler {
         try await _Internal.evaluate(delegate: self, using: request, with: state)
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
-        promise.completeWithAsync {
+        promise.completeWithTask {
             try await self.evaluate(using: request, with: state)
         }
         
         return promise.futureResult
     }
     
-        func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         let result: D.Response = try await self.evaluate(using: request, with: state)
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(_ trigger: TriggerEvent,
+                  using request: Request,
+                  with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         
-        promise.completeWithAsync {
+        promise.completeWithTask {
             try await self.evaluate(trigger, using: request, with: state)
         }
         
         return promise.futureResult
     }
     
-        func evaluate(_ trigger: TriggerEvent,
-                      using request: Request,
-                      with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(_ trigger: TriggerEvent,
+                  using request: Request,
+                  with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)
         
         guard !trigger.cancelled else {

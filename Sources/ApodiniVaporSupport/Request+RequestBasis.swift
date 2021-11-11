@@ -26,7 +26,6 @@ extension Vapor.Request: RequestBasis {
     
     var loggingMetadata: [LoggingMetadataInformation] {
          [
-            LoggingMetadataInformation(key: .init("VaporRequestDescription"), rawValue: .string(self.description)),
             LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
             LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
             LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),

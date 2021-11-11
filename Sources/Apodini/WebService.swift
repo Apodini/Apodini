@@ -46,7 +46,7 @@ extension WebService {
         }
         
         do {
-            // Parse the CLI arguments
+            // Parse CLI arguments with the Swift ArgumentParser
             var command = try parseAsRoot(arguments)
             
             let mirror = Mirror(reflecting: command)
@@ -139,7 +139,7 @@ extension WebService {
         webService: Self = Self()
     ) throws -> Application {
         var webServiceCopy = webService
-        /// Inject the `Application` instance to allow access to it via the `@Environment` property wrapper
+        /// Inject the `Application` instance to allow access to it directly in the `WebService` via the `@Environment` property wrapper
         Apodini.inject(app: app, to: &webServiceCopy)
         Apodini.activate(&webServiceCopy)
         

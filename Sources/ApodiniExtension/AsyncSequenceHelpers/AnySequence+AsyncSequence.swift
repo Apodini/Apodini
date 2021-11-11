@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import _Concurrency
 
 extension AnySequence: AsyncSequence {
     public typealias AsyncIterator = AsyncIteratorImpl

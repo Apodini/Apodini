@@ -41,8 +41,4 @@ public struct LoggingMetadataInformation: Information {
         self.key = key
         self.value = rawValue
     }
-    
-    public init(key: LoggingMetadataKey, stringValue: String) {
-        self.init(key: key, rawValue: .string(stringValue))
-    }
 }

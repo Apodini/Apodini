@@ -6,9 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-
 import Foundation
-import _Concurrency
+
 
 /// An asynchronous sequence that merges the elements from the ``Base`` sequence with those from the ``Other``
 /// sequence.
