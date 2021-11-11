@@ -52,19 +52,11 @@ extension Int32: ProtobufPrimitive {}
 extension UInt32: ProtobufPrimitive {}
 extension Float: ProtobufPrimitive {}
 extension Double: ProtobufPrimitive {}
-// TODO add some more
 
 
 
-
-
-
-
-
+/// An empty message type, similar to `google.protobuf.Empty`
 public struct EmptyMessage: Codable, ProtobufMessage {}
-
-
-
 
 
 
@@ -129,10 +121,9 @@ extension Array: ProtobufRepeated where Element: Codable {
     
     init<Key: CodingKey>(decodingFrom decoder: Decoder, forKey key: Key, atFields fields: [ProtobufFieldInfo]) throws {
         if Self.isPacked {
-            fatalError()
+            fatalError() // TODO
         } else {
             let keyedContainer = try (decoder as! _ProtobufferDecoder)._internalContainer(keyedBy: Key.self)
-            //let keyedContainer = decoder.container(keyedBy: Key.self)
             let fields2 = keyedContainer.fields.getAll(forFieldNumber: key.getProtoFieldNumber())
             precondition(fields == fields2)
             self = try fields.map { fieldInfo -> Element in
@@ -144,7 +135,7 @@ extension Array: ProtobufRepeated where Element: Codable {
     func encodeElements<Key: CodingKey>(to encoder: Encoder, forKey key: Key) throws {
         precondition(encoder is _ProtobufferEncoder)
         if Self.isPacked {
-            fatalError()
+            fatalError() // TODO
         } else {
             var keyedContainer = encoder.container(keyedBy: Key.self)
             for element in self {
