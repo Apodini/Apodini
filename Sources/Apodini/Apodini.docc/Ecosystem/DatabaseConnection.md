@@ -117,7 +117,7 @@ struct ContactComponent: Component {
 
 In this case, the `contactId` can be passed as a path in the URL request
 ```
-http://localhost/v1/contacts/<contactId>
+http://localhost:8080/v1/contacts/<contactId>
 ```
 For every endpoint it is to be defined which `operation` is represented by the given endpoint.
 

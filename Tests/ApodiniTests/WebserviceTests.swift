@@ -17,7 +17,7 @@ final class WebserviceTests: XCTestCase {
             }
 
             var configuration: Configuration {
-                HTTPConfiguration(bindAddress: .interface("0.0.0.0", port: 80))
+                HTTPConfiguration(bindAddress: .interface("0.0.0.0", port: 8080))
             }
         }
 
