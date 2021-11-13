@@ -67,6 +67,7 @@ class ProxyServer {
             app.shutdown()
         }
         app.http.server.configuration.port = port
+        app.http.server.configuration.hostname = "0.0.0.0"
         logger.notice("Starting Vapor application")
         try app.run()
     }
@@ -96,7 +97,7 @@ private struct ProxyRequestResponder: Vapor.Responder {
         }
         let url = Vapor.URI(
             scheme: "http",
-            host: "127.0.0.1",
+            host: "localhost",
             port: targetNodeLocalhostData.port,
             path: request.url.path,
             query: request.url.query,

@@ -72,7 +72,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private var document = Document()
     private let documentConfig: DocumentConfiguration?
     private let migrationGuideConfig: MigrationGuideConfiguration?
-    private var serverPath = ""
     private let logger = Logger(label: "org.apodini.migrator")
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
@@ -174,7 +173,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             app.vapor.app.get(endpoint.pathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {

@@ -240,8 +240,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "d2930e8fcf9c33162b9fcc1d522bc975e2d4179b",
-          "version": "1.0.1"
+          "revision": "83b23d940471b313427da226196661856f6ba3e0",
+          "version": "0.4.4"
         }
       },
       {
@@ -276,8 +276,8 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "127d3745c37b5705e4bc8d16c7951c48dcc3332c",
-          "version": "2.0.0"
+          "revision": "9b5ef28601a9c745c9cdb54d3f243e28ac830982",
+          "version": "2.0.1"
         }
       },
       {
@@ -305,6 +305,15 @@
           "branch": null,
           "revision": "3edd2f57afc4e68e23c3e4956bc8b65ca6b5b2ff",
           "version": "2.2.0"
+        }
+      },
+      {
+        "package": "swift-metrics-extras",
+        "repositoryURL": "https://github.com/Apodini/swift-metrics-extras.git",
+        "state": {
+          "branch": null,
+          "revision": "a5f54d453519af7f1d6c83d03e045463bb9e659e",
+          "version": "0.1.0"
         }
       },
       {
@@ -339,8 +348,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "5e68c1ded15619bb281b273fa8c2d8fd7f7b2b7d",
-          "version": "2.16.1"
+          "revision": "08e701df9a3b9108c56f1aef5d9ef9a78fda2846",
+          "version": "2.16.2"
         }
       },
       {
@@ -353,12 +362,21 @@
         }
       },
       {
+        "package": "SwiftPrometheus",
+        "repositoryURL": "https://github.com/MrLotU/SwiftPrometheus.git",
+        "state": {
+          "branch": null,
+          "revision": "ba329daafa03027d36cda605df6c0d9b065b088e",
+          "version": "1.0.0-alpha.15"
+        }
+      },
+      {
         "package": "vapor",
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "68233685fd1a943e8772634e02abfec076dcb8f4",
-          "version": "4.52.1"
+          "revision": "80750314e0d9ae11b3886df7f43f495b0661d2dc",
+          "version": "4.52.2"
         }
       },
       {
