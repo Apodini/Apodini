@@ -33,11 +33,17 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         app = Application()
         configuration.configure(app)
         
+        let loggingConfig = LoggerConfiguration(
+            logHandlers: TestingLogHandler.init,
+            logLevel: .info
+        )
+        
         let metricsConfig = MetricsConfiguration(
             handlerConfiguration: MetricPushHandlerConfiguration(factory: Self.testMetricsFactory),
             systemMetricsConfiguration: .default
         )
         
+        app = ApodiniLoggerTests.configureLogger(app, loggerConfiguration: loggingConfig)
         app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: metricsConfig)
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
@@ -225,13 +231,15 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /greeter/first/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /greeter/first/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/greeter/first/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/first/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/first/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/greeter/first/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/greeter/first/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/greeter/first/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -267,9 +275,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
+            XCTAssertEqual(0, informationMetadata.count)
             
             // Cleanup
             Self.testMetricsFactory.destroyTimer(responseTimeTimer)
@@ -367,13 +373,15 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /greeter/second/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /greeter/second/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/greeter/second/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/second/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/second/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/greeter/second/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/greeter/second/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/greeter/second/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -409,9 +417,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
+            XCTAssertEqual(0, informationMetadata.count)
             
             // Cleanup
             Self.testMetricsFactory.destroyTimer(responseTimeTimer)
@@ -491,13 +497,15 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /greeter/third/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /greeter/third/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/greeter/third/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/third/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/third/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/greeter/third/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/greeter/third/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/greeter/third/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -533,9 +541,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
+            XCTAssertEqual(0, informationMetadata.count)
             
             // Cleanup
             container.reset()
@@ -626,13 +632,15 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /greeter/forth/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /greeter/forth/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/greeter/forth/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/forth/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/greeter/forth/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/greeter/forth/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/greeter/forth/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/greeter/forth/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -668,9 +676,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
+            XCTAssertEqual(0, informationMetadata.count)
             
             // Cleanup
             Self.testMetricsFactory.destroyCounter(errorRateCounter)

@@ -185,8 +185,7 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             prometheusClient.removeMetric(timer)
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!") // TODO
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
     }
     
@@ -254,8 +253,7 @@ class ApodiniMetricsPrometheusTests: XCTestCase {
             prometheusClient.removeMetric(summary)
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!") // TODO
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
     }
 }

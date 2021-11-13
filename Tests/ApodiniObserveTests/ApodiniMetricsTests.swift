@@ -238,8 +238,7 @@ class ApodiniMetricsTests: XCTestCase {
             }
             
             XCTAssertEqual(response.status, .ok)
-            //XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Greeter!") // TODO
-            XCTAssertEqual(try XCTUnwrap(response.bodyStorage.readNewDataAsString()), "Hello, Greeter!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Greeter!")
         }
     }
 }

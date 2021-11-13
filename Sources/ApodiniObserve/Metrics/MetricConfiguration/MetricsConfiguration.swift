@@ -81,9 +81,6 @@ public class MetricsConfiguration: Configuration {
                 app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
                     metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
                 }
-//                app.vapor.app.get(endpoint.pathComponents) { req -> EventLoopFuture<String> in
-//                    metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
-//                }
                 
                 // Inform developer about which MetricsHandler serves the metrics data on what endpoint
                 app.logger.info("Metrics data of \(metricPullHandlerConfiguration.factory.self) served on \(metricPullHandlerConfiguration.endpoint)")

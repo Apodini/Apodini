@@ -134,13 +134,13 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         case .buffer(let buffer):
             metadata.append(LoggingMetadataInformation(
                 key: .init("HTTPBody"),
-                rawValue: .string(buffer.getString(at: buffer.readerIndex, length: max(150, buffer.readableBytes)) ?? "")
+                rawValue: .string(buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes > 8_192 ? 8_192 : buffer.readableBytes) ?? "HTTP body couldn't be read")
             ))
         case .stream(let stream):
             if let buffer = stream.readNewData() {
                 metadata.append(LoggingMetadataInformation(
                     key: .init("HTTPBody"),
-                    rawValue: .string(buffer.getString(at: buffer.readerIndex, length: max(150, buffer.readableBytes)) ?? "")
+                    rawValue: .string(buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes > 8_192 ? 8_192 : buffer.readableBytes) ?? "HTTP body couldn't be read")
                 ))
             } else {
                 metadata.append(LoggingMetadataInformation(
