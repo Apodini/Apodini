@@ -105,10 +105,6 @@ jobs:
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
       run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
-      env:
-        ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
       run: swift test -c debug
-      env:
-        ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
