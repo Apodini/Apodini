@@ -39,7 +39,9 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
     
     public func configure(_ app: Apodini.Application) throws {
-        app.httpConfiguration.bindAddress = .interface(HTTPConfiguration.Defaults.bindAddress, port: currentNodeCustomLaunchInfo.port)
+        app.storage[HTTPConfigurationStorageKey.self] = HTTPConfiguration(
+            bindAddress: .interface(HTTPConfiguration.Defaults.bindAddress, port: currentNodeCustomLaunchInfo.port)
+        )
     }
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(

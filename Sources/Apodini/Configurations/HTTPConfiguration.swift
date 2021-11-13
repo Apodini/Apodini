@@ -27,10 +27,13 @@ public final class HTTPConfiguration: Configuration {
     }
     
     
-    public var bindAddress: BindAddress
-    public var hostname: Hostname
-    public var supportVersions: Set<HTTPVersionMajor> = [.one]
-    public var tlsConfiguration: TLSConfiguration?
+    /// The `BindAddress` that is used for bind the web service to a network interface
+    public let bindAddress: BindAddress
+    /// The `Hostname` that is used for populate information in exporters
+    public let hostname: Hostname
+    public let supportVersions: Set<HTTPVersionMajor>
+    /// Information about the key and certificate needed to enable HTTPS.
+    public let tlsConfiguration: TLSConfiguration?
     
     
     public var uriPrefix: String {
@@ -54,13 +57,20 @@ public final class HTTPConfiguration: Configuration {
     
     
     /// initalize HTTPConfiguration
+    /// - Parameters:
+    ///   - hostname: The `Hostname` that is used for populate information in exporters, the default value is `localhost:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
+    ///   - bindAddress: The `BindAddress` that is used for bind the web service to a network interface, the default value is `0.0.0.0:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
+    ///   - tlsConfigurationBuilder: Information about the key and certificate needed to enable HTTPS.
     public init(hostname: Hostname? = nil, bindAddress: BindAddress? = nil, tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
         var defaultPort = Defaults.httpPort
         
         if let tlsConfigBuilder = tlsConfigurationBuilder {
-            self.supportVersions.insert(.two)
+            self.supportVersions = [.one, .two]
             self.tlsConfiguration = tlsConfigBuilder.tlsConfiguration
             defaultPort = Defaults.httpsPort
+        } else {
+            self.supportVersions = [.one]
+            self.tlsConfiguration = nil
         }
         
         switch bindAddress {

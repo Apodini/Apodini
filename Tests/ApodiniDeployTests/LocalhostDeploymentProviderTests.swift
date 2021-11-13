@@ -209,10 +209,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
         ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://0.0.0.0:80\(path)"))
+            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
             return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
-                    XCTFail("Unexpected error in request: \(error.localizedDescription)")
+                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
                     return
                 }
                 let msg = "request to '\(path)' failed."

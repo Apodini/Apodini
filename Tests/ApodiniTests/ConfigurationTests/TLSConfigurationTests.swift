@@ -11,7 +11,7 @@ import NIOSSL
 import XCTest
 
 
-final class HTTP2ConfigurationTests: ApodiniTests {
+final class TLSConfigurationTests: ApodiniTests {
     private func keyPath() throws -> URL {
         try XCTUnwrap(Bundle.module.url(forResource: "key", withExtension: "pem"))
     }
