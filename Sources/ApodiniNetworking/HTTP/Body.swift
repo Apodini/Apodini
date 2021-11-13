@@ -347,6 +347,13 @@ extension BodyStorage {
             }
         }
         
+        /// Reads new data from the stream, if available. Doesn't move the readIndex in the underlying `ByteBuffer`
+        public func getNewData() -> ByteBuffer? {
+            lock.withLock {
+                storage.getSlice(at: storage.readerIndex, length: storage.readableBytes)
+            }
+        }
+        
         internal func mutateStorage<Result>(_ block: (inout ByteBuffer) -> Result) -> Result {
             lock.withLock {
                 block(&self.storage)
