@@ -71,14 +71,14 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Vapor.Application
-    let configuration: REST.Configuration
+    let apodiniApp: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application,
          _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app.vapor.app
-        self.configuration = REST.Configuration(app.vapor.app.http.server.configuration)
+        self.apodiniApp = app
         self.exporterConfiguration = exporterConfiguration
     }
     
@@ -94,7 +94,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         
         let operation = endpoint[Operation.self]
 
-        let endpointHandler = RESTEndpointHandler(with: configuration,
+        let endpointHandler = RESTEndpointHandler(with: apodiniApp,
                                                   withExporterConfiguration: exporterConfiguration,
                                                   for: endpoint,
                                                   relationshipEndpoint,
@@ -133,7 +133,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 
             let relationships = relationshipModel.rootRelationships(for: .read)
 
-            let handler = RESTDefaultRootHandler(configuration: configuration,
+            let handler = RESTDefaultRootHandler(app: apodiniApp,
                                                  exporterConfiguration: exporterConfiguration,
                                                  relationships: relationships)
             handler.register(on: app)

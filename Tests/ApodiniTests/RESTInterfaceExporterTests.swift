@@ -357,7 +357,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         try app.vapor.app.testable(method: .inMemory).test(.GET, "/") { response in
             XCTAssertEqual(response.status, .ok)
             let container = try response.content.decode(DecodedLinksContainer.self)
-            let prefix = "http://127.0.0.1:8080"
+            let prefix = "http://localhost"
             XCTAssertEqual(container.links, ["test1": prefix + "/test1", "test2": prefix + "/test2", "test3": prefix + "/test3"])
         }
     }
@@ -417,14 +417,14 @@ class RESTInterfaceExporterTests: ApodiniTests {
                 {
                   "data" : "Paul",
                   "_links" : {
-                    "self" : "http://127.0.0.1:8080/v1"
+                    "self" : "http://localhost/v1"
                   }
                 }
                 """
             let secondPossibleJSON = """
                 {
                   "_links" : {
-                    "self" : "http://127.0.0.1:8080/v1"
+                    "self" : "http://localhost/v1"
                   },
                   "data" : "Paul"
                 }

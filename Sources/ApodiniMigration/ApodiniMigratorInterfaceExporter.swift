@@ -72,7 +72,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private var document = Document()
     private let documentConfig: DocumentConfiguration?
     private let migrationGuideConfig: MigrationGuideConfiguration?
-    private var serverPath = ""
     private let logger = Logger(label: "org.apodini.migrator")
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
@@ -128,31 +127,12 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        setServerPath()
+        document.setServerPath(app.httpConfiguration.uriPrefix)
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
         
         handleDocument()
         handleMigrationGuide()
-    }
-
-    private func setServerPath() {
-        var hostName: String?
-        var port: Int?
-        if case let .hostname(configuredHost, port: configuredPort) = app.http.address {
-            hostName = configuredHost
-            port = configuredPort
-        } else {
-            let configuration = app.vapor.app.http.server.configuration
-            hostName = configuration.hostname
-            port = configuration.port
-        }
-
-        if let hostName = hostName, let port = port {
-            let serverPath = "http\(app.http.tlsConfiguration != nil ? "s" : "")://\(hostName):\(port)"
-            self.serverPath = serverPath
-            document.setServerPath(serverPath)
-        }
     }
 
     private func handleDocument() {
@@ -193,7 +173,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             app.vapor.app.get(endpoint.pathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {

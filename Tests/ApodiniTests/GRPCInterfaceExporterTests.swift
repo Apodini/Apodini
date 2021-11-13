@@ -136,7 +136,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
                                          headers: .init(),
                                          collectedBody: ByteBuffer(bytes: requestData1),
@@ -167,7 +167,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
                                          headers: headers,
                                          collectedBody: ByteBuffer(bytes: requestData1),
@@ -202,7 +202,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
                                          headers: headers,
                                          collectedBody: ByteBuffer(bytes: requestData1),
@@ -233,7 +233,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
                                          headers: headers,
                                          collectedBody: ByteBuffer(bytes: incompleteData),
@@ -267,7 +267,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          version: .init(major: 2, minor: 0),
                                          headers: headers,
                                          collectedBody: ByteBuffer(bytes: requestData),
@@ -296,7 +296,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          on: group.next())
         vaporRequest.headers = headers
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
@@ -337,7 +337,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          on: group.next())
         vaporRequest.headers = headers
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
@@ -375,7 +375,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          on: group.next())
         vaporRequest.headers = headers
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
@@ -412,7 +412,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let vaporRequest = Vapor.Request(application: app.vapor.app,
                                          method: .POST,
-                                         url: URI(path: "https://localhost:8080/\(serviceName)/\(methodName)"),
+                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
                                          on: group.next())
         vaporRequest.headers = headers
         let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
