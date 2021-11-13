@@ -42,7 +42,7 @@ struct TestWebService: Apodini.WebService {
             OpenAPI(
                 outputFormat: .json,
                 outputEndpoint: openApiEndpoint,
-                swaggerUiEndpoint: "oas-ui",
+                swaggerUiEndpoint: openApiEndpoint + "-ui",
                 title: "The great TestWebService - presented by Apodini"
             )
         }

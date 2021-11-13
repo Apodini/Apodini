@@ -14,7 +14,7 @@ import ApodiniExtension
 
 
 struct RESTEndpointHandler<H: Handler> {
-    let configuration: REST.Configuration
+    let app: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
@@ -26,13 +26,13 @@ struct RESTEndpointHandler<H: Handler> {
     let defaultStore: DefaultValueStore
     
     init(
-        with configuration: REST.Configuration,
+        with app: Apodini.Application,
         withExporterConfiguration exporterConfiguration: REST.ExporterConfiguration,
         for endpoint: Endpoint<H>,
         _ relationshipEndpoint: AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter
     ) {
-        self.configuration = configuration
+        self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.endpoint = endpoint
         self.relationshipEndpoint = relationshipEndpoint
@@ -96,7 +96,7 @@ struct RESTEndpointHandler<H: Handler> {
                     return request.eventLoop.makeSucceededFuture(vaporResponse)
                 }
                 
-                let formatter = LinksFormatter(configuration: self.configuration)
+                let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
                 var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
                 let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)

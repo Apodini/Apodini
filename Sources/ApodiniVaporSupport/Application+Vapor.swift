@@ -15,11 +15,16 @@ extension Vapor.Application {
         var app: Vapor.Application
 
         func didBoot(_ application: Apodini.Application) throws {
-            if let address = application.http.address {
-                try app.server.start(address: Vapor.BindAddress(from: address))
-            } else {
-                try app.server.start()
-            }
+            // HTTP2
+            app.http.server.configuration.supportVersions = Set(application.httpConfiguration.supportVersions.map { version in
+                switch version {
+                case .one: return Vapor.HTTPVersionMajor.one
+                case .two: return Vapor.HTTPVersionMajor.two
+                }
+            })
+            app.http.server.configuration.tlsConfiguration = application.httpConfiguration.tlsConfiguration
+            
+            try app.server.start(address: Vapor.BindAddress(from: application.httpConfiguration.bindAddress))
             try app.boot()
         }
 
@@ -32,15 +37,6 @@ extension Vapor.Application {
     convenience init(from app: Apodini.Application, environment env: Vapor.Environment = .production) {
         self.init(env, .shared(app.eventLoopGroup))
         app.lifecycle.use(LifecycleHandler(app: self))
-
-        // HTTP2
-        self.http.server.configuration.supportVersions = Set(app.http.supportVersions.map { version in
-            switch version {
-            case .one: return Vapor.HTTPVersionMajor.one
-            case .two: return Vapor.HTTPVersionMajor.two
-            }
-        })
-        self.http.server.configuration.tlsConfiguration = app.http.tlsConfiguration
         self.routes.defaultMaxBodySize = "1mb"
         self.logger = app.logger
     }
@@ -84,7 +80,7 @@ public extension Apodini.Application {
 extension Vapor.BindAddress {
     init(from address: Apodini.BindAddress) {
         switch address {
-        case let .hostname(host, port):
+        case let .interface(host, port):
             self = .hostname(host, port: port)
         case .unixDomainSocket(let path):
             self = .unixDomainSocket(path: path)
