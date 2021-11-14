@@ -128,19 +128,25 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
             LoggingMetadataInformation(
                 key: .init("url.pathAndQuery"),
                 rawValue: .string(self.url.pathIncludingQueryAndFragment)
-            ),
-         ]
+            )
+        ]
         switch bodyStorage {
         case .buffer(let buffer):
             metadata.append(LoggingMetadataInformation(
                 key: .init("HTTPBody"),
-                rawValue: .string(buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes) ?? "HTTP body couldn't be read")
+                rawValue: .string(buffer.getString(
+                    at: buffer.readerIndex,
+                    length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes
+                ) ?? "HTTP body couldn't be read")
             ))
         case .stream(let stream):
             if let buffer = stream.getNewData() {
                 metadata.append(LoggingMetadataInformation(
                     key: .init("HTTPBody"),
-                    rawValue: .string(buffer.getString(at: buffer.readerIndex, length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes) ?? "HTTP body couldn't be read")
+                    rawValue: .string(buffer.getString(
+                        at: buffer.readerIndex,
+                        length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes
+                    ) ?? "HTTP body couldn't be read")
                 ))
             } else {
                 metadata.append(LoggingMetadataInformation(

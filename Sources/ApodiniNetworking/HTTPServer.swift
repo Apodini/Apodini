@@ -239,7 +239,7 @@ public final class HTTPServer {
             channel = try bootstrap.bind(
                 host: hostname,
                 port: port ?? (tlsConfiguration != nil ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-            ).wait()
+            ).wait() // swiftlint:disable:this multiline_function_chains
             logger.info("Server starting on \(addressString)")
         case .unixDomainSocket(let path):
             logger.info("Will bind to \(addressString)")

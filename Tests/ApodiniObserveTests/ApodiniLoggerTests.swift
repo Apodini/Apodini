@@ -46,7 +46,7 @@ class ApodiniLoggerTests: XCTestCase {
     
     // Copied from the source code of ApodiniObserve to bootstrap the LoggingSystem internally
     // (required for the tests, as the LoggingSystem only allows to be configured once per process)
-    public static func configureLogger(_ app: Apodini.Application, loggerConfiguration: LoggerConfiguration) -> Apodini.Application {
+    static func configureLogger(_ app: Apodini.Application, loggerConfiguration: LoggerConfiguration) -> Apodini.Application {
         // Bootstrap the logging system
         LoggingSystem.bootstrapInternal { label in
             MultiplexLogHandler(
@@ -65,7 +65,10 @@ class ApodiniLoggerTests: XCTestCase {
         }
         
         // Write configuration to the storage
-        app.storage.set(LoggerConfiguration.LoggingStorageKey.self, to: LoggerConfiguration.LoggingStorageValue(logger: app.logger, configuration: loggerConfiguration))
+        app.storage.set(
+            LoggerConfiguration.LoggingStorageKey.self,
+            to: LoggerConfiguration.LoggingStorageValue(logger: app.logger, configuration: loggerConfiguration)
+        )
         
         return app
     }
@@ -252,7 +255,7 @@ class ApodiniLoggerTests: XCTestCase {
         }
     }
     
-    static var bidirectionalStreamingHandlerStreamingLine: UInt!
+    static var bidirectionalStreamingHandlerStreamingLine: UInt! // swiftlint:disable:this identifier_name
     static var bidirectionalStreamingHandlerFinalLine: UInt!
 
     struct BidirectionalStreaming: Handler {
@@ -678,7 +681,7 @@ class ApodiniLoggerTests: XCTestCase {
             .GET,
             "/serverSideStreaming?start=10",
             expectedBodyType: .stream,
-            responseEnd: { response in
+        ) { response in
             XCTAssertEqual(11, container.messages.count)
             // First message, begin of stream
             let firstLogMessage = container.messages[0]
@@ -875,7 +878,7 @@ class ApodiniLoggerTests: XCTestCase {
                 "1...",
                 "🚀🚀🚀 Launch !!! 🚀🚀🚀"
             ])
-        })
+        }
     }
     
     func testClientSideStreamingPattern() throws {
@@ -899,8 +902,8 @@ class ApodiniLoggerTests: XCTestCase {
         try Self.app.testable().test(
             .GET,
             "/clientSideStreaming",
-            body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init()))
-        { response in
+            body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())
+        ) { response in
             XCTAssertEqual(4, container.messages.count)
             // First log messsage
             var logMessage = container.messages[0]
@@ -1103,7 +1106,10 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(0, informationMetadata.count)
  
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
+            XCTAssertEqual(
+                try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()),
+                "Hello, Germany, Taiwan and the World!"
+            )
         }
         
         container.reset()
