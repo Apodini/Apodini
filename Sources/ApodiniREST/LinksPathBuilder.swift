@@ -10,7 +10,7 @@ import Apodini
 import Foundation
 
 struct LinksFormatter: RelationshipFormatter {
-    let configuration: REST.Configuration
+    let configuration: HTTPConfiguration
 
     func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
         into[of.name] = representation

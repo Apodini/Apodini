@@ -28,7 +28,7 @@ var configuration: Configuration {
     REST()
     
     Migrator(
-        // exports the document of the current version at http://0.0.0.0:8080/api-document in `yaml` format
+        // exports the document of the current version at http://localhost/api-document in `yaml` format
         documentConfig: .export(.endpoint("api-document", format: .yaml))
     )
 }
@@ -55,7 +55,7 @@ var configuration: Configuration {
         // .directory export option might be useful during development to inspect the content
         documentConfig: .export(.directory("./data")),
         // compares the current API with the document stored at `Bundle.module`,
-        // and exports the automatically generated migration guide at http://0.0.0.0:8080/migration-guide in `yaml` format
+        // and exports the automatically generated migration guide at http://localhost/migration-guide in `yaml` format
         migrationGuideConfig: .compare(
             .resource(.module, fileName: "api_v1.0.0", format: .json),
             export: .endpoint("migration-guide")
@@ -123,8 +123,8 @@ the web service via a `migrator` subsubcommand, include `--run-web-service` flag
 
 ```console
 $ swift run YourWebService migrator document --doc-endpoint=api-document --doc-format=yaml --run-web-service
-info org.apodini.migrator : API Document served at http://0.0.0.0:8080/api-document in yaml format
-notice codes.vapor.application : Server starting on http://0.0.0.0:8080
+info org.apodini.migrator : API Document served at /api-document in yaml format
+notice codes.vapor.application : Server starting on http://0.0.0.0
 ```
 
 For the future versions of the Web Service, one can make use of either `read` or `compare` subsubcommands of `migrator` to additionally export the migration guide: 
@@ -133,9 +133,9 @@ For the future versions of the Web Service, one can make use of either `read` or
 ```console
 $ swift run YourWebService migrator compare --old-document-path=./api_v1.0.0.yaml \
 > --doc-endpoint=api-document --doc-format=yaml --guide-endpoint=migration-guide --run-web-service
-info org.apodini.migrator : API Document served at http://0.0.0.0:8080/api-document in yaml format
-info org.apodini.migrator : Migration Guide served at http://0.0.0.0:8080/migration-guide in json format
-notice codes.vapor.application : Server starting on http://0.0.0.0:8080
+info org.apodini.migrator : API Document served at /api-document in yaml format
+info org.apodini.migrator : Migration Guide served at /migration-guide in json format
+notice codes.vapor.application : Server starting on http://0.0.0.0
 ```
 
 By default, configurations provided in source code in `configuration` property of the web service, overwrite the CLI arguments. 

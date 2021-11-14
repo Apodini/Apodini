@@ -73,7 +73,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private var document = Document()
     private let documentConfig: DocumentConfiguration?
     private let migrationGuideConfig: MigrationGuideConfiguration?
-    private var serverPath = ""
     private let logger = Logger(label: "org.apodini.migrator")
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
@@ -129,19 +128,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        setServerPath()
+        document.setServerPath(app.httpConfiguration.uriPrefix)
         document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
         
         handleDocument()
         handleMigrationGuide()
     }
-
-    private func setServerPath() {
-        self.serverPath = app.http.addressStringValue
-        document.setServerPath(serverPath)
-    }
-
+    
     private func handleDocument() {
         guard let exportOptions = documentConfig?.exportOptions else {
             return logger.notice("No configuration provided to handle the document of the current version")
@@ -180,7 +174,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(serverPath)\(endpoint) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {

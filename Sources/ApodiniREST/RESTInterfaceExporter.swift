@@ -73,13 +73,11 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Apodini.Application
-    let configuration: REST.Configuration
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
     init(_ app: Apodini.Application, _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
         self.app = app
-        self.configuration = REST.Configuration(app.http)
         self.exporterConfiguration = exporterConfiguration
     }
     
@@ -92,8 +90,8 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         
         let operation = endpoint[Operation.self]
         let endpointHandler = RESTEndpointHandler(
-            with: configuration,
-            exporterConfiguration: exporterConfiguration,
+            with: app,
+            withExporterConfiguration: exporterConfiguration,
             for: endpoint,
             relationshipEndpoint,
             on: self
@@ -135,11 +133,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         if root.node.endpoints[.read] == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
             let relationships = relationshipModel.rootRelationships(for: .read)
-            let handler = RESTDefaultRootHandler(
-                configuration: configuration,
-                exporterConfiguration: exporterConfiguration,
-                relationships: relationships
-            )
+            let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
             handler.register(on: app)
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
             for relationship in relationships {

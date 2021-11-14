@@ -32,7 +32,7 @@ class ProxyServer {
     
     
     init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
-        let httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .hostname("0.0.0.0", port: port), logger: logger)
+        let httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .interface("0.0.0.0", port: port), logger: logger)
         self.httpServer = httpServer
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(httpServer.eventLoopGroup))
         

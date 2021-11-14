@@ -8,75 +8,100 @@
 
 import Foundation
 import NIO
+import NIOSSL
 
-/// A `Configuration` for HTTP.
-/// The configuration can be done in two ways, either via the
-/// command line arguments --hostname, --port and --bind or via the
-/// function `address`
+/// A `Configuration` for HTTP, HTTP/2 and TLS.
+///
+/// Examples of config via code:
+/// ```
+/// HTTPConfiguration(bindAddress: .interface(port: 443), tlsFilePaths: TLSFilePaths(certificatePath: "/some/path/cert.pem", keyPath: "/some/path/key.pem"))
+/// HTTPConfiguration(bindAddress: .address("localhost:8080"))
+/// ```
 public final class HTTPConfiguration: Configuration {
+    /// Default values for bindAddress
     public enum Defaults {
-        public static let hostname = "0.0.0.0"
-        public static let port = 8080
+        public static let address = "localhost"
+        public static let httpPort = 80
+        public static let httpsPort = 443
+        public static let bindAddress = "0.0.0.0"
     }
     
-    enum HTTPConfigurationError: LocalizedError {
-        case incompatibleFlags
-
-        var errorDescription: String? {
-            switch self {
-            case .incompatibleFlags:
-                return "The command line arguments for HTTPConfiguration are invalid."
+    
+    /// The `BindAddress` that is used for bind the web service to a network interface
+    public let bindAddress: BindAddress
+    /// The `Hostname` that is used for populate information in exporters
+    public let hostname: Hostname
+    public let supportVersions: Set<HTTPVersionMajor>
+    /// Information about the key and certificate needed to enable HTTPS.
+    public let tlsConfiguration: TLSConfiguration?
+    
+    
+    public var uriPrefix: String {
+        let httpProtocol: String
+        var port = ""
+        if self.tlsConfiguration == nil {
+            httpProtocol = "http://"
+            if hostname.port != 80 {
+                port = ":\(hostname.port!)"
+            }
+        } else {
+            httpProtocol = "https://"
+            if hostname.port != 443 {
+                port = ":\(hostname.port!)"
             }
         }
-
-        var recoverySuggestion: String? {
-            switch self {
-            case .incompatibleFlags:
-                return "Example usage of HTTPConfiguration: --hostname \(Defaults.hostname) --port \(Defaults.port) or --bind \(Defaults.hostname):\(Defaults.port)"
-            }
-        }
+        return httpProtocol + hostname.address + port
     }
     
-    private var address: BindAddress?
     
     /// initalize HTTPConfiguration
-    public init(hostname: String? = nil, port: Int? = nil, bind: String? = nil, socketPath: String? = nil) {
-        do {
-            switch (hostname, port, bind, socketPath) {
-            case (.none, .none, .none, .none):
-                self.address = nil
-            case (.none, .none, .none, .some(let socketPath)):
-                self.address = .unixDomainSocket(path: socketPath)
-            case (.none, .none, .some(let address), .none):
-                let components = address.split(separator: ":")
-                let hostname = components.first.map { String($0) }
-                let port = components.last.flatMap { Int($0) }
-                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
-            case let (hostname, port, .none, .none):
-                self.address = .hostname(hostname ?? Defaults.hostname, port: port ?? Defaults.port)
+    /// - Parameters:
+    ///   - hostname: The `Hostname` that is used for populate information in exporters, the default value is `localhost:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
+    ///   - bindAddress: The `BindAddress` that is used for bind the web service to a network interface, the default value is `0.0.0.0:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
+    ///   - tlsConfigurationBuilder: Information about the key and certificate needed to enable HTTPS.
+    public init(hostname: Hostname? = nil, bindAddress: BindAddress? = nil, tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
+        var defaultPort = Defaults.httpPort
+        
+        if let tlsConfigBuilder = tlsConfigurationBuilder {
+            self.supportVersions = [.one, .two]
+            self.tlsConfiguration = tlsConfigBuilder.tlsConfiguration
+            defaultPort = Defaults.httpsPort
+        } else {
+            self.supportVersions = [.one]
+            self.tlsConfiguration = nil
+        }
+        
+        switch bindAddress {
+        case let .interface(address, nil):
+            self.bindAddress = .interface(address, port: defaultPort)
+        case .interface:
+            self.bindAddress = bindAddress!
+        case .unixDomainSocket:
+            self.bindAddress = bindAddress!
+        default:
+            self.bindAddress = .interface(Defaults.bindAddress, port: defaultPort)
+        }
+
+        if let hostname = hostname {
+            switch (hostname.address, hostname.port) {
+            case (_, nil):
+                self.hostname = Hostname(address: hostname.address, port: defaultPort)
             default:
-                throw HTTPConfigurationError.incompatibleFlags
+                self.hostname = hostname
             }
-        } catch {
-            fatalError("Cannot read http server address provided via command line. Error: \(error)")
+        } else {
+            self.hostname = Hostname(address: Defaults.address, port: defaultPort)
         }
     }
 
+    
     /// Configure application
     public func configure(_ app: Application) {
-        if let address = self.address {
-            app.http.address = address
+        if supportVersions.contains(.two) {
+            app.logger.info("Using HTTP/2 and TLS.")
         } else {
-            app.logger.warning("No http server address configured")
+            app.logger.info("Starting without HTTP/2 and TLS")
         }
-    }
-
-    /// Sets the http server address
-    public func address(_ address: BindAddress) -> Self {
-        guard self.address == nil else {
-            return self
-        }
-        self.address = address
-        return self
+        app.storage[HTTPConfigurationStorageKey.self] = self
     }
 }

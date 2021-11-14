@@ -92,7 +92,7 @@ public final class HTTPServer {
     public var tlsConfiguration: TLSConfiguration? {
         switch config {
         case .app(let app):
-            return app.http.tlsConfiguration
+            return app.httpConfiguration.tlsConfiguration
         case .custom(let storage):
             return storage.tlsConfiguration
         }
@@ -102,7 +102,7 @@ public final class HTTPServer {
     public var enableHTTP2: Bool {
         switch config {
         case .app(let app):
-            return app.http.supportVersions.contains(.two)
+            return app.httpConfiguration.supportVersions.contains(.two)
         case .custom(let storage):
             return storage.enableHTTP2
         }
@@ -112,7 +112,7 @@ public final class HTTPServer {
     public var address: BindAddress {
         switch config {
         case .app(let app):
-            return app.http.address
+            return app.httpConfiguration.bindAddress
         case .custom(let storage):
             return storage.address
         }
@@ -234,9 +234,12 @@ public final class HTTPServer {
         
         
         switch address {
-        case let .hostname(hostname, port):
+        case let .interface(hostname, port):
             logger.info("Will bind to \(addressString)")
-            channel = try bootstrap.bind(host: hostname, port: port).wait()
+            channel = try bootstrap.bind(
+                host: hostname,
+                port: port ?? (tlsConfiguration != nil ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            ).wait()
             logger.info("Server starting on \(addressString)")
         case .unixDomainSocket(let path):
             logger.info("Will bind to \(addressString)")
@@ -248,7 +251,7 @@ public final class HTTPServer {
     
     private var addressString: String {
         switch address {
-        case let .hostname(hostname, port):
+        case let .interface(hostname, port):
             return "http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)"
         case .unixDomainSocket(let path):
             return "unix:\(path)"

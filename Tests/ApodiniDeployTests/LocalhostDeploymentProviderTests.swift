@@ -55,7 +55,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
         try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
-        runShellCommand(.killPort(8080))
+        runShellCommand(.killPort(80))
         runShellCommand(.killPort(5000))
         runShellCommand(.killPort(5001))
         runShellCommand(.killPort(5002))
@@ -144,7 +144,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://0.0.0.0:5001` three times,
+            // This is determined by finding the text `Server starting on http://localhost:5001` three times,
             // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
@@ -171,7 +171,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             if startedServers.count == expectedNumberOfNodes + 1 {
                 XCTAssertEqualIgnoringOrder(startedServers, [
                     // the gateway
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 8080),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 80),
                     // the nodes
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
@@ -208,10 +208,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
         ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://127.0.0.1:8080\(path)"))
+            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
             return URLSession.shared.dataTask(with: url) { data, response, error in
                 if let error = error {
-                    XCTFail("Unexpected error in request to '\(url)': \(error.localizedDescription)")
+                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
                     return
                 }
                 let msg = "request to '\(path)' failed."

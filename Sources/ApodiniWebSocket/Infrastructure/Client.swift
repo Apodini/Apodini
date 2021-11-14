@@ -21,7 +21,7 @@ struct StatelessClient {
     
     /// Create a `StatelessClient` that will connect to the given `address` once used. All operations
     /// are executed on the given `eventLoop`.
-    init(address: String = "ws://localhost:8080/apodini/websocket", on eventLoop: EventLoop, ignoreErrors: Bool = false) {
+    init(address: String = "ws://localhost:80/apodini/websocket", on eventLoop: EventLoop, ignoreErrors: Bool = false) {
         self.address = address
         var logger = Logger(label: "org.apodini.websocket.client")
         #if DEBUG

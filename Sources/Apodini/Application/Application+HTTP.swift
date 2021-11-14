@@ -16,7 +16,7 @@
 import NIOSSL
 
 
-/// The http najor version
+/// The http major version
 public enum HTTPVersionMajor: Equatable, Hashable {
     case one
     case two
@@ -25,90 +25,74 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 
 /// BindAddress
 public enum BindAddress: Equatable {
-    case hostname(_ hostname: String, port: Int)
+    case interface(_ address: String, port: Int? = nil)
     case unixDomainSocket(path: String)
+    
+    public static func address(_ address: String) -> BindAddress {
+        let components = address.split(separator: ":")
+        let address = components.first.map { String($0) }
+        let port = components.last.flatMap { Int($0) }
+        return .interface(address!, port: port)
+    }
+}
+
+
+/// Hostname
+public struct Hostname {
+    let address: String
+    let port: Int?
+    
+    /// Create a new `Hostname`
+    ///
+    /// - parameters:
+    ///     - address: Address part of hostname.
+    ///     - port: Port of hostname.
+    public init(address: String, port: Int? = nil) {
+        self.address = address
+        self.port = port
+    }
+}
+
+
+/// Builds the TLS configuration from given paths for use in HTTPConfiguration
+public struct TLSConfigurationBuilder {
+    let tlsConfiguration: TLSConfiguration
+    
+    /// Create a new `TLSConfigurationBuilder`
+    ///
+    /// - parameters:
+    ///     - certificatePath: Path to your certificate pem file.
+    ///     - keyPath: Path to your key pem file.
+    public init?(certificatePath: String, keyPath: String) {
+        do {
+            let certificate = try NIOSSLCertificate.fromPEMFile(certificatePath)
+            let privateKey = try NIOSSLPrivateKey(file: keyPath, format: .pem)
+
+            self.tlsConfiguration = .makeServerConfiguration(
+                certificateChain: certificate.map { .certificate($0) },
+                privateKey: .privateKey(privateKey)
+            )
+        } catch {
+            print("Error while creating TLS Configuration: \(error)")
+            return nil
+        }
+    }
 }
 
 
 extension Application {
-    /// Used to keep track of http related configuration
-    public var http: HTTP {
-        .init(application: self)
+    /// The HTTPConfiguration of the Application
+    public var httpConfiguration: HTTPConfiguration {
+        guard let httpConfiguration = self.storage[HTTPConfigurationStorageKey.self] else {
+            let defaultConfig = HTTPConfiguration()
+            defaultConfig.configure(self)
+            return defaultConfig
+        }
+        return httpConfiguration
     }
+}
 
-    /// Used to keep track of http related configuration
-    public final class HTTP {
-        final class Storage {
-            var supportVersions: Set<HTTPVersionMajor>
-            var tlsConfiguration: TLSConfiguration?
-            var address: BindAddress
-
-            // swiftlint:disable discouraged_optional_collection
-            init(
-                supportVersions: Set<HTTPVersionMajor>? = nil,
-                tlsConfiguration: TLSConfiguration? = nil,
-                address: BindAddress = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
-            ) {
-                if let supportVersions = supportVersions {
-                    self.supportVersions = supportVersions
-                } else {
-                    self.supportVersions = tlsConfiguration == nil ? [.one] : [.one, .two]
-                }
-                self.tlsConfiguration = tlsConfiguration
-                self.address = address
-            }
-        }
-
-        struct Key: StorageKey {
-            // swiftlint:disable nesting
-            typealias Value = Storage
-        }
-
-        let application: Application
-
-        var storage: Storage {
-            if self.application.storage[Key.self] == nil {
-                self.initialize()
-            }
-            // swiftlint:disable force_unwrapping
-            return self.application.storage[Key.self]!
-        }
-
-        /// Supported http major versions
-        public var supportVersions: Set<HTTPVersionMajor> {
-            get { storage.supportVersions }
-            set { storage.supportVersions = newValue }
-        }
-
-        /// TLS configuration
-        public var tlsConfiguration: TLSConfiguration? {
-            get { storage.tlsConfiguration }
-            set { storage.tlsConfiguration = newValue }
-        }
-
-        /// HTTP Server address
-        public var address: BindAddress {
-            get { storage.address }
-            set { storage.address = newValue }
-        }
-
-        init(application: Application) {
-            self.application = application
-        }
-
-        func initialize() {
-            self.application.storage[Key.self] = .init()
-        }
-        
-        /// A string value expressing the address the web service would bind to
-        public var addressStringValue: String {
-            let httpProtocol = "http\(tlsConfiguration != nil ? "s" : "")"
-            switch address {
-            case let .hostname(hostname, port):
-                return "\(httpProtocol)://\(hostname):\(port)"
-            case .unixDomainSocket(let path):
-                return "\(httpProtocol)+unix:\(path)"
-            }
-        }
-    }
+/// HTTPConfigurationStorageKey
+public struct HTTPConfigurationStorageKey: StorageKey {
+    public typealias Value = HTTPConfiguration
 }
