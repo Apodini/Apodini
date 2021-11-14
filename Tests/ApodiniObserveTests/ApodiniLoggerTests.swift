@@ -680,7 +680,7 @@ class ApodiniLoggerTests: XCTestCase {
             version: .http1_1,
             .GET,
             "/serverSideStreaming?start=10",
-            expectedBodyType: .stream,
+            expectedBodyType: .stream
         ) { response in
             XCTAssertEqual(11, container.messages.count)
             // First message, begin of stream
