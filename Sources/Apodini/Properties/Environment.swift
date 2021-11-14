@@ -77,7 +77,7 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
             return value
         }
         
-        fatalError("Key path \(keyPath) (kvcKeyPathString: \(keyPath._kvcKeyPathString as Any)) not found")
+        fatalError("Key path \(keyPath as Any) (kvcKeyPathString: \(keyPath?._kvcKeyPathString as Any)) not found")
     }
     
     /// A `Binding` that reflects this `Environment`.
