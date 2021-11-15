@@ -252,7 +252,9 @@ public final class HTTPServer {
     private var addressString: String {
         switch address {
         case let .interface(hostname, port):
-            return "http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)"
+            let isTLSEnabled = tlsConfiguration != nil
+            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            return "http\(isTLSEnabled ? "s" : "")://\(hostname):\(portNumber)"
         case .unixDomainSocket(let path):
             return "unix:\(path)"
         }
