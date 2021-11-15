@@ -12,7 +12,7 @@ on:
   workflow_call:
     inputs:
       packagename:
-        description: 'Name of the package e.g., passed ass the scheme to xcodebuild on macOS builds'
+        description: 'Name of the package e.g., passed as the scheme to xcodebuild on macOS builds'
         required: true
         type: string
       path:
