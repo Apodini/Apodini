@@ -71,14 +71,10 @@ public struct EmptyCommand: ParsableCommand {
 
 extension Array: Configuration where Element == Configuration {
     public func configure(_ app: Application) {
-        forEach {
-            $0.configure(app)
-        }
+        forEach { $0.configure(app) }
     }
     // swiftlint:disable identifier_name
     public var _commands: [ParsableCommand.Type] {
-        compactMap {
-            $0.command
-        }
+        compactMap { $0.command }
     }
 }

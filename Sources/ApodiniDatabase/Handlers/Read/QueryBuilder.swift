@@ -8,12 +8,11 @@
 
 import Apodini
 import FluentKit
-@_implementationOnly import Vapor
 @_implementationOnly import Runtime
+
 
 internal struct QueryBuilder<Model: DatabaseModel> {
     private let type: Model.Type
-
     internal var parameters: [FieldKey: TypeContainer] = [:]
 
     init(type: Model.Type, parameters: [FieldKey: TypeContainer]) {

@@ -10,9 +10,10 @@ import Foundation
 import XCTApodini
 import ApodiniUtils
 
+
 class DeploymentCommandsTests: ApodiniDeployTestCase {
-    private func executionTask(with args: [String]) throws -> Task {
-        Task(
+    private func executionTask(with args: [String]) throws -> ChildProcess {
+        ChildProcess(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl,
             arguments: args,
             workingDirectory: Self.productsDirectory,
@@ -31,7 +32,7 @@ class DeploymentCommandsTests: ApodiniDeployTestCase {
         
         let info = try task.launchSync()
         let output = try task.whitespacesAndNewlineAdjustedStdout()
-        XCTAssertTrue(info.exitCode == EXIT_FAILURE, "Task should not succeed")
+        XCTAssertTrue(info.exitCode == EXIT_FAILURE, "ChildProcess should not succeed")
         XCTAssertTrue(output.contains(errMsg), "Found wrong error message.")
     }
     
@@ -88,7 +89,7 @@ class DeploymentCommandsTests: ApodiniDeployTestCase {
     }
     
     func testConfigurationWithSingleCommand() throws {
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl,
             arguments: [
                 "dummy"
@@ -100,12 +101,12 @@ class DeploymentCommandsTests: ApodiniDeployTestCase {
         )
         let info = try task.launchSync()
         let output = try task.readStdoutToEnd()
-        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "Task failed")
+        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "ChildProcess failed")
         XCTAssertEqual(output.trimmingCharacters(in: .whitespacesAndNewlines), "DummyParsableCommand")
     }
     
     func testConfigurationWithSubCommands() throws {
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl,
             arguments: [
                 "mainCommand",
@@ -118,12 +119,12 @@ class DeploymentCommandsTests: ApodiniDeployTestCase {
         )
         let info = try task.launchSync()
         let output = try task.readStdoutToEnd()
-        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "Task failed")
+        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "ChildProcess failed")
         XCTAssertEqual(output.trimmingCharacters(in: .whitespacesAndNewlines), "DummySubCommand")
     }
     
     func testConfigurationWithoutSubCommand() throws {
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: Self.apodiniDeployTestWebServiceTargetUrl,
             arguments: [
                 "mainCommand"
@@ -135,12 +136,12 @@ class DeploymentCommandsTests: ApodiniDeployTestCase {
         )
         let info = try task.launchSync()
         let output = try task.readStdoutToEnd()
-        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "Task failed")
+        XCTAssertTrue(info.exitCode == EXIT_SUCCESS, "ChildProcess failed")
         XCTAssertEqual(output.trimmingCharacters(in: .whitespacesAndNewlines), "DummyParsableCommandWithSubCommands")
     }
 }
 
-fileprivate extension Task {
+fileprivate extension ChildProcess {
     func whitespacesAndNewlineAdjustedStdout() throws -> String {
         try self.readStdoutToEnd().trimmingCharacters(in: .whitespacesAndNewlines)
     }

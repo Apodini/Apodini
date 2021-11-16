@@ -170,7 +170,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             logger.notice("zipping lambda package")
             let zipFilename = "lambda.zip"
-            try Task(
+            try ChildProcess(
                 executableUrl: Context.zipBin,
                 arguments: try [zipFilename] + fileManager.contentsOfDirectory(atPath: lambdaPackageTmpDir.path),
                 workingDirectory: lambdaPackageTmpDir,

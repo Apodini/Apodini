@@ -9,31 +9,29 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniHTTPProtocol
+import ApodiniNetworking
+
 
 extension Exporter {
-    // MARK: Bidirectional Streaming Closure
-    
     func buildBidirectionalStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
-        
         let abortAnyError = AbortTransformer<H>()
-            
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
-            guard let requestCount = try configuration.decoder.decode(ArrayCount.self, from: request.bodyData).count else {
+        return { (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
+            guard let requestCount = try configuration.decoder.decode(
+                ArrayCount.self,
+                from: request.bodyStorage.getFullBodyData() ?? .init()
+            ).count else {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
                     description: "Input for client side steaming endpoints must be an array at top level.")
             }
-            
             let delegate = factory.instance()
-            
             return Array(0..<requestCount)
                 .asAsyncSequence
                 .map { index in
@@ -46,25 +44,26 @@ extension Exporter {
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
-                .cancel(if: { response in
-                    response.connectionEffect == .close
-                })
+                .cancelIf { $0.connectionEffect == .close }
                 .collect()
-                .map { (responses: [Apodini.Response<H.Response.Content>]) in
+                .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
                     let status: Status? = responses.last?.status
                     let information: InformationSet = responses.last?.information ?? []
                     let content: [H.Response.Content] = responses.compactMap { response in
                         response.content
                     }
                     let body = try configuration.encoder.encode(content)
-                    
-                    return Vapor.Response(status: HTTPStatus(status ?? .ok),
-                                          headers: HTTPHeaders(information),
-                                          body: Vapor.Response.Body(data: body))
+                    return HTTPResponse(
+                        version: request.version,
+                        status: HTTPResponseStatus(status ?? .ok),
+                        headers: HTTPHeaders(information),
+                        bodyStorage: .buffer(initialValue: body)
+                    )
                 }
                 .firstFuture(on: request.eventLoop)
                 .map { optionalResponse in
-                    optionalResponse ?? Vapor.Response()
+                    precondition(optionalResponse != nil)
+                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                 }
         }
     }

@@ -8,9 +8,7 @@
 
 import XCTest
 import XCTApodini
-import XCTVapor
-import ApodiniVaporSupport
-import Vapor
+import XCTApodiniNetworking
 @testable import CoreMetrics
 @testable import Metrics
 @testable import ApodiniObserve
@@ -98,8 +96,7 @@ class ApodiniMetricsTests: XCTestCase {
                 let endpoint = metricPullHandlerConfiguration.endpoint.hasPrefix("/")
                                 ? metricPullHandlerConfiguration.endpoint
                                 : "/\(metricPullHandlerConfiguration.endpoint)"
-                
-                app.vapor.app.get(endpoint.pathComponents) { req -> EventLoopFuture<String> in
+                app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
                     metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
                 }
                 
@@ -157,7 +154,7 @@ class ApodiniMetricsTests: XCTestCase {
     }
     
     func testApodiniMetricTypesWithTestHandler() throws {
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/greeter/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/greeter/Philipp") { response in
             // Counter 1
             let counter = try Self.testMetricsFactory.expectCounter(Self.counterLabel, Self.counter1Dimensions)
             
@@ -241,7 +238,7 @@ class ApodiniMetricsTests: XCTestCase {
             }
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Greeter!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Greeter!")
         }
     }
 }

@@ -7,7 +7,7 @@
 //
 
 import Apodini
-import Vapor
+
 
 /// Implementation of the `WWW-Authenticate` header as defined in
 /// https://datatracker.ietf.org/doc/html/rfc7235#section-4.1

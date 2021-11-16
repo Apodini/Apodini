@@ -7,10 +7,10 @@
 //              
 
 import Foundation
-import Vapor
 @testable import Apodini
 @testable import ApodiniDatabase
 import XCTApodini
+
 
 final class DownloadConfigTests: FileHandlerTests {
     func testDownloadConfigInfo() throws {

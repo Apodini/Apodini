@@ -7,6 +7,8 @@
 //              
 
 import Foundation
+import ApodiniUtils
+
 
 /// Used to explicitly define the communicational
 /// pattern that is expressed by a `Handler`.

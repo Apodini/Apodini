@@ -10,26 +10,18 @@ import Foundation
 import NIO
 import Apodini
 import ApodiniUtils
-import ApodiniVaporSupport
-@_implementationOnly import Vapor
 @_implementationOnly import ProtobufferCoding
+import ApodiniNetworking
+
 
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
 class GRPCService {
-    private let app: Apodini.Application
+    let app: Apodini.Application
     private let exporterConfiguration: GRPC.ExporterConfiguration
-    var vaporApp: Vapor.Application {
-        app.vapor.app
-    }
     
     var serviceName: String
     var methodNames: [String] = []
-
-    /// GRPC media type, with unspecified payload encoding
-    static let grpc = HTTPMediaType(type: "application", subType: "grpc")
-    /// GRPC media type, with Protobuffer payload encoding
-    static let grpcproto = HTTPMediaType(type: "application", subType: "grpc+proto")
 
     /// Initializes a new GRPC service.
     /// - Parameters:
@@ -41,11 +33,14 @@ class GRPCService {
         self.exporterConfiguration = configuration
     }
 
-    internal func contentTypeIsSupported(request: Vapor.Request) -> Bool {
+    internal func contentTypeIsSupported(request: HTTPRequest) -> Bool {
         // GRPC theoretically would also allow for other
         // types of payload formats, e.g. JSON.
         // We only support proto payloads at the moment
-        request.content.contentType == Self.grpc || request.content.contentType == Self.grpcproto
+        guard let contentType = request.headers[.contentType] else {
+            return false
+        }
+        return contentType == .gRPC || contentType == .gRPC(.proto)
     }
 
     /// Cuts the given data into the individual GRPC messages it represents.
@@ -122,8 +117,7 @@ extension GRPCService {
         // - 4 bytes:   length of the message
         var response = Data()
         var length = Int32(message.count).bigEndian
-        let lengthData = Data(bytes: &length,
-                              count: 4)
+        let lengthData = Data(bytes: &length, count: 4)
         response.append(UInt8(0))
         response.append(lengthData)
         response.append(message)
@@ -131,27 +125,26 @@ extension GRPCService {
     }
 
     /// Builds a `Vapor.Response` with an empty payload.
-    func makeResponse() -> Vapor.Response {
-        var headers = HTTPHeaders()
-        headers.contentType = Self.grpcproto
-        return Vapor.Response(status: .internalServerError,
-                              version: HTTPVersion(major: 2, minor: 0),
-                              headers: headers,
-                              body: .init(data: Data()))
+    func makeResponse() -> HTTPResponse {
+        HTTPResponse(
+            version: .http2,
+            status: .internalServerError,
+            headers: HTTPHeaders { $0[.contentType] = .gRPC(.proto) },
+            bodyStorage: .buffer()
+        )
     }
 
     /// Builds a `Vapor.Response` from the given encodable value.
-    func makeResponse(_ value: Encodable) -> Vapor.Response {
+    func makeResponse(_ value: Encodable) -> HTTPResponse {
         do {
-            let data = try encode(value)
-            var headers = HTTPHeaders()
-            headers.contentType = Self.grpcproto
-            return Vapor.Response(status: .ok,
-                                  version: HTTPVersion(major: 2, minor: 0),
-                                  headers: headers,
-                                  body: .init(data: data))
+            return HTTPResponse(
+                version: .http2,
+                status: .ok,
+                headers: HTTPHeaders { $0[.contentType] = .gRPC(.proto) },
+                bodyStorage: .buffer(initialValue: try encode(value))
+            )
         } catch {
-            app.logger.report(error: error)
+            app.logger.error("Error: \(error)")
             return makeResponse()
         }
     }

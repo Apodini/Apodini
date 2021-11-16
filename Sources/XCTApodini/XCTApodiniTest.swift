@@ -18,7 +18,6 @@ open class XCTApodiniTest: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     open var app: Application!
     
-    
     override open func setUpWithError() throws {
         try super.setUpWithError()
         app = Application()
@@ -27,9 +26,9 @@ open class XCTApodiniTest: XCTestCase {
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
         app.shutdown()
-        
         XCTAssertApodiniApplicationNotRunning()
     }
+    
     
     open func database() throws -> Database {
         try XCTUnwrap(self.app.database)

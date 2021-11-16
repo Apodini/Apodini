@@ -21,10 +21,8 @@ struct MockCredentials<State>: Authenticatable {
 
 struct MockToken: Authenticatable, Codable {
     let id: String
-
     let email: String
     let state: Bool
-
     let optionalState: String?
 
     func toJson() throws -> String {

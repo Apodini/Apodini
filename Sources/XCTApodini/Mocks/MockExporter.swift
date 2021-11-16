@@ -8,8 +8,6 @@
 
 #if DEBUG || RELEASE_TESTING
 import Foundation
-import class Vapor.Application
-import class Vapor.Request
 import ApodiniExtension
 import ApodiniUtils
 

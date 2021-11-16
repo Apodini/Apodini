@@ -10,6 +10,7 @@ import XCTest
 import XCTApodini
 @testable import Apodini
 
+
 class AutoInheritanceRelationshipTests: ApodiniTests {
     struct User: Content, Identifiable {
         var id: Int

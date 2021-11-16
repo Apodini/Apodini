@@ -7,12 +7,14 @@
 //              
 
 import Foundation
-import Vapor
+import Apodini
+import ApodiniNetworking
 import ApodiniDeployBuildSupport
 import DeploymentTargetLocalhostCommon
 import Logging
 import OpenAPIKit
-import class Apodini.AnyHandlerIdentifier
+import AsyncHTTPClient
+import ApodiniUtils
 
 
 class ProxyServer {
@@ -20,14 +22,21 @@ class ProxyServer {
         let message: String
     }
     
-    fileprivate let app: Vapor.Application
+    fileprivate let httpServer: HTTPServer
     fileprivate let logger = Logger(label: "DeploymentTargetLocalhost.ProxyServer")
+    fileprivate let httpClient: AsyncHTTPClient.HTTPClient
     
-    init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem) throws {
-        let environmentName = try Vapor.Environment.detect().name
-        var env = Vapor.Environment(name: environmentName, arguments: ["vapor"])
-        try LoggingSystem.bootstrap(from: &env)
-        self.app = Application(env)
+    var eventLoopGroup: EventLoopGroup {
+        httpServer.eventLoopGroup
+    }
+    
+    
+    init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
+        let httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .interface("0.0.0.0", port: port), logger: logger)
+        self.httpServer = httpServer
+        self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(httpServer.eventLoopGroup))
+        
+        logger.notice("Registering Proxy Server Routes")
         for (path, pathItem) in openApiDocument.paths {
             for endpoint in pathItem.endpoints {
                 guard let handlerIdRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerId"]?.value as? String else {
@@ -36,88 +45,168 @@ class ProxyServer {
                 guard let targetNode = deployedSystem.nodeExportingEndpoint(withHandlerId: AnyHandlerIdentifier(handlerIdRawValue)) else {
                     throw Error(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
                 }
-                app.add(Vapor.Route(
-                    method: Vapor.HTTPMethod(rawValue: endpoint.method.rawValue),
-                    path: path.toVaporPath(),
-                    responder: ProxyRequestResponder(proxyServer: self, targetNode: targetNode),
-                    requestType: Vapor.Request.self,
-                    responseType: EventLoopFuture<Vapor.ClientResponse>.self
-                ))
+                guard
+                    let handlerServiceTypeRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerServiceType"]?.value as? String,
+                    let handlerServiceType = Apodini.ServiceType(rawValue: handlerServiceTypeRawValue)
+                else {
+                    throw Error(message: "Unable to fetch handler service type from OpenAPI document")
+                }
+                httpServer.registerRoute(
+                    HTTPMethod(rawValue: endpoint.method.rawValue),
+                    path.toHTTPPathComponentPath(),
+                    responder: ProxyRequestResponder(
+                        proxyServer: self,
+                        targetNode: targetNode,
+                        endpointServiceType: handlerServiceType
+                    )
+                )
             }
         }
     }
     
     
     deinit {
-        // If for some reason the vapor application hasn't been shut down by the time the ProxyServer is destructed,
-        // we manually shut it down in here.
-        // The main cause for -deinit getting called when the application before the application was shut down is if the
-        // initializer fails (ie throws an error).
-        // In that case run will never get called, meaning the app isn't yet shut down
-        if !app.didShutdown {
-            app.shutdown()
+        do {
+            try httpClient.syncShutdown()
+        } catch {
+            logger.error("Error shutting down httpClient: \(error)")
+        }
+        do {
+            try httpServer.shutdown()
+        } catch {
+            logger.error("Error shutting down httpServer: \(error)")
         }
     }
     
     /// Start the proxy
-    func run(port: Int) throws {
-        logger.notice("\(#function)")
-        defer {
-            logger.notice("shutdown")
-            app.shutdown()
-        }
-        app.http.server.configuration.port = port
-        app.http.server.configuration.hostname = "0.0.0.0"
-        logger.notice("Starting Vapor application")
-        try app.run()
+    func start() throws {
+        logger.notice("Starting Proxy HTTP server")
+        try httpServer.start()
+    }
+    
+    
+    func stop() throws {
+        logger.notice("Shutdown")
+        try httpClient.syncShutdown()
+        try httpServer.shutdown()
     }
 }
 
 
 extension OpenAPI.Path {
-    func toVaporPath() -> [Vapor.PathComponent] {
-        self.components.map { component -> Vapor.PathComponent in
+    func toHTTPPathComponentPath() -> [HTTPPathComponent] {
+        self.components.map { component in
             if component.hasPrefix("{") && component.hasSuffix("}") {
-                return .anything
+                return .wildcardSingle
             } else {
-                return .constant(component)
+                return .verbatim(component)
             }
         }
     }
 }
 
 
-private struct ProxyRequestResponder: Vapor.Responder {
+private struct ProxyRequestResponder: HTTPResponder {
     let proxyServer: ProxyServer
     let targetNode: DeployedSystemNode
+    let endpointServiceType: Apodini.ServiceType
     
-    func respond(to request: Request) -> EventLoopFuture<Vapor.Response> {
+    private var httpClient: HTTPClient { proxyServer.httpClient }
+    private var logger: Logger { proxyServer.logger }
+    
+    func respond(to incomingRequest: HTTPRequest) -> HTTPResponseConvertible {
         guard let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self) else {
             fatalError("Unable to read node userInfo")
         }
-        let url = Vapor.URI(
-            scheme: "http",
-            host: "localhost",
+        logger.notice("[Proxy] Incoming HTTP Request \(incomingRequest.url)")
+        let url = URI(
+            scheme: incomingRequest.url.scheme,
+            hostname: incomingRequest.url.hostname,
             port: targetNodeLocalhostData.port,
-            path: request.url.path,
-            query: request.url.query,
-            fragment: request.url.fragment
+            path: incomingRequest.url.path,
+            rawQuery: incomingRequest.url.rawQuery,
+            fragment: incomingRequest.url.fragment
         )
-        proxyServer.logger.notice("forwarding request to '\(url)'")
-        let clientResponseFuture = request.client.send(request.method, headers: request.headers, to: url) { (clientReq: inout ClientRequest) in
-            clientReq.body = request.body.data
+        let forwardingRequest = try! HTTPClient.Request(
+            url: URL(url),
+            method: incomingRequest.method,
+            headers: incomingRequest.headers,
+            body: { () -> HTTPClient.Body in
+                switch incomingRequest.bodyStorage {
+                case .buffer(let buffer):
+                    return .byteBuffer(buffer)
+                case .stream(let stream):
+                    return .stream(length: nil) { [unowned httpClient] streamWriter -> EventLoopFuture<Void> in
+                        let promise = httpClient.eventLoopGroup.next().makePromise(of: Void.self)
+                        stream.setObserver { stream, _ in
+                            if let buffer = stream.readNewData() {
+                                try! streamWriter.write(.byteBuffer(buffer)).wait()
+                            }
+                            if stream.isClosed {
+                                promise.succeed(())
+                            }
+                        }
+                        return promise.futureResult
+                    }
+                }
+            }()
+        )
+        let responseDelegate = AsyncHTTPClientForwardingResonseDelegate(
+            on: httpClient.eventLoopGroup.next(),
+            endpointServiceType: endpointServiceType
+        )
+        _ = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate)
+        return responseDelegate.httpResponseFuture
+    }
+}
+
+
+private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelegate {
+    typealias Response = Void
+    
+    private var response: HTTPResponse?
+    private let endpointServiceType: Apodini.ServiceType
+    private let httpResponsePromise: EventLoopPromise<HTTPResponse>
+    var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
+    
+    init(on eventLoop: EventLoop, endpointServiceType: Apodini.ServiceType) {
+        self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
+        self.endpointServiceType = endpointServiceType
+    }
+    
+    func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
+        guard response == nil else {
+            return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
-        return clientResponseFuture.flatMap { clientResponse in
-            // Note: For some reason, Vapor will duplicate some header fields when sending this response back to the client.
-            // The ones i noticed were `date` and `connection`, but that's probably not the full list.
-            let ignoredHeaderFields: [HTTPHeaders.Name] = [.date, .connection]
-            let response = Response(
-                status: clientResponse.status,
-                //version, // `ClientResponse` doesn't have a version, we could use the default (what we're doing) or return the initial request's version
-                headers: HTTPHeaders(clientResponse.headers.filter { !ignoredHeaderFields.contains(HTTPHeaders.Name($0.name)) }),
-                body: clientResponse.body.map { Response.Body(buffer: $0) } ?? .empty
-            )
-            return proxyServer.app.eventLoopGroup.next().makeSucceededFuture(response)
+        response = HTTPResponse(
+            version: head.version,
+            status: head.status,
+            headers: head.headers,
+            bodyStorage: {
+                switch endpointServiceType {
+                case .unary, .clientStreaming:
+                    return .buffer()
+                case .serviceStreaming, .bidirectional:
+                    return .stream()
+                }
+            }()
+        )
+        httpResponsePromise.succeed(response!)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+        guard let response = response else {
+            return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
+        response.bodyStorage.write(buffer)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
+        guard let response = response else {
+            throw ProxyServer.Error(message: "Already handling response")
+        }
+        response.bodyStorage.stream?.close()
     }
 }

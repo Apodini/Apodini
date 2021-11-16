@@ -70,7 +70,7 @@ func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrate
         path: PathStrategy(),
         content: NumberOfContentParameterAwareStrategy
             .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
-            .transformedToVaporRequestBasedStrategy()
+            .transformedToHTTPRequestBasedStrategy()
     )
     .applied(to: endpoint)
     .typeErased

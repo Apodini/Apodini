@@ -8,8 +8,8 @@
 
 @testable import Apodini
 @testable import ApodiniREST
-import Vapor
 import XCTApodini
+@testable import ApodiniNetworking
 
 
 final class ResponseContainerTests: ApodiniTests {
@@ -25,23 +25,27 @@ final class ResponseContainerTests: ApodiniTests {
     }
     
     
-    private var vaporRequest: Vapor.Request {
-        Vapor.Request(application: app.vapor.app, on: app.eventLoopGroup.next())
-    }
-    
-    
     private func getExpectedContent<Content>(
         _ container: ResponseContainer,
         contentType: Content.Type = Content.self
     ) throws -> (HTTPResponseStatus, ExpectedContent<Content>) {
-        let response = try container.encodeResponse(for: vaporRequest).wait()
+        let request = HTTPRequest(
+            remoteAddress: nil,
+            version: .http1_1,
+            method: .GET,
+            url: .init(string: "/")!,
+            headers: [:],
+            eventLoop: app.eventLoopGroup.next()
+        )
+        let response = try container.encodeResponse(for: request).wait()
         
-        guard let data = response.body.data else {
+        guard let data = response.bodyStorage.readNewData(), !data.isEmpty else {
             return (response.status, ExpectedContent<Content>())
         }
         
         return (response.status, try JSONDecoder().decode(ExpectedContent<Content>.self, from: data))
     }
+    
     
     func testNoContentResponseContainer() throws {
         let (status, recievedContent) = try getExpectedContent(ResponseContainer(Empty.self), contentType: String.self)
@@ -50,6 +54,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.data, nil)
         XCTAssertEqual(recievedContent.links, nil)
     }
+    
     
     func testOnlyDataResponseContainer() throws {
         let expectedContent = "Paul"
@@ -61,6 +66,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.links, nil)
     }
     
+    
     func testOnlyLinksResponseContainer() throws {
         let expectedLinks = ["first": "Paul"]
         
@@ -71,6 +77,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.links, expectedLinks)
     }
     
+    
     func testConflictingDataResponseContainer() throws {
         let expectedContent = "Paul"
         
@@ -80,6 +87,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.data, expectedContent)
         XCTAssertEqual(recievedContent.links, nil)
     }
+    
     
     func testConflictingLinkResponseContainer() throws {
         let expectedLinks = ["first": "Paul"]
@@ -93,6 +101,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.data, nil)
         XCTAssertEqual(recievedContent.links, expectedLinks)
     }
+    
     
     func testConflictingLinkAndDataResponseContainer() throws {
         let expectedContent = "Paul"
@@ -108,6 +117,7 @@ final class ResponseContainerTests: ApodiniTests {
         XCTAssertEqual(recievedContent.links, expectedLinks)
     }
     
+    
     func testStatusResponseContainer() throws {
         try statusPropagationOfResponseContainer(.ok, expectedStatus: .ok)
         try statusPropagationOfResponseContainer(.ok, expectedStatus: .ok, addContent: false)
@@ -117,7 +127,8 @@ final class ResponseContainerTests: ApodiniTests {
         try statusPropagationOfResponseContainer(.created, expectedStatus: .created, addContent: false)
     }
     
-    func statusPropagationOfResponseContainer(_ status: Status, expectedStatus: HTTPStatus, addContent: Bool = true) throws {
+    
+    func statusPropagationOfResponseContainer(_ status: Status, expectedStatus: HTTPResponseStatus, addContent: Bool = true) throws {
         let expectedContent = "Paul"
         
         let (recievedStatus, recievedContent) = try getExpectedContent(

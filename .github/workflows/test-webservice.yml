@@ -56,7 +56,7 @@ jobs:
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }} test TestWebService
     container:
-      image: swiftlang/swift:nightly-5.5-${{ matrix.linux }}
+      image: swift:5.5-${{ matrix.linux }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

@@ -8,8 +8,9 @@
 
 @testable import Apodini
 @testable import ApodiniREST
-import Vapor
+import ApodiniNetworking
 import XCTApodini
+
 
 final class SemanticModelBuilderTests: ApodiniTests {
     struct TestHandler: Handler {
@@ -169,10 +170,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let handler = ResponseHandler1().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app.vapor.app,
-                                    method: .GET,
-                                    url: "",
-                                    on: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
         
         try XCTCheckResponse(
             context.handle(request: request),
@@ -186,10 +184,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let handler = ResponseHandler2()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app.vapor.app,
-                                    method: .GET,
-                                    url: "",
-                                    on: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
 
         try XCTCheckResponse(
             context.handle(request: request, final: false),
@@ -205,10 +200,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let handler = ResponseHandler2().environment(Connection(state: .end, request: mockRequest), for: \Apodini.Application.connection)
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
-        let request = Vapor.Request(application: app.vapor.app,
-                                    method: .GET,
-                                    url: "",
-                                    on: app.eventLoopGroup.next())
+        let request = HTTPRequest(method: .GET, url: "/", eventLoop: app.eventLoopGroup.next())
 
         try XCTCheckResponse(
             context.handle(request: request),

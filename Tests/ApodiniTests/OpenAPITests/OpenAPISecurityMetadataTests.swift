@@ -16,6 +16,7 @@ import ApodiniAuthorization
 import ApodiniAuthorizationBasicScheme
 import ApodiniAuthorizationJWT
 
+
 final class OpenAPISecurityMetadataTests: ApodiniTests, InterfaceExporterVisitor {
     struct Token: JWTAuthenticatable {
         var isAdmin: BoolClaim

@@ -10,9 +10,10 @@
 import ApodiniREST
 import NIOCore
 import XCTApodini
-import XCTVapor
+import XCTApodiniNetworking
 import XCTest
 import NIO
+
 
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
@@ -97,9 +98,10 @@ final class ConnectionTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable([.actualRequests]).test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
-            XCTAssert(res.body.string.contains("localhost"))
+            let remoteAddressResponse = try XCTUnwrapRESTResponseData(String.self, from: res)
+            XCTAssert(remoteAddressResponse.contains("127.0.0.1"))
         }
     }
 }

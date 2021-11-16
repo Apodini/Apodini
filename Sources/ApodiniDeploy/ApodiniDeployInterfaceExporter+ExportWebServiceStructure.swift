@@ -11,7 +11,6 @@ import Apodini
 import ApodiniUtils
 import ApodiniDeployRuntimeSupport
 import ApodiniDeployBuildSupport
-@_implementationOnly import Vapor
 
 extension ApodiniDeployInterfaceExporter {
     func exportDeployedSystemIfNeeded() throws {

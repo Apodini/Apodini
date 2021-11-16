@@ -10,7 +10,8 @@ import XCTApodini
 @testable import ApodiniREST
 @testable import Apodini
 @testable import ApodiniOpenAPI
-import Vapor
+@testable import ApodiniNetworking
+
 
 final class BlobTests: ApodiniTests {
     func testBlobResponseHandler() throws {
@@ -84,18 +85,19 @@ final class BlobTests: ApodiniTests {
         
         
         func makeRequest(blobContent: String, mimeType: MimeType) throws {
-            let request = Vapor.Request(
-                application: app.vapor.app,
+            let request = HTTPRequest(
+                remoteAddress: nil,
+                version: .http1_1,
                 method: .POST,
-                url: URI("https://ase.in.tum.de/schmiedmayer?name=\(blobContent)"),
-                collectedBody: ByteBuffer(data: try JSONEncoder().encode(mimeType)),
-                on: app.eventLoopGroup.next()
+                url: URI(string: "https://ase.in.tum.de/schmiedmayer?name=\(blobContent)")!,
+                headers: [:],
+                bodyStorage: .buffer(initialValue: try JSONEncoder().encode(mimeType)),
+                eventLoop: app.eventLoopGroup.next()
             )
             
-            let response = try endpointHandler.handleRequest(request: request).wait()
-            let byteBuffer = try XCTUnwrap(response.body.buffer)
-                
-            XCTAssertEqual(byteBuffer.getString(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes), blobContent)
+            let response = try endpointHandler.respond(to: request).makeHTTPResponse(for: request).wait()
+            let responseString = try XCTUnwrap(response.bodyStorage.readNewDataAsString())
+            XCTAssertEqual(responseString, blobContent)
         }
 
         try makeRequest(blobContent: "Nadine", mimeType: .application(.json))

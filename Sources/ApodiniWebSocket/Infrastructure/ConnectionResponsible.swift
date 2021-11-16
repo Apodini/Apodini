@@ -6,35 +6,39 @@
 // SPDX-License-Identifier: MIT
 //              
 
-@_implementationOnly import Vapor
-import NIOWebSocket
 import ApodiniUtils
+@_implementationOnly import NIOWebSocket
+import Foundation
+import Logging
+@_implementationOnly import WebSocketKit
+import ApodiniNetworking
+
 
 typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
-class ConnectionResponsible: Identifiable {
-    unowned var websocket: Vapor.WebSocket
-    
-    let logger: Logger
 
-    let request: Vapor.Request
-    
+class ConnectionResponsible: Identifiable {
+    unowned var websocket: WebSocketKit.WebSocket
+    let logger: Logger
+    let initiatingRequest: HTTPRequest
     private let onClose: (ID) -> Void
-    
     private var endpoints: [String: ContextOpener]
-    
     private var contexts: [UUID: ContextResponsible] = [:]
     
-    init(_ websocket: Vapor.WebSocket, request: Vapor.Request, onClose: @escaping (ID) -> Void, endpoints: [String: ContextOpener], logger: Logger) {
+    init(
+        _ websocket: WebSocketKit.WebSocket,
+        initiatingRequest: HTTPRequest,
+        onClose: @escaping (ID) -> Void,
+        endpoints: [String: ContextOpener],
+        logger: Logger
+    ) {
         self.websocket = websocket
         self.onClose = onClose
         self.endpoints = endpoints
         self.logger = logger
-        self.request = request
-        
+        self.initiatingRequest = initiatingRequest
         websocket.onText { websocket, message in
             var context: UUID?
-            
             do {
                 try self.processMessage(message: message, retrieving: &context)
             } catch {
@@ -45,11 +49,10 @@ class ConnectionResponsible: Identifiable {
                     
                     websocket.send(data)
                 } catch {
-                    self.logger.report(error: error)
+                    self.logger.error("Error: \(error)")
                 }
             }
         }
-        
         _ = websocket.onClose.map {
             onClose(self.id)
         }
@@ -59,14 +62,12 @@ class ConnectionResponsible: Identifiable {
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(EncodableServiceMessage(context: context, content: message))
-            
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            
             self.websocket.send(data)
         } catch {
-            self.logger.report(error: error)
+            self.logger.error("Error: \(error)")
         }
     }
     
@@ -74,14 +75,12 @@ class ConnectionResponsible: Identifiable {
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(error.message(on: context))
-            
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            
             self.websocket.send(data)
         } catch {
-            self.logger.report(error: error)
+            self.logger.error("Error: \(error)")
         }
     }
     
@@ -93,16 +92,13 @@ class ConnectionResponsible: Identifiable {
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(CloseContextMessage(context: context))
-            
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            
             self.websocket.send(data)
         } catch {
-            self.logger.report(error: error)
+            self.logger.error("Error: \(error)")
         }
-        
         self.contexts[context] = nil
     }
     
@@ -148,41 +144,31 @@ class ConnectionResponsible: Identifiable {
     
     private func processOpenMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let openMessage = try OpenContextMessage(json: rootObject)
-        
         guard self.contexts[openMessage.context] == nil else {
             throw ProtocolError.openExistingContext(openMessage.context)
         }
-        
         context = openMessage.context
-        
         guard let opener = self.endpoints[openMessage.endpoint] else {
             throw ProtocolError.unknownEndpoint(openMessage.endpoint)
         }
-        
         self.contexts[openMessage.context] = opener(self, openMessage.context)
     }
     
     private func processClientMessage(from rootObject: [String: Any], using data: Data, retrieving context: inout UUID?) throws {
         let clientMessage = try DecodableClientMessage(json: rootObject)
-        
         guard let ctx = self.contexts[clientMessage.context] else {
             throw ProtocolError.unknownContext(clientMessage.context)
         }
-        
         context = clientMessage.context
-        
         try ctx.receive(clientMessage.parameters, data)
     }
     
     private func processCloseMessage(from rootObject: [String: Any], retrieving context: inout UUID?) throws {
         let closeMessage = try CloseContextMessage(json: rootObject)
-        
         guard let ctx = self.contexts[closeMessage.context] else {
             return
         }
-        
         context = closeMessage.context
-        
         ctx.complete()
     }
     
@@ -194,6 +180,7 @@ class ConnectionResponsible: Identifiable {
         }
     }
 }
+
 
 private enum ProtocolError: WSError {
     case unknownEndpoint(String)

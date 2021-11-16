@@ -8,26 +8,27 @@
 
 @testable import Apodini
 @testable import ApodiniREST
+import ApodiniUtils
 @testable import ApodiniOpenAPI
 import SotoXML
-import Vapor
 import XCTest
 import XCTApodini
+import ApodiniNetworking
+import XCTApodiniNetworking
 
-extension XMLEncoder: ApodiniREST.AnyEncoder {
+
+extension XMLEncoder: ApodiniUtils.AnyEncoder {
+    public var resultMediaTypeRawValue: String? {
+        HTTPMediaType.xml.encodeToHTTPHeaderFieldValue()
+    }
+    
     public func encode<T>(_ value: T) throws -> Data where T: Encodable {
         let element: XML.Element = try self.encode(value)
         return element.xmlString.data(using: .utf8)!
     }
-    
-    /// Need to implement the encoder() function from the `ContentEncoder` protocol (Vapor) to set XML content type
-    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws where E: Encodable {
-        headers.contentType = .xml
-        try body.writeBytes(self.encode(encodable))
-    }
 }
 
-extension XMLDecoder: ApodiniREST.AnyDecoder {
+extension XMLDecoder: ApodiniUtils.AnyDecoder {
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
         let xmlElement = try XML.Element(xmlData: data)
         return try self.decode(type, from: xmlElement)
@@ -35,7 +36,7 @@ extension XMLDecoder: ApodiniREST.AnyDecoder {
 }
 
 // swiftlint:disable type_name
-class ExporterConfigurationTests: XCTestCase {
+class ExporterConfigurationTests: ApodiniTests {
     func testExporterConfigurationWithDefaultEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
             var configuration: Configuration {
@@ -57,7 +58,8 @@ class ExporterConfigurationTests: XCTestCase {
     }
     
     func testExporterConfigurationWithOwnEncoderAndDecoder() throws {
-        struct TestEncoder: ApodiniREST.AnyEncoder {
+        struct TestEncoder: ApodiniUtils.AnyEncoder {
+            var resultMediaTypeRawValue: String? { "application/x-apodini-json" }
             let jsonEncoder = JSONEncoder()
             
             func encode<T>(_ value: T) throws -> Data where T: Encodable {
@@ -65,7 +67,7 @@ class ExporterConfigurationTests: XCTestCase {
             }
         }
         
-        struct TestDecoder: ApodiniREST.AnyDecoder {
+        struct TestDecoder: ApodiniUtils.AnyDecoder {
             let jsonDecoder = JSONDecoder()
             
             func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
@@ -86,6 +88,23 @@ class ExporterConfigurationTests: XCTestCase {
         XCTAssert(configurations[0] is REST)
         XCTAssert((configurations[0] as? REST)?.configuration.encoder is TestEncoder)
         XCTAssert((configurations[0] as? REST)?.configuration.decoder is TestDecoder)
+        
+        struct TestWebService: Apodini.WebService {
+            var content: some Component {
+                Text("Servus")
+            }
+            var configuration: Configuration {
+                REST(encoder: TestEncoder(), decoder: TestDecoder())
+            }
+        }
+        
+        TestWebService().start(app: app)
+        
+        try app.testable().test(.GET, "/v1") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.headers[.contentType], HTTPMediaType(type: "application", subtype: "x-apodini-json"))
+            XCTAssertEqual("Servus", try XCTUnwrapRESTResponseData(String.self, from: response))
+        }
     }
     
     func testExporterConfigurationWithXMLEncoderAndDecoder() throws {
@@ -105,9 +124,8 @@ class ExporterConfigurationTests: XCTestCase {
     }
 }
 
-class RESTExporterConfigurationTests: ApodiniTests {
-    lazy var application = Vapor.Application(.testing)
 
+class RESTExporterConfigurationTests: ApodiniTests {
     struct User: Apodini.Content, Identifiable, Decodable {
         let id: String
         let name: String
@@ -165,9 +183,9 @@ class RESTExporterConfigurationTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(ResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -189,9 +207,9 @@ class RESTExporterConfigurationTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { response in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.content.decode(ResponseContainer<User>.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -213,9 +231,9 @@ class RESTExporterConfigurationTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        try app.vapor.app.testable(method: .inMemory).test(.GET, "user/\(userId)?name=\(name)") { res in
+        try app.testable().test(.GET, "user/\(userId)?name=\(name)") { res in
             XCTAssertEqual(res.status, .ok)
-            let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
+            let container = try res.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -251,13 +269,10 @@ class RESTExporterConfigurationTests: ApodiniTests {
 
         let userId = "1234"
         let name = "Rudi"
-        
-        try app.vapor.app.testable(method: .inMemory).test(.GET,
-                                                           "/user",
-                                                           headers: .init(),
-                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name)))) { res in
+        let user = User(id: userId, name: name)
+        try app.testable().test(.GET, "/user", body: .init(data: XMLEncoder().encode(user))) { res in
             XCTAssertEqual(res.status, .ok)
-            let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
+            let container = try res.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -280,12 +295,10 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let userId = "1234"
         let name = "Rudi"
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET,
-                                                           "/user",
-                                                           headers: .init(),
-                                                           body: ByteBuffer(data: XMLEncoder().encode(User(id: userId, name: name)))) { res in
+        let user = User(id: userId, name: name)
+        try app.testable().test(.GET, "/user", body: .init(data: XMLEncoder().encode(user))) { res in
             XCTAssertEqual(res.status, .ok)
-            let container = try res.content.decode(ResponseContainer<User>.self)
+            let container = try res.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self)
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -308,12 +321,9 @@ class RESTExporterConfigurationTests: ApodiniTests {
         let userId = "1234"
         let name = "Rudi"
         
-        try app.vapor.app.testable(method: .inMemory).test(.GET,
-                                                           "/user",
-                                                           headers: .init(),
-                                                           body: ByteBuffer(data: JSONEncoder().encode(User(id: userId, name: name)))) { res in
+        try app.testable().test(.GET, "/user", body: .init(data: JSONEncoder().encode(User(id: userId, name: name)))) { res in
             XCTAssertEqual(res.status, .ok)
-            let container = try res.content.decode(ResponseContainer<User>.self, using: XMLDecoder())
+            let container = try res.bodyStorage.getFullBodyData(decodedAs: ResponseContainer<User>.self, using: XMLDecoder())
             XCTAssertEqual(container.data.id, userId)
             XCTAssertEqual(container.data.name, name)
         }
@@ -321,7 +331,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     
     struct TestExporterCollectionWithXMLCoderAndOpenAPI: ConfigurationCollection {
         var configuration: Configuration {
-            /// Doesn't compile (it shouldn't) -> sometimes weird useless error messages
+            // Doesn't compile (it shouldn't) -> sometimes weird useless error messages
             //REST(encoder: XMLEncoder(), decoder: JSONDecoder()) {
             REST(encoder: JSONEncoder(), decoder: JSONDecoder()) {
                 OpenAPI()

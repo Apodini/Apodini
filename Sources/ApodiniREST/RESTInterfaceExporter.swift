@@ -7,9 +7,11 @@
 //              
 
 import Apodini
-import Vapor
 import NIO
-import ApodiniVaporSupport
+import ApodiniUtils
+import ApodiniNetworking
+import Foundation
+
 
 /// Public Apodini Interface Exporter for REST
 public final class REST: Configuration {
@@ -70,45 +72,46 @@ extension REST {
 final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
-    let app: Vapor.Application
-    let apodiniApp: Apodini.Application
+    let app: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
-    init(_ app: Apodini.Application,
-         _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
-        self.app = app.vapor.app
-        self.apodiniApp = app
+    init(_ app: Apodini.Application, _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
+        self.app = app
         self.exporterConfiguration = exporterConfiguration
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         var pathBuilder = RESTPathBuilder()
-        
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
         let absolutePath = endpoint.absoluteRESTPath
         absolutePath.build(with: &pathBuilder)
-
-        let routesBuilder = pathBuilder.routesBuilder(app)
         
         let operation = endpoint[Operation.self]
+        let endpointHandler = RESTEndpointHandler(
+            with: app,
+            withExporterConfiguration: exporterConfiguration,
+            for: endpoint,
+            relationshipEndpoint,
+            on: self
+        )
+        app.httpServer.registerRoute(
+            HTTPMethod(operation),
+            pathBuilder.pathComponents,
+            responder: endpointHandler
+        )
 
-        let endpointHandler = RESTEndpointHandler(with: apodiniApp,
-                                                  withExporterConfiguration: exporterConfiguration,
-                                                  for: endpoint,
-                                                  relationshipEndpoint,
-                                                  on: self)
-        endpointHandler.register(at: routesBuilder, using: operation)
-
-        app.logger.info("Exported '\(Vapor.HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
+        app.logger.info("Exported '\(HTTPMethod(operation).rawValue) \(pathBuilder.pathDescription)' with parameters: \(endpoint[EndpointParameters.self].map { $0.name })")
 
         if relationshipEndpoint.inheritsRelationship {
             for selfRelationship in relationshipEndpoint.selfRelationships() where selfRelationship.destinationPath != absolutePath {
-                app.logger.info("""
-                                  - inherits from: \(Vapor.HTTPMethod(selfRelationship.operation).rawValue) \
-                                \(selfRelationship.destinationPath.asPathString())
-                                """)
+                app.logger.info(
+                    """
+                      - inherits from: \(HTTPMethod(selfRelationship.operation).rawValue) \
+                    \(selfRelationship.destinationPath.asPathString())
+                    """
+                )
             }
         }
         
@@ -125,28 +128,21 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 
     func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
-        
         let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model
         
         if root.node.endpoints[.read] == nil {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
-
             let relationships = relationshipModel.rootRelationships(for: .read)
-
-            let handler = RESTDefaultRootHandler(app: apodiniApp,
-                                                 exporterConfiguration: exporterConfiguration,
-                                                 relationships: relationships)
+            let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
             handler.register(on: app)
-            
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
-            
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
             }
         }
         
         // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        self.app.routes.caseInsensitive = self.exporterConfiguration.caseInsensitiveRouting
+        app.httpServer.isCaseInsensitiveRoutingEnabled = exporterConfiguration.caseInsensitiveRouting
     }
 }
 

@@ -116,9 +116,7 @@ extension FieldKey {
 
 public enum DeviceType: String, Codable, CaseIterable {
     static var name: FieldKey { .type }
-    
     case apns
-    case fcm
 }
 
 internal struct DeviceMigration: Migration {
@@ -131,7 +129,6 @@ internal struct DeviceMigration: Migration {
                 .create(),
             database.enum("type")
                 .case("apns")
-                .case("fcm")
                 .create()
                 .flatMap { enumType in
                     database.schema(DeviceDatabaseModel.schema)
