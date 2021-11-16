@@ -174,18 +174,14 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        let handleFutures = [
-            context1.handle(request: request),
-            context2.handle(request: request)
-        ]
+        try context1.handle(request: request).wait()
+        try context2.handle(request: request).wait()
         
         // register listener
         context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1, context: context1))
         context2.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 2, context: context2))
         // change the value
         testObservable.text = "Hello Swift"
-        
-        try EventLoopFuture.andAllComplete(handleFutures, on: app.eventLoopGroup.next()).wait()
     }
     
     func testChangedProperty() throws {
