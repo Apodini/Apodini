@@ -126,7 +126,7 @@ class ObservedObjectTests: ApodiniTests {
         testObservable.text = "Hello Swift"
     }
     
-    func testObservedListenerNotShared() {
+    func testObservedListenerNotShared() throws {
         struct TestHandler: Handler {
             @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
