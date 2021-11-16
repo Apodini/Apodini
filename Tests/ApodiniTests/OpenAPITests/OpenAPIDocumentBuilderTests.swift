@@ -113,7 +113,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                         ],
                         vendorExtensions: [
                             "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
-                            "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
+                            "x-apodiniHandlerCommunicationalPattern": AnyCodable(endpoint[CommunicationalPattern.self].rawValue)
                         ]
                     )
                 )

@@ -95,8 +95,8 @@ extension Operation: OptionalContextKeyKnowledgeSource {
 ```
 ``ContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on a (non-optional) `ContextKey`:
 ```swift
-extension ServiceType: ContextKeyKnowledgeSource {
-    public typealias Key = ServiceTypeContextKey
+extension CommunicationalPattern: ContextKeyKnowledgeSource {
+    public typealias Key = CommunicationalPatternContextKey
     
     public init(from value: Key.Value) throws {
         self = value
@@ -157,7 +157,6 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``DelegateFactory``
 - ``HandlerDescription``
 - ``HandleReturnType``
-- ``ServiceType``
 - ``Operation``
 - ``EndpointParameters``
 - ``PathComponents``
@@ -174,7 +173,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``EndpointSource``
 - ``AnyEndpointSource``
 - ``Blackboards``
-- `Context`
+- ``Context``
 - ``CommunicationalPattern``
 <!-- TODO: ``All`` -->
 <!-- TODO: external KS: 

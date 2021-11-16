@@ -46,8 +46,8 @@ class ProxyServer {
                     throw Error(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
                 }
                 guard
-                    let handlerServiceTypeRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerServiceType"]?.value as? String,
-                    let handlerServiceType = Apodini.ServiceType(rawValue: handlerServiceTypeRawValue)
+                    let handlerCommPatternRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerCommunicationalPattern"]?.value as? String,
+                    let handlerCommPattern = Apodini.CommunicationalPattern(rawValue: handlerCommPatternRawValue)
                 else {
                     throw Error(message: "Unable to fetch handler service type from OpenAPI document")
                 }
@@ -57,7 +57,7 @@ class ProxyServer {
                     responder: ProxyRequestResponder(
                         proxyServer: self,
                         targetNode: targetNode,
-                        endpointServiceType: handlerServiceType
+                        endpointCommPattern: handlerCommPattern
                     )
                 )
             }
@@ -109,7 +109,7 @@ extension OpenAPI.Path {
 private struct ProxyRequestResponder: HTTPResponder {
     let proxyServer: ProxyServer
     let targetNode: DeployedSystemNode
-    let endpointServiceType: Apodini.ServiceType
+    let endpointCommPattern: Apodini.CommunicationalPattern
     
     private var httpClient: HTTPClient { proxyServer.httpClient }
     private var logger: Logger { proxyServer.logger }
@@ -153,7 +153,7 @@ private struct ProxyRequestResponder: HTTPResponder {
         )
         let responseDelegate = AsyncHTTPClientForwardingResonseDelegate(
             on: httpClient.eventLoopGroup.next(),
-            endpointServiceType: endpointServiceType
+            endpointCommPattern: endpointCommPattern
         )
         _ = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate)
         return responseDelegate.httpResponseFuture
@@ -165,13 +165,13 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
     typealias Response = Void
     
     private var response: HTTPResponse?
-    private let endpointServiceType: Apodini.ServiceType
+    private let endpointCommPattern: Apodini.CommunicationalPattern
     private let httpResponsePromise: EventLoopPromise<HTTPResponse>
     var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
     
-    init(on eventLoop: EventLoop, endpointServiceType: Apodini.ServiceType) {
+    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern) {
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
-        self.endpointServiceType = endpointServiceType
+        self.endpointCommPattern = endpointCommPattern
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
@@ -183,10 +183,10 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
             status: head.status,
             headers: head.headers,
             bodyStorage: {
-                switch endpointServiceType {
-                case .unary, .clientStreaming:
+                switch endpointCommPattern {
+                case .requestResponse, .clientSideStream:
                     return .buffer()
-                case .serviceStreaming, .bidirectional:
+                case .serviceSideStream, .bidirectionalStream:
                     return .stream()
                 }
             }()
