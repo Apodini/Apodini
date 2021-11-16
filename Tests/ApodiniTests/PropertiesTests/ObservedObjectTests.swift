@@ -174,8 +174,8 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        try context1.handle(request: request).wait()
-        try context2.handle(request: request).wait()
+        _ = try context1.handle(request: request).wait()
+        _ = try context2.handle(request: request).wait()
         
         // register listener
         context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1, context: context1))
