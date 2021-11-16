@@ -7,6 +7,8 @@
 //
 
 import ApodiniUtils
+import ApodiniTypeInformation
+
 
 // swiftlint:disable redundant_string_enum_value
 // ^^ We do in fact want the redundancy here, since this will prevent the media types from breaking
@@ -16,7 +18,7 @@ import ApodiniUtils
 
 
 /// A HTTP Media Type, as defined in [RFC6838](https://datatracker.ietf.org/doc/html/rfc6838)
-public struct HTTPMediaType: HTTPHeaderFieldValueCodable, Equatable, Hashable {
+public struct HTTPMediaType: HTTPHeaderFieldValueCodable, Equatable, Hashable, CustomStringConvertible {
     public let type: String
     public let subtype: String
     public let parameters: [String: String]
@@ -29,7 +31,7 @@ public struct HTTPMediaType: HTTPHeaderFieldValueCodable, Equatable, Hashable {
         self.parameters = parameters
     }
     
-    public init?(string: String) {
+    public init?(_ string: String) {
         guard let typeSubtypeSeparatorIdx = string.firstIndex(of: "/") else {
             return nil
         }
@@ -45,20 +47,28 @@ public struct HTTPMediaType: HTTPHeaderFieldValueCodable, Equatable, Hashable {
         let rawParameters = string[firstParamIdx...].split(separator: ";").map { $0.trimmingLeadingAndTrailingWhitespace() }
         for component in rawParameters {
             let componentComponents = component.components(separatedBy: "=")
-            guard componentComponents.count == 2 else {
+            switch componentComponents.count {
+            case 2:
+                parameters[componentComponents[0]] = componentComponents[1]
+            case 1:
+                continue
+            default:
                 // We're expecting two components were produced from splitting the component into its components.
                 return nil
             }
-            parameters[componentComponents[0]] = componentComponents[1]
         }
         self.parameters = parameters
     }
     
     
     public init?(httpHeaderFieldValue: String) {
-        self.init(string: httpHeaderFieldValue)
+        self.init(httpHeaderFieldValue)
     }
     
+    
+    public var description: String {
+        encodeToHTTPHeaderFieldValue()
+    }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
         var retval = "\(type)/\(subtype)"
@@ -96,19 +106,60 @@ public struct HTTPMediaType: HTTPHeaderFieldValueCodable, Equatable, Hashable {
 }
 
 
+extension HTTPMediaType: Codable {
+    enum CodingKeys: String, CodingKey {
+        case type
+        case subtype
+        case parameters
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(String.self, forKey: .type)
+        let subtype = try container.decode(String.self, forKey: .subtype)
+        let parameters = try container.decode([String: String].self, forKey: .parameters)
+        self = HTTPMediaType(type: type, subtype: subtype, parameters: parameters)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        try container.encode(subtype, forKey: .subtype)
+        try container.encode(parameters, forKey: .parameters)
+    }
+}
+
+
+extension HTTPMediaType: TypeInformationDefaultConstructor {
+    /// Default type information representation
+    public static func construct() -> TypeInformation {
+        .object(
+            name: .init(Self.self),
+            properties: [
+                .init(name: string(.type), type: .scalar(.string)),
+                .init(name: string(.subtype), type: .scalar(.string)),
+                .init(name: string(.parameters), type: .dictionary(key: .string, value: .scalar(.string)))
+            ]
+        )
+    }
+
+    private static func string(_ key: Self.CodingKeys) -> String {
+        key.stringValue
+    }
+}
+
+
 extension HTTPMediaType {
     /// The `text/plain` media type, with a `charset=utf-8` parameter.
-    public static let text = HTTPMediaType(type: "text", subtype: "plain", parameters: ["charset": "utf-8"])
+    public static var text: HTTPMediaType { .text(.plain, charset: .utf8) }
     /// The `text/html` media type, with a `charset=utf-8` parameter.
-    public static let html = HTTPMediaType(type: "text", subtype: "html", parameters: ["charset": "utf-8"])
+    public static var html: HTTPMediaType { .text(.html, charset: .utf8) }
     /// The `application/json` media type, with a `charset=utf-8` parameter.
-    public static let json = HTTPMediaType(type: "application", subtype: "json", parameters: ["charset": "utf-8"])
+    public static var json: HTTPMediaType { .application(.json, charset: .utf8) }
     /// The `application/xml` media type, with a `charset=utf-8` parameter.
-    public static let xml = HTTPMediaType(type: "application", subtype: "xml", parameters: ["charset": "utf-8"])
+    public static var xml: HTTPMediaType { .application(.xml, charset: .utf8) }
     /// The `application/pdf` media type.
-    public static let pdf = HTTPMediaType(type: "application", subtype: "pdf")
-    /// The `application/grpc` media type, without an explicitly specified encoding.
-    public static let gRPC = HTTPMediaType(type: "application", subtype: "grpc")
+    public static var pdf: HTTPMediaType { .application(.pdf) }
     
     
     /// MediaType charset options
@@ -116,8 +167,17 @@ extension HTTPMediaType {
         case utf8 = "utf-8"
     }
     
-    private static func makeMediaType(withType type: String, subtype: String, charset: CharsetParameterValue?) -> HTTPMediaType {
-        HTTPMediaType(type: type, subtype: subtype, parameters: charset.map { ["charset": $0.rawValue] } ?? [:])
+    private static func makeMediaType(
+        withType type: String,
+        subtype: String,
+        charset: CharsetParameterValue?,
+        parameters: [String: String] = [:]
+    ) -> HTTPMediaType {
+        var parameters = parameters
+        if let charset = charset, !parameters.keys.contains("charset") {
+            parameters["charset"] = charset.rawValue
+        }
+        return HTTPMediaType(type: type, subtype: subtype, parameters: parameters)
     }
     
     /// Creates an `application/json` media type with the specified charset as its parameter
@@ -126,14 +186,38 @@ extension HTTPMediaType {
     }
     
     
-    /// gRPC media type subtype suffix options
-    public enum GRPCEncodingOption: String {
-        case proto = "proto"
-        case json = "json"
+    public enum TextSubtype: String {
+        case plain = "plain"
+        case html = "html"
+        case xml = "xml"
     }
     
-    /// Creates a gRPC media type with the specified encoding appended as the subtype's suffix
-    public static func gRPC(_ encoding: GRPCEncodingOption) -> HTTPMediaType {
-        HTTPMediaType(type: "application", subtype: "grpc+\(encoding.rawValue)")
+    public static func text(_ subtype: TextSubtype, charset: CharsetParameterValue? = .utf8, parameters: [String: String] = [:]) -> HTTPMediaType {
+        makeMediaType(withType: "text", subtype: subtype.rawValue, charset: charset, parameters: parameters)
+    }
+    
+    
+    public enum ApplicationSubtype: String {
+        case json = "json"
+        case xml = "xml"
+        case pdf = "pdf"
+    }
+    
+    public static func application(
+        _ subtype: ApplicationSubtype,
+        charset: CharsetParameterValue? = nil,
+        parameters: [String: String] = [:]
+    ) -> HTTPMediaType {
+        makeMediaType(withType: "application", subtype: subtype.rawValue, charset: charset, parameters: parameters)
+    }
+    
+    
+    public enum ImageSubtype: String {
+        case png = "png"
+        case gif = "gif"
+    }
+    
+    public static func image(_ subtype: ImageSubtype, parameters: [String: String] = [:]) -> HTTPMediaType {
+        HTTPMediaType(type: "image", subtype: subtype.rawValue, parameters: parameters)
     }
 }

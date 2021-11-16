@@ -17,7 +17,7 @@ final class GRPCServiceTests: ApodiniTests {
         S().start(app: app)
         defer { app.shutdown() } // This might in fact not be necessary
         
-        try app.testable().test(.POST, path, headers: HTTPHeaders { $0[.contentType] = .gRPC }) { response in
+        try app.testable().test(.POST, path, headers: HTTPHeaders { $0[.contentType] = .gRPCPlain }) { response in
             XCTAssertGreaterThanOrEqual(response.status.code, 200)
             XCTAssertLessThan(response.status.code, 300)
         }

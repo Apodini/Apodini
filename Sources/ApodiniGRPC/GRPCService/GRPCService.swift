@@ -14,6 +14,23 @@ import ApodiniUtils
 import ApodiniNetworking
 
 
+extension HTTPMediaType {
+    /// gRPC media type subtype suffix options
+    enum GRPCEncodingOption: String {
+        case proto = "proto"
+        case json = "json"
+    }
+    
+    /// Creates a gRPC media type with the specified encoding appended as the subtype's suffix
+    static func gRPC(_ encoding: GRPCEncodingOption) -> HTTPMediaType {
+        HTTPMediaType(type: "application", subtype: "grpc+\(encoding.rawValue)")
+    }
+    
+    /// The `application/grpc` media type without an explicitly specified encoding
+    static let gRPCPlain = HTTPMediaType(type: "application", subtype: "grpc")
+}
+
+
 /// Used by the `GRPCInterfaceExporter` to expose
 /// `handle` functions of `Handler`s.
 class GRPCService {
@@ -40,7 +57,7 @@ class GRPCService {
         guard let contentType = request.headers[.contentType] else {
             return false
         }
-        return contentType == .gRPC || contentType == .gRPC(.proto)
+        return contentType == .gRPCPlain || contentType == .gRPC(.proto)
     }
 
     /// Cuts the given data into the individual GRPC messages it represents.
