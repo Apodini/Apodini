@@ -13,7 +13,6 @@ import XCTest
 import XCTApodini
 
 
-
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
         var message: String

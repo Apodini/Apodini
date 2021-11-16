@@ -14,7 +14,6 @@ import XCTApodiniNetworking
 import XCTest
 
 
-
 final class ConnectionTests: ApodiniTests {
     let endMessage = "End"
     let openMessage = "Open"
