@@ -10,9 +10,10 @@ import Apodini
 import ApodiniUtils
 import ApodiniExtension
 import ApodiniLoggingSupport
-import ApodiniVaporSupport
 import NIOWebSocket
-@_implementationOnly import Vapor
+import WebSocketKit
+import Foundation
+import ApodiniNetworking
 
 // MARK: Exporter
 
@@ -41,37 +42,30 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let router: VaporWSRouter
 
     /// Initialize a `WebSocketInterfaceExporter` from an `Application`
-    init(_ app: Apodini.Application,
-         _ exporterConfiguration: WebSocket.ExporterConfiguration = WebSocket.ExporterConfiguration()) {
+    init(_ app: Apodini.Application, _ exporterConfiguration: WebSocket.ExporterConfiguration = .init()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
-        self.router = VaporWSRouter(app.vapor.app, logger: app.logger, at: self.exporterConfiguration.path)
+        self.router = VaporWSRouter(app, logger: app.logger, at: self.exporterConfiguration.path)
     }
 
+    
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
-        
         let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value
         }))
-        
         let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint)
-        
         let defaultValueStore = endpoint[DefaultValueStore.self]
-        
         let transformer = Transformer<H>()
-        
         let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
-        
-        self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: Vapor.Request) -> (
+        self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: HTTPRequest) -> (
                     defaultInput: SomeInput,
                     output: AnyAsyncSequence<Message<H.Response.Content>>
                 ) in
             // We need a new `Delegate` for each connection
             let delegate = factory.instance()
-            
             let output = clientInput
             .reduce()
             .map { (someInput: SomeInput) -> (DefaultRequestBasis, SomeInput) in
@@ -108,7 +102,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         }
     }
 
-    func exportParameter<Type>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) where Type: Decodable, Type: Encodable {
+    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> (String, WebSocketParameter) {
         (parameter.name, WebSocketParameter(BasicInputParameter<Type>()))
     }
     

@@ -39,7 +39,6 @@ public final class HTTPConfiguration: Configuration {
     public var uriPrefix: String {
         let httpProtocol: String
         var port = ""
-        
         if self.tlsConfiguration == nil {
             httpProtocol = "http://"
             if hostname.port != 80 {
@@ -51,7 +50,6 @@ public final class HTTPConfiguration: Configuration {
                 port = ":\(hostname.port!)"
             }
         }
-        
         return httpProtocol + hostname.address + port
     }
     
@@ -104,7 +102,6 @@ public final class HTTPConfiguration: Configuration {
         } else {
             app.logger.info("Starting without HTTP/2 and TLS")
         }
-        
         app.storage[HTTPConfigurationStorageKey.self] = self
     }
 }

@@ -18,7 +18,7 @@ const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__Apodini
 
 
 // A ctor function which will get called when the shared library is loaded (ie before execution enters `main`, see below).
-// This is part of the child process management API (see Task.swift), and is used to move child processes into the parent's
+// This is part of the child process management API (see ChildProcess.swift), and is used to move child processes into the parent's
 // process group. We want all processes to be in the same group so that signals like SIGINT are sent to all processes.
 __attribute__((constructor))
 static void HandleTaskChildProcessLaunchIfNecessary(int argc, const char * argv[], const char *const envp[]) {

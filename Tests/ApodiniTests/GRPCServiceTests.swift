@@ -9,20 +9,17 @@
 import XCTest
 @testable import Apodini
 @testable import ApodiniGRPC
+import XCTApodiniNetworking
 
 final class GRPCServiceTests: ApodiniTests {
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-    }
-    
     func testWebService<S: WebService>(_ type: S.Type, path: String) throws {
         let app = Application()
         S().start(app: app)
         defer { app.shutdown() } // This might in fact not be necessary
         
-        try app.vapor.app.test(.POST, path, headers: ["content-type": GRPCService.grpcproto.description]) { res in
-            XCTAssertGreaterThanOrEqual(res.status.code, 200)
-            XCTAssertLessThan(res.status.code, 300)
+        try app.testable().test(.POST, path, headers: HTTPHeaders { $0[.contentType] = .gRPC }) { response in
+            XCTAssertGreaterThanOrEqual(response.status.code, 200)
+            XCTAssertLessThan(response.status.code, 300)
         }
     }
 }
@@ -34,7 +31,7 @@ extension GRPCServiceTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app, GRPC.ExporterConfiguration())
-        let encodedData = service.makeResponse(responseString).body.data
+        let encodedData = service.makeResponse(responseString).bodyStorage.getFullBodyData()
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 
@@ -44,7 +41,7 @@ extension GRPCServiceTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app, GRPC.ExporterConfiguration())
-        let encodedData = service.makeResponse(responseString).body.data
+        let encodedData = service.makeResponse(responseString).bodyStorage.getFullBodyData()
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 
@@ -57,7 +54,7 @@ extension GRPCServiceTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let service = GRPCService(name: "TestService", using: app, GRPC.ExporterConfiguration())
-        let encodedData = service.makeResponse(response).body.data
+        let encodedData = service.makeResponse(response).bodyStorage.getFullBodyData()
         XCTAssertEqual(encodedData, Data(expectedResponseData))
     }
 }

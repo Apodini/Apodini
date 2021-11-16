@@ -9,25 +9,27 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-@_implementationOnly import Vapor
+import ApodiniNetworking
+
 
 // MARK: Unary request handler
 extension GRPCService {
-    func createUnaryHandler<H: Handler>(factory: DelegateFactory<H, GRPCInterfaceExporter>,
-                                        strategy: AnyDecodingStrategy<GRPCMessage>,
-                                        defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (request: Vapor.Request) in
-            if !self.contentTypeIsSupported(request: request) {
+    func createUnaryHandler<H: Handler>(
+        factory: DelegateFactory<H, GRPCInterfaceExporter>,
+        strategy: AnyDecodingStrategy<GRPCMessage>,
+        defaults: DefaultValueStore
+    ) -> (HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        { (request: HTTPRequest) in
+            guard self.contentTypeIsSupported(request: request) else {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
                     "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
                 ))
             }
             
             let delegate = factory.instance()
-
-            let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
-            request.body.collect().whenSuccess { _ in
-                let byteBuffer = request.body.data ?? ByteBuffer()
+            let promise = request.eventLoop.makePromise(of: HTTPResponse.self)
+            
+            request.bodyStorage.collect(on: request.eventLoop).whenSuccess { byteBuffer in
                 let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) ?? Data()
                 
                 // retrieve all the GRPC messages that were delivered in the
@@ -47,7 +49,7 @@ extension GRPCService {
                     .cache()
                     .evaluate(on: delegate)
                 
-                let result = response.map { response -> Vapor.Response in
+                let result = response.map { response -> HTTPResponse in
                     switch response.content {
                     case let .some(content):
                         return self.makeResponse(content)
@@ -55,7 +57,6 @@ extension GRPCService {
                         return self.makeResponse()
                     }
                 }
-
                 promise.completeWith(result)
             }
             return promise.futureResult
@@ -74,15 +75,12 @@ extension GRPCService {
         }
         methodNames.append(methodName)
 
-        let path = [
-            Vapor.PathComponent(stringLiteral: serviceName),
-            Vapor.PathComponent(stringLiteral: methodName)
-        ]
-
-        vaporApp.on(.POST, path) { request in
-            self.createUnaryHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
-                                    strategy: strategy,
-                                    defaults: endpoint[DefaultValueStore.self])(request)
+        app.httpServer.registerRoute(.POST, [.verbatim(serviceName), .verbatim(methodName)]) { request in
+            self.createUnaryHandler(
+                factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
+                strategy: strategy,
+                defaults: endpoint[DefaultValueStore.self]
+            )(request)
         }
     }
 }

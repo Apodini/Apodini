@@ -7,11 +7,11 @@
 //              
 
 import Apodini
-import ApodiniVaporSupport
 import ApodiniGRPC
 import ApodiniTypeReflection
 import ApodiniUtils
-@_implementationOnly import class Vapor.Application
+import ApodiniNetworking
+
 
 public final class Protobuffer: GRPCDependentStaticConfiguration {
     var configuration: Protobuffer.ExporterConfiguration
@@ -51,8 +51,10 @@ final class ProtobufferInterfaceExporter: InterfaceExporter {
     private var services: Set<ProtobufferService> = .init()
     
     // MARK: Initialization
-    init(_ app: Apodini.Application,
-         _ exporterConfiguration: Protobuffer.ExporterConfiguration = Protobuffer.ExporterConfiguration()) {
+    init(
+        _ app: Apodini.Application,
+        _ exporterConfiguration: Protobuffer.ExporterConfiguration = Protobuffer.ExporterConfiguration()
+    ) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.builder = Builder(configuration: self.exporterConfiguration.parentConfiguration)
@@ -73,8 +75,7 @@ final class ProtobufferInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         let description = self.description
-        
-        app.vapor.app.get("apodini", "proto") { _ in
+        app.httpServer.registerRoute(.GET, ["apodini", "proto"]) { _ in
             description
         }
     }

@@ -11,6 +11,7 @@ import XCTApodini
 import ApodiniUtils
 @testable import ArgumentParser
 
+
 class ParsableArgumentsTests: XCTApodiniTest {
     func getCommandError(_ error: Error) throws -> CommandError {
         try XCTUnwrap(error as? CommandError)

@@ -13,6 +13,7 @@ import ApodiniREST
 @testable import ApodiniOpenAPI
 import OpenAPIKit
 
+
 final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisitor {
     struct ExampleWebService: WebService {
         var content: some Component {

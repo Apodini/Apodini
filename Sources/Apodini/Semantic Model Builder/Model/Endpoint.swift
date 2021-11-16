@@ -59,12 +59,8 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
     
     public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
-        get {
-            self.blackboard[type]
-        }
-        nonmutating set {
-            self.blackboard[type] = newValue
-        }
+        get { blackboard[type] }
+        nonmutating set { blackboard[type] = newValue }
     }
     
     public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {

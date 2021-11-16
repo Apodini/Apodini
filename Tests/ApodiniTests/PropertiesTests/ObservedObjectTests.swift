@@ -8,9 +8,10 @@
 
 @testable import Apodini
 @testable import ApodiniREST
-import Vapor
 import Foundation
 import XCTApodini
+import ApodiniNetworking
+
 
 class ObservedObjectTests: ApodiniTests {
     // check setting changed
@@ -84,7 +85,7 @@ class ObservedObjectTests: ApodiniTests {
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
             
-            var context: ConnectionContext<Vapor.Request, TestHandler>
+            var context: ConnectionContext<HTTPRequest, TestHandler>
 
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -103,13 +104,11 @@ class ObservedObjectTests: ApodiniTests {
         let handler = TestHandler()
         let endpoint = handler.mockEndpoint(app: app)
         let context = endpoint.createConnectionContext(for: exporter)
-
-        let request = Vapor.Request(
-            application: app.vapor.app,
+        
+        let request = HTTPRequest(
             method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/a?param0=value0",
+            eventLoop: app.eventLoopGroup.next()
         )
         
         // initialize the observable object
@@ -127,7 +126,7 @@ class ObservedObjectTests: ApodiniTests {
         testObservable.text = "Hello Swift"
     }
     
-    func testObservedListenerNotShared() {
+    func testObservedListenerNotShared() throws {
         struct TestHandler: Handler {
             @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
@@ -138,21 +137,17 @@ class ObservedObjectTests: ApodiniTests {
         
         class MandatoryTestListener: ObservedListener {
             var eventLoop: EventLoop
-            
-            var context: ConnectionContext<Vapor.Request, TestHandler>
-            
+            var context: ConnectionContext<HTTPRequest, TestHandler>
             var wasCalled = false
-            
             let number: Int
             
-            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<Vapor.Request, TestHandler>) {
+            init(eventLoop: EventLoop, number: Int, context: ConnectionContext<HTTPRequest, TestHandler>) {
                 self.eventLoop = eventLoop
                 self.context = context
                 self.number = number
             }
             
-            func onObservedDidChange(_ observedObject: AnyObservedObject,
-                                     _ event: TriggerEvent) {
+            func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
                 wasCalled = true
             }
             
@@ -167,13 +162,11 @@ class ObservedObjectTests: ApodiniTests {
         let endpoint = handler.mockEndpoint(app: app)
         let context1 = endpoint.createConnectionContext(for: exporter)
         let context2 = endpoint.createConnectionContext(for: exporter)
-
-        let request = Vapor.Request(
-            application: app.vapor.app,
+        
+        let request = HTTPRequest(
             method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/a?param0=value0",
+            eventLoop: app.eventLoopGroup.next()
         )
         
         let testObservable = TestObservable()
@@ -181,8 +174,8 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        _ = context1.handle(request: request)
-        _ = context2.handle(request: request)
+        _ = try context1.handle(request: request).wait()
+        _ = try context2.handle(request: request).wait()
         
         // register listener
         context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1, context: context1))
@@ -208,8 +201,7 @@ class ObservedObjectTests: ApodiniTests {
         
         struct TestListener: ObservedListener {
             var eventLoop: EventLoop
-            
-            var context: ConnectionContext<Vapor.Request, TestHandler>
+            var context: ConnectionContext<HTTPRequest, TestHandler>
             
             func onObservedDidChange(_ observedObject: AnyObservedObject,
                                      _ event: TriggerEvent) {
@@ -233,12 +225,10 @@ class ObservedObjectTests: ApodiniTests {
 
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
+        let request = HTTPRequest(
             method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/a?param0=value0",
+            eventLoop: app.eventLoopGroup.next()
         )
         _ = try context.handle(request: request).wait()
         
@@ -278,12 +268,10 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        let request = Vapor.Request(
-            application: app.vapor.app,
+        let request = HTTPRequest(
             method: .POST,
-            url: URI("http://example.de/test/a?param0=value0"),
-            collectedBody: nil,
-            on: app.eventLoopGroup.next()
+            url: "http://example.de/test/a?param0=value0",
+            eventLoop: app.eventLoopGroup.next()
         )
         _ = try context.handle(request: request).wait()
     }
@@ -291,9 +279,7 @@ class ObservedObjectTests: ApodiniTests {
     
     class TestListener<H: Handler>: ObservedListener {
         var eventLoop: EventLoop
-        
         var context: ConnectionContext<String, H>
-        
         var result: (() -> EventLoopFuture<String>)?
         
         init(eventLoop: EventLoop, context: ConnectionContext<String, H>) {
@@ -406,11 +392,8 @@ class ObservedObjectTests: ApodiniTests {
     func testObservationAfterUsingEnvironmentInjection() throws {
         struct TestHandler: Handler {
             @Apodini.Environment(\Keys.testObservable) var testObservable
-            
             @Apodini.Environment(\.connection) var connection
-            
             @State var count: Int = 1
-            
             let secondObservable: TestObservable
 
             func handle() -> Apodini.Response<String> {

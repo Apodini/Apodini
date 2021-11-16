@@ -12,7 +12,7 @@ import Apodini
 public protocol RESTDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:
-    ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
+    ///    - app: The `Application` which is used to register the configuration in Apodini
     ///    - parentConfiguration: The `RESTExporterConfiguration` of the parent of the dependend exporter
     func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration)
 }
@@ -27,7 +27,7 @@ public struct EmptyRESTDependentStaticConfiguration: RESTDependentStaticConfigur
 extension Array where Element == RESTDependentStaticConfiguration {
     /// A method that handels the configuration of dependend static exporters
     /// - Parameters:
-    ///    - app: The `Vapor.Application` which is used to register the configuration in Apodini
+    ///    - app: The `Application` which is used to register the configuration in Apodini
     ///    - parentConfiguration: The `Configuration` of the parent of the dependend static exporters
     func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) {
         forEach {

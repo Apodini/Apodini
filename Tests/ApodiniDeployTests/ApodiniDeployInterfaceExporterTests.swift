@@ -14,6 +14,7 @@ import XCTest
 import XCTApodini
 import ApodiniUtils
 
+
 private struct TestWebService: Apodini.WebService {
     static let handler1Id = AnyHandlerIdentifier("handler1")
     static let handler2Id = AnyHandlerIdentifier("handler2")
@@ -54,6 +55,7 @@ private struct TestWebService: Apodini.WebService {
     }
 }
 
+
 class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
     func testHandlerCollection() throws {
         for idx in 0..<100 {
@@ -64,7 +66,7 @@ class ApodiniDeployInterfaceExporterTests: XCTApodiniTest {
             
             TestWebService().start(app: app)
             
-            let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.ApplicationStorageKey.self))
+            let apodiniDeployIE = try XCTUnwrap(app.storage.get(ApodiniDeployInterfaceExporter.StorageKey.self))
             let actual = apodiniDeployIE.collectedEndpoints
             
             let expected: [CollectedEndpointInfo] = [

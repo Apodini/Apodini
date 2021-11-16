@@ -8,12 +8,12 @@
 
 import XCTest
 @testable import Apodini
-@testable import ApodiniVaporSupport
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
 @_implementationOnly import Yams
 import OpenAPIKit
-import XCTVapor
+import XCTApodiniNetworking
+
 
 final class OpenAPIInterfaceExporterTests: ApodiniTests {
     struct SomeComp: Handler {
@@ -37,25 +37,24 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        try app.vapor.app.test(.GET, "\(OpenAPI.ConfigurationDefaults.outputEndpoint)") { res in
+        try app.testable().test(.GET, "\(OpenAPI.ConfigurationDefaults.outputEndpoint)") { res in
             XCTAssertEqual(res.status, .ok)
-            XCTAssertNoThrow(try res.content.decode(OpenAPI.Document.self, using: JSONDecoder()))
+            XCTAssertNoThrow(try res.bodyStorage.getFullBodyData(decodedAs: OpenAPI.Document.self, using: JSONDecoder()))
         }
-
-        let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
-
-        try app.vapor.app.test(.GET, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
+        
+        let headers = HTTPHeaders {
+            $0[.contentType] = .html
+        }
+        
+        try app.testable().test(.GET, "/\(OpenAPI.ConfigurationDefaults.swaggerUiEndpoint)", headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
-
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
-                else {
-                throw Vapor.Abort(.internalServerError)
+            else {
+                throw HTTPAbortError(status: .internalServerError)
             }
-
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: "/\(OpenAPI.ConfigurationDefaults.outputEndpoint)")
-
-            XCTAssertEqual(res.body, .init(string: html))
+            XCTAssertEqual(res.bodyStorage.readNewDataAsString(), html)
         }
     }
 
@@ -79,25 +78,24 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
 
         TestWebService().start(app: app)
 
-        try app.vapor.app.test(.GET, configuredOutputEndpoint) { res in
+        try app.testable().test(.GET, configuredOutputEndpoint) { res in
             XCTAssertEqual(res.status, .ok)
-            XCTAssertThrowsError(try res.content.decode(OpenAPI.Document.self, using: JSONDecoder()))
+            XCTAssertThrowsError(try res.bodyStorage.getFullBodyData(decodedAs: OpenAPI.Document.self, using: JSONDecoder()))
         }
 
-        let headers: HTTPHeaders = ["Content-Type": HTTPMediaType.html.serialize()]
+        let headers = HTTPHeaders {
+            $0[.contentType] = .html
+        }
 
-        try app.vapor.app.test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
+        try app.testable().test(.GET, configuredSwaggerUiEndpoint, headers: headers) { res in
             XCTAssertEqual(res.status, .ok)
-
             guard let htmlFile = Bundle.apodiniOpenAPIResources.path(forResource: "swagger-ui", ofType: "html"),
                   var html = try? String(contentsOfFile: htmlFile)
                 else {
                 return XCTFail("Missing Swagger-UI HTML resource.")
             }
-
             html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: configuredOutputEndpoint)
-
-            XCTAssertEqual(res.body, .init(string: html))
+            XCTAssertEqual(res.bodyStorage.readNewDataAsString(), html)
         }
     }
 }

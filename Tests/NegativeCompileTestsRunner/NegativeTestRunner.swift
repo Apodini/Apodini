@@ -12,6 +12,9 @@ import XCTest
 
 class XCTBootstrap: XCTestCase {
     func testRunner() throws {
+        guard ProcessInfo.processInfo.environment["__CFBundleIdentifier"] != "com.apple.dt.Xcode" else {
+            throw XCTSkip()
+        }
         print("Bootstrapping negative test runner...")
         let runner = try NegativeTestRunner()
 
@@ -324,11 +327,11 @@ class NegativeTestRunner {
         print("-----------------------------")
         print("Running command '\(command) \(arguments)'...")
 
-        guard let swiftBinary = Task.findExecutable(named: command) else {
+        guard let swiftBinary = ChildProcess.findExecutable(named: command) else {
             fatalError("Could not find '\(command)' executable!")
         }
 
-        let task = Task(
+        let task = ChildProcess(
             executableUrl: swiftBinary,
             arguments: arguments.split(separator: " ").map { String($0) },
             workingDirectory: workingDirectory,

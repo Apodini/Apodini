@@ -7,25 +7,23 @@
 //              
 
 import Apodini
-import Vapor
+import ApodiniNetworking
 
 /// A RoutesHandler which is automatically registered to the root path
-/// if there is no Endpoint registered under the root, in order to server entry point links.
+/// if there is no Endpoint registered under the root, in order to serve entry point links.
 struct RESTDefaultRootHandler {
     let app: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     let relationships: Set<RelationshipDestination>
-
-    // Registers a GET handler on root path
-    func register(on app: Vapor.Application) {
-        app.get(use: self.handleRequest)
-    }
-
-    func handleRequest(_: Vapor.Request) -> ResponseContainer {
-        ResponseContainer(
-            Empty.self,
-            links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: app.httpConfiguration)),
-            encoder: exporterConfiguration.encoder
-        )
+    
+    /// Registers a GET handler on root path
+    func register(on app: Apodini.Application) {
+        app.httpServer.registerRoute(.GET, []) { request in
+            ResponseContainer(
+                Empty.self,
+                links: relationships.formatRelationships(into: [:], with: LinksFormatter(configuration: app.httpConfiguration)),
+                encoder: exporterConfiguration.encoder
+            ).encodeResponse(for: request)
+        }
     }
 }

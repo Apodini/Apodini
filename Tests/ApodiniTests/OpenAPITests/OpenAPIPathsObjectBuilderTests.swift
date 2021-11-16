@@ -11,6 +11,7 @@ import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
+
 struct TestStruct: Codable {
     var id = 1
     var someProp = "somesome"
@@ -232,7 +233,10 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
+            vendorExtensions: [
+                "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
+                "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
+            ]
         ))
         
         XCTAssertTrue(pathsObjectBuilder.pathsObject.contains { (key: OpenAPIKit.OpenAPI.Path, value: OpenAPIKit.OpenAPI.PathItem) -> Bool in
@@ -299,7 +303,10 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
                 .status(code: 500): .init(
                     OpenAPI.Response(description: "Internal Server Error"))
             ],
-            vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
+            vendorExtensions: [
+                "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
+                "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
+            ]
         ))
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)

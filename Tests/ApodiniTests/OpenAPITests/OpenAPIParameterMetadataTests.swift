@@ -11,6 +11,7 @@ import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
 
+
 final class OpenAPIParameterMetadataTests: ApodiniTests {
     struct TestHandlerQuery: Handler {
         @Parameter var id: String

@@ -9,9 +9,10 @@
 @testable import Apodini
 import ApodiniREST
 import XCTApodini
-import XCTVapor
 import XCTest
 import OrderedCollections
+import XCTApodiniNetworking
+
 
 final class DelegationTests: ApodiniTests {
     class TestObservable: Apodini.ObservableObject {

@@ -9,6 +9,38 @@
 #if DEBUG || RELEASE_TESTING
 @testable import Apodini
 import XCTest
+import ApodiniNetworking
+
+
+public struct WrappedRESTResponse<T: Decodable>: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case data = "data"
+        case links = "_links"
+    }
+    public let data: T
+    public let links: [String: String]? // swiftlint:disable:this discouraged_optional_collection
+    
+    public init(data: T, links: [String: String]? = nil) { // swiftlint:disable:this discouraged_optional_collection
+        self.data = data
+        self.links = links
+    }
+}
+
+extension WrappedRESTResponse: Hashable where T: Hashable {}
+extension WrappedRESTResponse: Equatable where T: Equatable {}
+
+
+/// Returns the decoded contents of a REST response
+public func XCTUnwrapRESTResponse<T: Decodable>(_: T.Type, from response: HTTPResponse) throws -> WrappedRESTResponse<T> {
+    try response.bodyStorage.getFullBodyData(decodedAs: WrappedRESTResponse<T>.self)
+}
+
+
+/// Returns the decoded contents of a REST response's `data` field
+public func XCTUnwrapRESTResponseData<T: Decodable>(_: T.Type, from response: HTTPResponse) throws -> T {
+    try XCTUnwrapRESTResponse(T.self, from: response).data
+}
+
 
 extension Empty: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {

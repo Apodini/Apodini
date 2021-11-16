@@ -8,9 +8,10 @@
 
 import Foundation
 import Apodini
-import ApodiniVaporSupport
 import Metrics
 import SystemMetrics
+import ApodiniNetworking
+
 
 /// The `Configuration` for the `ApodiniMetric` types.
 public class MetricsConfiguration: Configuration {
@@ -77,8 +78,7 @@ public class MetricsConfiguration: Configuration {
                 let endpoint = metricPullHandlerConfiguration.endpoint.hasPrefix("/")
                                 ? metricPullHandlerConfiguration.endpoint
                                 : "/\(metricPullHandlerConfiguration.endpoint)"
-                
-                app.vapor.app.get(endpoint.pathComponents) { req -> EventLoopFuture<String> in
+                app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
                     metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
                 }
                 

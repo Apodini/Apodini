@@ -10,7 +10,8 @@ import Foundation
 import XCTest
 @testable import Apodini
 @testable import ApodiniREST
-@testable import ApodiniVaporSupport
+import XCTApodiniNetworking
+
 
 final class HandlerIdentifierTests: ApodiniTests {
     // Hashable summary of an endpoint, useful for comparing endpoint arrays
@@ -153,14 +154,14 @@ final class HandlerIdentifierTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
                 let data: String
             }
             
-            let content = try res.content.decode(Content.self)
+            let content = try res.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == AnyHandlerIdentifier(TestHandler.self).description)
         }
     }

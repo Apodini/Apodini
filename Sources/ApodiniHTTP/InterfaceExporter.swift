@@ -9,9 +9,8 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
 import Logging
+import ApodiniNetworking
 
 // MARK: HTTP Declaration
 
@@ -54,57 +53,71 @@ public final class HTTP: Configuration {
 
 struct Exporter: InterfaceExporter {
     let app: Apodini.Application
-    
     let configuration: HTTP.ExporterConfiguration
-    
     let logger: Logger
     
     init(_ app: Apodini.Application, _ configuration: HTTP.ExporterConfiguration) {
         self.app = app
         self.configuration = configuration
         self.logger = app.logger
-        
-        // Set option to activate case insensitive routing, default is false (so case-sensitive)
-        self.app.vapor.app.routes.caseInsensitive = configuration.caseInsensitiveRouting
+        // Note: a thing to consider here is that we might want to have per-route case sensitivity.
+        // For example, if the REST IE wants case-insensitive routing, but the HTTP IE does not, that'd somehow need to be supported.
+        app.httpServer.isCaseInsensitiveRoutingEnabled = configuration.caseInsensitiveRouting
     }
     
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
-        let knowledge = endpoint[VaporEndpointKnowledge.self]
+        let knowledge = endpoint[HTTPEndpointKnowledge.self]
         
         switch knowledge.pattern {
         case .requestResponse:
             logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(knowledge.path)")
-            app.vapor.app.on(knowledge.method,
-                             knowledge.path,
-                             use: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues))
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         case .serviceSideStream:
             logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.vapor.app.on(knowledge.method,
-                             knowledge.path,
-                             use: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues))
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         case .clientSideStream:
             logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.vapor.app.on(knowledge.method,
-                             knowledge.path,
-                             use: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues))
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         case .bidirectionalStream:
             logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
-            app.vapor.app.on(knowledge.method,
-                             knowledge.path,
-                             use: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues))
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         }
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
-        let knowledge = endpoint[VaporEndpointKnowledge.self]
+        let knowledge = endpoint[HTTPEndpointKnowledge.self]
         
         switch knowledge.pattern {
         case .requestResponse:
-            app.vapor.app.on(knowledge.method,
-                             knowledge.path,
-                             use: buildBlobRequestResponseClosure(for: endpoint, using: knowledge.defaultValues))
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
+            )
+        case .serviceSideStream:
+            app.httpServer.registerRoute(
+                knowledge.method,
+                knowledge.path,
+                handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         default:
             logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(knowledge.path) is exported with degraded functionality.")
             self.export(endpoint)
@@ -127,25 +140,29 @@ struct Exporter: InterfaceExporter {
     
     // MARK: Decoding Strategies
     
-    func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Vapor.Request> {
+    func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
             lightweight: LightweightStrategy(),
             path: PathStrategy(),
             content: NumberOfContentParameterAwareStrategy
                 .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
-                .transformedToVaporRequestBasedStrategy()
+                .transformedToHTTPRequestBasedStrategy()
         )
         .applied(to: endpoint)
         .typeErased
     }
     
-    func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(Vapor.Request, Int)> {
+    func multiInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<(HTTPRequest, Int)> {
         ParameterTypeSpecific(
             lightweight: AllNamedAtIndexWithLightweightPattern(decoder: configuration.decoder)
-                .transformed { request, index in (request.bodyData, index) },
+                .transformed { request, index in
+                    (request.bodyStorage.getFullBodyData() ?? Data(), index)
+                },
             path: PathStrategy().transformed { request, _ in request },
             content: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
-                .transformed { request, index in (request.bodyData, index) }
+                .transformed { request, index in
+                    (request.bodyStorage.getFullBodyData() ?? Data(), index)
+                }
         )
         .applied(to: endpoint)
         .typeErased

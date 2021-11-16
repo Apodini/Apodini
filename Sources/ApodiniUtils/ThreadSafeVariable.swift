@@ -12,7 +12,7 @@ import Dispatch
 
 /// A thread-safe object wrapper.
 /// Note: I have no idea if this is a good implementation, works property, or even makes sense.
-/// There was an issue where accessing the `Task.taskPool` static variable from w/in the atexit
+/// There was an issue where accessing the `ChildProcess.taskPool` static variable from w/in the atexit
 /// handler would fail but only sometimes (for some reason the atexit handler was being invoked
 /// off the main thread). Adding this fixed the issue.
 public class ThreadSafeVariable<T> {

@@ -8,21 +8,18 @@
 
 import Foundation
 import Apodini
-import ApodiniVaporSupport
-import Vapor
 import ApodiniExtension
+import ApodiniNetworking
 
 
-struct RESTEndpointHandler<H: Handler> {
+struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let app: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
-    
-    private let strategy: AnyDecodingStrategy<Vapor.Request>
-    
+    private let strategy: AnyDecodingStrategy<HTTPRequest>
     let defaultStore: DefaultValueStore
     
     init(
@@ -39,61 +36,54 @@ struct RESTEndpointHandler<H: Handler> {
         self.exporter = exporter
         
         self.strategy = ParameterTypeSpecific(
-                            lightweight: LightweightStrategy(),
-                            path: PathStrategy(useNameAsIdentifier: false),
-                            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToVaporRequestBasedStrategy()
+            lightweight: LightweightStrategy(),
+            path: PathStrategy(useNameAsIdentifier: false),
+            content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
         self.defaultStore = endpoint[DefaultValueStore.self]
         self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }
     
-    
-    func register(at routesBuilder: Vapor.RoutesBuilder, using operation: Apodini.Operation) {
-        routesBuilder.on(Vapor.HTTPMethod(operation), [], use: self.handleRequest)
-    }
 
-    func handleRequest(request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
+    func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
         let delegate = delegateFactory.instance()
-        
         return strategy
-            .decodeRequest(from: request,
-                           with: request.eventLoop)
+            .decodeRequest(from: request, with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
             .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
-                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
-                
-                
+                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peek(_:) ?? { _ in nil }
                 return responseAndRequest.response.typeErasured.map { content in
-                    EnrichedContent(for: relationshipEndpoint,
-                                    response: content,
-                                    parameters: parameters)
+                    EnrichedContent(
+                        for: relationshipEndpoint,
+                        response: content,
+                        parameters: parameters
+                    )
                 }
             }
-            .flatMap { (response: Apodini.Response<EnrichedContent>) in
+            .flatMap { (response: Apodini.Response<EnrichedContent>) -> EventLoopFuture<HTTPResponse> in
                 guard let enrichedContent = response.content else {
                     return ResponseContainer(Empty.self, status: response.status, information: response.information)
                         .encodeResponse(for: request)
                 }
                 
                 if let blob = response.content?.response.typed(Blob.self) {
-                    let vaporResponse = Vapor.Response()
-                    
                     var information = response.information
                     if let contentType = blob.type?.description {
                         information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
                     }
-                    vaporResponse.headers = HTTPHeaders(information)
-                    
+                    let httpResponse = HTTPResponse(
+                        version: request.version,
+                        status: .ok,
+                        headers: HTTPHeaders(information),
+                        bodyStorage: .buffer(initialValue: blob.byteBuffer)
+                    )
                     if let status = response.status {
-                        vaporResponse.status = HTTPStatus(status)
+                        httpResponse.status = HTTPResponseStatus(status)
                     }
-                    
-                    vaporResponse.body = Vapor.Response.Body(buffer: blob.byteBuffer)
-                    
-                    return request.eventLoop.makeSucceededFuture(vaporResponse)
+                    return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
                 let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
@@ -107,12 +97,13 @@ struct RESTEndpointHandler<H: Handler> {
                     enrichedContent.formatSelfRelationship(into: &links, with: formatter)
                 }
 
-                let container = ResponseContainer(status: response.status,
-                                                  information: response.information,
-                                                  data: enrichedContent,
-                                                  links: links,
-                                                  encoder: exporterConfiguration.encoder)
-                                                  
+                let container = ResponseContainer(
+                    status: response.status,
+                    information: response.information,
+                    data: enrichedContent,
+                    links: links,
+                    encoder: exporterConfiguration.encoder
+                )
                 return container.encodeResponse(for: request)
             }
     }

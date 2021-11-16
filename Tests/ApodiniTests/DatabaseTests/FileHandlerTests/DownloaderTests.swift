@@ -9,8 +9,9 @@
 @testable import Apodini
 @testable import ApodiniDatabase
 @testable import ApodiniREST
-import Vapor
 import XCTApodini
+import ApodiniNetworking
+
 
 final class DownloaderTests: FileHandlerTests {
     func testSingleDownloader() throws {
@@ -27,17 +28,12 @@ final class DownloaderTests: FileHandlerTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let uri = URI("http://example.de/test/fileName")
-        let downloadRequest = Vapor.Request(
-            application: app.vapor.app,
-            method: .GET,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+        let url: URI = "http://example.de/test/fileName"
+        let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let parameter = try FileUtilities.pathParameter(for: downloader)
         
-        downloadRequest.parameters.set("\(parameter.id)", to: "Testfile.jpeg")
+        downloadRequest.setParameter(for: "\(parameter.id)", to: "Testfile.jpeg")
         
         try XCTCheckResponse(
             context.handle(request: downloadRequest),
@@ -68,17 +64,12 @@ final class DownloaderTests: FileHandlerTests {
         let exporter = RESTInterfaceExporter(app)
         let context = endpoint.createConnectionContext(for: exporter)
         
-        let uri = URI("http://example.de/test/fileName")
-        let downloadRequest = Vapor.Request(
-            application: app.vapor.app,
-            method: .GET,
-            url: uri,
-            on: app.eventLoopGroup.next()
-        )
+        let url: URI = "http://example.de/test/fileName"
+        let downloadRequest = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let parameter = try FileUtilities.pathParameter(for: downloader)
         
-        downloadRequest.parameters.set("\(parameter.id)", to: ".jpeg")
+        downloadRequest.setParameter(for: "\(parameter.id)", to: ".jpeg")
         
         let responseValue = try XCTUnwrap(
             try context.handle(request: downloadRequest)

@@ -7,13 +7,10 @@
 //
 
 import Foundation
-import Vapor
 import ArgumentParser
 import Apodini
-import ApodiniVaporSupport
 import ApodiniDeployRuntimeSupport
 import DeploymentTargetAWSLambdaCommon
-import VaporAWSLambdaRuntime
 import ApodiniOpenAPI
 import OpenAPIKit
 

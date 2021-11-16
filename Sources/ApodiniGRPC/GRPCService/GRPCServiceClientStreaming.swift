@@ -10,23 +10,28 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniLoggingSupport
-@_implementationOnly import Vapor
+import ApodiniNetworking
+
 
 // MARK: Client streaming request handler
 extension GRPCService {
-    private func drainBody<H: Handler>(from request: Vapor.Request,
-                                       factory: DelegateFactory<H, GRPCInterfaceExporter>,
-                                       strategy: AnyDecodingStrategy<GRPCMessage>,
-                                       defaults: DefaultValueStore,
-                                       promise: EventLoopPromise<Vapor.Response>) {
+    private func drainBody<H: Handler>(
+        from request: HTTPRequest,
+        factory: DelegateFactory<H, GRPCInterfaceExporter>,
+        strategy: AnyDecodingStrategy<GRPCMessage>,
+        defaults: DefaultValueStore,
+        promise: EventLoopPromise<HTTPResponse>
+    ) {
         let delegate = factory.instance()
         
         var lastMessage: GRPCMessage?
-        request.body.drain { (bodyStream: BodyStreamResult) in      // swiftlint:disable:this closure_body_length
-            switch bodyStream {
-            case let .buffer(byteBuffer):
-                guard let data = byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) else {
-                    return request.eventLoop.makeFailedFuture(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
+        
+        request.bodyStorage.drain { [unowned request] chunk in // swiftlint:disable:this closure_body_length
+            switch chunk {
+            case .buffer(let buffer):
+                guard let data = buffer.getData(at: buffer.readerIndex, length: buffer.readableBytes) else {
+                    promise.fail(GRPCError.payloadReadError("Cannot read byte-buffer from fragment"))
+                    return
                 }
 
                 // retrieve all GRPC messages that were delivered in this request
@@ -35,7 +40,7 @@ extension GRPCService {
                 // retain the last message, to run it through the handler
                 // once the .end message was received.
                 lastMessage = messages.popLast()
-
+                
                 messages
                     // For now we only support
                     // - one message delivered in one frame,
@@ -78,7 +83,7 @@ extension GRPCService {
                     .cache()
                     .evaluate(on: delegate, .end)
                 
-                let result = response.map { response -> Vapor.Response in
+                let result = response.map { response -> HTTPResponse in
                     switch response.content {
                     case let .some(content):
                         return self.makeResponse(content)
@@ -88,26 +93,23 @@ extension GRPCService {
                 }
 
                 promise.completeWith(result)
-            case let .error(error):
-                return request.eventLoop.makeFailedFuture(error)
             }
-
-            return request.eventLoop.makeSucceededFuture(())
         }
     }
 
     func createClientStreamingHandler<H: Handler>(
         factory: DelegateFactory<H, GRPCInterfaceExporter>,
         strategy: AnyDecodingStrategy<GRPCMessage>,
-        defaults: DefaultValueStore) -> (Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        { (request: Vapor.Request) in
+        defaults: DefaultValueStore
+    ) -> (HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        { (request: HTTPRequest) in
             if !self.contentTypeIsSupported(request: request) {
                 return request.eventLoop.makeFailedFuture(GRPCError.unsupportedContentType(
                     "Content type is currently not supported by Apodini GRPC exporter. Use Protobuffers instead."
                 ))
             }
 
-            let promise = request.eventLoop.makePromise(of: Vapor.Response.self)
+            let promise = request.eventLoop.makePromise(of: HTTPResponse.self)
             self.drainBody(from: request, factory: factory, strategy: strategy, defaults: defaults, promise: promise)
             return promise.futureResult
         }
@@ -117,25 +119,24 @@ extension GRPCService {
     /// The endpoint will be accessible at [host]/[serviceName]/[endpoint].
     /// - Parameters:
     ///     - endpoint: The name of the endpoint that should be exposed.
-    func exposeClientStreamingEndpoint<H: Handler>(name methodName: String? = nil,
-                                                   _ endpoint: Endpoint<H>,
-                                                   strategy: AnyDecodingStrategy<GRPCMessage>) throws {
+    func exposeClientStreamingEndpoint<H: Handler>(
+        name methodName: String? = nil,
+        _ endpoint: Endpoint<H>,
+        strategy: AnyDecodingStrategy<GRPCMessage>
+    ) throws {
         let methodName = methodName ?? gRPCMethodName(from: endpoint)
         
         if methodNames.contains(methodName) {
             throw GRPCServiceError.endpointAlreadyExists
         }
         methodNames.append(methodName)
-
-        let path = [
-            Vapor.PathComponent(stringLiteral: serviceName),
-            Vapor.PathComponent(stringLiteral: methodName)
-        ]
-
-        vaporApp.on(.POST, path) { request in
-            self.createClientStreamingHandler(factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
-                                              strategy: strategy,
-                                              defaults: endpoint[DefaultValueStore.self])(request)
+        
+        app.httpServer.registerRoute(.POST, [.verbatim(serviceName), .verbatim(methodName)]) { request in
+            self.createClientStreamingHandler(
+                factory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
+                strategy: strategy,
+                defaults: endpoint[DefaultValueStore.self]
+            )(request)
         }
     }
     
