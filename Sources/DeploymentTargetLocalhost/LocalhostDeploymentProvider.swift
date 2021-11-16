@@ -73,6 +73,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
     private let fileManager = FileManager.default
     private let logger = Logger(label: "DeploymentTargetLocalhost")
     
+    private let programLifetime = ProgramLifetimeManager()
+    
     func run() throws {
         try fileManager.initialize()
         try fileManager.setWorkingDirectory(to: packageRootDir)
@@ -97,7 +99,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         )
 
         for node in deployedSystem.nodes {
-            let task = Task(
+            let task = ChildProcess(
                 executableUrl: executableUrl,
                 arguments: webServiceArguments + [
                     "deploy",
@@ -108,7 +110,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 ],
                 launchInCurrentProcessGroup: true
             )
-            func taskTerminationHandler(_ terminationInfo: Task.TerminationInfo) {
+            func taskTerminationHandler(_ terminationInfo: ChildProcess.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {
                 case (.uncaughtSignal, SIGILL):
                     // This seems to be the combination with which a fatalError terminates a program.
@@ -122,7 +124,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 default:
                     // If one of the children terminated, and it was not caused by a fatalError, we shut down the entire thing
                     logger.warning("Child for node '\(node.id)' terminated unexpectedly. killing everything just to be safe.")
-                    Task.killAllInChildrenInProcessGroup()
+                    ChildProcess.killAllInChildrenInProcessGroup()
                 }
             }
             try task.launchAsync(taskTerminationHandler)
@@ -134,17 +136,26 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
         }
         
         logger.notice("Starting proxy server")
+        let proxyServer: ProxyServer
         do {
-            let proxyServer = try ProxyServer(
+            proxyServer = try ProxyServer(
                 openApiDocument: deployedSystem.openApiDocument,
-                deployedSystem: deployedSystem
+                deployedSystem: deployedSystem,
+                port: self.port
             )
-            try proxyServer.run(port: self.port)
+            try proxyServer.start()
         } catch {
-            Task.killAllInChildrenInProcessGroup()
+            // An error occurred while initialising or starting the server
+            ChildProcess.killAllInChildrenInProcessGroup()
             throw error
         }
-        logger.notice("exit.")
-        return
+        try programLifetime.start(on: proxyServer.eventLoopGroup.next()).wait()
+        ChildProcess.killAllInChildrenInProcessGroup() // just to be safe
+        do {
+            try proxyServer.stop()
+            logger.notice("Did shut down proxy server")
+        } catch {
+            logger.error("Error when trying to stop proxy server: \(error)")
+        }
     }
 }

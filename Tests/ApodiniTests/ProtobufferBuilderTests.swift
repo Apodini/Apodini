@@ -6,11 +6,13 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import XCTVapor
+import XCTest
 @testable import Apodini
 @testable import ApodiniProtobuffer
 @testable import ApodiniGRPC
 @testable import ApodiniTypeReflection
+import XCTApodiniNetworking
+
 
 final class ProtobufferBuilderTests: XCTestCase {
     func testWebService<S: WebService>(_ type: S.Type, expectation: String) throws {
@@ -18,8 +20,9 @@ final class ProtobufferBuilderTests: XCTestCase {
         S().start(app: app)
         defer { app.shutdown() } // This might in fact not be necessary
         
-        try app.vapor.app.test(.GET, "apodini/proto") { res in
-            XCTAssertEqual(res.body.string, expectation)
+        try app.testable().test(.GET, "apodini/proto") { response in
+            let responseString = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
+            XCTAssertEqual(responseString, expectation)
         }
     }
     

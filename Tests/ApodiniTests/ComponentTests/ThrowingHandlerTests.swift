@@ -6,12 +6,12 @@
 // SPDX-License-Identifier: MIT
 //              
 
+import XCTest
 @testable import Apodini
 @testable import ApodiniREST
-@testable import ApodiniVaporSupport
-import XCTest
 import FluentKit
-import Vapor
+import XCTApodiniNetworking
+
 
 class ThrowingErrorTests: ApodiniTests {
     struct MyError: Codable, Error {
@@ -33,13 +33,21 @@ class ThrowingErrorTests: ApodiniTests {
         }
     }
     
+    struct ThrowingEventLoopFutureHandler2: Handler {
+        @Apodini.Environment(\.eventLoopGroup)
+        var eventLoopGroup: EventLoopGroup
+        
+        func handle() -> EventLoopFuture<String> {
+            eventLoopGroup.next().makeFailedFuture(MyError(reason: "The operation failed"))
+        }
+    }
+    
     
     func testThrowingHandlerUsingREST() throws {
         struct TestWebService: WebService {
             var content: some Component {
                 ThrowingHandler()
             }
-
             var configuration: Configuration {
                 REST()
             }
@@ -47,8 +55,10 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
+            let responseText = try XCTUnwrap(res.bodyStorage.getFullBodyDataAsString())
+            XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")
         }
     }
     
@@ -57,7 +67,6 @@ class ThrowingErrorTests: ApodiniTests {
             var content: some Component {
                 ThrowingEventLoopFutureHandler()
             }
-
             var configuration: Configuration {
                 REST()
             }
@@ -65,8 +74,30 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .internalServerError)
+            let responseText = try XCTUnwrap(res.bodyStorage.getFullBodyDataAsString())
+            XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")
+        }
+    }
+    
+    
+    func testThrowingEventLoopFutureHandler2() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                ThrowingEventLoopFutureHandler2()
+            }
+            var configuration: Configuration {
+                REST()
+            }
+        }
+        
+        WebService().start(app: app)
+        
+        try app.testable().test(.GET, "/v1/") { response in
+            XCTAssertEqual(response.status, .internalServerError)
+            let responseText = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
+            XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")
         }
     }
 }

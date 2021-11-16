@@ -8,14 +8,13 @@
 
 import XCTest
 import XCTApodini
-import XCTVapor
-import ApodiniVaporSupport
-import Vapor
+import XCTApodiniNetworking
 @testable import Logging
 @testable import ApodiniObserve
 import ApodiniHTTP
 @testable import Apodini
 @testable import SwiftLogTesting
+
 
 // swiftlint:disable closure_body_length
 class ApodiniLoggerTests: XCTestCase {
@@ -30,6 +29,7 @@ class ApodiniLoggerTests: XCTestCase {
         
         app = Application()
         configuration.configure(app)
+        app = Self.configureLogger(app, loggerConfiguration: LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info))
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
@@ -44,6 +44,37 @@ class ApodiniLoggerTests: XCTestCase {
         XCTAssertApodiniApplicationNotRunning()
     }
     
+    // Copied from the source code of ApodiniObserve to bootstrap the LoggingSystem internally
+    // (required for the tests, as the LoggingSystem only allows to be configured once per process)
+    static func configureLogger(_ app: Apodini.Application, loggerConfiguration: LoggerConfiguration) -> Apodini.Application {
+        // Bootstrap the logging system
+        LoggingSystem.bootstrapInternal { label in
+            MultiplexLogHandler(
+                loggerConfiguration.logHandlers.map { logHandler in
+                    logHandler(label)
+                }
+            )
+        }
+        
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            // Instanciate exporter
+            let metadataExporter = ObserveMetadataExporter(app, loggerConfiguration)
+            
+            // Insert exporter into `InterfaceExporterStorage`
+            app.registerExporter(exporter: metadataExporter)
+        }
+        
+        // Write configuration to the storage
+        app.storage.set(
+            LoggerConfiguration.LoggingStorageKey.self,
+            to: LoggerConfiguration.LoggingStorageValue(logger: app.logger, configuration: loggerConfiguration)
+        )
+        
+        return app
+    }
+    
+    static var requestResponseHandler1Line: UInt!
+    
     struct RequestResponse: Handler {
         @Parameter(.http(.path)) var name: String
         
@@ -53,9 +84,12 @@ class ApodiniLoggerTests: XCTestCase {
 
         func handle() -> String {
             logger.info("Hello world!")
+            requestResponseHandler1Line = #line - 1
             return "\(greeting ?? "Hello"), \(name)!"
         }
     }
+    
+    static var requestResponseHandler2Line: UInt!
     
     struct RequestResponse2: Handler {
         @Parameter(.http(.path)) var name: String
@@ -71,9 +105,12 @@ class ApodiniLoggerTests: XCTestCase {
 
         func handle() -> String {
             logger.debug("Hello world!")
+            requestResponseHandler2Line = #line - 1
             return "\(greeting ?? "Hello"), \(name)!"
         }
     }
+    
+    static var requestResponseHandler3Line: UInt!
     
     struct RequestResponse3: Handler {
         @Parameter(.http(.path)) var name: String
@@ -87,9 +124,12 @@ class ApodiniLoggerTests: XCTestCase {
 
         func handle() -> String {
             logger.info("Hello world!")
+            requestResponseHandler3Line = #line - 1
             return "\(greeting ?? "Hello"), \(name)!"
         }
     }
+    
+    static var requestResponseHandler4Line: UInt!
     
     struct RequestResponse4: Handler {
         @Parameter(.http(.path)) var name: String
@@ -102,9 +142,12 @@ class ApodiniLoggerTests: XCTestCase {
 
         func handle() -> String {
             logger.info("Hello world!")
+            requestResponseHandler4Line = #line - 1
             return "\(greeting ?? "Hello"), \(name)!"
         }
     }
+    
+    static var requestResponseHandler5Line: UInt!
     
     struct RequestResponse5: Handler {
         @Parameter(.http(.body)) var complexParameter: ComplexParameter
@@ -115,7 +158,8 @@ class ApodiniLoggerTests: XCTestCase {
 
         func handle() -> String {
             logger.info("Hello world!")
-            return "Hi!"
+            requestResponseHandler5Line = #line - 1
+            return "Hi whats up?!"
         }
     }
     
@@ -137,6 +181,9 @@ class ApodiniLoggerTests: XCTestCase {
             _trigger.toggle()
         }
     }
+    
+    static var serverSideStreamingHandlerStreamingLine: UInt!
+    static var serverSideStreamingHandlerFinalLine: UInt!
 
     struct ServerSideStreaming: Handler {
         @Parameter(.http(.query), .mutability(.constant)) var start: Int = 10
@@ -147,16 +194,18 @@ class ApodiniLoggerTests: XCTestCase {
         
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
-        func handle() -> Apodini.Response<String> {
+        func handle() -> Apodini.Response<Blob> {
             timer.secondPassed()
             counter += 1
             
             if counter == start {
                 logger.info("Hello world - Launch!")
-                return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀")
+                serverSideStreamingHandlerFinalLine = #line - 1
+                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
             } else {
                 logger.info("Hello world - Countdown!")
-                return .send("\(start - counter)...")
+                serverSideStreamingHandlerStreamingLine = #line - 1
+                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
             }
         }
         
@@ -165,6 +214,9 @@ class ApodiniLoggerTests: XCTestCase {
             Pattern(.serviceSideStream)
         }
     }
+    
+    static var clientSideStreamingHandlerStreamingLine: UInt!
+    static var clientSideStreamingHandlerFinalLine: UInt!
     
     struct ClientSideStreaming: Handler {
         @Parameter(.http(.query)) var country: String?
@@ -185,12 +237,14 @@ class ApodiniLoggerTests: XCTestCase {
                 }
                 
                 logger.info("Hello world - End!")
+                clientSideStreamingHandlerFinalLine = #line - 1
                 
                 return .final(response + "!")
             } else {
                 list.append(country ?? "the World")
                 
                 logger.info("Hello world - Streaming!")
+                clientSideStreamingHandlerStreamingLine = #line - 1
                 
                 return .nothing
             }
@@ -200,6 +254,9 @@ class ApodiniLoggerTests: XCTestCase {
             Pattern(.clientSideStream)
         }
     }
+    
+    static var bidirectionalStreamingHandlerStreamingLine: UInt! // swiftlint:disable:this identifier_name
+    static var bidirectionalStreamingHandlerFinalLine: UInt!
 
     struct BidirectionalStreaming: Handler {
         @Parameter(.http(.query)) var country: String?
@@ -211,10 +268,12 @@ class ApodiniLoggerTests: XCTestCase {
         func handle() -> Apodini.Response<String> {
             if connection.state == .end {
                 logger.info("Hello world - End!")
+                bidirectionalStreamingHandlerFinalLine = #line - 1
                 
                 return .end
             } else {
                 logger.info("Hello world - Streaming!")
+                bidirectionalStreamingHandlerStreamingLine = #line - 1
                 
                 return .send("Hello, \(country ?? "World")!")
             }
@@ -228,7 +287,6 @@ class ApodiniLoggerTests: XCTestCase {
     @ConfigurationBuilder
     static var configuration: Configuration {
         HTTP()
-        LoggerConfiguration(logHandlers: TestingLogHandler.init, logLevel: .info)
     }
 
     @ComponentBuilder
@@ -263,7 +321,7 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse/Philipp") { response in
             XCTAssertEqual(1, container.messages.count)
             let logMessage = container.messages[0]
             
@@ -272,7 +330,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            XCTAssertEqual(logMessage.line, 55)
+            XCTAssertEqual(logMessage.line, Self.requestResponseHandler1Line)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -283,25 +341,23 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(2, exporterMetadata.count)
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
-                [
-                    .string("[lightweight]"),
-                    .string("[content]"),
-                    .string("[path]")
-                ]
-            ))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([
+                .string("[lightweight]"), .string("[content]"), .string("[path]")
+            ]))
             
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("nil"))
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/requestResponse/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/requestResponse/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/requestResponse/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/requestResponse/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/requestResponse/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -339,17 +395,15 @@ class ApodiniLoggerTests: XCTestCase {
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
+            XCTAssertEqual(0, informationMetadata.count)
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse/Paul?greeting=Hi", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse/Paul?greeting=Hi") { response in
             let logMessage = container.messages[0]
             let metadata = try XCTUnwrap(logMessage.metadata)
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -359,7 +413,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Paul"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi, Paul!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hi, Paul!")
         }
         
         container.reset()
@@ -369,7 +423,7 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse2/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse2/Philipp") { response in
             XCTAssertEqual(1, container.messages.count)
             let logMessage = container.messages[0]
             
@@ -378,7 +432,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .debug)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            XCTAssertEqual(logMessage.line, 73)
+            XCTAssertEqual(logMessage.line, Self.requestResponseHandler2Line)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -400,14 +454,16 @@ class ApodiniLoggerTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse2/:name"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["greeting"]), .string("nil"))
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Philipp"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse2/Philipp HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse2/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/requestResponse2/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/requestResponse2/Philipp>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/requestResponse2/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/requestResponse2/Philipp"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/requestResponse2/Philipp"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -435,12 +491,12 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse2/Paul?greeting=Hi", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse2/Paul?greeting=Hi") { response in
             let logMessage = container.messages[0]
             let metadata = try XCTUnwrap(logMessage.metadata)
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
@@ -450,7 +506,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["name"]), .string("Paul"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi, Paul!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hi, Paul!")
         }
         
         container.reset()
@@ -460,7 +516,7 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse3/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse3/Philipp") { response in
             XCTAssertEqual(1, container.messages.count)
             if container.messages.count != 1 {
                 XCTFail("Log message count isn't correct")
@@ -472,7 +528,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            XCTAssertEqual(logMessage.line, 89)
+            XCTAssertEqual(logMessage.line, Self.requestResponseHandler3Line)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -482,7 +538,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(metadata["logger-uuid"]), .string(ApodiniLoggerTests.loggerUUID.uuidString))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
@@ -492,7 +548,7 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse4/Philipp", body: nil) { response in
+        try Self.app.testable().test(.GET, "/requestResponse4/Philipp") { response in
             XCTAssertEqual(1, container.messages.count)
             if container.messages.count != 1 {
                 XCTFail("Log message count isn't correct")
@@ -504,7 +560,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            XCTAssertEqual(logMessage.line, 104)
+            XCTAssertEqual(logMessage.line, Self.requestResponseHandler4Line)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -533,7 +589,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Philipp!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
         }
         
         container.reset()
@@ -557,7 +613,7 @@ class ApodiniLoggerTests: XCTestCase {
         
         let body = try JSONEncoder().encodeAsByteBuffer(complexParameter, allocator: .init())
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/requestResponse5", body: body) { response in
+        try Self.app.testable().test(.GET, "/requestResponse5", body: body) { response in
             XCTAssertEqual(1, container.messages.count)
             if container.messages.count != 1 {
                 XCTFail("Log message count isn't correct")
@@ -569,7 +625,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file, #file)
             XCTAssertEqual(logMessage.function, "handle()")
-            XCTAssertEqual(logMessage.line, 117)
+            XCTAssertEqual(logMessage.line, Self.requestResponseHandler5Line)
 
             // Assert metadata
             let metadata = try XCTUnwrap(logMessage.metadata)
@@ -581,9 +637,8 @@ class ApodiniLoggerTests: XCTestCase {
             // Request metdata
             let requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /requestResponse5"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             
             let parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             let parameter = try XCTUnwrap(parameterRequestMetadata["complexParameter"]?.metadataDictionary)
@@ -600,22 +655,18 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(parameter["int"]), .string("1"))
             XCTAssertEqual(try XCTUnwrap(parameter["string"]), .string("test"))
             
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /requestResponse5 HTTP/1.1\ncontent-length: 107\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/requestResponse5"))
             let bodyString = try XCTUnwrap(requestMetadata["HTTPBody"]?.metadataString)
-            guard let bodyDate = bodyString.data(using: .utf8) else {
+            guard let bodyData = bodyString.data(using: .utf8) else {
                 XCTFail("HTTP Body couldn't be checked")
                 return
             }
-            let complexParameter = try JSONDecoder().decode(ComplexParameter.self, from: bodyDate)
+            let complexParameter = try JSONDecoder().decode(ComplexParameter.self, from: bodyData)
             XCTAssertEqual(complexParameter, complexParameter)
-    
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
             
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/requestResponse5>"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hi!")
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hi whats up?!")
         }
         
         container.reset()
@@ -625,7 +676,12 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory).test(.GET, "/serverSideStreaming?start=10", body: nil) { response in
+        try Self.app.testable([.actualRequests]).test(
+            version: .http1_1,
+            .GET,
+            "/serverSideStreaming?start=10",
+            expectedBodyType: .stream
+        ) { response in
             XCTAssertEqual(11, container.messages.count)
             // First message, begin of stream
             let firstLogMessage = container.messages[0]
@@ -635,7 +691,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(firstLogMessage.level, .info)
             XCTAssertEqual(firstLogMessage.file, #file)
             XCTAssertEqual(firstLogMessage.function, "handle()")
-            XCTAssertEqual(firstLogMessage.line, 158)
+            XCTAssertEqual(firstLogMessage.line, Self.serverSideStreamingHandlerStreamingLine)
 
             // Assert metadata
             var metadata = try XCTUnwrap(firstLogMessage.metadata)
@@ -657,13 +713,15 @@ class ApodiniLoggerTests: XCTestCase {
             // Request metdata
             var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /serverSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["start"]), .string("10"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /serverSideStreaming?start=10 HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http:///serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/serverSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -672,7 +730,8 @@ class ApodiniLoggerTests: XCTestCase {
             var connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
             
             XCTAssertEqual(3, connectionMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            var remoteAddress = try XCTUnwrap(connectionMetadata["remoteAddress"]?.metadataString)
+            XCTAssertTrue(remoteAddress.contains("127.0.0.1"))
             XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))     // The connection stays open
             XCTAssertNotNil(connectionMetadata["eventLoop"])
             
@@ -701,15 +760,16 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ServerSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("serviceSideStream"))      // Server-side stream
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
+            XCTAssertEqual(2, informationMetadata.count)
+                
+            XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
             XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             // Last log message, End of stream
@@ -720,7 +780,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(eleventhLogMessage.level, .info)
             XCTAssertEqual(eleventhLogMessage.file, #file)
             XCTAssertEqual(eleventhLogMessage.function, "handle()")
-            XCTAssertEqual(eleventhLogMessage.line, 155)
+            XCTAssertEqual(eleventhLogMessage.line, Self.serverSideStreamingHandlerFinalLine)
 
             // Assert metadata
             metadata = try XCTUnwrap(eleventhLogMessage.metadata)
@@ -742,13 +802,15 @@ class ApodiniLoggerTests: XCTestCase {
             // Request metdata
             requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
             
-            XCTAssertEqual(8, requestMetadata.count)
+            XCTAssertEqual(10, requestMetadata.count)
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /serverSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
             parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["start"]), .string("10"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /serverSideStreaming?start=10 HTTP/1.1\ncontent-length: 0\n"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http:///serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/serverSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
@@ -757,7 +819,8 @@ class ApodiniLoggerTests: XCTestCase {
             connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
             
             XCTAssertEqual(3, connectionMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            remoteAddress = try XCTUnwrap(connectionMetadata["remoteAddress"]?.metadataString)
+            XCTAssertTrue(remoteAddress.contains("127.0.0.1"))
             XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))     // The connection is now closed
             XCTAssertNotNil(connectionMetadata["eventLoop"])
             
@@ -785,19 +848,24 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ServerSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("serviceSideStream"))      // Server-side stream
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                       
-            XCTAssertEqual(1, informationMetadata.count)
+            XCTAssertEqual(2, informationMetadata.count)
+                
+            XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
             XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
+            let responseStream = try XCTUnwrap(response.bodyStorage.stream)
+            XCTAssert(responseStream.isClosed)
+            // We want to get rid of leading and trailing newlines since that would mess up the line splitting
+            let responseText = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString()).trimmingLeadingAndTrailingWhitespace()
+            XCTAssertEqual(responseText.split(separator: "\n"), [
                 "10...",
                 "9...",
                 "8...",
@@ -831,212 +899,218 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory)
-            .test(.GET, "/clientSideStreaming", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-                XCTAssertEqual(4, container.messages.count)
-                // First log messsage
-                var logMessage = container.messages[0]
-                
-                // Assert log message, level etc.
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                XCTAssertEqual(logMessage.level, .info)
-                XCTAssertEqual(logMessage.file, #file)
-                XCTAssertEqual(logMessage.function, "handle()")
-                XCTAssertEqual(logMessage.line, 193)
+        try Self.app.testable().test(
+            .GET,
+            "/clientSideStreaming",
+            body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())
+        ) { response in
+            XCTAssertEqual(4, container.messages.count)
+            // First log messsage
+            var logMessage = container.messages[0]
+            
+            // Assert log message, level etc.
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            XCTAssertEqual(logMessage.level, .info)
+            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.function, "handle()")
+            XCTAssertEqual(logMessage.line, Self.clientSideStreamingHandlerStreamingLine)
 
-                // Assert metadata
-                var metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Exporter metadata
-                var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
-                
-                XCTAssertEqual(2, exporterMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
-                    [
-                        .string("[lightweight]"),
-                        .string("[content]"),
-                        .string("[path]")
-                    ]
-                ))
-                
-                // Request metdata
-                var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                XCTAssertEqual(8, requestMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
-                var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Germany"))      // First data set
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /clientSideStreaming HTTP/1.1\ncontent-length: 67\n"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
-                [\
-                {"query":{"country":"Germany"}},\
-                {"query":{"country":"Taiwan"}},\
-                {}\
+            // Assert metadata
+            var metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Exporter metadata
+            var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
+            
+            XCTAssertEqual(2, exporterMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
                 ]
-                """))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
-                
-                // Connection metadata
-                var connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))    // Open connection state
-                XCTAssertNotNil(connectionMetadata["eventLoop"])
-                
-                // Logger UUID metadata
-                XCTAssertNotNil(metadata["logger-uuid"])
-                
-                // Endpoint metadata
-                var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
-                
-                XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
-                    [
-                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
-                    ]
-                ))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
-                
-                // Information metadata
-                var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                           
-                XCTAssertEqual(1, informationMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("67"))
-                
-                // Second log message
-                logMessage = container.messages[1]
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Taiwan"))     // Another country
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
-                
-                // Third log message
-                logMessage = container.messages[2]
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
-                
-                // Forth log message
-                logMessage = container.messages[3]
-                
-                // Assert log message, level etc.
-                XCTAssertEqual(logMessage.message, "Hello world - End!")
+            ))
+            
+            // Request metdata
+            var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            XCTAssertEqual(10, requestMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /clientSideStreaming"))
+            var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Germany"))      // First data set
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/clientSideStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/clientSideStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
+            [\
+            {"query":{"country":"Germany"}},\
+            {"query":{"country":"Taiwan"}},\
+            {}\
+            ]
+            """))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
+            
+            // Connection metadata
+            var connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))    // Open connection state
+            XCTAssertNotNil(connectionMetadata["eventLoop"])
+            
+            // Logger UUID metadata
+            XCTAssertNotNil(metadata["logger-uuid"])
+            
+            // Endpoint metadata
+            var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
+            
+            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                ]
+            ))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
+            
+            // Information metadata
+            var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
+            XCTAssertEqual(0, informationMetadata.count)
+            
+            // Second log message
+            logMessage = container.messages[1]
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Taiwan"))     // Another country
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
+            
+            // Third log message
+            logMessage = container.messages[2]
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
+            
+            // Forth log message
+            logMessage = container.messages[3]
+            
+            // Assert log message, level etc.
+            XCTAssertEqual(logMessage.message, "Hello world - End!")
 
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Exporter metadata
-                exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
-                
-                XCTAssertEqual(2, exporterMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
-                    [
-                        .string("[lightweight]"),
-                        .string("[content]"),
-                        .string("[path]")
-                    ]
-                ))
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                XCTAssertEqual(8, requestMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /clientSideStreaming HTTP/1.1\ncontent-length: 67\n"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
-                [\
-                {"query":{"country":"Germany"}},\
-                {"query":{"country":"Taiwan"}},\
-                {}\
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Exporter metadata
+            exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
+            
+            XCTAssertEqual(2, exporterMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
                 ]
-                """))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
-                XCTAssertNotNil(connectionMetadata["eventLoop"])
-                
-                // Logger UUID metadata
-                XCTAssertNotNil(metadata["logger-uuid"])
-                
-                // Endpoint metadata
-                endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
-                
-                XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
-                    [
-                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
-                    ]
-                ))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
-                
-                // Information metadata
-                informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                           
-                XCTAssertEqual(1, informationMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("67"))
-                
-                XCTAssertEqual(response.status, .ok)
-                XCTAssertEqual(try response.content.decode(String.self, using: JSONDecoder()), "Hello, Germany, Taiwan and the World!")
-            }
+            ))
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            XCTAssertEqual(10, requestMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /clientSideStreaming"))
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/clientSideStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/clientSideStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
+            [\
+            {"query":{"country":"Germany"}},\
+            {"query":{"country":"Taiwan"}},\
+            {}\
+            ]
+            """))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
+            XCTAssertNotNil(connectionMetadata["eventLoop"])
+            
+            // Logger UUID metadata
+            XCTAssertNotNil(metadata["logger-uuid"])
+            
+            // Endpoint metadata
+            endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
+            
+            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                ]
+            ))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
+            
+            // Information metadata
+            informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
+            XCTAssertEqual(0, informationMetadata.count)
+ 
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(
+                try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()),
+                "Hello, Germany, Taiwan and the World!"
+            )
+        }
         
         container.reset()
     }
@@ -1059,216 +1133,215 @@ class ApodiniLoggerTests: XCTestCase {
         let container = TestLogMessages.container(forLabel: "org.apodini.observe." + ApodiniLoggerTests.loggingLabel)
         container.reset()
         
-        try Self.app.vapor.app.testable(method: .inMemory)
-            .test(.GET, "/bidirectionalStreaming", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-                XCTAssertEqual(4, container.messages.count)
-                // First log messsage
-                var logMessage = container.messages[0]
-                
-                // Assert log message, level etc.
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                XCTAssertEqual(logMessage.level, .info)
-                XCTAssertEqual(logMessage.file, #file)
-                XCTAssertEqual(logMessage.function, "handle()")
-                XCTAssertEqual(logMessage.line, 217)
+        try Self.app.testable().test(.GET, "/bidirectionalStreaming", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
+            XCTAssertEqual(4, container.messages.count)
+            // First log messsage
+            var logMessage = container.messages[0]
+            
+            // Assert log message, level etc.
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            XCTAssertEqual(logMessage.level, .info)
+            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.function, "handle()")
+            XCTAssertEqual(logMessage.line, Self.bidirectionalStreamingHandlerStreamingLine)
 
-                // Assert metadata
-                var metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Exporter metadata
-                var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
-                
-                XCTAssertEqual(2, exporterMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
-                    [
-                        .string("[lightweight]"),
-                        .string("[content]"),
-                        .string("[path]")
-                    ]
-                ))
-                
-                // Request metdata
-                var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                XCTAssertEqual(8, requestMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
-                var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Germany"))      // First data set
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /bidirectionalStreaming HTTP/1.1\ncontent-length: 67\n"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
-                [\
-                {"query":{"country":"Germany"}},\
-                {"query":{"country":"Taiwan"}},\
-                {}\
+            // Assert metadata
+            var metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Exporter metadata
+            var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
+            
+            XCTAssertEqual(2, exporterMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
                 ]
-                """))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
-                
-                // Connection metadata
-                var connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))    // Open connection state
-                XCTAssertNotNil(connectionMetadata["eventLoop"])
-                
-                // Logger UUID metadata
-                XCTAssertNotNil(metadata["logger-uuid"])
-                
-                // Endpoint metadata
-                var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
-                
-                XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
-                    [
-                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
-                    ]
-                ))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
-                
-                // Information metadata
-                var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                           
-                XCTAssertEqual(1, informationMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("67"))
-                
-                // Second log message
-                logMessage = container.messages[1]
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Taiwan"))     // Another country
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
-                
-                // Third log message
-                logMessage = container.messages[2]
-                XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
-                
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
-                
-                // Forth log message
-                logMessage = container.messages[3]
-                
-                // Assert log message, level etc.
-                XCTAssertEqual(logMessage.message, "Hello world - End!")
+            ))
+            
+            // Request metdata
+            var requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            XCTAssertEqual(10, requestMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /bidirectionalStreaming"))
+            var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Germany"))      // First data set
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/bidirectionalStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/bidirectionalStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
+            [\
+            {"query":{"country":"Germany"}},\
+            {"query":{"country":"Taiwan"}},\
+            {}\
+            ]
+            """))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
+            
+            // Connection metadata
+            var connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))    // Open connection state
+            XCTAssertNotNil(connectionMetadata["eventLoop"])
+            
+            // Logger UUID metadata
+            XCTAssertNotNil(metadata["logger-uuid"])
+            
+            // Endpoint metadata
+            var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
+            
+            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                ]
+            ))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
+            
+            // Information metadata
+            var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
+            XCTAssertEqual(0, informationMetadata.count)
+            
+            // Second log message
+            logMessage = container.messages[1]
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("Taiwan"))     // Another country
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
+            
+            // Third log message
+            logMessage = container.messages[2]
+            XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
+            
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))      // Empty country
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("open"))         // Open connection state
+            
+            // Forth log message
+            logMessage = container.messages[3]
+            
+            // Assert log message, level etc.
+            XCTAssertEqual(logMessage.message, "Hello world - End!")
 
-                // Assert metadata
-                metadata = try XCTUnwrap(logMessage.metadata)
-                XCTAssertEqual(6, metadata.count)
-                
-                // Exporter metadata
-                exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
-                
-                XCTAssertEqual(2, exporterMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
-                XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
-                    [
-                        .string("[lightweight]"),
-                        .string("[content]"),
-                        .string("[path]")
-                    ]
-                ))
-                
-                // Request metdata
-                requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
-                
-                XCTAssertEqual(8, requestMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["hasSession"]), .string("false"))
-                parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
-                XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("GET /bidirectionalStreaming HTTP/1.1\ncontent-length: 67\n"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("/bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
-                [\
-                {"query":{"country":"Germany"}},\
-                {"query":{"country":"Taiwan"}},\
-                {}\
+            // Assert metadata
+            metadata = try XCTUnwrap(logMessage.metadata)
+            XCTAssertEqual(6, metadata.count)
+            
+            // Exporter metadata
+            exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
+            
+            XCTAssertEqual(2, exporterMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
+                [
+                    .string("[lightweight]"),
+                    .string("[content]"),
+                    .string("[path]")
                 ]
-                """))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
-                
-                // Connection metadata
-                connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
-                
-                XCTAssertEqual(3, connectionMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
-                XCTAssertNotNil(connectionMetadata["eventLoop"])
-                
-                // Logger UUID metadata
-                XCTAssertNotNil(metadata["logger-uuid"])
-                
-                // Endpoint metadata
-                endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
-                
-                XCTAssertEqual(9, endpointMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
-                    [
-                        .string("@Parameter(HTTPParameterMode = .query) var country: String?")
-                    ]
-                ))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
-                XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
-                
-                // Information metadata
-                informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-                           
-                XCTAssertEqual(1, informationMetadata.count)
-                XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("67"))
-                
-                XCTAssertEqual(response.status, .ok)
-                XCTAssertEqual(try response.content.decode([String].self, using: JSONDecoder()), [
-                    "Hello, Germany!",
-                    "Hello, Taiwan!",
-                    "Hello, World!"
-                ])
-            }
+            ))
+            
+            // Request metdata
+            requestMetadata = try XCTUnwrap(metadata["request"]?.metadataDictionary)
+            
+            XCTAssertEqual(10, requestMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /bidirectionalStreaming"))
+            parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
+            XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["country"]), .string("nil"))     // No more data
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/bidirectionalStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://127.0.0.1:8000/bidirectionalStreaming>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://127.0.0.1:8000/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string("""
+            [\
+            {"query":{"country":"Germany"}},\
+            {"query":{"country":"Taiwan"}},\
+            {}\
+            ]
+            """))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPContentType"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPVersion"]), .string("HTTP/1.1"))
+            
+            // Connection metadata
+            connectionMetadata = try XCTUnwrap(metadata["connection"]?.metadataDictionary)
+            
+            XCTAssertEqual(3, connectionMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
+            XCTAssertNotNil(connectionMetadata["eventLoop"])
+            
+            // Logger UUID metadata
+            XCTAssertNotNil(metadata["logger-uuid"])
+            
+            // Endpoint metadata
+            endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
+            
+            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
+                [
+                    .string("@Parameter(HTTPParameterMode = .query) var country: String?")
+                ]
+            ))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
+            
+            // Information metadata
+            informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
+            XCTAssertEqual(0, informationMetadata.count)
+            
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.readNewData(decodedAs: [String].self, using: JSONDecoder()), [
+                "Hello, Germany!",
+                "Hello, Taiwan!",
+                "Hello, World!"
+            ])
+        }
     }
 }
 

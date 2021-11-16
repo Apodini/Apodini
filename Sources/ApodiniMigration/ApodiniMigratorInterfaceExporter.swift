@@ -10,7 +10,8 @@ import Foundation
 import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
-@_implementationOnly import ApodiniVaporSupport
+import ApodiniNetworking
+
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
 public struct MigratorDocumentStorageKey: Apodini.StorageKey {
@@ -94,10 +95,10 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             response = try TypeInformation(type: responseType)
         } catch {
             logger.error(
-                    """
-                    Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
-                    Using \(Data.self) for the response type.
-                    """
+                """
+                Error encountered while building the `TypeInformation` of response with type \(responseType) for handler \(handlerName): \(error).
+                Using \(Data.self) for the response type.
+                """
             )
             response = .scalar(.data)
         }
@@ -134,7 +135,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         handleDocument()
         handleMigrationGuide()
     }
-
+    
     private func handleDocument() {
         guard let exportOptions = documentConfig?.exportOptions else {
             return logger.notice("No configuration provided to handle the document of the current version")
@@ -170,7 +171,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         let itemName = I.itemName
         if var endpoint = exportOptions.endpoint {
             endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
-            app.vapor.app.get(endpoint.pathComponents) { _ -> String in
+            app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")

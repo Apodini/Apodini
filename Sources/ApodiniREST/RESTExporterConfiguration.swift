@@ -7,7 +7,9 @@
 //              
 
 import Apodini
-import Vapor
+import ApodiniUtils
+import ApodiniNetworking
+
 
 extension REST {
     /// Configuration of the `RESTInterfaceExporter`

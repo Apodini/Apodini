@@ -47,16 +47,13 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     }
     
     
-    private var task: Task! // swiftlint:disable:this implicitly_unwrapped_optional
+    private var task: ChildProcess! // swiftlint:disable:this implicitly_unwrapped_optional
     private var stdioObserverHandle: AnyObject! // swiftlint:disable:this implicitly_unwrapped_optional
     private var currentPhase: TestPhase = .launchWebService
     
     
     func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
-        guard Self.shouldRunDeploymentProviderTests else {
-            print("Skipping test case '\(#function)'.")
-            return
-        }
+        try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
         runShellCommand(.killPort(80))
         runShellCommand(.killPort(5000))
@@ -70,7 +67,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         let srcRoot = try Self.replicateApodiniSrcRootInTmpDir()
         
-        task = Task(
+        task = ChildProcess(
             executableUrl: Self.urlOfBuildProduct(named: "DeploymentTargetLocalhost"),
             arguments: [srcRoot.path, "--product-name", Self.apodiniDeployTestWebServiceTargetName],
             captureOutput: true,
@@ -97,10 +94,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             assertForOverFulfill: true
         )
         /// Expectation that the gateway server is shut down
-        let didShutDownGateway = XCTestExpectation("Task did terminate")
+        let didShutDownGateway = XCTestExpectation("ChildProcess did terminate")
         didShutDownGateway.assertForOverFulfill = true
         /// Expectation that the task terminated. This is used to keep the test case running as long as the task is still running
-        let taskDidTerminateExpectation = XCTestExpectation("Task did terminate")
+        let taskDidTerminateExpectation = XCTestExpectation("ChildProcess did terminate")
         taskDidTerminateExpectation.assertForOverFulfill = true
         
         /// The output collected for the current phase, separated by newlines
@@ -185,7 +182,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
-                // print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+                //print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
+            } else {
+                //print("servers were started, but not \(expectedNumberOfNodes). servers: \(startedServers.map { "\($0.ipAddress):\($0.port)" })")
             }
         }
         
@@ -277,9 +276,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // We give it 20 seconds just to be safe
         wait(
             for: [responseExpectationV1, responseExpectationV1Greeter, responseExpectationV1TextMut],
-            timeout: 20,
+            timeout: 15,
             enforceOrder: false
         )
+        
+        resetOutput()
+        stdioObserverHandle = nil
         
         
         // -------------------------------------- //
@@ -291,11 +293,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         stdioObserverHandle = task.observeOutput { _, data, _ in
             let text = XCTUnwrapWithFatalError(String(data: data, encoding: .utf8))
+            handleOutput(text, printToStdout: true)
             for _ in 0..<(text.components(separatedBy: "Application shutting down [pid=").count - 1) {
                 didShutDownNodesExpectation.fulfill()
                 NSLog("shutDownServers_a.fulfill() %i", didShutDownNodesExpectation.assertForOverFulfill)
             }
-            if text.contains("notice DeploymentTargetLocalhost.ProxyServer : shutdown") {
+            if text.contains("Did shut down proxy server") {
                 didShutDownGateway.fulfill()
                 NSLog("shutDownServers_b.fulfill() %i", didShutDownGateway.assertForOverFulfill)
             }

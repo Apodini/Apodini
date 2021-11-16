@@ -11,6 +11,7 @@ import Apodini
 import ApodiniREST
 import OpenAPIKit
 
+
 extension ApodiniOpenAPI.OpenAPI {
     /// A configuration structure for manually setting OpenAPI information and output locations.
     class ExporterConfiguration {

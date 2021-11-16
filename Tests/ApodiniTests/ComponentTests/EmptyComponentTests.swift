@@ -11,6 +11,7 @@
 import XCTest
 import XCTApodini
 
+
 class EmptyComponentTests: ApodiniTests {
     private struct NeverComponent: Component {
         typealias Content = Never

@@ -146,7 +146,8 @@ private extension OpenAPIPathsObjectBuilder {
             responses: responses,
             security: securityArray.isEmpty ? nil : securityArray,
             vendorExtensions: [
-                "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)
+                "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
+                "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
             ]
         )
     }

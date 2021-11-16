@@ -82,9 +82,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         let eventLoop = app.eventLoopGroup.next()
         
         try XCTCheckResponse(
-        context.handle(
-            request: input,
-            eventLoop: eventLoop),
+            context.handle(request: input, eventLoop: eventLoop),
             content: Parameters(param0: "value0", param1: nil, pathA: "a", pathB: "b", bird: bird),
             connectionEffect: .close
         )
@@ -154,7 +152,6 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
         
         if let first = user.first {
             XCTAssertEqual(first.id, userId)
-            
             XCTAssertEqual(first.name, name)
         }
     }
@@ -175,8 +172,11 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             let input: Int
         }
         
-        let result: [Bool] = try client.resolve(many: (0..<100).map { BidirectionalHandlerInput(input: $0) },
-                                                on: "bidirectional")
+        let result: [Bool] = try client
+            .resolve(
+                many: (0..<100).map { BidirectionalHandlerInput(input: $0) },
+                on: "bidirectional"
+            )
             .wait()
         
         XCTAssertGreaterThan(result.count, 100)

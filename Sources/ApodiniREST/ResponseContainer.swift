@@ -8,10 +8,11 @@
 
 import Apodini
 import ApodiniUtils
-import Vapor
+import ApodiniNetworking
+import Foundation
 
 
-public struct ResponseContainer: Encodable, ResponseEncodable {
+public struct ResponseContainer: Encodable {
     public typealias Links = [String: String]
     
     public enum CodingKeys: String, CodingKey {
@@ -30,12 +31,14 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
         data == nil && (links?.isEmpty ?? true)
     }
     
-    init<E: Encodable>(_ type: E.Type = E.self,
-                       status: Status? = nil,
-                       information: InformationSet = [],
-                       data: E? = nil,
-                       links: Links? = nil,
-                       encoder: AnyEncoder = JSONEncoder()) {
+    init<E: Encodable>(
+        _ type: E.Type = E.self,
+        status: Status? = nil,
+        information: InformationSet = [],
+        data: E? = nil,
+        links: Links? = nil,
+        encoder: AnyEncoder = JSONEncoder()
+    ) {
         self.status = status
         self.information = information
         self.encoder = encoder
@@ -56,27 +59,28 @@ public struct ResponseContainer: Encodable, ResponseEncodable {
     }
     
     
-    public func encodeResponse(for request: Vapor.Request) -> EventLoopFuture<Vapor.Response> {
-        let response = Vapor.Response()
-        response.headers = HTTPHeaders(information)
+    public func encodeResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        let response = HTTPResponse(
+            version: request.version,
+            status: .ok,
+            headers: HTTPHeaders(information)
+        )
         
         switch status {
         case .noContent where !containsNoContent:
             // If there is any content in the HTTP body (data or links) we must not return an status code .noContent
             response.status = .ok
         case let .some(status):
-            response.status = HTTPStatus(status)
+            response.status = .init(status)
         default:
-            if containsNoContent {
-                response.status = .noContent
-            } else {
-                response.status = .ok
-            }
+            response.status = containsNoContent ? .noContent : .ok
         }
         
         do {
             if !containsNoContent {
-                try response.content.encode(self, using: self.encoder)
+                var buffer = ByteBuffer()
+                try self.encoder.encode(self, to: &buffer, headers: &response.headers)
+                response.bodyStorage = .buffer(buffer)
             }
         } catch {
             return request.eventLoop.makeFailedFuture(error)

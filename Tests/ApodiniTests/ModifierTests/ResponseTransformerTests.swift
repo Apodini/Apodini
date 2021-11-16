@@ -7,11 +7,11 @@
 //              
 
 import XCTest
-import XCTVapor
 import XCTApodini
 @testable import Apodini
 @testable import ApodiniREST
-@testable import ApodiniVaporSupport
+import XCTApodiniNetworking
+
 
 final class ResponseTransformerTests: ApodiniTests {
     private static var emojiTransformerExpectation: XCTestExpectation?
@@ -75,9 +75,9 @@ final class ResponseTransformerTests: ApodiniTests {
     }
     
     
-    private func expect<T: Decodable & Comparable>(_ data: T, in response: XCTHTTPResponse) throws {
+    private func expect<T: Decodable & Comparable>(_ data: T, in response: HTTPResponse) throws {
         XCTAssertEqual(response.status, .ok)
-        let content = try response.content.decode(Content<T>.self)
+        let content = try response.bodyStorage.getFullBodyData(decodedAs: Content<T>.self)
         XCTAssert(content.data == data, "Expected \(data) but got \(content.data)")
         waitForExpectations(timeout: 0, handler: nil)
     }
@@ -107,17 +107,17 @@ final class ResponseTransformerTests: ApodiniTests {
         TestWebService().start(app: app)
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             try expect("✅ Hello ✅", in: res)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.vapor.app.test(.PUT, "/v1/paul/") { res in
+        try app.testable().test(.PUT, "/v1/paul/") { res in
             try expect("🚀 Hello Paul 🚀", in: res)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.vapor.app.test(.POST, "/v1/bernd/") { res in
+        try app.testable().test(.POST, "/v1/bernd/") { res in
             try expect("✅ Hello Bernd ✅", in: res)
         }
     }
@@ -141,12 +141,12 @@ final class ResponseTransformerTests: ApodiniTests {
         TestWebService().start(app: app)
 
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.vapor.app.test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/v1/") { res in
             try expect("✅ ❓ ✅", in: res)
         }
 
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
-        try app.vapor.app.test(.GET, "/v1/paul/") { res in
+        try app.testable().test(.GET, "/v1/paul/") { res in
             try expect("🚀 Hello Paul 🚀", in: res)
         }
     }
@@ -182,26 +182,26 @@ final class ResponseTransformerTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.vapor.app.test(.GET, "/v1/nothing") { response in
+        try app.testable().test(.GET, "/v1/nothing") { response in
             XCTAssertEqual(response.status, .noContent)
-            XCTAssertEqual(response.body.readableBytes, 0)
+            XCTAssertEqual(response.bodyStorage.readableBytes, 0)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 2
-        try app.vapor.app.test(.GET, "/v1/send") { res in
+        try app.testable().test(.GET, "/v1/send") { res in
             try expect("🚀 ✅ Paul ✅ 🚀", in: res)
         }
         
         ResponseTransformerTests.emojiTransformerExpectation = self.expectation(description: "EmojiTransformer is executed")
         ResponseTransformerTests.emojiTransformerExpectation?.expectedFulfillmentCount = 3
-        try app.vapor.app.test(.GET, "/v1/final") { res in
+        try app.testable().test(.GET, "/v1/final") { res in
             try expect("🎸 🚀 ✅ Paul ✅ 🚀 🎸", in: res)
         }
         
-        try app.vapor.app.test(.GET, "/v1/end") { response in
+        try app.testable().test(.GET, "/v1/end") { response in
             XCTAssertEqual(response.status, .noContent)
-            XCTAssertEqual(response.body.readableBytes, 0)
+            XCTAssertEqual(response.bodyStorage.readableBytes, 0)
         }
     }
     

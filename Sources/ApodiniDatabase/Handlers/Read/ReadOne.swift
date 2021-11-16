@@ -6,9 +6,8 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import FluentKit
 import Apodini
-@_implementationOnly import Vapor
+import FluentKit
 
 public struct ReadOne<Model: DatabaseModel>: Handler {
     @Throws(.notFound, reason: "No object was found in the database under the given id")

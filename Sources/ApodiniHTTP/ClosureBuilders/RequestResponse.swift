@@ -9,24 +9,19 @@
 import Foundation
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
+
 
 extension Exporter {
-    // MARK: Request Response Closure
-    
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> {
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporResponseTransformer<H>(configuration.encoder)
-            
+        let transformer = HTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
+        return { (request: HTTPRequest) in
             let delegate = factory.instance()
-            
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
@@ -36,20 +31,15 @@ extension Exporter {
         }
     }
     
-    // MARK: Blob Request Response Closure
-    
-    func buildBlobRequestResponseClosure<H: Handler>(
+    func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
-        using defaultValues: DefaultValueStore) -> (Vapor.Request) throws -> EventLoopFuture<Vapor.Response> where H.Response.Content == Blob {
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        
-        let transformer = VaporBlobResponseTransformer()
-            
+        let transformer = HTTPBlobResponseTransformer()
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        
-        return { (request: Vapor.Request) in
+        return { (request: HTTPRequest) in
             let delegate = factory.instance()
-            
             return strategy
                 .decodeRequest(from: request, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)

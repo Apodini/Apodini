@@ -11,11 +11,11 @@ import ArgumentParser
 import Apodini
 import ApodiniExtension
 import ApodiniUtils
-import ApodiniVaporSupport
 import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
-@_implementationOnly import Vapor
+import ApodiniNetworking
 @_implementationOnly import AssociatedTypeRequirementsVisitor
+@_implementationOnly import AsyncHTTPClient
 
 
 extension AnyEndpointParameter {
@@ -42,17 +42,13 @@ struct ApodiniDeployError: Swift.Error {
 public final class ApodiniDeploy: Configuration {
     let configuration: ApodiniDeploy.ExporterConfiguration
     
-    public init(runtimes: [DeploymentProviderRuntime.Type] = [],
-                config: DeploymentConfig = .init()) {
-        self.configuration = ApodiniDeploy.ExporterConfiguration(
-                                runtimes: runtimes,
-                                config: config)
+    public init(runtimes: [DeploymentProviderRuntime.Type] = [], config: DeploymentConfig = .init()) {
+        self.configuration = ApodiniDeploy.ExporterConfiguration(runtimes: runtimes, config: config)
     }
     
     public func configure(_ app: Apodini.Application) {
         /// Instanciate exporter
         let deployExporter = ApodiniDeployInterfaceExporter(app, self.configuration)
-        
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: deployExporter)
     }
@@ -70,31 +66,73 @@ public final class ApodiniDeploy: Configuration {
 }
 
 
+extension Apodini.Application.Lifecycle {
+    private struct BlockBasedLifecycleHandler: LifecycleHandler {
+        let didBootHandler: (Application) throws -> Void
+        let shutdownHandler: (Application) throws -> Void
+        
+        func didBoot(_ application: Application) throws {
+            try didBootHandler(application)
+        }
+        
+        func shutdown(_ application: Application) throws {
+            try shutdownHandler(application)
+        }
+    }
+    
+    /// Add a closure-based
+    public mutating func use(
+        didBoot didBootHandler: @escaping (Application) throws -> Void,
+        shutdown shutdownHandler: @escaping (Application) throws -> Void
+    ) {
+        use(BlockBasedLifecycleHandler(didBootHandler: didBootHandler, shutdownHandler: shutdownHandler))
+    }
+}
+
+
+private struct ApodiniDeployLifecycleHandler: LifecycleHandler {
+    func didBoot(_ app: Application) throws {}
+    
+    func shutdown(_ app: Application) throws {
+        app.storage.get(ApodiniDeployInterfaceExporter.StorageKey.self)?.shutdownHTTPClient()
+    }
+}
+
+
 /// A custom internal interface exporter, which:
 /// a) compiles a list of all handlers (via their `Endpoint` objects). These are used to determine the target endpoint when manually invoking a handler.
 /// b) is responsible for handling parameter retrieval when manually invoking handlers.
 /// c) exports an additional endpoint used to manually invoke a handler remotely over the network.
 class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
-    struct ApplicationStorageKey: Apodini.StorageKey {
+    struct StorageKey: Apodini.StorageKey {
         typealias Value = ApodiniDeployInterfaceExporter
     }
     
-    
     let app: Apodini.Application
     let exporterConfiguration: ApodiniDeploy.ExporterConfiguration
-    var vaporApp: Vapor.Application { app.vapor.app }
+    let httpClient: AsyncHTTPClient.HTTPClient
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
-    
     private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
     
-    
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()) {
+         _ exporterConfiguration: ApodiniDeploy.ExporterConfiguration = ApodiniDeploy.ExporterConfiguration()
+    ) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
-        app.storage.set(ApplicationStorageKey.self, to: self)
+        self.httpClient = .init(eventLoopGroupProvider: .shared(app.eventLoopGroup), configuration: .init())
+        app.storage.set(StorageKey.self, to: self)
+        app.lifecycle.use(ApodiniDeployLifecycleHandler())
+    }
+    
+    
+    fileprivate func shutdownHTTPClient() {
+        do {
+            try self.httpClient.syncShutdown()
+        } catch {
+            app.logger.error("[\(Self.self)] error shutting down httpClient: \(error)")
+        }
     }
     
     
@@ -110,13 +148,11 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
-        vaporApp.add(Vapor.Route(
-            method: .POST,
-            path: ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
-            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint),
-            requestType: InternalInvocationResponder<H>.Request.self,
-            responseType: InternalInvocationResponder<H>.Response.self
-        ))
+        app.httpServer.registerRoute(
+            .POST,
+            ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)],
+            responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint)
+        )
     }
     
     

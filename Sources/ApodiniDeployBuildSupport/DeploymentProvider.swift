@@ -67,7 +67,7 @@ struct ApodiniDeployBuildSupportError: Swift.Error {
 
 extension DeploymentProvider {
     private static func getSwiftBinUrl() throws -> URL {
-        if let swiftBin = Task.findExecutable(named: "swift") {
+        if let swiftBin = ChildProcess.findExecutable(named: "swift") {
             return swiftBin
         } else {
             throw ApodiniDeployBuildSupportError(message: "Unable to find swift compiler executable in search paths")
@@ -86,7 +86,7 @@ extension DeploymentProvider {
             try fileManager.setWorkingDirectory(to: packageUrl)
             
             let swiftBin = try Self.getSwiftBinUrl()
-            let task = Task(
+            let task = ChildProcess(
                 executableUrl: swiftBin,
                 arguments: ["build", "--product", productName],
                 captureOutput: false,
@@ -123,7 +123,7 @@ extension DeploymentProvider {
             throw ApodiniDeployBuildSupportError(message: "Unable to create file")
         }
         
-        let retrieveStructureTask = Task(
+        let retrieveStructureTask = ChildProcess(
             executableUrl: executableUrl,
             arguments:
                 webServiceCommands +

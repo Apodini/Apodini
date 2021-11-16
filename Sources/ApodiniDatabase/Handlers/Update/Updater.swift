@@ -8,7 +8,8 @@
 
 import Apodini
 import FluentKit
-@_implementationOnly import Vapor
+import Foundation
+import ApodiniNetworking
 
 /// An Updater classed which is used internally by the `Update` handler. It can take model or single parameters of a model to update
 /// the model found in the database.
@@ -29,7 +30,7 @@ internal struct Updater<Model: DatabaseModel> {
     func executeUpdate(on database: Database) -> EventLoopFuture<Model> {
         Model
             .find(modelID, on: database)
-            .unwrap(or: Abort(.notFound))
+            .unwrap(orError: HTTPAbortError(status: .notFound))
             .flatMap { foundModel -> EventLoopFuture<Model> in
                 var foundModel = foundModel
                 if let model = model {

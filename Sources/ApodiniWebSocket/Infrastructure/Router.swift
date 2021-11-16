@@ -6,10 +6,12 @@
 // SPDX-License-Identifier: MIT
 //              
 
-@_implementationOnly import Vapor
 @_implementationOnly import Logging
 import NIOWebSocket
+import Apodini
 import ApodiniExtension
+import ApodiniNetworking
+import Foundation
 
 /// An error type that receives special treatment by the router. The router sends the
 /// `reason` to the client if it receives a `WSError` on the `output`. Other error
@@ -104,29 +106,24 @@ protocol Router {
 ///     }
 ///
 final class VaporWSRouter: Router {
-    typealias ConnectionInformation = Vapor.Request
+    typealias ConnectionInformation = HTTPRequest
     
     private var registeredAtVapor = false
-    
-    private let app: Application
-    
+    private let app: Apodini.Application
     private let logger: Logger
-    
-    private let path: [PathComponent]
-    
+    private let path: [HTTPPathComponent]
     private var endpoints: [String: ContextOpener] = [:]
-    
     private var connections: [ConnectionResponsible.ID: ConnectionResponsible] = [:]
     private let connectionsMutex = NSLock()
 
     init(
-        _ app: Application,
+        _ app: Apodini.Application,
         logger: Logger = .init(label: "org.apodini.websocket.vapor_ws_router"),
         at path: String
     ) {
         self.app = app
         self.logger = logger
-        self.path = path.pathComponents
+        self.path = path.httpPathComponents
     }
     
     /// - Note: If the `output`'s `completion` is `finished`, only the `context` is closed. If it is
@@ -134,11 +131,11 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyAsyncSequence<Message<O>>),
-        on identifier: String) {
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) -> (default: I, output: AnyAsyncSequence<Message<O>>),
+        on identifier: String
+    ) {
         if self.endpoints[identifier] != nil {
-            self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.string) was registered more than once.")
+            self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.httpPathString) was registered more than once.")
         }
         
         self.endpoints[identifier] = { con, ctx in
@@ -153,21 +150,23 @@ final class VaporWSRouter: Router {
     
     
     private func registerRouteToVapor() {
-        app.routes.grouped(self.path).webSocket(onUpgrade: { req, websocket in
-            self.connectionsMutex.lock()
-            let responsible = ConnectionResponsible(
-                websocket,
-                request: req,
-                onClose: { id in
-                    self.connectionsMutex.lock()
-                    self.connections[id] = nil
-                    self.connectionsMutex.unlock()
-                },
-                endpoints: self.endpoints,
-                logger: self.logger
-            )
-            self.connections[responsible.id] = responsible
-            self.connectionsMutex.unlock()
-        })
+        app.httpServer.registerRoute(.GET, self.path) { request -> HTTPResponse in
+            request.makeWebSocketUpgradeResponse { initiatingRequest, webSocket in
+                self.connectionsMutex.lock()
+                let responsible = ConnectionResponsible(
+                    webSocket,
+                    initiatingRequest: initiatingRequest,
+                    onClose: { id in
+                        self.connectionsMutex.lock()
+                        self.connections[id] = nil
+                        self.connectionsMutex.unlock()
+                    },
+                    endpoints: self.endpoints,
+                    logger: self.logger
+                )
+                self.connections[responsible.id] = responsible
+                self.connectionsMutex.unlock()
+            }
+        }
     }
 }

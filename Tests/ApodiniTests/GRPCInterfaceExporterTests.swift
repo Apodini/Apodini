@@ -8,9 +8,10 @@
 
 import XCTest
 @testable import Apodini
-@testable import Vapor
 @testable import ApodiniGRPC
 import ApodiniExtension
+import XCTApodiniNetworking
+
 
 private struct GRPCTestHandler: Handler {
     @Parameter("name",
@@ -41,6 +42,7 @@ private struct GRPCNothingHandler: Handler {
     }
 }
 
+
 final class GRPCInterfaceExporterTests: ApodiniTests {
     // swiftlint:disable implicitly_unwrapped_optional
     fileprivate var exporterConfiguration: GRPC.ExporterConfiguration!
@@ -65,9 +67,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         (endpoint, rendpoint) = handler.mockRelationshipEndpoint()
         exporter = GRPCInterfaceExporter(app)
         headers = HTTPHeaders()
-        headers.add(name: .contentType, value: "application/grpc+proto")
+        headers[.contentType] = .gRPC(.proto)
     }
 
+    
     func testDefaultEndpointNaming() throws {
         struct TestWebService: WebService {
             var content: some Component {
@@ -94,6 +97,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
+    
     /// Checks that the GRPC exporter considers `.serviceName` context
     /// values for naming services.
     func testExplicitEndpointNaming() throws {
@@ -114,6 +118,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNotNil(exporter.services[expectedServiceName])
     }
 
+    
     func testShouldAcceptMultipleEndpoints() throws {
         let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
         
@@ -122,6 +127,7 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertNoThrow(try service.exposeClientStreamingEndpoint(name: "endpointName3", endpoint, strategy: decodingStrategy))
     }
 
+    
     func testShouldNotOverwriteExistingEndpoint() throws {
         let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
         
@@ -130,33 +136,35 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertThrowsError(try service.exposeClientStreamingEndpoint(name: "endpointName", endpoint, strategy: decodingStrategy))
     }
 
+    
     func testShouldRequireContentTypeHeader() throws {
         let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
         
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         version: .init(major: 2, minor: 0),
-                                         headers: .init(),
-                                         collectedBody: ByteBuffer(bytes: requestData1),
-                                         remoteAddress: nil,
-                                         logger: app.logger,
-                                         on: group.next())
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: [:],
+            bodyStorage: .buffer(initialValue: requestData1),
+            eventLoop: group.next()
+        )
 
         var handler = service.createUnaryHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])
-        XCTAssertThrowsError(try handler(vaporRequest).wait())
+            defaults: endpoint[DefaultValueStore.self]
+        )
+        XCTAssertThrowsError(try handler(request).wait())
 
         handler = service.createClientStreamingHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])
-        XCTAssertThrowsError(try handler(vaporRequest).wait())
+        XCTAssertThrowsError(try handler(request).wait())
     }
 
+    
     func testUnaryRequestHandlerWithOneParamater() throws {
         let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
         
@@ -165,25 +173,25 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         version: .init(major: 2, minor: 0),
-                                         headers: headers,
-                                         collectedBody: ByteBuffer(bytes: requestData1),
-                                         remoteAddress: nil,
-                                         logger: app.logger,
-                                         on: group.next())
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .buffer(initialValue: requestData1),
+            eventLoop: group.next()
+        )
 
         let response = try service.createUnaryHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
-            .wait()
-        let responseData = try XCTUnwrap(response.body.data)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
+        let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
+    
     func testUnaryRequestHandlerWithTwoParameters() throws {
         let handler = GRPCTestHandler2()
         let endpoint = handler.mockEndpoint()
@@ -200,25 +208,25 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         ]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         version: .init(major: 2, minor: 0),
-                                         headers: headers,
-                                         collectedBody: ByteBuffer(bytes: requestData1),
-                                         remoteAddress: nil,
-                                         logger: app.logger,
-                                         on: group.next())
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .buffer(initialValue: requestData1),
+            eventLoop: group.next()
+        )
 
         let response = try service.createUnaryHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler2, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
-            .wait()
-        let responseData = try XCTUnwrap(response.body.data)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
+        let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
+    
     /// Tests request validation for the GRPC exporter.
     /// Should throw for a payload that does not contain data for all required parameters.
     func testUnaryRequestHandlerRequiresAllParameters() throws {
@@ -231,23 +239,24 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let incompleteData: [UInt8] = [0, 0, 0, 0, 8, 10, 6, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         version: .init(major: 2, minor: 0),
-                                         headers: headers,
-                                         collectedBody: ByteBuffer(bytes: incompleteData),
-                                         remoteAddress: nil,
-                                         logger: app.logger,
-                                         on: group.next())
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .buffer(initialValue: incompleteData),
+            eventLoop: group.next()
+        )
+        
 
         let handler = service.createUnaryHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler2, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
             defaults: endpoint[DefaultValueStore.self])
-        XCTAssertThrowsError(try handler(vaporRequest).wait())
+        XCTAssertThrowsError(try handler(request).wait())
     }
 
+    
     /// The unary handler should only consider the first message in case
     /// it receives multiple messages in one HTTP frame.
     func testUnaryRequestHandler_2Messages_1Frame() throws {
@@ -265,25 +274,25 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         version: .init(major: 2, minor: 0),
-                                         headers: headers,
-                                         collectedBody: ByteBuffer(bytes: requestData),
-                                         remoteAddress: nil,
-                                         logger: app.logger,
-                                         on: group.next())
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .buffer(initialValue: requestData),
+            eventLoop: group.next()
+        )
 
         let response = try service.createUnaryHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
-            .wait()
-        let responseData = try XCTUnwrap(response.body.data)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request).wait() // swiftlint:disable:this multiline_function_chains
+        let responseData = try XCTUnwrap(response.bodyStorage.getFullBodyData())
         XCTAssertEqual(responseData, Data(expectedResponseData))
     }
 
+    
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 1 GRPC messages.
     func testClientStreamingHandlerWith_1Message_1Frame() throws {
@@ -294,29 +303,32 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             [0, 0, 0, 0, 14, 10, 12, 72, 101, 108, 108, 111, 32, 77, 111, 114, 105, 116, 122]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         on: group.next())
-        vaporRequest.headers = headers
-        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
-        vaporRequest.bodyStorage = .stream(stream)
-
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .stream(),
+            eventLoop: group.next()
+        )
+        let stream = try XCTUnwrap(request.bodyStorage.stream)
+        
         service.createClientStreamingHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            defaults: endpoint[DefaultValueStore.self])(request)
             .whenSuccess { response in
-                guard let responseData = response.body.data else {
+                guard let responseData = response.bodyStorage.readNewData() else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
                     return
                 }
                 XCTAssertEqual(responseData, Data(expectedResponseData))
             }
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.end).wait()
+        stream.write(requestData1)
+        stream.close()
     }
+    
 
     /// Tests the client-streaming handler for a request with
     /// 1 HTTP frame that contains 2 GRPC messages.
@@ -335,29 +347,33 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         on: group.next())
-        vaporRequest.headers = headers
-        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
-        vaporRequest.bodyStorage = .stream(stream)
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .stream(),
+            eventLoop: group.next()
+        )
+        let stream = try XCTUnwrap(request.bodyStorage.stream)
 
         service.createClientStreamingHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request)
             .whenSuccess { response in
-                guard let responseData = response.body.data else {
+                guard let responseData = response.bodyStorage.readNewData() else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
                     return
                 }
                 XCTAssertEqual(responseData, Data(expectedResponseData))
             }
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData))).wait()
-        _ = try stream.write(.end).wait()
+        stream.write(requestData)
+        stream.close()
     }
+    
 
     /// Tests the client-streaming handler for a request with
     /// 2 HTTP frames that contain 2 GRPC messages.
@@ -373,21 +389,24 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             [0, 0, 0, 0, 13, 10, 11, 72, 101, 108, 108, 111, 32, 66, 101, 114, 110, 100]
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         on: group.next())
-        vaporRequest.headers = headers
-        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
-        vaporRequest.bodyStorage = .stream(stream)
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .stream(),
+            eventLoop: group.next()
+        )
+        let stream = try XCTUnwrap(request.bodyStorage.stream)
 
         // get first response
         service.createClientStreamingHandler(
             factory: endpoint[DelegateFactory<GRPCTestHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request)
             .whenSuccess { response in
-                guard let responseData = response.body.data else {
+                guard let responseData = response.bodyStorage.readNewData() else {
                     XCTFail("Received empty response but expected: \(expectedResponseData)")
                     return
                 }
@@ -397,10 +416,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
             }
 
         // write messages individually
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData2))).wait()
-        _ = try stream.write(.end).wait()
+        stream.write(requestData1)
+        stream.write(requestData2)
+        stream.close()
     }
+    
 
     /// Checks whether the returned response for a `.nothing` is indeed empty.
     func testClientStreamingHandlerNothingResponse() throws {
@@ -410,26 +430,31 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         let decodingStrategy = InterfaceExporterLegacyStrategy(exporter).applied(to: endpoint)
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let vaporRequest = Vapor.Request(application: app.vapor.app,
-                                         method: .POST,
-                                         url: URI(path: "https://localhost/\(serviceName)/\(methodName)"),
-                                         on: group.next())
-        vaporRequest.headers = headers
-        let stream = Vapor.Request.BodyStream(on: vaporRequest.eventLoop)
-        vaporRequest.bodyStorage = .stream(stream)
+        let request = HTTPRequest(
+            version: .http2,
+            method: .POST,
+            url: URI("https://localhost:8080/\(serviceName)/\(methodName)")!,
+            headers: headers,
+            bodyStorage: .stream(),
+            eventLoop: group.next()
+        )
+        let stream = try XCTUnwrap(request.bodyStorage.stream)
 
         service.createClientStreamingHandler(
             factory: endpoint[DelegateFactory<GRPCNothingHandler, GRPCInterfaceExporter>.self],
             strategy: decodingStrategy,
-            defaults: endpoint[DefaultValueStore.self])(vaporRequest)
+            defaults: endpoint[DefaultValueStore.self]
+        )(request)
             .whenSuccess { response in
-                XCTAssertEqual(response.body.data,
-                               Optional(Data()),
-                               "Received non-empty response but expected empty response")
+                XCTAssertEqual(
+                    response.bodyStorage.readNewData(),
+                    Optional(Data()),
+                    "Received non-empty response but expected empty response"
+                )
             }
 
-        _ = try stream.write(.buffer(ByteBuffer(bytes: requestData1))).wait()
-        _ = try stream.write(.end).wait()
+        stream.write(requestData1)
+        stream.close()
     }
 
     func testServiceNameUtility_DefaultName() throws {
@@ -451,10 +476,10 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         visitor.finishParsing()
         
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GRPCTestHandler>)
-
         XCTAssertEqual(gRPCServiceName(from: endpoint), expectedServiceName)
     }
 
+    
     func testServiceNameUtility_CustomName() {
         let serviceName = "TestService"
 
@@ -465,9 +490,11 @@ final class GRPCInterfaceExporterTests: ApodiniTests {
         XCTAssertEqual(gRPCServiceName(from: endpoint), serviceName)
     }
 
+    
     func testMethodNameUtility_DefaultName() {
         XCTAssertEqual(gRPCMethodName(from: endpoint), "grpctesthandler")
     }
+    
 
     func testMethodNameUtility_CustomName() {
         let methodName = "testMethod"

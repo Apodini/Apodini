@@ -8,45 +8,39 @@
 
 import Apodini
 import ApodiniExtension
-import ApodiniVaporSupport
-import Vapor
+import ApodiniNetworking
 
 
-struct VaporEndpointKnowledge: KnowledgeSource {
-    let method: Vapor.HTTPMethod
-    
+struct HTTPEndpointKnowledge: KnowledgeSource {
+    let method: HTTPMethod
     let pattern: CommunicationalPattern
-    
-    let path: [Vapor.PathComponent]
-    
+    let path: [HTTPPathComponent]
     let defaultValues: DefaultValueStore
     
     init<B>(_ blackboard: B) throws where B: Blackboard {
         let knowledge = blackboard[ProtocolAgnosticEndpointKnowledge.self]
         
-        self.method = Vapor.HTTPMethod(knowledge.operation)
+        self.method = HTTPMethod(knowledge.operation)
         self.pattern = knowledge.pattern
         self.path = knowledge.path.compactMap { element in
             switch element {
             case .root:
                 return nil
             case let .parameter(parameter):
-                return .parameter(parameter.name)
+                return .namedParameter(parameter.name)
             case let .string(string):
-                return .constant(string)
+                return .verbatim(string)
             }
         }
         self.defaultValues = knowledge.defaultValues
     }
 }
 
+
 struct ProtocolAgnosticEndpointKnowledge: KnowledgeSource {
     let operation: Apodini.Operation
-    
     let pattern: CommunicationalPattern
-    
     let path: [EndpointPath]
-    
     let defaultValues: DefaultValueStore
     
     init<B>(_ blackboard: B) throws where B: Blackboard {

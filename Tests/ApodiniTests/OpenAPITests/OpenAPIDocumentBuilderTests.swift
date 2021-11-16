@@ -10,8 +10,8 @@ import XCTest
 import OpenAPIKit
 @testable import Apodini
 @testable import ApodiniOpenAPI
-@testable import ApodiniVaporSupport
 import ApodiniREST
+
 
 struct SomeTestStruct: Apodini.Content {
     var someProp = 4
@@ -111,7 +111,10 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                                 OpenAPI.Response(description: "Internal Server Error")
                             )
                         ],
-                        vendorExtensions: ["x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue)]
+                        vendorExtensions: [
+                            "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
+                            "x-apodiniHandlerServiceType": AnyCodable(endpoint[ServiceType.self].rawValue)
+                        ]
                     )
                 )
             ],

@@ -7,11 +7,11 @@
 //              
 
 @testable import Apodini
-@testable import ApodiniVaporSupport
 @testable import ApodiniDatabase
 @testable import ApodiniREST
-import XCTVapor
 import XCTApodini
+import XCTApodiniNetworking
+
 
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
@@ -68,14 +68,14 @@ final class CustomComponentTests: ApodiniTests {
         let birdJSON = try JSONEncoder().encode(bird3)
         let body = ByteBuffer(data: birdJSON)
         
-        try app.vapor.app.test(.GET, "/v1/", headers: headers, body: body) { res in
+        try app.testable().test(.GET, "/v1/", headers: headers, body: body) { res in
             XCTAssertEqual(res.status, .ok)
             
             struct ResponseContent: Decodable {
                 let data: [Bird]
             }
             
-            let responseBirds = try res.content.decode(ResponseContent.self).data
+            let responseBirds = try res.bodyStorage.getFullBodyData(decodedAs: ResponseContent.self).data
             XCTAssertEqual(responseBirds.count, 3)
             XCTAssertEqual(responseBirds[0], bird1)
             XCTAssertEqual(responseBirds[1], bird2)

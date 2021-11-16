@@ -11,6 +11,7 @@ import Apodini
 import ApodiniAuthorization
 import ApodiniAuthorizationBearerScheme
 
+
 struct MockCredentialVerifier<State>: AuthenticationVerifier {
     let expectedPassword: String
     let state: State
@@ -25,11 +26,9 @@ struct MockCredentialVerifier<State>: AuthenticationVerifier {
             email: "test@example.de",
             state: state
         )
-
         if expectedPassword != instance.password {
             throw unauthenticatedError
         }
-
         return instance
     }
 }

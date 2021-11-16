@@ -6,10 +6,11 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import XCTVapor
+import XCTest
 @testable import Apodini
-@testable import ApodiniVaporSupport
 @testable import ApodiniREST
+import XCTApodiniNetworking
+
 
 final class OperationModifierTests: ApodiniTests {
     struct HelloWorldHandler: Handler {
@@ -62,33 +63,33 @@ final class OperationModifierTests: ApodiniTests {
             let data: String
         }
 
-        func expect(_ data: String, in response: XCTHTTPResponse) throws {
+        func expect(_ data: String, in response: HTTPResponse) throws {
             XCTAssertEqual(response.status, .ok)
-            let content = try response.content.decode(Content.self)
+            let content = try response.bodyStorage.getFullBodyData(decodedAs: Content.self)
             XCTAssert(content.data == data)
         }
         
-        try app.vapor.app.test(.GET, "/version3/default") { res in
+        try app.testable().test(.GET, "/version3/default") { res in
             try expect("Read", in: res)
         }
 
-        try app.vapor.app.test(.DELETE, "/version3/default") { res in
+        try app.testable().test(.DELETE, "/version3/default") { res in
             try expect("Hello World", in: res)
         }
         
-        try app.vapor.app.test(.POST, "/version3/") { res in
+        try app.testable().test(.POST, "/version3/") { res in
             try expect("Create", in: res)
         }
         
-        try app.vapor.app.test(.PUT, "/version3/") { res in
+        try app.testable().test(.PUT, "/version3/") { res in
             try expect("Update", in: res)
         }
         
-        try app.vapor.app.test(.DELETE, "/version3/") { res in
+        try app.testable().test(.DELETE, "/version3/") { res in
             try expect("Delete", in: res)
         }
         
-        try app.vapor.app.test(.GET, "/version3/") { res in
+        try app.testable().test(.GET, "/version3/") { res in
             try expect("Read", in: res)
         }
     }

@@ -9,28 +9,32 @@
 import Foundation
 import Apodini
 import ApodiniREST
-import ApodiniVaporSupport
-@_implementationOnly import Vapor
 import OpenAPIKit
+import ApodiniNetworking
+
 
 /// Public Apodini Interface Exporter for OpenAPI
 public final class OpenAPI: RESTDependentStaticConfiguration {
     var configuration: OpenAPI.ExporterConfiguration
     
-    public init(outputFormat: OpenAPI.OutputFormat = OpenAPI.ConfigurationDefaults.outputFormat,
-                outputEndpoint: String = OpenAPI.ConfigurationDefaults.outputEndpoint,
-                swaggerUiEndpoint: String = OpenAPI.ConfigurationDefaults.swaggerUiEndpoint,
-                title: String? = nil,
-                version: String? = nil,
-                serverUrls: URL...) {
+    public init(
+        outputFormat: OpenAPI.OutputFormat = OpenAPI.ConfigurationDefaults.outputFormat,
+        outputEndpoint: String = OpenAPI.ConfigurationDefaults.outputEndpoint,
+        swaggerUiEndpoint: String = OpenAPI.ConfigurationDefaults.swaggerUiEndpoint,
+        title: String? = nil,
+        version: String? = nil,
+        serverUrls: URL...
+    ) {
         self.configuration = OpenAPI.ExporterConfiguration(
-                                outputFormat: outputFormat,
-                                outputEndpoint: outputEndpoint,
-                                swaggerUiEndpoint: swaggerUiEndpoint,
-                                title: title,
-                                version: version,
-                                serverUrls: serverUrls)
+            outputFormat: outputFormat,
+            outputEndpoint: outputEndpoint,
+            swaggerUiEndpoint: swaggerUiEndpoint,
+            title: title,
+            version: version,
+            serverUrls: serverUrls
+        )
     }
+    
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
         /// Set configuration of parent
@@ -43,6 +47,7 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
         app.registerExporter(exporter: openAPIExporter)
     }
 }
+
 
 /// Internal Apodini Interface Exporter for OpenAPI
 final class OpenAPIInterfaceExporter: InterfaceExporter {
@@ -102,23 +107,26 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(configuration: self.exporterConfiguration) {
             // Register OpenAPI specification endpoint.
-            app.vapor.app.get(exporterConfiguration.outputEndpoint.pathComponents) { _ -> String in
+            app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { _ in
                 output
             }
-            
             // Register swagger-UI endpoint.
-            app.vapor.app.get(exporterConfiguration.swaggerUiEndpoint.pathComponents) { _ -> Vapor.Response in
-                var headers = HTTPHeaders()
-                headers.add(name: .contentType, value: HTTPMediaType.html.serialize())
+            app.httpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.httpPathComponents) { request -> HTTPResponse in
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                       var html = try? String(contentsOfFile: htmlFile)
                 else {
-                    throw Vapor.Abort(.internalServerError)
+                    throw HTTPAbortError(status: .internalServerError, message: "Unable to load swagger ui")
                 }
                 // Replace placeholder with actual URL of OpenAPI specification endpoint.
                 html = html.replacingOccurrences(of: "{{OPEN_API_ENDPOINT_URL}}", with: self.exporterConfiguration.outputEndpoint)
-                
-                return Vapor.Response(status: .ok, headers: headers, body: .init(string: html))
+                return HTTPResponse(
+                    version: request.version,
+                    status: .ok,
+                    headers: HTTPHeaders {
+                        $0[.contentType] = .html
+                    },
+                    bodyStorage: .buffer(initialValue: html)
+                )
             }
             
             // Inform developer about serving on configured endpoints.

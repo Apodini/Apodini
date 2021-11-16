@@ -8,7 +8,7 @@
 
 import FluentKit
 import Apodini
-@_implementationOnly import Vapor
+import ApodiniNetworking
 
 /// A `Handler` that deletes the object with the given `IDValue` in the database, if it exists. If not an error is thrown.
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
@@ -21,7 +21,7 @@ public struct Delete<Model: DatabaseModel>: Handler {
     
     public func handle() -> EventLoopFuture<Status> {
         Model.find(id, on: database)
-            .unwrap(orError: Abort(.notFound) )
+            .unwrap(orError: HTTPAbortError(status: .notFound))
             .flatMap { $0.delete(on: database ) }
             .transform(to: .noContent)
     }

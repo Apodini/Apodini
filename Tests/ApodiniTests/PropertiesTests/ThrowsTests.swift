@@ -9,7 +9,7 @@
 import XCTest
 import XCTApodini
 @testable import Apodini
-import Vapor
+
 
 class ThrowsTests: ApodiniTests {
     struct ErrorTestHandler: Handler {
@@ -94,52 +94,60 @@ class ThrowsTests: ApodiniTests {
     
     func testReasonAndDescriptionOverwrite() throws {
         XCTAssertTrue(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: "!other!",
-                        description: "<other>").evaluationError().standardMessage.contains("!other!"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: "!other!",
+            description: "<other>").evaluationError().standardMessage.contains("!other!")
+        )
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: "!other!",
-                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: "!other!",
+            description: "<other>").evaluationError().standardMessage.contains("<other>")
+        )
         #else
         XCTAssertFalse(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: "!other!",
-                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: "!other!",
+            description: "<other>").evaluationError().standardMessage.contains("<other>")
+        )
         #endif
         
         XCTAssertTrue(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: "!other!",
-                        description: nil).evaluationError().standardMessage.contains("!other!"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: "!other!",
+            description: nil).evaluationError().standardMessage.contains("!other!")
+        )
         XCTAssertFalse(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: "!other!",
-                        description: nil).evaluationError().standardMessage.contains("<other>"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: "!other!",
+            description: nil).evaluationError().standardMessage.contains("<other>")
+        )
         
         XCTAssertFalse(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: nil,
-                        description: "<other>").evaluationError().standardMessage.contains("!other!"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: nil,
+            description: "<other>").evaluationError().standardMessage.contains("!other!")
+        )
         #if DEBUG
         XCTAssertTrue(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: nil,
-                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: nil,
+            description: "<other>").evaluationError().standardMessage.contains("<other>")
+        )
         #else
         XCTAssertFalse(ErrorTestHandler(
-                        errorCode: 4,
-                        applyChanges: true,
-                        reason: nil,
-                        description: "<other>").evaluationError().standardMessage.contains("<other>"))
+            errorCode: 4,
+            applyChanges: true,
+            reason: nil,
+            description: "<other>").evaluationError().standardMessage.contains("<other>")
+        )
         #endif
     }
 
