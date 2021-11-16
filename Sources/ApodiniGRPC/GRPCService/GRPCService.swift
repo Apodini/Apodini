@@ -17,8 +17,8 @@ import ApodiniNetworking
 extension HTTPMediaType {
     /// gRPC media type subtype suffix options
     enum GRPCEncodingOption: String {
-        case proto = "proto"
-        case json = "json"
+        case proto
+        case json
     }
     
     /// Creates a gRPC media type with the specified encoding appended as the subtype's suffix

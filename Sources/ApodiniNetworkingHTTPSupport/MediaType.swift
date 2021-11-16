@@ -192,6 +192,7 @@ extension HTTPMediaType {
         case xml = "xml"
     }
     
+    /// Creates a `text/<subtype>` media type for the specified subtype
     public static func text(_ subtype: TextSubtype, charset: CharsetParameterValue? = .utf8, parameters: [String: String] = [:]) -> HTTPMediaType {
         makeMediaType(withType: "text", subtype: subtype.rawValue, charset: charset, parameters: parameters)
     }
@@ -203,6 +204,7 @@ extension HTTPMediaType {
         case pdf = "pdf"
     }
     
+    /// Creates an `application/<subtype>` media type for the specified subtype
     public static func application(
         _ subtype: ApplicationSubtype,
         charset: CharsetParameterValue? = nil,
@@ -217,6 +219,7 @@ extension HTTPMediaType {
         case gif = "gif"
     }
     
+    /// Creates an `image/<subtype>` media type for the specified subtype
     public static func image(_ subtype: ImageSubtype, parameters: [String: String] = [:]) -> HTTPMediaType {
         HTTPMediaType(type: "image", subtype: subtype.rawValue, parameters: parameters)
     }
