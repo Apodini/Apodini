@@ -216,11 +216,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
                 let msg = "request to '\(path)' failed."
                 do {
-                    print("Got response for req to '\(path)'")
                     let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
-                    print("- response: \(response)")
                     let data = try XCTUnwrap(data, msg)
-                    print("- data: \(data)")
+                    print("""
+                        Got response for req to '\(path)':
+                        - response: \(response)
+                        - data: \(data) (as JSON: \(JSONSerialization.jsonObject(with: data, options: [])))
+                        """
+                    )
                     try responseValidator(response, data)
                 } catch {
                     XCTFail("\(msg): \(error.localizedDescription)")
