@@ -221,7 +221,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     print("""
                         Got response for req to '\(path)':
                         - response: \(response)
-                        - data: \(data) (as JSON: \(Result.init(catching: try JSONSerialization.jsonObject(with: data, options: []))))
+                        - data: \(data) (as JSON: \(Result.init(catching: { try JSONSerialization.jsonObject(with: data, options: []) })))
                         """
                     )
                     try responseValidator(response, data)
