@@ -71,8 +71,10 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                 
                 if let blob = response.content?.response.typed(Blob.self) {
                     var information = response.information
-                    if let contentType = blob.type?.description {
-                        information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                    if let contentType = blob.type {
+                        information = information.merge(with: [
+                            AnyHTTPInformation(key: "Content-Type", rawValue: contentType.encodeToHTTPHeaderFieldValue())
+                        ])
                     }
                     let httpResponse = HTTPResponse(
                         version: request.version,

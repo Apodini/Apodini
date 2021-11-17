@@ -24,10 +24,10 @@ struct ThrowingHandler: Handler {
 }
 
 struct BlobHandler: Handler {
-    @Apodini.Parameter var mimeType: MimeType
+    @Apodini.Parameter var mediaType: HTTPMediaType
     
     func handle() -> Blob {
-        Blob(Data(), type: mimeType)
+        Blob(Data(), type: mediaType)
     }
 }
 
@@ -116,7 +116,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let blob = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "blob" })
         XCTAssertEqual(blob.response, .scalar(.data))
         
-        XCTAssertEqual(blob.parameters.first?.typeInformation, try TypeInformation(type: MimeType.self))
+        XCTAssertEqual(blob.parameters.first?.typeInformation, try TypeInformation(type: HTTPMediaType.self))
     }
     
     func testDocumentDirectoryExport() throws {
@@ -168,10 +168,10 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssert(changes.contains { $0.element == .endpoint("text", target: .`self`) })
         
         let addedModelChange = try XCTUnwrap(changes.first { $0.element.isModel } as? AddChange)
-        XCTAssert(addedModelChange.elementID == "MimeType")
+        XCTAssertEqual(addedModelChange.elementID, "HTTPMediaType")
         
         if case let .element(anyCodable) = addedModelChange.added {
-            XCTAssertEqual(anyCodable.typed(TypeInformation.self), try TypeInformation(type: MimeType.self))
+            XCTAssertEqual(anyCodable.typed(TypeInformation.self), try TypeInformation(type: HTTPMediaType.self))
         } else {
             XCTFail("Migration guide did not store the added model")
         }
@@ -242,7 +242,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(commandType.configuration.commandName, "document")
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        XCTAssertEqual(document.allModels(), [try TypeInformation(type: MimeType.self)])
+        XCTAssertEqual(document.allModels(), [try TypeInformation(type: HTTPMediaType.self)])
     }
     
     func testMigratorCompareCommand() throws {
@@ -263,7 +263,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(commandType.configuration.commandName, "compare")
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        XCTAssertEqual(document.allModels(), [try TypeInformation(type: MimeType.self)])
+        XCTAssertEqual(document.allModels(), [try TypeInformation(type: HTTPMediaType.self)])
         
         let migrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         XCTAssertEqual(migrationGuide.id, try Document.decode(from: documentPath.asPath).id)

@@ -15,7 +15,7 @@ import Foundation
 extension AnyEncoder {
     /// Type-safe HTTP media type this encoder would encode into.
     public var resultMediaType: HTTPMediaType? {
-        self.resultMediaTypeRawValue.flatMap { .init(string: $0) }
+        self.resultMediaTypeRawValue.flatMap { .init($0) }
     }
 }
 

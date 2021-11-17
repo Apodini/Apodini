@@ -201,11 +201,11 @@ class ApodiniLoggerTests: XCTestCase {
             if counter == start {
                 logger.info("Hello world - Launch!")
                 serverSideStreamingHandlerFinalLine = #line - 1
-                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
+                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain)))
             } else {
                 logger.info("Hello world - Countdown!")
                 serverSideStreamingHandlerStreamingLine = #line - 1
-                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
+                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain)))
             }
         }
         

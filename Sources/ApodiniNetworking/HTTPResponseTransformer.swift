@@ -10,6 +10,7 @@ import Apodini
 import ApodiniExtension
 import ApodiniUtils
 import ApodiniHTTPProtocol
+import ApodiniNetworkingHTTPSupport
 
 
 public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
@@ -54,8 +55,10 @@ public struct HTTPBlobResponseTransformer: ResultTransformer {
         var information = input.information
         if let content = input.content {
             body = content.byteBuffer
-            if let contentType = content.type?.description {
-                information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+            if let mediaType = content.type {
+                information = information.merge(with: [
+                    AnyHTTPInformation(key: "Content-Type", rawValue: mediaType.encodeToHTTPHeaderFieldValue())
+                ])
             }
         } else {
             body = .init()

@@ -127,6 +127,7 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
                 .product(name: "ApodiniContext", package: "MetadataSystem"),
                 .product(name: "MetadataSystem", package: "MetadataSystem"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
@@ -338,6 +339,7 @@ let package = Package(
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -346,6 +348,16 @@ let package = Package(
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNetworkingHTTPSupport",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
             ]
         ),
         
