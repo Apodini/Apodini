@@ -161,6 +161,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             
             let startedServers: [StartedServerInfo] = currentPhaseOutput.compactMap { line in
+                print("line: \(line)")
                 let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
                 guard matches.count == 1 else {
                     return nil
