@@ -98,7 +98,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             as: LocalhostDeployedSystem.self
         )
         
-        var observers: [ChildProcess.StdioObserverRegistrationToken] = []
+        var observers: [AnyObject] = []
 
         for node in deployedSystem.nodes {
             let task = ChildProcess(
