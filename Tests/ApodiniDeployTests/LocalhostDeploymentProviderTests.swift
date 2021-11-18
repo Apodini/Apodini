@@ -207,6 +207,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         print("will create http client")
         let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
+        defer {
+            print("will shutdown httpClient")
+            try httpClient.syncShutdown()
+            print("did shutdown httpClient")
+        }
         print("did create http client: \(httpClient)")
         
         func sendTestRequest(
@@ -305,9 +310,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             enforceOrder: false
         )
         
-        print("will shutdown httpClient")
-        try httpClient.syncShutdown()
-        print("did shutdown httpClient")
         
         resetOutput()
         stdioObserverHandle = nil
