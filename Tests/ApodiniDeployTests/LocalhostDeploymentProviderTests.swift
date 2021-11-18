@@ -243,8 +243,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 //                    XCTFail("\(msg): \(error.localizedDescription)")
 //                }
 //            }
+            let msg = "request to '\(path)' failed."
             do {
-                let msg = "request to '\(path)' failed."
                 print("create delegate")
                 let delegate = HTTPRequestClientResponseDelegate()
                 print("create request")
