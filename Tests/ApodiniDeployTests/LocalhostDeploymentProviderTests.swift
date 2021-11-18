@@ -241,14 +241,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
         }
         
+        print("Will start 1st test")
         try sendTestRequest(to: "/v1/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
             responseExpectationV1.fulfill()
+            print("did finish 1st test")
         }
         
         
+        print("Will start 2nd test")
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
         try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
@@ -264,9 +267,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             responseExpectationV1TextMut.fulfill()
+            print("did finish 2nd test")
         }
         
         
+        print("Will start 3rd test")
         try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
@@ -284,9 +289,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
             responseExpectationV1Greeter.fulfill()
+            print("did finish 3rd test")
         }
         
         
+        print("will wait")
         // Wait for the second phase to complete.
         // This phase sends some requests to the deployed web service and checks that they were handled correctly.
         // We give it 20 seconds just to be safe
