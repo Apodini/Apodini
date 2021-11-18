@@ -205,7 +205,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // second test phase: send some requests to the web service and see how it handles them //
         // ------------------------------------------------------------------------------------ //
         
+        print("will create http client")
         let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
+        print("did create http client: \(httpClient)")
         
         func sendTestRequest(
             to path: String, responseValidator: @escaping (HTTPClient.Response, ByteBuffer) throws -> Void
