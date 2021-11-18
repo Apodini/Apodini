@@ -108,6 +108,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     modelFileUrl.path,
                     node.id
                 ],
+                redirectStderrToStdout: true,
                 launchInCurrentProcessGroup: true
             )
             func taskTerminationHandler(_ terminationInfo: ChildProcess.TerminationInfo) {
