@@ -248,7 +248,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 print("create delegate")
                 let delegate = HTTPRequestClientResponseDelegate()
                 print("create request")
-                let request = try HTTPClient.Request(url: "http://localhost\(path)", method: .GET, headers: [:], body: nil)
+                let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
                 print("execute request, wait() on response")
                 let response = try httpClient.execute(request: request, delegate: delegate).wait()
                 //let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
