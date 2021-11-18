@@ -209,7 +209,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
         defer {
             print("will shutdown httpClient")
-            try httpClient.syncShutdown()
+            try! httpClient.syncShutdown()
             print("did shutdown httpClient")
         }
         print("did create http client: \(httpClient)")
