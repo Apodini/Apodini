@@ -170,8 +170,13 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
     var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
     
     init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern) {
+        print(Self.self, #function)
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointCommPattern = endpointCommPattern
+    }
+    
+    deinit {
+        print(Self.self, #function)
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
