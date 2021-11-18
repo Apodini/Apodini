@@ -11,8 +11,10 @@ import Foundation
 import FoundationNetworking
 #endif
 import XCTApodini
+import ApodiniNetworking
 import ApodiniUtils
 import AsyncHTTPClient
+import XCTest
 
 
 struct ResponseWithPid<T: Codable>: Codable {
@@ -215,7 +217,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         print("did create http client: \(httpClient)")
         
         func sendTestRequest(
-            to path: String, responseValidator: @escaping (HTTPClient.Response, ByteBuffer) throws -> Void
+            to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void
         ) throws {
 //            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
 //            return URLSession.shared.dataTask(with: url) { data, response, error in
@@ -239,8 +241,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 //                }
 //            }
             let msg = "request to '\(path)' failed."
-            let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
-            let body = try XCTUnwrap(response.body, msg)
+            let delegate = HTTPRequestClientResponseDelegate()
+            let request = try HTTPClient.Request(url: "http://localhost\(path)", method: .GET, headers: [:], body: nil)
+            let response = try httpClient.execute(request: request, delegate: delegate).wait()
+            //let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
+            let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
             do {
                 try responseValidator(response, body)
             } catch {
@@ -344,5 +349,35 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         task = nil
         
         XCTAssertApodiniApplicationNotRunning()
+    }
+}
+
+
+class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate {
+    typealias Response = HTTPResponse
+    
+    private var response: HTTPResponse?
+    
+    func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
+        self.response = HTTPResponse.init(version: head.version, status: head.status, headers: head.headers)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+        guard let response = self.response else {
+            return task.eventLoop.makeFailedFuture(NSError(domain: "Apodini", code: 0, userInfo: [
+                NSLocalizedDescriptionKey: "Received response body before receiving response head"
+            ]))
+        }
+        response.bodyStorage.write(buffer)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+        XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+    }
+    
+    func didFinishRequest(task: HTTPClient.Task<HTTPResponse>) throws -> HTTPResponse {
+        try XCTUnwrap(response)
     }
 }
