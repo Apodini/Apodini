@@ -296,7 +296,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             enforceOrder: false
         )
         
+        print("will shutdown httpClient")
         try httpClient.syncShutdown()
+        print("did shutdown httpClient")
         
         resetOutput()
         stdioObserverHandle = nil
