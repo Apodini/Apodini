@@ -58,6 +58,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
         try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
+        defer {
+            XCTAssertApodiniApplicationNotRunning()
+        }
+        
         runShellCommand(.killPort(80))
         runShellCommand(.killPort(5000))
         runShellCommand(.killPort(5001))
@@ -217,9 +221,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }
         print("did create http client: \(httpClient)")
         
-        func sendTestRequest(
-            to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void
-        ) throws {
+        func sendTestRequest(to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void) {
 //            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
 //            return URLSession.shared.dataTask(with: url) { data, response, error in
 //                if let error = error {
@@ -241,13 +243,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 //                    XCTFail("\(msg): \(error.localizedDescription)")
 //                }
 //            }
-            let msg = "request to '\(path)' failed."
-            let delegate = HTTPRequestClientResponseDelegate()
-            let request = try HTTPClient.Request(url: "http://localhost\(path)", method: .GET, headers: [:], body: nil)
-            let response = try httpClient.execute(request: request, delegate: delegate).wait()
-            //let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
-            let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
             do {
+                let msg = "request to '\(path)' failed."
+                print("create delegate")
+                let delegate = HTTPRequestClientResponseDelegate()
+                print("create request")
+                let request = try HTTPClient.Request(url: "http://localhost\(path)", method: .GET, headers: [:], body: nil)
+                print("execute request, wait() on response")
+                let response = try httpClient.execute(request: request, delegate: delegate).wait()
+                //let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
+                print("unwrap body")
+                let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
                 try responseValidator(response, body)
             } catch {
                 XCTFail("\(msg): \(error.localizedDescription)")
@@ -348,8 +354,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // extend all the way down here, so that we can know for a fact that the tests above work properly
         stdioObserverHandle = nil
         task = nil
-        
-        XCTAssertApodiniApplicationNotRunning()
     }
 }
 
