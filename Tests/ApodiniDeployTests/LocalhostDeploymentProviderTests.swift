@@ -12,6 +12,7 @@ import FoundationNetworking
 #endif
 import XCTApodini
 import ApodiniUtils
+import AsyncHTTPClient
 
 
 struct ResponseWithPid<T: Codable>: Codable {
@@ -204,45 +205,54 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // second test phase: send some requests to the web service and see how it handles them //
         // ------------------------------------------------------------------------------------ //
         
+        let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
         
         func sendTestRequest(
-            to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
-        ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
-            return URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
-                    return
-                }
-                let msg = "request to '\(path)' failed."
-                do {
-                    let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
-                    let data = try XCTUnwrap(data, msg)
-                    print("""
-                        Got response for req to '\(path)':
-                        - response: \(response)
-                        - data: \(data) (as JSON: \(Result.init(catching: { try JSONSerialization.jsonObject(with: data, options: []) })))
-                        """
-                    )
-                    try responseValidator(response, data)
-                } catch {
-                    XCTFail("\(msg): \(error.localizedDescription)")
-                }
+            to path: String, responseValidator: @escaping (HTTPClient.Response, ByteBuffer) throws -> Void
+        ) throws {
+//            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
+//            return URLSession.shared.dataTask(with: url) { data, response, error in
+//                if let error = error {
+//                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
+//                    return
+//                }
+//                let msg = "request to '\(path)' failed."
+//                do {
+//                    let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
+//                    let data = try XCTUnwrap(data, msg)
+//                    print("""
+//                        Got response for req to '\(path)':
+//                        - response: \(response)
+//                        - data: \(data) (as JSON: \(Result.init(catching: { try JSONSerialization.jsonObject(with: data, options: []) })))
+//                        """
+//                    )
+//                    try responseValidator(response, data)
+//                } catch {
+//                    XCTFail("\(msg): \(error.localizedDescription)")
+//                }
+//            }
+            let msg = "request to '\(path)' failed."
+            let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
+            let body = try XCTUnwrap(response.body, msg)
+            do {
+                try responseValidator(response, body)
+            } catch {
+                XCTFail("\(msg): \(error.localizedDescription)")
             }
         }
         
         try sendTestRequest(to: "/v1/") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
             responseExpectationV1.fulfill()
-        }.resume()
+        }
         
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
         try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
             textMutPid.write { pid in
@@ -254,11 +264,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             responseExpectationV1TextMut.fulfill()
-        }.resume()
+        }
         
         
         try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
                 let text: String
                 let textMutPid: pid_t
@@ -274,7 +284,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
             responseExpectationV1Greeter.fulfill()
-        }.resume()
+        }
         
         
         // Wait for the second phase to complete.
@@ -285,6 +295,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             timeout: 15,
             enforceOrder: false
         )
+        
+        try httpClient.syncShutdown()
         
         resetOutput()
         stdioObserverHandle = nil
