@@ -20,8 +20,24 @@ import NIOHTTP2
 import NIOSSL
 import NIOHPACK
 import NIOWebSocket
+import NIOTransportServices // TODO does this need a `#if canImport`?
 import Foundation
 import Logging
+
+
+protocol __AN_NIOServerBootstrapProtocol: AnyObject {
+    init(group: EventLoopGroup)
+    func serverChannelOption<Option: ChannelOption>(_ option: Option, value: Option.Value) -> Self
+    func childChannelOption<Option: ChannelOption>(_ option: Option, value: Option.Value) -> Self
+    func childChannelInitializer(_ initializer: @escaping (Channel) -> EventLoopFuture<Void>) -> Self
+    func bind(host: String, port: Int) -> EventLoopFuture<Channel>
+    func bind(to address: SocketAddress) -> EventLoopFuture<Channel>
+    func bind(unixDomainSocketPath: String) -> EventLoopFuture<Channel>
+}
+
+extension ServerBootstrap: __AN_NIOServerBootstrapProtocol {}
+extension NIOTSListenerBootstrap: __AN_NIOServerBootstrapProtocol {}
+
 
 
 struct ApodiniNetworkingError: Swift.Error {
@@ -196,9 +212,15 @@ public final class HTTPServer {
         guard !(enableHTTP2 && tlsConfiguration == nil) else {
             throw ApodiniNetworkingError(message: "Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
         }
-        let bootstrap = ServerBootstrap(group: eventLoopGroup)
-            .serverChannelOption(ChannelOptions.backlog, value: 256)
-            .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
+        var bootstrap: __AN_NIOServerBootstrapProtocol
+        #if canImport(NIOTransportServices)
+        bootstrap = NIOTSListenerBootstrap(group: eventLoopGroup)
+        #else
+        bootstrap = ServerBootstrap(group: eventLoopGroup)
+        #endif
+        //let bootstrap = NIOTSListenerBootstrap(group: eventLoopGroup)
+        //let bootstrap_old = ServerBootstrap(group: eventLoopGroup)
+        bootstrap = bootstrap
             .childChannelInitializer { [unowned self] (channel: Channel) -> EventLoopFuture<Void> in
                 logger.notice("Configuring NIO channel pipeline. TLS: \(tlsConfiguration != nil), HTTP/2: \(enableHTTP2)")
                 if let tlsConfig = tlsConfiguration {
@@ -230,8 +252,11 @@ public final class HTTPServer {
                     }
                 }
             }
+        #if !canImport(NIOTransportServices)
+        bootstrap = bootstrap
+            .serverChannelOption(ChannelOptions.backlog, value: 256)
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
-        
+        #endif
         
         switch address {
         case let .interface(hostname, port):
