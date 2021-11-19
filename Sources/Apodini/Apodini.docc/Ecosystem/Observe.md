@@ -266,15 +266,18 @@ struct ExampleWebService: WebService {
 }
 ```
 
-As the `MetricsConfiguration` is quite complex, `ApodiniObserve` offers a seperate `ApodiniObserveMetricsPrometheus` target that drastically simplifies the configuration process for the common [Prometheus](https://prometheus.io/) software stack. Include the dependency like:
+As the `MetricsConfiguration` is quite complex, `ApodiniObserve` offers a seperate [`ApodiniObserveMetricsPrometheus` Swift package](https://github.com/Apodini/ApodiniObserveMetricsPrometheus) that drastically simplifies the configuration process for the common [Prometheus](https://prometheus.io/) software stack. Include the dependency like:
 ```swift
+dependencies: [
+    .package(url: "https://github.com/Apodini/ApodiniObserveMetricsPrometheus.git", from: "1.0.0"),
+],
 targets: [
     .executableTarget(
         name: "WebService",
         dependencies: [
             .product(name: "Apodini", package: "Apodini"),
             .product(name: "ApodiniObserve", package: "Apodini"),
-            .product(name: "ApodiniObserveMetricsPrometheus", package: "Apodini"),
+            .product(name: "ApodiniObserveMetricsPrometheus", package: "ApodiniObserveMetricsPrometheus"),
         ]
     ),
 ]
