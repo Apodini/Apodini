@@ -17,7 +17,7 @@ import ApodiniHTTP
 @testable import MetricsTestUtils
 
 // swiftlint:disable closure_body_length lower_acl_than_parent
-class ApodiniMetricsTests: XCTestCase {
+public class ApodiniMetricsTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
     static let testMetricsFactory = TestMetrics()
@@ -33,7 +33,7 @@ class ApodiniMetricsTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var greeterDimensions: [(String, String)]!
     
-    override class func setUp() {
+    public override class func setUp() {
         super.setUp()
         
         app = Application()
@@ -65,7 +65,7 @@ class ApodiniMetricsTests: XCTestCase {
         visitor.finishParsing()
     }
     
-    override class func tearDown() {
+    public override class func tearDown() {
         super.tearDown()
         
         app.shutdown()

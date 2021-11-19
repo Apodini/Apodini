@@ -9,6 +9,7 @@
 import XCTest
 import XCTApodini
 import XCTApodiniNetworking
+import XCTApodiniObserve
 import Metrics
 @testable import Prometheus
 @testable import ApodiniObserve

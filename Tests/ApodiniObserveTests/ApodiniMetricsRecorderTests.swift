@@ -9,6 +9,7 @@
 import XCTest
 import XCTApodini
 import XCTApodiniNetworking
+import XCTApodiniObserve
 import Logging
 import Metrics
 import ApodiniObserve
