@@ -113,10 +113,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         var currentLineOutput = String(reservingCapacity: 250)
         /// Whether the previously collected output ended with a line break
         var previousOutputDidEndWithNewline = false
+        let handleOutputLock = NSLock()
         
         func handleOutput(_ text: String, printToStdout: Bool = false) {
+            handleOutputLock.lock()
+            defer { handleOutputLock.unlock() }
             if printToStdout {
-                print("\(previousOutputDidEndWithNewline ? "[DP] " : "")\(text)", terminator: "")
+                //print("\(previousOutputDidEndWithNewline ? "[DP] " : "")\(text)", terminator: "")
+                print(text.replacingOccurrences(of: "\n", with: "\n[DP] "))
+//                for line in text.split(separator: "\n") {
+//                    print("[DP] \(line)")
+//                }
                 fflush(stdout)
             }
             currentLineOutput.append(text)

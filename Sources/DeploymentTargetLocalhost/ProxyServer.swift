@@ -151,17 +151,20 @@ private struct ProxyRequestResponder: HTTPResponder {
                 }
             }()
         )
-        let responseDelegate = AsyncHTTPClientForwardingResonseDelegate(
+        let responseDelegate = AsyncHTTPClientForwardingResponseDelegate(
             on: httpClient.eventLoopGroup.next(),
             endpointCommPattern: endpointCommPattern
         )
-        _ = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate)
+        let reqEndFuture = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate).futureResult
+        reqEndFuture.whenComplete { _ in
+            print(responseDelegate)
+        }
         return responseDelegate.httpResponseFuture
     }
 }
 
 
-private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelegate {
+private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDelegate {
     typealias Response = Void
     
     private var response: HTTPResponse?
@@ -180,6 +183,7 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
+        print(Self.self, #function, head)
         guard response == nil else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
@@ -201,6 +205,7 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
     }
     
     func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+        print(Self.self, buffer, buffer.getString(at: 0, length: buffer.readableBytes))
         guard let response = response else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
@@ -209,6 +214,7 @@ private class AsyncHTTPClientForwardingResonseDelegate: HTTPClientResponseDelega
     }
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
+        print(Self.self, #function)
         guard let response = response else {
             throw ProxyServer.Error(message: "Already handling response")
         }
