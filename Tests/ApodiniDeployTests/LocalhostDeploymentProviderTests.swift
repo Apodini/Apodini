@@ -165,7 +165,6 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             
             let startedServers: [StartedServerInfo] = currentPhaseOutput.compactMap { line in
-                print("line: \(line)")
                 let matches = serverLaunchedRegex.matches(in: line, options: [], range: NSRange(line.startIndex..<line.endIndex, in: line))
                 guard matches.count == 1 else {
                     return nil
@@ -248,15 +247,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 print("create delegate")
                 let delegate = HTTPRequestClientResponseDelegate()
                 print("create request")
-                let request = try HTTPClient.Request(url: "http://localhost\(path)", method: .GET, headers: [:], body: nil)
+                let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
                 print("execute request, wait() on response")
                 let response = try httpClient.execute(request: request, delegate: delegate).wait()
-                //let response = try httpClient.execute(.GET, url: "http://localhost\(path)").wait()
                 print("unwrap body")
                 let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
                 try responseValidator(response, body)
             } catch {
-                XCTFail("\(msg): \(error.localizedDescription)")
+                XCTFail("\(msg): \(error.localizedDescription) \(error)")
             }
         }
         
