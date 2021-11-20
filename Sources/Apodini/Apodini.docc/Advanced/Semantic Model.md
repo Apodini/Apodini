@@ -173,7 +173,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``EndpointSource``
 - ``AnyEndpointSource``
 - ``Blackboards``
-- ``Context``
+- `Context`
 - ``CommunicationalPattern``
 <!-- TODO: ``All`` -->
 <!-- TODO: external KS: 
