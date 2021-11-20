@@ -44,7 +44,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
     
     init(handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]) {
         self.handlersToRemoveOnWebSocketUpgrade = handlersToRemoveOnWebSocketUpgrade
-        logger[metadataKey: "self"] = "\(GetMemoryAddressAsHexString(self))"
+        logger[metadataKey: "self"] = "\(getMemoryAddressAsHexString(self))"
     }
     
     

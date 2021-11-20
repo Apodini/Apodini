@@ -143,7 +143,7 @@ extension CharacterSet {
 
 
 /// :nodoc
-public func GetMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
+public func getMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
     switch object {
     case nil:
         return "0x0"

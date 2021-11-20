@@ -157,7 +157,9 @@ private struct ProxyRequestResponder: HTTPResponder {
         )
         let reqEndFuture = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate).futureResult
         reqEndFuture.whenComplete { _ in
-            print(responseDelegate)
+            // Tie the lifetime of the response delegate to the duration of the HTTP request.
+            // Not sure whether this is actually necessary.
+            _ = responseDelegate
         }
         return responseDelegate.httpResponseFuture
     }
@@ -177,17 +179,16 @@ private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDeleg
     }
     
     init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern) {
-        print(Self.self, #function)
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointCommPattern = endpointCommPattern
+        print(Self.self, #function, getMemoryAddressAsHexString(self))
     }
     
     deinit {
-        print(Self.self, #function)
+        print(Self.self, #function, getMemoryAddressAsHexString(self))
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
-        print(Self.self, #function, head)
         guard response == nil else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
@@ -214,15 +215,16 @@ private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDeleg
     }
     
     func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
-        print(Self.self, #function, buffer, buffer.getString(at: 0, length: buffer.readableBytes))
         guard let response = response else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
         response.bodyStorage.write(buffer)
         switch response.bodyStorage {
         case .buffer:
-            precondition(response.bodyStorage.readableBytes == self.expectedContentLength)
-            print("precondition match. \(response.bodyStorage.readableBytes) == \(self.expectedContentLength)")
+            if let expectedContentLength = expectedContentLength {
+                precondition(response.bodyStorage.readableBytes == expectedContentLength)
+                print("precondition match. \(response.bodyStorage.readableBytes) == \(expectedContentLength)")
+            }
             httpResponsePromise.succeed(response)
         case .stream:
             break
@@ -231,7 +233,6 @@ private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDeleg
     }
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
-        print(Self.self, #function)
         guard let response = response else {
             throw ProxyServer.Error(message: "Already handling response")
         }
