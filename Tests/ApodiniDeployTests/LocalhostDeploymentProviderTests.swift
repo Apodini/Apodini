@@ -227,7 +227,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }
         print("did create http client: \(httpClient)")
         
-        func sendTestRequest(to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void) {
+        func sendTestRequest(to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void) throws {
 //            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
 //            return URLSession.shared.dataTask(with: url) { data, response, error in
 //                if let error = error {
@@ -249,20 +249,31 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 //                    XCTFail("\(msg): \(error.localizedDescription)")
 //                }
 //            }
+//            let msg = "request to '\(path)' failed."
+//            do {
+//                print("create delegate")
+//                let delegate = HTTPRequestClientResponseDelegate(validationFailurePrefix: msg, validationBlock: <#T##(HTTPResponse) throws -> Void#>)
+//                print("create request")
+//                let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+//                print("execute request, wait() on response")
+//                let response = try httpClient.execute(request: request, delegate: delegate).wait()
+////                print("unwrap body")
+////                let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
+////                try responseValidator(response, body)
+//            } catch {
+//                XCTFail("\(msg): \(error.localizedDescription) \(error)")
+//            }
             let msg = "request to '\(path)' failed."
-            do {
-                print("create delegate")
-                let delegate = HTTPRequestClientResponseDelegate()
-                print("create request")
-                let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
-                print("execute request, wait() on response")
-                let response = try httpClient.execute(request: request, delegate: delegate).wait()
-                print("unwrap body")
-                let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
-                try responseValidator(response, body)
-            } catch {
-                XCTFail("\(msg): \(error.localizedDescription) \(error)")
+            let delegate = HTTPRequestClientResponseDelegate { response in
+                do {
+                    let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
+                    try responseValidator(response, body)
+                } catch {
+                    XCTFail("\(msg): \(error.localizedDescription) \(error)")
+                }
             }
+            let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+            _ = httpClient.execute(request: request, delegate: delegate)
         }
         
         print("Will start 1st test")
@@ -364,9 +375,14 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
 
 
 class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate {
-    typealias Response = HTTPResponse
+    typealias Response = Void
     
+    private let responseHandler: (HTTPResponse) -> Void
     private var response: HTTPResponse?
+    
+    init(responseHandler: @escaping (HTTPResponse) -> Void) {
+        self.responseHandler = responseHandler
+    }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
         self.response = HTTPResponse.init(version: head.version, status: head.status, headers: head.headers)
@@ -387,7 +403,11 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
         XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
     }
     
-    func didFinishRequest(task: HTTPClient.Task<HTTPResponse>) throws -> HTTPResponse {
-        try XCTUnwrap(response)
+    func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
+        guard let response = response else {
+            XCTFail("nil response object. this should literally never happen.")
+            fatalError("Missing response")
+        }
+        responseHandler(response)
     }
 }
