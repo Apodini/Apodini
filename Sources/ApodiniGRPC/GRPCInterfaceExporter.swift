@@ -13,6 +13,7 @@ import ApodiniExtension
 @_implementationOnly import NIOHPACK
 @_implementationOnly import ProtobufferCoding
 
+
 /// Public Apodini Interface Exporter for gRPC
 public final class GRPC: Configuration {
     let configuration: GRPC.ExporterConfiguration
@@ -78,11 +79,11 @@ final class GRPCInterfaceExporter: LegacyInterfaceExporter {
         }
 
         do {
-            let serviceType = endpoint[ServiceType.self]
-            if serviceType == .unary {
+            let commPattern = endpoint[CommunicationalPattern.self]
+            if commPattern == .requestResponse {
                 try service.exposeUnaryEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported unary gRPC endpoint \(serviceName)/\(methodName)")
-            } else if serviceType == .clientStreaming {
+            } else if commPattern == .clientSideStream {
                 try service.exposeClientStreamingEndpoint(endpoint, strategy: decodingStrategy)
                 app.logger.info("Exported client-streaming gRPC endpoint \(serviceName)/\(methodName)")
             } else {

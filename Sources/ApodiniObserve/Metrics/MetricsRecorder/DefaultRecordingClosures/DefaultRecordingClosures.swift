@@ -52,7 +52,6 @@ public enum DefaultRecordingClosures {
             ("exporter", "\(observeMetadata.exporterMetadata.exporterType)"),
             ("operation", observeMetadata.blackboardMetadata.operation.rawValue),
             ("communicational_pattern", observeMetadata.blackboardMetadata.communicationalPattern.rawValue),
-            ("service_type", observeMetadata.blackboardMetadata.serviceType.rawValue),
             ("response_type", "\(observeMetadata.blackboardMetadata.responseType.type)")
         ]
     }

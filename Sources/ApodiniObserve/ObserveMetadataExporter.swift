@@ -24,7 +24,6 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
             let anyEndpointSource: AnyEndpointSource
             let handleReturnType: HandleReturnType
             let responseType: ResponseType
-            let serviceType: ServiceType
             let communicationalPattern: CommunicationalPattern
         }
         
@@ -68,7 +67,6 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
                 anyEndpointSource: endpoint[AnyEndpointSource.self],
                 handleReturnType: endpoint[HandleReturnType.self],
                 responseType: endpoint[ResponseType.self],
-                serviceType: endpoint[ServiceType.self],
                 communicationalPattern: endpoint[CommunicationalPattern.self]
             )
         )

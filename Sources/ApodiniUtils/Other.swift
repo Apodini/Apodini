@@ -140,3 +140,14 @@ extension CharacterSet {
         other.reduce(into: []) { $0.formUnion($1) }
     }
 }
+
+
+/// :nodoc
+public func getMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
+    switch object {
+    case nil:
+        return "0x0"
+    case .some(let value):
+        return Unmanaged.passUnretained(value).toOpaque().debugDescription
+    }
+}

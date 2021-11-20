@@ -56,9 +56,10 @@ extension Exporter {
                     try! transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    precondition(optionalResponse != nil)
-                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
+                .map { response in
+                    precondition(response != nil)
+                    response?.setContentLengthForCurrentBody()
+                    return response ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                 }
         }
     }

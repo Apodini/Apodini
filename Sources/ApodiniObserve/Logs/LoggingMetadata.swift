@@ -100,7 +100,6 @@ private extension LoggingMetadata {
                 String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType))
             ),
             "handlerReturnType": .string(String(describing: self.observeMetadata.blackboardMetadata.handleReturnType.type)),
-            "serviceType": .string(self.observeMetadata.blackboardMetadata.serviceType.rawValue),
             "communicationalPattern": .string(self.observeMetadata.blackboardMetadata.communicationalPattern.rawValue)
         ]
     }
