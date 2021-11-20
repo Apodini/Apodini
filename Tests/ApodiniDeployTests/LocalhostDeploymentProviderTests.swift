@@ -119,11 +119,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutputLock.lock()
             defer { handleOutputLock.unlock() }
             if printToStdout {
-                //print("\(previousOutputDidEndWithNewline ? "[DP] " : "")\(text)", terminator: "")
                 print(text.replacingOccurrences(of: "\n", with: "\n[DP] "))
-//                for line in text.split(separator: "\n") {
-//                    print("[DP] \(line)")
-//                }
                 fflush(stdout)
             }
             currentLineOutput.append(text)
@@ -218,51 +214,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // second test phase: send some requests to the web service and see how it handles them //
         // ------------------------------------------------------------------------------------ //
         
-        print("will create http client")
         let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
         defer {
-            print("will shutdown httpClient")
             try! httpClient.syncShutdown()
-            print("did shutdown httpClient")
         }
-        print("did create http client: \(httpClient)")
         
         func sendTestRequest(to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void) throws {
-//            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
-//            return URLSession.shared.dataTask(with: url) { data, response, error in
-//                if let error = error {
-//                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
-//                    return
-//                }
-//                let msg = "request to '\(path)' failed."
-//                do {
-//                    let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
-//                    let data = try XCTUnwrap(data, msg)
-//                    print("""
-//                        Got response for req to '\(path)':
-//                        - response: \(response)
-//                        - data: \(data) (as JSON: \(Result.init(catching: { try JSONSerialization.jsonObject(with: data, options: []) })))
-//                        """
-//                    )
-//                    try responseValidator(response, data)
-//                } catch {
-//                    XCTFail("\(msg): \(error.localizedDescription)")
-//                }
-//            }
-//            let msg = "request to '\(path)' failed."
-//            do {
-//                print("create delegate")
-//                let delegate = HTTPRequestClientResponseDelegate(validationFailurePrefix: msg, validationBlock: <#T##(HTTPResponse) throws -> Void#>)
-//                print("create request")
-//                let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
-//                print("execute request, wait() on response")
-//                let response = try httpClient.execute(request: request, delegate: delegate).wait()
-////                print("unwrap body")
-////                let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
-////                try responseValidator(response, body)
-//            } catch {
-//                XCTFail("\(msg): \(error.localizedDescription) \(error)")
-//            }
             let msg = "request to '\(path)' failed."
             let delegate = HTTPRequestClientResponseDelegate { response in
                 do {
@@ -276,17 +233,13 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
-        print("Will start 1st test")
         try sendTestRequest(to: "/v1/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
             responseExpectationV1.fulfill()
-            print("did finish 1st test")
         }
         
-        
-        print("Will start 2nd test")
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
         try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
@@ -302,11 +255,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             responseExpectationV1TextMut.fulfill()
-            print("did finish 2nd test")
         }
         
-        
-        print("Will start 3rd test")
         try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
@@ -324,11 +274,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
             responseExpectationV1Greeter.fulfill()
-            print("did finish 3rd test")
         }
         
-        
-        print("will wait")
         // Wait for the second phase to complete.
         // This phase sends some requests to the deployed web service and checks that they were handled correctly.
         // We give it 20 seconds just to be safe
@@ -385,7 +332,7 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
     }
     
     func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
-        self.response = HTTPResponse.init(version: head.version, status: head.status, headers: head.headers)
+        self.response = HTTPResponse(version: head.version, status: head.status, headers: head.headers)
         return task.eventLoop.makeSucceededVoidFuture()
     }
     

@@ -151,7 +151,7 @@ private struct ProxyRequestResponder: HTTPResponder {
                 }
             }()
         )
-        let responseDelegate = AsyncHTTPClientForwardingResponseDelegate(
+        let responseDelegate = ProxyServerForwardingResponseDelegate(
             on: httpClient.eventLoopGroup.next(),
             endpointCommPattern: endpointCommPattern
         )
@@ -166,7 +166,7 @@ private struct ProxyRequestResponder: HTTPResponder {
 }
 
 
-private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDelegate {
+private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate {
     typealias Response = Void
     
     private var response: HTTPResponse?

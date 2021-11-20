@@ -149,8 +149,5 @@ public func getMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
         return "0x0"
     case .some(let value):
         return Unmanaged.passUnretained(value).toOpaque().debugDescription
-        //let ptr = Unmanaged.passUnretained(value).toOpaque()
-        //return String(format: "%p", ptr.assumingMemoryBound(to: T.self))
     }
 }
-
