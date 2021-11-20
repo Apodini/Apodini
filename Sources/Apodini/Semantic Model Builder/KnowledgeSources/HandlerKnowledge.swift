@@ -50,15 +50,6 @@ public struct RootContextOfReturnTypeContextKey: ContextKey {
     public static var defaultValue = Context()
 }
 
-
-extension ServiceType: ContextKeyKnowledgeSource {
-    public typealias Key = ServiceTypeContextKey
-    
-    public init(from value: Key.Value) throws {
-        self = value
-    }
-}
-
 extension Operation: OptionalContextKeyKnowledgeSource {
     public typealias Key = OperationHandlerMetadata.Key
     
