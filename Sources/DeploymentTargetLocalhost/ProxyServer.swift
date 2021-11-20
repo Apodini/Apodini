@@ -172,6 +172,10 @@ private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDeleg
     private let httpResponsePromise: EventLoopPromise<HTTPResponse>
     var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
     
+    private var expectedContentLength: Int? {
+        response?.headers[.contentLength]
+    }
+    
     init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern) {
         print(Self.self, #function)
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
@@ -200,16 +204,29 @@ private class AsyncHTTPClientForwardingResponseDelegate: HTTPClientResponseDeleg
                 }
             }()
         )
-        httpResponsePromise.succeed(response!)
+        switch response!.bodyStorage {
+        case .buffer:
+            break
+        case .stream:
+            httpResponsePromise.succeed(response!)
+        }
         return task.eventLoop.makeSucceededVoidFuture()
     }
     
     func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
-        print(Self.self, buffer, buffer.getString(at: 0, length: buffer.readableBytes))
+        print(Self.self, #function, buffer, buffer.getString(at: 0, length: buffer.readableBytes))
         guard let response = response else {
             return task.eventLoop.makeFailedFuture(ProxyServer.Error(message: "Already handling response"))
         }
         response.bodyStorage.write(buffer)
+        switch response.bodyStorage {
+        case .buffer:
+            precondition(response.bodyStorage.readableBytes == self.expectedContentLength)
+            print("precondition match. \(response.bodyStorage.readableBytes) == \(self.expectedContentLength)")
+            httpResponsePromise.succeed(response)
+        case .stream:
+            break
+        }
         return task.eventLoop.makeSucceededVoidFuture()
     }
     
