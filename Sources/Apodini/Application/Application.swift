@@ -17,9 +17,6 @@ import Logging
 import NIO
 import NIOConcurrencyHelpers
 import Dispatch
-#if canImport(NIOTransportServices)
-import NIOTransportServices
-#endif
 
 
 /// Delegate methods related to application lifecycle
@@ -142,11 +139,7 @@ public final class Application {
         case .shared(let group):
             self.eventLoopGroup = group
         case .createNew:
-            #if canImport(NIOTransportServices)
-            self.eventLoopGroup = NIOTSEventLoopGroup(loopCount: System.coreCount, defaultQoS: .default)
-            #else
             self.eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-            #endif
         }
         self.locks = .init()
         self.didShutdown = false

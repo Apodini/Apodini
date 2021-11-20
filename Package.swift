@@ -71,7 +71,6 @@ let package = Package(
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.16.0"),
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.18.0"),
-        .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.11.3"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0"),
         // Swift logging API
@@ -133,7 +132,6 @@ let package = Package(
                 .product(name: "MetadataSystem", package: "MetadataSystem"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
@@ -347,7 +345,6 @@ let package = Package(
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
-                .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Logging", package: "swift-log")
