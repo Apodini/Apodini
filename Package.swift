@@ -51,6 +51,7 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniObserveMetricsPrometheus", targets: ["ApodiniObserveMetricsPrometheus"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
@@ -60,59 +61,60 @@ let package = Package(
         .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.13.0"),
+        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
-        // Used by the `NotificationCenter` to send push notifications to `APNS`.
-        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.0.0"),
+        // Used by the `NotificationCenter` to send push notifications to `APNS`
+        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        // Update to 2.32 or higher once https://github.com/swift-server/swift-aws-lambda-runtime tags a new release with swift-nio 2.32 or higher
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.31.0")),
+        // Event-driven network application framework for high performance protocol servers & clients, non-blocking
+        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.33.0")),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
-        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.13.0"),
-        // HTTP/2 support for SwiftNIO
-        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.17.0"),
+        .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.16.0"),
+        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.18.0"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
-        .package(url: "https://github.com/apple/swift-collections", .upToNextMinor(from: "0.0.4")),
-        .package(url: "https://github.com/Supereg/Runtime.git", from: "2.2.3"),
-        // restore original package url once https://github.com/wickwirew/Runtime/pull/93
-        // and https://github.com/wickwirew/Runtime/pull/95 are merged
-        // .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.3"),
-        //.package(url: "https://github.com/PSchmiedmayer/Runtime", .branch("master")),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
+        .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
         // Used for testing of the new ExporterConfiguration
-        .package(url: "https://github.com/soto-project/soto-core.git", from: "5.3.0"),
+        .package(url: "https://github.com/soto-project/soto-core.git", from: "5.7.0"),
         
         // Deploy
-        //.package(url: "https://github.com/vapor-community/vapor-aws-lambda-runtime.git", .upToNextMinor(from: "0.6.2")),
-        .package(url: "https://github.com/soto-project/soto.git", from: "5.5.0"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.3.0"),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.10.0"),
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.4.0"),
         
         // testing runtime crashes
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.1")),
 
         // Apodini Authorization
-        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
+        
+        // Apodini Observe
+        .package(url: "https://github.com/neallester/swift-log-testing.git", from: "0.0.0"),
+        .package(url: "https://github.com/apple/swift-metrics.git", .upToNextMinor(from: "2.2.0")),
+        // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
+        // is versioned and already contains test functionality
+        .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.0")),
-        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0")
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -130,6 +132,7 @@ let package = Package(
             name: "Apodini",
             dependencies: [
                 .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
                 .product(name: "ApodiniContext", package: "MetadataSystem"),
                 .product(name: "MetadataSystem", package: "MetadataSystem"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
@@ -155,8 +158,10 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "_NIOConcurrency", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -181,6 +186,9 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -336,6 +344,7 @@ let package = Package(
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -344,6 +353,16 @@ let package = Package(
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNetworkingHTTPSupport",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
             ]
         ),
         
@@ -550,6 +569,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "XCTApodini"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "SotoS3", package: "soto"),
@@ -635,7 +655,10 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "Logging", package: "swift-log")
+                .target(name: "ApodiniNetworking"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras")
             ]
         ),
         
@@ -680,6 +703,33 @@ let package = Package(
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "Apodini")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniObserveMetricsPrometheus",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniObserveTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .target(name: "ApodiniObserveMetricsPrometheus"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTP"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SwiftLogTesting", package: "swift-log-testing"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "MetricsTestUtils", package: "swift-metrics-extras"),
+                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
             ]
         )
     ]

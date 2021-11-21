@@ -51,8 +51,6 @@ class ComponentTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        
-        //try app.vapor.app.test(.GET, "/v1/") { res in
         try app.testable().test(.GET, "/v1/") { res in
             XCTAssertEqual(res.status, .ok)
             XCTAssertEqual(try XCTUnwrapRESTResponseData(String.self, from: res), "Hello")

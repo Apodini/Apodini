@@ -66,7 +66,6 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         self.documentBuilder = OpenAPIDocumentBuilder(
             configuration: self.exporterConfiguration
         )
-        setApplicationServer(from: app)
         updateStorage()
     }
     
@@ -90,18 +89,10 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         exporterConfiguration.license = webService.context.get(valueFor: LicenseMetadata.self)
         exporterConfiguration.tags = webService.context.get(valueFor: TagDescriptionMetadata.self)
         exporterConfiguration.externalDocumentation = webService.context.get(valueFor: WebServiceExternalDocumentationMetadata.self)
+        exporterConfiguration.serverUrls.insert(URL(string: app.httpConfiguration.uriPrefix)!)
 
         serveSpecification()
         updateStorage()
-    }
-    
-    private func setApplicationServer(from app: Apodini.Application) {
-        switch app.http.address {
-        case .hostname:
-            exporterConfiguration.serverUrls.insert(URL(string: app.http.addressStringValue)!)
-        case .unixDomainSocket:
-            fatalError("Not yet supported")
-        }
     }
     
     private func updateStorage() {

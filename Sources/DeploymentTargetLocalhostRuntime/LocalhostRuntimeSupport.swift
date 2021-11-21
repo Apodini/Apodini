@@ -39,12 +39,9 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     }
     
     public func configure(_ app: Apodini.Application) throws {
-        switch app.http.address {
-        case .hostname(let hostname, port: _):
-            app.http.address = .hostname(hostname, port: currentNodeCustomLaunchInfo.port)
-        case .unixDomainSocket(path: _):
-            fatalError("Expected a hostname-based address")
-        }
+        app.storage[HTTPConfigurationStorageKey.self] = HTTPConfiguration(
+            bindAddress: .interface(HTTPConfiguration.Defaults.bindAddress, port: currentNodeCustomLaunchInfo.port)
+        )
     }
     
     public func handleRemoteHandlerInvocation<H: IdentifiableHandler>(
@@ -52,7 +49,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     ) throws -> RemoteHandlerInvocationRequestResponse<H.Response.Content> {
         guard
             let LLI = invocation.targetNode.readUserInfo(as: LocalhostLaunchInfo.self),
-            let url = URL(string: "http://127.0.0.1:\(LLI.port)")
+            let url = URL(string: "http://localhost:\(LLI.port)")
         else {
             throw ApodiniDeployRuntimeSupportError(
                 deploymentProviderId: identifier,

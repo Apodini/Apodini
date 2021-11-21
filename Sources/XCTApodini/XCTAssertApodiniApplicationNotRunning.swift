@@ -15,13 +15,13 @@ public func XCTAssertApodiniApplicationNotRunning(
     file: StaticString = #filePath,
     line: UInt = #line
 ) {
-    let processesAtPort8080 = runShellCommand(.getProcessesAtPort(8080))
-    if !processesAtPort8080.isEmpty {
+    let processesAtPort80 = runShellCommand(.getProcessesAtPort(80))
+    if !processesAtPort80.isEmpty {
         #if !os(Linux)
         XCTFail(
             """
-            A web service is running at port 8080 after running the test case.
-            All processes at port 8080 must be shut down after running the test case.
+            A web service is running at port 80 after running the test case.
+            All processes at port 80 must be shut down after running the test case.
             
             \(message())
             """,
@@ -31,13 +31,13 @@ public func XCTAssertApodiniApplicationNotRunning(
         #else
         print(
             """
-            A web service is running at port 8080 after running the test case:
-                \(processesAtPort8080)
+            A web service is running at port 80 after running the test case:
+                \(processesAtPort80)
             
             \(message())
             """
         )
         #endif
-        runShellCommand(.killPort(8080))
+        runShellCommand(.killPort(80))
     }
 }

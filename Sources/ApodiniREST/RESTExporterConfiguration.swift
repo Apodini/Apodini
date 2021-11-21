@@ -12,23 +12,6 @@ import ApodiniNetworking
 
 
 extension REST {
-    /// Configuration of the RESTful Interface
-    public struct Configuration {
-        let configuration: Apodini.Application.HTTP
-        let uriPrefix: String
-        
-        init(_ configuration: Apodini.Application.HTTP) {
-            self.configuration = configuration
-            let hasTLS = configuration.tlsConfiguration != nil
-            switch configuration.address {
-            case let .hostname(hostname, port):
-                self.uriPrefix = "http\(hasTLS ? "s" : "")://\(hostname):\(port)"
-            case .unixDomainSocket(let path):
-                self.uriPrefix = "http\(hasTLS ? "s" : "")+unix:\(path)"
-            }
-        }
-    }
-    
     /// Configuration of the `RESTInterfaceExporter`
     public struct ExporterConfiguration {
         /// The to be used `AnyEncoder` for encoding responses of the `RESTInterfaceExporter`

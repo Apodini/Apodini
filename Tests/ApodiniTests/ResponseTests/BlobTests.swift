@@ -16,47 +16,47 @@ import XCTApodini
 final class BlobTests: ApodiniTests {
     func testBlobResponseHandler() throws {
         struct BlobResponseHandler: Handler {
-            @Parameter var mimeType: MimeType
+            @Parameter var mediaType: HTTPMediaType
             
             func handle() -> Blob {
-                Blob(Data(), type: mimeType)
+                Blob(Data(), type: mediaType)
             }
         }
         
         let handler = BlobResponseHandler().inject(app: app)
         let endpoint = handler.mockEndpoint()
 
-        let mimeTypes = [
-            MimeType.text(.html, parameters: ["Test": "Test"]),
-            MimeType.application(.json),
-            MimeType.image(.gif),
-            MimeType.custom(type: "application", subtype: "pkcs8", parameters: ["Test": "Test"])
+        let mediaTypes = [
+            HTTPMediaType.text(.html, parameters: ["Test": "Test"]),
+            HTTPMediaType.application(.json),
+            HTTPMediaType.image(.gif),
+            HTTPMediaType(type: "application", subtype: "pkcs8", parameters: ["Test": "Test"])
         ]
         
-        let exporter = MockExporter<String>(queued: mimeTypes[0], mimeTypes[1], mimeTypes[2], mimeTypes[3])
+        let exporter = MockExporter<String>(queued: mediaTypes[0], mediaTypes[1], mediaTypes[2], mediaTypes[3])
         let context = endpoint.createConnectionContext(for: exporter)
 
         try XCTCheckResponse(
             context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
-            content: Blob(Data(), type: mimeTypes[0]),
+            content: Blob(Data(), type: mediaTypes[0]),
             connectionEffect: .close
         )
         
         try XCTCheckResponse(
             context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
-            content: Blob(Data(), type: mimeTypes[1]),
+            content: Blob(Data(), type: mediaTypes[1]),
             connectionEffect: .close
         )
         
         try XCTCheckResponse(
             context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
-            content: Blob(Data(), type: mimeTypes[2]),
+            content: Blob(Data(), type: mediaTypes[2]),
             connectionEffect: .close
         )
         
         try XCTCheckResponse(
             context.handle(request: "", eventLoop: app.eventLoopGroup.next()),
-            content: Blob(Data(), type: mimeTypes[3]),
+            content: Blob(Data(), type: mediaTypes[3]),
             connectionEffect: .close
         )
     }
@@ -64,10 +64,10 @@ final class BlobTests: ApodiniTests {
     func testBlobRESTEndpointHandler() throws {
         struct BlobResponseHandler: Handler {
             @Parameter var name: String
-            @Parameter var mimeType: MimeType
+            @Parameter var mediaType: HTTPMediaType
             
             func handle() -> Apodini.Response<Blob> {
-                .send(Blob(Data(name.utf8), type: mimeType), status: .ok)
+                .send(Blob(Data(name.utf8), type: mediaType), status: .ok)
             }
         }
         
@@ -76,33 +76,32 @@ final class BlobTests: ApodiniTests {
         
         let exporter = RESTInterfaceExporter(app)
         let endpointHandler = RESTEndpointHandler(
-            with: REST.Configuration(app.http),
-            exporterConfiguration: REST.ExporterConfiguration(),
+            with: app,
+            withExporterConfiguration: REST.ExporterConfiguration(),
             for: endpoint,
             rendpoint,
             on: exporter
         )
         
         
-        func makeRequest(blobContent: String, mimeType: MimeType) throws {
+        func makeRequest(blobContent: String, mediaType: HTTPMediaType) throws {
             let request = HTTPRequest(
                 remoteAddress: nil,
                 version: .http1_1,
                 method: .POST,
                 url: URI(string: "https://ase.in.tum.de/schmiedmayer?name=\(blobContent)")!,
                 headers: [:],
-                bodyStorage: .buffer(initialValue: try JSONEncoder().encode(mimeType)),
+                bodyStorage: .buffer(initialValue: try JSONEncoder().encode(mediaType)),
                 eventLoop: app.eventLoopGroup.next()
             )
-            
             let response = try endpointHandler.respond(to: request).makeHTTPResponse(for: request).wait()
             let responseString = try XCTUnwrap(response.bodyStorage.readNewDataAsString())
             XCTAssertEqual(responseString, blobContent)
         }
 
-        try makeRequest(blobContent: "Nadine", mimeType: .application(.json))
-        try makeRequest(blobContent: "Paul", mimeType: .text(.plain, parameters: ["User": "Paul"]))
-        try makeRequest(blobContent: "Bernd", mimeType: .image(.gif))
+        try makeRequest(blobContent: "Nadine", mediaType: .application(.json))
+        try makeRequest(blobContent: "Paul", mediaType: .text(.plain, parameters: ["User": "Paul"]))
+        try makeRequest(blobContent: "Bernd", mediaType: .image(.gif))
     }
     
     func testBlobAndMimeTypeWithOpenAPIExporter() throws {
@@ -114,11 +113,11 @@ final class BlobTests: ApodiniTests {
         let blobSchema = try componentsBuilder.buildSchema(for: Blob.self)
         XCTAssertEqual(blobSchema, .string(format: .binary))
         
-        let mimeTypeResponse = try componentsBuilder.buildResponse(for: MimeType.self)
-        XCTAssertEqual(.reference(.component(named: "MimeTypeResponse")), mimeTypeResponse)
+        let mimeTypeResponse = try componentsBuilder.buildResponse(for: HTTPMediaType.self)
+        XCTAssertEqual(.reference(.component(named: "HTTPMediaTypeResponse")), mimeTypeResponse)
         
-        let mimeTypeSchema = try componentsBuilder.buildSchema(for: MimeType.self)
-        XCTAssertEqual(.reference(.component(named: "MimeType")), mimeTypeSchema)
+        let mimeTypeSchema = try componentsBuilder.buildSchema(for: HTTPMediaType.self)
+        XCTAssertEqual(.reference(.component(named: "HTTPMediaType")), mimeTypeSchema)
     }
     
     func testBlobEncoding() throws {
@@ -128,39 +127,43 @@ final class BlobTests: ApodiniTests {
         encoder.outputFormatting = .prettyPrinted
         let encodedBlob = try XCTUnwrap(String(data: try encoder.encode(blob), encoding: .utf8))
         
-        XCTAssert(encodedBlob.contains(#""byteBuffer" : "UGF1bA==""#))
+        XCTAssert(encodedBlob.contains(#""data" : "UGF1bA==""#))
         XCTAssert(encodedBlob.contains(#""type" : "text""#))
         XCTAssert(encodedBlob.contains(#""subtype" : "plain""#))
     }
     
     func testMIMEToAndFromString() throws {
-        let stringEncodedMimeType = try XCTUnwrap(MimeType("text/plain;test=test;test2=test"))
+        let stringEncodedMimeType = try XCTUnwrap(HTTPMediaType("text/plain;test=test;test2=test"))
         
         XCTAssertEqual(stringEncodedMimeType.type, "text")
         XCTAssertEqual(stringEncodedMimeType.subtype, "plain")
         XCTAssertEqual(stringEncodedMimeType.parameters["test"], "test")
         XCTAssertEqual(stringEncodedMimeType.parameters["test2"], "test")
         XCTAssertTrue(
-            stringEncodedMimeType.description == "text/plain;test=test;test2=test"
-            || stringEncodedMimeType.description == "text/plain;test2=test;test=test"
+            stringEncodedMimeType.description == "text/plain; test=test; test2=test"
+            || stringEncodedMimeType.description == "text/plain; test2=test; test=test"
         )
         
-        let simpleEtringEncodedMimeType = try XCTUnwrap(MimeType("text/plain"))
+        let simpleEtringEncodedMimeType = try XCTUnwrap(HTTPMediaType("text/plain"))
         XCTAssertEqual(simpleEtringEncodedMimeType.type, "text")
         XCTAssertEqual(simpleEtringEncodedMimeType.subtype, "plain")
         XCTAssertEqual(simpleEtringEncodedMimeType.description, "text/plain")
         
-        let customMimeType = MimeType.custom(type: "video", subtype: "mp4")
+        let customMimeType = HTTPMediaType(type: "video", subtype: "mp4")
         XCTAssertEqual(customMimeType.type, "video")
         XCTAssertEqual(customMimeType.subtype, "mp4")
         XCTAssertEqual(customMimeType.parameters, [:])
         
-        XCTAssertNil(MimeType("text"))
-        XCTAssertEqual(MimeType("text/plain;parameter"), MimeType(type: "text", subtype: "plain"))
-        XCTAssertEqual(MimeType("text/markdown"), MimeType(type: "text", subtype: "markdown"))
-        XCTAssertEqual(MimeType("application/widget"), MimeType(type: "application", subtype: "widget"))
-        XCTAssertEqual(MimeType("image/tiff"), MimeType(type: "image", subtype: "tiff"))
-        XCTAssertEqual(MimeType("video/mp4"), MimeType(type: "video", subtype: "mp4"))
+        XCTAssertNil(HTTPMediaType("text"))
+        XCTAssertEqual(HTTPMediaType("text/plain;parameter"), HTTPMediaType(type: "text", subtype: "plain"))
+        XCTAssertEqual(HTTPMediaType("text/markdown"), HTTPMediaType(type: "text", subtype: "markdown"))
+        XCTAssertEqual(HTTPMediaType("application/widget"), HTTPMediaType(type: "application", subtype: "widget"))
+        XCTAssertEqual(HTTPMediaType("image/tiff"), HTTPMediaType(type: "image", subtype: "tiff"))
+        XCTAssertEqual(HTTPMediaType("video/mp4"), HTTPMediaType(type: "video", subtype: "mp4"))
+        XCTAssertEqual(
+            try XCTUnwrap(HTTPMediaType("text/plain;test=test;test2=test")),
+            try XCTUnwrap(HTTPMediaType("text/plain; test=test; test2=test"))
+        )
     }
     
     func testMIMEDecoding() throws {
@@ -176,7 +179,7 @@ final class BlobTests: ApodiniTests {
             """
         
         let decoder = JSONDecoder()
-        let mimeType = try XCTUnwrap(decoder.decode(MimeType.self, from: Data(validMIMEJSON.utf8)))
+        let mimeType = try XCTUnwrap(decoder.decode(HTTPMediaType.self, from: Data(validMIMEJSON.utf8)))
         
         XCTAssertEqual(mimeType.type, "text")
         XCTAssertEqual(mimeType.subtype, "plain")
@@ -194,6 +197,6 @@ final class BlobTests: ApodiniTests {
             }
             """
         
-        try XCTAssertThrowsError(decoder.decode(MimeType.self, from: Data(inValidMIMEJSON.utf8)))
+        try XCTAssertThrowsError(decoder.decode(HTTPMediaType.self, from: Data(inValidMIMEJSON.utf8)))
     }
 }

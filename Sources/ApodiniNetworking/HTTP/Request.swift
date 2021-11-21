@@ -40,12 +40,12 @@ extension HTTPRequest {
 /// A HTTP request
 public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
-        /// The requst's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
+        /// The request's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained single-path-component wildcards
+        /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained single-path-component wildcards
         /// key: index of wildcard in path components array
         var singleComponentWildcards: [Int: String] = [:]
-        /// The request's parameters that are the result from matching the request againat a ``HTTPRouter.Route`` which contained multi-path-component wildcards
+        /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained multi-path-component wildcards
         /// key: index of wildcard in path components array
         var multipleComponentWildcards: [Int: [String]] = [:]
     }
@@ -104,15 +104,64 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     
     
     var loggingMetadata: [LoggingMetadataInformation] {
-         [
-            LoggingMetadataInformation(key: .init("ApodiniNetworkingRequestDescription"), rawValue: .string(self.description)),
-            //LoggingMetadataInformation(key: .init("HTTPBody"), rawValue: .string(self.bodyData.count < 32_768 ? String(decoding: self.bodyData, as: UTF8.self) : "\(String(decoding: self.bodyData, as: UTF8.self).prefix(32_715))... (further bytes omitted since HTTP body too large!")),
-            //LoggingMetadataInformation(key: .init("HTTPContentType"), rawValue: .string(self.content.contentType?.description ?? "unknown")),
-            //LoggingMetadataInformation(key: .init("hasSession"), rawValue: .string(self.hasSession.description)),
-            //LoggingMetadataInformation(key: .init("route"), rawValue: .string(self.route?.description ?? "unknown")),
-            //LoggingMetadataInformation(key: .init("HTTPVersion"), rawValue: .string(self.version.description)),
-            LoggingMetadataInformation(key: .init("url"), rawValue: .string(self.url.stringValue))
-         ]
+        var metadata: [LoggingMetadataInformation] = [
+            LoggingMetadataInformation(
+                key: .init("ApodiniNetworkingRequestDescription"),
+                rawValue: .string(self.description)
+            ),
+            LoggingMetadataInformation(
+                key: .init("HTTPContentType"),
+                rawValue: .string(self.headers[.contentType]?.encodeToHTTPHeaderFieldValue() ?? "unknown")
+            ),
+            LoggingMetadataInformation(
+                key: .init("HTTPVersion"),
+                rawValue: .string(self.version.description)
+            ),
+            LoggingMetadataInformation(
+                key: .init("url"),
+                rawValue: .string(self.url.stringValue)
+            ),
+            LoggingMetadataInformation(
+                key: .init("url.path"),
+                rawValue: .string(self.url.path)
+            ),
+            LoggingMetadataInformation(
+                key: .init("url.pathAndQuery"),
+                rawValue: .string(self.url.pathIncludingQueryAndFragment)
+            )
+        ]
+        switch bodyStorage {
+        case .buffer(let buffer):
+            metadata.append(LoggingMetadataInformation(
+                key: .init("HTTPBody"),
+                rawValue: .string(buffer.getString(
+                    at: buffer.readerIndex,
+                    length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes
+                ) ?? "HTTP body couldn't be read")
+            ))
+        case .stream(let stream):
+            if let buffer = stream.getNewData() {
+                metadata.append(LoggingMetadataInformation(
+                    key: .init("HTTPBody"),
+                    rawValue: .string(buffer.getString(
+                        at: buffer.readerIndex,
+                        length: buffer.readableBytes > 32_768 ? 32_768 : buffer.readableBytes
+                    ) ?? "HTTP body couldn't be read")
+                ))
+            } else {
+                metadata.append(LoggingMetadataInformation(
+                    key: .init("HTTPBody"),
+                    rawValue: .string("")
+                ))
+            }
+        }
+        if let route = route {
+            metadata.append(LoggingMetadataInformation(
+                key: .init("route"),
+                rawValue: .string("\(route.method) \(route.path.httpPathString)")
+            ))
+        }
+        return metadata
     }
     
     /// Read a query param value, decoded to the specified type.

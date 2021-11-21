@@ -258,14 +258,14 @@ class EndToEndTests: XCTApodiniTest {
         try app.testable().test(.GET, "/blob/Paul") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Hello, Paul!")
-            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
+            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
             XCTAssertEqual(response.headers["Test"].first, "Test")
         }
         
         try app.testable().test(.GET, "/blob/Andi?greeting=Wuzzup") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Wuzzup, Andi!")
-            XCTAssertEqual(response.headers["Content-Type"].first, "text/plain")
+            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
             XCTAssertEqual(response.headers["Test"].first, "Test")
         }
     }

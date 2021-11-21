@@ -82,7 +82,6 @@ final class DatabaseHandlerTests: ApodiniTests {
         let request = HTTPRequest(method: .GET, url: url, eventLoop: app.eventLoopGroup.next())
         
         let idParameter = try pathParameter(for: handler)
-        //request.parameters.set("\(idParameter.id)", to: "\(birdId)")
         request.setParameter(for: "\(idParameter.id)", to: "\(birdId)")
         
         try XCTCheckResponse(

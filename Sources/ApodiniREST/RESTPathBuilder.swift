@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniNetworking
 
+
 struct RESTPathBuilder: PathBuilder {
     private(set) var pathComponents: [HTTPPathComponent] = []
     private var pathString: [String] = []
@@ -30,8 +31,4 @@ struct RESTPathBuilder: PathBuilder {
         pathComponents.append(.namedParameter(parameter.pathId))
         pathString.append("{\(parameter.name)}")
     }
-
-//    func routesBuilder(_ app: Vapor.Application) -> Vapor.RoutesBuilder {
-//        app.routes.grouped(pathComponents)
-//    }
 }

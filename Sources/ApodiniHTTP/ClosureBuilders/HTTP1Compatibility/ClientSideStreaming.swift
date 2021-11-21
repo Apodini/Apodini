@@ -53,12 +53,13 @@ extension Exporter {
                     }
                 }
                 .map { (response: Apodini.Response<H.Response.Content>) -> HTTPResponse in
-                    return try! transformer.transform(input: response)
+                    try! transformer.transform(input: response)
                 }
                 .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    precondition(optionalResponse != nil)
-                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
+                .map { response in
+                    precondition(response != nil)
+                    response?.setContentLengthForCurrentBody()
+                    return response ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                 }
         }
     }

@@ -24,7 +24,7 @@ public class HTTPResponse {
     /// This response's body. This can be either a buffer-, or a stream-based body, see the `BodyStorage` type for more info.
     public var bodyStorage: BodyStorage
     /// Whether the request handler should ignore the value in the `version` property, and instead use the request's version.
-    /// This option should be avoided if possible, and it really just here to accomodate very specific edge cases in which a response
+    /// This option should be avoided if possible, and it really just here to accommodate very specific edge cases in which a response
     /// is created in a context where the matching HTTP request is not available, and we want to defer the selection of the HTTP version
     /// to the HTTPServer's request handler. In that case, you can pass any value to the initializer's version parameter, and then later,
     /// by setting this property to `true`, tell the server to ignore that value, and instead use the HTTP version found in the request object.
@@ -44,6 +44,11 @@ public class HTTPResponse {
         self.status = status
         self.headers = headers
         self.bodyStorage = bodyStorage
+    }
+    
+    /// Sets the `Content-Length` header to match the number of readable bytes currently in the response's body.
+    public func setContentLengthForCurrentBody() {
+        headers[.contentLength] = bodyStorage.readableBytes
     }
 }
 

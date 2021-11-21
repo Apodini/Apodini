@@ -6,6 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if DEBUG || RELEASE_TESTING
+
 import Apodini
 @_exported import ApodiniNetworking
 import XCTest
@@ -94,17 +96,20 @@ extension XCTApodiniNetworkingRequestResponseTester {
         responseEnd: (HTTPResponse) throws -> Void
     ) throws {
         do {
-            try self.performTest(XCTHTTPRequest(
-                version: version,
-                method: method,
-                url: makeUrl(version: version, path: path),
-                headers: headers,
-                body: body,
-                file: file,
-                line: line
-            ), expectedBodyType: expectedBodyType, responseStart: responseStart, responseEnd: responseEnd) // swiftlint:disable:this multiline_arguments line_length
-            // ^^ this is ironic, the only reason why we need to disable the line_length rule is
-            // because the preceding swiftlint comment pushed it over the limit...
+            try self.performTest(
+                XCTHTTPRequest(
+                    version: version,
+                    method: method,
+                    url: makeUrl(version: version, path: path),
+                    headers: headers,
+                    body: body,
+                    file: file,
+                    line: line
+                ),
+                expectedBodyType: expectedBodyType,
+                responseStart: responseStart,
+                responseEnd: responseEnd
+            )
         } catch {
             XCTFail("\(error)", file: file, line: line)
             throw error
@@ -116,10 +121,10 @@ extension XCTApodiniNetworkingRequestResponseTester {
 extension Apodini.Application {
     public enum TestingMethod: Hashable {
         case inMemory
-        case actualRequests(hostname: String?, port: Int?)
+        case actualRequests(interface: String?, port: Int?)
         
         public static var actualRequests: TestingMethod {
-            .actualRequests(hostname: nil, port: nil)
+            .actualRequests(interface: nil, port: nil)
         }
     }
     
@@ -130,8 +135,8 @@ extension Apodini.Application {
             switch method {
             case .inMemory:
                 return InMemoryTester(app: self)
-            case let .actualRequests(hostname, port):
-                return ActualRequestsTester(app: self, hostname: hostname, port: port)
+            case let .actualRequests(interface, port):
+                return ActualRequestsTester(app: self, interface: interface, port: port)
             }
         })
     }
@@ -177,12 +182,12 @@ extension Apodini.Application {
     
     private struct ActualRequestsTester: XCTApodiniNetworkingRequestResponseTester {
         let app: Apodini.Application
-        let hostname: String?
+        let interface: String?
         let port: Int?
         
-        init(app: Apodini.Application, hostname: String?, port: Int?) {
+        init(app: Apodini.Application, interface: String?, port: Int?) {
             self.app = app
-            self.hostname = hostname
+            self.interface = interface
             self.port = port
         }
         
@@ -193,12 +198,14 @@ extension Apodini.Application {
             responseEnd: (HTTPResponse) throws -> Void
         ) throws {
             precondition(!app.httpServer.isRunning)
-            let address: (hostname: String, port: Int)
-            switch app.http.address {
-            case let .hostname(currentAppHostname, port: currentAppPort):
-                address = (hostname ?? currentAppHostname, port ?? currentAppPort)
-                app.http.address = .hostname(address.hostname, port: address.port)
-            case .unixDomainSocket(_):
+            let address: (interface: String, port: Int?)
+            switch app.httpConfiguration.bindAddress {
+            case let .interface(currentAppHostname, port: currentAppPort):
+                address = (interface ?? currentAppHostname, port ?? currentAppPort)
+                //app.httpConfiguration.address = .hostname(address.hostname, port: address.port)
+                HTTPConfiguration(hostname: nil, bindAddress: .interface(address.interface, port: address.port))
+                    .configure(app)
+            case .unixDomainSocket:
                 fatalError("Expected a hostname-based http config")
             }
             
@@ -223,7 +230,7 @@ extension Apodini.Application {
                 }
             )
             let responseTask = httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
-                url: "\(request.url.scheme)://\(address.hostname):\(address.port)\(request.url.pathIncludingQueryAndFragment)",
+                url: "\(request.url.scheme)://\(address.interface):\(address.port)\(request.url.pathIncludingQueryAndFragment)",
                 method: request.method,
                 headers: request.headers,
                 body: .byteBuffer(request.body),
@@ -289,3 +296,5 @@ private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTP
         task.cancel()
     }
 }
+
+#endif // DEBUG || RELEASE_TESTING

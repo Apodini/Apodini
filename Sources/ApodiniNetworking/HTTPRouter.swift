@@ -86,7 +86,7 @@ extension Array where Element == HTTPPathComponent {
             switch pathComponent {
             case .verbatim(let value):
                 partialResult.append("v[\(value)]")
-            case .namedParameter(_):
+            case .namedParameter:
                 partialResult.append(":")
             case .wildcardSingle:
                 partialResult.append("*")
@@ -162,7 +162,6 @@ final class HTTPRouter {
     
     private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
         guard let candidates = routes[request.method] else {
-            logger.error("[Router] Unable to find a route for \(request.method) request to '\(request.url)'")
             return nil
         }
         
@@ -173,12 +172,10 @@ final class HTTPRouter {
                 allowsCaseInsensitiveMatching: isCaseInsensitiveRoutingEnabled,
                 allowsEmptyMultiWildcards: false // NOTE do we want to expose this via a property on the router??
             ) {
-                logger.info("[Router] matched '\(request.url)' to route at '\(route.path.httpPathString)'")
                 request.populate(from: route, withParameters: parameters)
                 return route
             }
         }
-        logger.error("[Router] Unable to find a route for \(request.method) request to '\(request.url)'")
         return nil
     }
 }

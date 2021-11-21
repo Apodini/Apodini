@@ -86,7 +86,7 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
                 ),
                 version: "2.3.0"
             ),
-            servers: [.init(url: URL(string: "http://0.0.0.0:8080")!)],
+            servers: [.init(url: URL(string: "http://localhost")!)],
             paths: [:],
             components: .init(),
             tags: [

@@ -353,8 +353,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.status, .ok)
-            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedLinksContainer.self)
-            let prefix = "http://0.0.0.0:8080"
+            //let linksContainer = try XCTUnwrap((XCTUnwrapRESTResponse(Void.self, from: response).links
+            //let container = try response.content.decode(DecodedLinksContainer.self)
+            let container = try response.bodyStorage.getFullBodyData(decodedAs: DecodedLinksContainer.self, using: JSONDecoder())
+            let prefix = "http://localhost"
             XCTAssertEqual(container.links, ["test1": prefix + "/test1", "test2": prefix + "/test2", "test3": prefix + "/test3"])
         }
     }
@@ -414,7 +416,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
             let responseJSON = try XCTUnwrapRESTResponse(String.self, from: response)
-            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://0.0.0.0:8080/v1"]))
+            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://localhost/v1"]))
         }
     }
     

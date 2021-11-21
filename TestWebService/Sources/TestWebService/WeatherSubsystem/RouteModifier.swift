@@ -8,8 +8,7 @@
 
 import Apodini
 import Foundation
-import _NIOConcurrency
-
+import NIO
 
 extension Component {
     func asRoute() -> DelegationModifier<Self, TripWeatherRouteInitializer<Never>> {

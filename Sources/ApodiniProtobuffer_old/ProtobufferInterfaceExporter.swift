@@ -21,10 +21,10 @@ public final class Protobuffer: GRPCDependentStaticConfiguration {
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: GRPC.ExporterConfiguration) {
-        /// Set configartion of parent
+        /// Set configuration of parent
         self.configuration.parentConfiguration = parentConfiguration
         
-        /// Instanciate exporter
+        /// Instantiate exporter
         let protobufferExporter = ProtobufferInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`

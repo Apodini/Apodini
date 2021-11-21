@@ -46,7 +46,7 @@ extension WebService {
         }
         
         do {
-            // Parse the CLI arguments
+            // Parse CLI arguments with the Swift ArgumentParser
             var command = try parseAsRoot(arguments)
             
             let mirror = Mirror(reflecting: command)
@@ -139,7 +139,7 @@ extension WebService {
         webService: Self = Self()
     ) throws -> Application {
         var webServiceCopy = webService
-        /// Inject the `Application` instance to allow access to it via the `@Environment` property wrapper
+        /// Inject the `Application` instance to allow access to it directly in the `WebService` via the `@Environment` property wrapper
         Apodini.inject(app: app, to: &webServiceCopy)
         Apodini.activate(&webServiceCopy)
         
@@ -163,12 +163,6 @@ extension WebService {
     func start(app: Application) {
         /// Configure application and instanciate exporters
         self.configuration.configure(app)
-        
-        // If no specific address hostname is provided we bind to the default address to automatically and correctly bind in Docker containers.
-        if app.http.address == nil {
-            app.http.address = .hostname(HTTPConfiguration.Defaults.hostname, port: HTTPConfiguration.Defaults.port)
-        }
-        
         self.register(SemanticModelBuilder(app))
     }
 }

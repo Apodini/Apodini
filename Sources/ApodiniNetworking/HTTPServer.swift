@@ -5,6 +5,13 @@
 //
 // SPDX-License-Identifier: MIT
 //
+//
+// This code is based on the Vapor project: https://github.com/vapor/vapor
+//
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
+//
+// SPDX-License-Identifier: MIT
+//
 
 import Apodini
 import NIO
@@ -87,7 +94,7 @@ public final class HTTPServer {
     public var tlsConfiguration: TLSConfiguration? {
         switch config {
         case .app(let app):
-            return app.http.tlsConfiguration
+            return app.httpConfiguration.tlsConfiguration
         case .custom(let storage):
             return storage.tlsConfiguration
         }
@@ -97,7 +104,7 @@ public final class HTTPServer {
     public var enableHTTP2: Bool {
         switch config {
         case .app(let app):
-            return app.http.supportVersions.contains(.two)
+            return app.httpConfiguration.supportVersions.contains(.two)
         case .custom(let storage):
             return storage.enableHTTP2
         }
@@ -107,7 +114,7 @@ public final class HTTPServer {
     public var address: BindAddress {
         switch config {
         case .app(let app):
-            return app.http.address
+            return app.httpConfiguration.bindAddress
         case .custom(let storage):
             return storage.address
         }
@@ -123,14 +130,14 @@ public final class HTTPServer {
     }
     
     
-    init(app: Apodini.Application) {
-        self.config = .app(app)
-        self.router = HTTPRouter(logger: app.logger)
+    internal var registeredRoutes: [HTTPRouter.Route] {
+        router.allRoutes
     }
     
     
-    internal var registeredRoutes: [HTTPRouter.Route] {
-        router.allRoutes
+    init(app: Apodini.Application) {
+        self.config = .app(app)
+        self.router = HTTPRouter(logger: app.logger)
     }
     
     
@@ -188,6 +195,9 @@ public final class HTTPServer {
         guard channel == nil else {
             throw ApodiniNetworkingError(message: "Cannot start already-running servers")
         }
+        guard !(enableHTTP2 && tlsConfiguration == nil) else {
+            throw ApodiniNetworkingError(message: "Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
+        }
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
             .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
@@ -220,26 +230,22 @@ public final class HTTPServer {
                         }
                 } else {
                     if enableHTTP2 {
-                        // NOTE this doesn't make sense and (probably) doesn't work
-                        //return channel.addApodiniNetworkingHTTP2Handlers(responder: self)
-                        return channel.addApodiniNetworkingHTTP2Handlers(
-                            inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
-                            httpResponder: self
-                        )
+                        fatalError("Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
                     } else {
                         return channel.addApodiniNetworkingHTTP1Handlers(responder: self)
                     }
                 }
             }
-            .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
-            .childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         
         switch address {
-        case let .hostname(hostname, port):
+        case let .interface(hostname, port):
             logger.info("Will bind to \(addressString)")
-            channel = try bootstrap.bind(host: hostname, port: port).wait()
+            channel = try bootstrap.bind(
+                host: hostname,
+                port: port ?? (tlsConfiguration != nil ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            ).wait() // swiftlint:disable:this multiline_function_chains
             logger.info("Server starting on \(addressString)")
         case .unixDomainSocket(let path):
             logger.info("Will bind to \(addressString)")
@@ -251,8 +257,10 @@ public final class HTTPServer {
     
     private var addressString: String {
         switch address {
-        case let .hostname(hostname, port):
-            return "http\(tlsConfiguration != nil ? "s" : "")://\(hostname):\(port)"
+        case let .interface(hostname, port):
+            let isTLSEnabled = tlsConfiguration != nil
+            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            return "http\(isTLSEnabled ? "s" : "")://\(hostname):\(portNumber)"
         case .unixDomainSocket(let path):
             return "unix:\(path)"
         }

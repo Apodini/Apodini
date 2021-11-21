@@ -17,7 +17,7 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     typealias InboundIn = HTTPRequest
     typealias OutboundOut = HTTPResponse
     
-    private let responder: HTTPResponder // TODO does this introduce a retain cycle?? (we're passing the server here, which holds a reference to the channel, to the pipeline of which this handler is added!!!!
+    private let responder: HTTPResponder
     private var isCurrentlyWaitingOnSomeStream = false
     
     init(responder: HTTPResponder) {
@@ -65,11 +65,11 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
                 switch response.bodyStorage {
                 case .buffer:
                     if !keepAlive {
-                        context.close(mode: .all, promise: nil)
+                        context.close(mode: .output, promise: nil) // TODO .all? (here and everywhere else as well!!!)
                     }
                 case .stream(let stream):
                     if !keepAlive && stream.isClosed {
-                        context.close(mode: .all, promise: nil)
+                        context.close(mode: .output, promise: nil) // TODO .all?
                     }
                 }
             case .failure(let error):

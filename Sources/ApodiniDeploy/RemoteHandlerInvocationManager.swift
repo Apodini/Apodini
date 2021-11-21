@@ -289,7 +289,7 @@ extension Endpoint {
         on eventLoop: EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let delegate = self[DelegateFactory<H, ApodiniDeployInterfaceExporter>.self].instance()
-        
+        precondition(self[CommunicationalPattern.self] == .requestResponse)
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = InterfaceExporterLegacyStrategy(internalInterfaceExporter)
             .applied(to: self)
             .decodeRequest(from: request, with: DefaultRequestBasis(base: request), with: eventLoop)

@@ -74,6 +74,7 @@ extension Sequence {
         return ascending ? sorted : sorted.reversed()
     }
     
+    
     /// Returns the elements of the sequence, as an array consisting only of nonnull elements.
     /// - Note: This only removes one level of nullability. If you have nested optionals, you'll have to take care of that separately.
     public func dropNilValues<T>() -> [T] where Element == T? {

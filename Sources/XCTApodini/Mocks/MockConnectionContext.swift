@@ -57,14 +57,15 @@ public class ConnectionContext<Input, H: Handler> {
         let cachingRequest = latestRequest!.cache()
         return cachingRequest
             .evaluate(on: delegate, final ? .end : .open)
-            .map { response in (response, cachingRequest.peak(_:)) }
+            .map { response in (response, cachingRequest.peek(_:)) }
     }
     
     /// Evaluate the inner `Delegate` based on the given `event`.
     public func handle(
         eventLoop: EventLoop,
         observedObject: AnyObservedObject? = nil,
-        event: TriggerEvent) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+        event: TriggerEvent
+    ) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
         guard let request = self.latestRequest else {
             fatalError("Mock ConnectionContext tried to handle event before a Request was present.")
         }

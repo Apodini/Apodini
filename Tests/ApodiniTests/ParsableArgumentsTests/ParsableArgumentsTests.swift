@@ -23,17 +23,17 @@ class ParsableArgumentsTests: XCTApodiniTest {
         XCTAssertThrowsError(try NoDefaultsTestWebService.parseAsRoot([]))
         // Throw an error when we provide only "localhost` for the `hostname` argument
         XCTAssertThrowsError(try NoDefaultsTestWebService.parseAsRoot(["localhost"]))
-        // Throw an error when we provide only "8080" for the `--port` option
-        XCTAssertThrowsError(try NoDefaultsTestWebService.parseAsRoot(["--port", "8080"]))
+        // Throw an error when we provide only "80" for the `--port` option
+        XCTAssertThrowsError(try NoDefaultsTestWebService.parseAsRoot(["--port", "80"]))
     }
     
     // Test if the web service is successfully parsed when the correct arguments are provided
     // Provided arguments:
     // hostname : "localhost"
-    // --port   : "8080"
+    // --port   : "80"
     func testSuccessfulParsing() throws {
-        let command = try NoDefaultsTestWebService.parse(["localhost", "--port", "8080"])
-        XCTAssertEqual(command.port, 8080)
+        let command = try NoDefaultsTestWebService.parse(["localhost", "--port", "80"])
+        XCTAssertEqual(command.port, 80)
         XCTAssertEqual(command.hostname, "localhost")
     }
     
@@ -61,12 +61,12 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // If there is a subcommand in a configuration and we call it directly providing the web service arguments,
     // we still expect it to fail with a noValue error because the `test` option of subcommand was not provided
     // hostname : "localhost"
-    // --port   : "8080"
+    // --port   : "80"
     // test     : <commandName>
     // --test   : <missing value>
     func testFailedSubcommandWithInsufficientArguments() throws {
         do {
-            _ = try TestCommand<NoDefaultsTestWebService>.parse(["localhost", "--port", "8080", "test"])
+            _ = try TestCommand<NoDefaultsTestWebService>.parse(["localhost", "--port", "80", "test"])
         } catch {
             let commandError = try getCommandError(error)
             print(commandError)
@@ -83,7 +83,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // and we provided correct values for the subcommand's arguements/options, everything should work
     // Provided arguments:
     // hostname : "localhost"
-    // --port   : "8080"
+    // --port   : "80"
     // test     : <commandName>
     // --test   : "50"
     // Note: Since we parse it as `TestCommand` we dont need to pass the `test` command explicitly to the commands.
@@ -91,11 +91,11 @@ class ParsableArgumentsTests: XCTApodiniTest {
         let testCommand = try TestCommand<NoDefaultsTestWebService>.parse([
             "localhost",
             "--port",
-            "8080",
+            "80",
             "--test",
             "50"
         ])
-        XCTAssertEqual(testCommand.webServiceOptions.port, 8080)
+        XCTAssertEqual(testCommand.webServiceOptions.port, 80)
         XCTAssertEqual(testCommand.webServiceOptions.hostname, "localhost")
         XCTAssertEqual(testCommand.test, 50)
     }
@@ -106,7 +106,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // and we pass all web service arguments, but dont pass the options for the `super` nested arguments, it should fail.
     // Provided arguments:
     // hostname : "localhost"
-    // --port   : "8080"
+    // --port   : "80"
     // nested-super : <commandName>
     // --object   : <missing value>
     func testNestedCommandsMissingSuperOption() throws {
@@ -114,7 +114,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
             _ = try TestNestedCommand<NoDefaultsTestWebService>.parse([
                 "localhost",
                 "--port",
-                "8080",
+                "80",
                 "nested-super",
                 "nested-sub"
             ])
@@ -134,7 +134,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // and we pass all web service arguments, but dont pass the options for the `sub` nested arguments, it should fail.
     // Provided arguments:
     // hostname     : "localhost"
-    // --port       : "8080"
+    // --port       : "80"
     // nested-super : <commandName>
     // --object     : "5"
     // nested-sub   : <commandName>
@@ -144,7 +144,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
             _ = try NestedCommand<NoDefaultsTestWebService>.parse([
                 "localhost",
                 "--port",
-                "8080",
+                "80",
                 "nested-super",
                 "5",
                 "nested-sub"
@@ -166,18 +166,18 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // the super command of the nested should be initialized correctly.
     // Provided arguments:
     // hostname     : "localhost"
-    // --port       : "8080"
+    // --port       : "80"
     // nested-super : <commandName>
     // --object     : "50"
     func testNestedCommandSucceededWithoutSub() throws {
         let nestedSuperCommand = try TestNestedCommand<NoDefaultsTestWebService>.parse([
             "localhost",
             "--port",
-            "8080",
+            "80",
             "--object",
             "50"
         ])
-        XCTAssertEqual(nestedSuperCommand.webServiceOptions.port, 8080)
+        XCTAssertEqual(nestedSuperCommand.webServiceOptions.port, 80)
         XCTAssertEqual(nestedSuperCommand.webServiceOptions.hostname, "localhost")
         XCTAssertEqual(nestedSuperCommand.object, 50)
     }
@@ -187,7 +187,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
     // of the nested should be initialized correctly.
     // Provided arguments:
     // hostname     : "localhost"
-    // --port       : "8080"
+    // --port       : "80"
     // nested-super : <commandName>
     // --object     : "50"
     // nested-sub : <commandName>
@@ -196,11 +196,11 @@ class ParsableArgumentsTests: XCTApodiniTest {
         let nestedSuperCommand = try NestedCommand<NoDefaultsTestWebService>.parse([
             "localhost",
             "--port",
-            "8080",
+            "80",
             "--name",
             "apodini"
         ])
-        XCTAssertEqual(nestedSuperCommand.webServiceOptions.port, 8080)
+        XCTAssertEqual(nestedSuperCommand.webServiceOptions.port, 80)
         XCTAssertEqual(nestedSuperCommand.webServiceOptions.hostname, "localhost")
         XCTAssertEqual(nestedSuperCommand.name, "apodini")
     }
@@ -219,7 +219,7 @@ private struct NoDefaultsTestWebService: WebService {
     }
     
     var configuration: Configuration {
-        HTTPConfiguration(hostname: hostname, port: port)
+        HTTPConfiguration(bindAddress: .interface(hostname, port: port))
         TestSubcommandConfiguration<Self>()
         TestNestedSubcommandConfiguration<Self>()
     }

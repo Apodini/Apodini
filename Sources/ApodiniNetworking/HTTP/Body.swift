@@ -204,7 +204,7 @@ public enum BodyStorage {
     public mutating func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
         visitMutating(
             buffer: { buffer in
-                return eventLoop.makeSucceededFuture(buffer.readSlice(length: buffer.readableBytes) ?? .init())
+                eventLoop.makeSucceededFuture(buffer.readSlice(length: buffer.readableBytes) ?? .init())
             },
             stream: { stream in
                 // Note: ideally this would, once the stream ended, simply turn self into a .buffer with the collected data...
@@ -344,6 +344,13 @@ extension BodyStorage {
         public func readNewData() -> ByteBuffer? {
             lock.withLock {
                 storage.readSlice(length: storage.readableBytes)
+            }
+        }
+        
+        /// Reads new data from the stream, if available. Doesn't move the readIndex in the underlying `ByteBuffer`
+        public func getNewData() -> ByteBuffer? {
+            lock.withLock {
+                storage.getSlice(at: storage.readerIndex, length: storage.readableBytes)
             }
         }
         

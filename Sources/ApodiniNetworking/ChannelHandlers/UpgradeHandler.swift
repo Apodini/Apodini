@@ -5,6 +5,13 @@
 //
 // SPDX-License-Identifier: MIT
 //
+//
+// This code is based on the Vapor project: https://github.com/vapor/vapor
+//
+// SPDX-FileCopyrightText: 2020 Qutheory, LLC
+//
+// SPDX-License-Identifier: MIT
+//
 
 import NIO
 import NIOHTTP1
@@ -12,10 +19,11 @@ import NIOHTTP2
 import NIOWebSocket
 import WebSocketKit
 import Logging
+import ApodiniUtils
 
 
 /// A removable channel handler which can be used to upgrade HTTP1 requests to a different protocol.
-/// Heavily insired by Vapor's equivalent of this
+/// Heavily inspired by Vapor's equivalent of this
 class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, RemovableChannelHandler {
     typealias InboundIn = HTTPRequest
     typealias InboundOut = HTTPRequest
@@ -31,11 +39,12 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
     private let handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]
     private var state: State = .ready
     private var bufferedData: [NIOAny] = []
-    private let logger = Logger(label: "HTTPUpgradeHandler")
+    private var logger = Logger(label: "HTTPUpgradeHandler")
     
     
     init(handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]) {
         self.handlersToRemoveOnWebSocketUpgrade = handlersToRemoveOnWebSocketUpgrade
+        logger[metadataKey: "self"] = "\(getMemoryAddressAsHexString(self))"
     }
     
     
@@ -123,7 +132,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
                         self.logger.notice("Removing handlers")
                         let handlers: [RemovableChannelHandler] = [self] + self.handlersToRemoveOnWebSocketUpgrade
                         return .andAllComplete(handlers.map { handler in
-                            return context.pipeline.removeHandler(handler)
+                            context.pipeline.removeHandler(handler)
                         }, on: context.eventLoop)
                     }
                     .flatMap { () -> EventLoopFuture<Void> in

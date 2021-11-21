@@ -186,3 +186,13 @@ extension Array: DefaultInitialisable {}
 extension Set: DefaultInitialisable {}
 extension Dictionary: DefaultInitialisable {}
 
+
+/// :nodoc
+public func getMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
+    switch object {
+    case nil:
+        return "0x0"
+    case .some(let value):
+        return Unmanaged.passUnretained(value).toOpaque().debugDescription
+    }
+}

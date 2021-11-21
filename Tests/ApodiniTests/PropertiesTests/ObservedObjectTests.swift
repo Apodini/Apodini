@@ -126,7 +126,7 @@ class ObservedObjectTests: ApodiniTests {
         testObservable.text = "Hello Swift"
     }
     
-    func testObservedListenerNotShared() {
+    func testObservedListenerNotShared() throws {
         struct TestHandler: Handler {
             @Apodini.Environment(\Keys.testObservable) var testObservable: TestObservable
             
@@ -174,8 +174,8 @@ class ObservedObjectTests: ApodiniTests {
         
         // send initial mock request through context
         // (to simulate connection initiation by client)
-        _ = context1.handle(request: request)
-        _ = context2.handle(request: request)
+        _ = try context1.handle(request: request).wait()
+        _ = try context2.handle(request: request).wait()
         
         // register listener
         context1.register(listener: MandatoryTestListener(eventLoop: app.eventLoopGroup.next(), number: 1, context: context1))

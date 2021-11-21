@@ -13,7 +13,7 @@ import ApodiniNetworking
 
 
 struct RESTEndpointHandler<H: Handler>: HTTPResponder {
-    let configuration: REST.Configuration
+    let app: Apodini.Application
     let exporterConfiguration: REST.ExporterConfiguration
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
@@ -23,13 +23,13 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let defaultStore: DefaultValueStore
     
     init(
-        with configuration: REST.Configuration,
-        exporterConfiguration: REST.ExporterConfiguration,
+        with app: Apodini.Application,
+        withExporterConfiguration exporterConfiguration: REST.ExporterConfiguration,
         for endpoint: Endpoint<H>,
         _ relationshipEndpoint: AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter
     ) {
-        self.configuration = configuration
+        self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.endpoint = endpoint
         self.relationshipEndpoint = relationshipEndpoint
@@ -54,7 +54,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             .cache()
             .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
-                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peak(_:) ?? { _ in nil }
+                let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peek(_:) ?? { _ in nil }
                 return responseAndRequest.response.typeErasured.map { content in
                     EnrichedContent(
                         for: relationshipEndpoint,
@@ -71,8 +71,10 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                 
                 if let blob = response.content?.response.typed(Blob.self) {
                     var information = response.information
-                    if let contentType = blob.type?.description {
-                        information = information.merge(with: [AnyHTTPInformation(key: "Content-Type", rawValue: contentType)])
+                    if let contentType = blob.type {
+                        information = information.merge(with: [
+                            AnyHTTPInformation(key: "Content-Type", rawValue: contentType.encodeToHTTPHeaderFieldValue())
+                        ])
                     }
                     let httpResponse = HTTPResponse(
                         version: request.version,
@@ -83,10 +85,11 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     if let status = response.status {
                         httpResponse.status = HTTPResponseStatus(status)
                     }
+                    httpResponse.setContentLengthForCurrentBody()
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
-                let formatter = LinksFormatter(configuration: self.configuration)
+                let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
                 var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
                 let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
@@ -104,7 +107,12 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     links: links,
                     encoder: exporterConfiguration.encoder
                 )
-                return container.encodeResponse(for: request)
+                return container
+                    .encodeResponse(for: request)
+                    .map { response in
+                        response.setContentLengthForCurrentBody()
+                        return response
+                    }
             }
     }
 }

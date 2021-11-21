@@ -10,7 +10,7 @@ import Foundation
 import ApodiniUtils
 
 
-/// A URL
+/// A URI, i.e. a URL
 public struct URI: LosslessStringConvertible {
     public enum Scheme: String {
         case http
@@ -45,16 +45,16 @@ public struct URI: LosslessStringConvertible {
     }
     
     public init?(string: String) {
-        guard let nsUrl = URL(string: string) else {
+        guard let url = URL(string: string) else {
             return nil
         }
         self.init(
-            scheme: .init(rawValue: nsUrl.scheme ?? "http")!,
-            hostname: nsUrl.host ?? "",
-            port: nsUrl.port,
-            path: nsUrl.path,
-            rawQuery: nsUrl.query ?? "",
-            fragment: nsUrl.fragment ?? ""
+            scheme: .init(rawValue: url.scheme ?? "http")!,
+            hostname: url.host ?? "",
+            port: url.port,
+            path: url.path,
+            rawQuery: url.query ?? "",
+            fragment: url.fragment ?? ""
         )
     }
     
@@ -100,24 +100,26 @@ public struct URI: LosslessStringConvertible {
         }
         return retval
     }
-    
-    
-    /// Constructs, from this `URL`, a `Fondation.URL`
-    public func toNSURL() -> URL {
-        var components = URLComponents()
-        components.scheme = scheme.rawValue
-        components.host = hostname
-        components.port = port
-        components.path = path
-        components.query = rawQuery.isEmpty ? nil : rawQuery
-        components.fragment = fragment.isEmpty ? nil : fragment
-        return components.url!
-    }
 }
 
 
 extension URI: ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self.init(string: value)!
+    }
+}
+
+
+extension URL {
+    /// Constructs, a `Foundation.URL` from the specified `URI`.
+    public init(_ uri: URI) {
+        var components = URLComponents()
+        components.scheme = uri.scheme.rawValue
+        components.host = uri.hostname
+        components.port = uri.port
+        components.path = uri.path
+        components.query = uri.rawQuery.isEmpty ? nil : uri.rawQuery
+        components.fragment = uri.fragment.isEmpty ? nil : uri.fragment
+        self = components.url!
     }
 }
