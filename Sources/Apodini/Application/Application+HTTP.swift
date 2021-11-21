@@ -67,7 +67,7 @@ public struct TLSConfigurationBuilder {
         do {
             let certificate = try NIOSSLCertificate.fromPEMFile(certificatePath)
             let privateKey = try NIOSSLPrivateKey(file: keyPath, format: .pem)
-
+            
             self.tlsConfiguration = .makeServerConfiguration(
                 certificateChain: certificate.map { .certificate($0) },
                 privateKey: .privateKey(privateKey)

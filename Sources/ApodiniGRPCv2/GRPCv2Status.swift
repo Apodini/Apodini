@@ -1,5 +1,6 @@
 import NIOHPACK
 import ApodiniNetworking
+import ApodiniNetworkingHTTPSupport
 
 extension AnyHTTPHeaderName {
     // value should be a single digit, i.e. in the range 0...9

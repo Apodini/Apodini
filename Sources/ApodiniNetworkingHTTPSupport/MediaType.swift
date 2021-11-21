@@ -224,3 +224,14 @@ extension HTTPMediaType {
         HTTPMediaType(type: "image", subtype: subtype.rawValue, parameters: parameters)
     }
 }
+
+
+// ApodiniUtils extensions
+
+extension AnyEncoder {
+    /// Type-safe HTTP media type this encoder would encode into.
+    public var resultMediaType: HTTPMediaType? {
+        self.resultMediaTypeRawValue.flatMap { .init($0) }
+    }
+}
+

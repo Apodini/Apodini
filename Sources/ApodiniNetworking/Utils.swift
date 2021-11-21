@@ -12,14 +12,6 @@ import ApodiniUtils
 import Foundation
 
 
-extension AnyEncoder {
-    /// Type-safe HTTP media type this encoder would encode into.
-    public var resultMediaType: HTTPMediaType? {
-        self.resultMediaTypeRawValue.flatMap { .init($0) }
-    }
-}
-
-
 extension ByteBuffer {
     /// Reads all data currently in the byte buffer, without moving the reader index (i.e. non-consuming).
     public func getAllData() -> Data? {

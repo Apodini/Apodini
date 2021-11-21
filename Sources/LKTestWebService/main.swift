@@ -182,13 +182,21 @@ struct LKTestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        HTTP2Configuration(
-            cert: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
-            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+        HTTPConfiguration(
+            //hostname: .init(address: "localhost", port: 50001),
+            bindAddress: .interface("localhost", port: 50001),
+            tlsConfigurationBuilder: TLSConfigurationBuilder(
+                certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
+                keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+            )
         )
+//        HTTP2Configuration(
+//            cert: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
+//            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+//        )
 //        ApodiniHTTP.HTTP()
         //HTTP2Configuration(cert: <#T##String?#>, keyPath: <#T##String?#>)
-        HTTPConfiguration(hostname: "localhost")
+        //HTTPConfiguration(hostname: "localhost")
 //        REST()
         GRPCv2(packageName: "de.lukaskollmer", serviceName: "TestWebService")
 //        GRPCv2()

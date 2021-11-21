@@ -8,6 +8,22 @@ import ProtobufferCoding
 import Foundation
 
 
+extension HTTPMediaType {
+    /// gRPC media type subtype suffix options
+    enum GRPCEncodingOption: String {
+        case proto
+        case json
+    }
+    
+    /// Creates a gRPC media type with the specified encoding appended as the subtype's suffix
+    static func gRPC(_ encoding: GRPCEncodingOption) -> HTTPMediaType {
+        HTTPMediaType(type: "application", subtype: "grpc+\(encoding.rawValue)")
+    }
+    
+    /// The `application/grpc` media type without an explicitly specified encoding
+    static let gRPCPlain = HTTPMediaType(type: "application", subtype: "grpc")
+}
+
 
 struct GRPCv2Error: Swift.Error {
     let message: String
@@ -59,8 +75,16 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         self.defaultPackageName = defaultPackageName
         self.server = .init(defaultPackageName: defaultPackageName)
         // Configure HTTP/2
-        app.http.supportVersions.insert(.two)
-        app.http.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
+        guard app.httpConfiguration.supportVersions.contains(.two),
+              let tlsConfig = app.httpConfiguration.tlsConfiguration,
+              tlsConfig.applicationProtocols.contains("h2")
+        else {
+            fatalError("Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled.")
+        }
+//        app.httpConfiguration.supportVersions.insert(.two)
+//        app.httpConfiguration.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
+//        app.http.supportVersions.insert(.two)
+//        app.http.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
         
         // Create the default service (we only support one atm, but this implementation could also support multiple services
         server.createService(name: config.serviceName, associatedWithPackage: defaultPackageName)
@@ -171,7 +195,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
             return response
         }
         
-        app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPC, .gRPC(.proto), .gRPC(.json)]) { channel in
+        app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPCPlain, .gRPC(.proto), .gRPC(.json)]) { channel in
             channel.pipeline.addHandlers([
                 GRPCv2RequestDecoder(),
                 GRPCv2ResponseEncoder(),
