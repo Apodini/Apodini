@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "9fbef6bad614e0b1bf3083f629b40574c97ab0b9",
-          "version": "1.16.0"
+          "revision": "4dc196da17177d0099510c6a3e8b6db0e33466b5",
+          "version": "1.16.2"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "8587674e7e2499fd2017840973f416182025b02d",
-          "version": "3.12.1"
+          "revision": "dff8aba9973f2edd7ddb1d29d8d6994a516cf3c1",
+          "version": "3.13.0"
         }
       },
       {
@@ -200,21 +200,12 @@
         }
       },
       {
-        "package": "swift-backtrace",
-        "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
-        "state": {
-          "branch": null,
-          "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
-          "version": "1.3.1"
-        }
-      },
-      {
         "package": "swift-collections",
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
-          "version": "1.0.1"
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
@@ -285,8 +276,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "08e701df9a3b9108c56f1aef5d9ef9a78fda2846",
-          "version": "2.16.2"
+          "revision": "36f6419f2b1b6490a8c0faa840298e28027cefe9",
+          "version": "2.16.3"
         }
       },
       {
