@@ -159,26 +159,24 @@ class GRPCMethod {
         let defaults = endpoint[DefaultValueStore.self]
         
         self.streamRPCHandlerMaker = { () -> GRPCv2StreamRPCHandler in
-            switch endpoint[CommunicationalPattern.self] {
-            case .requestResponse:
-                return UnaryRPCHandler<H>(
-                    delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
-                    strategy: decodingStrategy,
-                    defaults: defaults,
-                    endpointContext: endpointContext
-                )
-            case .clientSideStream:
-                fatalError()
-            case .serviceSideStream:
-                return ServiceSideStreamRPCHandler<H>(
-                    delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
-                    strategy: decodingStrategy,
-                    defaults: defaults,
-                    endpointContext: endpointContext
-                )
-            case .bidirectionalStream:
-                fatalError()
-            }
+            let rpcHandlerType: StreamRPCHandlerBase<H>.Type = {
+                switch endpoint[CommunicationalPattern.self] {
+                case .requestResponse:
+                    return UnaryRPCHandler.self
+                case .clientSideStream:
+                    return ClientSideStreamRPCHandler.self
+                case .serviceSideStream:
+                    return ServiceSideStreamRPCHandler.self
+                case .bidirectionalStream:
+                    return BidirectionalStreamRPCHandler.self
+                }
+            }()
+            return rpcHandlerType.init(
+                delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
+                strategy: decodingStrategy,
+                defaults: defaults,
+                endpointContext: endpointContext
+            )
         }
         let messageTypes = try! schema.endpointProtoMessageTypes(for: endpoint)
         endpointContext.endpointRequestType = messageTypes.input

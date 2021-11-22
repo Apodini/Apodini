@@ -15,7 +15,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCv2StreamRPCHandler {
     let delegate: Delegate<H>
     let endpointContext: GRPCv2EndpointContext
     
-    init(
+    required init(
         delegateFactory: DelegateFactory<H, GRPCv2InterfaceExporter>,
         strategy: AnyDecodingStrategy<GRPCv2MessageIn>,
         defaults: DefaultValueStore,

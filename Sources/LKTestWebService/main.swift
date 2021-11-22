@@ -143,6 +143,16 @@ struct Greeter: Handler {
 }
 
 
+struct StreamingGreeter_BS: Handler {
+    @Parameter var name: String
+    
+    func handle() async throws -> Response<String> {
+        print("GREET \(name.uppercased())")
+        return .send("Hello, \(name)!")
+    }
+}
+
+
 struct ThrowingHandler: Handler {
     private struct Error: Swift.Error {
         let message: String
@@ -166,6 +176,11 @@ struct LKTestWebService: Apodini.WebService {
         Group("greet2") {
             Greeter2()
                 .gRPCv2MethodName("greet2")
+        }
+        Group("greet_bs") {
+            StreamingGreeter_BS()
+                .gRPCv2MethodName("greet_bs")
+                .pattern(.bidirectionalStream)
         }
         Group("rocket") {
             Rocket()

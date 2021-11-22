@@ -9,7 +9,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
     typealias InboundIn = HTTP2Frame.FramePayload
     typealias InboundOut = GRPCv2MessageHandler.Input
     
-    /// Context of a messahe currently being collected from the stream
+    /// Context of a message currently being collected from the stream
     private class MessageCollectionContext: Hashable {
         let expectedPayloadSize: Int
         let compression: GRPCv2MessageCompressionType?
@@ -58,7 +58,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let input = unwrapInboundIn(data)
-        print(fmtSel())
         
         switch input {
         case .data(let dataFrame): // data: HTTP2Frame.FramePayload.Data
@@ -67,7 +66,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
             }
             switch dataFrame.data {
             case .byteBuffer(let buffer):
-                print("Got a DATA frame")
                 switch state {
                 case .ready:
                     fatalError("Invalid state: .ready when receiving DATA frame.")
@@ -89,7 +87,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                             // The DATA frame contains more bytes than what we're missing, so we just consume the ones belonging to us, turn that into a message, and move on
                             let remainingBytes = dataFrameDataBuffer.readSlice(length: messageCollectionCtx.numMissingPayloadBytes)!
                             messageCollectionCtx.buffer.writeImmutableBuffer(remainingBytes)
-                            print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(GRPCv2MessageIn(
                                 remoteAddress: context.channel.remoteAddress,
                                 requestHeaders: initialHeaders,
@@ -150,7 +147,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                                 requestHeaders: initialHeaders,
                                 payload: messageCtx.buffer
                             )
-                            print("found a message")
                             context.fireChannelRead(wrapInboundOut(.message(messageIn)))
                             state = .handlingStream(initialHeaders: initialHeaders, messageCollectionCtx: nil)
                         } else {
@@ -160,7 +156,6 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                         }
                     }
                     if dataFrame.endStream {
-                        print("Setting state to .ready bc we received a END_STREAM flag[b]")
                         state = .ready
                     }
                 }
@@ -194,11 +189,11 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
         case .ping(let pingData, let ack): // HTTP2PingData, Bool
             fatalError("Got .ping(ack=\(ack)): \(pingData)")
         case .goAway(let lastStreamID, let errorCode, let opaqueData): // HTTP2StreamID, HTTP2ErrorCode, ByteBuffer?
-            fatalError("Got .goAway(lastStreamId: \(lastStreamID), errorCode: \(errorCode), opaqueData: \(opaqueData))")
+            fatalError("Got .goAway(lastStreamId: \(lastStreamID), errorCode: \(errorCode), opaqueData: \(opaqueData as Any))")
         case .windowUpdate(let windowSizeIncrement): // Int
             fatalError("Got .windowUpdate: \(windowSizeIncrement)")
         case .alternativeService(let origin, let field): // String?, ByteBuffer?
-            fatalError("Got .alternativeService(origin: \(origin), field: \(field)")
+            fatalError("Got .alternativeService(origin: \(origin as Any), field: \(field as Any)")
         case .origin(let origins): // [String]
             fatalError("Got .origin(\(origins))")
         }

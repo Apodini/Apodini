@@ -49,17 +49,6 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
     }
     
     
-    private func fmtSel(_ caller: StaticString = #function) -> String {
-        "-[\(Self.self) \(caller)]"
-    }
-    
-    
-    func channelActive(context: ChannelHandlerContext) {
-        print(fmtSel())
-        context.fireChannelActive()
-    }
-    
-    
     private func applyMappingAction(_ action: Configuration.MappingAction, context: ChannelHandlerContext) {
         // TODO what if there's new incoming requests while all of this is taking place?
         switch action {
@@ -86,11 +75,8 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
     }
     
     
-    
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-        print(fmtSel(), data)
         let input = unwrapInboundIn(data)
-        print("input: \(input)")
         
         switch state {
         case .ready:
@@ -115,48 +101,6 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
         default:
             fatalError("Unexpected input: \(input). This channel handler should only ever receive headers, and should have been removed from the pipeline by the time any other data are being received.")
         }
-        
-        switch input {
-        case .data(let data): // data: HTTP2Frame.FramePayload.Data
-            print("Got some raw data: \(data) (endStream: \(data.endStream))")
-            switch data.data {
-            case .byteBuffer(let buffer):
-                print()
-                print("As string:")
-                print(buffer.getString(at: 0, length: buffer.writerIndex) as Any)
-                print()
-                print("As raw bytes:")
-                print(buffer.getBytes(at: 0, length: buffer.writerIndex) as Any)
-            case .fileRegion(let fileRegion):
-                fatalError("Got unexpected FileRegion when expecting ByteBuffer: \(fileRegion)")
-            }
-        case .headers(let headers):
-            print("Got some headers: \(headers) (endStream: \(headers.endStream))")
-        case .priority(let priorityData): // HTTP2Frame.StreamPriorityData
-            print("Got .priority: \(priorityData)")
-        case .rstStream(let errorCode): // HTTP2ErrorCode
-            print("Got .rstStream: \(errorCode)")
-        case .settings(let settings): // HTTP2Frame.FramePayload.Settings
-            print("Got .settings: \(settings)")
-        case .pushPromise(let pushPromise): // HTTP2Frame.FramePayload.PushPromise
-            print("Got .pushPromise: \(pushPromise)")
-        case .ping(let pingData, let ack): // HTTP2PingData, Bool
-            print("Got .ping(ack=\(ack)): \(pingData)")
-        case .goAway(let lastStreamID, let errorCode, let opaqueData): // HTTP2StreamID, HTTP2ErrorCode, ByteBuffer?
-            print("Got .goAway(lastStreamId: \(lastStreamID), errorCode: \(errorCode), opaqueData: \(opaqueData))")
-        case .windowUpdate(let windowSizeIncrement): // Int
-            print("Got .windowUpdate: \(windowSizeIncrement)")
-        case .alternativeService(let origin, let field): // String?, ByteBuffer?
-            print("Got .alternativeService(origin: \(origin), field: \(field)")
-        case .origin(let origins): // [String]
-            print("Got .origin(\(origins))")
-        }
-        //fatalError("TODO")
-    }
-    
-    func channelReadComplete(context: ChannelHandlerContext) {
-        print(fmtSel())
-        fatalError()
     }
     
     

@@ -56,13 +56,17 @@ enum GRPCv2MessageOut {
     /// - parameter headers: The headers to be sent with this message. Note that headers will only be written once to a HTTP/2 stream.
     /// - parameter payload: The gRPC message data to be written.
     /// - parameter closeStream: Whether after sending this message, the connection to the client (i.e. the underlying HTTP/2 stream) should be closed.
-    case singleMessage(headers: HPACKHeaders, payload: ByteBuffer, closeStream: Bool)
+    case singleMessage(headers: HPACKHeaders, payload: ByteBuffer, closeStream: Bool) // TODO rename closeStream here (and everywhere else where its used in this context) to channel or connection to indicate that this is referring to the HTTP connection as a whole, not some streeam going on on the connectioin
     /// A RPC resulted in a stream-based response.
     case stream(HPACKHeaders, Stream)
+    /// Response used in client-side-streaming and bidirectional-streaming RPC handlers, to indicate that an incoming client request should not result in any response.
+    /// - Note: The headers are relevant for only the first time the `.nothing` case is encountered, to open the response stream.
+    ///         Subsequent `.nothing`s' headers are ignored.
+    case nothing(HPACKHeaders)
     
     var headers: HPACKHeaders {
         switch self {
-        case .singleMessage(let headers, _, _), .stream(let headers, _):
+        case .singleMessage(let headers, _, _), .stream(let headers, _), .nothing(let headers):
             return headers
         }
     }

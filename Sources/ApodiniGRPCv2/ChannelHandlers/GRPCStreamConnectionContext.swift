@@ -10,35 +10,138 @@ protocol GRPCv2StreamRPCHandler: AnyObject {
 }
 
 
+
 /// An open gRPC stream over which messages are sent
-class GRPCv2StreamConnectionContext {
+protocol GRPCv2StreamConnectionContext {
+    /// The event loop associated with the connection. (... on which the connection is handled)
+    var eventLoop: EventLoop { get }
+    /// The HTTP/2 headers sent by the client, as part of the initial request creating this connection
+    var initialRequestHeaders: HPACKHeaders { get }
+    /// Fully qualified name of the method this connection is calling.
+    var grpcMethodName: String { get }
+}
+
+
+
+class GRPCv2StreamConnectionContextImpl: GRPCv2StreamConnectionContext {
     let eventLoop: EventLoop
     let initialRequestHeaders: HPACKHeaders
-    let rpcHandler: GRPCv2StreamRPCHandler
-    private var lastMessageResponseFuture: EventLoopFuture<Void>?
-    private var numQueuedHandlerCalls = 0
-    var tmp_method: String = ""
+    let grpcMethodName: String
+    private let rpcHandler: GRPCv2StreamRPCHandler
+    private var isHandlingMessage = false
     
-    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCv2StreamRPCHandler) {
+    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCv2StreamRPCHandler, grpcMethodName: String) {
         self.eventLoop = eventLoop
         self.initialRequestHeaders = initialRequestHeaders
         self.rpcHandler = rpcHandler
+        self.grpcMethodName = grpcMethodName
     }
     
     func handleStreamOpen() {
         rpcHandler.handleStreamOpen(context: self)
     }
     
+    func handleMessage(_ message: GRPCv2MessageIn) -> EventLoopFuture<GRPCv2MessageOut> {
+        precondition(!isHandlingMessage, "\(Self.self) cannot handle multiple messages simultaneously. Use the EventLoopFuturesQueue thing or whatever to deal w this.")
+        isHandlingMessage = true
+        let messageFuture = rpcHandler.handle(message: message, context: self)
+        messageFuture.whenComplete { _ in
+            self.isHandlingMessage = false
+        }
+        return messageFuture
+    }
+    
     func handleStreamClose() {
         rpcHandler.handleStreamClose(context: self)
     }
+}
+
+
+
+///// An open gRPC stream over which messages are sent
+//class GRPCv2StreamConnectionContext {
+//    let eventLoop: EventLoop
+//    let initialRequestHeaders: HPACKHeaders
+//    let rpcHandler: GRPCv2StreamRPCHandler
+//    private var lastMessageResponseFuture: EventLoopFuture<Void>?
+//    private var numQueuedHandlerCalls = 0
+//    var tmp_method: String = ""
+//
+//    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCv2StreamRPCHandler) {
+//        self.eventLoop = eventLoop
+//        self.initialRequestHeaders = initialRequestHeaders
+//        self.rpcHandler = rpcHandler
+//    }
+//
+//    func handleStreamOpen() {
+//        rpcHandler.handleStreamOpen(context: self)
+//    }
+//
+//    func handleStreamClose() {
+//        rpcHandler.handleStreamClose(context: self)
+//    }
+//
+//
+//    /// Handles the message, or adds it to the queue if the connection is already handling another message.
+//    func handle(message: GRPCv2MessageIn) -> EventLoopFuture<GRPCv2MessageOut> {
+//        // TODO does any of this need to be thread-safe? looking especially at the numQueuedHandlerCalls thing...
+//        defer {
+//            self.lastMessageResponseFuture!.whenComplete { [/*TODO unowned?*/self] _ in
+//                self.numQueuedHandlerCalls -= 1
+//                precondition(self.numQueuedHandlerCalls >= 0)
+//                if self.numQueuedHandlerCalls == 0 {
+//                    self.lastMessageResponseFuture = nil
+//                }
+//            }
+//        }
+//        precondition((self.numQueuedHandlerCalls == 0) == (self.lastMessageResponseFuture == nil))
+//        precondition(self.numQueuedHandlerCalls == 0)
+//        guard let lastFuture = lastMessageResponseFuture else {
+//            precondition(numQueuedHandlerCalls == 0)
+//            let promise = eventLoop.makePromise(of: Void.self)
+//            self.numQueuedHandlerCalls += 1
+//            self.lastMessageResponseFuture = promise.futureResult
+//            let rpcFuture = rpcHandler.handle(message: message, context: self)
+//            rpcFuture.whenComplete { _ in
+//                promise.succeed(())
+//            }
+//            return rpcFuture
+//        }
+//        let retvalPromise = eventLoop.makePromise(of: GRPCv2MessageOut.self)
+//        self.numQueuedHandlerCalls += 1
+//        self.lastMessageResponseFuture = lastFuture.flatMapAlways { [unowned self] _ -> EventLoopFuture<Void> in
+//            let promise = eventLoop.makePromise(of: Void.self)
+//            let rpcFuture = rpcHandler.handle(message: message, context: self)
+//            rpcFuture.cascade(to: retvalPromise)
+//            rpcFuture.whenComplete { _ in
+//                promise.succeed(())
+//            }
+//            return promise.futureResult
+//        }
+//        return retvalPromise.futureResult
+//    }
+//}
+
+
+
+
+
+class LKEventLoopFutureBasedQueue {
+    private let eventLoop: EventLoop?
+    private var lastMessageResponseFuture: EventLoopFuture<Void>?
+    private var numQueuedHandlerCalls = 0
     
+    init(eventLoop: EventLoop? = nil) {
+        self.eventLoop = eventLoop
+    }
     
-    /// Handles the message, or adds it to the queue if the connection is already handling another message.
-    func handle(message: GRPCv2MessageIn) -> EventLoopFuture<GRPCv2MessageOut> {
+    func submit<Result>(on eventLoop: EventLoop? = nil, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
+        guard let eventLoop = eventLoop ?? self.eventLoop else { // TODO ideally we'd have this take a non-nil EvenrLoop if none was passed to the iniitialiser, but that isn't possible :/
+            fatalError("You need to specify an event loop, either here or in the initialzier!")
+        }
         // TODO does any of this need to be thread-safe? looking especially at the numQueuedHandlerCalls thing...
         defer {
-            self.lastMessageResponseFuture!.whenComplete { [unowned self] _ in
+            self.lastMessageResponseFuture!.whenComplete { [/*TODO unowned?*/self] _ in
                 self.numQueuedHandlerCalls -= 1
                 precondition(self.numQueuedHandlerCalls >= 0)
                 if self.numQueuedHandlerCalls == 0 {
@@ -47,24 +150,25 @@ class GRPCv2StreamConnectionContext {
             }
         }
         precondition((self.numQueuedHandlerCalls == 0) == (self.lastMessageResponseFuture == nil))
+        
         guard let lastFuture = lastMessageResponseFuture else {
             precondition(numQueuedHandlerCalls == 0)
             let promise = eventLoop.makePromise(of: Void.self)
             self.numQueuedHandlerCalls += 1
             self.lastMessageResponseFuture = promise.futureResult
-            let rpcFuture = rpcHandler.handle(message: message, context: self)
-            rpcFuture.whenComplete { _ in
+            let taskFuture = task()
+            taskFuture.whenComplete { _ in
                 promise.succeed(())
             }
-            return rpcFuture
+            return taskFuture
         }
-        let retvalPromise = eventLoop.makePromise(of: GRPCv2MessageOut.self)
+        let retvalPromise = eventLoop.makePromise(of: Result.self)
         self.numQueuedHandlerCalls += 1
-        self.lastMessageResponseFuture = lastFuture.flatMapAlways { [unowned self] _ -> EventLoopFuture<Void> in
+        self.lastMessageResponseFuture = lastFuture.hop(to: eventLoop).flatMapAlways { _ -> EventLoopFuture<Void> in
             let promise = eventLoop.makePromise(of: Void.self)
-            let rpcFuture = rpcHandler.handle(message: message, context: self)
-            rpcFuture.cascade(to: retvalPromise)
-            rpcFuture.whenComplete { _ in
+            let taskFuture = task()
+            taskFuture.cascade(to: retvalPromise)
+            taskFuture.whenComplete { _ in
                 promise.succeed(())
             }
             return promise.futureResult
@@ -72,3 +176,65 @@ class GRPCv2StreamConnectionContext {
         return retvalPromise.futureResult
     }
 }
+
+
+
+
+
+
+
+
+//class LKEventLoopFutureBasedQueue<Input, Response> {
+//    private let eventLoop: EventLoop?
+//    private let imp: (Input) -> EventLoopFuture<Response>
+//    private var lastMessageResponseFuture: EventLoopFuture<Void>?
+//    private var numQueuedHandlerCalls = 0
+//
+//    init(eventLoop: EventLoop? = nil, _ imp: @escaping (Input) -> EventLoopFuture<Response>) {
+//        self.eventLoop = eventLoop
+//        self.imp = imp
+//    }
+//
+//    func submit(input: Input, on eventLoop: EventLoop? = nil) -> EventLoopFuture<Response> {
+//        guard let eventLoop = eventLoop ?? self.eventLoop else {
+//            fatalError("You need to specify an event loop, either here in the initialzier!")
+//        }
+//        // TODO does any of this need to be thread-safe? looking especially at the numQueuedHandlerCalls thing...
+//        defer {
+//            self.lastMessageResponseFuture!.whenComplete { [/*TODO unowned?*/self] _ in
+//                self.numQueuedHandlerCalls -= 1
+//                precondition(self.numQueuedHandlerCalls >= 0)
+//                if self.numQueuedHandlerCalls == 0 {
+//                    self.lastMessageResponseFuture = nil
+//                }
+//            }
+//        }
+//        precondition((self.numQueuedHandlerCalls == 0) == (self.lastMessageResponseFuture == nil))
+//
+//        guard let lastFuture = lastMessageResponseFuture else {
+//            precondition(numQueuedHandlerCalls == 0)
+//            let promise = eventLoop.makePromise(of: Void.self)
+//            self.numQueuedHandlerCalls += 1
+//            self.lastMessageResponseFuture = promise.futureResult
+//            let rpcFuture = imp(input)// rpcHandler.handle(message: message, context: self)
+//            rpcFuture.whenComplete { _ in
+//                promise.succeed(())
+//            }
+//            return rpcFuture
+//        }
+//        let retvalPromise = eventLoop.makePromise(of: Response.self)
+//        self.numQueuedHandlerCalls += 1
+//        self.lastMessageResponseFuture = lastFuture.hop(to: eventLoop).flatMapAlways { [unowned self] _ -> EventLoopFuture<Void> in
+//            let promise = eventLoop.makePromise(of: Void.self)
+//            let rpcFuture = imp(input) //rpcHandler.handle(message: message, context: self)
+//            rpcFuture.cascade(to: retvalPromise)
+//            rpcFuture.whenComplete { _ in
+//                promise.succeed(())
+//            }
+//            return promise.futureResult
+//        }
+//        return retvalPromise.futureResult
+//    }
+//}
+//
+//

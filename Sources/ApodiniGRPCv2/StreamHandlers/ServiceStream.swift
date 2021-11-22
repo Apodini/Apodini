@@ -21,13 +21,6 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             .firstFutureAndForEach(
                 on: context.eventLoop,
                 objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
-//                    defer {
-//                        if response.connectionEffect == .close {
-//                            // TODO presumably this would get turned into an empty DATA frame (followed by the trailers)?
-//                            // can we somehow skip the empty frame and directly translate this into sending trailers? (maybe by adding support for nil payloads?)
-//                            responsesStream.writeAndClose((ByteBuffer(), closeStream: true))
-//                        }
-//                    }
                     do {
                         if let content = response.content {
                             let buffer = try self.encodeResponseIntoProtoMessage(content)
@@ -51,6 +44,5 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                     responsesStream
                 )
             }
-
     }
 }
