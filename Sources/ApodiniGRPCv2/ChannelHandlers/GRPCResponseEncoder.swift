@@ -2,6 +2,7 @@ import Foundation
 import NIO
 import NIOHTTP2
 import NIOHPACK
+import Logging
 
 
 class GRPCv2ResponseEncoder: ChannelOutboundHandler {
@@ -9,7 +10,12 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
     typealias OutboundOut = HTTP2Frame.FramePayload
     
     
+    private let logger: Logger
     private var didWriteHeadersFrame = false
+    
+    init() {
+        self.logger = Logger(label: "[\(Self.self)]")
+    }
     
     
     func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
@@ -34,7 +40,9 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
                 .cascade(to: promise)
             return
         case let .message(message, connectionCtx): // TODO rename message here to response or smth like that?
+            let writeHeadersFuture: EventLoopFuture<Void>
             if !didWriteHeadersFrame {
+                didWriteHeadersFrame = true
                 var headers = message.headers
                 precondition(headers.isPresent(.contentType) && headers[.contentType]!.encodeToHTTPHeaderFieldValue().hasPrefix("application/grpc"))
                 headers[.statusPseudoHeader] = .ok
@@ -45,25 +53,39 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
                     endStream: false,
                     paddingBytes: nil // TODO?
                 ))
-                context.writeAndFlush(wrapOutboundOut(headersFrame)).whenComplete { _ in
-                    print("Writing HEADERS frame done")
-                }
-                didWriteHeadersFrame = true
+                writeHeadersFuture = context.writeAndFlush(wrapOutboundOut(headersFrame))
+//                future.whenComplete { result in
+//                    self.logger.notice("AAAAAA Writing HEADERS frame done: \(result)")
+//                }
+//                future.whenComplete { result in
+//                    self.logger.notice("BBBBBB Writing HEADERS frame done: \(result)")
+//                }
+            } else {
+                writeHeadersFuture = context.eventLoop.makeSucceededVoidFuture()
             }
+            //promise?.futureResult.map(<#T##callback: (Void) -> (NewValue)##(Void) -> (NewValue)#>)
             switch message {
             case .nothing:
-                break
+                writeHeadersFuture.cascade(to: promise)
             case let .singleMessage(_, payload, closeStream):
                 // TODO this one will resolve the promise directly after writing one message, regardless of whether the stream is kept open or not, whereas the one in the other branch below will only resolve the promise once the stream is closed.! FIX!!!!!
-                writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
-                break
-            case .stream(_, let stream):
-                stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
-                    context.eventLoop.execute {
-                        self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
-                    }
+                writeHeadersFuture.flatMap { _ in
+                    self.writeLengthPrefixedMessage(
+                        payload, closeStream: closeStream,
+                        connectionContext: connectionCtx,
+                        channelHandlerContext: context
+                    )
                 }
+                .cascade(to: promise)
+            case .stream(_, let stream):
+                fatalError()
+//                stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
+//                    context.eventLoop.execute {
+//                        self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
+//                    }
+//                }
             }
+            
         case .closeStream(let trailers, let msg):
             writeTrailers(context: context, msg: msg)
                 .cascade(to: promise)
@@ -75,9 +97,9 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
         _ payload: ByteBuffer,
         closeStream: Bool,
         connectionContext: GRPCv2StreamConnectionContext,
-        channelHandlerContext: ChannelHandlerContext,
-        promise: EventLoopPromise<Void>?
-    ) {
+        channelHandlerContext: ChannelHandlerContext
+    //promise: EventLoopPromise<Void>?
+    ) -> EventLoopFuture<Void> {
         let messageLength = payload.writerIndex
         precondition(messageLength <= numericCast(UInt32.max))
         var buffer = ByteBufferAllocator().buffer(capacity: payload.writerIndex + 5)
@@ -89,16 +111,29 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
             endStream: false,
             paddingBytes: nil
         ))
-        channelHandlerContext.writeAndFlush(wrapOutboundOut(dataFrame)).whenComplete { _ in
-            if !closeStream {
-                promise?.succeed(())
-            }
-        }
+        let future = channelHandlerContext.writeAndFlush(wrapOutboundOut(dataFrame))
+//            .whenComplete { result in
+//            self.logger.notice("writeLengthPrefixedMessage done[1]: \(result)")
+//            if !closeStream {
+//                promise?.succeed(())
+//            }
+//        }
         
         if closeStream {
-            writeTrailers(context: channelHandlerContext, msg: connectionContext.grpcMethodName)
-                .cascade(to: promise)
+            return future.flatMap { _ in
+                self.writeTrailers(context: channelHandlerContext, msg: connectionContext.grpcMethodName)
+            }
+        } else {
+            return future
         }
+        
+//        if closeStream {
+//            writeTrailers(context: channelHandlerContext, msg: connectionContext.grpcMethodName)
+//                .inspect {
+//                    self.logger.notice("writeLengthPrefixedMessage done[2]: \($0)")
+//                }
+//                .cascade(to: promise)
+//        }
     }
     
     
@@ -112,6 +147,9 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
             paddingBytes: nil
         ))
         return context.writeAndFlush(self.wrapOutboundOut(trailers))
+            .inspect {
+                self.logger.notice("writeTrailers done: \($0) [msg: \(msg)]")
+            }
     }
     
     

@@ -14,6 +14,7 @@ extension EventLoopFuture {
 
 class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
     override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+        print("[\(Self.self)] \(#function)")
         let abortAnyError = AbortTransformer()
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)

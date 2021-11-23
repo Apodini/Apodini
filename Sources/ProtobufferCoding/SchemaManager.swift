@@ -218,14 +218,14 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
 
 
 
-struct Counter {
+public struct Counter {
     private var nextValue: Int
     
-    init(_ initialValue: Int = 0) {
+    public init(_ initialValue: Int = 0) {
         nextValue = initialValue
     }
     
-    mutating func get() -> Int {
+    public mutating func get() -> Int {
         defer { nextValue += 1 }
         return nextValue
     }

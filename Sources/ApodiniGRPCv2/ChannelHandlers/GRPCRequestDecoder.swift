@@ -3,6 +3,7 @@ import NIO
 import NIOHTTP2
 import NIOHPACK
 import ApodiniUtils
+import Logging
 
 
 class GRPCv2RequestDecoder: ChannelInboundHandler {
@@ -48,7 +49,14 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
     }
     
     
+    private let logger: Logger
     private var state: State = .ready
+    
+    
+    init() {
+        self.logger = Logger(label: "[\(Self.self)]")
+        logger.notice("\(#function)")
+    }
     
     
     private func fmtSel(_ caller: StaticString = #function) -> String {
@@ -58,6 +66,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let input = unwrapInboundIn(data)
+        logger.notice("\(#function). data: \(data) state: \(state)")
         
         switch input {
         case .data(let dataFrame): // data: HTTP2Frame.FramePayload.Data
@@ -77,6 +86,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
 //                        return
 //                    }
                     if dataFrameDataBuffer.readableBytes == 0 && dataFrame.endStream {
+                        logger.notice("Received empty DATA frame w/ END_STREAM flag")
                         context.fireChannelRead(self.wrapInboundOut(.closeStream))
                         self.state = .ready
                         return
@@ -163,7 +173,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                 fatalError("Got unexpected FileRegion when expecting ByteBuffer: \(fileRegion)")
             }
         case .headers(let headers):
-            //print("Got some headers: \(headers) (endStream: \(headers.endStream))")
+            logger.notice("Got some headers: \(headers) (endStream: \(headers.endStream))")
             switch state {
             case .ready:
                 //let messageBodyRef = Box(ByteBuffer())

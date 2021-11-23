@@ -143,6 +143,30 @@ struct Greeter: Handler {
 }
 
 
+struct StreamingGreeter_CS: Handler {
+    @Environment(\.connection) var connection
+    @Parameter var name: String
+    @State private var names: [String] = []
+    
+    func handle() async throws -> Response<String> {
+        print("GREETER. name: \(name), names: \(names), connection: \(connection) (state: \(connection.state))")
+        if self.connection.state == .end {
+            switch names.count {
+            case 0:
+                return .final("Hello!")
+            case 1:
+                return .final("Hello, \(names[0])")
+            default:
+                return .final("Hello, \(names[0..<(names.endIndex - 1)].joined(separator: ", ")), and \(names.last!)")
+            }
+        } else {
+            names.append(name)
+            return .send()
+            //return .nothing
+        }
+    }
+}
+
 struct StreamingGreeter_BS: Handler {
     @Parameter var name: String
     
@@ -176,6 +200,11 @@ struct LKTestWebService: Apodini.WebService {
         Group("greet2") {
             Greeter2()
                 .gRPCv2MethodName("greet2")
+        }
+        Group("greet_cs") {
+            StreamingGreeter_CS()
+                .gRPCv2MethodName("greet_cs")
+                .pattern(.clientSideStream)
         }
         Group("greet_bs") {
             StreamingGreeter_BS()

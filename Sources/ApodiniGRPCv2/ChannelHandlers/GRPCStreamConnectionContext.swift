@@ -1,6 +1,7 @@
 import Foundation
 import NIO
 import NIOHPACK
+import Logging
 
 
 protocol GRPCv2StreamRPCHandler: AnyObject {
@@ -64,12 +65,15 @@ class LKEventLoopFutureBasedQueue {
     private let eventLoop: EventLoop?
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
+    private let logger: Logger
     
     init(eventLoop: EventLoop? = nil) {
         self.eventLoop = eventLoop
+        self.logger = Logger(label: "[\(Self.self)]")
     }
     
-    func submit<Result>(on eventLoop: EventLoop? = nil, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
+    func submit<Result>(on eventLoop: EventLoop? = nil, tmp_debugDesc: String, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
+        logger.notice("submit(desc: \(tmp_debugDesc), task: \(task))")
         guard let eventLoop = eventLoop ?? self.eventLoop else { // TODO ideally we'd have this take a non-nil EvenrLoop if none was passed to the iniitialiser, but that isn't possible :/
             fatalError("You need to specify an event loop, either here or in the initialzier!")
         }
@@ -90,20 +94,25 @@ class LKEventLoopFutureBasedQueue {
             let promise = eventLoop.makePromise(of: Void.self)
             self.numQueuedHandlerCalls += 1
             self.lastMessageResponseFuture = promise.futureResult
+            logger.notice("Running task \(tmp_debugDesc). (no current task)")
             let taskFuture = task()
             taskFuture.whenComplete { _ in
                 promise.succeed(())
+                self.logger.notice("Task \(tmp_debugDesc) completed")
             }
             return taskFuture
         }
         let retvalPromise = eventLoop.makePromise(of: Result.self)
         self.numQueuedHandlerCalls += 1
+        logger.notice("Queueing task \(tmp_debugDesc). (current task)")
         self.lastMessageResponseFuture = lastFuture.hop(to: eventLoop).flatMapAlways { _ -> EventLoopFuture<Void> in
             let promise = eventLoop.makePromise(of: Void.self)
+            self.logger.notice("Running queued task \(tmp_debugDesc)")
             let taskFuture = task()
             taskFuture.cascade(to: retvalPromise)
             taskFuture.whenComplete { _ in
                 promise.succeed(())
+                self.logger.notice("Queued task \(tmp_debugDesc) completed")
             }
             return promise.futureResult
         }
