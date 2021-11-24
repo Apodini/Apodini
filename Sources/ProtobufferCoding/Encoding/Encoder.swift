@@ -58,6 +58,9 @@ public struct ProtobufferEncoder {
             dstBufferRef: dstBufferRef,
             context: _EncoderContext()
         )
+        if GetProtoCodingKind(type(of: value)) == .message {
+            encoder.context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3) // no need to pop here
+        }
         try value.encode(to: encoder)
         buffer.writeImmutableBuffer(dstBufferRef.value)
     }
@@ -75,6 +78,9 @@ public struct ProtobufferEncoder {
     ) throws {
         let dstBufferRef = Box(ByteBuffer())
         let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef, context: _EncoderContext())
+        if GetProtoCodingKind(type(of: value)) == .message {
+            encoder.context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3) // no need to pop here
+        }
         var keyedEncoder = encoder.container(keyedBy: FixedCodingKey.self)
         try keyedEncoder.encode(value, forKey: .init(intValue: field.fieldNumber))
         buffer.writeImmutableBuffer(dstBufferRef.value)
@@ -84,30 +90,36 @@ public struct ProtobufferEncoder {
 
 
 class _EncoderContext {
-    /// The current syntax.
-    /// - Note: Since proto2 and proto3 messages can be contained in each other, the value of this property can change while encoding an object.
-    var syntax: ProtoSyntax
+    private var syntaxStack = Stack<ProtoSyntax>()
     private var fieldsMarkedAsOptional: Set<[Int]> = [] // int values of the coding path to the field
     
+    /// The current syntax.
+    /// - Note: Since proto2 and proto3 messages can be contained in each other, the value of this property can change while encoding an object.
+    var syntax: ProtoSyntax { syntaxStack.peek()! }
+    
     init(syntax: ProtoSyntax = .proto3) {
-        self.syntax = syntax
+        syntaxStack.push(syntax)
     }
     
+    func pushSyntax(_ syntax: ProtoSyntax) {
+        syntaxStack.push(syntax)
+    }
+    
+    func popSyntax() {
+        precondition(syntaxStack.count >= 2, "Imbalanced pop")
+        syntaxStack.pop()
+    }
     
     func markAsOptional(_ codingPath: [CodingKey]) {
         fieldsMarkedAsOptional.insert(Self.codingPathToInts(codingPath))
-        print("Added \(codingPath) = \(Self.codingPathToInts(codingPath)) to set of always-included key paths")
     }
     
     func unmarkAsOptional(_ codingPath: [CodingKey]) {
         fieldsMarkedAsOptional.remove(Self.codingPathToInts(codingPath))
-        print("Removed \(codingPath) = \(Self.codingPathToInts(codingPath)) from set of always-included key paths")
     }
     
     func isMarkedAsOptional(_ codingPath: [CodingKey]) -> Bool {
-        let retval = fieldsMarkedAsOptional.contains(Self.codingPathToInts(codingPath))
-        print("Is \(codingPath) = \(Self.codingPathToInts(codingPath)) in set of always-included key paths: \(retval)")
-        return retval
+        fieldsMarkedAsOptional.contains(Self.codingPathToInts(codingPath))
     }
     
     

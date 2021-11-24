@@ -232,7 +232,7 @@ enum ProtoCodingKind {
 }
 
 /// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
-func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? {
+func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this still needed? we also have GetProtoFieldType and GuessWireType, which kinda go into the same direction
     let conformsToMessageProtocol = (type as? ProtobufMessage.Type) != nil
 //    if ((type as? Encodable) == nil) || ((type as? Decodable) == nil) {
 //        // A type which conforms neiter to en- nor to decodable
@@ -243,6 +243,10 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? {
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
         return .message
+    }
+    
+    if let optionalTy = type as? AnyOptional.Type {
+        return GetProtoCodingKind(optionalTy.wrappedType)
     }
     
     guard (type as? Codable.Type) != nil else {

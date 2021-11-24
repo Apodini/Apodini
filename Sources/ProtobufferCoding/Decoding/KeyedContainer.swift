@@ -342,24 +342,19 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     
     private func _decodeIfPresent(_ type: Decodable.Type, forKey key: Key, atKeyOffset keyOffset: Int? = nil) throws -> Any? {
         // TODO what about non-primitive optional fields? (eg repeated fields, messages, etc!)
-        if (type as? ProtobufPrimitive.Type) != nil {
-            if let keyOffset = keyOffset, fields.getAll(forFieldNumber: key.getProtoFieldNumber()).first(where: { $0.keyOffset == keyOffset }) == nil {
-                // We're given an explicit key offset, but can't find something at that offset
-                // TODO is this even relevant? can types that result in explicit offsets (i.e. e.g. repeated types) even be optional?
-                return .none
-            } else if fields.getLast(forFieldNumber: key.getProtoFieldNumber()) == nil {
-                return .none
-            }
-            return .some(try _decode(type, forKey: key, keyOffset: keyOffset))
+        if let keyOffset = keyOffset, fields.getAll(forFieldNumber: key.getProtoFieldNumber()).first(where: { $0.keyOffset == keyOffset }) == nil {
+            // We're given an explicit key offset, but can't find something at that offset
+            // TODO is this even relevant? can types that result in explicit offsets (i.e. e.g. repeated types) even be optional?
+            return .none
+        } else if fields.getLast(forFieldNumber: key.getProtoFieldNumber()) == nil {
+            return .none
         }
-        
-        fatalError("Not implemented (type: \(type), key: \(key), keyOffset: \(keyOffset)")
+        return .some(try _decode(type, forKey: key, keyOffset: keyOffset))
     }
 }
 
 
 
 func implicitForceCast<T, U>(_ value: T) -> U {
-    assert(isNil(value) || type(of: value) == U.self)
-    return value as! U
+    value as! U
 }

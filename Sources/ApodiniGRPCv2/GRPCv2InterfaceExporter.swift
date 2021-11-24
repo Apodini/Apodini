@@ -90,8 +90,15 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         server.createService(name: config.serviceName, associatedWithPackage: defaultPackageName)
         server.createService(name: Self.serverReflectionServiceName, associatedWithPackage: Self.serverReflectionPackageName)
         
-        ServerReflectionInfoRPCHandler.registerReflectionServiceTypesWithSchema(server.schema)
-        server.schema.informAboutMessageType(FileDescriptorSet.self) // we're just gonna hope that this will be enough to pull in the entire Descriptors file...
+        do {
+            try ServerReflectionInfoRPCHandler.registerReflectionServiceTypesWithSchema(server.schema)
+            try server.schema.informAboutMessageType(FileDescriptorSet.self) // this is enough to pull in the entire descriptors file
+        } catch {
+            if case ProtoValidationError.proto3EnumMissingCaseWithZeroValue(let enumTy) = error {
+                print(enumTy, enumTy is Proto2Codable.Type, enumTy as? Proto2Codable.Type)
+            }
+            fatalError("Error registering proto types with schema: \(error)")
+        }
     }
     
     deinit {
@@ -169,16 +176,16 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
             )
         )
         
-        let greeterIn = server.schema.informAboutMessageType(GreeterRequest.self)
-        let greeterOut = server.schema.informAboutMessageType(GreeterResponse.self)
-        
-        server.addMethod(toServiceNamed: config.serviceName, inPackage: defaultPackageName, GRPCMethod(
-            name: "SayHello",
-            type: .requestResponse,
-            inputFQTN: "GreeterRequest",//greeterIn.fullyQualifiedTypename,
-            outputFQTN: "GreeterResponse",//greeterOut.fullyQualifiedTypename,
-            streamRPCHandlerMaker: { HardcodedGreeter() }
-        ))
+//        let greeterIn = server.schema.informAboutMessageType(GreeterRequest.self)
+//        let greeterOut = server.schema.informAboutMessageType(GreeterResponse.self)
+//
+//        server.addMethod(toServiceNamed: config.serviceName, inPackage: defaultPackageName, GRPCMethod(
+//            name: "SayHello",
+//            type: .requestResponse,
+//            inputFQTN: "GreeterRequest",//greeterIn.fullyQualifiedTypename,
+//            outputFQTN: "GreeterResponse",//greeterOut.fullyQualifiedTypename,
+//            streamRPCHandlerMaker: { HardcodedGreeter() }
+//        ))
         
         // Makes the types managed by the schema ready for use by the reflection API
         server.schema.finalize()

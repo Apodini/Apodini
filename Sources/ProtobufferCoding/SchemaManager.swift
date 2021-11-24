@@ -228,6 +228,10 @@ public struct Counter {
 
 
 
+public enum ProtoValidationError: Swift.Error {
+    case proto3EnumMissingCaseWithZeroValue(AnyProtobufEnum.Type)
+}
+
 
 public class ProtoSchema {
     // Key: Handler type
@@ -304,7 +308,7 @@ public class ProtoSchema {
         let parameters = endpoint.parameters
         if parameters.count == 0 {
             // If there are no parameters, we map to the empty message type.
-            return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: true)
+            return try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: true)
         } else if parameters.count == 1 {
             let param = parameters[0]
             print("param.type:", param.propertyType)
@@ -316,7 +320,7 @@ public class ProtoSchema {
 //            }
             //return try wrapSingleType(param.propertyType)
             
-            return protoType(
+            return try protoType(
                 for: param.propertyType,
                 requireTopLevelCompatibleOutput: true,
                 singleParamHandlingContext: .init(
@@ -336,7 +340,7 @@ public class ProtoSchema {
 //                   )
         } else {
             // The handler has multiple parameters, so we have to combine them into a protobuf message type
-            return combineIntoCompoundMessageType(
+            return try combineIntoCompoundMessageType(
                 //typename: "\(H.self)Input",
                 typename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input"),
                 underlyingType: nil,
@@ -367,7 +371,7 @@ public class ProtoSchema {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         //return try wrapSingleType(H.Response.Content.self as! Codable.Type)
         print(H.self, "\(H.self)", String(describing: H.self), String(reflecting: H.self), String(reflecting: H.Response.Content.self))
-        let endpointResponseType = protoType(
+        let endpointResponseType = try protoType(
             for: H.Response.Content.self,
             requireTopLevelCompatibleOutput: true,
                singleParamHandlingContext: .init(
@@ -447,9 +451,19 @@ public class ProtoSchema {
     
     
     @discardableResult
-    public func informAboutMessageType(_ type: ProtobufMessage.Type) -> ProtoTypeDerivedFromSwift {
+    public func informAboutMessageType(_ type: ProtobufMessage.Type) throws -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
-        let result = protoType(for: type, requireTopLevelCompatibleOutput: false)
+        precondition(GetProtoCodingKind(type) == .message)
+        let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
+        collectTypes(in: result)
+        return result
+    }
+    
+    
+    @discardableResult
+    public func informAboutType(_ type: Any.Type) throws -> ProtoTypeDerivedFromSwift {
+        precondition(!isFinalized, "Cannot add type to already finalized schema")
+        let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
         collectTypes(in: result)
         return result
     }
@@ -459,7 +473,7 @@ public class ProtoSchema {
         typename: ProtoTypeDerivedFromSwift.Typename,
         underlyingType: Any.Type?,
         elements: [(String, Any.Type)]
-    ) -> ProtoTypeDerivedFromSwift {
+    ) throws -> ProtoTypeDerivedFromSwift {
         let underlyingTypeFieldNumbersMapping: [String: Int]? = {
             guard let messageTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type else {
                 return nil
@@ -467,7 +481,7 @@ public class ProtoSchema {
             // intentionally not using the getProtoFieldNumber thing here bc the user -- by declaring conformance to the AnyProtobufTypeWithCustomFieldMapping protocol --- has stated that they want to provide a custom mapping (which we expect to be nonnil)
             return .init(uniqueKeysWithValues: messageTy.getCodingKeysType().allCases.map { ($0.stringValue, $0.intValue!) })
         }()
-        let (allElements, nestedOneofTypes) = elements.enumerated().reduce(
+        let (allElements, nestedOneofTypes) = try elements.enumerated().reduce(
             into: ([], []) as (Set<ProtoTypeDerivedFromSwift.MessageField>, Set<ProtoTypeDerivedFromSwift.OneofType>)
         ) { (partialResult, arg0) in
             //let (idx, field) = arg0
@@ -482,12 +496,12 @@ public class ProtoSchema {
                     // intentionally not using the getProtoFieldNumber thing here bc the AnyProtobufEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
                     ($0.stringValue, $0.intValue!)
                 })
-                newFields = TI.cases.map { enumCase in
+                newFields = try TI.cases.map { enumCase in
                     precondition((enumCase.payloadType as? ProtobufRepeated.Type) == nil)
                     return ProtoTypeDerivedFromSwift.MessageField.init(
                         name: enumCase.name,
                         fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
-                        type: protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false), // TODO add support for cases w/out a payload? ideally wed just add some dummy value that subsequently gets ignored. would need to support that in the en/decoders as well, though. probably easier to simply require the user define that unused value (eg what the reflection API does...)
+                        type: try protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false), // TODO add support for cases w/out a payload? ideally wed just add some dummy value that subsequently gets ignored. would need to support that in the en/decoders as well, though. probably easier to simply require the user define that unused value (eg what the reflection API does...)
                         isRepeated: false, // not supported (TODO check that that's actually true!)
                         containingOneof: assocEnumTy
                     )
@@ -510,11 +524,11 @@ public class ProtoSchema {
                             return idx + 1
                         }
                     }(),
-                    type: { () -> ProtoTypeDerivedFromSwift in
+                    type: try { () -> ProtoTypeDerivedFromSwift in
                         if let repeatedType = fieldType as? ProtobufRepeated.Type, (fieldType as? ProtobufBytesMapped.Type) == nil {
-                            return protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
+                            return try protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
                         } else {
-                            return protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
+                            return try protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
                         }
                     }(),
                     isRepeated: (fieldType as? ProtobufRepeated.Type) != nil,
@@ -571,7 +585,7 @@ public class ProtoSchema {
         //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCv2EndpointParameterDecodingContext)? = nil
         singleParamHandlingContext: SingleParamHandlingContext? = nil
             //paramDecodingContext: GRPCv2EndpointParameterDecodingContext? = nil
-    ) -> ProtoTypeDerivedFromSwift {
+    ) throws -> ProtoTypeDerivedFromSwift {
 //        let fullTypename = String(reflecting: type) // `String(reflecting:)` returns fullly qualified typenames for nested types, which `String(describing:)` does not...
 //        let moduleName = String(fullTypename.prefix(while: { $0 != "." }))
 //        guard moduleName != "Builtin" else {
@@ -621,10 +635,10 @@ public class ProtoSchema {
         
         //precondition(!isFinalized, "Cannot add type to already finalized schema")
         if let optionalTy = type as? AnyOptional.Type {
-            return protoType(for: optionalTy.wrappedType, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+            return try protoType(for: optionalTy.wrappedType, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
         } else if type == Never.self {
             //return cacheRetval(.builtinEmptyType)
-            return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+            return try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
         } else if type == Array<UInt8>.self || type == Data.self {
             if requireTopLevelCompatibleOutput {
                 fatalError("TODO!")
@@ -652,7 +666,7 @@ public class ProtoSchema {
                 switch TI.properties.count {
                 case 0:
                     //return cacheRetval(.builtinEmptyType)
-                    return protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+                    return try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
                 default:
 //                    return .compositeMessage(
 //                        name: messageName,
@@ -661,7 +675,7 @@ public class ProtoSchema {
 //                            return (property.name, protoType(for: property.type, allowPrimitiveOutput: true))
 //                        })
 //                    )
-                    return cacheRetval(combineIntoCompoundMessageType(
+                    return cacheRetval(try combineIntoCompoundMessageType(
                         //typename: ".\(typenameInfo.nameWithoutModule)",
                         //typename: ".\(typenameInfo.fullyQualifiedTypename)",
                         typename: typename,
@@ -699,14 +713,14 @@ public class ProtoSchema {
                 // TODO a) reuse message types?
                 // b) derive the type name from the nesting (i.e. encode the ?
                 if let singleParamHandlingContext = singleParamHandlingContext {
-                    return cacheRetval(combineIntoCompoundMessageType(
+                    return cacheRetval(try combineIntoCompoundMessageType(
                         typename: singleParamHandlingContext.wrappingMessageTypename,
                         underlyingType: nil,
                         elements: [(singleParamHandlingContext.paramName, primitiveTy)]
                     ))
                 } else {
                     fatalError("TODO do we ever end up here???")
-                    return cacheRetval(combineIntoCompoundMessageType(
+                    return cacheRetval(try combineIntoCompoundMessageType(
                         typename: .init(packageName: defaultPackageName, typename: "\(makeUniqueMessageTypename())"), // TODO come up w/ better method names!
                         underlyingType: nil,
                         elements: [("value", primitiveTy)]
@@ -735,6 +749,9 @@ public class ProtoSchema {
                     //print(String(reflecting: $0.1))
                     precondition($0.0.name == String(String(reflecting: $0.1).split(separator: ".").last!))
                     return .init(name: $0.0.name, value: $0.1.rawValue)
+                }
+                if (type as? Proto2Codable.Type == nil) && !enumCases.contains(where: { $0.value == 0 }) {
+                    throw ProtoValidationError.proto3EnumMissingCaseWithZeroValue(enumTy)
                 }
                 if requireTopLevelCompatibleOutput {
                     fatalError()

@@ -16,6 +16,12 @@ struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
 }
 
 
+struct GenericTwoFieldMessage<T: Codable & Equatable, U: Codable & Equatable>: Codable, Equatable {
+    let value1: T
+    let value2: U
+}
+
+
 struct SimpleDate: Codable {
     let year: Int
     let month: Int

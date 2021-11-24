@@ -40,15 +40,27 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         fatalError("Not implemented (key: \(key))")
     }
     
+    private func shouldEncodeNonnilValue(forKey key: Key, isDefaultZeroValue: Bool) -> Bool {
+        switch context.syntax {
+        case .proto2:
+            return true // proto2 always encodes non-nil values, regardless of whether or not they're optional, and regardless of whether or not they're the field type's "default zero" value
+        case .proto3:
+            let isOptional = context.isMarkedAsOptional(codingPath.appending(key))
+            return isOptional ? true : !isDefaultZeroValue
+        }
+    }
+    
     mutating func encode(_ value: Bool, forKey key: Key) throws {
-        if value || context.isMarkedAsOptional(codingPath.appending(key)) {
+        if shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value == false) {
+        //if value || context.isMarkedAsOptional(codingPath.appending(key)) {
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
             dstBufferRef.value.writeProtoVarInt(UInt8(value ? 1 : 0))
         }
     }
     
     mutating func encode(_ value: String, forKey key: Key) throws {
-        guard !value.isEmpty || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        //guard !value.isEmpty || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isEmpty) else {
             // Empty strings are simply omitted from the buffer
             return
         }
@@ -57,7 +69,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: Float, forKey key: Key) throws {
-        guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        //guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isZero) else {
             // Zero values are simply omitted
             return
         }
@@ -66,7 +79,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: Double, forKey key: Key) throws {
-        guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        //guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isZero) else {
             // Zero values are simply omitted
             return
         }
@@ -75,7 +89,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func _encodeVarInt<T: FixedWidthInteger>(_ value: T, forKey key: Key) throws {
-        guard value != T.zero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        //guard value != T.zero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+        guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value == T.zero) else {
             return
         }
         dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
@@ -143,16 +158,26 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             dstBufferRef.value.writeProtoLengthDelimited(sequence)
         }
         
-        let prevProtoSyntax: ProtoSyntax = context.syntax
-        if value is Proto2Codable {
-            context.syntax = .proto2
-        }
-        defer {
-            context.syntax = prevProtoSyntax
+        if GetProtoCodingKind(type(of: value)) == .message {
+            context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3)
         }
         
+        defer {
+            if GetProtoCodingKind(type(of: value)) == .message {
+                context.popSyntax()
+            }
+        }
+        
+//        let prevProtoSyntax: ProtoSyntax = context.syntax
+//        if value is Proto2Codable {
+//            context.syntax = .proto2
+//        }
+//        defer {
+//            context.syntax = prevProtoSyntax
+//        }
+        
         if let optionalVal = value as? AnyOptional {
-            try _encodeIfPresent(value as! Encodable?, forKey: key)
+            try _encodeIfPresent(optionalVal.wrappedValue as! Encodable?, forKey: key)
         } else if value is _ProtobufEmbeddedType {
             // We're encoding an embedded type (i.e. a oneof), which means that we completely ignore the key and simply encode the set value as if it were a normal field
             let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
@@ -164,6 +189,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             try value.encode(to: encoder)
             self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
             precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
+        } else if let enumVal = value as? AnyProtobufEnum {
+            try encode(enumVal.rawValue, forKey: key)
         } else if let string = value as? String {
             try encode(string, forKey: key)
         } else if let bool = value as? Bool {

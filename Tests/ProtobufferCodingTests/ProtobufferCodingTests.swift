@@ -30,7 +30,7 @@ func assertDecodedMatches<T: Decodable & Equatable>(_ buffer: ByteBuffer, _ expe
 
 
 
-class ProtoEncoderTests: XCTestCase {
+class ProtobufferCodingTests: XCTestCase {
     func testEmptyStruct() throws {
         let input = EmptyMessage()
         let encoded = try ProtobufferEncoder().encode(input)
@@ -169,7 +169,7 @@ class ProtoEncoderTests: XCTestCase {
         )
         try _testImpl(
             Proto2Type<String>(value: ""),
-            expectedBytes: [0b101, 0],
+            expectedBytes: [0b1010, 0],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 0, dataOffset: 1), fieldLength: 2)]
             ]
@@ -193,8 +193,6 @@ class ProtoEncoderTests: XCTestCase {
         func imp<T: Codable & Equatable>(_: T.Type, emptyValue: T) throws {
             try _testImpl(GenericSingleFieldMessage<T>(value: emptyValue), expectedBytes: [], expectedFieldMapping: [:])
             try _testImpl(GenericSingleFieldMessage<[T]>(value: []), expectedBytes: [], expectedFieldMapping: [:])
-            //try _testImpl(GenericSingleFieldMessage<[T]>(value: [emptyValue]), expectedBytes: [], expectedFieldMapping: [:])
-            //try _testImpl(GenericSingleFieldMessage<[T]>(value: [emptyValue, emptyValue, emptyValue]), expectedBytes: [], expectedFieldMapping: [:])
         }
         
         try imp(String.self, emptyValue: "")
@@ -208,9 +206,59 @@ class ProtoEncoderTests: XCTestCase {
     
     
     func testRepeatedValueCoding() throws {
-        try _testImpl(GenericSingleFieldMessage<[Int]>(value: [0, 1, 2, 3, 4, 5]), expectedBytes: [10, 6, 0, 1, 2, 3, 4, 5], expectedFieldMapping: [
-            1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
-        ])
+        try _testImpl(
+            GenericSingleFieldMessage<[Int]>(value: [1, 2, 3]),
+            expectedBytes: [0b1010, 3, 1, 2, 3],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 3, dataOffset: 1), fieldLength: 5)]
+            ]
+        )
+        try _testImpl(
+            GenericSingleFieldMessage<[Int]>(value: [0, 1, 2, 3, 4, 5]),
+            expectedBytes: [10, 6, 0, 1, 2, 3, 4, 5],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
+            ]
+        )
+        
+        func ascii(_ char: Character) -> UInt8 {
+            char.asciiValue!
+        }
+        
+        try _testImpl(
+            GenericSingleFieldMessage<[String]>(value: ["Lukas", "Kollmer"]),
+            expectedBytes: [
+                0b1010, 5, ascii("L"), ascii("u"), ascii("k"), ascii("a"), ascii("s"),
+                0b1010, 7, ascii("K"), ascii("o"), ascii("l"), ascii("l"), ascii("m"), ascii("e"), ascii("r")
+            ],
+            expectedFieldMapping: [
+                1: [
+                    .init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 5, dataOffset: 1), fieldLength: 7),
+                    .init(tag: 1, keyOffset: 7, valueOffset: 8, valueInfo: .lengthDelimited(dataLength: 7, dataOffset: 1), fieldLength: 9)
+                ]
+            ]
+        )
+    }
+    
+    
+    func testRepeatedValueCodingOrderIrrelevance() throws {
+        struct Message: Codable, Equatable {
+            let names: [String]
+            let number: Int
+        }
+        
+        func ascii(_ char: Character) -> UInt8 {
+            char.asciiValue!
+        }
+        
+        let bytes: [UInt8] = [
+            0b1010, 5, ascii("L"), ascii("u"), ascii("k"), ascii("a"), ascii("s"),
+            0b10000, 52,
+            0b1010, 4, ascii("P"), ascii("a"), ascii("u"), ascii("l"),
+        ]
+        
+        let decoded = try ProtobufferDecoder().decode(Message.self, from: Data(bytes))
+        XCTAssertEqual(decoded, Message(names: ["Lukas", "Paul"], number: 52))
     }
     
     
@@ -245,6 +293,85 @@ class ProtoEncoderTests: XCTestCase {
         // TODO collect some real-world reflection input and test against that
     }
     
+    
+    
+    func testSimpleEnumCoding() throws {
+        enum Shape: Int32, ProtobufEnum {
+            case square = 0
+            case circle = 1
+            case triangle = 2
+        }
+        
+        try _testImpl(
+            GenericSingleFieldMessage<Shape>(value: .square),
+            expectedBytes: [],
+            expectedFieldMapping: [:]
+        )
+        try _testImpl(
+            GenericSingleFieldMessage<Shape>(value: .circle),
+            expectedBytes: [0b1000, 1],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(1), fieldLength: 2)]
+            ]
+        )
+        try _testImpl(
+            GenericSingleFieldMessage<Shape>(value: .triangle),
+            expectedBytes: [0b1000, 2],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(2), fieldLength: 2)]
+            ]
+        )
+    }
+    
+    
+    func testProtoSchemaSimpleEnumHandling() throws {
+        // First, we make sure that the schema (which acts as the central "type validation" facility)
+        // properly handles a simple (i.e. trivial, i.e. non-complex) enum.
+        enum Shape: Int32, ProtobufEnum {
+            case square = 0
+            case circle = 1
+            case triangle = 2
+        }
+        let schema = ProtoSchema(defaultPackageName: "de.lukaskollmer")
+        //XCTAssertNoThrow(schema.informAboutType(Shape.self))
+        let protoType1 = try XCTAssertNoThrowAndReturnResult(try schema.informAboutType(Shape.self))
+        XCTAssertEqual(protoType1, .enumTy(name: .init(mangled: "[de.lukaskollmer].ProtobufferCodingTests.Shape"), enumType: Shape.self, cases: [
+            .init(name: "square", value: 0),
+            .init(name: "circle", value: 1),
+            .init(name: "triangle", value: 2)
+        ]))
+    }
+    
+    
+    func testProtoSchemaEnumZeroValueHandlingProto2() throws {
+        // in proto2, enums w/out a 0 value are allowed, so we expect the enum defined below to work just fine
+        enum Proto2ValidShape: Int32, ProtobufEnum, Proto2Codable {
+            case square = 1
+            case circle = 2
+            case triangle = 3
+        }
+        
+        let schema = ProtoSchema(defaultPackageName: "de.lukaskollmer")
+        let protoType = try XCTAssertNoThrowAndReturnResult(schema.informAboutType(Proto2ValidShape.self))
+        XCTAssertEqual(protoType, .enumTy(name: .init(mangled: "[de.lukaskollmer].ProtobufferCodingTests.Proto2ValidShape"), enumType: Proto2ValidShape.self, cases: [
+            .init(name: "square", value: 1),
+            .init(name: "circle", value: 2),
+            .init(name: "triangle", value: 3)
+        ]))
+    }
+    
+    
+    func testProtoSchemaEnumZeroValueHandlingProto3() throws {
+        // in proto3, enums are required to map the 0 value, so we expedt the enum defined below to result in an error
+        enum Proto3InvalidShape: Int32, ProtobufEnum {
+            case square = 1
+            case circle = 2
+            case triangle = 3
+        }
+        
+        let schema = ProtoSchema(defaultPackageName: "de.lukaskollmer")
+        XCTAssertThrowsError(try schema.informAboutType(Proto3InvalidShape.self))
+    }
 }
 
 
@@ -254,4 +381,34 @@ struct SimpleStructWithIntProperty: Codable {
 
 struct SimpleStructWithMessageProperty: Codable {
     let message: Person
+}
+
+
+
+
+
+struct _TestFailingError: Swift.Error, LocalizedError {
+    let message: String
+    
+    var errorDescription: String? {
+        message
+    }
+}
+
+
+
+/// A version of `XCTAssertNoThrow` that returns the result of the non-throwing expression
+/// - Note: Ideally we'd call this `XCTAssertNoThrow` as well and simply use it as an overload, but that doesn't work bc calls always get resolved to the other definition.
+func XCTAssertNoThrowAndReturnResult<T>(
+    _ expression: @autoclosure () throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) throws -> T {
+    do {
+        return try expression()
+    } catch {
+        XCTFail("Caught error: \(error). \(message())", file: file, line: line)
+        throw _TestFailingError(message: "Unexpectedly threw an error")
+    }
 }

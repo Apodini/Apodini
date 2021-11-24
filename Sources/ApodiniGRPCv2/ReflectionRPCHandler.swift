@@ -90,9 +90,9 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
     }
     
     
-    static func registerReflectionServiceTypesWithSchema(_ schema: ProtoSchema) {
-        schema.informAboutMessageType(ReflectionRequest.self)
-        schema.informAboutMessageType(ReflectionResponse.self)
+    static func registerReflectionServiceTypesWithSchema(_ schema: ProtoSchema) throws {
+        try schema.informAboutMessageType(ReflectionRequest.self)
+        try schema.informAboutMessageType(ReflectionResponse.self)
     }
 }
 
