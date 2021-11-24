@@ -266,10 +266,10 @@ struct ExampleWebService: WebService {
 }
 ```
 
-As the `MetricsConfiguration` is quite complex, `ApodiniObserve` offers a seperate [`ApodiniObserveMetricsPrometheus` Swift package](https://github.com/Apodini/ApodiniObserveMetricsPrometheus) that drastically simplifies the configuration process for the common [Prometheus](https://prometheus.io/) software stack. Include the dependency like:
+As the `MetricsConfiguration` is quite complex, `ApodiniObserve` offers a seperate [`ApodiniObservePrometheus` Swift package](https://github.com/Apodini/ApodiniObservePrometheus) that drastically simplifies the configuration process for the common [Prometheus](https://prometheus.io/) software stack. Include the dependency like:
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Apodini/ApodiniObserveMetricsPrometheus.git", from: "1.0.0"),
+    .package(url: "https://github.com/Apodini/ApodiniObservePrometheus.git", from: "0.0.0"),
 ],
 targets: [
     .executableTarget(
@@ -277,7 +277,7 @@ targets: [
         dependencies: [
             .product(name: "Apodini", package: "Apodini"),
             .product(name: "ApodiniObserve", package: "Apodini"),
-            .product(name: "ApodiniObserveMetricsPrometheus", package: "ApodiniObserveMetricsPrometheus"),
+            .product(name: "ApodiniObservePrometheus", package: "ApodiniObservePrometheus"),
         ]
     ),
 ]
@@ -288,7 +288,7 @@ This then enables a way simpler configuration like:
 ```swift
 import Apodini
 import ApodiniObserve
-import ApodiniObserveMetricsPrometheus
+import ApodiniObservePrometheus
 
 struct ExampleWebService: WebService {
     var content: some Component {
