@@ -5,13 +5,35 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
+extension Set where Element == ObjectIdentifier {
+    init(_ types: Any.Type...) {
+        self.init(types)
+    }
+    
+    init<S>(_ other: S) where S: Sequence, S.Element == Any.Type {
+        self = Set(other.map { ObjectIdentifier($0) })
+    }
+    
+    func contains(_ other: Any.Type) -> Bool {
+        contains(ObjectIdentifier(other))
+    }
+}
+
+
+let protobufferUnsupportedNumericTypes = Set(
+    Int8.self, UInt8.self, Int16.self, UInt16.self
+)
+
+
 struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
+    let context: _EncoderContext
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>) {
+    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
+        self.context = context
     }
     
     mutating func encodeNil(forKey key: Key) throws {
@@ -19,14 +41,14 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: Bool, forKey key: Key) throws {
-        if value {
+        if value || context.isMarkedAsOptional(codingPath.appending(key)) {
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
-            dstBufferRef.value.writeProtoVarInt(UInt8(1))
+            dstBufferRef.value.writeProtoVarInt(UInt8(value ? 1 : 0))
         }
     }
     
     mutating func encode(_ value: String, forKey key: Key) throws {
-        guard !value.isEmpty else {
+        guard !value.isEmpty || context.isMarkedAsOptional(codingPath.appending(key)) else {
             // Empty strings are simply omitted from the buffer
             return
         }
@@ -34,56 +56,79 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         dstBufferRef.value.writeProtoLengthDelimited(value.utf8)
     }
     
-    mutating func encode(_ value: Double, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+    mutating func encode(_ value: Float, forKey key: Key) throws {
+        guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+            // Zero values are simply omitted
+            return
+        }
+        dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: ._32Bit)
+        dstBufferRef.value.writeProtoFloat(value)
     }
     
-    mutating func encode(_ value: Float, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+    mutating func encode(_ value: Double, forKey key: Key) throws {
+        guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+            // Zero values are simply omitted
+            return
+        }
+        dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: ._64Bit)
+        dstBufferRef.value.writeProtoDouble(value)
+    }
+    
+    mutating func _encodeVarInt<T: FixedWidthInteger>(_ value: T, forKey key: Key) throws {
+        guard value != T.zero || context.isMarkedAsOptional(codingPath.appending(key)) else {
+            return
+        }
+        dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
+        dstBufferRef.value.writeProtoVarInt(value)
+    }
+    
+    private func throwUnsupportedNumericTypeError(value: Any, forKey key: Key) throws {
+        precondition(protobufferUnsupportedNumericTypes.contains(type(of: value)), "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type.")
+        throw EncodingError.invalidValue(value, .init(
+            codingPath: codingPath.appending(key),
+            debugDescription: "Type '\(type(of: value))' is not available in protobuf.",
+            underlyingError: nil
+        ))
     }
     
     mutating func encode(_ value: Int, forKey key: Key) throws {
-        // TODO should this skip writing zerro values?
-        dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
-        dstBufferRef.value.writeProtoVarInt(value)
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: Int8, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try throwUnsupportedNumericTypeError(value: value, forKey: key)
     }
     
     mutating func encode(_ value: Int16, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try throwUnsupportedNumericTypeError(value: value, forKey: key)
     }
     
     mutating func encode(_ value: Int32, forKey key: Key) throws {
-        // TODO skip zero values?
-        dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
-        dstBufferRef.value.writeProtoVarInt(value)
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: Int64, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: UInt, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: UInt8, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try throwUnsupportedNumericTypeError(value: value, forKey: key)
     }
     
     mutating func encode(_ value: UInt16, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try throwUnsupportedNumericTypeError(value: value, forKey: key)
     }
     
     mutating func encode(_ value: UInt32, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: UInt64, forKey key: Key) throws {
-        fatalError("Not implemented (value: \(value), key: \(key))")
+        try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
@@ -98,19 +143,48 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             dstBufferRef.value.writeProtoLengthDelimited(sequence)
         }
         
-        if value is _ProtobufEmbeddedType {
+        let prevProtoSyntax: ProtoSyntax = context.syntax
+        if value is Proto2Codable {
+            context.syntax = .proto2
+        }
+        defer {
+            context.syntax = prevProtoSyntax
+        }
+        
+        if let optionalVal = value as? AnyOptional {
+            try _encodeIfPresent(value as! Encodable?, forKey: key)
+        } else if value is _ProtobufEmbeddedType {
             // We're encoding an embedded type (i.e. a oneof), which means that we completely ignore the key and simply encode the set value as if it were a normal field
-            let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef)
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
         } else if value is ProtobufMessage {
             // We're encoding a message. In this case, we need to encode the value length-delimited
             let bufferRef = Box(ByteBuffer())
-            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef)
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef, context: context)
             try value.encode(to: encoder)
             self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
             precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
         } else if let string = value as? String {
             try encode(string, forKey: key)
+        } else if let bool = value as? Bool {
+            try encode(bool, forKey: key)
+        } else if let intValue = value as? Int {
+            precondition(type(of: value) == Int.self, "\(type(of: value)) | \(value) | \(intValue)")
+            try encode(intValue, forKey: key)
+        } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
+            try throwUnsupportedNumericTypeError(value: value, forKey: key)
+        } else if let intValue = value as? Int32 {
+            precondition(type(of: value) == Int32.self)
+            try encode(intValue, forKey: key)
+        } else if let intValue = value as? Int64 {
+            precondition(type(of: value) == Int64.self)
+            try encode(intValue, forKey: key)
+        } else if let doubleValue = value as? Double { // TODO do we have to worry about `as?` doing implicit conversions between compatible types here?
+            precondition(type(of: value) == Double.self)
+            try encode(doubleValue, forKey: key)
+        } else if let floatValue = value as? Float {
+            precondition(type(of: value) == Float.self)
+            try encode(floatValue, forKey: key)
         } else if let array = value as? Array<UInt8>, type(of: value) == Array<UInt8>.self { // We need the additional type(of:) check bc Swift will happily convert empty arrays of type X to empty arrays of type Y :/
             precondition(type(of: value) == Array<UInt8>.self)
             // Protobuffer doesn't have a one-byte type, so this wouldn't be valid anyway, meaning that we can safely interpret an `[UInt8]` as "data"
@@ -122,30 +196,9 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             //dstBufferRef.value.writeProtoLengthDelimited(data)
             encodeLengthDelimitedKeyedBytes(data)
         } else if let protobufRepeatedTy = value as? ProtobufRepeated {
-            let oldWriterIndex = dstBufferRef.value.writerIndex
-            let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef)
+            let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
             try protobufRepeatedTy.encodeElements(to: encoder, forKey: key)
         } else {
-            let result = AnySequenceATRVisitor.run(value: value) { (element: Any) in
-                fatalError() // This shouldn't be needed anymore since we're using the RepeatedValueCodable thing above...
-                guard let encodable = element as? Encodable else {
-                    throw ProtoEncodingError.other("HMMM \(type(of: element)) \(element)")
-                }
-                try self._encode(encodable, forKey: key)
-            }
-            switch result {
-            case nil:
-                // Type is not a sequence...
-                // This is the only case we want to continue to after the switch
-                break
-            case .success:
-                // Type is a sequence, and we successfully managed to encode all of the sequence's elements into the buffer
-                return
-            case .failure(let error):
-                // Type is a sequence, but we encountered an error trying to encode the sequence's elements into the buffer
-                throw error
-            }
-            
             // We're encoding something that's not a message. In this case we do not apply explicit length-decoding.
             // TODO this is somehwat imperfect. Ideally we'd get rid of the message check above and somehow determine that dynamically!
             // (i.e. determine whether T is a struct like Int (where we don't need to apply additional length-encoding),
@@ -153,7 +206,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             // we'd need to apply length-encoding)
             // TODO what if `value.encode` doesn't write anything to the buffer? in that case we'd ideally remove the key!!!!!
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
-            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef)
+            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
         }
     }
@@ -163,7 +216,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         //fatalError("Not yet implemented (keyType: \(keyType), key: \(key))")
         return KeyedEncodingContainer(ProtobufferKeyedEncodingContainer<NestedKey>(
             codingPath: codingPath.appending(key),
-            dstBufferRef: dstBufferRef
+            dstBufferRef: dstBufferRef,
+            context: context
         ))
     }
     
@@ -177,6 +231,88 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     
     mutating func superEncoder(forKey key: Key) -> Encoder {
         fatalError()
+    }
+    
+    
+    // MARK: Optionals
+    
+    mutating func encodeIfPresent(_ value: Bool?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: String?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Double?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Float?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Int?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Int8?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Int16?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Int32?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: Int64?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: UInt?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: UInt8?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func encodeIfPresent<T: Encodable>(_ value: T?, forKey key: Key) throws {
+        try _encodeIfPresent(value, forKey: key)
+    }
+    
+    mutating func _encodeIfPresent(_ value: Encodable?, forKey key: Key) throws {
+        // We're encoding an Optional. this is a bit tricky bc we have to properly handle proto2 and proto3's optional encoding behaviour here.
+        // We're using proto3 everywhere, with the exception of the descriptors proto definitions.
+        // (These are still defined as proto2 message types, so we have to match that behaviour.)
+        // In order to differentiate between fields that were explicitly set to nil, and fields that were set to the type's default "zero value",
+        // which wouldn't be possible were we to simply skip encoding the field into the buffer in both cases, we always encode non-nil optionals
+        // into the buffer, regardless of whether or not the value is the zero value (which we'd normally skip).
+        if let value = value {
+            // the optional field has a value, so we have to always encode the field
+            context.markAsOptional(codingPath.appending(key))
+            defer {
+                context.unmarkAsOptional(codingPath.appending(key))
+            }
+            try _encode(value, forKey: key)
+        } else {
+            // The optional field does not have a value, so we don't encode anything into the buffer
+        }
     }
 }
 

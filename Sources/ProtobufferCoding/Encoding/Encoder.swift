@@ -35,6 +35,12 @@ import Foundation
 //}
 
 
+public enum ProtoSyntax { // TODO move this out of this file!
+    case proto2
+    case proto3
+}
+
+
 public struct ProtobufferEncoder {
     public init() {}
     
@@ -46,7 +52,12 @@ public struct ProtobufferEncoder {
     
     public func encode<T: Encodable>(_ value: T, into buffer: inout ByteBuffer) throws {
         let dstBufferRef = Box(ByteBuffer())
-        let encoder = _ProtobufferEncoder(codingPath: [], userInfo: [:], dstBufferRef: dstBufferRef)
+        let encoder = _ProtobufferEncoder(
+            codingPath: [],
+            userInfo: [:],
+            dstBufferRef: dstBufferRef,
+            context: _EncoderContext()
+        )
         try value.encode(to: encoder)
         buffer.writeImmutableBuffer(dstBufferRef.value)
     }
@@ -63,7 +74,7 @@ public struct ProtobufferEncoder {
         asField field: ProtoTypeDerivedFromSwift.MessageField
     ) throws {
         let dstBufferRef = Box(ByteBuffer())
-        let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef)
+        let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef, context: _EncoderContext())
         var keyedEncoder = encoder.container(keyedBy: FixedCodingKey.self)
         try keyedEncoder.encode(value, forKey: .init(intValue: field.fieldNumber))
         buffer.writeImmutableBuffer(dstBufferRef.value)
@@ -72,30 +83,72 @@ public struct ProtobufferEncoder {
 
 
 
+class _EncoderContext {
+    /// The current syntax.
+    /// - Note: Since proto2 and proto3 messages can be contained in each other, the value of this property can change while encoding an object.
+    var syntax: ProtoSyntax
+    private var fieldsMarkedAsOptional: Set<[Int]> = [] // int values of the coding path to the field
+    
+    init(syntax: ProtoSyntax = .proto3) {
+        self.syntax = syntax
+    }
+    
+    
+    func markAsOptional(_ codingPath: [CodingKey]) {
+        fieldsMarkedAsOptional.insert(Self.codingPathToInts(codingPath))
+        print("Added \(codingPath) = \(Self.codingPathToInts(codingPath)) to set of always-included key paths")
+    }
+    
+    func unmarkAsOptional(_ codingPath: [CodingKey]) {
+        fieldsMarkedAsOptional.remove(Self.codingPathToInts(codingPath))
+        print("Removed \(codingPath) = \(Self.codingPathToInts(codingPath)) from set of always-included key paths")
+    }
+    
+    func isMarkedAsOptional(_ codingPath: [CodingKey]) -> Bool {
+        let retval = fieldsMarkedAsOptional.contains(Self.codingPathToInts(codingPath))
+        print("Is \(codingPath) = \(Self.codingPathToInts(codingPath)) in set of always-included key paths: \(retval)")
+        return retval
+    }
+    
+    
+//    func shouldAlwaysIncludeInOutput(_ codingPath: [CodingKey]) -> Bool {
+//
+//    }
+    
+    
+    private static func codingPathToInts(_ codingPath: [CodingKey]) -> [Int] {
+        codingPath.map { $0.getProtoFieldNumber() }
+    }
+}
+
+
 class _ProtobufferEncoder: Encoder {
     let codingPath: [CodingKey]
     let userInfo: [CodingUserInfoKey : Any]
     let dstBufferRef: Box<ByteBuffer>
+    let context: _EncoderContext // One might argue that the dstBuffer should also be in the context, but that wouldnt be a good idea bs we sometimes swap out the dst buffer, but would want to keep using the same context.
     
-    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], dstBufferRef: Box<ByteBuffer>) {
+    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
         self.codingPath = codingPath
         self.userInfo = userInfo
         self.dstBufferRef = dstBufferRef
+        self.context = context
     }
     
     func container<Key: CodingKey>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         KeyedEncodingContainer(ProtobufferKeyedEncodingContainer(
             codingPath: codingPath,
-            dstBufferRef: dstBufferRef
+            dstBufferRef: dstBufferRef,
+            context: context
         ))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
+        ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        ProtobufferSingleValueEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef)
+        ProtobufferSingleValueEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
 }
 

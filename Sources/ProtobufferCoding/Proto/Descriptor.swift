@@ -2,7 +2,7 @@ import Foundation
 
 
 // TODO Change all properties here to vars!!! (update: why?)
-// TODO we probably can remove a decent amount of the optionals here???
+// TODO we probably can remove a decent amount of the optionals here??? (<<-- NO; we actually have to bring back the ones we removed)
 
 //@propertyWrapper
 //struct ProtoOptions<Value: Codable>: Codable {
@@ -17,6 +17,13 @@ import Foundation
 //        set { value = newValue }
 //    }
 //}
+
+
+protocol _ProtoPackage_Google_Protobuf: ProtoTypeInPackage & Proto2Codable {}
+extension _ProtoPackage_Google_Protobuf {
+    public static var package: ProtobufPackageName { .init("google.protobuf") }
+}
+
 
 
 protocol ProtoMessageInGoogleProtobufPackage: ProtobufMessage {}

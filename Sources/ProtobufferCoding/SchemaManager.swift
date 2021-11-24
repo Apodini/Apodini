@@ -4,17 +4,12 @@ import ApodiniUtils
 @_implementationOnly import Runtime
 
 
-
+// TODO the schema manager needs to support the Proto2 stuff (eg setting fields to REQUIRED, etc)
+// ALSO, check enum values!!!
 
 
 // TODO we probably should remove this?
 protocol _ProtoIgnoreInReflection {}
-
-protocol _ProtoPackage_Google_Protobuf: ProtoTypeInPackage {}
-extension _ProtoPackage_Google_Protobuf {
-    public static var package: ProtobufPackageName { .init("google.protobuf") }
-}
-
 
 
 // Used to unify the typename handling for messages and enums
@@ -761,10 +756,25 @@ public class ProtoSchema {
 
 protocol AnyOptional {
     static var wrappedType: Any.Type { get }
+    var wrappedValue: Any? { get }
+}
+
+extension AnyOptional {
+    var wrappedType: Any.Type {
+        Self.wrappedType
+    }
 }
 
 extension Optional: AnyOptional {
     static var wrappedType: Any.Type { Wrapped.self }
+    var wrappedValue: Any? {
+        switch self {
+        case .some(let value):
+            return .some(value)
+        case .none:
+            return .none
+        }
+    }
 }
 
 

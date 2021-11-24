@@ -49,6 +49,12 @@ struct ProtobufFieldInfo: Hashable {
 struct ProtobufFieldsMapping: Hashable {
     private var storage: [Int: [ProtobufFieldInfo]] = [:]
     
+    init() {}
+    
+    /* for tests only */ internal init(_ mapping: [Int: [ProtobufFieldInfo]]) {
+        self.storage = mapping
+    }
+    
     func getAll(forFieldNumber fieldNumber: Int) -> [ProtobufFieldInfo] {
         storage[fieldNumber] ?? []
     }
@@ -68,6 +74,10 @@ struct ProtobufFieldsMapping: Hashable {
         storage.keys.contains(fieldNumber)
     }
     
+    var isEmpty: Bool {
+        storage.isEmpty
+    }
+    
     var allFields: [ProtobufFieldInfo] {
         storage.flatMap(\.value)
     }
@@ -81,6 +91,12 @@ struct ProtobufFieldsMapping: Hashable {
     }
 }
 
+
+extension ProtobufFieldsMapping: ExpressibleByDictionaryLiteral {
+    init(dictionaryLiteral elements: (Int, [ProtobufFieldInfo])...) {
+        self.init(Dictionary(uniqueKeysWithValues: elements))
+    }
+}
 
 
 struct ProtobufMessageLayoutDecoder {

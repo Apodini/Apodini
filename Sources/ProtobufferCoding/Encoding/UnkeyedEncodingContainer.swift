@@ -5,15 +5,18 @@ import Foundation
 struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
+    let context: _EncoderContext
+    
     var count: Int {
         // TODO when does this get called? Who calls this?
         // Should it represent the number of elements that have been encoded so far? or the expected number?
         fatalError()
     }
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>) {
+    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
+        self.context = context
     }
     
     mutating func encodeNil() throws {
@@ -90,7 +93,7 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     
     mutating func encode<T: Encodable>(_ value: T) throws {
         // TODO do we need to do special checks for certain types here?
-        let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef)
+        let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
         try value.encode(to: encoder)
     }
 }

@@ -6,10 +6,12 @@ import Foundation
 struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
+    let context: _EncoderContext
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>) {
+    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
+        self.context = context
     }
     
     mutating func encodeNil() throws {
@@ -17,7 +19,8 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Bool) throws {
-        fatalError("Not implemented")
+        fatalError()
+        dstBufferRef.value.writeProtoVarInt(value ? 1 : 0)
     }
     
     mutating func encode(_ value: String) throws {

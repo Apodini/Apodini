@@ -696,6 +696,13 @@ let package = Package(
             ]
         ),
         
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: [
+                .target(name: "ProtobufferCoding")
+            ]
+        ),
+        
         .executableTarget(
             name: "LKTestWebService",
             dependencies: [

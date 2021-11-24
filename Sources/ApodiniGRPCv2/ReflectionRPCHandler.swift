@@ -24,6 +24,7 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
     func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
         let reflectionRequest: ReflectionRequest
         do {
+            print("REFLECTION REQUEST RAW PROTO BYTES", message.payload.getBytes(at: 0, length: message.payload.writerIndex))
             reflectionRequest = try ProtobufferDecoder().decode(ReflectionRequest.self, from: message.payload)
         } catch {
             // TODO return an error response
@@ -394,5 +395,16 @@ private struct ReflectionResponse: Codable, ProtobufMessage, Equatable, __ProtoN
         case validHost = 1
         case originalRequest = 2
         case messageResponse = -1 // TODO???!!!!!!
+    }
+}
+
+
+
+
+extension String {
+    func lk_writeToFile(at path: String) throws {
+        let url = URL(fileURLWithPath: path)
+        let data = self.data(using: .utf8)!
+        try data.write(to: url)
     }
 }
