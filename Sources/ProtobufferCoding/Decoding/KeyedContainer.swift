@@ -109,7 +109,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return 0 // TODO is this the right approach?
         }
-        return Int(try buffer.getVarInt(at: fieldInfo.valueOffset))
+        return Int(bitPattern: UInt(try buffer.getVarInt(at: fieldInfo.valueOffset)))
     }
     
     func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {

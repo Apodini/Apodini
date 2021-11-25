@@ -45,8 +45,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         case .proto2:
             return true // proto2 always encodes non-nil values, regardless of whether or not they're optional, and regardless of whether or not they're the field type's "default zero" value
         case .proto3:
-            let isOptional = context.isMarkedAsOptional(codingPath.appending(key))
-            return isOptional ? true : !isDefaultZeroValue
+            let isRequiredOutput = context.isMarkedAsRequiredOutput(codingPath.appending(key))
+            return isRequiredOutput ? true : !isDefaultZeroValue
         }
     }
     
@@ -161,25 +161,23 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         if GetProtoCodingKind(type(of: value)) == .message {
             context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3)
         }
-        
         defer {
             if GetProtoCodingKind(type(of: value)) == .message {
                 context.popSyntax()
             }
         }
         
-//        let prevProtoSyntax: ProtoSyntax = context.syntax
-//        if value is Proto2Codable {
-//            context.syntax = .proto2
-//        }
-//        defer {
-//            context.syntax = prevProtoSyntax
-//        }
-        
         if let optionalVal = value as? AnyOptional {
             try _encodeIfPresent(optionalVal.wrappedValue as! Encodable?, forKey: key)
         } else if value is _ProtobufEmbeddedType {
             // We're encoding an embedded type (i.e. a oneof), which means that we completely ignore the key and simply encode the set value as if it were a normal field
+            precondition(value is AnyProtobufEnumWithAssociatedValues)
+            let possibleKeys: [CodingKey] = (type(of: value) as! AnyProtobufEnumWithAssociatedValues.Type).getCodingKeysType().allCases
+            let possibleCodingPaths = possibleKeys.map { self.codingPath.appending($0) }
+            context.markAsRequiredOutput(possibleCodingPaths)
+            defer {
+                context.unmarkAsRequiredOutput(possibleCodingPaths)
+            }
             let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
         } else if value is ProtobufMessage {
@@ -332,9 +330,9 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         // into the buffer, regardless of whether or not the value is the zero value (which we'd normally skip).
         if let value = value {
             // the optional field has a value, so we have to always encode the field
-            context.markAsOptional(codingPath.appending(key))
+            context.markAsRequiredOutput(codingPath.appending(key))
             defer {
-                context.unmarkAsOptional(codingPath.appending(key))
+                context.unmarkAsRequiredOutput(codingPath.appending(key))
             }
             try _encode(value, forKey: key)
         } else {

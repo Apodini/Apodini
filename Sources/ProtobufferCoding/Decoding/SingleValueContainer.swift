@@ -12,7 +12,8 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     init(codingPath: [CodingKey], buffer: ByteBuffer) {
         self.codingPath = codingPath
         self.buffer = buffer
-        self.fieldInfo = (try? ProtobufMessageLayoutDecoder.getFields(in: buffer))?.allFields.first { $0.keyOffset == buffer.readerIndex }
+        //self.fieldInfo = (try? ProtobufMessageLayoutDecoder.getFields(in: buffer))?.allFields.first { $0.keyOffset == buffer.readerIndex }
+        self.fieldInfo = nil
         precondition(fieldInfo == nil)
     }
     
@@ -98,7 +99,7 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     
     func decode(_ type: Int.Type) throws -> Int {
         assertWireTypeIfPresent(.varInt)
-        return Int(try buffer.getVarInt(at: fieldInfo?.valueOffset ?? buffer.readerIndex))
+        return Int(bitPattern: UInt(try buffer.getVarInt(at: fieldInfo?.valueOffset ?? buffer.readerIndex)))
     }
     
     func decode(_ type: Int8.Type) throws -> Int8 {

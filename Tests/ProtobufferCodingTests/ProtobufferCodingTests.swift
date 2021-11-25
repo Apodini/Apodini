@@ -29,6 +29,10 @@ func assertDecodedMatches<T: Decodable & Equatable>(_ buffer: ByteBuffer, _ expe
 }
 
 
+private func ascii(_ char: Character) -> UInt8 {
+    char.asciiValue!
+}
+
 
 class ProtobufferCodingTests: XCTestCase {
     func testEmptyStruct() throws {
@@ -57,28 +61,66 @@ class ProtobufferCodingTests: XCTestCase {
         struct SimpleStructWithIntProperty: Codable, Equatable {
             let value: Int
         }
-        let input = SimpleStructWithIntProperty(value: 52)
-        let encoded = try ProtobufferEncoder().encode(input)
-        try XCTAssertEqual(encoded, [0b1000, 52])
-        XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
-            1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(52), fieldLength: 2)]
-        ]))
-        try assertDecodedMatches(encoded, input)
+//        let input = SimpleStructWithIntProperty(value: 52)
+//        let encoded = try ProtobufferEncoder().encode(input)
+//        try XCTAssertEqual(encoded, [0b1000, 52])
+//        XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
+//            1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(52), fieldLength: 2)]
+//        ]))
+//        try assertDecodedMatches(encoded, input)
+        
+        try _testImpl(
+            SimpleStructWithIntProperty(value: 52),
+            expectedBytes: [0b1000, 52],
+            expectedFieldMapping: [
+                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(52), fieldLength: 2)]
+            ]
+        )
+        
+        try _testImpl(
+            SimpleStructWithIntProperty(value: -12),
+            expectedBytes: [0b1000, 244, 255, 255, 255, 255, 255, 255, 255, 255, 1],
+            expectedFieldMapping: [
+                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(UInt64(bitPattern: -12)), fieldLength: 11)]
+            ]
+        )
     }
+    
     
     
     func testSimpleStruct_Float() throws {
         struct SimpleStructWithFloatProperty: Codable, Equatable {
             let value: Float
         }
-        let input = SimpleStructWithFloatProperty(value: 3.141592654)
-        let encoded = try ProtobufferEncoder().encode(input)
-        try XCTAssertEqual(encoded, [0b1101, 219, 15, 73, 64])
-        XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
-            1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(1078530011), fieldLength: 5)]
-        ]))
-        print((3.141592654 as Float).bitPattern)
-        try assertDecodedMatches(encoded, input)
+        
+        try _testImpl(
+            SimpleStructWithFloatProperty(value: 3.141592654),
+            expectedBytes: [0b1101, 219, 15, 73, 64],
+            expectedFieldMapping: [
+                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(1078530011), fieldLength: 5)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithFloatProperty(value: -2.8),
+            expectedBytes: [0b1101, 51, 51, 51, 192],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(3224580915), fieldLength: 5)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithFloatProperty(value: -.infinity),
+            expectedBytes: [0b1101, 0, 0, 128, 255],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(4286578688), fieldLength: 5)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithFloatProperty(value: .infinity),
+            expectedBytes: [0b1101, 0, 0, 128, 127],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(2139095040), fieldLength: 5)]
+            ]
+        )
     }
     
     
@@ -93,6 +135,36 @@ class ProtobufferCodingTests: XCTestCase {
             1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(4614256656552969552), fieldLength: 9)]
         ]))
         try assertDecodedMatches(encoded, input)
+        
+        
+        try _testImpl(
+            SimpleStructWithDoubleProperty(value: 3.141592654),
+            expectedBytes: [0b1001, 80, 69, 82, 84, 251, 33, 9, 64],
+            expectedFieldMapping: [
+                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(4614256656552969552), fieldLength: 9)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithDoubleProperty(value: -2.8),
+            expectedBytes: [0b1001, 102, 102, 102, 102, 102, 102, 6, 192],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(13836859495133111910), fieldLength: 9)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithDoubleProperty(value: -.infinity),
+            expectedBytes: [0b1001, 0, 0, 0, 0, 0, 0, 240, 255],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(18442240474082181120), fieldLength: 9)]
+            ]
+        )
+        try _testImpl(
+            SimpleStructWithDoubleProperty(value: .infinity),
+            expectedBytes: [0b1001, 0, 0, 0, 0, 0, 0, 240, 127],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(9218868437227405312), fieldLength: 9)]
+            ]
+        )
     }
     
     
@@ -138,6 +210,13 @@ class ProtobufferCodingTests: XCTestCase {
             expectedBytes: [0b1000, 12],
             expectedFieldMapping: [
                 1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(12), fieldLength: 2)]
+            ]
+        )
+        try _testImpl(
+            GenericSingleFieldMessage<Int?>(value: -12),
+            expectedBytes: [0b1000, 244, 255, 255, 255, 255, 255, 255, 255, 255, 1],
+            expectedFieldMapping: [
+                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(UInt64(bitPattern: -12)), fieldLength: 11)]
             ]
         )
         try _testImpl(
@@ -201,7 +280,9 @@ class ProtobufferCodingTests: XCTestCase {
         try imp(Int32.self, emptyValue: 0)
         try imp(Int64.self, emptyValue: 0)
         try imp(Float.self, emptyValue: 0)
+        try imp(Float.self, emptyValue: -0)
         try imp(Double.self, emptyValue: 0)
+        try imp(Double.self, emptyValue: -0)
     }
     
     
@@ -220,10 +301,6 @@ class ProtobufferCodingTests: XCTestCase {
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
             ]
         )
-        
-        func ascii(_ char: Character) -> UInt8 {
-            char.asciiValue!
-        }
         
         try _testImpl(
             GenericSingleFieldMessage<[String]>(value: ["Lukas", "Kollmer"]),
@@ -247,10 +324,6 @@ class ProtobufferCodingTests: XCTestCase {
             let number: Int
         }
         
-        func ascii(_ char: Character) -> UInt8 {
-            char.asciiValue!
-        }
-        
         let bytes: [UInt8] = [
             0b1010, 5, ascii("L"), ascii("u"), ascii("k"), ascii("a"), ascii("s"),
             0b10000, 52,
@@ -260,39 +333,6 @@ class ProtobufferCodingTests: XCTestCase {
         let decoded = try ProtobufferDecoder().decode(Message.self, from: Data(bytes))
         XCTAssertEqual(decoded, Message(names: ["Lukas", "Paul"], number: 52))
     }
-    
-    
-//    func testSimpleEnum() throws {
-//        try _testImpl(
-//            FieldDescriptorProto(
-//                name: "value",
-//                number: 1,
-//                type: .TYPE_BOOL,
-//                proto3Optional: false
-//            ),
-//            expectedBytes: [],
-//            expectedFieldMapping: [
-//                FieldDescriptorProto.CodingKeys.name.rawValue: [.init(
-//                    tag: 0, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 5, dataOffset: 1), fieldLength: 7
-//                )],
-//                FieldDescriptorProto.CodingKeys.number.rawValue: [.init(
-//                    tag: 0, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(1), fieldLength: 7
-//                )],
-//                FieldDescriptorProto.CodingKeys.type.rawValue: [.init(
-//                    tag: 0, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(FieldDescriptorProto.FieldType.TYPE_BOOL.rawValue), fieldLength: 7
-//                )],
-//                FieldDescriptorProto.CodingKeys.proto3Optional.rawValue: [.init(
-//                    tag: 0, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(0), fieldLength: 7
-//                )],
-//            ]
-//        )
-//    }
-    
-    
-    func testDecodeGRPCReflectionInput() throws {
-        // TODO collect some real-world reflection input and test against that
-    }
-    
     
     
     func testSimpleEnumCoding() throws {
@@ -371,6 +411,135 @@ class ProtobufferCodingTests: XCTestCase {
         
         let schema = ProtoSchema(defaultPackageName: "de.lukaskollmer")
         XCTAssertThrowsError(try schema.informAboutType(Proto3InvalidShape.self))
+    }
+    
+    
+    func testEnumWithAssociatedValues() throws {
+        struct Message: Codable, Equatable {
+            enum Value: ProtobufEnumWithAssociatedValues, Codable, Equatable {
+                case integer(Int)
+                case float(Float)
+                case double(Double)
+                case string(String)
+                
+                enum CodingKeys: Int, ProtobufMessageCodingKeys {
+                    case integer = 1
+                    case float = 2
+                    case double = 3
+                    case string = 4
+                }
+                
+                static func makeEnumCase(forCodingKey codingKey: CodingKeys, payload: Any?) -> Value {
+                    switch codingKey {
+                    case .integer:
+                        return .integer(payload as! Int)
+                    case .float:
+                        return .float(payload as! Float)
+                    case .double:
+                        return .double(payload as! Double)
+                    case .string:
+                        return .string(payload as! String)
+                    }
+                }
+                
+                var getCodingKeyAndPayload: (CodingKeys, Any?) {
+                    switch self {
+                    case .integer(let value):
+                        return (.integer, value)
+                    case .float(let value):
+                        return (.float, value)
+                    case .double(let value):
+                        return (.double, value)
+                    case .string(let value):
+                        return (.string, value)
+                    }
+                }
+            }
+            
+            let value: Value
+        }
+        
+        // We have to check multiple things here:
+        // 1. It always encodes only one field (and the correct one!)
+        // 2. It also encodes zero values (since otherwise there's no way to know which of the oneof's fields was set)
+        
+        // Test Int
+        try _testImpl(
+            Message(value: .integer(52)),
+            expectedBytes: [0b1000, 52],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(52), fieldLength: 2)]
+            ]
+        )
+        try _testImpl(
+            Message(value: .integer(0)),
+            expectedBytes: [0b1000, 0],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(0), fieldLength: 2)]
+            ]
+        )
+        
+        // Test Float
+        try _testImpl(
+            Message(value: .float(1.2)),
+            expectedBytes: [0b10101, 154, 153, 153, 63],
+            expectedFieldMapping: [
+                2: [.init(tag: 2, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(1067030938), fieldLength: 5)]
+            ]
+        )
+        try _testImpl(
+            Message(value: .float(0)),
+            expectedBytes: [0b10101, 0, 0, 0, 0],
+            expectedFieldMapping: [
+                2: [.init(tag: 2, keyOffset: 0, valueOffset: 1, valueInfo: ._32Bit(0), fieldLength: 5)]
+            ]
+        )
+        
+        // Test Double
+        try _testImpl(
+            Message(value: .double(1.2)),
+            expectedBytes: [0b11001, 51, 51, 51, 51, 51, 51, 243, 63],
+            expectedFieldMapping: [
+                3: [.init(tag: 3, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(4608083138725491507), fieldLength: 9)]
+            ]
+        )
+        try _testImpl(
+            Message(value: .double(0)),
+            expectedBytes: [0b11001, 0, 0, 0, 0, 0, 0, 0, 0],
+            expectedFieldMapping: [
+                3: [.init(tag: 3, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(0), fieldLength: 9)]
+            ]
+        )
+        try _testImpl(
+            Message(value: .double(-Double.zero)),
+            expectedBytes: [0b11001, 0, 0, 0, 0, 0, 0, 0, 128],
+            expectedFieldMapping: [
+                3: [.init(tag: 3, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(9223372036854775808), fieldLength: 9)]
+            ]
+        )
+        XCTAssertEqual(128 << (7*8), (-Double.zero).bitPattern)
+        XCTAssertEqual((128 << (7*8)) as UInt64, 9223372036854775808)
+        
+        // Test String
+        try _testImpl(
+            Message(value: .string("Hello")),
+            expectedBytes: [0b100010, 5, 72, 101, 108, 108, 111],
+            expectedFieldMapping: [
+                4: [.init(tag: 4, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 5, dataOffset: 1), fieldLength: 7)]
+            ]
+        )
+        try _testImpl(
+            Message(value: .string("")),
+            expectedBytes: [0b100010, 0],
+            expectedFieldMapping: [
+                4: [.init(tag: 4, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 0, dataOffset: 1), fieldLength: 2)]
+            ]
+        )
+    }
+    
+    
+    func testDecodeGRPCReflectionInput() throws {
+        // TODO collect some real-world reflection input and test against that
     }
 }
 

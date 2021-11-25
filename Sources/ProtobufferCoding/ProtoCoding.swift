@@ -90,7 +90,7 @@ extension ByteBuffer {
             }
             bytes.append(nextByte)
         }
-        precondition(bytes.count <= 9) // This is the limit, for a maximum of 63 bytess
+        precondition(bytes.count <= 10) // maximum length of a var int is 10 bytes, for negative integers
         
         var result: UInt64 = 0
         for (idx, byte) in bytes.enumerated() { // NOTE that this loop will iterate the VarInt's bytes **least-significant-byte first**!

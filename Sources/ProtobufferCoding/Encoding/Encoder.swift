@@ -91,7 +91,7 @@ public struct ProtobufferEncoder {
 
 class _EncoderContext {
     private var syntaxStack = Stack<ProtoSyntax>()
-    private var fieldsMarkedAsOptional: Set<[Int]> = [] // int values of the coding path to the field
+    private var fieldsMarkedAsRequiredOutput: Set<[Int]> = [] // int values of the coding path to the field
     
     /// The current syntax.
     /// - Note: Since proto2 and proto3 messages can be contained in each other, the value of this property can change while encoding an object.
@@ -110,16 +110,28 @@ class _EncoderContext {
         syntaxStack.pop()
     }
     
-    func markAsOptional(_ codingPath: [CodingKey]) {
-        fieldsMarkedAsOptional.insert(Self.codingPathToInts(codingPath))
+    func markAsRequiredOutput(_ codingPath: [CodingKey]) {
+        fieldsMarkedAsRequiredOutput.insert(Self.codingPathToInts(codingPath))
     }
     
-    func unmarkAsOptional(_ codingPath: [CodingKey]) {
-        fieldsMarkedAsOptional.remove(Self.codingPathToInts(codingPath))
+    func markAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
+        for codingPath in codingPaths {
+            markAsRequiredOutput(codingPath)
+        }
     }
     
-    func isMarkedAsOptional(_ codingPath: [CodingKey]) -> Bool {
-        fieldsMarkedAsOptional.contains(Self.codingPathToInts(codingPath))
+    func unmarkAsRequiredOutput(_ codingPath: [CodingKey]) {
+        fieldsMarkedAsRequiredOutput.remove(Self.codingPathToInts(codingPath))
+    }
+    
+    func unmarkAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
+        for codingPath in codingPaths {
+            unmarkAsRequiredOutput(codingPath)
+        }
+    }
+    
+    func isMarkedAsRequiredOutput(_ codingPath: [CodingKey]) -> Bool {
+        fieldsMarkedAsRequiredOutput.contains(Self.codingPathToInts(codingPath))
     }
     
     
