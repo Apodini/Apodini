@@ -276,6 +276,15 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     
+    private func decodeVarInt<T: FixedWidthInteger>(forKey key: Key) throws -> T {
+        //T(truncatingIfNeeded: <#T##BinaryInteger#>)
+        guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
+            return .zero // TODO is this the correct approach?
+        }
+        return Int(bitPattern: UInt(try buffer.getVarInt(at: fieldInfo.valueOffset)))
+    }
+    
+    
     
     // MARK: Optionals
     
