@@ -43,11 +43,11 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Int8) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: Int16) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: Int32) throws {
@@ -63,11 +63,11 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: UInt8) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: UInt16) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: UInt32) throws {

@@ -2,6 +2,7 @@ import NIO
 import ApodiniUtils
 import Foundation
 
+
 struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
@@ -56,11 +57,11 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
     
     mutating func encode(_ value: Int8) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: Int16) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: Int32) throws {
@@ -76,11 +77,11 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
     
     mutating func encode(_ value: UInt8) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: UInt16) throws {
-        fatalError("Not implemented")
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
     }
     
     mutating func encode(_ value: UInt32) throws {

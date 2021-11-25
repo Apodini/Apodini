@@ -42,30 +42,29 @@ class _ProtobufferDecoder: Decoder {
     }
     
     func container<Key: CodingKey>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-//        print("-[\(Self.self) \(#function)] \(type)")
-        return try KeyedDecodingContainer(_LKProtobufferDecoderKeyedDecodingContainer<Key>(
+        try KeyedDecodingContainer(_LKProtobufferDecoderKeyedDecodingContainer<Key>(
             codingPath: self.codingPath,
             buffer: buffer
         ))
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError("Not (yet?) implemented")
+        ProtobufferUnkeyedDecodingContainer(codingPath: codingPath, buffer: buffer)
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         // NOTE: We really don't want to end up here, except for cases where the caller knows what it's doing.
-        return ProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
+        ProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
     }
     
     func _internalContainer<Key: CodingKey>(keyedBy _: Key.Type) throws -> _LKProtobufferDecoderKeyedDecodingContainer<Key> {
-        return try _LKProtobufferDecoderKeyedDecodingContainer<Key>(codingPath: codingPath, buffer: buffer)
+        try _LKProtobufferDecoderKeyedDecodingContainer<Key>(codingPath: codingPath, buffer: buffer)
     }
 }
 
 
 /// Attempts to decode a proto-encoded string
-func _LKTryDeocdeProtoString(
+func _LKTryDeocdeProtoString( // TODO make this an extension on ByteBuffer!!!
     in buffer: ByteBuffer,
     fieldValueInfo: ProtobufFieldInfo.ValueInfo,
     fieldValueOffset: Int,

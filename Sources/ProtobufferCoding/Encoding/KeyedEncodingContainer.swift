@@ -25,6 +25,45 @@ let protobufferUnsupportedNumericTypes = Set(
 )
 
 
+
+//func throwUnsupportedNumericTypeEncodingError(_ attemptedType: Any.Type, codingPath: [CodingKey]) throws -> Never {
+//    precondition(protobufferUnsupportedNumericTypes.contains(attemptedType))
+//    throw
+//    throw codingError.typeMismatch(attemptedType, .init(
+//        codingPath: codingPath,
+//        debugDescription: "\(attemptedType) is not a supported type for proto fields.",
+//        underlyingError: nil
+//    ))
+//}
+
+func throwUnsupportedNumericTypeEncodingError(value: Any, codingPath: [CodingKey]) throws -> Never {
+    precondition(
+        protobufferUnsupportedNumericTypes.contains(type(of: value)),
+        "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type."
+    )
+    throw EncodingError.invalidValue(value, .init(
+        codingPath: codingPath,
+        debugDescription: "Type '\(type(of: value))' is not a supported type for proto fields.",
+        underlyingError: nil
+    ))
+}
+
+
+func throwUnsupportedNumericTypeDecodingError(_ attemptedType: Any.Type, codingPath: [CodingKey]) throws -> Never {
+    precondition(
+        protobufferUnsupportedNumericTypes.contains(attemptedType),
+        "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type."
+    )
+    precondition(protobufferUnsupportedNumericTypes.contains(attemptedType))
+    throw DecodingError.typeMismatch(attemptedType, .init(
+        codingPath: codingPath,
+        debugDescription: "Type '\(attemptedType)' is not a supported type for proto fields.",
+        underlyingError: nil
+    ))
+}
+
+
+
 struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
@@ -97,25 +136,17 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         dstBufferRef.value.writeProtoVarInt(value)
     }
     
-    private func throwUnsupportedNumericTypeError(value: Any, forKey key: Key) throws {
-        precondition(protobufferUnsupportedNumericTypes.contains(type(of: value)), "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type.")
-        throw EncodingError.invalidValue(value, .init(
-            codingPath: codingPath.appending(key),
-            debugDescription: "Type '\(type(of: value))' is not available in protobuf.",
-            underlyingError: nil
-        ))
-    }
     
     mutating func encode(_ value: Int, forKey key: Key) throws {
         try _encodeVarInt(value, forKey: key)
     }
     
     mutating func encode(_ value: Int8, forKey key: Key) throws {
-        try throwUnsupportedNumericTypeError(value: value, forKey: key)
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
     }
     
     mutating func encode(_ value: Int16, forKey key: Key) throws {
-        try throwUnsupportedNumericTypeError(value: value, forKey: key)
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
     }
     
     mutating func encode(_ value: Int32, forKey key: Key) throws {
@@ -131,11 +162,11 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: UInt8, forKey key: Key) throws {
-        try throwUnsupportedNumericTypeError(value: value, forKey: key)
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
     }
     
     mutating func encode(_ value: UInt16, forKey key: Key) throws {
-        try throwUnsupportedNumericTypeError(value: value, forKey: key)
+        try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
     }
     
     mutating func encode(_ value: UInt32, forKey key: Key) throws {
@@ -197,7 +228,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             precondition(type(of: value) == Int.self, "\(type(of: value)) | \(value) | \(intValue)")
             try encode(intValue, forKey: key)
         } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
-            try throwUnsupportedNumericTypeError(value: value, forKey: key)
+            try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
         } else if let intValue = value as? Int32 {
             precondition(type(of: value) == Int32.self)
             try encode(intValue, forKey: key)
