@@ -143,7 +143,7 @@ struct ProtobufMessageLayoutDecoder {
             let fieldValueInfo: ProtobufFieldInfo.ValueInfo
             
             switch wireType {
-            case .varInt:
+            case .varInt: 
                 fieldValueInfo = .varInt(try buffer.readVarInt())
             case ._64Bit:
                 guard let u64Val = buffer.readInteger(endianness: .little, as: UInt64.self) else {

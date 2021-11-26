@@ -51,6 +51,9 @@ public struct ProtobufferEncoder {
     }
     
     public func encode<T: Encodable>(_ value: T, into buffer: inout ByteBuffer) throws {
+        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+        // TODO can we somehow use the result from this for the encoding process? prob not, right?
+        try validateTypeIsProtoCompatible(T.self)
         let dstBufferRef = Box(ByteBuffer())
         let encoder = _ProtobufferEncoder(
             codingPath: [],
@@ -76,6 +79,9 @@ public struct ProtobufferEncoder {
         into buffer: inout ByteBuffer,
         asField field: ProtoTypeDerivedFromSwift.MessageField
     ) throws {
+        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+        // TODO can we somehow use the result from this for the encoding process? prob not, right?
+        try validateTypeIsProtoCompatible(T.self)
         let dstBufferRef = Box(ByteBuffer())
         let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef, context: _EncoderContext())
         if GetProtoCodingKind(type(of: value)) == .message {

@@ -53,13 +53,14 @@ public protocol ProtobufPrimitive {} // TODO can we make this private? consideri
 
 extension Bool: ProtobufPrimitive {}
 extension Int: ProtobufPrimitive {}
-extension String: ProtobufPrimitive {}
-extension Int64: ProtobufPrimitive {}
-extension UInt64: ProtobufPrimitive {}
+extension UInt: ProtobufPrimitive {}
 extension Int32: ProtobufPrimitive {}
 extension UInt32: ProtobufPrimitive {}
+extension Int64: ProtobufPrimitive {}
+extension UInt64: ProtobufPrimitive {}
 extension Float: ProtobufPrimitive {}
 extension Double: ProtobufPrimitive {}
+extension String: ProtobufPrimitive {}
 
 //extension Optional: ProtobufPrimitive where Wrapped: ProtobufPrimitive {} // TODO do we want this? prob needed for the schema!????
 
@@ -71,7 +72,26 @@ internal protocol ProtoVarIntInitialisable {
 }
 
 
+extension Bool: ProtoVarIntInitialisable {
+    init?(varInt: UInt64) {
+        switch varInt {
+        case 0:
+            self = false
+        case 1:
+            self = true
+        default:
+            return nil
+        }
+    }
+}
+
 extension Int: ProtoVarIntInitialisable {
+    init?(varInt: UInt64) {
+        self.init(truncatingIfNeeded: varInt)
+    }
+}
+
+extension UInt: ProtoVarIntInitialisable {
     init?(varInt: UInt64) {
         self.init(truncatingIfNeeded: varInt)
     }
@@ -237,7 +257,7 @@ extension Array: ProtobufRepeated where Element: Codable {
                 let numElements = fieldValueBytes.readableBytes / u32Size
                 let elementTy = Element.self as! Proto32BitValueInitialisable.Type
                 self = try (0..<numElements).map { idx in
-                    if let u32Val = fieldValueBytes.readInteger(endianness: .big, as: UInt32.self) { // TODO the proto docs don't really say much about the endianness of u32 values. Is this correct? (it;s not a var int, and they only state that all varInts ar LSB first)
+                    if let u32Val = fieldValueBytes.readInteger(endianness: .little, as: UInt32.self) { // TODO the proto docs don't really say much about the endianness of u32 values. Is this correct? (it;s not a var int, and they only state that all varInts ar LSB first)
                         if let element = elementTy.init(proto32BitValue: u32Val) {
                             return element as! Element
                         } else {
@@ -261,7 +281,7 @@ extension Array: ProtobufRepeated where Element: Codable {
                 let numElements = fieldValueBytes.readableBytes / u64Size
                 let elementTy = Element.self as! Proto64BitValueInitialisable.Type
                 self = try (0..<numElements).map { idx in
-                    if let u64Val = fieldValueBytes.readInteger(endianness: .big, as: UInt64.self) { // TODO the proto docs don't really say much about the endianness of u64 values. Is this correct? (it;s not a var int, and they only state that all varInts ar LSB first)
+                    if let u64Val = fieldValueBytes.readInteger(endianness: .little, as: UInt64.self) { // TODO the proto docs don't really say much about the endianness of u64 values. Is this correct? (it;s not a var int, and they only state that all varInts ar LSB first)
                         if let element = elementTy.init(proto64BitValue: u64Val) {
                             return element as! Element
                         } else {

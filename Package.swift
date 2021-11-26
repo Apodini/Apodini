@@ -21,11 +21,9 @@ let package = Package(
         .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
-        .library(name: "ApodiniGRPC_old", targets: ["ApodiniGRPC_old"]),
         .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
         .library(name: "ApodiniNotifications", targets: ["ApodiniNotifications"]),
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
-        .library(name: "ApodiniProtobuffer_old", targets: ["ApodiniProtobuffer_old"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
@@ -172,10 +170,8 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC_old"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniProtobuffer_old"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
@@ -213,17 +209,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "FluentKit", package: "fluent-kit")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniGRPC_old",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ProtobufferCoding_old")
             ]
         ),
 
@@ -285,17 +270,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniProtobuffer_old",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniTypeReflection"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ProtobufferCoding_old"),
-                .target(name: "ApodiniGRPC_old")
             ]
         ),
 
@@ -430,24 +404,6 @@ let package = Package(
                 .target(name: "XCTApodini")
             ]
         ),
-
-        // ProtobufferCoding_old
-
-        .target(
-            name: "ProtobufferCoding_old",
-            dependencies: [
-                .target(name: "ApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime")
-            ],
-            exclude: ["README.md"]
-        ),
-
-        .testTarget(
-            name: "ProtobufferCodingTests_old",
-            dependencies: [
-                .target(name: "ProtobufferCoding_old")
-            ]
-        ),
         
         // ApodiniMigration
         
@@ -495,8 +451,6 @@ let package = Package(
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC_old"),
-                .target(name: "ApodiniProtobuffer_old"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),

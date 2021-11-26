@@ -211,29 +211,38 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             }
             let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
-        } else if value is ProtobufMessage {
+//        } else if value is ProtobufMessage {
             // We're encoding a message. In this case, we need to encode the value length-delimited
-            let bufferRef = Box(ByteBuffer())
-            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef, context: context)
-            try value.encode(to: encoder)
-            self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
-            precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
+//            let bufferRef = Box(ByteBuffer())
+//            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef, context: context)
+//            try value.encode(to: encoder)
+//            self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
+//            precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
         } else if let enumVal = value as? AnyProtobufEnum {
             try encode(enumVal.rawValue, forKey: key)
         } else if let string = value as? String {
             try encode(string, forKey: key)
         } else if let bool = value as? Bool {
             try encode(bool, forKey: key)
-        } else if let intValue = value as? Int {
-            precondition(type(of: value) == Int.self, "\(type(of: value)) | \(value) | \(intValue)")
-            try encode(intValue, forKey: key)
         } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
             try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath.appending(key))
+        } else if let intValue = value as? Int {
+            precondition(type(of: value) == Int.self)
+            try encode(intValue, forKey: key)
+        } else if let intValue = value as? UInt {
+            precondition(type(of: value) == UInt.self)
+            try encode(intValue, forKey: key)
         } else if let intValue = value as? Int32 {
             precondition(type(of: value) == Int32.self)
             try encode(intValue, forKey: key)
+        } else if let intValue = value as? UInt32 {
+            precondition(type(of: value) == UInt32.self)
+            try encode(intValue, forKey: key)
         } else if let intValue = value as? Int64 {
             precondition(type(of: value) == Int64.self)
+            try encode(intValue, forKey: key)
+        } else if let intValue = value as? UInt64 {
+            precondition(type(of: value) == UInt64.self)
             try encode(intValue, forKey: key)
         } else if let doubleValue = value as? Double { // TODO do we have to worry about `as?` doing implicit conversions between compatible types here?
             precondition(type(of: value) == Double.self)
@@ -261,9 +270,24 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             // a struct like String (where the length-encoding would already have happened), or a struct like MyCustomStructWhatever (where
             // we'd need to apply length-encoding)
             // TODO what if `value.encode` doesn't write anything to the buffer? in that case we'd ideally remove the key!!!!!
-            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
-            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef, context: context)
-            try value.encode(to: encoder)
+//            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
+//            let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: dstBufferRef, context: context)
+//            try value.encode(to: encoder)
+            
+            switch GetProtoCodingKind(type(of: value)) {
+            case nil:
+                fatalError()
+            case .message:
+                let bufferRef = Box(ByteBuffer())
+                let encoder = _ProtobufferEncoder(codingPath: self.codingPath.appending(key), dstBufferRef: bufferRef, context: context)
+                try value.encode(to: encoder)
+                self.dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: GuessWireType(value)!)
+                precondition(self.dstBufferRef.value.writeProtoLengthDelimited(bufferRef.value) > 0)
+            case .primitive, .enum:
+                fatalError()
+            case .repeated, .oneof:
+                fatalError("Unreachable, already handled above")
+            }
         }
     }
     

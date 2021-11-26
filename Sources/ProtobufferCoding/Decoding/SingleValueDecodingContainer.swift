@@ -19,7 +19,11 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: Bool.Type) throws -> Bool {
-        fatalError("Not implemented (type: \(type))")
+        if let value = buffer.getInteger(at: buffer.readerIndex, endianness: .little, as: UInt8.self) {
+            return value == 1
+        } else {
+            return false
+        }
     }
     
     func decode(_ type: String.Type) throws -> String {

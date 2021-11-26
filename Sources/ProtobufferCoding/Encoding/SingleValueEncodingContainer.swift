@@ -19,7 +19,6 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Bool) throws {
-        fatalError()
         dstBufferRef.value.writeProtoVarInt(value ? 1 : 0)
     }
     
@@ -55,11 +54,11 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: Int64) throws {
-        fatalError("Not implemented")
+        dstBufferRef.value.writeProtoVarInt(value)
     }
     
     mutating func encode(_ value: UInt) throws {
-        fatalError("Not implemented")
+        dstBufferRef.value.writeProtoVarInt(value)
     }
     
     mutating func encode(_ value: UInt8) throws {
@@ -71,26 +70,48 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: UInt32) throws {
-        fatalError("Not implemented")
+        dstBufferRef.value.writeProtoVarInt(value)
     }
     
     mutating func encode(_ value: UInt64) throws {
-        fatalError("Not implemented")
+        dstBufferRef.value.writeProtoVarInt(value)
     }
+    
     
     mutating func encode<T: Encodable>(_ value: T) throws {
-        //if let alreadyEncodedField = value as? _LKAlreadyEncodedProtoField {
-        //    dataWriter.write(alreadyEncodedField.bytes)
-        //} else {
+        if let stringVal = value as? String {
+            try encode(stringVal)
+        } else if let boolVal = value as? Bool {
+            try encode(boolVal)
+        } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
+            try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
+        } else if value as? ProtobufRepeated != nil {
+            throw EncodingError.invalidValue(value, .init(
+                codingPath: codingPath,
+                debugDescription: "Cannot encode repeated value into \(Self.self)",
+                underlyingError: nil
+            ))
+        } else if let i32Val = value as? Int32 {
+            try encode(i32Val)
+        } else if let u32Val = value as? UInt32 {
+            try encode(u32Val)
+        } else if let i64Val = value as? Int64 {
+            try encode(i64Val)
+        } else if let u64Val = value as? UInt64 {
+            try encode(u64Val)
+        } else if let intVal = value as? Int {
+            try encode(intVal)
+        } else if let uintVal = value as? UInt {
+            try encode(uintVal)
+        } else {
             fatalError("Not yet implemented (T: \(T.self), value: \(value))")
-        //}
+        }
     }
-    
 }
 
 
 extension ByteBuffer {
     func lk_getAllBytes() -> [UInt8] {
-        getBytes(at: 0, length: writerIndex) ?? []
+        getBytes(at: 0, length: writerIndex)!
     }
 }

@@ -24,14 +24,36 @@ enum WireType: UInt8, Hashable {
 /// Attempts to guess the protobuf wire type of the specified type.
 /// - Note: This function should only be called with types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
 func GuessWireType(_ type: Any.Type) -> WireType? {
-    if type == String.self {
+    let wireType = _GuessWireType(type)
+//    let wireType2 = { () -> WireType? in // TODO base the wire count on the proto coding kind, that'd reduce rediundancy in the two implementations
+//        switch GetProtoCodingKind(type) {
+//        case nil:
+//            return nil
+//        case .message:
+//            return .lengthDelimited
+//        case .primitive:
+//        }
+//    }()
+//    precondition(wireType == wireType2)
+    return wireType
+}
+
+
+func _GuessWireType(_ type: Any.Type) -> WireType? {
+    if let optionalTy = type as? AnyOptional.Type {
+        return _GuessWireType(optionalTy.wrappedType)
+    } else if type == String.self {
         return .lengthDelimited
-    } else if type == Int.self {
+    } else if Set(Bool.self, Int.self, UInt.self, Int32.self, UInt32.self, Int64.self, UInt64.self).contains(type) || (type as? AnyProtobufEnum.Type != nil) {
         return .varInt
     } else if type == Float.self {
         return ._32Bit
     } else if type == Double.self {
         return ._64Bit
+    } else if type as? ProtobufBytesMapped.Type != nil {
+        return .lengthDelimited
+    } else if let repeatedTy = type as? ProtobufRepeated.Type {
+        return repeatedTy.isPacked ? .lengthDelimited : _GuessWireType(repeatedTy.elementType)
     } else if let TI = try? typeInfo(of: type) {
         // Try to determine the wire type based on the kind of type we're dealing with.
         // For example, all structs that didn't match any of the explicitly-checked-for types above can be assumed to be length-delimited

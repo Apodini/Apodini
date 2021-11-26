@@ -71,6 +71,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         }
     }
     
+    /// A proto typename, consisting of the proto package the type belongs to, as well as the (potentially qualified) name of the type.
     public struct Typename: Hashable {
         public let packageName: String
         public let typename: String
@@ -228,8 +229,26 @@ public struct Counter {
 
 
 
-public enum ProtoValidationError: Swift.Error {
+public enum ProtoValidationError: Swift.Error, Equatable {
+    /// The error thrown if the schema encounters an enum that is not defined as a proto2 enum and is missing a case with the raw value `0`.
     case proto3EnumMissingCaseWithZeroValue(AnyProtobufEnum.Type)
+    /// The error thrown if the schema encounters a type which is an array of optional values.
+    case arrayOfOptionalsNotAllowed(Any.Type) // this is an ProtobufRepeated.Type, but that's an internal type
+    /// The error thrown if the schema encounters a type which is an optional array.
+    case optionalArrayNotAllowed(Any.Type) // this is an AnyOptional.Type, and the optional's wrapped type is pretty much guaranteed to be a ProtobufRepeated
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case let (.proto3EnumMissingCaseWithZeroValue(lhsTy), .proto3EnumMissingCaseWithZeroValue(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.arrayOfOptionalsNotAllowed(lhsTy), .arrayOfOptionalsNotAllowed(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.optionalArrayNotAllowed(lhsTy), .optionalArrayNotAllowed(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        default:
+            return false
+        }
+    }
 }
 
 
@@ -400,6 +419,7 @@ public class ProtoSchema {
         let typenameComponents = String(reflecting: type)
             .components(separatedBy: ".")
             .filter { !$0.hasPrefix("(unknown context at") }
+        precondition(typenameComponents.count >= 2) // module + type
         return ProtoTypeDerivedFromSwift.Typename(
             packageName: { () -> String in
                 if let typeInPackageTy = type as? ProtoTypeInPackage.Type {
@@ -409,6 +429,7 @@ public class ProtoSchema {
                 }
             }(),
             //typename: typenameComponents.dropFirst().joined(separator: ".")
+            //module: typenameComponents.first!,
             typename: {
                 var components = Array(typenameComponents.dropFirst())
                 precondition(!components.isEmpty)
@@ -526,6 +547,9 @@ public class ProtoSchema {
                     }(),
                     type: try { () -> ProtoTypeDerivedFromSwift in
                         if let repeatedType = fieldType as? ProtobufRepeated.Type, (fieldType as? ProtobufBytesMapped.Type) == nil {
+                            guard (repeatedType.elementType as? AnyOptional.Type) == nil else {
+                                throw ProtoValidationError.arrayOfOptionalsNotAllowed(repeatedType)
+                            }
                             return try protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
                         } else {
                             return try protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
@@ -598,6 +622,10 @@ public class ProtoSchema {
         
         let typename = getTypename(type)
         
+        if String(reflecting: type) == "Builtin.\(String(describing: type))" {
+            fatalError("Delved too greedily and too deep into the type hierarchy and reached one of the Builtin types: '\(type)'")
+        }
+        
         let cacheKey = CachedProtoTypeResult( // TODO rename (both the variable as well as the  type!)
             type: type,
             requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
@@ -635,15 +663,37 @@ public class ProtoSchema {
         
         //precondition(!isFinalized, "Cannot add type to already finalized schema")
         if let optionalTy = type as? AnyOptional.Type {
+            guard (optionalTy.wrappedType as? ProtobufRepeated.Type) == nil else {
+                throw ProtoValidationError.optionalArrayNotAllowed(optionalTy)
+            }
+            // TODO do we need special handling here for `[T]?`s ?
             return try protoType(for: optionalTy.wrappedType, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
         } else if type == Never.self {
-            //return cacheRetval(.builtinEmptyType)
-            return try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+            return cacheRetval(try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput))
         } else if type == Array<UInt8>.self || type == Data.self {
+            precondition((type as? ProtobufBytesMapped.Type) != nil)
             if requireTopLevelCompatibleOutput {
                 fatalError("TODO!")
             } else {
                 return cacheRetval(.bytes)
+            }
+        } else if let repeatedTy = type as? ProtobufRepeated.Type {
+            precondition((type as? ProtobufBytesMapped.Type) == nil)
+            guard (repeatedTy.elementType as? AnyOptional.Type) == nil else {
+                throw ProtoValidationError.arrayOfOptionalsNotAllowed(repeatedTy)
+            }
+            if requireTopLevelCompatibleOutput {
+                // We're asked to wrap an array into a message
+                return cacheRetval(try combineIntoCompoundMessageType(
+                    typename: singleParamHandlingContext!.wrappingMessageTypename,
+                    underlyingType: nil,
+                    elements: [
+                        (singleParamHandlingContext!.paramName, repeatedTy.elementType)
+                    ]
+                ))
+            } else {
+                // We're given an array, which cannot be a top-level type, and not told to turn it into a top-level type
+                fatalError() // TODO throw instead!!!
             }
         } else if type == EmptyMessage.self {
             // TODO we might need special handling here, insofar as we want probably want one definition of the empty type per package...
@@ -742,23 +792,28 @@ public class ProtoSchema {
 //                    ]
 //                ))
             }
+        case .repeated:
+            fatalError("unreachable, already handled above")
         case .enum:
-            if let enumTy = type as? AnyProtobufEnum.Type {
-                precondition(TI.cases.count == enumTy.allCases.count)
-                let enumCases: [ProtoTypeDerivedFromSwift.EnumCase] = zip(TI.cases, enumTy.allCases).map {
-                    //print(String(reflecting: $0.1))
-                    precondition($0.0.name == String(String(reflecting: $0.1).split(separator: ".").last!))
-                    return .init(name: $0.0.name, value: $0.1.rawValue)
-                }
-                if (type as? Proto2Codable.Type == nil) && !enumCases.contains(where: { $0.value == 0 }) {
-                    throw ProtoValidationError.proto3EnumMissingCaseWithZeroValue(enumTy)
-                }
-                if requireTopLevelCompatibleOutput {
-                    fatalError()
-                } else {
-                    return cacheRetval(.enumTy(name: typename, enumType: enumTy, cases: enumCases))
-                }
-            } else if let enumTy = type as? AnyProtobufEnumWithAssociatedValues.Type {
+            guard let enumTy = type as? AnyProtobufEnum.Type else {
+                fatalError("unreachable")
+            }
+            precondition(TI.cases.count == enumTy.allCases.count)
+            let enumCases: [ProtoTypeDerivedFromSwift.EnumCase] = zip(TI.cases, enumTy.allCases).map {
+                //print(String(reflecting: $0.1))
+                precondition($0.0.name == String(String(reflecting: $0.1).split(separator: ".").last!))
+                return .init(name: $0.0.name, value: $0.1.rawValue)
+            }
+            if (type as? Proto2Codable.Type == nil) && !enumCases.contains(where: { $0.value == 0 }) {
+                throw ProtoValidationError.proto3EnumMissingCaseWithZeroValue(enumTy)
+            }
+            if requireTopLevelCompatibleOutput {
+                fatalError()
+            } else {
+                return cacheRetval(.enumTy(name: typename, enumType: enumTy, cases: enumCases))
+            }
+        case .oneof:
+            if let enumTy = type as? AnyProtobufEnumWithAssociatedValues.Type {
                 fatalError() // shouldn't end up here since enums w/ assoc values are handled as part of processing a message's fields into a composite.
             } else {
                 fatalError("Encountered an enum type which implements neither '\(AnyProtobufEnum.self)' nor '\(AnyProtobufEnumWithAssociatedValues.self)'. This is highly irregular.")

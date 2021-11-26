@@ -14,6 +14,9 @@ public struct ProtobufferDecoder {
     }
     
     public func decode<T: Decodable>(_: T.Type, from buffer: ByteBuffer) throws -> T {
+        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+        // TODO can we somehow use the result from this for the decoding process? prob not, right?
+        try validateTypeIsProtoCompatible(T.self)
         let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
         return try T(from: decoder)
     }
@@ -23,6 +26,9 @@ public struct ProtobufferDecoder {
         from buffer: ByteBuffer,
         atField fieldInfo: ProtoTypeDerivedFromSwift.MessageField
     ) throws -> T {
+        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+        // TODO can we somehow use the result from this for the decoding process? prob not, right?
+        try validateTypeIsProtoCompatible(T.self)
         let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
         let keyedDecoder = try decoder.container(keyedBy: FixedCodingKey.self)
         return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber))

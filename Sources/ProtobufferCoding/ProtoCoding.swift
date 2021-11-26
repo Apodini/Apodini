@@ -40,6 +40,17 @@ enum ProtoEncodingError: Swift.Error {
 
 
 
+/// Checks whether the type is compatible with the protobuf format.
+/// This will catch types containing invalid things such as an `Array<T?>` (proto arrays must contain non-optional elements),
+/// or enums missing a case mapped to the `0` value.
+/// - Throws: If the type is not compatible
+/// - Returns: If the type is compatible
+func validateTypeIsProtoCompatible(_ type: Any.Type) throws {
+    _ = try ProtoSchema(defaultPackageName: "org.apodini.tmp").informAboutType(type)
+}
+
+
+
 extension ByteBuffer {
     func canMoveReaderIndex(forwardBy distance: Int) -> Bool {
         return (0...writerIndex).contains(readerIndex + distance)
@@ -228,16 +239,13 @@ enum ProtoCodingKind {
     case message
     case primitive
     case `enum`
-    // TODO give oneofs a dedicated case here?
+    case oneof
+    case repeated
 }
 
 /// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
 func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this still needed? we also have GetProtoFieldType and GuessWireType, which kinda go into the same direction
     let conformsToMessageProtocol = (type as? ProtobufMessage.Type) != nil
-//    if ((type as? Encodable) == nil) || ((type as? Decodable) == nil) {
-//        // A type which conforms neiter to en- nor to decodable
-//    }
-    
     let isPrimitiveProtoType = (type as? ProtobufPrimitive.Type) != nil
     
     if type == Never.self {
@@ -247,6 +255,10 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
     
     if let optionalTy = type as? AnyOptional.Type {
         return GetProtoCodingKind(optionalTy.wrappedType)
+    } else if type as? ProtobufBytesMapped.Type != nil {
+        return .primitive
+    } else if let repeatedTy = type as? ProtobufRepeated.Type {
+        return .repeated
     }
     
     guard (type as? Codable.Type) != nil else {
@@ -273,6 +285,7 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
         // (Jpkes on you i dont know either,,,)
         
         // This is the point where we'd like to just be able to assume that it's a message, but I'm not really comfortable w/ thhat...
+        // TODO simply returning message here for all sructs will absolutely fuck shit up down the line. eg: dictionaries? sets? literally every other codable struct type? None of these should be encoded length-delimited in the first place!
         return .message
         fatalError()
     case .enum:
@@ -284,7 +297,7 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
         case (true, false):
             return .enum
         case (false, true):
-            return .enum // TODO use a dedicated case????
+            return .oneof
         case (true, true):
             fatalError("Invalid enum, type: The '\(AnyProtobufEnum.self)' and '\(AnyProtobufEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
         }
