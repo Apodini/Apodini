@@ -151,7 +151,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("exporter", "Exporter"),
                 ("operation", "read"),
                 ("communicational_pattern", "requestResponse"),
-                ("service_type", "unary"),
                 ("response_type", "String")
             ]
             
@@ -259,7 +258,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             let parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array([.string("@Parameter(Optionality = .required, HTTPParameterMode = .path) var name: String")]) ||
                  parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .path, Optionality = .required) var name: String")])) {
@@ -268,7 +267,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/greeter/first"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("Greeter1"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter1"))
@@ -306,7 +304,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("exporter", "Exporter"),
                 ("operation", "read"),
                 ("communicational_pattern", "requestResponse"),
-                ("service_type", "unary"),
                 ("response_type", "String")
             ]
             
@@ -401,7 +398,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             let parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array([.string("@Parameter(Optionality = .required, HTTPParameterMode = .path) var name: String")]) ||
                  parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .path, Optionality = .required) var name: String")])) {
@@ -410,7 +407,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/greeter/second"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("Greeter2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter2"))
@@ -447,7 +443,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("exporter", "Exporter"),
                 ("operation", "read"),
                 ("communicational_pattern", "requestResponse"),
-                ("service_type", "unary"),
                 ("response_type", "String")
             ]
             
@@ -525,7 +520,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             let parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array([.string("@Parameter(Optionality = .required, HTTPParameterMode = .path) var name: String")]) ||
                  parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .path, Optionality = .required) var name: String")])) {
@@ -534,7 +529,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/greeter/third"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("Greeter1"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter1"))
@@ -569,7 +563,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("exporter", "Exporter"),
                 ("operation", "read"),
                 ("communicational_pattern", "requestResponse"),
-                ("service_type", "unary"),
                 ("response_type", "String")
             ]
             
@@ -660,7 +653,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             let parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array([.string("@Parameter(Optionality = .required, HTTPParameterMode = .path) var name: String")]) ||
                  parameterEndpointMetadata == .array([.string("@Parameter(HTTPParameterMode = .path, Optionality = .required) var name: String")])) {
@@ -669,7 +662,6 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/greeter/forth"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("Greeter2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter2"))

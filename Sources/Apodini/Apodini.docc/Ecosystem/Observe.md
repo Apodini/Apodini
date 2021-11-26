@@ -157,7 +157,6 @@ The structure of the context information is as follows:
     - endpointPath
     - version
     - handlerReturnType
-    - serviceType
     - communicationalPattern
 - exporter
     - type

@@ -566,6 +566,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "XCTApodini"),
+                .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "SotoS3", package: "soto"),

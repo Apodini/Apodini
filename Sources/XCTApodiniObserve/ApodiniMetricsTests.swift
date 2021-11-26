@@ -167,7 +167,6 @@ public class ApodiniMetricsTests: XCTestCase {
                 ("exporter", "Exporter"),
                 ("operation", "read"),
                 ("communicational_pattern", "requestResponse"),
-                ("service_type", "unary"),
                 ("response_type", "String")
             ]
             

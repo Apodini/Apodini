@@ -85,6 +85,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     if let status = response.status {
                         httpResponse.status = HTTPResponseStatus(status)
                     }
+                    httpResponse.setContentLengthForCurrentBody()
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
@@ -106,7 +107,12 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     links: links,
                     encoder: exporterConfiguration.encoder
                 )
-                return container.encodeResponse(for: request)
+                return container
+                    .encodeResponse(for: request)
+                    .map { response in
+                        response.setContentLengthForCurrentBody()
+                        return response
+                    }
             }
     }
 }

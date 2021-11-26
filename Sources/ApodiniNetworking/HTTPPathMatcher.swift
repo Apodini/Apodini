@@ -124,7 +124,6 @@ struct HTTPPathMatcher {
         switch currentPathComponent {
         case .verbatim(let value):
             if currentUrlComponent.compare(value, options: allowsCaseInsensitiveMatching ? [.caseInsensitive] : []) != .orderedSame {
-                print("'\(currentUrlComponent)' did not match against '\(value)', with allowCI=\(allowsCaseInsensitiveMatching)")
                 return .abort
             }
             urlComponentsIdx += 1

@@ -97,6 +97,8 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
             webServiceCommands: webServiceArguments,
             as: LocalhostDeployedSystem.self
         )
+        
+        var observers: [AnyObject] = []
 
         for node in deployedSystem.nodes {
             let task = ChildProcess(
@@ -108,8 +110,12 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                     modelFileUrl.path,
                     node.id
                 ],
+                redirectStderrToStdout: true,
                 launchInCurrentProcessGroup: true
             )
+            observers.append(task.observeOutput { stdioType, data, task in
+                print("[ChildIO] \(stdioType), \(String(data: data, encoding: .utf8)), task: \(task)")
+            })
             func taskTerminationHandler(_ terminationInfo: ChildProcess.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {
                 case (.uncaughtSignal, SIGILL):

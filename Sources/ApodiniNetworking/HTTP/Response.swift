@@ -45,6 +45,11 @@ public class HTTPResponse {
         self.headers = headers
         self.bodyStorage = bodyStorage
     }
+    
+    /// Sets the `Content-Length` header to match the number of readable bytes currently in the response's body.
+    public func setContentLengthForCurrentBody() {
+        headers[.contentLength] = bodyStorage.readableBytes
+    }
 }
 
 
