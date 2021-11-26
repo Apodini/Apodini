@@ -9,7 +9,7 @@ extension AnyHTTPHeaderName {
 }
 
 
-struct GRPCv2Status {
+struct GRPCStatus {
     let code: Code
     let message: String?
     
@@ -31,10 +31,10 @@ struct GRPCv2Status {
 
 /// Having the Status conform to error allows us to return these via EventLoopFutures from rpc handlers.
 /// TODO actually implement this.
-extension GRPCv2Status: Swift.Error {}
+extension GRPCStatus: Swift.Error {}
 
 
-extension GRPCv2Status {
+extension GRPCStatus {
     /// A gRPC status code, as defined in https://grpc.github.io/grpc/core/md_doc_statuscodes.html
     enum Code: UInt8 {
         /// Not an error; returned on success.

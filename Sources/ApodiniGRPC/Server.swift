@@ -9,14 +9,14 @@ import ProtobufferCoding
 
 
 
-struct GRPCv2ServerError: Swift.Error {
+struct GRPCServerError: Swift.Error {
     let message: String
 }
 
 
 /// The gRPC server manages a set of gRPC services (as well as their methods),
 /// and implements the logic for handling incoming requests to these methods.
-class GRPCv2Server {
+class GRPCServer {
     private(set) var services: [GRPCService] = [] // TODO make this a dict? would that improve performance?
     
     private(set) var fileDescriptors: [(symbols: Set<String>, fileDescriptor: FileDescriptorProto)] = []
@@ -53,7 +53,7 @@ class GRPCv2Server {
     
     
     /// - returns: `nil` if the service/method was not found
-    func makeStreamRPCHandler(toService serviceNameString: String, method: String) -> GRPCv2StreamRPCHandler? {
+    func makeStreamRPCHandler(toService serviceNameString: String, method: String) -> GRPCStreamRPCHandler? {
         let serviceNameComponents = serviceNameString.split(separator: ".")
         precondition(serviceNameComponents.count >= 2)
         let packageName = serviceNameComponents.dropLast().joined(separator: ".")
@@ -74,7 +74,7 @@ class GRPCv2Server {
                 name: "google/protobuf/descriptor.proto"
             ),
             makeFileDescriptorProto(
-                forPackage: GRPCv2InterfaceExporter.serverReflectionPackageName,
+                forPackage: GRPCInterfaceExporter.serverReflectionPackageName,
                 name: "grpc_reflection/v1alpha/reflection.proto",
                 dependencies: [
                     "google/protobuf/descriptor.proto"
@@ -143,13 +143,13 @@ class GRPCMethod {
     let type: CommunicationalPattern
     let inputFQTN: String
     let outputFQTN: String
-    private let streamRPCHandlerMaker: () -> GRPCv2StreamRPCHandler
+    private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
     
     init<H: Handler>(
         name: String,
         endpoint: Endpoint<H>,
-        endpointContext: GRPCv2EndpointContext,
-        decodingStrategy: AnyDecodingStrategy<GRPCv2MessageIn>,
+        endpointContext: GRPCEndpointContext,
+        decodingStrategy: AnyDecodingStrategy<GRPCMessageIn>,
         schema: ProtoSchema
     ) {
         self.name = name
@@ -158,7 +158,7 @@ class GRPCMethod {
         // TODO is it important that we do the defaults load only once, instead of every time a connection is opened?
         let defaults = endpoint[DefaultValueStore.self]
         
-        self.streamRPCHandlerMaker = { () -> GRPCv2StreamRPCHandler in
+        self.streamRPCHandlerMaker = { () -> GRPCStreamRPCHandler in
             let rpcHandlerType: StreamRPCHandlerBase<H>.Type = {
                 switch endpoint[CommunicationalPattern.self] {
                 case .requestResponse:
@@ -172,7 +172,7 @@ class GRPCMethod {
                 }
             }()
             return rpcHandlerType.init(
-                delegateFactory: endpoint[DelegateFactory<H, GRPCv2InterfaceExporter>.self],
+                delegateFactory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                 strategy: decodingStrategy,
                 defaults: defaults,
                 endpointContext: endpointContext
@@ -186,7 +186,7 @@ class GRPCMethod {
     }
     
     
-    init(name: String, type: CommunicationalPattern, inputFQTN: String, outputFQTN: String, streamRPCHandlerMaker: @escaping () -> GRPCv2StreamRPCHandler) {
+    init(name: String, type: CommunicationalPattern, inputFQTN: String, outputFQTN: String, streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler) {
         self.name = name
         self.type = type
         self.inputFQTN = inputFQTN
@@ -195,7 +195,7 @@ class GRPCMethod {
     }
     
     
-    func makeStreamConnectionContext() -> GRPCv2StreamRPCHandler {
+    func makeStreamConnectionContext() -> GRPCStreamRPCHandler {
         streamRPCHandlerMaker()
     }
 }

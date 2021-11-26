@@ -7,13 +7,13 @@ import Foundation
 
 
 class UnaryRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
             .decodeRequest(from: message, with: message, with: context.eventLoop)
             .insertDefaults(with: defaults)
             .cache()
             .evaluate(on: delegate)
-        return responseFuture.map { (response: Apodini.Response<H.Response.Content>) -> GRPCv2MessageOut in
+        return responseFuture.map { (response: Apodini.Response<H.Response.Content>) -> GRPCMessageOut in
             let headers = HPACKHeaders {
                 $0[.contentType] = .gRPC(.proto)
             }

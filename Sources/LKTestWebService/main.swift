@@ -1,7 +1,7 @@
 import Apodini
 import ApodiniHTTP
 import ApodiniREST
-import ApodiniGRPCv2
+import ApodiniGRPC
 import Foundation
 
 
@@ -192,36 +192,36 @@ struct ThrowingHandler: Handler {
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
-            .gRPCv2MethodName("root")
+            .gRPCMethodName("root")
         Group("greet") {
             Greeter()
-                .gRPCv2MethodName("greet")
+                .gRPCMethodName("greet")
         }
         Group("greet2") {
             Greeter2()
-                .gRPCv2MethodName("greet2")
+                .gRPCMethodName("greet2")
         }
         Group("greet_cs") {
             StreamingGreeter_CS()
-                .gRPCv2MethodName("greet_cs")
+                .gRPCMethodName("greet_cs")
                 .pattern(.clientSideStream)
         }
         Group("greet_bs") {
             StreamingGreeter_BS()
-                .gRPCv2MethodName("greet_bs")
+                .gRPCMethodName("greet_bs")
                 .pattern(.bidirectionalStream)
         }
         Group("rocket") {
             Rocket()
-                .gRPCv2MethodName("rocket")
+                .gRPCMethodName("rocket")
         }
         Group("rocketBlob") {
             RocketBlob()
-                .gRPCv2MethodName("rocketBlob")
+                .gRPCMethodName("rocketBlob")
         }
         Group("throw") {
             ThrowingHandler()
-                .gRPCv2MethodName("throw")
+                .gRPCMethodName("throw")
         }
     }
     
@@ -242,8 +242,8 @@ struct LKTestWebService: Apodini.WebService {
         //HTTP2Configuration(cert: <#T##String?#>, keyPath: <#T##String?#>)
         //HTTPConfiguration(hostname: "localhost")
 //        REST()
-        GRPCv2(packageName: "de.lukaskollmer", serviceName: "TestWebService")
-//        GRPCv2()
+        GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
+//        GRPC()
     }
 }
 

@@ -10,18 +10,18 @@ import ProtobufferCoding
 
 // MARK: RPC Handler
 
-class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
-    private unowned let server: GRPCv2Server
+class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
+    private unowned let server: GRPCServer
     
-    init(server: GRPCv2Server) {
+    init(server: GRPCServer) {
         self.server = server
     }
     
-    func handleStreamOpen(context: GRPCv2StreamConnectionContext) {}
+    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
     
-    func handleStreamClose(context: GRPCv2StreamConnectionContext) {}
+    func handleStreamClose(context: GRPCStreamConnectionContext) {}
     
-    func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let reflectionRequest: ReflectionRequest
         do {
             print("REFLECTION REQUEST RAW PROTO BYTES", message.payload.getBytes(at: 0, length: message.payload.writerIndex))
@@ -63,7 +63,7 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
                 validHost: reflectionRequest.host,
                 originalRequest: reflectionRequest,
                 messageResponse: .errorResponse(ErrorResponse(
-                    errorCode: Int32(GRPCv2Status.Code.unimplemented.rawValue),
+                    errorCode: Int32(GRPCStatus.Code.unimplemented.rawValue),
                     errorMessage: "not implemented"
                 ))
             )
@@ -101,7 +101,7 @@ class ServerReflectionInfoRPCHandler: GRPCv2StreamRPCHandler {
 
 // MARK: Server Reflection Support
 
-extension GRPCv2Server {
+extension GRPCServer {
     fileprivate func handleMakeFileContainingSymbolRequest(_ reflectionRequest: ReflectionRequest, forSymbol symbolName: String) throws -> ReflectionResponse? {
         // Proto docs: (https://github.com/grpc/grpc/blob/master/src/proto/grpc/reflection/v1alpha/reflection.proto)
         //      Find the proto file that declares the given fully-qualified symbol name.
@@ -145,7 +145,7 @@ extension GRPCv2Server {
         }
         
         let reflectionDescriptor = makeFileDescriptorProto(
-            forPackage: GRPCv2InterfaceExporter.serverReflectionPackageName,
+            forPackage: GRPCInterfaceExporter.serverReflectionPackageName,
             name: "grpc_reflection/v1alpha/reflection.proto"
         )
         

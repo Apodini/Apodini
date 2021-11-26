@@ -55,7 +55,7 @@ let package = Package(
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
         
         // Lukas' playground
-        .library(name: "ApodiniGRPCv2", targets: ["ApodiniGRPCv2"]),
+        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
@@ -625,7 +625,7 @@ let package = Package(
         ),
         
         .target(
-            name: "ApodiniGRPCv2",
+            name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
@@ -660,7 +660,7 @@ let package = Package(
         .executableTarget(
             name: "LKTestWebService",
             dependencies: [
-                .target(name: "ApodiniGRPCv2"),
+                .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "Apodini")

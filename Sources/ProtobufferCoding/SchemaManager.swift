@@ -351,11 +351,11 @@ public class ProtoSchema {
 //            return protoType(
 //                for: param.propertyType,
 //                   requireTopLevelCompatibleOutput: true,
-//                   //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCv2EndpointParameterDecodingContext)?)
+//                   //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCEndpointParameterDecodingContext)?)
 //                   singleParamHandlingContext: .init(
 //                    paramName: <#T##String#>,
 //                    wrappingMessageTypename: <#T##ProtoTypeDerivedFromSwift.Typename#>,
-//                    decodingContext: <#T##GRPCv2EndpointParameterDecodingContext#>
+//                    decodingContext: <#T##GRPCEndpointParameterDecodingContext#>
 //                   )
         } else {
             // The handler has multiple parameters, so we have to combine them into a protobuf message type
@@ -606,9 +606,9 @@ public class ProtoSchema {
     private func protoType(
         for type: Any.Type,
         requireTopLevelCompatibleOutput: Bool,
-        //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCv2EndpointParameterDecodingContext)? = nil
+        //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCEndpointParameterDecodingContext)? = nil
         singleParamHandlingContext: SingleParamHandlingContext? = nil
-            //paramDecodingContext: GRPCv2EndpointParameterDecodingContext? = nil
+            //paramDecodingContext: GRPCEndpointParameterDecodingContext? = nil
     ) throws -> ProtoTypeDerivedFromSwift {
 //        let fullTypename = String(reflecting: type) // `String(reflecting:)` returns fullly qualified typenames for nested types, which `String(describing:)` does not...
 //        let moduleName = String(fullTypename.prefix(while: { $0 != "." }))

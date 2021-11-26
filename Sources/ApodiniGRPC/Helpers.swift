@@ -5,14 +5,14 @@ import ApodiniNetworking
 import ApodiniUtils
 
 
-enum GRPCv2MessageEncoding: String {
+enum GRPCMessageEncoding: String {
     case proto
     case json
 }
 
 
 // Note: the fact that it exists, and that we could recognise it, does not mean that we support it
-enum GRPCv2MessageCompressionType: RawRepresentable, HTTPHeaderFieldValueCodable {
+enum GRPCMessageCompressionType: RawRepresentable, HTTPHeaderFieldValueCodable {
     case identity
     case gzip
     case deflate
@@ -61,7 +61,7 @@ enum GRPCv2MessageCompressionType: RawRepresentable, HTTPHeaderFieldValueCodable
 
 
 extension AnyHTTPHeaderName {
-    static let gRPCEncoding = HTTPHeaderName<GRPCv2MessageCompressionType>("grpc-encoding")
+    static let gRPCEncoding = HTTPHeaderName<GRPCMessageCompressionType>("grpc-encoding")
 }
 
 

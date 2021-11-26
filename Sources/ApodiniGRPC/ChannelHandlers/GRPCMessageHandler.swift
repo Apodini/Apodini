@@ -53,37 +53,37 @@ extension EventLoopFuture {
 
 private var requestIdCounter = Counter()
 
-class GRPCv2MessageHandler: ChannelInboundHandler {
+class GRPCMessageHandler: ChannelInboundHandler {
     typealias InboundIn = Input
     typealias OutboundOut = Output
     
     enum Input {
         case openStream(HPACKHeaders)
-        case message(GRPCv2MessageIn)
+        case message(GRPCMessageIn)
         case closeStream
     }
     
-    // NOT an RPC response message!!! this is the wrapper type encapsulating the different kinds of responses which can come out of the `GRPCv2MessageHandler`.
+    // NOT an RPC response message!!! this is the wrapper type encapsulating the different kinds of responses which can come out of the `GRPCMessageHandler`.
     enum Output {
         /// A call resulted in an error.
-        /// - parameter connectionCtx: The GRPCv2StreamConnectionContext belonging to this stream/channel (TODO terminology).
+        /// - parameter connectionCtx: The GRPCStreamConnectionContext belonging to this stream/channel (TODO terminology).
         ///         Nil if the channel encounters an error before a connection context was created.
-        case error(GRPCv2Status, _ connectionCtx: GRPCv2StreamConnectionContextImpl?)
+        case error(GRPCStatus, _ connectionCtx: GRPCStreamConnectionContextImpl?)
         
         /// A call resulted in a message
-        case message(GRPCv2MessageOut, GRPCv2StreamConnectionContextImpl)
+        case message(GRPCMessageOut, GRPCStreamConnectionContextImpl)
         case closeStream(trailers: HPACKHeaders, msg: String)
     }
     
-    private /*unowned?*/ let server: GRPCv2Server
+    private /*unowned?*/ let server: GRPCServer
     
-    private var connectionCtx: GRPCv2StreamConnectionContextImpl?
+    private var connectionCtx: GRPCStreamConnectionContextImpl?
     private let handleQueue = LKEventLoopFutureBasedQueue()
     private var isConnectionClosed = false
     private var logger: Logger
     
     
-    init(server: GRPCv2Server) {
+    init(server: GRPCServer) {
         self.server = server
         self.logger = Logger(label: "[\(Self.self)]")
     }
@@ -110,14 +110,14 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
                 // gRPC says we have to handle this by responding w/ the corresponding status code
                 print("Attempted to open channel to non-existing method '\(serviceName)/\(methodName)'")
                 _ = self.handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Return notFoundError (\((serviceName, methodName))") { () -> EventLoopFuture<Void> in
-                    let status = GRPCv2Status(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found.")
+                    let status = GRPCStatus(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found.")
                     return context.writeAndFlush(self.wrapOutboundOut(.error(status, nil)))
                         .flatMapAlways { _ in context.close() }
                 }
                 return
             }
             self.logger[metadataKey: "grpc-method"] = "\(serviceName)/\(methodName)"
-            self.connectionCtx = GRPCv2StreamConnectionContextImpl(
+            self.connectionCtx = GRPCStreamConnectionContextImpl(
                 eventLoop: context.eventLoop,
                 initialRequestHeaders: headers,
                 rpcHandler: rpcHandler,
@@ -134,13 +134,13 @@ class GRPCv2MessageHandler: ChannelInboundHandler {
             _ = handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Handle req #\(reqId)") { () -> EventLoopFuture<Void> in
                 connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
-                    .flatMapAlways { (result: Result<GRPCv2MessageOut, Error>) -> EventLoopFuture<Void> in // TODO does using the connectionCtx/etc in here result in a retain cycle?
+                    .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in // TODO does using the connectionCtx/etc in here result in a retain cycle?
                         self.logger.notice("Got response for req w/ id \(reqId). Writing to channel")
                         switch result {
                         case .success(let messageOut):
                             return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
                         case .failure(let error):
-                            return context.writeAndFlush(self.wrapOutboundOut(.error(GRPCv2Status(code: .unknown, message: "\(error)"), connectionCtx)))
+                            return context.writeAndFlush(self.wrapOutboundOut(.error(GRPCStatus(code: .unknown, message: "\(error)"), connectionCtx)))
                         }
                     }
                     .inspect { result in

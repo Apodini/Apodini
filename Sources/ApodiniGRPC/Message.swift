@@ -5,7 +5,7 @@ import NIO
 import NIOHPACK
 
 
-struct GRPCv2MessageIn: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
+struct GRPCMessageIn: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
     let remoteAddress: SocketAddress?
     /// The HTTP/2 headers sent with the initial HTTP request that initiated this stream
     let requestHeaders: HPACKHeaders
@@ -50,7 +50,7 @@ struct GRPCv2MessageIn: RequestBasis, CustomStringConvertible, CustomDebugString
 /// `singleMessage` is intended for situations where a call results in one response message, regardless of whether or not the connection is to be kept open or closed.
 /// (e.g.: unary connections, bidirectional connections where every client request gets answered with exactly one server response, etc.)
 /// `stream` is intended for situations where a single client request may result in multiple responses.
-enum GRPCv2MessageOut {
+enum GRPCMessageOut {
     typealias Stream = BufferedStream<(ByteBuffer, closeStream: Bool)>
     /// A single gRPC message.
     /// - parameter headers: The headers to be sent with this message. Note that headers will only be written once to a HTTP/2 stream.

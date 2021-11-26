@@ -25,12 +25,12 @@ extension HTTPMediaType {
 }
 
 
-struct GRPCv2Error: Swift.Error {
+struct GRPCError: Swift.Error {
     let message: String
 }
 
 
-public class GRPCv2: Configuration {
+public class GRPC: Configuration {
     let packageName: String
     let serviceName: String
     let pathPrefix: String
@@ -42,7 +42,7 @@ public class GRPCv2: Configuration {
     }
     
     public func configure(_ app: Application) {
-        let IE = GRPCv2InterfaceExporter(app: app, config: self)
+        let IE = GRPCInterfaceExporter(app: app, config: self)
         app.registerExporter(exporter: IE)
     }
 }
@@ -50,25 +50,25 @@ public class GRPCv2: Configuration {
 
 
 
-class GRPCv2InterfaceExporter: InterfaceExporter {
+class GRPCInterfaceExporter: InterfaceExporter {
     static let serverReflectionPackageName = "grpc.reflection.v1alpha"
     //static let serverReflectionServiceName = "\(serverReflectionPackageName).ServerReflection"
     static let serverReflectionServiceName = "ServerReflection"
     static let serverReflectionMethodName = "ServerReflectionInfo"
     
     private let app: Application
-    private let config: GRPCv2 // would love to have a "GRPCConfig" typename or smth like that here, but that'd make the public API ugly and weird... :/
+    private let config: GRPC // would love to have a "GRPCConfig" typename or smth like that here, but that'd make the public API ugly and weird... :/
     
     // The proto/gRPC package into which all of the web service's stuff goes,
     //private var defaultPackageName: String { config.serviceName + "NS" }
     private let defaultPackageName: String
     
-    private let server: GRPCv2Server
+    private let server: GRPCServer
     
     private var logger: Logger { app.logger }
     
     
-    init(app: Application, config: GRPCv2) {
+    init(app: Application, config: GRPC) {
         self.app = app
         self.config = config
         let defaultPackageName = config.packageName //config.serviceName// + "NS"
@@ -111,12 +111,12 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         let methodName = getMethodName(for: endpoint)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
-        let serviceName = endpoint[Context.self].get(valueFor: GRPCv2ServiceNameContextKey.self) ?? config.serviceName
+        let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) ?? config.serviceName
         if server.service(named: serviceName, inPackage: defaultPackageName) == nil {
             server.createService(name: serviceName, associatedWithPackage: defaultPackageName)
         }
         
-        let endpointContext = GRPCv2EndpointContext(communicationalPattern: endpoint[CommunicationalPattern.self])
+        let endpointContext = GRPCEndpointContext(communicationalPattern: endpoint[CommunicationalPattern.self])
         
         server.addMethod(
             toServiceNamed: serviceName,
@@ -125,7 +125,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
                 name: methodName,
                 endpoint: endpoint,
                 endpointContext: endpointContext,
-                decodingStrategy: GRPCv2EndpointDecodingStrategy(endpointContext).applied(to: endpoint).typeErased,
+                decodingStrategy: GRPCEndpointDecodingStrategy(endpointContext).applied(to: endpoint).typeErased,
                 schema: server.schema
             )
         )
@@ -204,9 +204,9 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
         
         app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPCPlain, .gRPC(.proto), .gRPC(.json)]) { channel in
             channel.pipeline.addHandlers([
-                GRPCv2RequestDecoder(),
-                GRPCv2ResponseEncoder(),
-                GRPCv2MessageHandler(server: self.server)
+                GRPCRequestDecoder(),
+                GRPCResponseEncoder(),
+                GRPCMessageHandler(server: self.server)
             ])
         }
     }
@@ -216,7 +216,7 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
     // MARK: Internal Stuff
     
     private func getMethodName<H>(for endpoint: Endpoint<H>) -> String {
-        if let methodName = endpoint[Context.self].get(valueFor: GRPCv2MethodNameContextKey.self) {
+        if let methodName = endpoint[Context.self].get(valueFor: GRPCMethodNameContextKey.self) {
             return methodName
         } else {
             // No explicit method name was specified, so we construct a default one based on the information we have about this handler.
@@ -247,18 +247,18 @@ class GRPCv2InterfaceExporter: InterfaceExporter {
 
 
 
-struct GRPCv2EndpointDecodingStrategy: EndpointDecodingStrategy {
-    typealias Input = GRPCv2MessageIn
+struct GRPCEndpointDecodingStrategy: EndpointDecodingStrategy {
+    typealias Input = GRPCMessageIn
     
-    private let endpointContext: GRPCv2EndpointContext
+    private let endpointContext: GRPCEndpointContext
     
-    init(_ endpointContext: GRPCv2EndpointContext) {
+    init(_ endpointContext: GRPCEndpointContext) {
         self.endpointContext = endpointContext
     }
     
     func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> {
         //fatalError()
-        return GRPCv2EndpointParameterDecodingStrategy<Element>(
+        return GRPCEndpointParameterDecodingStrategy<Element>(
             name: parameter.name,
             endpointContext: endpointContext
         ).typeErased // TODO pass the whole parameter?
@@ -267,15 +267,15 @@ struct GRPCv2EndpointDecodingStrategy: EndpointDecodingStrategy {
 
 
 
-private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
+private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
     typealias Element = T
-    typealias Input = GRPCv2MessageIn
+    typealias Input = GRPCMessageIn
     
     let name: String
-    let endpointContext: GRPCv2EndpointContext
+    let endpointContext: GRPCEndpointContext
     
     // TODO how would this deal w/ @Params that are arrays? we couldn't use .getLast for that. Do array params get properly wrapped? (ie in cases where that's the only param. but also in other cases.)
-    func decode(from input: GRPCv2MessageIn) throws -> T {
+    func decode(from input: GRPCMessageIn) throws -> T {
         switch endpointContext.endpointRequestType! {
         case .builtinEmptyType, .enumTy, .primitive, .refdMessageType:
             fatalError()
@@ -293,7 +293,7 @@ private struct GRPCv2EndpointParameterDecodingStrategy<T: Codable>: ParameterDec
 /// Helper type that stores information about an endpoint.
 /// The main use case of this is to share the mapping of an endpoint's input and output protobuffer
 /// message types with other parts of the interface exporter that need to access this information.
-class GRPCv2EndpointContext: Hashable {
+class GRPCEndpointContext: Hashable {
     let communicationalPattern: CommunicationalPattern
     var endpointRequestType: ProtoTypeDerivedFromSwift?
     var endpointResponseType: ProtoTypeDerivedFromSwift?
@@ -306,7 +306,7 @@ class GRPCv2EndpointContext: Hashable {
         hasher.combine(ObjectIdentifier(self))
     }
     
-    static func == (lhs: GRPCv2EndpointContext, rhs: GRPCv2EndpointContext) -> Bool {
+    static func == (lhs: GRPCEndpointContext, rhs: GRPCEndpointContext) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
@@ -331,22 +331,22 @@ struct GreeterResponse: Codable, ProtobufMessage {
 }
 
 
-class HardcodedGreeter: GRPCv2StreamRPCHandler {
-    func handleStreamOpen(context: GRPCv2StreamConnectionContext) {
+class HardcodedGreeter: GRPCStreamRPCHandler {
+    func handleStreamOpen(context: GRPCStreamConnectionContext) {
         print(Self.self, #function)
     }
     
-    func handleStreamClose(context: GRPCv2StreamConnectionContext) {
+    func handleStreamClose(context: GRPCStreamConnectionContext) {
         print(Self.self, #function)
     }
     
-    func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         print(Self.self, #function, message.serviceAndMethodName)
         do {
             let request = try ProtobufferDecoder().decode(GreeterRequest.self, from: message.payload)
             print(request)
             let response = GreeterResponse(message: "Hello, \(request.name)!!!!")
-            let messageOut = GRPCv2MessageOut.singleMessage(
+            let messageOut = GRPCMessageOut.singleMessage(
                 headers: HPACKHeaders {
                     $0[.contentType] = .gRPC(.proto)
                 },

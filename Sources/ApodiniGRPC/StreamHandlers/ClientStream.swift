@@ -13,7 +13,7 @@ extension EventLoopFuture {
 
 
 class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         print("[\(Self.self)] \(#function)")
         let abortAnyError = AbortTransformer()
         let headers = HPACKHeaders {
@@ -29,7 +29,7 @@ class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             .transform(using: abortAnyError)
             .cancelIf { $0.connectionEffect == .close }
             .firstFuture(on: context.eventLoop)
-            .flatMapAlways { (result: Result<Apodini.Response<H.Response.Content>?, Error>) -> EventLoopFuture<GRPCv2MessageOut> in
+            .flatMapAlways { (result: Result<Apodini.Response<H.Response.Content>?, Error>) -> EventLoopFuture<GRPCMessageOut> in
                 switch result {
                 case .failure(let error):
                     fatalError("\(error)") // TODO when do we end up here? are these errors thrown in handlers?

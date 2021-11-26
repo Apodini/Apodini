@@ -5,8 +5,8 @@ import NIOHPACK
 import Logging
 
 
-class GRPCv2ResponseEncoder: ChannelOutboundHandler {
-    typealias OutboundIn = GRPCv2MessageHandler.Output
+class GRPCResponseEncoder: ChannelOutboundHandler {
+    typealias OutboundIn = GRPCMessageHandler.Output
     typealias OutboundOut = HTTP2Frame.FramePayload
     
     
@@ -96,7 +96,7 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
     private func writeLengthPrefixedMessage(
         _ payload: ByteBuffer,
         closeStream: Bool,
-        connectionContext: GRPCv2StreamConnectionContext,
+        connectionContext: GRPCStreamConnectionContext,
         channelHandlerContext: ChannelHandlerContext
     //promise: EventLoopPromise<Void>?
     ) -> EventLoopFuture<Void> {
@@ -140,7 +140,7 @@ class GRPCv2ResponseEncoder: ChannelOutboundHandler {
     private func writeTrailers(context: ChannelHandlerContext, msg: String) -> EventLoopFuture<Void> {
         let trailers = HTTP2Frame.FramePayload.headers(.init(
             headers: HPACKHeaders {
-                GRPCv2Status(code: .ok, message: nil).encode(into: &$0)
+                GRPCStatus(code: .ok, message: nil).encode(into: &$0)
             }.applyingHTTP2Validations(),
             priorityData: nil, // <#T##HTTP2Frame.StreamPriorityData?#>
             endStream: true,

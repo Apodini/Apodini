@@ -11,12 +11,12 @@ import Foundation
 // But even then there's really no good way for the handler to differentiate between getting called for a proper message or for one of these observed object calls.
 // Also, the NIO channel handler calling the handler will somehow need to know about the fact that the handler is currently still busy, so that it can wait with handling new incoming requests until the handler is done handling the current one.
 class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)
         }
         let abortAnyError = AbortTransformer()
-        let retFuture: EventLoopFuture<GRPCv2MessageOut> = [message]
+        let retFuture: EventLoopFuture<GRPCMessageOut> = [message]
             .asAsyncSequence
             .decode(using: decodingStrategy, with: context.eventLoop)
             .insertDefaults(with: defaults)
@@ -26,7 +26,7 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             .transform(using: abortAnyError)
             .cancelIf { $0.connectionEffect == .close }
             .firstFuture(on: context.eventLoop)
-            .map { (response: Response<H.Response.Content>?) -> GRPCv2MessageOut in
+            .map { (response: Response<H.Response.Content>?) -> GRPCMessageOut in
                 guard let response = response else {
                     fatalError() // TODO!
                 }
@@ -43,7 +43,7 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                     return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: response.connectionEffect == .close)
                 }
             }
-//            .flatMapAlways { (result: Result<Response<H.Response.Content>?, Error>) -> EventLoopFuture<GRPCv2MessageOut> in
+//            .flatMapAlways { (result: Result<Response<H.Response.Content>?, Error>) -> EventLoopFuture<GRPCMessageOut> in
 //                switch result {
 //                case .failure(let error):
 //
@@ -70,9 +70,9 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
 //                    }
 //                }
 //            )
-//            .map { firstResponse -> GRPCv2MessageOut in
+//            .map { firstResponse -> GRPCMessageOut in
 //                if shouldReturnStreamOpen {
-//                    return GRPCv2MessageOut.stream(
+//                    return GRPCMessageOut.stream(
 //                        HPACKHeaders {
 //                            $0[.contentType] = .gRPC(.proto)
 //                        },
@@ -91,11 +91,11 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
 
 
 //class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-//    private let responsesStream = GRPCv2MessageOut.Stream()
+//    private let responsesStream = GRPCMessageOut.Stream()
 //    /// Whether the RPC handler already sent its initial "open stream" response.
 //    private var didSendInitialStreamOpen = false
 //
-//    override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+//    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
 //        // TODO one potential problem here is that we might end up in a situation where this function gets called a second time (i.e. for a second incoming message) while the first request is still being processed (eg by writing to a stream).
 //        // The reason for this is that, if there's multiple messages queued up, the next one will be handled (i.e. sent to this method) when the previous message's response future completes. But in the case of streams, we send a completed future even though more data will be written to the stream later on...
 //        let shouldReturnStreamOpen = !self.didSendInitialStreamOpen
@@ -132,9 +132,9 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
 //                    }
 //                }
 //            )
-//            .map { firstResponse -> GRPCv2MessageOut in
+//            .map { firstResponse -> GRPCMessageOut in
 //                if shouldReturnStreamOpen {
-//                    return GRPCv2MessageOut.stream(
+//                    return GRPCMessageOut.stream(
 //                        HPACKHeaders {
 //                            $0[.contentType] = .gRPC(.proto)
 //                        },

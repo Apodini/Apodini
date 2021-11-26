@@ -6,19 +6,19 @@ import ApodiniUtils
 import Logging
 
 
-class GRPCv2RequestDecoder: ChannelInboundHandler {
+class GRPCRequestDecoder: ChannelInboundHandler {
     typealias InboundIn = HTTP2Frame.FramePayload
-    typealias InboundOut = GRPCv2MessageHandler.Input
+    typealias InboundOut = GRPCMessageHandler.Input
     
     /// Context of a message currently being collected from the stream
     private class MessageCollectionContext: Hashable {
         let expectedPayloadSize: Int
-        let compression: GRPCv2MessageCompressionType?
+        let compression: GRPCMessageCompressionType?
         var buffer = ByteBuffer() {
             didSet { assert(buffer.writerIndex <= expectedPayloadSize) }
         }
         
-        init(expectedPayloadSize: Int, compression: GRPCv2MessageCompressionType?) {
+        init(expectedPayloadSize: Int, compression: GRPCMessageCompressionType?) {
             self.expectedPayloadSize = expectedPayloadSize
             self.compression = compression
         }
@@ -97,7 +97,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                             // The DATA frame contains more bytes than what we're missing, so we just consume the ones belonging to us, turn that into a message, and move on
                             let remainingBytes = dataFrameDataBuffer.readSlice(length: messageCollectionCtx.numMissingPayloadBytes)!
                             messageCollectionCtx.buffer.writeImmutableBuffer(remainingBytes)
-                            context.fireChannelRead(wrapInboundOut(.message(GRPCv2MessageIn(
+                            context.fireChannelRead(wrapInboundOut(.message(GRPCMessageIn(
                                 remoteAddress: context.channel.remoteAddress,
                                 requestHeaders: initialHeaders,
                                 payload: messageCollectionCtx.buffer
@@ -141,7 +141,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
 //                        precondition(numMissingBytes >= 0)
 //                        precondition(numMissingBytes > 0, implies: dataFrameDataBuffer.readableBytes == 0)
 //                        if numMissingBytes == 0 {
-//                            let message = GRPCv2MessageIn(requestHeaders: initialHeaders, payload: payloadData, eventLoop: context.eventLoop)
+//                            let message = GRPCMessageIn(requestHeaders: initialHeaders, payload: payloadData, eventLoop: context.eventLoop)
 //                            context.fireChannelRead(wrapInboundOut(message))
 //                            state = .handlingStream(initialHeaders, Box(ByteBuffer()), numMissingPayloadBytes: nil)
 //                        } else {
@@ -152,7 +152,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
                         precondition(messageCtx.numMissingPayloadBytes >= 0) // Make sure we haven't read more than we want to
                         precondition(messageCtx.numMissingPayloadBytes > 0, implies: dataFrameDataBuffer.readableBytes == 0) // If there's payload byted missing, we must've reached the end of the current DATA frame
                         if messageCtx.numMissingPayloadBytes == 0 {
-                            let messageIn = GRPCv2MessageIn(
+                            let messageIn = GRPCMessageIn(
                                 remoteAddress: context.channel.remoteAddress,
                                 requestHeaders: initialHeaders,
                                 payload: messageCtx.buffer
@@ -220,7 +220,7 @@ class GRPCv2RequestDecoder: ChannelInboundHandler {
     /// Decodes a gRPC message payload from the specified buffer.
     /// - Returns: A tuple consisting of the read data, as well as the number of bytes missing from the payload (this is the case if the payload is spread over multiple DATA frames).
     /// - Note: This function operates on the assumption that the buffer's current reader index does in fact point to the beginning of a gRPC message.
-    //private func decodeMessagePayload(from buffer: inout ByteBuffer, messageCompression: GRPCv2MessageCompressionType?) -> (ByteBuffer, missingBytes: Int) {
+    //private func decodeMessagePayload(from buffer: inout ByteBuffer, messageCompression: GRPCMessageCompressionType?) -> (ByteBuffer, missingBytes: Int) {
     private func decodeMessagePayload(from buffer: inout ByteBuffer, headers: HPACKHeaders) -> MessageCollectionContext {
         let messageCompression = headers[.gRPCEncoding]
         precondition(messageCompression == nil, "Compression not yet supported")

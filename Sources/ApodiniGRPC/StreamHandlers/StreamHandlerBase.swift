@@ -8,18 +8,18 @@ import Foundation
 
 /// Base class for all gRPC stream handlers.
 /// This class implements the interface common to all stream handlers and provides useful helper functions, e.g. for encoding responses.
-class StreamRPCHandlerBase<H: Handler>: GRPCv2StreamRPCHandler {
-    let delegateFactory: DelegateFactory<H, GRPCv2InterfaceExporter>
-    let decodingStrategy: AnyDecodingStrategy<GRPCv2MessageIn>
+class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
+    let delegateFactory: DelegateFactory<H, GRPCInterfaceExporter>
+    let decodingStrategy: AnyDecodingStrategy<GRPCMessageIn>
     let defaults: DefaultValueStore
     let delegate: Delegate<H>
-    let endpointContext: GRPCv2EndpointContext
+    let endpointContext: GRPCEndpointContext
     
     required init(
-        delegateFactory: DelegateFactory<H, GRPCv2InterfaceExporter>,
-        strategy: AnyDecodingStrategy<GRPCv2MessageIn>,
+        delegateFactory: DelegateFactory<H, GRPCInterfaceExporter>,
+        strategy: AnyDecodingStrategy<GRPCMessageIn>,
         defaults: DefaultValueStore,
-        endpointContext: GRPCv2EndpointContext
+        endpointContext: GRPCEndpointContext
     ) {
         self.delegateFactory = delegateFactory
         self.decodingStrategy = strategy
@@ -28,11 +28,11 @@ class StreamRPCHandlerBase<H: Handler>: GRPCv2StreamRPCHandler {
         self.endpointContext = endpointContext
     }
     
-    func handleStreamOpen(context: GRPCv2StreamConnectionContext) {}
+    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
     
-    func handleStreamClose(context: GRPCv2StreamConnectionContext) {}
+    func handleStreamClose(context: GRPCStreamConnectionContext) {}
     
-    func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
+    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         fatalError("Abstract. Implement in subclass.")
     }
     

@@ -3,12 +3,12 @@ import Apodini
 
 // MARK: ServiceName
 
-struct GRPCv2ServiceNameContextKey: OptionalContextKey {
+struct GRPCServiceNameContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-public struct GRPCv2ServiceModifier<H: Handler>: HandlerModifier {
+public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
     public let component: H
     let serviceName: String
     
@@ -18,14 +18,14 @@ public struct GRPCv2ServiceModifier<H: Handler>: HandlerModifier {
     }
     
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCv2ServiceNameContextKey.self, value: serviceName, scope: .current)
+        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
     }
 }
 
 
 extension Handler {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
-    public func gRPCv2ServiceName(_ serviceName: String) -> GRPCv2ServiceModifier<Self> { // TODO drop the v2
+    public func gRPCServiceName(_ serviceName: String) -> GRPCServiceModifier<Self> {
         .init(self, serviceName: serviceName)
     }
 }
@@ -33,12 +33,12 @@ extension Handler {
 
 // MARK: MethodName
 
-struct GRPCv2MethodNameContextKey: OptionalContextKey {
+struct GRPCMethodNameContextKey: OptionalContextKey {
     typealias Value = String
 }
 
 
-public struct GRPCv2MethodModifier<H: Handler>: HandlerModifier {
+public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
     public let component: H
     let methodName: String
     
@@ -48,14 +48,14 @@ public struct GRPCv2MethodModifier<H: Handler>: HandlerModifier {
     }
     
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCv2MethodNameContextKey.self, value: methodName, scope: .current)
+        visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
     }
 }
 
 
 extension Handler {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
-    public func gRPCv2MethodName(_ methodName: String) -> GRPCv2MethodModifier<Self> { // TODO drop the v2
+    public func gRPCMethodName(_ methodName: String) -> GRPCMethodModifier<Self> {
         .init(self, methodName: methodName)
     }
 }
@@ -67,7 +67,7 @@ extension Handler {
 // MARK: TEST
 
 
-//struct GRPCv2ServiceNameContextKey: OptionalContextKey {
+//struct GRPCServiceNameContextKey: OptionalContextKey {
 //    typealias Value = String
 //}
 

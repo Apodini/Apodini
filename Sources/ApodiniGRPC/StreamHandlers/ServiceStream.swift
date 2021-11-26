@@ -6,8 +6,8 @@ import Foundation
 
 
 class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut> {
-        let responsesStream = GRPCv2MessageOut.Stream()
+    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+        let responsesStream = GRPCMessageOut.Stream()
         let abortAnyError = AbortTransformer()
         return [message]
             .asAsyncSequence
@@ -36,8 +36,8 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                     }
                 }
             )
-            .map { firstResponse -> GRPCv2MessageOut in
-                return GRPCv2MessageOut.stream(
+            .map { firstResponse -> GRPCMessageOut in
+                return GRPCMessageOut.stream(
                     HPACKHeaders {
                         $0[.contentType] = .gRPC(.proto)
                     },

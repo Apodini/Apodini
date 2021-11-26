@@ -4,16 +4,16 @@ import NIOHPACK
 import Logging
 
 
-protocol GRPCv2StreamRPCHandler: AnyObject {
-    func handleStreamOpen(context: GRPCv2StreamConnectionContext)
-    func handleStreamClose(context: GRPCv2StreamConnectionContext)
-    func handle(message: GRPCv2MessageIn, context: GRPCv2StreamConnectionContext) -> EventLoopFuture<GRPCv2MessageOut>
+protocol GRPCStreamRPCHandler: AnyObject {
+    func handleStreamOpen(context: GRPCStreamConnectionContext)
+    func handleStreamClose(context: GRPCStreamConnectionContext)
+    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
 }
 
 
 
 /// An open gRPC stream over which messages are sent
-protocol GRPCv2StreamConnectionContext {
+protocol GRPCStreamConnectionContext {
     /// The event loop associated with the connection. (... on which the connection is handled)
     var eventLoop: EventLoop { get }
     /// The HTTP/2 headers sent by the client, as part of the initial request creating this connection
@@ -24,14 +24,14 @@ protocol GRPCv2StreamConnectionContext {
 
 
 
-class GRPCv2StreamConnectionContextImpl: GRPCv2StreamConnectionContext {
+class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
     let eventLoop: EventLoop
     let initialRequestHeaders: HPACKHeaders
     let grpcMethodName: String
-    private let rpcHandler: GRPCv2StreamRPCHandler
+    private let rpcHandler: GRPCStreamRPCHandler
     private var isHandlingMessage = false
     
-    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCv2StreamRPCHandler, grpcMethodName: String) {
+    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCStreamRPCHandler, grpcMethodName: String) {
         self.eventLoop = eventLoop
         self.initialRequestHeaders = initialRequestHeaders
         self.rpcHandler = rpcHandler
@@ -42,7 +42,7 @@ class GRPCv2StreamConnectionContextImpl: GRPCv2StreamConnectionContext {
         rpcHandler.handleStreamOpen(context: self)
     }
     
-    func handleMessage(_ message: GRPCv2MessageIn) -> EventLoopFuture<GRPCv2MessageOut> {
+    func handleMessage(_ message: GRPCMessageIn) -> EventLoopFuture<GRPCMessageOut> {
         precondition(!isHandlingMessage, "\(Self.self) cannot handle multiple messages simultaneously. Use the EventLoopFuturesQueue thing or whatever to deal w this.")
         isHandlingMessage = true
         let messageFuture = rpcHandler.handle(message: message, context: self)
