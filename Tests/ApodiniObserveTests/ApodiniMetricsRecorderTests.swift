@@ -45,7 +45,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
         )
         
         app = ApodiniLoggerTests.configureLogger(app, loggerConfiguration: loggingConfig)
-        app = ApodiniMetricsTests.configureMetrics(app, metricsConfiguration: metricsConfig)
+        app = XCTApodiniObserve.configureMetrics(app, metricsConfiguration: metricsConfig)
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)

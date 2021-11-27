@@ -670,13 +670,10 @@ let package = Package(
         .target(
             name: "XCTApodiniObserve",
             dependencies: [
+                .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "XCTApodini"),
-                .product(name: "CoreMetrics", package: "swift-metrics"),
-                .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
-            ],
-            swiftSettings: [.unsafeFlags(["-enable-testing"])]
+                .product(name: "CoreMetrics", package: "swift-metrics")
+            ]
         ),
         
         .testTarget(
@@ -684,13 +681,12 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
+                .target(name: "ApodiniHTTP"),
                 .target(name: "XCTApodini"),
                 .target(name: "XCTApodiniObserve"),
-                .target(name: "ApodiniHTTP"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
             ]
         )
