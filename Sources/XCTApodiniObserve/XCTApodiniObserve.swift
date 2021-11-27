@@ -11,10 +11,11 @@ import Apodini
 @testable import ApodiniObserve
 @testable import CoreMetrics
 
-// swiftlint:disable closure_body_length
+/// ApodiniObserve test helpers
 public enum XCTApodiniObserve {
     // Copied from the source code of ApodiniObserve to bootstrap the MetricsSystem internally
     // (required for the tests, as the MetricsSystem only allows to be configured once per process)
+    /// Test helper to configure Metrics
     public static func configureMetrics(_ app: Apodini.Application, metricsConfiguration: MetricsConfiguration) -> Apodini.Application {
         // Bootstrap all passed MetricHandlers
         MetricsSystem.bootstrapInternal(
