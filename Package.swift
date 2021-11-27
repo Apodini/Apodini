@@ -675,7 +675,8 @@ let package = Package(
                 .target(name: "XCTApodini"),
                 .product(name: "CoreMetrics", package: "swift-metrics"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
-            ]
+            ],
+            swiftSettings: [.unsafeFlags(["-enable-testing"])]
         ),
         
         .testTarget(
