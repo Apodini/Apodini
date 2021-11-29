@@ -30,7 +30,9 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
     
     func handleStreamOpen(context: GRPCStreamConnectionContext) {}
     
-    func handleStreamClose(context: GRPCStreamConnectionContext) {}
+    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        nil
+    }
     
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         fatalError("Abstract. Implement in subclass.")

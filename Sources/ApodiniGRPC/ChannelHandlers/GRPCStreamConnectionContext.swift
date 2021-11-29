@@ -6,13 +6,15 @@ import Logging
 
 protocol GRPCStreamRPCHandler: AnyObject {
     func handleStreamOpen(context: GRPCStreamConnectionContext)
-    func handleStreamClose(context: GRPCStreamConnectionContext)
+    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
 }
 
 extension GRPCStreamRPCHandler {
     func handleStreamOpen(context: GRPCStreamConnectionContext) {}
-    func handleStreamClose(context: GRPCStreamConnectionContext) {}
+    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        nil
+    }
 }
 
 
@@ -25,6 +27,8 @@ protocol GRPCStreamConnectionContext {
     var initialRequestHeaders: HPACKHeaders { get }
     /// Fully qualified name of the method this connection is calling.
     var grpcMethodName: String { get }
+    /// A queue that allows stream handlers to submit tasks that will be run when the last currently-queued handler event has finished.
+    var handleQueue: LKEventLoopFutureBasedQueue { get }
 }
 
 
@@ -34,13 +38,15 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
     let initialRequestHeaders: HPACKHeaders
     let grpcMethodName: String
     private let rpcHandler: GRPCStreamRPCHandler
-    private var isHandlingMessage = false
+    private(set) var isHandlingMessage = false // TODO make just private!
+    let handleQueue: LKEventLoopFutureBasedQueue
     
     init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCStreamRPCHandler, grpcMethodName: String) {
         self.eventLoop = eventLoop
         self.initialRequestHeaders = initialRequestHeaders
         self.rpcHandler = rpcHandler
         self.grpcMethodName = grpcMethodName
+        self.handleQueue = LKEventLoopFutureBasedQueue(eventLoop: eventLoop)
     }
     
     func handleStreamOpen() {
@@ -57,7 +63,7 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
         return messageFuture
     }
     
-    func handleStreamClose() {
+    func handleStreamClose() -> EventLoopFuture<GRPCMessageOut>? {
         rpcHandler.handleStreamClose(context: self)
     }
 }

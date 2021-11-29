@@ -9,16 +9,16 @@ import ProtobufferCoding
 
 
 extension EventLoopFuture {
-    func flatMapAlways<NewValue>(_ block: @escaping (Result<Value, Error>) -> Result<NewValue, Error>) -> EventLoopFuture<NewValue> {
-        self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<NewValue> in
-            switch block(result) {
-            case .failure(let error):
-                return self.eventLoop.makeFailedFuture(error)
-            case .success(let value):
-                return self.eventLoop.makeSucceededFuture(value)
-            }
-        }
-    }
+//    func flatMapAlways<NewValue>(_ block: @escaping (Result<Value, Error>) -> Result<NewValue, Error>) -> EventLoopFuture<NewValue> {
+//        self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<NewValue> in
+//            switch block(result) {
+//            case .failure(let error):
+//                return self.eventLoop.makeFailedFuture(error)
+//            case .success(let value):
+//                return self.eventLoop.makeSucceededFuture(value)
+//            }
+//        }
+//    }
     
     
     func inspect(_ block: @escaping (Result<Value, Error>) -> Void) -> EventLoopFuture<Value> {
@@ -161,9 +161,20 @@ class GRPCMessageHandler: ChannelInboundHandler {
             // The RequestDecoder told us to close the stream.
             // We queue this to be run once the
             _ = handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Close Stream (\(connectionCtx.grpcMethodName))") { () -> EventLoopFuture<Void> in
-                connectionCtx.handleStreamClose()
-                return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders(), msg: "connectionCtx.\(connectionCtx.grpcMethodName)")))
-                    .flatMapAlways { _ in context.close() }
+                if let future = connectionCtx.handleStreamClose() {
+                    return future.flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
+                        switch result {
+                        case .failure(let error):
+                            fatalError("Error: \(error)") // TODO?
+                        case .success(let messageOut):
+                            return context.write(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
+                                .flatMapAlways { _ in context.close() }
+                        }
+                    }
+                } else {
+                    return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders(), msg: "connectionCtx.\(connectionCtx.grpcMethodName)")))
+                        .flatMapAlways { _ in context.close() }
+                }
             }
         }
     }

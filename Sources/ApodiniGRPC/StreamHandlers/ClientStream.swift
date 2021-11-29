@@ -5,16 +5,33 @@ import NIOHPACK
 import Foundation
 
 
-
-extension EventLoopFuture {
-    //func mapAlways<NewValue>(_ callback: @escaping (Result<Value, Error> -> NewValue)
-}
-
-
-
 class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
+    private var lastRequest: GRPCMessageIn?
+    
+    override func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        let message = self.lastRequest!
+        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = self.decodingStrategy
+            .decodeRequest(from: message, with: message, with: context.eventLoop)
+            .insertDefaults(with: self.defaults)
+            .cache()
+            .evaluate(on: self.delegate, .close)
+        return responseFuture.map { (response: Apodini.Response<H.Response.Content>) -> GRPCMessageOut in
+            let headers = HPACKHeaders {
+                $0[.contentType] = .gRPC(.proto)
+            }
+            guard let responseContent = response.content else {
+                return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true)
+            }
+            return .singleMessage(
+                headers: headers,
+                payload: try! self.encodeResponseIntoProtoMessage(responseContent),
+                closeStream: true
+            )
+        }
+    }
+    
     override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
-        print("[\(Self.self)] \(#function)")
+        self.lastRequest = message
         let abortAnyError = AbortTransformer()
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)

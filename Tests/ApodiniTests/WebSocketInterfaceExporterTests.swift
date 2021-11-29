@@ -370,12 +370,13 @@ struct StatefulUserHandler: Handler {
     var connection: Connection
 
     func handle() -> Apodini.Response<User> {
-        if connection.state == .end {
+        switch connection.state {
+        case .open:
+            return .nothing
+        case .end, .close:
             XCTAssertNotNil(name)
             // swiftlint:disable:next force_unwrapping
             return .final(User(id: userId, name: name!))
-        } else {
-            return .nothing
         }
     }
 }
@@ -451,9 +452,12 @@ struct BidirectionalHandler: Handler {
             self.observed.bool.toggle()
         }
         
-        if connection.state == .end {
+        switch connection.state {
+        case .end, .close:
             finalState = true
             return eventLoop.makeSucceededFuture(.end)
+        case .open:
+            break
         }
         
         XCTAssertFalse(finalState)

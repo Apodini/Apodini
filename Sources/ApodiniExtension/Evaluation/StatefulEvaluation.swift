@@ -71,7 +71,7 @@ public extension AsyncSequence where Element == Event {
         .map { event in
             switch event {
             case .end:
-                connectionState = .end
+                connectionState = .end // TODO does this need special handling for .close?
                 if let request = latestRequest {
                     return .request(request)
                 } else {
@@ -94,7 +94,6 @@ public extension AsyncSequence where Element == Event {
                 guard let request = latestRequest else {
                     fatalError("Cannot handle TriggerEvent before first Request!")
                 }
-                
                 do {
                     return .success(try await handler.evaluate(trigger, using: request, with: connectionState))
                 } catch {

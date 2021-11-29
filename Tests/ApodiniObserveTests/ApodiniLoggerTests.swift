@@ -228,25 +228,22 @@ class ApodiniLoggerTests: XCTestCase {
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
+            switch connection.state {
+            case .open:
+                list.append(country ?? "the World")
+                logger.info("Hello world - Streaming!")
+                clientSideStreamingHandlerStreamingLine = #line - 1
+                return .nothing
+            case .end, .close:
                 var response = "Hello, " + list[0..<list.count - 1].joined(separator: ", ")
                 if let last = list.last {
                     response += " and " + last
                 } else {
                     response += "everyone"
                 }
-                
                 logger.info("Hello world - End!")
                 clientSideStreamingHandlerFinalLine = #line - 1
-                
                 return .final(response + "!")
-            } else {
-                list.append(country ?? "the World")
-                
-                logger.info("Hello world - Streaming!")
-                clientSideStreamingHandlerStreamingLine = #line - 1
-                
-                return .nothing
             }
         }
         
@@ -266,16 +263,15 @@ class ApodiniLoggerTests: XCTestCase {
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
-                logger.info("Hello world - End!")
-                bidirectionalStreamingHandlerFinalLine = #line - 1
-                
-                return .end
-            } else {
+            switch connection.state {
+            case .open:
                 logger.info("Hello world - Streaming!")
                 bidirectionalStreamingHandlerStreamingLine = #line - 1
-                
                 return .send("Hello, \(country ?? "World")!")
+            case .end, .close:
+                logger.info("Hello world - End!")
+                bidirectionalStreamingHandlerFinalLine = #line - 1
+                return .end
             }
         }
         

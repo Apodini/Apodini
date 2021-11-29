@@ -31,14 +31,13 @@ public func mockQuery<Value: Encodable, H: Handler>(
     let request = "Mock Request"
     
     let response: Response<H.Response.Content> = try InterfaceExporterLegacyStrategy(exporter)
-                                                    .applied(to: endpoint)
-                                                    .decodeRequest(from: request,
-                                                                   with: DefaultRequestBasis(base: request),
-                                                                   with: app.eventLoopGroup.next())
-                                                    .insertDefaults(with: endpoint[DefaultValueStore.self])
-                                                    .evaluate(on: delegate, final ? .end : .open)
-                                                    .wait()
-    
+        .applied(to: endpoint)
+        .decodeRequest(from: request,
+            with: DefaultRequestBasis(base: request),
+            with: app.eventLoopGroup.next())
+        .insertDefaults(with: endpoint[DefaultValueStore.self])
+        .evaluate(on: delegate, final ? .end : .open)
+        .wait()
     return try XCTUnwrap(response.typed(value))
 }
 #endif

@@ -149,7 +149,14 @@ struct StreamingGreeter_CS: Handler {
     
     func handle() async throws -> Response<String> {
         print("GREETER. name: \(name), names: \(names), connection: \(connection) (state: \(connection.state))")
-        if self.connection.state == .end {
+        switch connection.state {
+        case .open:
+            names.append(name)
+            return .send()
+        case .end:
+            names.append(name)
+            fallthrough
+        case .close:
             switch names.count {
             case 0:
                 return .final("Hello!")
@@ -158,10 +165,6 @@ struct StreamingGreeter_CS: Handler {
             default:
                 return .final("Hello, \(names[0..<(names.endIndex - 1)].joined(separator: ", ")), and \(names.last!)")
             }
-        } else {
-            names.append(name)
-            return .send()
-            //return .nothing
         }
     }
 }

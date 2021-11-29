@@ -5,7 +5,7 @@ import NIO
 import NIOHPACK
 
 
-struct GRPCMessageIn: RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
+struct GRPCMessageIn: ApodiniExtension.RequestBasis, CustomStringConvertible, CustomDebugStringConvertible {
     let remoteAddress: SocketAddress?
     /// The HTTP/2 headers sent with the initial HTTP request that initiated this stream
     let requestHeaders: HPACKHeaders
