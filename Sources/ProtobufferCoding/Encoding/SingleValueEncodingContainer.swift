@@ -111,7 +111,7 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
 
 
 extension ByteBuffer {
-    func lk_getAllBytes() -> [UInt8] {
+    public func lk_getAllBytes() -> [UInt8] {
         getBytes(at: 0, length: writerIndex)!
     }
 }

@@ -67,13 +67,17 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     private var logger: Logger { app.logger }
     
+    private let reflectionInputType: ProtoTypeDerivedFromSwift
+    private let reflectionOutputType: ProtoTypeDerivedFromSwift
+    
     
     init(app: Application, config: GRPC) {
         self.app = app
         self.config = config
         let defaultPackageName = config.packageName //config.serviceName// + "NS"
         self.defaultPackageName = defaultPackageName
-        self.server = .init(defaultPackageName: defaultPackageName)
+        let server = GRPCServer(defaultPackageName: defaultPackageName)
+        self.server = server
         // Configure HTTP/2
         guard app.httpConfiguration.supportVersions.contains(.two),
               let tlsConfig = app.httpConfiguration.tlsConfiguration,
@@ -91,7 +95,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
         server.createService(name: Self.serverReflectionServiceName, associatedWithPackage: Self.serverReflectionPackageName)
         
         do {
-            try ServerReflectionInfoRPCHandler.registerReflectionServiceTypesWithSchema(server.schema)
+            let reflectionTypes = try ServerReflectionInfoRPCHandler.registerReflectionServiceTypesWithSchema(server.schema)
+            self.reflectionInputType = reflectionTypes.inputType
+            self.reflectionOutputType = reflectionTypes.outputType
             try server.schema.informAboutMessageType(FileDescriptorSet.self) // this is enough to pull in the entire descriptors file
         } catch {
             if case ProtoValidationError.proto3EnumMissingCaseWithZeroValue(let enumTy) = error {
@@ -144,48 +150,22 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     func finishedExporting(_ webService: WebServiceModel) {
-        // TODO do something here????
-        logger.notice("gRPC export complete!")
-        
-//        // TODO long-term we'd want this to simply be implemented via a handler as well, as opposed to a hard-coded route...
-//        app.httpServer.registerRoute(.POST, ["grpc.reflection.v1alpha.ServerReflection", "ServerReflectionInfo"]) { request in
-//            precondition(request.version == .http2)
-//            print(request.headers)
-//            print(request.bodyStorage.getFullBodyData() as Any)
-//            return HTTPResponse(
-//                version: .http2,
-//                status: .ok,
-//                headers: HTTPHeaders {
-//                    $0[.contentType] = .gRPC(.proto)
-//                },
-//                bodyStorage: .buffer(initialValue: []) // TODO
-//            )
-//        }
-        
+        // Add the reflection service
         server.addMethod(
             toServiceNamed: Self.serverReflectionServiceName,
             inPackage: Self.serverReflectionPackageName,
             GRPCMethod(
                 name: Self.serverReflectionMethodName,
                 type: .bidirectionalStream,
-                inputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionRequest",
-                outputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionResponse",
+                //inputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionRequest",
+                //outputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionResponse",
+                inputType: reflectionInputType,
+                outputType: reflectionOutputType,
                 streamRPCHandlerMaker: { [unowned self] in
                     ServerReflectionInfoRPCHandler(server: self.server)
                 }
             )
         )
-        
-//        let greeterIn = server.schema.informAboutMessageType(GreeterRequest.self)
-//        let greeterOut = server.schema.informAboutMessageType(GreeterResponse.self)
-//
-//        server.addMethod(toServiceNamed: config.serviceName, inPackage: defaultPackageName, GRPCMethod(
-//            name: "SayHello",
-//            type: .requestResponse,
-//            inputFQTN: "GreeterRequest",//greeterIn.fullyQualifiedTypename,
-//            outputFQTN: "GreeterResponse",//greeterOut.fullyQualifiedTypename,
-//            streamRPCHandlerMaker: { HardcodedGreeter() }
-//        ))
         
         // Makes the types managed by the schema ready for use by the reflection API
         server.schema.finalize()
@@ -308,54 +288,5 @@ class GRPCEndpointContext: Hashable {
     
     static func == (lhs: GRPCEndpointContext, rhs: GRPCEndpointContext) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-    }
-}
-
-
-
-
-
-struct GreeterRequest: Codable, ProtobufMessage {
-    let name: String
-//    enum CodingKeys: Int, CodingKey {
-//        case name = 1
-//    }
-}
-
-
-struct GreeterResponse: Codable, ProtobufMessage {
-    let message: String
-//    enum CodingKeys: Int, CodingKey {
-//        case message = 1
-//    }
-}
-
-
-class HardcodedGreeter: GRPCStreamRPCHandler {
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {
-        print(Self.self, #function)
-    }
-    
-    func handleStreamClose(context: GRPCStreamConnectionContext) {
-        print(Self.self, #function)
-    }
-    
-    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
-        print(Self.self, #function, message.serviceAndMethodName)
-        do {
-            let request = try ProtobufferDecoder().decode(GreeterRequest.self, from: message.payload)
-            print(request)
-            let response = GreeterResponse(message: "Hello, \(request.name)!!!!")
-            let messageOut = GRPCMessageOut.singleMessage(
-                headers: HPACKHeaders {
-                    $0[.contentType] = .gRPC(.proto)
-                },
-                payload: try ProtobufferEncoder().encode(response),
-                closeStream: true
-            )
-            return context.eventLoop.makeSucceededFuture(messageOut)
-        } catch {
-            fatalError()
-        }
     }
 }

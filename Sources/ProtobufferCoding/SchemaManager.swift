@@ -209,6 +209,18 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
             return typename.fullyQualified
         }
     }
+    
+    
+    /// Whether this type could appear as a "top-level" type in a proto file.
+    /// This also implies that it could be used as the input/output type of a gPRC method
+    public var isTopLevelType: Bool {
+        switch self {
+        case .builtinEmptyType, .refdMessageType, .compositeMessage:
+            return true
+        case .primitive, .enumTy:
+            return false
+        }
+    }
 }
 
 
@@ -483,6 +495,9 @@ public class ProtoSchema {
     
     @discardableResult
     public func informAboutType(_ type: Any.Type) throws -> ProtoTypeDerivedFromSwift {
+//        if let result = cachedResults[.init(type: type, requireTopLevelCompatibleOutput: false, primitiveTypeHandlingContext: nil)] {
+//            return result
+//        }
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
         collectTypes(in: result)
@@ -654,6 +669,8 @@ public class ProtoSchema {
         if let cached = cachedResults[cacheKey] {
             return cached
         }
+        
+        precondition(!isFinalized, "Cannot call '\(#function)' on finalized schema.")
         
         
         func cacheRetval(_ retval: ProtoTypeDerivedFromSwift) -> ProtoTypeDerivedFromSwift {
@@ -876,30 +893,16 @@ extension ProtoSchema {
                 }
                 return EnumDescriptorProto(
                     name: typename.mangled, // We keep the full typename since we need that for the type containment checks...
-                    values: { () -> [EnumValueDescriptorProto] in
-                        cases.map { enumCase -> EnumValueDescriptorProto in
-                            EnumValueDescriptorProto(
-                                name: enumCase.name,
-                                number: enumCase.value,
-                                options: nil // NOTE we could use this to mark enum cases as deprecated, although there's no way of reading e.g. a swift @deprecatd annotation, so that's probably not overly useful...
-                            )
-                        }
-                    }(),
+                    values: cases.map { enumCase -> EnumValueDescriptorProto in
+                        EnumValueDescriptorProto(
+                            name: enumCase.name,
+                            number: enumCase.value,
+                            options: nil // NOTE we could use this to mark enum cases as deprecated, although there's no way of reading e.g. a swift @deprecatd annotation, so that's probably not overly useful...
+                        )
+                    },
                     options: nil,
-                    reservedRanges: { () -> [EnumDescriptorProto.EnumReservedRange] in
-                        if let protoEnumTy = enumType as? AnyProtobufEnum.Type {
-                            return protoEnumTy.reservedRanges.map { .init(start: $0.lowerBound, end: $0.upperBound) }
-                        } else {
-                            return []
-                        }
-                    }(),
-                    reservedNames: { () -> [String] in
-                        if let protoEnumTy = enumType as? AnyProtobufEnum.Type {
-                            return Array(protoEnumTy.reservedNames)
-                        } else {
-                            return []
-                        }
-                    }()
+                    reservedRanges: enumType.reservedRanges.map { .init(start: $0.lowerBound, end: $0.upperBound) },
+                    reservedNames: Array(enumType.reservedNames)
                 )
             }
         }
@@ -973,9 +976,7 @@ extension ProtoSchema {
         }.mapValues { msgTypeDescs -> [DescriptorProto] in
             msgTypeDescs.map { msgTypeDesc -> DescriptorProto in
                 var msgTypeDesc = msgTypeDesc
-                print("old: \(msgTypeDesc.name)")
                 let newName = ProtoTypeDerivedFromSwift.Typename(mangled: msgTypeDesc.name).typename
-                print("new: \(newName)")
                 precondition(newName.rangeOfCharacter(from: CharacterSet(charactersIn: ".[]")) == nil)
                 msgTypeDesc.name = newName
                 return msgTypeDesc

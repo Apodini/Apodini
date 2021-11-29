@@ -177,6 +177,7 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
+                .target(name: "ApodiniTypeReflection"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
             ],
@@ -653,7 +654,8 @@ let package = Package(
         .testTarget(
             name: "ProtobufferCodingTests",
             dependencies: [
-                .target(name: "ProtobufferCoding")
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniGRPC")
             ]
         ),
         

@@ -17,14 +17,10 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
         self.server = server
     }
     
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
-    
-    func handleStreamClose(context: GRPCStreamConnectionContext) {}
     
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let reflectionRequest: ReflectionRequest
         do {
-            print("REFLECTION REQUEST RAW PROTO BYTES", message.payload.getBytes(at: 0, length: message.payload.writerIndex))
             reflectionRequest = try ProtobufferDecoder().decode(ReflectionRequest.self, from: message.payload)
         } catch {
             // TODO return an error response
@@ -90,9 +86,12 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
     }
     
     
-    static func registerReflectionServiceTypesWithSchema(_ schema: ProtoSchema) throws {
-        try schema.informAboutMessageType(ReflectionRequest.self)
-        try schema.informAboutMessageType(ReflectionResponse.self)
+    static func registerReflectionServiceTypesWithSchema(
+        _ schema: ProtoSchema
+    ) throws -> (inputType: ProtoTypeDerivedFromSwift, outputType: ProtoTypeDerivedFromSwift) {
+        let input = try schema.informAboutMessageType(ReflectionRequest.self)
+        let output = try schema.informAboutMessageType(ReflectionResponse.self)
+        return (input, output)
     }
 }
 
@@ -157,7 +156,7 @@ extension GRPCServer {
         ])
         
         return ReflectionResponse(
-            validHost: reflectionRequest.host, // TODO
+            validHost: reflectionRequest.host,
             originalRequest: reflectionRequest,
             messageResponse: .fileDescriptorResponse(fileDescriptorResponse)
         )
@@ -166,7 +165,7 @@ extension GRPCServer {
     
     fileprivate func handleListServicesReflectionRequest(_ reflectionRequest: ReflectionRequest) -> ReflectionResponse {
         ReflectionResponse(
-            validHost: reflectionRequest.host, // TODO???
+            validHost: reflectionRequest.host,
             originalRequest: reflectionRequest,
             messageResponse: .listServicesResponse(ListServiceResponse(
                 services: services.map { ServiceResponse(name: "\($0.packageName).\($0.name)") }
@@ -193,8 +192,8 @@ extension GRPCServer {
                     methods: service.methods.map { method -> MethodDescriptorProto in
                         MethodDescriptorProto(
                             name: method.name,
-                            inputType: method.inputFQTN,
-                            outputType: method.outputFQTN,
+                            inputType: method.inputType.fullyQualifiedTypename,
+                            outputType: method.outputType.fullyQualifiedTypename,
                             options: nil,
                             clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
                             serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
@@ -215,16 +214,14 @@ extension GRPCServer {
 
 
 // MARK: Reflection Service Types
-// Note: The reason all of these are in here instead of being in a spearate file
-// is so that we can declare them as private and avoid cluttering the module namespace.
 
-private protocol __ProtoNS_GRPC_Reflection_V1Alpha: ProtoTypeInPackage {}
+protocol __ProtoNS_GRPC_Reflection_V1Alpha: ProtoTypeInPackage {}
 extension __ProtoNS_GRPC_Reflection_V1Alpha {
     public static var package: ProtobufPackageName { .init("grpc.reflection.v1alpha") }
 }
 
 
-private struct ExtensionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct ExtensionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let containingType: String
     let extensionNumber: Int32
     enum CodingKeys: Int, CodingKey {
@@ -234,7 +231,7 @@ private struct ExtensionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_
 }
 
 
-private struct ReflectionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, ProtoTypeWithCustomProtoName {
+struct ReflectionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, ProtoTypeWithCustomProtoName {
     static var protoTypename: String { "ServerReflectionRequest" }
     
     enum MessageRequest: ProtobufEnumWithAssociatedValues, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
@@ -297,7 +294,7 @@ private struct ReflectionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS
 // MARK: ReflectionResponse
 
 
-private struct FileDescriptorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct FileDescriptorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let fileDescriptors: [FileDescriptorProto]
     
     enum CodingKeys: Int, CodingKey {
@@ -306,7 +303,7 @@ private struct FileDescriptorResponse: Codable, ProtobufMessage, Equatable, __Pr
 }
 
 
-private struct ExtensionNumberResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct ExtensionNumberResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let baseTypeName: String
     let extensionNumber: [Int32]
     
@@ -317,7 +314,7 @@ private struct ExtensionNumberResponse: Codable, ProtobufMessage, Equatable, __P
 }
 
 
-private struct ListServiceResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct ListServiceResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let services: [ServiceResponse]
     
     enum CodingKeys: Int, CodingKey {
@@ -326,7 +323,7 @@ private struct ListServiceResponse: Codable, ProtobufMessage, Equatable, __Proto
 }
 
 
-private struct ServiceResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct ServiceResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let name: String
     
     enum CodingKeys: Int, CodingKey {
@@ -335,7 +332,7 @@ private struct ServiceResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_G
 }
 
 
-private struct ErrorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
+struct ErrorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let errorCode: Int32
     let errorMessage: String
     
@@ -345,7 +342,7 @@ private struct ErrorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRP
     }
 }
 
-private struct ReflectionResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, ProtoTypeWithCustomProtoName {
+struct ReflectionResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha, ProtoTypeWithCustomProtoName {
     static var protoTypename: String { "ServerReflectionResponse" }
     
     enum MessageResponse: ProtobufEnumWithAssociatedValues, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {

@@ -10,6 +10,11 @@ protocol GRPCStreamRPCHandler: AnyObject {
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
 }
 
+extension GRPCStreamRPCHandler {
+    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
+    func handleStreamClose(context: GRPCStreamConnectionContext) {}
+}
+
 
 
 /// An open gRPC stream over which messages are sent

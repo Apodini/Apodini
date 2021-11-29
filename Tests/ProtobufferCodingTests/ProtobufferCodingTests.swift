@@ -6,10 +6,38 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable discouraged_optional_boolean
+
 import XCTest
 import Foundation
 import NIO
 @testable import ProtobufferCoding
+@testable import ApodiniGRPC
+
+
+
+// MARK: Test Utils
+
+private struct _TestFailingError: Swift.Error, LocalizedError {
+    let message: String
+    var errorDescription: String? { message }
+}
+
+/// A version of `XCTAssertNoThrow` that returns the result of the non-throwing expression
+/// - Note: Ideally we'd call this `XCTAssertNoThrow` as well and simply use it as an overload, but that doesn't work bc calls always get resolved to the other definition.
+func XCTAssertNoThrowAndReturnResult<T>(
+    _ expression: @autoclosure () throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) throws -> T {
+    do {
+        return try expression()
+    } catch {
+        XCTFail("Caught error: \(error). \(message())", file: file, line: line)
+        throw _TestFailingError(message: "Unexpectedly threw an error")
+    }
+}
 
 
 func XCTAssertEqual(_ buffer: ByteBuffer, _ expectedBytes: [UInt8]) throws {
@@ -34,7 +62,6 @@ private func ascii(_ char: Character) -> UInt8 {
 }
 
 
-
 // rename protoRoundtripTest or smth like that
 private func _testImpl<T: Codable & Equatable>(_ input: T, expectedBytes: [UInt8], expectedFieldMapping: ProtobufFieldsMapping) throws {
     let encoded = try ProtobufferEncoder().encode(input)
@@ -49,9 +76,6 @@ private func _testImpl<T: Codable & Equatable>(_ input: T, expectedBytes: [UInt8
     case (true, false):
         XCTFail("Message not empty, despite no field mapping being specified")
     }
-//    if !(expectedFieldMapping.isEmpty && encoded.readableBytes == 0) {
-//        //XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), expectedFieldMapping)
-//    }
     if !(expectedBytes.isEmpty && encoded.readableBytes == 0) {
         try assertDecodedMatches(encoded, input)
     }
@@ -59,6 +83,59 @@ private func _testImpl<T: Codable & Equatable>(_ input: T, expectedBytes: [UInt8
 
 
 
+// MARK: Test Data Structures
+
+
+struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
+    let value: T
+}
+
+
+
+struct SingleFieldProtoTestMessage<T: Codable & Equatable>: Codable & Equatable & ProtobufMessage {
+    let value: T
+}
+
+
+struct ProtoComplexTestMessage: Codable, Equatable {
+    var numberInt32: Int32
+    var numberUint32: UInt32
+    var numberBool: Bool
+    var enumValue: Int32
+    var numberDouble: Double
+    var content: String
+    var byteData: Data
+    var nestedMessage: SingleFieldProtoTestMessage<String>
+    var numberFloat: Float
+
+    enum CodingKeys: Int, ProtobufMessageCodingKeys {
+        case numberInt32 = 1
+        case numberUint32 = 2
+        case numberBool = 4
+        case enumValue = 5
+        case numberDouble = 8
+        case content = 9
+        case byteData = 10
+        case nestedMessage = 11
+        case numberFloat = 14
+    }
+}
+
+
+struct ProtoComplexTestMessageWithOptionals: Codable, Equatable {
+    var numberInt32: Int32?
+    var numberUint32: UInt32?
+    var numberBool: Bool?
+    var enumValue: Int32?
+    var numberDouble: Double?
+    var content: String?
+    var byteData: Data?
+    var nestedMessage: SingleFieldProtoTestMessage<String>?
+    var numberFloat: Float?
+}
+
+
+// MARK: Tests
 
 
 class ProtobufferCodingTests: XCTestCase {
@@ -408,11 +485,15 @@ class ProtobufferCodingTests: XCTestCase {
         
         let schema = ProtoSchema(defaultPackageName: "de.lukaskollmer")
         let protoType = try XCTAssertNoThrowAndReturnResult(schema.informAboutType(Proto2ValidShape.self))
-        XCTAssertEqual(protoType, .enumTy(name: .init(mangled: "[de.lukaskollmer].ProtobufferCodingTests.Proto2ValidShape"), enumType: Proto2ValidShape.self, cases: [
-            .init(name: "square", value: 1),
-            .init(name: "circle", value: 2),
-            .init(name: "triangle", value: 3)
-        ]))
+        XCTAssertEqual(protoType, .enumTy(
+            name: .init(mangled: "[de.lukaskollmer].ProtobufferCodingTests.Proto2ValidShape"),
+            enumType: Proto2ValidShape.self,
+            cases: [
+                .init(name: "square", value: 1),
+                .init(name: "circle", value: 2),
+                .init(name: "triangle", value: 3)
+            ]
+        ))
     }
     
     
@@ -532,8 +613,8 @@ class ProtobufferCodingTests: XCTestCase {
                 3: [.init(tag: 3, keyOffset: 0, valueOffset: 1, valueInfo: ._64Bit(9223372036854775808), fieldLength: 9)]
             ]
         )
-        XCTAssertEqual(128 << (7*8), (-Double.zero).bitPattern)
-        XCTAssertEqual((128 << (7*8)) as UInt64, 9223372036854775808)
+        XCTAssertEqual(128 << (7 * 8), (-Double.zero).bitPattern)
+        XCTAssertEqual((128 << (7 * 8)) as UInt64, 9223372036854775808)
         
         // Test String
         try _testImpl(
@@ -553,226 +634,170 @@ class ProtobufferCodingTests: XCTestCase {
     }
     
     
-    func testDecodeGRPCReflectionInput() throws {
-        // TODO collect some real-world reflection input and test against that
+    func testDecodeGRPCReflectionInput1() throws {
+        try _testImpl(
+            ReflectionRequest(host: "", messageRequest: .listServices("*")),
+            expectedBytes: [58, 1, 42],
+            expectedFieldMapping: [
+                7: [.init(tag: 7, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 1, dataOffset: 1), fieldLength: 3)]
+            ]
+        )
     }
-}
-
-
-struct SimpleStructWithIntProperty: Codable {
-    let value: Int
-}
-
-struct SimpleStructWithMessageProperty: Codable {
-    let message: Person
-}
-
-
-
-
-
-struct _TestFailingError: Swift.Error, LocalizedError {
-    let message: String
     
-    var errorDescription: String? {
-        message
+    
+    func testDecodeGRPCReflectionInput2() throws {
+        try _testImpl(
+            ReflectionRequest(host: "", messageRequest: .fileContainingSymbol("de.lukaskollmer.TestWebService")),
+            expectedBytes: [
+                34, 30, 100, 101, 46, 108, 117, 107, 97, 115, 107,
+                111, 108, 108, 109, 101, 114, 46, 84, 101, 115, 116,
+                87, 101, 98, 83, 101, 114, 118, 105, 99, 101
+            ],
+            expectedFieldMapping: [
+                4: [.init(tag: 4, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 30, dataOffset: 1), fieldLength: 32)]
+            ]
+        )
     }
-}
-
-
-
-/// A version of `XCTAssertNoThrow` that returns the result of the non-throwing expression
-/// - Note: Ideally we'd call this `XCTAssertNoThrow` as well and simply use it as an overload, but that doesn't work bc calls always get resolved to the other definition.
-func XCTAssertNoThrowAndReturnResult<T>(
-    _ expression: @autoclosure () throws -> T,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #filePath,
-    line: UInt = #line
-) throws -> T {
-    do {
-        return try expression()
-    } catch {
-        XCTFail("Caught error: \(error). \(message())", file: file, line: line)
-        throw _TestFailingError(message: "Unexpectedly threw an error")
+    
+    
+    func testDecodeGRPCReflectionInput3() throws {
+        try _testImpl(
+            ReflectionRequest(host: "", messageRequest: .fileContainingSymbol("grpc.reflection.v1alpha.ServerReflection")),
+            expectedBytes: [
+                34, 40, 103, 114, 112, 99, 46, 114, 101, 102, 108,
+                101, 99, 116, 105, 111, 110, 46, 118, 49, 97, 108,
+                112, 104, 97, 46, 83, 101, 114, 118, 101, 114, 82,
+                101, 102, 108, 101, 99, 116, 105, 111, 110
+            ],
+            expectedFieldMapping: [
+                4: [.init(tag: 4, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 40, dataOffset: 1), fieldLength: 42)]
+            ]
+        )
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-// MARK: OLD Tests
-
-
-struct ProtoTestMessage<T: Codable & Equatable>: Codable & Equatable & ProtobufMessage {
-    let content: T
-}
-
-
-struct ProtoComplexTestMessage: Codable, Equatable {
-    var numberInt32: Int32
-    var numberUint32: UInt32
-    var numberBool: Bool
-    var enumValue: Int32
-    var numberDouble: Double
-    var content: String
-    var byteData: Data
-    var nestedMessage: ProtoTestMessage<String>
-    var numberFloat: Float
-
-    enum CodingKeys: Int, ProtobufMessageCodingKeys {
-        case numberInt32 = 1
-        case numberUint32 = 2
-        case numberBool = 4
-        case enumValue = 5
-        case numberDouble = 8
-        case content = 9
-        case byteData = 10
-        case nestedMessage = 11
-        case numberFloat = 14
-
-//        var protoRawValue: Int {
-//            switch self {
-//            case CodingKeys.numberInt32:
-//                return 1
-//            case CodingKeys.numberUint32:
-//                return 2
-//            case CodingKeys.numberBool:
-//                return 4
-//            case CodingKeys.enumValue:
-//                return 5
-//            case CodingKeys.numberDouble:
-//                return 8
-//            case CodingKeys.content:
-//                return 9
-//            case CodingKeys.byteData:
-//                return 10
-//            case CodingKeys.nestedMessage:
-//                return 11
-//            case CodingKeys.numberFloat:
-//                return 14
-//            }
-//        }
+    
+    
+    func testDecodeGRPCReflectionInput4() throws {
+        try _testImpl(
+            ReflectionRequest(host: "", messageRequest: .fileByFilename("google/protobuf/descriptor.proto")),
+            expectedBytes: [
+                26, 32, 103, 111, 111, 103, 108, 101, 47, 112, 114,
+                111, 116, 111, 98, 117, 102, 47, 100, 101, 115, 99,
+                114, 105, 112, 116, 111, 114, 46, 112, 114, 111, 116, 111
+            ],
+            expectedFieldMapping: [
+                3: [.init(tag: 3, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 32, dataOffset: 1), fieldLength: 34)]
+            ]
+        )
     }
-}
-
-
-
-class ProtobufferDecoderTests: XCTestCase {
+    
+    
     func testDecodePositiveInt() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int>.self, from: positiveData)
-        XCTAssertEqual(message.content, positiveExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int>.self, from: positiveData)
+        XCTAssertEqual(message.value, positiveExpected)
     }
     
     func testDecodeNegativeInt() throws {
         let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let negativeExpected: Int = -12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int>.self, from: negativeData)
-        XCTAssertEqual(message.content, negativeExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int>.self, from: negativeData)
+        XCTAssertEqual(message.value, negativeExpected)
     }
     
     func testDecodePositiveInt32() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int32 = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int32>.self, from: positiveData)
-        XCTAssertEqual(message.content, positiveExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int32>.self, from: positiveData)
+        XCTAssertEqual(message.value, positiveExpected)
     }
     
     func testDecodeNegativeInt32() throws {
         let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let negativeExpected: Int32 = -12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int32>.self, from: negativeData)
-        XCTAssertEqual(message.content, negativeExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int32>.self, from: negativeData)
+        XCTAssertEqual(message.value, negativeExpected)
     }
     
     func testDecodeInt64() throws {
         let positiveData = Data([8, 185, 96])
         let positiveExpected: Int64 = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int64>.self, from: positiveData)
-        XCTAssertEqual(message.content, positiveExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int64>.self, from: positiveData)
+        XCTAssertEqual(message.value, positiveExpected)
     }
     
     func testDecodeOptionalNegativeInt32() throws {
         let negativeData = Data([8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1])
         let negativeExpected: Int32? = -12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Int32?>.self, from: negativeData)
-        XCTAssertEqual(message.content, negativeExpected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Int32?>.self, from: negativeData)
+        XCTAssertEqual(message.value, negativeExpected)
     }
     
     func testDecodeUInt() throws {
         let data = Data([8, 185, 96])
         let expected: UInt = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<UInt>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<UInt>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeUInt32() throws {
         let data = Data([8, 185, 96])
         let expected: UInt32 = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<UInt32>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<UInt32>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeUInt64() throws {
         let data = Data([8, 185, 96])
         let expected: UInt64 = 12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<UInt64>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<UInt64>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeBool() throws {
         let data = Data([8, 1])
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Bool>.self, from: data)
-        XCTAssertEqual(message.content, true)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Bool>.self, from: data)
+        XCTAssertEqual(message.value, true)
     }
     
     func testDecodeDouble() throws {
         let data = Data([9, 88, 168, 53, 205, 143, 28, 200, 64])
         let expected: Double = 12345.12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Double>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Double>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeFloat() throws {
         let data = Data([13, 126, 228, 64, 70])
         let expected: Float = 12345.12345
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Float>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Float>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeString() throws {
         let data = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let expected: String = "Hello World"
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<String>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<String>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeOptionalString() throws {
         let data = Data([10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         let expected: String? = "Hello World"
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<String?>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<String?>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeBytes() throws {
         let data = Data([10, 6, 1, 2, 3, 253, 254, 255])
         let expected = Data([1, 2, 3, 253, 254, 255])
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<Data>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Data>.self, from: data)
+        XCTAssertEqual(message.value, expected)
     }
     
     func testDecodeRepeatedBool() throws {
         try _testImpl(
-            ProtoTestMessage<[Bool]>(content: [true, false, true]),
+            SingleFieldProtoTestMessage<[Bool]>(value: [true, false, true]),
             expectedBytes: [0b1010, 3, 1, 0, 1],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 3, dataOffset: 1), fieldLength: 5)]
@@ -782,7 +807,7 @@ class ProtobufferDecoderTests: XCTestCase {
     
     func testDecodeRepeatedInt() throws {
         try _testImpl(
-            ProtoTestMessage<[Int]>(content: [0, 1, 2, 3, 4, 5]),
+            SingleFieldProtoTestMessage<[Int]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
@@ -792,7 +817,7 @@ class ProtobufferDecoderTests: XCTestCase {
     
     func testDecodeRepeatedInt32() throws {
         try _testImpl(
-            ProtoTestMessage<[Int32]>(content: [0, 1, 2, 3, 4, 5]),
+            SingleFieldProtoTestMessage<[Int32]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
@@ -802,7 +827,7 @@ class ProtobufferDecoderTests: XCTestCase {
     
     func testDecodeRepeatedInt64() throws {
         try _testImpl(
-            ProtoTestMessage<[Int64]>(content: [1234567891011, 1234567891012, 1234567891013, 1234567891014, 1234567891015]),
+            SingleFieldProtoTestMessage<[Int64]>(value: [1234567891011, 1234567891012, 1234567891013, 1234567891014, 1234567891015]),
             expectedBytes: [
                 0b1010, 30, 195, 144, 236, 143, 247, 35,
                 196, 144, 236, 143, 247, 35, 197, 144,
@@ -816,18 +841,8 @@ class ProtobufferDecoderTests: XCTestCase {
     }
     
     func testDecodeRepeatedFloat() throws {
-//        let data = Data([
-//                            10, 20, 250, 62, 246, 66, 207, 119,
-//                            246, 66, 164, 176, 246, 66, 121, 233,
-//                            246, 66, 78, 34, 247, 66
-//        ])
-//        let expected: [Float] = [123.123, 123.234, 123.345, 123.456, 123.567]
-//
-//        let message = try ProtobufferDecoder().decode(ProtoTestMessage<[Float]>.self, from: data)
-//        XCTAssertEqual(message.content, expected)
-        
         try _testImpl(
-            ProtoTestMessage<[Float]>(content: [123.123, 123.234, 123.345, 123.456, 123.567]),
+            SingleFieldProtoTestMessage<[Float]>(value: [123.123, 123.234, 123.345, 123.456, 123.567]),
             expectedBytes: [
                 0b1010, 20, 250, 62, 246, 66, 207, 119,
                 246, 66, 164, 176, 246, 66, 121, 233,
@@ -841,7 +856,7 @@ class ProtobufferDecoderTests: XCTestCase {
     
     func testDecodeRepeatedDouble() throws {
         try _testImpl(
-            ProtoTestMessage<[Double]>(content: [123456789.123456789, 123456789.223456789, 123456789.323456789]),
+            SingleFieldProtoTestMessage<[Double]>(value: [123456789.123456789, 123456789.223456789, 123456789.323456789]),
             expectedBytes: [
                 0b1010, 24, 117, 107, 126, 84, 52, 111,
                 157, 65, 219, 209, 228, 84, 52, 111,
@@ -855,13 +870,8 @@ class ProtobufferDecoderTests: XCTestCase {
     }
     
     func testDecodeRepeatedUInt() throws {
-//        let data = Data([10, 5, 1, 2, 3, 4, 5])
-//        let expected: [UInt] = [1, 2, 3, 4, 5]
-//
-//        let message = try ProtobufferDecoder().decode(ProtoTestMessage<[UInt]>.self, from: data)
-//        XCTAssertEqual(message.content, expected)
         try _testImpl(
-            ProtoTestMessage<[UInt]>(content: [0, 1, 2, 3, 4, 5]),
+            SingleFieldProtoTestMessage<[UInt]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
@@ -873,7 +883,7 @@ class ProtobufferDecoderTests: XCTestCase {
         //let message = try ProtobufferDecoder().decode(ProtoTestMessage<[UInt32]>.self, from: data)
         //XCTAssertEqual(message.content, expected)
         try _testImpl(
-            ProtoTestMessage<[UInt32]>(content: [0, 1, 2, 3, 4, 5]),
+            SingleFieldProtoTestMessage<[UInt32]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
@@ -883,7 +893,7 @@ class ProtobufferDecoderTests: XCTestCase {
     
     func testDecodeRepeatedUInt64() throws {
         try _testImpl(
-            ProtoTestMessage<[UInt64]>(content: [0, 1, 2, 3, 4, 5]),
+            SingleFieldProtoTestMessage<[UInt64]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)]
@@ -897,17 +907,17 @@ class ProtobufferDecoderTests: XCTestCase {
         let bytes2: [UInt8] = [3, 4]
         let bytes3: [UInt8] = [5, 6]
         let expected: [Data] = [Data(bytes1), Data(bytes2), Data(bytes3)]
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<[Data]>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<[Data]>.self, from: data)
+        XCTAssertEqual(message.value, expected)
         
         try _testImpl(
-            ProtoTestMessage<[Data]>(content: [Data([1, 2]), Data([3, 4]), Data([5, 6])]),
+            SingleFieldProtoTestMessage<[Data]>(value: [Data([1, 2]), Data([3, 4]), Data([5, 6])]),
             expectedBytes: [0b1010, 2, 1, 2, 10, 2, 3, 4, 10, 2, 5, 6],
             expectedFieldMapping: [
                 1: [
                     .init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 2, dataOffset: 1), fieldLength: 4),
                     .init(tag: 1, keyOffset: 4, valueOffset: 5, valueInfo: .lengthDelimited(dataLength: 2, dataOffset: 1), fieldLength: 4),
-                    .init(tag: 1, keyOffset: 8, valueOffset: 9, valueInfo: .lengthDelimited(dataLength: 2, dataOffset: 1), fieldLength: 4),
+                    .init(tag: 1, keyOffset: 8, valueOffset: 9, valueInfo: .lengthDelimited(dataLength: 2, dataOffset: 1), fieldLength: 4)
                 ]
             ]
         )
@@ -916,33 +926,23 @@ class ProtobufferDecoderTests: XCTestCase {
     func testDecodeRepeatedString() throws {
         let data = Data([10, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105])
         let expected = ["eins", "zwei", "drei"]
-        let message = try ProtobufferDecoder().decode(ProtoTestMessage<[String]>.self, from: data)
-        XCTAssertEqual(message.content, expected)
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<[String]>.self, from: data)
+        XCTAssertEqual(message.value, expected)
         
         try _testImpl(
-            ProtoTestMessage<[String]>(content: ["eins", "zwei", "drei"]),
+            SingleFieldProtoTestMessage<[String]>(value: ["eins", "zwei", "drei"]),
             expectedBytes: [0b1010, 4, 101, 105, 110, 115, 10, 4, 122, 119, 101, 105, 10, 4, 100, 114, 101, 105],
             expectedFieldMapping: [
                 1: [
                     .init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 4, dataOffset: 1), fieldLength: 6),
                     .init(tag: 1, keyOffset: 6, valueOffset: 7, valueInfo: .lengthDelimited(dataLength: 4, dataOffset: 1), fieldLength: 6),
-                    .init(tag: 1, keyOffset: 12, valueOffset: 13, valueInfo: .lengthDelimited(dataLength: 4, dataOffset: 1), fieldLength: 6),
+                    .init(tag: 1, keyOffset: 12, valueOffset: 13, valueInfo: .lengthDelimited(dataLength: 4, dataOffset: 1), fieldLength: 6)
                 ]
             ]
         )
     }
     
     // MARK: Complex message
-    let dataComplexMessage = Data([
-                        8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1,
-                        16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53, 205,
-                        143, 28, 200, 64, 74, 11, 72, 101, 108, 108, 111,
-                        32, 87, 111, 114, 108, 100, 82, 6, 1, 2, 3, 253, 254,
-                        255, 90, 36, 10, 34, 72, 97, 108, 108, 111, 44, 32,
-                        100, 97, 115, 32, 105, 115, 116, 32, 101, 105, 110,
-                        101, 32, 83, 117, 98, 45, 78, 97, 99, 104, 114, 105,
-                        99, 104, 116, 46, 117, 126, 228, 64, 70
-    ])
     
     let expectedComplexMessage = ProtoComplexTestMessage(
         numberInt32: -12345,
@@ -952,13 +952,23 @@ class ProtobufferDecoderTests: XCTestCase {
         numberDouble: 12345.12345,
         content: "Hello World",
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: ProtoTestMessage(
-            content: "Hallo, das ist eine Sub-Nachricht."
+        nestedMessage: SingleFieldProtoTestMessage(
+            value: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: 12345.12345
     )
     
     func testDecodeComplexMessage() throws {
+        let dataComplexMessage = Data([
+            8, 199, 159, 255, 255, 255, 255, 255, 255, 255, 1,
+            16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53, 205,
+            143, 28, 200, 64, 74, 11, 72, 101, 108, 108, 111,
+            32, 87, 111, 114, 108, 100, 82, 6, 1, 2, 3, 253, 254,
+            255, 90, 36, 10, 34, 72, 97, 108, 108, 111, 44, 32,
+            100, 97, 115, 32, 105, 115, 116, 32, 101, 105, 110,
+            101, 32, 83, 117, 98, 45, 78, 97, 99, 104, 114, 105,
+            99, 104, 116, 46, 117, 126, 228, 64, 70
+        ])
         let message = try ProtobufferDecoder().decode(ProtoComplexTestMessage.self, from: dataComplexMessage)
         XCTAssertEqual(message.numberInt32, expectedComplexMessage.numberInt32)
         XCTAssertEqual(message.numberUint32, expectedComplexMessage.numberUint32)
@@ -967,32 +977,14 @@ class ProtobufferDecoderTests: XCTestCase {
         XCTAssertEqual(message.numberDouble, expectedComplexMessage.numberDouble)
         XCTAssertEqual(message.content, expectedComplexMessage.content)
         XCTAssertEqual(message.byteData, expectedComplexMessage.byteData)
-        XCTAssertEqual(message.nestedMessage.content,
-                       expectedComplexMessage.nestedMessage.content)
+        XCTAssertEqual(message.nestedMessage.value, expectedComplexMessage.nestedMessage.value)
         XCTAssertEqual(message.numberFloat, expectedComplexMessage.numberFloat)
     }
-}
-
-
-
-
-struct ProtoComplexTestMessageWithOptionals: Codable, Equatable {
-    var numberInt32: Int32?
-    var numberUint32: UInt32?
-    var numberBool: Bool?
-    var enumValue: Int32?
-    var numberDouble: Double?
-    var content: String?
-    var byteData: Data?
-    var nestedMessage: ProtoTestMessage<String>?
-    var numberFloat: Float?
-}
-
-
-
-
-class ComplexEncodingTests: XCTestCase {
-    let expectedComplexMessage: [UInt8] = [
+    
+    
+    // MARK: Complex Coding Tests
+    
+    let expectedComplexMessageBytes: [UInt8] = [
         8, 199, 159, 255, 255, 255, 255, 255, 255, 255,
         1, 16, 185, 96, 32, 1, 40, 2, 65, 88, 168, 53,
         205, 143, 28, 200, 64, 74, 11, 72, 101, 108, 108,
@@ -1011,8 +1003,8 @@ class ComplexEncodingTests: XCTestCase {
         numberDouble: 12345.12345,
         content: "Hello World",
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: ProtoTestMessage(
-            content: "Hallo, das ist eine Sub-Nachricht."
+        nestedMessage: SingleFieldProtoTestMessage(
+            value: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: 12345.12345
     )
@@ -1025,8 +1017,8 @@ class ComplexEncodingTests: XCTestCase {
         numberDouble: 12345.12345,
         content: "Hello World",
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: ProtoTestMessage(
-            content: "Hallo, das ist eine Sub-Nachricht."
+        nestedMessage: SingleFieldProtoTestMessage(
+            value: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: 12345.12345
     )
@@ -1049,8 +1041,8 @@ class ComplexEncodingTests: XCTestCase {
         numberDouble: 12345.12345,
         content: nil,
         byteData: Data([1, 2, 3, 253, 254, 255]),
-        nestedMessage: ProtoTestMessage(
-            content: "Hallo, das ist eine Sub-Nachricht."
+        nestedMessage: SingleFieldProtoTestMessage(
+            value: "Hallo, das ist eine Sub-Nachricht."
         ),
         numberFloat: nil
     )
@@ -1059,7 +1051,7 @@ class ComplexEncodingTests: XCTestCase {
     func testEncodeComplexMessage() throws {
         try _testImpl(
             complexMessage,
-            expectedBytes: expectedComplexMessage,
+            expectedBytes: expectedComplexMessageBytes,
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(UInt64(bitPattern: -12345)), fieldLength: 11)],
                 2: [.init(tag: 2, keyOffset: 11, valueOffset: 12, valueInfo: .varInt(12345), fieldLength: 3)],
@@ -1069,14 +1061,12 @@ class ComplexEncodingTests: XCTestCase {
                 9: [.init(tag: 9, keyOffset: 27, valueOffset: 28, valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1), fieldLength: 13)],
                 10: [.init(tag: 10, keyOffset: 40, valueOffset: 41, valueInfo: .lengthDelimited(dataLength: 6, dataOffset: 1), fieldLength: 8)],
                 11: [.init(tag: 11, keyOffset: 48, valueOffset: 49, valueInfo: .lengthDelimited(dataLength: 36, dataOffset: 1), fieldLength: 38)],
-                14: [.init(tag: 14, keyOffset: 86, valueOffset: 87, valueInfo: ._32Bit(Float(12345.12345).bitPattern), fieldLength: 5)],
+                14: [.init(tag: 14, keyOffset: 86, valueOffset: 87, valueInfo: ._32Bit(Float(12345.12345).bitPattern), fieldLength: 5)]
             ]
         )
     }
     
     func testEncodeComplexMessageWithOptionalsAllNil() throws {
-        let encoded = try ProtobufferEncoder().encode(ProtoComplexTestMessageWithOptionals())
-        try XCTAssertEqual(encoded, [])
         try _testImpl(
             ProtoComplexTestMessageWithOptionals(),
             expectedBytes: [],
@@ -1085,11 +1075,9 @@ class ComplexEncodingTests: XCTestCase {
     }
     
     func testEncodeComplexMessageWithOptionalsAllSet() throws {
-        let encoded = try ProtobufferEncoder().encode(complexMessage)
-        try XCTAssertEqual(encoded, expectedComplexMessage)
         try _testImpl(
             complexMessage,
-            expectedBytes: expectedComplexMessage,
+            expectedBytes: expectedComplexMessageBytes,
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(UInt64(bitPattern: -12345)), fieldLength: 11)],
                 2: [.init(tag: 2, keyOffset: 11, valueOffset: 12, valueInfo: .varInt(12345), fieldLength: 3)],
@@ -1119,19 +1107,10 @@ class ComplexEncodingTests: XCTestCase {
             ]
         )
     }
-}
-
-
-
-
-
-
-
-
-
-
-
-class OptionalEncodingTests: XCTestCase {
+    
+    
+    // MARK: Optional Encoding Tests
+    
     func testEncodeSinglePositiveOptionalInt32() throws {
         let number: Int32? = 12345
         let encoded = try ProtobufferEncoder().encode(number)
@@ -1141,7 +1120,7 @@ class OptionalEncodingTests: XCTestCase {
     
     func testEncodePositiveOptionalInt32Message() throws {
         let number: Int32? = 12345
-        let message = ProtoTestMessage(content: number)
+        let message = SingleFieldProtoTestMessage(value: number)
         let encoded = try ProtobufferEncoder().encode(message)
         try XCTAssertEqual(encoded, [8, 185, 96])
     }
@@ -1155,12 +1134,8 @@ class OptionalEncodingTests: XCTestCase {
     
     
     func testEncodeOptionalStringMessage() throws {
-        let content: String? = "Hello World"
-        let message = ProtoTestMessage(content: content)
-        let encoded = try ProtobufferEncoder().encode(message)
-        try XCTAssertEqual(encoded, [10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100])
         try _testImpl(
-            ProtoTestMessage(content: content),
+            SingleFieldProtoTestMessage<String?>(value: "Hello World"),
             expectedBytes: [10, 11, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100],
             expectedFieldMapping: [
                 1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1), fieldLength: 13)]
@@ -1170,7 +1145,7 @@ class OptionalEncodingTests: XCTestCase {
     
     
     func testRepeatedOptionalValueCoding() throws {
-        let message = ProtoTestMessage<[Bool?]>(content: [true, nil, true])
+        let message = SingleFieldProtoTestMessage<[Bool?]>(value: [true, nil, true])
         XCTAssertThrowsError(try ProtobufferEncoder().encode(message)) { (error: Error) in
             let validationError = error as! ProtoValidationError
             XCTAssertEqual(validationError, .arrayOfOptionalsNotAllowed([Bool?].self))
@@ -1179,7 +1154,7 @@ class OptionalEncodingTests: XCTestCase {
     
     
     func testOptionalRepeatedValueCoding() throws {
-        let message = ProtoTestMessage<[Bool]?>(content: nil)
+        let message = SingleFieldProtoTestMessage<[Bool]?>(value: nil)
         XCTAssertThrowsError(try ProtobufferEncoder().encode(message)) { (error: Error) in
             let validationError = error as! ProtoValidationError
             XCTAssertEqual(validationError, .optionalArrayNotAllowed([Bool]?.self))

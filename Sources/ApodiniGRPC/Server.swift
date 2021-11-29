@@ -138,11 +138,18 @@ class GRPCService {
 
 
 class GRPCMethod {
+    /// The name of the method, as exposed to clients
     let name: String
-    fileprivate(set) var packageName: String? // Nil until the method is added to a service
+    /// Name of the proto package to which the service this method is a part of belongs.
+    /// - Note: This property is `nil` until the method is added to a service. Then it is set to the service's package.
+    fileprivate(set) var packageName: String?
+    /// The method's communicational pattern, e.g. unary, client-side-streaming, etc
     let type: CommunicationalPattern
-    let inputFQTN: String
-    let outputFQTN: String
+    /// The method's input proto type. This is guaranteed to be a top-level type.
+    let inputType: ProtoTypeDerivedFromSwift
+    /// The method's output proto type. This is guaranteed to be a top-level type.
+    let outputType: ProtoTypeDerivedFromSwift
+    /// Closure that makes a `GRPCStreamRPCHandler`
     private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
     
     init<H: Handler>(
@@ -181,16 +188,18 @@ class GRPCMethod {
         let messageTypes = try! schema.endpointProtoMessageTypes(for: endpoint)
         endpointContext.endpointRequestType = messageTypes.input
         endpointContext.endpointResponseType = messageTypes.output
-        self.inputFQTN = messageTypes.input.fullyQualifiedTypename // TODO we can remove the xFQTN properties!!!
-        self.outputFQTN = messageTypes.output.fullyQualifiedTypename
+        //self.inputFQTN = messageTypes.input.fullyQualifiedTypename // TODO we can remove the xFQTN properties!!!
+        //self.outputFQTN = messageTypes.output.fullyQualifiedTypename
+        self.inputType = messageTypes.input
+        self.outputType = messageTypes.output
     }
     
     
-    init(name: String, type: CommunicationalPattern, inputFQTN: String, outputFQTN: String, streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler) {
+    init(name: String, type: CommunicationalPattern, inputType: ProtoTypeDerivedFromSwift, outputType: ProtoTypeDerivedFromSwift, streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler) {
         self.name = name
         self.type = type
-        self.inputFQTN = inputFQTN
-        self.outputFQTN = outputFQTN
+        self.inputType = inputType
+        self.outputType = outputType
         self.streamRPCHandlerMaker = streamRPCHandlerMaker
     }
     

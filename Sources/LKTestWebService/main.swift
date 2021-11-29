@@ -127,10 +127,9 @@ struct Greeter2: Handler {
         )) else {
             throw DateParsingError(message: "Invalid input: \(person.dateOfBirth)")
         }
-        let diff = date.timeIntervalSince(Date())
-        let fmt = RelativeDateTimeFormatter()
-        fmt.unitsStyle = .spellOut
-        return "Hello, \(person.name). You were born \(fmt.localizedString(fromTimeInterval: diff))!"
+        let cal = Calendar.current
+        let diff = cal.dateComponents([.year], from: date, to: Date())
+        return "Hello, \(person.name). You were born \(diff.year!) years ago!"
     }
 }
 
