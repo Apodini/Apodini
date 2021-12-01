@@ -26,7 +26,6 @@ let package = Package(
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
-        .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
@@ -177,7 +176,6 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
-                .target(name: "ApodiniTypeReflection"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections")
             ],
@@ -291,14 +289,6 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniNetworking")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniTypeReflection",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "Runtime", package: "Runtime")
             ]
         ),
 
