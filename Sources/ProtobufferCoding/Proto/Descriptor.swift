@@ -2,7 +2,7 @@ import Foundation
 
 
 // TODO Change all properties here to vars!!! (update: why?)
-// TODO we probably can remove a decent amount of the optionals here??? (<<-- NO; we actually have to bring back the ones we removed)
+// TODO we probably can remove a decent amount of the optionals here??? (<<-- NO; we actually have to bring back the ones we removed TODO do this!)
 
 //@propertyWrapper
 //struct ProtoOptions<Value: Codable>: Codable {
@@ -563,6 +563,9 @@ public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
 //    extensions 1000 to max;
 //
 //    reserved 38;
+    public static var reservedFields: Set<ProtoReservedField> {
+        [.index(38)]
+    }
     
     public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case optimizeMode = 9
@@ -642,6 +645,10 @@ public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldM
     
     public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 3
+    }
+    
+    public static var reservedFields: Set<ProtoReservedField> {
+        [.index(4), .index(5), .index(6), .index(8), .index(9)]
     }
 }
 
@@ -753,6 +760,10 @@ public struct FieldOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMap
         case `weak` = 10
         case uninterpretedOptions = 999
     }
+    
+    public static var reservedFields: Set<ProtoReservedField> {
+        [.index(4)]
+    }
 }
 
 
@@ -798,6 +809,10 @@ public struct EnumOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
         case allowAlias = 2
         case deprecated = 3
         case uninterpretedOptions = 999
+    }
+    
+    public static var reservedFields: Set<ProtoReservedField> {
+        [.index(5)]
     }
 }
 

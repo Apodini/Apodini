@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import AssociatedTypeRequirementsVisitor
+
 
 /// A rather crude, simple, and limited implementation of a URL query parameter value decoder
 struct URLQueryParameterValueDecoder {

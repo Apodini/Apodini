@@ -35,7 +35,7 @@ public extension ProtobufTypeWithCustomFieldMapping {
 
 
 /// A type that is to become a  `message` type in protobuf.
-public protocol ProtobufMessage {}
+public protocol ProtobufMessage: __ProtoTypeWithReservedFields {}
 
 public typealias ProtobufMessageWithCustomFieldMapping = ProtobufMessage & ProtobufTypeWithCustomFieldMapping
 
@@ -45,6 +45,58 @@ public typealias ProtobufMessageWithCustomFieldMapping = ProtobufMessage & Proto
 /// - Note: This protocol is not propagated to nested types, but instead _every single_ type has to conform to it separately.
 public protocol Proto2Codable {}
 
+
+
+
+// MARK: Reserved Fields
+
+public enum ProtoReservedField: Hashable {
+    case range(ClosedRange<Int32>)
+    case index(Int32)
+    case name(String)
+}
+
+
+/// Protocol for defining a type with a set of reserved field numbers and names.
+/// - Note: **Do not** conform your custom types to this protocol.
+///         Use `ProtobufMessage` or `ProtobufEnum` instead.
+public protocol __ProtoTypeWithReservedFields {
+    static var reservedFields: Set<ProtoReservedField> { get }
+}
+
+extension __ProtoTypeWithReservedFields {
+    public static var reservedFields: Set<ProtoReservedField> { [] }
+}
+
+
+extension Set where Element == ProtoReservedField {
+    public func allReservedNames() -> [String] {
+        self.compactMap {
+            switch $0 {
+            case .range, .index:
+                return nil
+            case .name(let name):
+                return name
+            }
+        }
+    }
+    
+    public func allReservedFieldNumbers() -> (indices: [Int32], ranges: [ClosedRange<Int32>]) {
+        var indices: [Int32] = []
+        var ranges: [ClosedRange<Int32>] = []
+        for element in self {
+            switch element {
+            case .range(let range):
+                ranges.append(range)
+            case .index(let idx):
+                indices.append(idx)
+            case .name:
+                break
+            }
+        }
+        return (indices, ranges)
+    }
+}
 
 
 

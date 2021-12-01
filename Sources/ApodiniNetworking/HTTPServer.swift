@@ -26,6 +26,12 @@ import Logging
 
 struct ApodiniNetworkingError: Swift.Error {
     let message: String
+    let underlying: Error?
+    
+    init(message: String, underlying: Error? = nil) {
+        self.message = message
+        self.underlying = underlying
+    }
 }
 
 

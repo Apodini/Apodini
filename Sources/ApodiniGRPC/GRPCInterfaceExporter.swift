@@ -139,12 +139,12 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(blob endpoint: Endpoint<H>) -> () where H.Response.Content == Blob {
-        //fatalError("\(endpoint)")
         print("-[\(Self.self) \(#function)] TODO!!!!")
     }
     
     
     func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> () {
+        // TODO this function never seems to get called?
         fatalError("\(parameter)")
     }
     
@@ -157,8 +157,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
             GRPCMethod(
                 name: Self.serverReflectionMethodName,
                 type: .bidirectionalStream,
-                //inputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionRequest",
-                //outputFQTN: ".\(Self.serverReflectionPackageName).ServerReflectionResponse",
                 inputType: reflectionInputType,
                 outputType: reflectionOutputType,
                 streamRPCHandlerMaker: { [unowned self] in
@@ -171,17 +169,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
         server.schema.finalize()
         server.createFileDescriptors()
         
-        /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
-        /// - NOTE this might not necessarily be the most dessirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
-        app.httpServer.registerRoute(.GET, ["__apodini", "grpc_schema"]) { req -> HTTPResponse in
-            let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
-                $0[.contentType] = .json(charset: .utf8)
-            })
-            let allFileDescriptors = FileDescriptorSet(files: self.server.fileDescriptors.map(\.fileDescriptor))
-            try response.bodyStorage.write(encoding: allFileDescriptors, using: JSONEncoder())
-            return response
-        }
+        setupReflectionHTTPRoutes()
         
+        // Configure ApodiniNetworking's HTTP server to use our gRPC-specific channel handlers for gRPC messages
         app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPCPlain, .gRPC(.proto), .gRPC(.json)]) { channel in
             channel.pipeline.addHandlers([
                 GRPCRequestDecoder(),
@@ -222,6 +212,59 @@ class GRPCInterfaceExporter: InterfaceExporter {
             return methodName
         }
     }
+    
+    
+    /// Registers some HTTP routes for accessing the proto reflection schema
+    private func setupReflectionHTTPRoutes() {
+        /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
+        /// - NOTE this might not necessarily be the most dessirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
+        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
+            let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
+                $0[.contentType] = .json(charset: .utf8)
+            })
+            let allFileDescriptors = FileDescriptorSet(files: self.server.fileDescriptors.map(\.fileDescriptor))
+            try response.bodyStorage.write(encoding: allFileDescriptors, using: JSONEncoder(outputFormatting: [.withoutEscapingSlashes]))
+            return response
+        }
+        
+        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "files"]) { req -> HTTPResponse in
+            let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
+                $0[.contentType] = .json(charset: .utf8)
+            })
+            let listOfFiles = self.server.fileDescriptors.map(\.fileDescriptor.name)
+            try response.bodyStorage.write(encoding: listOfFiles, using: JSONEncoder(outputFormatting: [.withoutEscapingSlashes]))
+            return response
+        }
+        
+        enum OutputFormat: String, Codable {
+            case json, proto
+        }
+        
+        app.httpServer.registerRoute(
+            .GET,
+            ["__apodini", "grpc", "schema", .namedParameter("format"), "file", .wildcardMultiple("filename")]
+        ) { req -> HTTPResponseConvertible in
+            guard
+                let outputFormat = try req.getParameter("format", as: OutputFormat.self),
+                let filename = req.getMultipleWildcardParameter(named: "filename")?.joined(separator: "/")
+            else {
+                throw HTTPAbortError(status: .badRequest) // TODO is there a difference between returning this and throwing this?
+            }
+            guard let fileDescriptor = self.server.fileDescriptors.first(where: { $0.fileDescriptor.name == filename })?.fileDescriptor else {
+                return HTTPAbortError(status: .notFound)
+            }
+            let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders())
+            switch outputFormat {
+            case .json:
+                response.headers[.contentType] = .json(charset: .utf8)
+                try response.bodyStorage.write(encoding: fileDescriptor, using: JSONEncoder(outputFormatting: [.withoutEscapingSlashes]))
+            case .proto:
+                response.headers[.contentType] = .text(.plain, charset: .utf8)
+                response.bodyStorage.write(ProtoPrinter.print(fileDescriptor))
+            }
+            return response
+        }
+    }
 }
 
 
@@ -237,7 +280,6 @@ struct GRPCEndpointDecodingStrategy: EndpointDecodingStrategy {
     }
     
     func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> {
-        //fatalError()
         return GRPCEndpointParameterDecodingStrategy<Element>(
             name: parameter.name,
             endpointContext: endpointContext

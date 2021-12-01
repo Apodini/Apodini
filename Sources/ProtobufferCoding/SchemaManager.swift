@@ -28,6 +28,8 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
         public let fieldNumber: Int
         public let type: ProtoTypeDerivedFromSwift
         public let isRepeated: Bool
+        /// If the field is repeated, whether it is also packed.
+        public let isPacked: Bool
         public let containingOneof: AnyProtobufEnumWithAssociatedValues.Type?
         
         public func hash(into hasher: inout Hasher) {
@@ -35,6 +37,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
             hasher.combine(fieldNumber)
             hasher.combine(type)
             hasher.combine(isRepeated)
+            hasher.combine(isPacked)
             hasher.combine(containingOneof.map(ObjectIdentifier.init))
         }
         
@@ -43,6 +46,7 @@ public enum ProtoTypeDerivedFromSwift: Hashable { // TODO this name sucks ass
                 && lhs.fieldNumber == rhs.fieldNumber
                 && lhs.type == rhs.type
                 && lhs.isRepeated == rhs.isRepeated
+                && lhs.isPacked == rhs.isPacked
                 && lhs.containingOneof.map(ObjectIdentifier.init) == rhs.containingOneof.map(ObjectIdentifier.init)
         }
     }
@@ -534,11 +538,12 @@ public class ProtoSchema {
                 })
                 newFields = try TI.cases.map { enumCase in
                     precondition((enumCase.payloadType as? ProtobufRepeated.Type) == nil)
-                    return ProtoTypeDerivedFromSwift.MessageField.init(
+                    return ProtoTypeDerivedFromSwift.MessageField(
                         name: enumCase.name,
                         fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
                         type: try protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false), // TODO add support for cases w/out a payload? ideally wed just add some dummy value that subsequently gets ignored. would need to support that in the en/decoders as well, though. probably easier to simply require the user define that unused value (eg what the reflection API does...)
                         isRepeated: false, // not supported (TODO check that that's actually true!)
+                        isPacked: false, // TODO this might become true if repeated above also becomes true (which it probaly wont)
                         containingOneof: assocEnumTy
                     )
                 }
@@ -571,6 +576,14 @@ public class ProtoSchema {
                         }
                     }(),
                     isRepeated: (fieldType as? ProtobufRepeated.Type) != nil,
+//                    isPacked: { () -> Bool in
+//                        if let repeatedTy = fieldType as? ProtobufRepeated.Type {
+//                            return repeatedTy.isPacked
+//                        } else {
+//                            return false
+//                        }
+//                    }(),
+                    isPacked: (fieldType as? ProtobufRepeated.Type)?.isPacked ?? false,
                     containingOneof: nil
                 )]
             }
@@ -901,8 +914,19 @@ extension ProtoSchema {
                         )
                     },
                     options: nil,
-                    reservedRanges: enumType.reservedRanges.map { .init(start: $0.lowerBound, end: $0.upperBound) },
-                    reservedNames: Array(enumType.reservedNames)
+                    reservedRanges: { () -> [EnumDescriptorProto.EnumReservedRange] in
+                        let reserved = enumType.reservedFields.allReservedFieldNumbers()
+                        var retval: [EnumDescriptorProto.EnumReservedRange] = []
+                        retval.reserveCapacity(reserved.indices.count + reserved.ranges.count)
+                        for idx in reserved.indices {
+                            retval.append(.init(start: idx, end: idx))
+                        }
+                        for range in reserved.ranges {
+                            retval.append(.init(start: range.lowerBound, end: range.upperBound))
+                        }
+                        return retval
+                    }(),
+                    reservedNames: enumType.reservedFields.allReservedNames()
                 )
             }
         }
@@ -1088,23 +1112,20 @@ extension ProtoSchema {
                             // it to camelCase.
                             return nil // TODO is this something we want? Probably not.
                         }(),
-                        options: { () -> FieldOptions? in
-                            return nil // TODO?
-//                                FieldOptions(
-//                                    ctype: <#T##FieldOptions.CType?#>,
-//                                    // The packed option can be enabled for repeated primitive fields to enable
-//                                    // a more efficient representation on the wire. Rather than repeatedly
-//                                    // writing the tag and type for each element, the entire array is encoded as
-//                                    // a single length-delimited blob. In proto3, only explicit setting it to
-//                                    // false will avoid using packed encoding.
-//                                    packed: <#T##Bool?#>,
-//                                    jsType: <#T##FieldOptions.JSType?#>,
-//                                    lazy: <#T##Bool?#>,
-//                                    deprecated: <#T##Bool?#>,
-//                                    weak: <#T##Bool?#>,
-//                                    uninterpretedOptions: <#T##[UninterpretedOption]#>
-//                                )
-                        }(),
+                        options: /*FieldOptions?*/ FieldOptions(
+                            ctype: nil,
+                            // The packed option can be enabled for repeated primitive fields to enable
+                            // a more efficient representation on the wire. Rather than repeatedly
+                            // writing the tag and type for each element, the entire array is encoded as
+                            // a single length-delimited blob. In proto3, only explicit setting it to
+                            // false will avoid using packed encoding.
+                            packed: field.isPacked,
+                            jsType: nil,
+                            lazy: false,
+                            deprecated: false,
+                            weak: false,
+                            uninterpretedOptions: []
+                        ),
                         // If true, this is a proto3 "optional". When a proto3 field is optional, it
                         // tracks presence regardless of field type.
                         //
@@ -1175,8 +1196,21 @@ extension ProtoSchema {
                     }
                 }(),
                 options: nil,
-                reservedRanges: [], // <#T##[DescriptorProto.ReservedRange]#>, // TODO is this somewhing we want to support? would be trivial to add to the Message protocol...
-                reservedNames: [] // <#T##[String]#> // same as reservedRanges above...
+                reservedRanges: { () -> [DescriptorProto.ReservedRange] in
+                    guard let reserved = (underlyingType as? __ProtoTypeWithReservedFields.Type)?.reservedFields.allReservedFieldNumbers() else {
+                        return []
+                    }
+                    print()
+                    var retval: [DescriptorProto.ReservedRange] = []
+                    for idx in reserved.indices {
+                        retval.append(.init(start: idx, end: idx))
+                    }
+                    for range in reserved.ranges {
+                        retval.append(.init(start: range.lowerBound, end: range.upperBound))
+                    }
+                    return retval
+                }(),
+                reservedNames: (underlyingType as? __ProtoTypeWithReservedFields.Type)?.reservedFields.allReservedNames() ?? []
             )
         }
     }

@@ -40,14 +40,18 @@ extension HTTPRequest {
 /// A HTTP request
 public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     struct ParametersStorage: Hashable {
+        enum WildcardKey: Hashable {
+            case named(String)
+            case unnamed(Int)
+        }
         /// The request's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
         /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained single-path-component wildcards
-        /// key: index of wildcard in path components array
-        var singleComponentWildcards: [Int: String] = [:]
+        /// key: index of wildcard in path components array // TODO update desc
+        var singleComponentWildcards: [WildcardKey: String] = [:]
         /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained multi-path-component wildcards
-        /// key: index of wildcard in path components array
-        var multipleComponentWildcards: [Int: [String]] = [:]
+        /// key: index of wildcard in path components array // TODO update desc
+        var multipleComponentWildcards: [WildcardKey: [String]] = [:]
     }
     
     
@@ -177,7 +181,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     /// Returns the raw (i.e. stringly typed) value of the specified non-query parameter
     public func getParameterRawValue(_ name: String) -> String? {
         // Note what about values matched to wildcards? Do these ever get accessed?
-        parameters.namedParameters[name]
+        parameters.namedParameters[name] ?? parameters.singleComponentWildcards[.named(name)]
     }
     
     /// Returns the value of the specified non-query parameter, decoded using the specified type
@@ -185,7 +189,30 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         guard let rawValue = getParameterRawValue(name) else {
             return nil
         }
-        return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!)
+        if T.self == String.self {
+            // Going through the decoder would produce the same result, but be significantly slower
+            return rawValue as! T?
+        }
+        do {
+            return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
+            //return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!) // TODO keep this somehow?
+        } catch {
+            throw ApodiniNetworkingError(message: "Error decoding parameter '\(name)'", underlying: error)
+        }
+    }
+    
+    /// Returns the value of the specified non-query parameter, decoded using the specified type
+    public func getMultipleWildcardParameter(named name: String) -> [String]? {
+//        guard let rawValue = getParameterRawValue(name) else {
+//            return nil
+//        }
+//        do {
+//            return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
+//            //return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!) // TODO keep this somehow?
+//        } catch {
+//            throw ApodiniNetworkingError(message: "Error decoding parameter '\(name)'", underlying: error)
+//        }
+        parameters.multipleComponentWildcards[.named(name)]
     }
     
     
