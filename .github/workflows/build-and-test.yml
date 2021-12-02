@@ -55,12 +55,12 @@ jobs:
       run: swift build -c release
     - name: Release Build & Test
       if: matrix.configuration == 'release_testing'
-      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
+      run: swift test -c release -Xswiftc -enable-testing -Xswiftc -DRELEASE_TESTING
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     - name: Debug Build & Test
       if: matrix.configuration == 'debug'
-      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
+      run: swift test -c debug --enable-code-coverage -Xswiftc -DCOVERAGE
       env:
         ENABLE_DEPLOYMENT_PROVIDER_TESTS: YES
     - name: Convert coverage report
