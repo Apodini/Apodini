@@ -1,23 +1,21 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
-import XCTest
-import XCTApodini
-import XCTApodiniNetworking
-@testable import CoreMetrics
-@testable import Metrics
-@testable import ApodiniObserve
-import ApodiniHTTP
 @testable import Apodini
-@testable import MetricsTestUtils
+import ApodiniHTTP
+import ApodiniObserve
+import MetricsTestUtils
+import XCTApodini
+import XCTApodiniObserve
+import XCTest
 
-// swiftlint:disable closure_body_length lower_acl_than_parent
-class ApodiniMetricsTests: XCTestCase {
+// swiftlint:disable closure_body_length
+public class ApodiniMetricsTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var app: Apodini.Application!
     static let testMetricsFactory = TestMetrics()
@@ -33,7 +31,7 @@ class ApodiniMetricsTests: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     static var greeterDimensions: [(String, String)]!
     
-    override class func setUp() {
+    override public class func setUp() {
         super.setUp()
         
         app = Application()
@@ -58,58 +56,19 @@ class ApodiniMetricsTests: XCTestCase {
                                         )
         )
         
-        app = Self.configureMetrics(app, metricsConfiguration: config)
+        app = XCTApodiniObserve.configureMetrics(app, metricsConfiguration: config)
         
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()
     }
     
-    override class func tearDown() {
+    override public class func tearDown() {
         super.tearDown()
         
         app.shutdown()
         
         XCTAssertApodiniApplicationNotRunning()
-    }
-    
-    // Copied from the source code of ApodiniObserve to bootstrap the MetricsSystem internally
-    // (required for the tests, as the MetricsSystem only allows to be configured once per process)
-    public static func configureMetrics(_ app: Apodini.Application, metricsConfiguration: MetricsConfiguration) -> Apodini.Application {
-        // Bootstrap all passed MetricHandlers
-        MetricsSystem.bootstrapInternal(
-            MultiplexMetricsHandler(
-                factories: metricsConfiguration.metricHandlerConfigurations.map { $0.factory }
-            )
-        )
-        
-        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
-            // Instanciate exporter
-            let metadataExporter = ObserveMetadataExporter(app, metricsConfiguration)
-            
-            // Insert exporter into `InterfaceExporterStorage`
-            app.registerExporter(exporter: metadataExporter)
-        }
-        
-        metricsConfiguration.metricHandlerConfigurations.forEach { metricHandlerConfiguration in
-            if let metricPullHandlerConfiguration = metricHandlerConfiguration as? MetricPullHandlerConfiguration {
-                let endpoint = metricPullHandlerConfiguration.endpoint.hasPrefix("/")
-                                ? metricPullHandlerConfiguration.endpoint
-                                : "/\(metricPullHandlerConfiguration.endpoint)"
-                app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
-                    metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
-                }
-                
-                // Inform developer about which MetricsHandler serves the metrics data on what endpoint
-                app.logger.info("Metrics data of \(metricPullHandlerConfiguration.factory.self) served on \(metricPullHandlerConfiguration.endpoint)")
-            }
-        }
-        
-        // Write configuration to the storage
-        app.storage.set(MetricsConfiguration.MetricsStorageKey.self,
-                        to: MetricsConfiguration.MetricsStorageValue(configuration: metricsConfiguration))
-        
-        return app
     }
     
     struct Greeter: Handler {
