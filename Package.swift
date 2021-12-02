@@ -50,13 +50,13 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
-        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
 
         // Test Utils
-        .library(name: "XCTApodini", targets: ["XCTApodini"])
+        .library(name: "XCTApodini", targets: ["XCTApodini"]),
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
