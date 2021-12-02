@@ -156,9 +156,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -183,9 +180,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
