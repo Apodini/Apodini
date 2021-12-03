@@ -4,7 +4,6 @@ import NIO
 import NIOHPACK
 import ApodiniUtils
 import Foundation
-@testable import ProtobufferCoding
 
 
 class UnaryRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
