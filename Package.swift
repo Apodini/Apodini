@@ -27,6 +27,7 @@ let package = Package(
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
+        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
@@ -48,13 +49,15 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
-        .library(name: "ApodiniObserveMetricsPrometheus", targets: ["ApodiniObserveMetricsPrometheus"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
-        
+
+        // Test Utils
+        .library(name: "XCTApodini", targets: ["XCTApodini"]),
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
+
         // Lukas' playground
-        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
@@ -105,7 +108,6 @@ let package = Package(
         // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
         // is versioned and already contains test functionality
         .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
-        .package(url: "https://github.com/MrLotU/SwiftPrometheus.git", from: "1.0.0-alpha"),
         
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
@@ -156,9 +158,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -182,9 +181,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -615,8 +611,9 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log")
             ]
         ),
-        
+
         .target(
+<<<<<<< HEAD
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
@@ -662,11 +659,13 @@ let package = Package(
 
         .target(
             name: "ApodiniObserveMetricsPrometheus",
+=======
+            name: "XCTApodiniObserve",
+>>>>>>> 7f2298e764f4d35beb4a8dbb0a719bea6d1492c1
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
-                .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
+                .product(name: "CoreMetrics", package: "swift-metrics")
             ]
         ),
         
@@ -675,15 +674,13 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
-                .target(name: "ApodiniObserveMetricsPrometheus"),
-                .target(name: "XCTApodini"),
                 .target(name: "ApodiniHTTP"),
+                .target(name: "XCTApodini"),
+                .target(name: "XCTApodiniObserve"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
-                .product(name: "MetricsTestUtils", package: "swift-metrics-extras"),
-                .product(name: "SwiftPrometheus", package: "SwiftPrometheus")
+                .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
             ]
         )
     ]

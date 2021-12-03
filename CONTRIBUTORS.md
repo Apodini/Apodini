@@ -27,3 +27,4 @@ Apodini contributors
 * [Sadik Ekin Özbay](https://github.com/sadikekin)
 * [Magdalena Papagianni](https://github.com/MagdalenaPap)
 * [Hans Santoso](https://github.com/hansfilbert)
+* [Moritz Sternemann](https://github.com/moritzsternemann)

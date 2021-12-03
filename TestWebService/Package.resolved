@@ -290,15 +290,6 @@
         }
       },
       {
-        "package": "SwiftPrometheus",
-        "repositoryURL": "https://github.com/MrLotU/SwiftPrometheus.git",
-        "state": {
-          "branch": null,
-          "revision": "ba329daafa03027d36cda605df6c0d9b065b088e",
-          "version": "1.0.0-alpha.15"
-        }
-      },
-      {
         "package": "websocket-kit",
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
