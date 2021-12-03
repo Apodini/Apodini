@@ -25,7 +25,7 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 
 /// BindAddress
 public enum BindAddress: Equatable {
-    case interface(_ address: String, port: Int? = nil)
+    case interface(_ address: String = HTTPConfiguration.Defaults.bindAddress, port: Int? = nil)
     case unixDomainSocket(path: String)
     
     public static func address(_ address: String) -> BindAddress {
