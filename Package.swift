@@ -613,7 +613,6 @@ let package = Package(
         ),
 
         .target(
-<<<<<<< HEAD
             name: "ApodiniGRPC",
             dependencies: [
                 .target(name: "Apodini"),
@@ -658,10 +657,7 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniObserveMetricsPrometheus",
-=======
             name: "XCTApodiniObserve",
->>>>>>> 7f2298e764f4d35beb4a8dbb0a719bea6d1492c1
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
