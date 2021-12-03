@@ -146,10 +146,6 @@ class GRPCMessageHandler: ChannelInboundHandler {
                     .inspect { result in
                         self.logger.notice("Done writing req res w/ id \(reqId) to channel: \(result)")
                     }
-//                    .flatMapAlways { (result: Result<Void, Error>) in
-//                        self.logger.notice("Done writing req res w/ id \(reqId) to channel: \(result)")
-//                        return result
-//                    }
             }
         
         case .closeStream:

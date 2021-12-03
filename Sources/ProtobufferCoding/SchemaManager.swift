@@ -1207,8 +1207,6 @@ extension ProtoSchema {
                         }
                         return expectedParentTypename == messageTypename.mangled
                     }
-                    print("message ty: \(messageTypename)")
-                    print("nested enums \(nestedEnumTypes.map(\.name))" )
                     topLevelEnumTypes.subtract(nestedEnumTypes)
                     return nestedEnumTypes.map { enumTypeDesc -> EnumDescriptorProto in
                         EnumDescriptorProto(

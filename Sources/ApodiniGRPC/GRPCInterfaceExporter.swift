@@ -135,6 +135,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 schema: server.schema
             )
         )
+        logger.notice("[gRPC] Added method \(defaultPackageName).\(serviceName).\(methodName)")
     }
     
     
@@ -301,7 +302,10 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
         switch endpointContext.endpointRequestType! {
         case .builtinEmptyType, .enumTy, .primitive, .refdMessageType:
             fatalError()
-        case let .compositeMessage(name: _, underlyingType: _, nestedOneofTypes: _, fields):
+        case let .compositeMessage(name: _, underlyingType, nestedOneofTypes: _, fields):
+            if underlyingType == T.self {
+                return try ProtobufferDecoder().decode(T.self, from: input.payload)
+            }
             guard let field = fields.first(where: { $0.name == name }) else {
                 fatalError() // TODO throw
             }

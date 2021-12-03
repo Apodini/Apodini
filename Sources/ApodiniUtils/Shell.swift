@@ -31,7 +31,7 @@ public func runShellCommand(_ command: ShellCommand) -> String {
 }
 
 @discardableResult
-private func shell(_ command: String) -> String {
+public func shell(_ command: String) -> String {
     let task = Process()
     let pipe = Pipe()
 

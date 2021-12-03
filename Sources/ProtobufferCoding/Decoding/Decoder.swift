@@ -26,9 +26,20 @@ public struct ProtobufferDecoder {
         from buffer: ByteBuffer,
         atField fieldInfo: ProtoTypeDerivedFromSwift.MessageField
     ) throws -> T {
-        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
-        // TODO can we somehow use the result from this for the decoding process? prob not, right?
-        try validateTypeIsProtoCompatible(T.self)
+        do {
+            // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+            // TODO can we somehow use the result from this for the decoding process? prob not, right?
+            try validateTypeIsProtoCompatible(T.self)
+        } catch let error as ProtoValidationError {
+            // Note that in this function (the one decoding values from fields, instead of encoding entire messages), our requirements to the
+            switch error {
+            case .topLevelArrayNotAllowed:
+                // We swallow all "T cannot be a top-level type" errors, since we're not decoding T as a top-level type (but rather from a field).
+                break
+            default:
+                throw error
+            }
+        }
         let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
         let keyedDecoder = try decoder.container(keyedBy: FixedCodingKey.self)
         return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber))

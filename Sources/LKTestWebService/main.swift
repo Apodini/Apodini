@@ -212,6 +212,22 @@ struct WrappedArrayReturningHandler: Handler {
     }
 }
 
+struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
+    @Parameter var input: Input
+    func handle() async throws -> some ResponseTransformable {
+        input
+    }
+}
+
+
+
+
+struct City: Codable, ResponseTransformable {
+    let name: String
+    let country: String
+}
+
+
 
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
@@ -257,6 +273,10 @@ struct LKTestWebService: Apodini.WebService {
             BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
             BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
         }.gRPCServiceName("API")
+        EchoHandler<String>().gRPCMethodName("EchoString")
+        EchoHandler<Int>().gRPCMethodName("EchoInt")
+        EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
+        EchoHandler<City>().gRPCMethodName("EchoCity")
     }
     
     var configuration: Configuration {

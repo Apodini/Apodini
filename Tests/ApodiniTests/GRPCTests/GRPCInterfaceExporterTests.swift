@@ -16,11 +16,11 @@ import XCTApodiniNetworking
 import ApodiniUtils
 
 
+// MARK: Helper Types
 
 private struct GRPCInterfaceExporterTestError: Swift.Error {
     let message: String
 }
-
 
 /// A proto value wrapped in a message, assigned to a `value` field.
 /// Useful for interacting w/ handlers that have a wrapped input/output value.
@@ -32,6 +32,17 @@ private struct WrappedProtoValue<T: Codable>: Codable {
     let value: T
 }
 
+extension WrappedProtoValue: Equatable where T: Equatable {}
+
+struct BlockBasedHandler<T: Apodini.ResponseTransformable /* or Content? */>: Handler {
+    let imp: () async throws -> T
+    func handle() async throws -> T {
+        try await imp()
+    }
+}
+
+
+// MARK: Tests
 
 class GRPCInterfaceExporterTests: XCTApodiniTest {
     static func grpcurlExecutableUrl() -> URL? {
@@ -149,13 +160,12 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     
     func testUnaryEndpoint() throws {
-        struct BlockBasedHandler<T: Apodini.ResponseTransformable /* or Content? */>: Handler {
-            let imp: () async throws -> T
-            func handle() async throws -> T {
-                try await imp()
+        struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
+            @Parameter var value: Input
+            func handle() async throws -> some ResponseTransformable {
+                value
             }
         }
-        
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -164,6 +174,9 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
                     Text("Alice and Bob")
                         .gRPCMethodName("GetTeam")
                 }
+                EchoHandler<String>().gRPCMethodName("EchoString")
+                EchoHandler<Int>().gRPCMethodName("EchoInt")
+                EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
                 Group("api") {
                     Text("A").gRPCMethodName("GetPost")
                     Text("B").gRPCMethodName("AddPost")
@@ -198,6 +211,32 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
         
         
         XCTAssertEqual(
+            try makeTestRequestUnary(
+                method: "de.lukaskollmer.TestWebService.EchoString",
+                WrappedProtoValue<String>(value: "Hello there."),
+                outputType: WrappedProtoValue<String>.self
+            ).value,
+            "Hello there."
+        )
+        
+        do {
+            // For the same reason as outlined below, we get back a String and have to compare against that...
+            let responseJsonString = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.EchoInt", WrappedProtoValue<Int>(value: 123454321))
+            let responseJsonObj = try JSONSerialization.jsonObject(with: try XCTUnwrap(responseJsonString.data(using: .utf8)))
+            let responseJsonDict = try XCTUnwrap(responseJsonObj as? [String: String])
+            XCTAssertEqual(responseJsonDict, ["value": "123454321"])
+        }
+        
+        XCTAssertEqual(
+            try makeTestRequestUnary(
+                method: "de.lukaskollmer.TestWebService.EchoDoubles",
+                WrappedProtoValue<[Double]>(value: [0, 1, 2, 3, .zero, -.zero, .pi]),
+                outputType: WrappedProtoValue<[Double]>.self
+            ).value,
+            [0, 1, 2, 3, .zero, -.zero, .pi]
+        )
+        
+        XCTAssertEqual(
             try makeTestRequestUnary(method: "de.lukaskollmer.API.ListPosts", EmptyMessage(), outputType: WrappedProtoValue<[String]>.self).value,
             ["", "a", "b", "c", "d"]
         )
@@ -215,6 +254,66 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     }
     
     
+    
+    func testServiceSideStreamingEndpoint() throws {
+        class FakeTimer: Apodini.ObservableObject {
+            @Apodini.Published private var _trigger = true
+            func secondPassed() {
+                _trigger.toggle()
+            }
+        }
+
+
+        struct Rocket: Handler {
+            @Parameter(.mutability(.constant)) var start: Int = 10
+            @State var counter = -1
+            @ObservedObject var timer = FakeTimer()
+            
+            func handle() -> Apodini.Response<String> {
+                timer.secondPassed()
+                counter += 1
+                if counter == start {
+                    return .final("🚀🚀🚀 Launch !!! 🚀🚀🚀")
+                } else {
+                    return .send("\(start - counter)...")
+                }
+            }
+            
+            var metadata: AnyHandlerMetadata {
+                Pattern(.serviceSideStream)
+            }
+        }
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                Rocket().gRPCMethodName("RocketCountdown")
+            }
+        }
+        
+        TestGRPCExporterCollection().configuration.configure(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        WebService().accept(visitor)
+        visitor.finishParsing()
+        try app.start()
+        
+        struct RocketInput: Codable {
+            let start: Int
+        }
+        let rawResponses = try makeTestRequestServiceSideStream(method: "de.lukaskollmer.TestWebService.RocketCountdown", RocketInput(start: 10))
+        let responses = try rawResponses.map { try JSONDecoder().decode(WrappedProtoValue<String>.self, from: try XCTUnwrap($0.data(using: .utf8))) }
+        XCTAssertEqual(responses, [
+            .init(value: "10..."),
+            .init(value: "9..."),
+            .init(value: "8..."),
+            .init(value: "7..."),
+            .init(value: "6..."),
+            .init(value: "5..."),
+            .init(value: "4..."),
+            .init(value: "3..."),
+            .init(value: "2..."),
+            .init(value: "1..."),
+            .init(value: "🚀🚀🚀 Launch !!! 🚀🚀🚀"),
+        ])
+    }
     
     
 }
@@ -249,9 +348,10 @@ extension GRPCInterfaceExporterTests {
         guard let grpcurlBin = Self.grpcurlExecutableUrl() else {
             throw XCTSkip("Unable to find grpcurl")
         }
+        let inputJson = try XCTUnwrap(String(data: try JSONEncoder().encode(input), encoding: .utf8))
         let grpcurl = ChildProcess(
             executableUrl: grpcurlBin,
-            arguments: ["-insecure", "-emit-defaults", "localhost:50051", method],
+            arguments: ["-insecure", "-emit-defaults", "-d", inputJson, "localhost:50051", method],
             workingDirectory: nil,
             captureOutput: true,
             redirectStderrToStdout: true,
@@ -267,6 +367,33 @@ extension GRPCInterfaceExporterTests {
 //        // grpcurl only supports JSON output, which means we sadly can't decode the actual proto bytes here :/
 //        let decoder = JSONDecoder()
 //        return try JSONDecoder().decode(Out.self, from: ByteBuffer(string: output))
+    }
+    
+    
+    private func makeTestRequestServiceSideStream<In: Encodable>(
+        serverAddress: String = "localhost", port: Int = 50051,
+        method: String, _ input: In
+    ) throws -> [String] {
+        // In this regard, service-side-streaming requests are in fact identical to
+        // unary requests (some data in, get a string back containing the response(s)).
+        let rawResponse = try makeTestRequestUnary(serverAddress: serverAddress, port: port, method: method, input)
+        var responses: [String] = []
+        var currentResponse: [String] = []
+        for line in rawResponse.split(separator: "\n") {
+            if line == "{" { // no indent and opening braces -> starting a new object
+                if !currentResponse.isEmpty {
+                    responses.append(currentResponse.joined(separator: "\n"))
+                    currentResponse = []
+                }
+                //currentResponse.append(String(line))
+            }
+            currentResponse.append(String(line))
+        }
+        if !currentResponse.isEmpty {
+            responses.append(currentResponse.joined(separator: "\n"))
+        }
+        print("RESOPNSES", responses)
+        return responses
     }
 }
 

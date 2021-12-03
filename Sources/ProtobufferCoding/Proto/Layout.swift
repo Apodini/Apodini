@@ -126,7 +126,9 @@ struct ProtobufMessageLayoutDecoder {
         didComputeFields = true
         //buffer.moveReaderIndex(to: 0)
         guard buffer.readableBytes > 0 else {
-            throw ProtoDecodingError.noData
+            // If there are no readable bytes (i.e. the buffer is empty), we simply return.
+            // Empty buffers are perfectly valid (think e.g. a message type containing an empty string and/or empty array)
+            return
         }
         while buffer.readableBytes > 0 {
             let fieldKeyOffset = buffer.readerIndex

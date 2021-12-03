@@ -5,9 +5,15 @@ import Logging
 
 
 protocol GRPCStreamRPCHandler: AnyObject {
+    /// The function that will be invoked when the stream is first opened
     func handleStreamOpen(context: GRPCStreamConnectionContext)
-    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
+    /// Invoked when the RPC connection receives an incoming client message.
+    /// - returns: An EventLoopFuture that will eventually fulfill to a gRPC resonse message.
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
+    /// Will be invoked when the stream is about to close.
+    /// - returns: An optional EventLoopFuture. If the return value is `nil`, the connection will immediately be closed.
+    ///     If the return value is not nil, the connection will be kept open until the future is fulfilled, the future's value will then be written to the connection, and the channel will be closed.
+    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
 }
 
 extension GRPCStreamRPCHandler {
@@ -27,8 +33,8 @@ protocol GRPCStreamConnectionContext {
     var initialRequestHeaders: HPACKHeaders { get }
     /// Fully qualified name of the method this connection is calling.
     var grpcMethodName: String { get }
-    /// A queue that allows stream handlers to submit tasks that will be run when the last currently-queued handler event has finished.
-    var handleQueue: LKEventLoopFutureBasedQueue { get }
+    ///// A queue that allows stream handlers to submit tasks that will be run when the last currently-queued handler event has finished.
+    //var handleQueue: LKEventLoopFutureBasedQueue { get }
 }
 
 

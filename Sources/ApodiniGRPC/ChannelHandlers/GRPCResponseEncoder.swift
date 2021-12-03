@@ -33,9 +33,16 @@ class GRPCResponseEncoder: ChannelOutboundHandler {
                 paddingBytes: nil
             ))
             context.write(wrapOutboundOut(trailersFrame))
-                .flatMap { // TODO do we really want this here, or should that be moved to whereever we're getting the .error messageOut from (the message handler, presumably), which would then put that into a whenComplete callback somehwere there???!!!!!!
-                    connectionCtx?.handleStreamClose()
-                    return context.close()
+                .flatMap {
+                    if let handleCloseFuture = connectionCtx?.handleStreamClose() {
+                        // Note that in this case (the connection being shut down due to some server-side error), we do of course
+                        // still invoke the connection context's handleClose function, but ignore the value the future returned by
+                        // that function might evaluate to. The reason, of course, being that at this point in time we've already
+                        // written the TRAILERS frame, so there's no point in writing any further data to the connection.
+                        return handleCloseFuture.flatMapAlways { _ in context.close() }
+                    } else {
+                        return context.close()
+                    }
                 }
                 .cascade(to: promise)
             return
@@ -78,12 +85,27 @@ class GRPCResponseEncoder: ChannelOutboundHandler {
                 }
                 .cascade(to: promise)
             case .stream(_, let stream):
-                fatalError()
-//                stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
-//                    context.eventLoop.execute {
-//                        self.writeLengthPrefixedMessage(payload, closeStream: closeStream, connectionContext: connectionCtx, channelHandlerContext: context, promise: promise)
-//                    }
-//                }
+                stream.setObserver { (payload: ByteBuffer, closeStream: Bool) in // TODO does this introduce a retain cycle?
+                    // Write, on the context event loop, the message to the channel.
+                    // If this is the last message in the stream, fulfill the promise we got with the write.
+                    // NOTE: This will effectively block the handler from receiving further messages while the response stream is still active.
+                    // Also, this behaviour only makes sense for service-side-streaming endpoints, where a single client message is
+                    // responded to with one or more server responses. The main issue with this behaviour is that closing the response stream
+                    // (which was opened in response to a single message) will also close the underlying HTTP connection.
+                    // This is fine for service-side-streaming endpoints, but not for bidirectional endpoints, since in this case
+                    // the end end of a single response stream does not imply the end of the RPC connection as a whole.
+                    context.eventLoop.execute {
+                        let writeFuture = self.writeLengthPrefixedMessage(
+                            payload,
+                            closeStream: closeStream,
+                            connectionContext: connectionCtx,
+                            channelHandlerContext: context
+                        )
+                        if closeStream {
+                            writeFuture.cascade(to: promise)
+                        }
+                    }
+                }
             }
             
         case .closeStream(let trailers, let msg):
