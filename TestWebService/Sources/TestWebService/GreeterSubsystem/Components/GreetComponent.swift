@@ -16,8 +16,8 @@ struct GreetComponent: Component {
     var content: some Component {
         Group("greet") {
             TraditionalGreeter()
-                .grpcServiceName("GreetService")
-                .grpcMethodName("GreetMe")
+                .gRPCServiceName("GreetService")
+                .gRPCMethodName("GreetMe")
                 .response(EmojiTransformer())
                 .destination(of: greeterRelationship)
                 .identified(by: "greetMe")
