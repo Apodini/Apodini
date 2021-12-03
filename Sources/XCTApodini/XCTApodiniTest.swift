@@ -11,11 +11,9 @@ import Apodini
 import XCTest
 import ApodiniDatabase
 import ApodiniUtils
-//@testable import ApodiniNetworking
 
 
 open class XCTApodiniTest: XCTestCase {
-    // Vapor Application
     // swiftlint:disable implicitly_unwrapped_optional
     open var app: Application!
     

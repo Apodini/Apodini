@@ -147,7 +147,7 @@ struct StreamingGreeter_CS: Handler {
     @Parameter var name: String
     @State private var names: [String] = []
     
-    func handle() async throws -> Response<String> {
+    func handle() -> Response<String> {
         print("GREETER. name: \(name), names: \(names), connection: \(connection) (state: \(connection.state))")
         switch connection.state {
         case .open:
@@ -191,6 +191,28 @@ struct ThrowingHandler: Handler {
 }
 
 
+
+
+struct BlockBasedHandler<T: Apodini.ResponseTransformable>: Handler {
+    let imp: () async throws -> T
+    func handle() async throws -> T {
+        try await imp()
+    }
+}
+
+
+
+struct WrappedArray: Codable, Apodini.Content {
+    let values: [String]
+}
+
+struct WrappedArrayReturningHandler: Handler {
+    func handle() async throws -> WrappedArray {
+        .init(values: ["a", "b", "c", "d", "e"])
+    }
+}
+
+
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
@@ -225,6 +247,16 @@ struct LKTestWebService: Apodini.WebService {
             ThrowingHandler()
                 .gRPCMethodName("throw")
         }
+        Group("api") {
+            Text("A").gRPCMethodName("GetPost")
+            Text("B").gRPCMethodName("AddPost")
+            Text("C").gRPCMethodName("DeletePost")
+            BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
+            //BlockBasedHandler<WrappedArray> { .init(values: ["", "a", "b", "c", "d"]) }.gRPCMethodName("ListPosts2")
+            //WrappedArrayReturningHandler().gRPCMethodName("ListPosts2")
+            BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+            BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
+        }.gRPCServiceName("API")
     }
     
     var configuration: Configuration {

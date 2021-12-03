@@ -207,7 +207,7 @@ struct ProtoPrinter {
         write("\(descriptor.name) = \(descriptor.number)") // TODO default values? packed encoding?
         if let options = descriptor.options, descriptor.label == .LABEL_REPEATED {
             // we currently only support the packed option, on fields w/ a repeated type.
-            write(" [packed = \(options.packed))];")
+            write(" [packed = \(options.packed)];")
         } else {
             write(";")
         }

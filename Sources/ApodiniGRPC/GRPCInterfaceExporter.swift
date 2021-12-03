@@ -83,7 +83,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
               let tlsConfig = app.httpConfiguration.tlsConfiguration,
               tlsConfig.applicationProtocols.contains("h2")
         else {
-            fatalError("Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled.")
+            fatalError("Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled. You might need to move your web service's HTTPConfiguration up so that it comes before the GRPC configuration.")
         }
 //        app.httpConfiguration.supportVersions.insert(.two)
 //        app.httpConfiguration.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3

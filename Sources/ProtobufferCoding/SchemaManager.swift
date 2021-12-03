@@ -252,6 +252,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     case arrayOfOptionalsNotAllowed(Any.Type) // this is an ProtobufRepeated.Type, but that's an internal type
     /// The error thrown if the schema encounters a type which is an optional array.
     case optionalArrayNotAllowed(Any.Type) // this is an AnyOptional.Type, and the optional's wrapped type is pretty much guaranteed to be a ProtobufRepeated
+    /// The error thrown when the schema is asked to produce the proto type for an Array, but is now allowed to wrap the array in a composite message type
+    case topLevelArrayNotAllowed(Any.Type) // assoc type is a ProtobufRepeated.
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
@@ -260,6 +262,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
         case let (.arrayOfOptionalsNotAllowed(lhsTy), .arrayOfOptionalsNotAllowed(rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.optionalArrayNotAllowed(lhsTy), .optionalArrayNotAllowed(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.topLevelArrayNotAllowed(lhsTy), .topLevelArrayNotAllowed(rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         default:
             return false
@@ -338,6 +342,50 @@ public class ProtoSchema {
     }
     
     
+    private func makeProtoMessageTypename(for type: Any.Type, suffix: String) -> String {
+        // TODO can we go further here? Why not just define a full-on mangling scheme for these types?
+        "\(_makeProtoMessageTypename(for: type))___\(suffix)"
+    }
+    
+    
+    private func _makeProtoMessageTypename(for type: Any.Type) -> String {
+        // TODO we can't just simply turn the type into a string here, since the type might be generic, in which case we'd end up with invalid characters in the proto type name!!!
+        // The issue here (and the reason why we can't just do "\(type)___\(suffix)" is that the type might be generic,
+        // in which case it'd contain invalid characters that would result in it not being a valid proto typename.
+        // We have to map such types into valid proto typenames, with the properties that they:
+        //   1. Do no longer contain any invalid characters (e.g. the '<')
+        //   2. Still retain the information contained in the generic parameters (this might be important in case a client wants to re-assemble the type)
+        //   3. Still uniquely identify the type. What this means is that if we have multiple instantiations of a generic type, all with the same parameters, they should result in the same proto typename. (assuming of course we also use the same prefix)
+        guard let TI = try? typeInfo(of: type) else {
+            // We were unable to get a typeInfo object, we we'll just crudely attempt to sanitize the typename
+//            return "\(type)"
+//                .replacingOccurrences(of: ".", with: "_") // TODO can we somehow do all 3 of these in one iteration?
+//                .replacingOccurrences(of: "<", with: "_")
+//                .replacingOccurrences(of: ">", with: "_")
+            return String(describing: type).replacingOccurrences(ofCharactersIn: [".", "<", ">"], with: "_")
+        }
+        guard !TI.genericTypes.isEmpty else {
+            return String(describing: type)
+        }
+//        //print(type, TI.name, TI.mangledName, TI.genericTypes, "\(type)", String(describing: type), String(reflecting: type))
+//        print("type:", type, "\(type)")
+//        print("TI.name: \(TI.name), TI.mangledName: \(TI.mangledName) TI.genericTypes: \(TI.genericTypes)")
+//        print("desc: \(String(describing: type))")
+//        print("refl: \(String(reflecting: type))")
+//        if "\(type)".contains("<") {
+//            fatalError()
+//        } else {
+//            return "\(type)"
+//        }
+        let baseTypename = String(String(describing: type).prefix(while: { $0 != "<" }))
+        var mangledName = "_\(baseTypename.count)\(baseTypename)T\(TI.genericTypes.count)"
+        for type in TI.genericTypes {
+            mangledName.append(_makeProtoMessageTypename(for: type))
+        }
+        return mangledName
+    }
+    
+    
     func parametersMessageType<H: Handler>(for endpoint: Endpoint<H>) throws -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let parameters = endpoint.parameters
@@ -360,44 +408,26 @@ public class ProtoSchema {
                 requireTopLevelCompatibleOutput: true,
                 singleParamHandlingContext: .init(
                     paramName: param.name,
-                    wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input") // TODO +"Request"?
+                    //wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input") // TODO +"Request"?
+                    wrappingMessageTypename: .init(
+                        packageName: defaultPackageName,
+                        //typename: "\(H.self)___Input" // TODO +"Request"?
+                        typename: makeProtoMessageTypename(for: H.self, suffix: "Input")
+                    )
                 )
             )
-            
-//            return protoType(
-//                for: param.propertyType,
-//                   requireTopLevelCompatibleOutput: true,
-//                   //singleParamHandlingContext: (paramName: String, wrappingMessageTypename: ProtoTypeDerivedFromSwift.Typename, decodingCtx: GRPCEndpointParameterDecodingContext)?)
-//                   singleParamHandlingContext: .init(
-//                    paramName: <#T##String#>,
-//                    wrappingMessageTypename: <#T##ProtoTypeDerivedFromSwift.Typename#>,
-//                    decodingContext: <#T##GRPCEndpointParameterDecodingContext#>
-//                   )
         } else {
             // The handler has multiple parameters, so we have to combine them into a protobuf message type
             return try combineIntoCompoundMessageType(
                 //typename: "\(H.self)Input",
-                typename: .init(packageName: defaultPackageName, typename: "\(H.self)___Input"),
+                typename: .init(
+                    packageName: defaultPackageName,
+                    //typename: "\(H.self)___Input"
+                    typename: makeProtoMessageTypename(for: H.self, suffix: "Input")
+                ),
                 underlyingType: nil,
                 elements: parameters.map { ($0.name, $0.propertyType) } // TODO handle nil values here!!! The `propertyType` has optionals stripped!!!
             )
-//            return .compositeMessage(
-//                name: makeUniqueMessageTypename(),
-//                underlying: nil,
-//                fields: parameters.enumerated().map { (idx, param) -> ProtoTypeDerivedFromSwift.MessageField in
-//                    precondition(!param.nilIsValidValue) // TODO properly handle optional types!!!
-//                    return .init(name: param.name, fieldNumber: idx + 1, type: protoType(for: <#T##Any.Type#>, allowPrimitiveOutput: <#T##Bool#>), isRepeated: <#T##Bool#>)
-//                }
-//                fields: .init(uniqueKeysWithValues: parameters.map { param -> (String, ProtoTypeDerivedFromSwift) in
-//                    precondition(!param.nilIsValidValue)
-//                    //return (param.name, try wrapSingleType(param.propertyType)) // TODO properly handle optional types!!!
-//                    return (param.name, protoType(for: param.propertyType, allowPrimitiveOutput: true))
-//                })
-//            )
-//            return .compositeMessageType(.init(uniqueKeysWithValues: parameters.map { param -> (String, Any) in
-//                precondition(!param.nilIsValidValue)
-//                return (param.name, param.propertyType)
-//            }))
         }
     }
     
@@ -405,13 +435,17 @@ public class ProtoSchema {
     func responseMessageType<H: Handler>(for endpoint: Endpoint<H>) throws -> ProtoTypeDerivedFromSwift {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         //return try wrapSingleType(H.Response.Content.self as! Codable.Type)
-        print(H.self, "\(H.self)", String(describing: H.self), String(reflecting: H.self), String(reflecting: H.Response.Content.self))
+        //print(H.self, "\(H.self)", String(describing: H.self), String(reflecting: H.self), String(reflecting: H.Response.Content.self))
         let endpointResponseType = try protoType(
             for: H.Response.Content.self,
             requireTopLevelCompatibleOutput: true,
                singleParamHandlingContext: .init(
                 paramName: "value",
-                wrappingMessageTypename: .init(packageName: defaultPackageName, typename: "\(H.self)___Response")
+                wrappingMessageTypename: .init(
+                    packageName: defaultPackageName,
+                    //typename: "\(H.self)___Response"
+                    typename: makeProtoMessageTypename(for: H.self, suffix: "Response")
+                )
             )
         )
         return endpointResponseType
@@ -718,14 +752,14 @@ public class ProtoSchema {
                     typename: singleParamHandlingContext!.wrappingMessageTypename,
                     underlyingType: nil,
                     elements: [
-                        (singleParamHandlingContext!.paramName, repeatedTy.elementType)
+                        (singleParamHandlingContext!.paramName, repeatedTy)
                     ]
                 ))
             } else {
                 // We're given an array, which cannot be a top-level type, and not told to turn it into a top-level type
-                fatalError() // TODO throw instead!!!
+                throw ProtoValidationError.topLevelArrayNotAllowed(repeatedTy)
             }
-        } else if type == EmptyMessage.self {
+        } else if type == EmptyMessage.self || type == Void.self {
             // TODO we might need special handling here, insofar as we want probably want one definition of the empty type per package...
             return cacheRetval(.compositeMessage(name: typename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))
         }

@@ -79,9 +79,20 @@ public struct ProtobufferEncoder {
         into buffer: inout ByteBuffer,
         asField field: ProtoTypeDerivedFromSwift.MessageField
     ) throws {
-        // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
-        // TODO can we somehow use the result from this for the encoding process? prob not, right?
-        try validateTypeIsProtoCompatible(T.self)
+        do {
+            // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
+            // TODO can we somehow use the result from this for the encoding process? prob not, right?
+            try validateTypeIsProtoCompatible(T.self)
+        } catch let error as ProtoValidationError {
+            // Note that in this function (the one encoding values into fields, instead of encoding entire messages), our requirements to the
+            switch error {
+            case .topLevelArrayNotAllowed:
+                // We swallow all "T cannot be a top-level type" errors, since we're not encoding T into a top-level type (but rather into a field).
+                break
+            default:
+                throw error
+            }
+        }
         let dstBufferRef = Box(ByteBuffer())
         let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef, context: _EncoderContext())
         if GetProtoCodingKind(type(of: value)) == .message {
@@ -116,6 +127,9 @@ class _EncoderContext {
         syntaxStack.pop()
     }
     
+    
+    /// Marking a coding path as "required output" will indicate to the encoder that values for this field should
+    /// always be written into the proto buffer, even if the value is the field's zero default value.
     func markAsRequiredOutput(_ codingPath: [CodingKey]) {
         fieldsMarkedAsRequiredOutput.insert(Self.codingPathToInts(codingPath))
     }
@@ -166,11 +180,19 @@ class _ProtobufferEncoder: Encoder {
     }
     
     func container<Key: CodingKey>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
-        KeyedEncodingContainer(ProtobufferKeyedEncodingContainer(
-            codingPath: codingPath,
-            dstBufferRef: dstBufferRef,
-            context: context
-        ))
+//        KeyedEncodingContainer(ProtobufferKeyedEncodingContainer(
+//            codingPath: codingPath,
+//            dstBufferRef: dstBufferRef,
+//            context: context
+//        ))
+        KeyedEncodingContainer(internalKeyedContainer(keyedBy: Key.self))
+    }
+    
+    /// Allows access to the actual internal `ProtobufferKeyedEncodingContainer` type, not the type-erased wrapper used by the standard library.
+    /// This is useful for clients that need to access protobuf-specific functionality.
+    /// TODO is this actually needed?
+    func internalKeyedContainer<Key: CodingKey>(keyedBy _: Key.Type) -> ProtobufferKeyedEncodingContainer<Key> {
+        ProtobufferKeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {

@@ -60,6 +60,18 @@ extension String {
         }
         return "\(first.uppercased())\(self.dropFirst())"
     }
+    
+    
+    /// Produces a copy of this string, with all occurrences of the characters in the specified character set replaced with the replacement string
+    public func replacingOccurrences(ofCharactersIn characterSet: Set<Character>, with replacement: String) -> String {
+        return self.reduce(into: String(reservingCapacity: self.count)) { partialResult, character in
+            if characterSet.contains(character) {
+                partialResult.append(replacement)
+            } else {
+                partialResult.append(character)
+            }
+        }
+    }
 }
 
 

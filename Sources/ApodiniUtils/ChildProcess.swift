@@ -404,14 +404,19 @@ extension ChildProcess {
 
 extension ChildProcess {
     /// Attempts to find the location of the executable with the specified name, by looking through the current environment's search paths.
-    public static func findExecutable(named binaryName: String) -> URL? {
-        guard let searchPaths = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
+    /// - parameter additionalSearchPaths: An array of directories which should be searched in addition to the directories found in the PATH.
+    ///         Note that the directories in this path take precedence over the ones in the PATH
+    public static func findExecutable(named binaryName: String, additionalSearchPaths: [String] = []) -> URL? {
+        guard let pathSplit = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
             return nil
         }
+        let fileManager = FileManager.default
+        let searchPaths = additionalSearchPaths + pathSplit
         for searchPath in searchPaths {
             let executableUrl = URL(fileURLWithPath: searchPath, isDirectory: true)
                 .appendingPathComponent(binaryName, isDirectory: false)
-            if FileManager.default.fileExists(atPath: executableUrl.path) {
+                .absoluteURL
+            if fileManager.fileExists(atPath: executableUrl.path) { //} && fileManager.isExecutableFile(atPath: executableUrl.path) {
                 return executableUrl
             }
         }

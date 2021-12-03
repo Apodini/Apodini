@@ -412,7 +412,12 @@ extension Array: ProtobufRepeated where Element: Codable {
 //            print(newBytes)
 //            fatalError()
         } else {
+            encoder.context.markAsRequiredOutput(encoder.codingPath.appending(key))
+            defer {
+                encoder.context.unmarkAsRequiredOutput(encoder.codingPath.appending(key))
+            }
             var keyedContainer = encoder.container(keyedBy: Key.self)
+            //var keyedContainer = encoder.internalKeyedContainer(keyedBy: <#T##CodingKey.Protocol#>)
             for element in self {
                 try keyedContainer.encode(element, forKey: key)
             }
