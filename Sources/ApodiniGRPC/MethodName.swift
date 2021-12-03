@@ -44,6 +44,10 @@ public struct GRPCServiceModifier<C: Component>: Modifier {
     }
 }
 
+extension GRPCServiceModifier: HandlerModifier & Handler & AnyHandlerMetadata & AnyHandlerMetadataBlock & HandlerMetadataNamespace where Self.ModifiedComponent: Handler {
+    public typealias Response = C.Response
+}
+
 
 extension Component {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
