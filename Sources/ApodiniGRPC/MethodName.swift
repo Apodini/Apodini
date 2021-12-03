@@ -8,22 +8,44 @@ struct GRPCServiceNameContextKey: OptionalContextKey {
 }
 
 
-public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
-    public let component: H
+//public struct GRPCServiceModifier<H: Handler>: HandlerModifier {
+//    public let component: H
+//    let serviceName: String
+//
+//    init(_ component: H, serviceName: String) {
+//        self.component = component
+//        self.serviceName = serviceName
+//    }
+//
+//    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
+//        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
+//    }
+//}
+//
+//
+//extension Handler {
+//    /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
+//    public func gRPCServiceName(_ serviceName: String) -> GRPCServiceModifier<Self> {
+//        .init(self, serviceName: serviceName)
+//    }
+//}
+
+public struct GRPCServiceModifier<C: Component>: Modifier {
+    public let component: C
     let serviceName: String
     
-    init(_ component: H, serviceName: String) {
+    init(_ component: C, serviceName: String) {
         self.component = component
         self.serviceName = serviceName
     }
     
     public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .current)
+        visitor.addContext(GRPCServiceNameContextKey.self, value: serviceName, scope: .environment)
     }
 }
 
 
-extension Handler {
+extension Component {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
     public func gRPCServiceName(_ serviceName: String) -> GRPCServiceModifier<Self> {
         .init(self, serviceName: serviceName)
