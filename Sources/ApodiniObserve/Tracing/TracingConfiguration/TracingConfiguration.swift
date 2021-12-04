@@ -18,10 +18,13 @@ public final class TracingConfiguration: Configuration {
 
     /// The value key for Tracing-related information.
     public struct TracingStorageValue {
+        /// The application `Tracer`.
+        public let tracer: Tracer
         /// The configuration used by `Instrument` instances.
         public let configuration: TracingConfiguration
 
-        init(configuration: TracingConfiguration) {
+        init(tracer: Tracer, configuration: TracingConfiguration) {
+            self.tracer = tracer
             self.configuration = configuration
         }
     }
@@ -38,10 +41,20 @@ public final class TracingConfiguration: Configuration {
     /// Configures the `Application` with the ``InstrumentConfiguration``s and bootstraps the `InstrumentationSystem`.
     /// - Parameter app: The to be configured `Application`.
     public func configure(_ app: Application) {
+        let constructedInstruments = instrumentConfigurations.map { $0.factory(app.eventLoopGroup) }
+        
+        // Bootstrap the instrumentation system
         InstrumentationSystem.bootstrap(
-            MultiplexInstrument(
-                instrumentConfigurations.map { $0.factory(app.eventLoopGroup) }
-            )
+            MultiplexInstrument(constructedInstruments.map(\.instrument))
         )
+        
+        // Add instrument shutdown lifecycle hooks to app
+        constructedInstruments
+            .compactMap(\.instrumentShutdown)
+            .map { InstrumentConfiguration.Lifecycle(instrumentShutdown: $0) }
+            .forEach { app.lifecycle.use($0) }
+        
+        // Write configuration to the storage
+        app.storage.set(TracingStorageKey.self, to: TracingStorageValue(tracer: app.tracer, configuration: self))
     }
 }
