@@ -39,18 +39,6 @@ public class TracingConfiguration: Configuration {
     }
 }
 
-public struct InstrumentConfiguration {
-    public let factory: (_ group: EventLoopGroup) -> Instrument
-
-    public init(_ factory: @escaping (_ group: EventLoopGroup) -> Instrument) {
-        self.factory = factory
-    }
-
-    public init(_ instrument: Instrument) {
-        self.factory = { _ in instrument }
-    }
-}
-
 extension InstrumentConfiguration {
     /// Default OpenTelemetry `Instrument`, exporting spans to an OpenTelemetry collector via gRPC in the OpenTelemetry protocol (OTLP).
     public static var defaultOpenTelemetry: InstrumentConfiguration {
