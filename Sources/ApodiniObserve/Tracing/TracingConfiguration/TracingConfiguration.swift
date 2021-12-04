@@ -9,12 +9,16 @@
 import Apodini
 import Tracing
 
-public class TracingConfiguration: Configuration {
+/// The `Configuration` for the `InstrumentationSystem`.
+public final class TracingConfiguration: Configuration {
+    /// The storage key for Tracing-related information.
     public struct TracingStorageKey: StorageKey {
         public typealias Value = TracingStorageValue
     }
 
+    /// The value key for Tracing-related information.
     public struct TracingStorageValue {
+        /// The configuration used by `Instrument` instances.
         public let configuration: TracingConfiguration
 
         init(configuration: TracingConfiguration) {
@@ -24,10 +28,15 @@ public class TracingConfiguration: Configuration {
 
     private let instrumentConfigurations: [InstrumentConfiguration]
 
+    /// Initializes a ``TracingConfiguration`` with the ``InstrumentConfiguration``s for each `Instrument`.
+    ///
+    /// - Parameter instrumentConfiguration: ``InstrumentConfiguration``s that sepcify the to be used tracing backends.
     public init(_ instrumentConfiguration: InstrumentConfiguration...) {
         self.instrumentConfigurations = instrumentConfiguration
     }
 
+    /// Configures the `Application` with the ``InstrumentConfiguration``s and bootstraps the `InstrumentationSystem`.
+    /// - Parameter app: The to be configured `Application`.
     public func configure(_ app: Application) {
         InstrumentationSystem.bootstrap(
             MultiplexInstrument(
