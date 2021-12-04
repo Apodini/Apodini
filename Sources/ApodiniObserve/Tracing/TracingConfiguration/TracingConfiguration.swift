@@ -7,8 +7,6 @@
 //
 
 import Apodini
-import OpenTelemetry
-import OtlpGRPCSpanExporting
 import Tracing
 
 public class TracingConfiguration: Configuration {
@@ -36,48 +34,5 @@ public class TracingConfiguration: Configuration {
                 instrumentConfigurations.map { $0.factory(app.eventLoopGroup) }
             )
         )
-    }
-}
-
-extension InstrumentConfiguration {
-    /// Default OpenTelemetry `Instrument`, exporting spans to an OpenTelemetry collector via gRPC in the OpenTelemetry protocol (OTLP).
-    public static var defaultOpenTelemetry: InstrumentConfiguration {
-        InstrumentConfiguration { group in
-            let exporter = OtlpGRPCSpanExporter(config: .init(eventLoopGroup: group))
-            let processor = OTel.SimpleSpanProcessor(exportingTo: exporter)
-            let otel = OTel(serviceName: "TODO", eventLoopGroup: group, processor: processor)
-
-            try! otel.start().wait()
-
-            // TODO: What about shutdown
-            return otel.tracer()
-        }
-    }
-
-    public static func openTelemetryWithConfig(
-        resourceDetection: OTel.ResourceDetection = .automatic(additionalDetectors: []),
-        idGenerator: OTelIDGenerator = OTel.RandomIDGenerator(),
-        sampler: OTelSampler = OTel.ParentBasedSampler(rootSampler: OTel.ConstantSampler(isOn: true)),
-        processor: @escaping (_ group: EventLoopGroup) -> OTelSpanProcessor,
-        propagator: OTelPropagator = OTel.W3CPropagator(),
-        logger: Logger = Logger(label: "OTel")
-    ) -> InstrumentConfiguration {
-        InstrumentConfiguration { group in
-            let otel = OTel(
-                serviceName: "TODO",
-                eventLoopGroup: group,
-                resourceDetection: resourceDetection,
-                idGenerator: idGenerator,
-                sampler: sampler,
-                processor: processor(group),
-                propagator: propagator,
-                logger: logger
-            )
-
-            try! otel.start().wait()
-
-            // TODO: What about shutdown
-            return otel.tracer()
-        }
     }
 }
