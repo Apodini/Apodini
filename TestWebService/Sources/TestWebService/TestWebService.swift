@@ -8,7 +8,6 @@
 
 import Apodini
 import ApodiniREST
-import ApodiniGRPC
 import ApodiniOpenAPI
 import ApodiniWebSocket
 import ApodiniMigration
@@ -45,8 +44,6 @@ struct TestWebService: Apodini.WebService {
                 title: "The great TestWebService - presented by Apodini"
             )
         }
-        
-        GRPC(packageName: "org.apodini", serviceName: "TestWebService")
         
         WebSocket()
         

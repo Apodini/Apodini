@@ -35,7 +35,7 @@ final class DownloadsTests: XCTestCase {
         wait(for: [timeoutExpectation], timeout: 5.0)
         
         guard process.isRunning else {
-            XCTFail("The server terminated during the setup: \(process.terminationStatus)")
+            XCTFail("The server terminated during the setup: \(process.terminationStatus). stderr: \(String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!)")
             return
         }
         
