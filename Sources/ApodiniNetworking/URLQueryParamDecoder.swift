@@ -163,7 +163,6 @@ private protocol URLQueryParameterValueDecodable {
 
 extension Bool: URLQueryParameterValueDecodable {
     init?(urlQueryParamValue value: String) {
-        // TODO should we define this in a way that any values != true are simply interpreted as false?
         switch value.lowercased() {
         case "1", "true", "yes":
             self = true

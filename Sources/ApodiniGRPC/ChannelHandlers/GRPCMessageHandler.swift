@@ -1,61 +1,25 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 import NIO
 import NIOHTTP2
 import NIOHPACK
 import Logging
 import ProtobufferCoding
+import ApodiniUtils
 
-
-
-
-extension EventLoopFuture {
-//    func flatMapAlways<NewValue>(_ block: @escaping (Result<Value, Error>) -> Result<NewValue, Error>) -> EventLoopFuture<NewValue> {
-//        self.flatMapAlways { (result: Result<Value, Error>) -> EventLoopFuture<NewValue> in
-//            switch block(result) {
-//            case .failure(let error):
-//                return self.eventLoop.makeFailedFuture(error)
-//            case .success(let value):
-//                return self.eventLoop.makeSucceededFuture(value)
-//            }
-//        }
-//    }
-    
-    
-    func inspect(_ block: @escaping (Result<Value, Error>) -> Void) -> EventLoopFuture<Value> {
-//        self.flatMapAlways { result in
-//            block(result)
-//            return result
-//        }
-        self.whenComplete(block)
-        return self
-    }
-    
-    func inspectSuccess(_ block: @escaping (Value) -> Void) -> EventLoopFuture<Value> {
-//        self.flatMap { value in
-//            block(value)
-//            return self.eventLoop.makeSucceededFuture(value)
-//        }
-        self.whenSuccess(block)
-        return self
-    }
-    
-    func inspectFailure(_ block: @escaping (Error) -> Void) -> EventLoopFuture<Value> {
-//        self.flatMapError { error in
-//            block(error)
-//            return self.eventLoop.makeFailedFuture(error)
-//        }
-        self.whenFailure(block)
-        return self
-    }
-}
-
-
-
-private var requestIdCounter = Counter()
 
 class GRPCMessageHandler: ChannelInboundHandler {
     typealias InboundIn = Input
     typealias OutboundOut = Output
+    
+    private static var requestIdCounter = Counter<UInt>()
     
     enum Input {
         case openStream(HPACKHeaders)
@@ -66,19 +30,19 @@ class GRPCMessageHandler: ChannelInboundHandler {
     // NOT an RPC response message!!! this is the wrapper type encapsulating the different kinds of responses which can come out of the `GRPCMessageHandler`.
     enum Output {
         /// A call resulted in an error.
-        /// - parameter connectionCtx: The GRPCStreamConnectionContext belonging to this stream/channel (TODO terminology).
+        /// - parameter connectionCtx: The GRPCStreamConnectionContext belonging to this connection.
         ///         Nil if the channel encounters an error before a connection context was created.
         case error(GRPCStatus, _ connectionCtx: GRPCStreamConnectionContextImpl?)
         
         /// A call resulted in a message
         case message(GRPCMessageOut, GRPCStreamConnectionContextImpl)
-        case closeStream(trailers: HPACKHeaders, msg: String)
+        case closeStream(trailers: HPACKHeaders)
     }
     
     private /*unowned?*/ let server: GRPCServer
     
     private var connectionCtx: GRPCStreamConnectionContextImpl?
-    private let handleQueue = LKEventLoopFutureBasedQueue()
+    private let handleQueue = EventLoopFutureQueue()
     private var isConnectionClosed = false
     private var logger: Logger
     
@@ -88,17 +52,10 @@ class GRPCMessageHandler: ChannelInboundHandler {
         self.logger = Logger(label: "[\(Self.self)]")
     }
     
-    deinit {
-        logger.notice("\(#function)")
-    }
     
-    
-    // TODO do we need to lock this? the write in the handler response future's whenComplete, so there might be a situation where we're still handling a message when another comes in. (and if that other message is faster and its whenComplete gets called first, we'd be writing handler responses in the incorrect order...)
-    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-        //logger.notice("\(#function) data: \(data)")
-        logger.notice("\(#function)")
+    func channelRead(context: ChannelHandlerContext, data: NIOAny) { // swiftlint:disable:this cyclomatic_complexity
         guard !isConnectionClosed else {
-            fatalError("[\(Self.self)] received data on channel, even though the connection should already be closed") // TODO simply ignore this?
+            fatalError("[\(Self.self)] received data on channel, even though the connection should already be closed")
         }
         switch unwrapInboundIn(data) {
         case .openStream(let headers):
@@ -109,7 +66,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 // A nil return value indicates that the method does not exist.
                 // gRPC says we have to handle this by responding w/ the corresponding status code
                 print("Attempted to open channel to non-existing method '\(serviceName)/\(methodName)'")
-                _ = self.handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Return notFoundError (\((serviceName, methodName))") { () -> EventLoopFuture<Void> in
+                _ = self.handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
                     let status = GRPCStatus(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found.")
                     return context.writeAndFlush(self.wrapOutboundOut(.error(status, nil)))
                         .flatMapAlways { _ in context.close() }
@@ -129,22 +86,18 @@ class GRPCMessageHandler: ChannelInboundHandler {
             guard let connectionCtx = connectionCtx else {
                 fatalError("Received message but there's no connection.")
             }
-            let reqId = requestIdCounter.get()
-            logger.notice("Submitting to handle queue (id: \(reqId)")
-            _ = handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Handle req #\(reqId)") { () -> EventLoopFuture<Void> in
+            let reqId = Self.requestIdCounter.get()
+            _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
                 connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
-                    .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in // TODO does using the connectionCtx/etc in here result in a retain cycle?
-                        self.logger.notice("Got response for req w/ id \(reqId). Writing to channel")
+                    .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
                         switch result {
                         case .success(let messageOut):
                             return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
                         case .failure(let error):
-                            return context.writeAndFlush(self.wrapOutboundOut(.error(GRPCStatus(code: .unknown, message: "\(error)"), connectionCtx)))
+                            let status = (error as? GRPCStatus) ?? GRPCStatus(code: .unknown, message: "\(error.localizedDescription)")
+                            return context.writeAndFlush(self.wrapOutboundOut(.error(status, connectionCtx)))
                         }
-                    }
-                    .inspect { result in
-                        self.logger.notice("Done writing req res w/ id \(reqId) to channel: \(result)")
                     }
             }
         
@@ -155,20 +108,20 @@ class GRPCMessageHandler: ChannelInboundHandler {
             self.isConnectionClosed = true
             self.connectionCtx = nil
             // The RequestDecoder told us to close the stream.
-            // We queue this to be run once the
-            _ = handleQueue.submit(on: context.eventLoop, tmp_debugDesc: "Close Stream (\(connectionCtx.grpcMethodName))") { () -> EventLoopFuture<Void> in
+            // We queue this to be run once the previous request is completed.
+            _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
                 if let future = connectionCtx.handleStreamClose() {
                     return future.flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
                         switch result {
                         case .failure(let error):
-                            fatalError("Error: \(error)") // TODO?
+                            fatalError("Error: \(error)")
                         case .success(let messageOut):
                             return context.write(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
                                 .flatMapAlways { _ in context.close() }
                         }
                     }
                 } else {
-                    return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders(), msg: "connectionCtx.\(connectionCtx.grpcMethodName)")))
+                    return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders())))
                         .flatMapAlways { _ in context.close() }
                 }
             }
@@ -176,8 +129,6 @@ class GRPCMessageHandler: ChannelInboundHandler {
     }
     
     func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
-        print(Self.self, #function, context, event)
         context.fireUserInboundEventTriggered(event)
     }
 }
-

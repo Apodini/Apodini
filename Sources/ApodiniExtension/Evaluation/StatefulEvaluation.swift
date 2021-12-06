@@ -71,7 +71,7 @@ public extension AsyncSequence where Element == Event {
         .map { event in
             switch event {
             case .end:
-                connectionState = .end // TODO does this need special handling for .close?
+                connectionState = .end
                 if let request = latestRequest {
                     return .request(request)
                 } else {

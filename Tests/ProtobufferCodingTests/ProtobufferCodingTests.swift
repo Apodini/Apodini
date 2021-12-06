@@ -6,14 +6,13 @@
 // SPDX-License-Identifier: MIT
 //
 
-// swiftlint:disable discouraged_optional_boolean
+// swiftlint:disable discouraged_optional_boolean nesting
 
 import XCTest
 import Foundation
 import NIO
 @testable import ProtobufferCoding
 @testable import ApodiniGRPC
-
 
 
 // MARK: Test Utils
@@ -82,14 +81,12 @@ private func _testImpl<T: Codable & Equatable>(_ input: T, expectedBytes: [UInt8
 }
 
 
-
 // MARK: Test Data Structures
 
 
 struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
     let value: T
 }
-
 
 
 struct SingleFieldProtoTestMessage<T: Codable & Equatable>: Codable & Equatable & ProtobufMessage {
@@ -191,7 +188,6 @@ class ProtobufferCodingTests: XCTestCase {
     }
     
     
-    
     func testSimpleStruct_Float() throws {
         struct SimpleStructWithFloatProperty: Codable, Equatable {
             let value: Float
@@ -232,7 +228,7 @@ class ProtobufferCodingTests: XCTestCase {
         struct SimpleStructWithDoubleProperty: Codable, Equatable {
             let value: Double
         }
-        let input = SimpleStructWithDoubleProperty(value: 3.141592654) // TODO find some value that can be repersented as a double but not as a float!
+        let input = SimpleStructWithDoubleProperty(value: 3.141592654)
         let encoded = try ProtobufferEncoder().encode(input)
         try XCTAssertEqual(encoded, [0b1001, 80, 69, 82, 84, 251, 33, 9, 64])
         XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
@@ -283,7 +279,15 @@ class ProtobufferCodingTests: XCTestCase {
         let encoded = try ProtobufferEncoder().encode(input)
         try XCTAssertEqual(encoded, [98, 11, 72, 101, 108, 108, 111, 32, 116, 104, 101, 114, 101])
         XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
-            12: [ProtobufFieldInfo(tag: 12, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1), fieldLength: 13)]
+            12: [
+                ProtobufFieldInfo(
+                    tag: 12,
+                    keyOffset: 0,
+                    valueOffset: 1,
+                    valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1),
+                    fieldLength: 13
+                )
+            ]
         ]))
         try assertDecodedMatches(encoded, input)
     }
@@ -294,7 +298,15 @@ class ProtobufferCodingTests: XCTestCase {
             GenericSingleFieldMessage<String>(value: "Hello there"),
             expectedBytes: [0b1010, 11, 72, 101, 108, 108, 111, 32, 116, 104, 101, 114, 101],
             expectedFieldMapping: [
-                1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1), fieldLength: 13)]
+                1: [
+                    ProtobufFieldInfo(
+                        tag: 1,
+                        keyOffset: 0,
+                        valueOffset: 1,
+                        valueInfo: .lengthDelimited(dataLength: 11, dataOffset: 1),
+                        fieldLength: 13
+                    )
+                ]
             ]
         )
         
@@ -360,7 +372,6 @@ class ProtobufferCodingTests: XCTestCase {
     }
     
     
-    
     func testSkipsEmptyValues() throws {
         func imp<T: Codable & Equatable>(_: T.Type, emptyValue: T) throws {
             try _testImpl(GenericSingleFieldMessage<T>(value: emptyValue), expectedBytes: [], expectedFieldMapping: [:])
@@ -420,7 +431,7 @@ class ProtobufferCodingTests: XCTestCase {
         let bytes: [UInt8] = [
             0b1010, 5, ascii("L"), ascii("u"), ascii("k"), ascii("a"), ascii("s"),
             0b10000, 52,
-            0b1010, 4, ascii("P"), ascii("a"), ascii("u"), ascii("l"),
+            0b1010, 4, ascii("P"), ascii("a"), ascii("u"), ascii("l")
         ]
         
         let decoded = try ProtobufferDecoder().decode(Message.self, from: Data(bytes))
@@ -535,19 +546,6 @@ class ProtobufferCodingTests: XCTestCase {
                         return .double(payload as! Double)
                     case .string:
                         return .string(payload as! String)
-                    }
-                }
-                
-                var getCodingKeyAndPayload: (CodingKeys, Any?) {
-                    switch self {
-                    case .integer(let value):
-                        return (.integer, value)
-                    case .float(let value):
-                        return (.float, value)
-                    case .double(let value):
-                        return (.double, value)
-                    case .string(let value):
-                        return (.string, value)
                     }
                 }
             }

@@ -7,24 +7,33 @@
 //
 
 
+/// A Stack data structure, i.e. a "first in last out" queue
 public struct Stack<Element> {
     private var storage: [Element]
     
+    /// Creates a new, empty stack
     public init() {
         storage = []
     }
     
+    /// Creates a new stack, filled with the elements in the other sequence
     public init<S>(_ other: S) where S: Sequence, S.Element == Element {
         storage = Array(other)
     }
     
+    /// Whether the stack is currently empty
     public var isEmpty: Bool { storage.isEmpty }
+    
+    /// The number of elements currently in the stack
     public var count: Int { storage.count }
     
+    /// Pushes a new element onto the stack
     public mutating func push(_ element: Element) {
         storage.append(element)
     }
     
+    /// Removes the element currently on the top of the stack
+    /// - returns: The removed element, or `nil` if the stack is empty
     @discardableResult
     public mutating func pop() -> Element? {
         guard !isEmpty else {
@@ -33,6 +42,7 @@ public struct Stack<Element> {
         return storage.removeLast()
     }
     
+    /// Returns the stack's current top element, or `nil` if the stack is empty
     public func peek() -> Element? {
         storage.last
     }

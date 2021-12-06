@@ -1,24 +1,41 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import Foundation
 import ApodiniUtils
 
 
-private let fuckingHellThisIsSoBad = ThreadSpecificVariable<Box<Decodable.Type>>()
+/// The problem here is that we somehow need to pass a type variable (i.e. a `Decodable.Type` to
+/// the `ProtobufferDecoderKeyedDecodingContainer`'s `decode` function.
+/// Since `decode`'s signature is `decode<T>(_: T.Type)`, we can't pass the non-generic type as a generic type.
+/// We could work around this by simply directly calling the ProtoKeyedEncodingContainer's `_decode(_: Decodable.Type)` function, which is not generic,
+/// but that doesn't work, because, due to how Swift implements keyed decoding containers, it is impossible to accesss a `KeyedEncodingContainer`'s
+/// internal actual container. (Ideally we'd just do a simple `self as? ProtoKeyedEncodingContainer<Key>` check, but that doesn't work).
+/// So we have to work around this by storing the to-be-decoded type in a global variable, and then passing a specific single-purpose type to `decode`,
+/// which will not be decoded itself, but rather serves to tell the decode function to decode the type stored in here.
+/// (Look, I'm not appy about this either...)
+private let typeToDecode = ThreadSpecificVariable<Box<Decodable.Type>>()
 
 
 extension KeyedDecodingContainerProtocol {
     @_disfavoredOverload
     func decode(_ type: Decodable.Type, forKey key: Key) throws -> Decodable {
-        precondition(fuckingHellThisIsSoBad.currentValue == nil)
-        fuckingHellThisIsSoBad.currentValue = Box(type)
-        let helperResult = try decode(LKDecodeTypeErasedDecodableTypeHelper.self, forKey: key)
-        precondition(fuckingHellThisIsSoBad.currentValue == nil)
+        precondition(typeToDecode.currentValue == nil)
+        typeToDecode.currentValue = Box(type)
+        let helperResult = try decode(DecodeTypeErasedDecodableTypeHelper.self, forKey: key)
+        precondition(typeToDecode.currentValue == nil)
         return helperResult.value as! Decodable
     }
 }
 
 
-private struct LKDecodeTypeErasedDecodableTypeHelper: Decodable {
+private struct DecodeTypeErasedDecodableTypeHelper: Decodable {
     let value: Any
     let originalType: Decodable.Type
     
@@ -33,13 +50,13 @@ private struct LKDecodeTypeErasedDecodableTypeHelper: Decodable {
 }
 
 
-struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
+struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let codingPath: [CodingKey]
     private let buffer: ByteBuffer
     let fields: ProtobufFieldsMapping
     
     var allKeys: [Key] {
-        fatalError()
+        fields.allFields.mapIntoSet(\.tag).compactMap { Key(intValue: $0) }
     }
     
     init(codingPath: [CodingKey], buffer: ByteBuffer) throws {
@@ -50,12 +67,12 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     
     /// - Note: This will produce unexpected results for some situations, e.g. in cases there the absence of a value indicates the presence of an empty value.
     func contains(_ key: Key) -> Bool {
-        return fields.contains(fieldNumber: key.getProtoFieldNumber())
+        fields.contains(fieldNumber: key.getProtoFieldNumber())
     }
     
     func decodeNil(forKey key: Key) throws -> Bool {
-        // proto3 doesn't really have nullable fields, so we just always return false...
-        return false
+        // There's differences between proto2 and proto3 which mean that this _might_ be required at some point in the future...
+        fatalError("Explicit nil decoding not (yet?) supported")
     }
     
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
@@ -77,8 +94,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
             return ""
         }
-        return try _LKTryDeocdeProtoString(
-            in: buffer,
+        return try buffer.decodeProtoString(
             fieldValueInfo: fieldInfo.valueInfo,
             fieldValueOffset: fieldInfo.valueOffset,
             codingPath: codingPath,
@@ -105,28 +121,18 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     func decode(_ type: Int.Type, forKey key: Key) throws -> Int {
-//        guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
-//            return 0 // TODO is this the right approach?
-//        }
-//        return Int(bitPattern: UInt(try buffer.getVarInt(at: fieldInfo.valueOffset)))
         try decodeVarInt(forKey: key)
     }
     
     func decode(_ type: Int8.Type, forKey key: Key) throws -> Int8 {
-        //fatalError("Not implemented (type: \(type), key: \(key))")
         try throwUnsupportedNumericTypeDecodingError(type, codingPath: codingPath.appending(key))
     }
     
     func decode(_ type: Int16.Type, forKey key: Key) throws -> Int16 {
-        //fatalError("Not implemented (type: \(type), key: \(key))")
         try throwUnsupportedNumericTypeDecodingError(type, codingPath: codingPath.appending(key))
     }
     
     func decode(_ type: Int32.Type, forKey key: Key) throws -> Int32 {
-//        guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
-//            return 0
-//        }
-//        return Int32(try buffer.getVarInt(at: fieldInfo.valueOffset))
         try decodeVarInt(forKey: key)
     }
     
@@ -139,12 +145,10 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     func decode(_ type: UInt8.Type, forKey key: Key) throws -> UInt8 {
-        //fatalError("Not implemented (type: \(type), key: \(key))")
         try throwUnsupportedNumericTypeDecodingError(type, codingPath: codingPath.appending(key))
     }
     
     func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 {
-        //fatalError("Not implemented (type: \(type), key: \(key))")
         try throwUnsupportedNumericTypeDecodingError(type, codingPath: codingPath.appending(key))
     }
     
@@ -166,7 +170,6 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     func decode<T: Decodable>(_: T.Type, forKey key: Key, keyOffset: Int?) throws -> T {
         try _decode(T.self, forKey: key, keyOffset: keyOffset) as! T
     }
-    
     
     
     func nestedContainer<NestedKey: CodingKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> {
@@ -191,7 +194,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     func getFieldInfoAndBytes(forKey key: Key, atOffset keyOffset: Int?) throws -> (fieldInfo: ProtobufFieldInfo, fieldBytes: ByteBuffer) {
         let fieldNumber = key.getProtoFieldNumber()
         guard fieldNumber > 0 else {
-            fatalError()
+            fatalError("Invalid field number: \(fieldNumber)")
         }
         let fieldInfo: ProtobufFieldInfo?
         if let keyOffset = keyOffset {
@@ -200,7 +203,7 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
             fieldInfo = fields.getLast(forFieldNumber: fieldNumber)
         }
         guard let fieldInfo = fieldInfo else {
-            fatalError()
+            fatalError("Unable to get field info")
         }
         return (fieldInfo, buffer.getSlice(at: fieldInfo.keyOffset, length: fieldInfo.fieldLength)!)
     }
@@ -216,19 +219,19 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     }
     
     
-    func _decode(_ type: Decodable.Type, forKey key: Key, keyOffset: Int?) throws -> Any {
-        // TODO the order here is pretty important!!! (and probably needs some adjustments)
-        if type == LKDecodeTypeErasedDecodableTypeHelper.self {
-            let type = fuckingHellThisIsSoBad.currentValue!.value
-            fuckingHellThisIsSoBad.currentValue = nil
-            return LKDecodeTypeErasedDecodableTypeHelper(
-                value: try _decode(type, forKey: key, keyOffset: keyOffset), // TODO this decode call used to go to the old implementation below (commented out)
+    func _decode(_ type: Decodable.Type, forKey key: Key, keyOffset: Int?) throws -> Any { // swiftlint:disable:this identifier_name
+        // NOTE the order here is important, since some types might match multiple branches!!!
+        if type == DecodeTypeErasedDecodableTypeHelper.self {
+            let type = typeToDecode.currentValue!.value
+            typeToDecode.currentValue = nil
+            return DecodeTypeErasedDecodableTypeHelper(
+                value: try _decode(type, forKey: key, keyOffset: keyOffset),
                 originalType: type
             )
         } else if (type as? _ProtobufEmbeddedType.Type) != nil {
             // We're asked to decode an embedded type (currently only oneof, as far as i'm aware),
             // which means what we need to ignore the coding key.
-            // Note: since oneofs can't be repeated (TODO check!) we can ignore a potentially specified offset here
+            // Note: since oneofs can't be repeated, we can safely ignore a potentially specified offset here
             precondition(keyOffset == nil)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
         } else if ((type as? ProtobufMessage.Type) != nil) || (type == Array<UInt8>.self) || (type == Data.self) {
@@ -240,16 +243,17 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
             var adjustedValueBytes = valueBytes
             let length = Int(try adjustedValueBytes.readVarInt())
             precondition(adjustedValueBytes.readableBytes >= length)
-            precondition(fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex))
+            precondition(
+                fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex)
+            )
             if (type as? ProtobufMessage.Type) != nil {
                 return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
-            } else if type == Array<UInt8>.self {
-                return Array<UInt8>(buffer: adjustedValueBytes)
+            } else if type == [UInt8].self {
+                return [UInt8](buffer: adjustedValueBytes)
             } else if type == Data.self {
                 return Data(buffer: adjustedValueBytes)
             } else {
-                // unreacahable
-                fatalError()
+                fatalError("Unreacahable")
             }
         } else if let protobufRepeatedTy = type as? ProtobufRepeated.Type {
             let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
@@ -260,40 +264,25 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
             )
             return retval
         } else if let optionalTy = type as? AnyOptional.Type {
-            return try _decodeIfPresent(optionalTy.wrappedType as! Decodable.Type, forKey: key, atKeyOffset: keyOffset)
+            return try _decodeIfPresent(optionalTy.wrappedType as! Decodable.Type, forKey: key, atKeyOffset: keyOffset) as Any
         } else {
-            let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-            let _A = try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
-            return _A
+            let (_, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
+            return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
         }
-        
-//        let (fieldInfo, fieldBytes) = try getFieldInfoAndBytes(forKey: key, atOffset: keyOffset)
-//        print(fieldInfo.valueOffset, fieldInfo.keyOffset)
-//        let decoder = _LKProtobufferDecoder(
-//            codingPath: self.codingPath.appending(key as! Key),
-//            userInfo: [:],
-//            //buffer: fieldBytes.getSlice(at: fieldInfo.valueOffset - fieldInfo.keyOffset, length: fieldBytes.readableBytes - (fieldInfo.valueOffset - fieldInfo.keyOffset))!
-//            buffer: fieldBytes
-//        )
-//        // TODO do we need special checks for different types here?
-//        let value = try type.init(from: decoder)
-//        return value
     }
     
     
     private func decodeVarInt<T: FixedWidthInteger>(forKey key: Key) throws -> T {
-        //T(truncatingIfNeeded: <#T##BinaryInteger#>)
         guard let fieldInfo = fields.getLast(forFieldNumber: key.getProtoFieldNumber()) else {
-            return .zero // TODO is this the correct approach?
+            return .zero
         }
         return T(truncatingIfNeeded: try buffer.getVarInt(at: fieldInfo.valueOffset))
     }
     
     
-    
     // MARK: Optionals
     
-    func decodeIfPresent(_ type: Bool.Type, forKey key: Key) throws -> Bool? {
+    func decodeIfPresent(_ type: Bool.Type, forKey key: Key) throws -> Bool? { // swiftlint:disable:this discouraged_optional_boolean
         implicitForceCast(try _decodeIfPresent(type, forKey: key))
     }
 
@@ -355,10 +344,8 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
     
     
     private func _decodeIfPresent(_ type: Decodable.Type, forKey key: Key, atKeyOffset keyOffset: Int? = nil) throws -> Any? {
-        // TODO what about non-primitive optional fields? (eg repeated fields, messages, etc!)
-        if let keyOffset = keyOffset, fields.getAll(forFieldNumber: key.getProtoFieldNumber()).first(where: { $0.keyOffset == keyOffset }) == nil {
+        if let keyOffset = keyOffset, fields.getAll(forFieldNumber: key.getProtoFieldNumber()).contains(where: { $0.keyOffset == keyOffset }) {
             // We're given an explicit key offset, but can't find something at that offset
-            // TODO is this even relevant? can types that result in explicit offsets (i.e. e.g. repeated types) even be optional?
             return .none
         } else if fields.getLast(forFieldNumber: key.getProtoFieldNumber()) == nil {
             return .none
@@ -366,7 +353,6 @@ struct _LKProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodin
         return .some(try _decode(type, forKey: key, keyOffset: keyOffset))
     }
 }
-
 
 
 func implicitForceCast<T, U>(_ value: T) -> U {

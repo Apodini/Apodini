@@ -1,38 +1,30 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 
+// swiftlint:disable identifier_name todo missing_docs line_length
 
-// TODO Change all properties here to vars!!! (update: why?)
+
 // TODO we probably can remove a decent amount of the optionals here??? (<<-- NO; we actually have to bring back the ones we removed TODO do this!)
 
-//@propertyWrapper
-//struct ProtoOptions<Value: Codable>: Codable {
-//    private var value: Value
-//
-//    init(wrappedValue: Value) {
-//        value = wrappedValue
-//    }
-//
-//    var wrappedValue: Value {
-//        get { value }
-//        set { value = newValue }
-//    }
-//}
 
-
-protocol _ProtoPackage_Google_Protobuf: ProtoTypeInPackage & Proto2Codable {}
+private protocol _ProtoPackage_Google_Protobuf: ProtoTypeInPackage & Proto2Codable {}
 extension _ProtoPackage_Google_Protobuf {
-    public static var package: ProtobufPackageName { .init("google.protobuf") }
+    public static var package: ProtobufPackageUnit {
+        ProtobufPackageUnit(
+            packageName: "google.protobuf",
+            filename: "google/protobuf/descriptor.proto"
+        )
+    }
 }
 
 
-
-protocol ProtoMessageInGoogleProtobufPackage: ProtobufMessage {}
-extension ProtoMessageInGoogleProtobufPackage {
-    public static var package: ProtobufPackageName { .init("google.protobuf") }
-}
-
-
-// TODO having this conform to ProtobufMessage and the Google thing separately works, but having it conform to only the protocol declared above does not... WHY?
 public struct FileDescriptorSet: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
     public let files: [FileDescriptorProto]
     
@@ -49,7 +41,7 @@ public struct FileDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomF
     public let package: String
     
     /// Names of files imported by this file.
-    public let dependencies: [String]
+    public var dependencies: [String]
     /// Indexes of the public imported files in the dependency list above.
     public let publicDependency: [Int32]
     /// Indexes of the weak imported files in the dependency list.
@@ -108,7 +100,6 @@ public struct FileDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomF
 }
 
 
-
 /// Describes a message type.
 public struct DescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     public var name: String
@@ -160,7 +151,6 @@ public struct DescriptorProto: Codable, Hashable, ProtobufMessageWithCustomField
 }
 
 
-
 public struct ExtensionRangeOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     /// The parser stores options it doesn't recognize here. See above.
 //  repeated UninterpretedOption uninterpreted_option = 999;
@@ -176,47 +166,46 @@ public struct ExtensionRangeOptions: Codable, Hashable, ProtobufMessageWithCusto
 }
 
 
-
 /// Describes a field within a message.
 public struct FieldDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     public enum FieldType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // 0 is reserved for errors.
         // Order is weird for historical reasons.
         case TYPE_DOUBLE = 1
-        case TYPE_FLOAT = 2;
+        case TYPE_FLOAT = 2
         // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT64 if
         // negative values are likely.
-        case TYPE_INT64 = 3;
-        case TYPE_UINT64 = 4;
+        case TYPE_INT64 = 3
+        case TYPE_UINT64 = 4
         // Not ZigZag encoded.  Negative numbers take 10 bytes.  Use TYPE_SINT32 if
         // negative values are likely.
-        case TYPE_INT32 = 5;
-        case TYPE_FIXED64 = 6;
-        case TYPE_FIXED32 = 7;
-        case TYPE_BOOL = 8;
-        case TYPE_STRING = 9;
+        case TYPE_INT32 = 5
+        case TYPE_FIXED64 = 6
+        case TYPE_FIXED32 = 7
+        case TYPE_BOOL = 8
+        case TYPE_STRING = 9
         // Tag-delimited aggregate.
         // Group type is deprecated and not supported in proto3. However, Proto3
         // implementations should still be able to parse the group wire format and
         // treat group fields as unknown fields.
-        case TYPE_GROUP = 10;
-        case TYPE_MESSAGE = 11;  // Length-delimited aggregate.
+        case TYPE_GROUP = 10
+        case TYPE_MESSAGE = 11  // Length-delimited aggregate.
         
         // New in version 2.
-        case TYPE_BYTES = 12;
-        case TYPE_UINT32 = 13;
-        case TYPE_ENUM = 14;
-        case TYPE_SFIXED32 = 15;
-        case TYPE_SFIXED64 = 16;
-        case TYPE_SINT32 = 17;  // Uses ZigZag encoding.
-        case TYPE_SINT64 = 18;  // Uses ZigZag encoding.
+        case TYPE_BYTES = 12
+        case TYPE_UINT32 = 13
+        case TYPE_ENUM = 14
+        case TYPE_SFIXED32 = 15
+        case TYPE_SFIXED64 = 16
+        case TYPE_SINT32 = 17  // Uses ZigZag encoding.
+        case TYPE_SINT64 = 18  // Uses ZigZag encoding.
     }
     
     public enum Label: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // 0 is reserved for errors
-        case LABEL_OPTIONAL = 1;
-        case LABEL_REQUIRED = 2;
-        case LABEL_REPEATED = 3;
+        case LABEL_OPTIONAL = 1
+        case LABEL_REQUIRED = 2
+        case LABEL_REPEATED = 3
     }
     
     
@@ -308,15 +297,11 @@ public struct FieldDescriptorProto: Codable, Hashable, ProtobufMessageWithCustom
 }
 
 
-
-
 /// Describes a oneof.
 public struct OneofDescriptorProto: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
     public let name: String?
     public let options: OneofOptions?
 }
-
-
 
 
 /// Describes an enum type.
@@ -361,6 +346,7 @@ public struct EnumDescriptorProto: Codable, Hashable, ProtobufMessageWithCustomF
         case reservedNames = 5
     }
 }
+
 
 /// Describes a value within an enum.
 public struct EnumValueDescriptorProto: Codable, ProtobufMessage, Hashable, _ProtoPackage_Google_Protobuf {
@@ -436,9 +422,7 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
 }
 
 
-
 // MARK: Options
-
 
 public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //    // Sets the Java package where classes generated from this .proto will be
@@ -475,10 +459,9 @@ public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
     
     // Generated classes can be optimized for speed or code size.
     public enum OptimizeMode: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
-        case SPEED = 1;          // Generate complete code for parsing, serialization,
-                            // etc.
-        case CODE_SIZE = 2;     // Use ReflectionOps to implement these methods.
-        case LITE_RUNTIME = 3;  // Generate code using MessageLite and the lite runtime.
+        case SPEED = 1          // Generate complete code for parsing, serialization, etc.
+        case CODE_SIZE = 2     // Use ReflectionOps to implement these methods.
+        case LITE_RUNTIME = 3  // Generate code using MessageLite and the lite runtime.
     }
 //    optional OptimizeMode optimize_for = 9 [default = SPEED];
     public let optimizeMode: OptimizeMode?
@@ -489,8 +472,6 @@ public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
 //    //   - Otherwise, the package statement in the .proto file, if present.
 //    //   - Otherwise, the basename of the .proto file, without extension.
 //    optional string go_package = 11;
-
-
 
 
 //    // Should generic services be generated in each language?  "Generic" services
@@ -575,8 +556,6 @@ public struct FileOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
 }
 
 
-
-
 public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
 //    // Set true to use the old proto1 MessageSet wire format for extensions.
 //    // This is provided for backwards-compatibility with the MessageSet wire
@@ -653,13 +632,12 @@ public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldM
 }
 
 
-
 public struct FieldOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     public enum CType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         /// Default mode.
-        case STRING = 0;
-        case CORD = 1;
-        case STRING_PIECE = 2;
+        case STRING = 0
+        case CORD = 1
+        case STRING_PIECE = 2
     }
     /// The ctype option instructs the C++ code generator to use a different
     /// representation of the field than it normally would.  See the specific
@@ -689,13 +667,13 @@ public struct FieldOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMap
     public let jsType: JSType?
     public enum JSType: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
         // Use the default type.
-        case JS_NORMAL = 0;
+        case JS_NORMAL = 0
         
         // Use JavaScript strings.
-        case JS_STRING = 1;
+        case JS_STRING = 1
         
         // Use JavaScript numbers.
-        case JS_NUMBER = 2;
+        case JS_NUMBER = 2
     }
 
     // Should this field be parsed lazily?  Lazy applies only to message-type
@@ -767,7 +745,6 @@ public struct FieldOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMap
 }
 
 
-
 public struct OneofOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // The parser stores options it doesn't recognize here. See above.
 //  repeated UninterpretedOption uninterpreted_option = 999;
@@ -780,7 +757,6 @@ public struct OneofOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMap
         case uninterpretedOptions = 999
     }
 }
-
 
 
 public struct EnumOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
@@ -817,7 +793,6 @@ public struct EnumOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapp
 }
 
 
-
 public struct EnumValueOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
   // Is this enum value deprecated?
   // Depending on the target platform, this can emit Deprecated annotations
@@ -839,10 +814,6 @@ public struct EnumValueOptions: Codable, Hashable, ProtobufMessageWithCustomFiel
         case uninterpretedOptions = 999
     }
 }
-
-
-
-
 
 
 public struct ServiceOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
@@ -872,8 +843,6 @@ public struct ServiceOptions: Codable, Hashable, ProtobufMessageWithCustomFieldM
 }
 
 
-
-
 public struct MethodOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMapping, _ProtoPackage_Google_Protobuf {
     // Note:  Field numbers 1 through 32 are reserved for Google's internal RPC
     //   framework.  We apologize for hoarding these numbers to ourselves, but
@@ -891,9 +860,9 @@ public struct MethodOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMa
     // or neither? HTTP based RPC implementation may choose GET verb for safe
     // methods, and PUT verb for idempotent methods instead of the default POST.
     public enum IdempotencyLevel: Int32, ProtobufEnum, _ProtoPackage_Google_Protobuf {
-        case IDEMPOTENCY_UNKNOWN = 0;
-        case NO_SIDE_EFFECTS = 1;  // implies idempotent
-        case IDEMPOTENT = 2;       // idempotent, but may have side effects
+        case IDEMPOTENCY_UNKNOWN = 0
+        case NO_SIDE_EFFECTS = 1  // implies idempotent
+        case IDEMPOTENT = 2       // idempotent, but may have side effects
     }
 //    optional IdempotencyLevel idempotency_level = 34 [default = IDEMPOTENCY_UNKNOWN];
     public let idempotencyLevel: IdempotencyLevel?
@@ -912,7 +881,6 @@ public struct MethodOptions: Codable, Hashable, ProtobufMessageWithCustomFieldMa
         case uninterpretedOptions = 999
     }
 }
-
 
 
 // A message representing a option the parser does not recognize. This only
@@ -962,7 +930,6 @@ public struct UninterpretedOption: Codable, Hashable, ProtobufMessageWithCustomF
         case aggregateValue = 8
     }
 }
-
 
 
 // ===================================================================

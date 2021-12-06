@@ -32,9 +32,11 @@ public func mockQuery<Value: Encodable, H: Handler>(
     
     let response: Response<H.Response.Content> = try InterfaceExporterLegacyStrategy(exporter)
         .applied(to: endpoint)
-        .decodeRequest(from: request,
+        .decodeRequest(
+            from: request,
             with: DefaultRequestBasis(base: request),
-            with: app.eventLoopGroup.next())
+            with: app.eventLoopGroup.next()
+        )
         .insertDefaults(with: endpoint[DefaultValueStore.self])
         .evaluate(on: delegate, final ? .end : .open)
         .wait()

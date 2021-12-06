@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import ApodiniUtils
 import Foundation
@@ -6,26 +14,22 @@ import Foundation
 struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
-    let context: _EncoderContext
+    let context: EncoderContext
     
-    var count: Int {
-        // TODO when does this get called? Who calls this?
-        // Should it represent the number of elements that have been encoded so far? or the expected number?
-        fatalError()
-    }
+    private(set) var count: Int = 0
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
+    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
         self.context = context
     }
     
     mutating func encodeNil() throws {
-        fatalError()
+        fatalError("Not implemented")
     }
     
     mutating func nestedContainer<NestedKey: CodingKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> {
-        fatalError("Not implemented (keyType: \(keyType))")
+        fatalError("Not implemented")
     }
     
     mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
@@ -33,7 +37,7 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
     
     mutating func superEncoder() -> Encoder {
-        fatalError()
+        fatalError("Not implemented")
     }
     
     mutating func encode(_ value: Bool) throws {
@@ -93,7 +97,6 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
     
     mutating func encode<T: Encodable>(_ value: T) throws {
-        // TODO do we need to do special checks for certain types here?
         let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
         try value.encode(to: encoder)
     }

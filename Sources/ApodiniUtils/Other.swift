@@ -158,7 +158,8 @@ public func precondition(
     _ condition: @autoclosure () -> Bool,
     implies implication: @autoclosure () -> Bool,
     _ message: @autoclosure () -> String = "",
-    file: StaticString = #file, line: UInt = #line
+    file: StaticString = #file,
+    line: UInt = #line
 ) {
     precondition(!condition() || implication(), message(), file: file, line: line)
 }
@@ -166,6 +167,7 @@ public func precondition(
 
 /// A type that can be initialised using a 0-arity iniitialiser
 public protocol DefaultInitialisable {
+    /// Create a new value
     init()
 }
 
@@ -194,5 +196,22 @@ public func getMemoryAddressAsHexString<T: AnyObject>(_ object: T?) -> String {
         return "0x0"
     case .some(let value):
         return Unmanaged.passUnretained(value).toOpaque().debugDescription
+    }
+}
+
+
+/// A counter that counts integer values upwards.
+public struct Counter<T: FixedWidthInteger> {
+    private var nextValue: T
+    
+    /// Create a new Counter, optionally specifying the initial value, which otherwise defaults to `T.zero`
+    public init(_ initialValue: T = .zero) {
+        nextValue = initialValue
+    }
+    
+    /// Get the next value.
+    public mutating func get() -> T {
+        defer { nextValue += 1 }
+        return nextValue
     }
 }

@@ -32,4 +32,18 @@ class ApodiniUtilsTests: XCTestCase {
             (cString[0], cString[1], cString[2], cString[3])
         )))
     }
+    
+    
+    func testBitset() {
+        var bitset: UInt8 = 0
+        bitset[bitAt: 0] = true
+        XCTAssertEqual(bitset, 1)
+        XCTAssertEqual(bitset.binaryString, "00000001")
+        bitset.toggleBit(at: 2)
+        XCTAssertEqual(bitset, 5)
+        XCTAssertEqual(bitset.binaryString, "00000101")
+        bitset.replaceBits(in: 4..<7, withEquivalentRangeIn: 112) // 112 = 0b01110101
+        XCTAssertEqual(bitset, 117)
+        XCTAssertEqual(bitset.binaryString, "01110101")
+    }
 }

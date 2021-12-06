@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import ApodiniUtils
 import Foundation
@@ -6,9 +14,9 @@ import Foundation
 struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
-    let context: _EncoderContext
+    let context: EncoderContext
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: _EncoderContext) {
+    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
         self.context = context
@@ -23,9 +31,6 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
     }
     
     mutating func encode(_ value: String) throws {
-        precondition(!value.isEmpty) // if a string is empty, we shouldn't end up here in the first place.
-        // One issue however is that, even though ideally we'd skip writing the string if it was empty, we can't do that here since in this context we don't
-        // QUESTION: Can we safely skip writing the string if it is empty? We don't know whether the field's key has already been written, so if we skip it we might end up w/ a key that's missing a value...
         dstBufferRef.value.writeProtoLengthDelimited(value.utf8)
     }
     
@@ -106,12 +111,5 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
         } else {
             fatalError("Not yet implemented (T: \(T.self), value: \(value))")
         }
-    }
-}
-
-
-extension ByteBuffer {
-    public func lk_getAllBytes() -> [UInt8] {
-        getBytes(at: 0, length: writerIndex)!
     }
 }

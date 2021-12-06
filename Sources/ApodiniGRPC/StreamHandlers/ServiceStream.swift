@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import ApodiniExtension
 import NIO
@@ -26,18 +34,15 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                             let buffer = try self.encodeResponseIntoProtoMessage(content)
                             responsesStream.write((buffer, closeStream: response.connectionEffect == .close))
                         } else {
-                            // TODO presumably this would get turned into an empty DATA frame (followed by the trailers)?
-                            // can we somehow skip the empty frame and directly translate this into sending trailers? (maybe by adding support for nil payloads?)
                             responsesStream.write((ByteBuffer(), closeStream: response.connectionEffect == .close))
                         }
                     } catch {
-                        // Error encoding the response data
                         fatalError("Error encoding part of response: \(error)")
                     }
                 }
             )
-            .map { firstResponse -> GRPCMessageOut in
-                return GRPCMessageOut.stream(
+            .map { _ -> GRPCMessageOut in
+                GRPCMessageOut.stream(
                     HPACKHeaders {
                         $0[.contentType] = .gRPC(.proto)
                     },

@@ -1,8 +1,21 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
 
+
+public enum ProtoSyntax: String {
+    case proto2
+    case proto3
+}
 
 private var cachedCodingKeysEnumCases: [ObjectIdentifier: [Runtime.Case]] = [:]
 
@@ -15,9 +28,9 @@ extension CodingKey {
             if let idx = enumCases.firstIndex(where: { $0.name == self.stringValue }) {
                 return idx + 1
             }
-        } else if let TI = try? typeInfo(of: Self.self) {
-            cachedCodingKeysEnumCases[ObjectIdentifier(Self.self)] = TI.cases
-            if let idx = TI.cases.firstIndex(where: { $0.name == self.stringValue }) {
+        } else if let typeInfo = try? Runtime.typeInfo(of: Self.self) {
+            cachedCodingKeysEnumCases[ObjectIdentifier(Self.self)] = typeInfo.cases
+            if let idx = typeInfo.cases.firstIndex(where: { $0.name == self.stringValue }) {
                 return idx + 1
             }
         }
@@ -38,8 +51,6 @@ enum ProtoEncodingError: Swift.Error {
 }
 
 
-
-
 /// Checks whether the type is compatible with the protobuf format.
 /// This will catch types containing invalid things such as an `Array<T?>` (proto arrays must contain non-optional elements),
 /// or enums missing a case mapped to the `0` value.
@@ -50,12 +61,10 @@ func validateTypeIsProtoCompatible(_ type: Any.Type) throws {
 }
 
 
-
 extension ByteBuffer {
     func canMoveReaderIndex(forwardBy distance: Int) -> Bool {
-        return (0...writerIndex).contains(readerIndex + distance)
+        (0...writerIndex).contains(readerIndex + distance)
     }
-    
     
     @discardableResult
     mutating func writeProtoKey(forFieldNumber fieldNumber: Int, wireType: WireType) -> Int {
@@ -63,7 +72,7 @@ extension ByteBuffer {
         return writeProtoVarInt((fieldNumber << 3) | numericCast(wireType.rawValue))
     }
     
-    /// Writes a VarInt value to the buffer, **WITHOUT** using the ZigZag encoding!!! (TODO maybe add this at some point in the future?)
+    /// Writes a VarInt value to the buffer, without using the ZigZag encoding!
     /// - returns: the number of bytes written to the buffer
     @discardableResult
     mutating func writeProtoVarInt<T: FixedWidthInteger>(_ value: T) -> Int {
@@ -77,11 +86,6 @@ extension ByteBuffer {
         writeInteger(UInt8(u64Val))
         return writtenBytes + 1
     }
-    
-//    @discardableResult
-//    mutating func writeProtoVarInt(_ value: UInt64) -> Int {
-//
-//    }
     
     /// Reads the value at the current reader index as a VarInt
     /// - returns: the read number, or `nil` if we were unable to read a number (e.g. because there's no data left to be read)
@@ -110,23 +114,17 @@ extension ByteBuffer {
         return result
     }
     
-    
     func getVarInt(at idx: Int) throws -> UInt64 {
         var copy = self
         copy.moveReaderIndex(to: idx)
         return try copy.readVarInt()
     }
     
-    
-    
     /// Writes a length-delimited field to the output buffer.
     /// - Note: The arguemt buffer SHOULD NOT be already length-delimited.
     /// - Returns: the number of bytes written to the buffer
     @discardableResult
     mutating func writeProtoLengthDelimited(_ input: ByteBuffer) -> Int {
-//        let varIntLength = writeVarInt(input.readableBytes)
-//        let inputLength = buffer.writeImmutableBuffer(input)
-//        return varIntLength + inputLength
         writeProtoLengthDelimited(input.readableBytesView)
     }
     
@@ -134,15 +132,10 @@ extension ByteBuffer {
     /// - Returns: the nu,ber of written bytes
     @discardableResult
     mutating func writeProtoLengthDelimited<C: Collection>(_ input: C) -> Int where C.Element == UInt8 {
-//        let varIntLength = writeVarInt(input.count)
-//        buffer.reserveCapacity(minimumWritableBytes: input.count)
-//        let inputLength = buffer.writeBytes(input)
-//        return varIntLength + inputLength
         let bytesWritten = writeProtoVarInt(input.count) + write(input)
         precondition(bytesWritten > 0)
         return bytesWritten
     }
-    
     
     @discardableResult
     mutating func write<C: Collection>(_ input: C) -> Int where C.Element == UInt8 {
@@ -199,22 +192,45 @@ extension ByteBuffer {
         copy.moveReaderIndex(to: idx)
         return try copy.readProtoDouble()
     }
+    
+    /// Attempts to decode a proto-encoded string
+    func decodeProtoString(
+        fieldValueInfo: ProtobufFieldInfo.ValueInfo,
+        fieldValueOffset: Int,
+        codingPath: [CodingKey],
+        makeDataCorruptedError: (String) -> Error
+    ) throws -> String {
+        switch fieldValueInfo {
+        case let .lengthDelimited(length, dataOffset):
+            guard let bytes = self.getBytes(at: fieldValueOffset + dataOffset, length: length) else {
+                // NIO says the `getBytes` function only returns nil if the data is not readable
+                throw makeDataCorruptedError("No data")
+            }
+            if let string = String(bytes: bytes, encoding: .utf8) {
+                return string
+            } else {
+                throw makeDataCorruptedError("Cannot decode UTF-8 string from bytes \(bytes.description(maxLength: 25)).")
+            }
+        case .varInt, ._32Bit, ._64Bit:
+            throw DecodingError.typeMismatch(String.self, DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Cannot decode '\(String.self)' from field with wire type \(fieldValueInfo.wireType). (Expected \(WireType.lengthDelimited) wire type.)",
+                underlyingError: nil
+            ))
+        }
+    }
 }
 
 
-
-
-
-func GetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
-    if type == Int.self || type == Int64.self { // TODO this will break on a system where Int != Int64
+func getProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
+    if type == Int.self || type == Int64.self {
         return .TYPE_INT64
-    } else if type == UInt.self || type == UInt64.self {  // TODO this will break on a system where UInt != UInt64
+    } else if type == UInt.self || type == UInt64.self {
         return .TYPE_UINT64
     } else if type == Int32.self {
         return .TYPE_INT32
     } else if type == UInt32.self {
         return .TYPE_UINT32
-    //} else if type == Int16.self || type == UInt16.self // TODO add support for these? and then simply map them to the smallest int where they'd fit. Also add the corresponding logic to the en/decoder!
     } else if type == Bool.self {
         return .TYPE_BOOL
     } else if type == Float.self {
@@ -225,13 +241,12 @@ func GetProtoFieldType(_ type: Any.Type) -> FieldDescriptorProto.FieldType {
         return .TYPE_STRING
     } else if type == Array<UInt8>.self || type == Data.self {
         return .TYPE_BYTES
-    } else if GetProtoCodingKind(type) == .message {
+    } else if getProtoCodingKind(type) == .message {
         return .TYPE_MESSAGE
     } else {
         fatalError("Unsupported type '\(type)'")
     }
 }
-
 
 
 /// what a type becomes when coding it in protobuf
@@ -243,10 +258,9 @@ enum ProtoCodingKind {
     case repeated
 }
 
-/// Returns whether the type is a message type in protobuf. (Or, rather, would become one.)
-func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this still needed? we also have GetProtoFieldType and GuessWireType, which kinda go into the same direction
+
+func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:disable:this cyclomatic_complexity
     let conformsToMessageProtocol = (type as? ProtobufMessage.Type) != nil
-    let isPrimitiveProtoType = (type as? ProtobufPrimitive.Type) != nil
     
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
@@ -254,17 +268,16 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
     }
     
     if let optionalTy = type as? AnyOptional.Type {
-        return GetProtoCodingKind(optionalTy.wrappedType)
+        return getProtoCodingKind(optionalTy.wrappedType)
     } else if type as? ProtobufBytesMapped.Type != nil {
         return .primitive
-    } else if let repeatedTy = type as? ProtobufRepeated.Type {
+    } else if type as? ProtobufRepeated.Type != nil {
         return .repeated
     }
     
     guard (type as? Codable.Type) != nil else {
         // A type which isn't codable couldn't be en- or decoded in the first place
-        fatalError()
-        return nil
+        fatalError("Type '\(type)' is not supported by ProtobufferCoding, because it does not conform to Codable")
     }
     
     if (type as? ProtobufPrimitive.Type) != nil {
@@ -273,25 +286,20 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
         return .primitive
     }
     
-    guard let TI = try? typeInfo(of: type) else {
-        fatalError()
+    guard let typeInfo = try? Runtime.typeInfo(of: type) else {
         return nil
     }
     
-    switch TI.kind {
+    switch typeInfo.kind {
     case .struct:
         // The type is a struct, it is codable, but it is not a primitive.
-        // What is it?
-        // (Jpkes on you i dont know either,,,)
-        
         // This is the point where we'd like to just be able to assume that it's a message, but I'm not really comfortable w/ thhat...
         // TODO simply returning message here for all sructs will absolutely fuck shit up down the line. eg: dictionaries? sets? literally every other codable struct type? None of these should be encoded length-delimited in the first place!
         return .message
-        fatalError()
     case .enum:
         let isSimpleEnum = (type as? AnyProtobufEnum.Type) != nil
         let isComplexEnum = (type as? AnyProtobufEnumWithAssociatedValues.Type) != nil
-        switch (isSimpleEnum, isComplexEnum) { // TODO the protocol names  here in the error messages aren't perfectly correct but we can't use the actual one bc reasons
+        switch (isSimpleEnum, isComplexEnum) {
         case (false, false):
             fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(AnyProtobufEnum.self)' nor to '\(AnyProtobufEnumWithAssociatedValues.self)'")
         case (true, false):
@@ -302,7 +310,6 @@ func GetProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // TODO is this 
             fatalError("Invalid enum, type: The '\(AnyProtobufEnum.self)' and '\(AnyProtobufEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
         }
     default:
-        // just return nil...!!!
-        fatalError()
+        return nil
     }
 }

@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import ApodiniExtension
 import NIO
@@ -8,7 +16,6 @@ import ApodiniNetworking
 import ProtobufferCoding
 
 
-
 struct GRPCServerError: Swift.Error {
     let message: String
 }
@@ -17,8 +24,7 @@ struct GRPCServerError: Swift.Error {
 /// The gRPC server manages a set of gRPC services (as well as their methods),
 /// and implements the logic for handling incoming requests to these methods.
 class GRPCServer {
-    private(set) var services: [GRPCService] = [] // TODO make this a dict? would that improve performance?
-    
+    private(set) var services: [GRPCService] = []
     private(set) var fileDescriptors: [(symbols: Set<String>, fileDescriptor: FileDescriptorProto)] = []
     
     let defaultPackageName: String
@@ -29,20 +35,21 @@ class GRPCServer {
         self.schema = .init(defaultPackageName: defaultPackageName)
     }
     
-    
     func service(named serviceName: String, inPackage packageName: String) -> GRPCService? {
         services.first { $0.packageName == packageName && $0.name == serviceName }
     }
     
+    func hasService(named serviceName: String, inPackage packageName: String) -> Bool {
+        service(named: serviceName, inPackage: packageName) != nil
+    }
     
     @discardableResult
     func createService(name: String, associatedWithPackage packageName: String) -> GRPCService {
-        precondition(service(named: name, inPackage: packageName) == nil, "gRPC service names must be unique")
+        precondition(!hasService(named: name, inPackage: packageName), "gRPC service names must be unique")
         let service = GRPCService(name: name, packageName: packageName)
         services.append(service)
         return service
     }
-    
     
     func addMethod(toServiceNamed serviceName: String, inPackage packageName: String, _ method: GRPCMethod) {
         guard let service = service(named: serviceName, inPackage: packageName) else {
@@ -50,7 +57,6 @@ class GRPCServer {
         }
         service.addMethod(method)
     }
-    
     
     /// - returns: `nil` if the service/method was not found
     func makeStreamRPCHandler(toService serviceNameString: String, method: String) -> GRPCStreamRPCHandler? {
@@ -65,32 +71,14 @@ class GRPCServer {
     }
     
     
-    // TODO move this to the schema?
     func createFileDescriptors() {
-        // We currently have only two hard-coded file descriptors: the reflection service, and the actual web service
-        let fileDescriptors = [
-            makeFileDescriptorProto(
-                forPackage: "google.protobuf", // This only works because the only types we declare w/ this package name are the types found in descriptors.proto
-                name: "google/protobuf/descriptor.proto"
-            ),
-            makeFileDescriptorProto(
-                forPackage: GRPCInterfaceExporter.serverReflectionPackageName,
-                name: "grpc_reflection/v1alpha/reflection.proto",
-                dependencies: [
-                    "google/protobuf/descriptor.proto"
-                ] // TODO?
-            ),
-            makeFileDescriptorProto(
-                forPackage: defaultPackageName,
-                name: "\(defaultPackageName).proto",
-                dependencies: [] // TODO?
-            )
-        ]
+        let fileDescriptors: [FileDescriptorProto] = schema.finalizedPackages.map { packageName, packageInfo in
+            makeFileDescriptorProto(forPackage: packageName, packageInfo: packageInfo)
+        }
         self.fileDescriptors = fileDescriptors.map {
             ($0.computeAllSymbols(), $0)
         }
     }
-    
     
     func fileDescriptor(forFilename filename: String) -> FileDescriptorProto? {
         fileDescriptors.first { $0.fileDescriptor.name == filename }?.fileDescriptor
@@ -99,8 +87,64 @@ class GRPCServer {
     func fileDescriptor(forSymbol symbol: String) -> FileDescriptorProto? {
         fileDescriptors.first { $0.symbols.contains(symbol) }?.fileDescriptor
     }
+    
+    
+    func makeFileDescriptorProto(
+        forPackage packageUnit: ProtobufPackageUnit,
+        packageInfo: ProtoSchema.FinalizedPackage
+    ) -> FileDescriptorProto {
+        precondition(packageUnit == packageInfo.packageUnit)
+        var referencedSymbols: Set<String> = packageInfo.referencedSymbols
+        var fdProto = FileDescriptorProto(
+            name: packageUnit.filename,
+            package: packageUnit.packageName,
+            dependencies: [],
+            publicDependency: [],
+            weakDependency: [],
+            messageTypes: packageInfo.messageTypes,
+            enumTypes: packageInfo.enumTypes,
+            services: services.compactMap { service -> ServiceDescriptorProto? in
+                guard service.packageName == packageUnit.packageName else {
+                    return nil
+                }
+                return ServiceDescriptorProto(
+                    name: service.name,
+                    methods: service.methods.map { method -> MethodDescriptorProto in
+                        referencedSymbols.insert(method.inputType.fullyQualifiedTypename)
+                        referencedSymbols.insert(method.outputType.fullyQualifiedTypename)
+                        return MethodDescriptorProto(
+                            name: method.name,
+                            inputType: method.inputType.fullyQualifiedTypename,
+                            outputType: method.outputType.fullyQualifiedTypename,
+                            options: nil,
+                            clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
+                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
+                        )
+                    },
+                    // NOTE: we could use this to mark services as deprecated. might be interesting in combination with the migration stuff...
+                    options: nil
+                )
+            },
+            extensions: [],
+            options: nil,
+            sourceCodeInfo: nil,
+            syntax: packageInfo.packageSyntax.rawValue
+        )
+        fdProto.dependencies = referencedSymbols
+            .compactMapIntoSet { symbolName -> String? in
+                /// Name of the package in which the referenced file resides
+                let packageUnit: ProtobufPackageUnit? = schema.fqtnByPackageMapping.first { $1.contains(symbolName) }?.key
+                if packageUnit == packageInfo.packageUnit {
+                    // packageInfo is the package for which we're asked to produce a file descriptor.
+                    // so, if the referenced type is in the current package, we can skip it.
+                    return nil
+                }
+                return packageUnit?.filename
+            }
+            .intoArray()
+        return fdProto
+    }
 }
-
 
 
 class GRPCService {
@@ -112,7 +156,6 @@ class GRPCService {
         methodsByName.values
     }
     
-    
     init(name: String, packageName: String, methods: [GRPCMethod] = []) {
         self.name = name
         self.packageName = packageName
@@ -120,7 +163,6 @@ class GRPCService {
             addMethod(method)
         }
     }
-    
     
     func addMethod(_ method: GRPCMethod) {
         precondition(
@@ -133,8 +175,11 @@ class GRPCService {
     func method(named methodName: String) -> GRPCMethod? {
         methodsByName[methodName]
     }
+    
+    func hasMethod(named methodName: String) -> Bool {
+        method(named: methodName) != nil
+    }
 }
-
 
 
 class GRPCMethod {
@@ -146,9 +191,9 @@ class GRPCMethod {
     /// The method's communicational pattern, e.g. unary, client-side-streaming, etc
     let type: CommunicationalPattern
     /// The method's input proto type. This is guaranteed to be a top-level type.
-    let inputType: ProtoTypeDerivedFromSwift
+    let inputType: ProtoType
     /// The method's output proto type. This is guaranteed to be a top-level type.
-    let outputType: ProtoTypeDerivedFromSwift
+    let outputType: ProtoType
     /// Closure that makes a `GRPCStreamRPCHandler`
     private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
     
@@ -162,9 +207,7 @@ class GRPCMethod {
         self.name = name
         self.type = endpoint[CommunicationalPattern.self]
         
-        // TODO is it important that we do the defaults load only once, instead of every time a connection is opened?
         let defaults = endpoint[DefaultValueStore.self]
-        
         self.streamRPCHandlerMaker = { () -> GRPCStreamRPCHandler in
             let rpcHandlerType: StreamRPCHandlerBase<H>.Type = {
                 switch endpoint[CommunicationalPattern.self] {
@@ -185,17 +228,21 @@ class GRPCMethod {
                 endpointContext: endpointContext
             )
         }
-        let messageTypes = try! schema.endpointProtoMessageTypes(for: endpoint)
+        let messageTypes = try! schema.informAboutEndpoint(endpoint, grpcMethodName: name)
         endpointContext.endpointRequestType = messageTypes.input
         endpointContext.endpointResponseType = messageTypes.output
-        //self.inputFQTN = messageTypes.input.fullyQualifiedTypename // TODO we can remove the xFQTN properties!!!
-        //self.outputFQTN = messageTypes.output.fullyQualifiedTypename
         self.inputType = messageTypes.input
         self.outputType = messageTypes.output
     }
     
     
-    init(name: String, type: CommunicationalPattern, inputType: ProtoTypeDerivedFromSwift, outputType: ProtoTypeDerivedFromSwift, streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler) {
+    init(
+        name: String,
+        type: CommunicationalPattern,
+        inputType: ProtoType,
+        outputType: ProtoType,
+        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler
+    ) {
         self.name = name
         self.type = type
         self.inputType = inputType
@@ -215,6 +262,7 @@ extension FileDescriptorProto {
         var symbols = Set<String>()
         if self.package.isEmpty {
             symbols.formUnion(services.map(\.name))
+            symbols.formUnion(services.flatMap(\.methods).map(\.name))
             symbols.formUnion(enumTypes.map(\.name))
         } else {
             symbols.formUnion(services.map { "\(self.package).\($0.name)" })

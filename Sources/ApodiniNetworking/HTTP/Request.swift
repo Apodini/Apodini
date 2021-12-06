@@ -47,10 +47,12 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         /// The request's parameters that are expressed via a clear key-value mapping (e.g.: explicitly named path parameters)
         var namedParameters: [String: String] = [:]
         /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained single-path-component wildcards
-        /// key: index of wildcard in path components array // TODO update desc
+        /// key: wildcard key, which is eiter a string (if the wildcards pat component this was matched to was named),
+        /// or an int (if it was unnamed) representing the index of w/in the pats components array
         var singleComponentWildcards: [WildcardKey: String] = [:]
         /// The request's parameters that are the result from matching the request against a ``HTTPRouter.Route`` which contained multi-path-component wildcards
-        /// key: index of wildcard in path components array // TODO update desc
+        /// key: wildcard key, which is eiter a string (if the wildcards pat component this was matched to was named),
+        /// or an int (if it was unnamed) representing the index of w/in the pats components array
         var multipleComponentWildcards: [WildcardKey: [String]] = [:]
     }
     
@@ -195,23 +197,13 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         }
         do {
             return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
-            //return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!) // TODO keep this somehow?
         } catch {
             throw ApodiniNetworkingError(message: "Error decoding parameter '\(name)'", underlying: error)
         }
     }
     
     /// Returns the value of the specified non-query parameter, decoded using the specified type
-    public func getMultipleWildcardParameter(named name: String) -> [String]? {
-//        guard let rawValue = getParameterRawValue(name) else {
-//            return nil
-//        }
-//        do {
-//            return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
-//            //return try JSONDecoder().decode(T.self, from: rawValue.data(using: .utf8)!) // TODO keep this somehow?
-//        } catch {
-//            throw ApodiniNetworkingError(message: "Error decoding parameter '\(name)'", underlying: error)
-//        }
+    public func getMultipleWildcardParameter(named name: String) -> [String]? { // swiftlint:disable:this discouraged_optional_collection
         parameters.multipleComponentWildcards[.named(name)]
     }
     

@@ -67,15 +67,15 @@ public enum ConnectionState: String, Hashable {
             return false
         }
     }
-}
-
-
-public func ~= (lhs: ConnectionState, rhs: ConnectionState) -> Bool {
-    switch (lhs, rhs) {
-    case (.open, .open), (.end, .end), (.close, .close):
-        return true
-    default:
-        return false
+    
+    /// `ConnectionState` switch pattern matching implementation
+    public static func ~= (lhs: ConnectionState, rhs: ConnectionState) -> Bool {
+        switch (lhs, rhs) {
+        case (.open, .open), (.end, .end), (.close, .close):
+            return true
+        default:
+            return false
+        }
     }
 }
 

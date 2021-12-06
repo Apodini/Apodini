@@ -187,6 +187,7 @@ let package = Package(
         .testTarget(
             name: "NegativeCompileTestsRunner",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .target(name: "ApodiniUtils")
             ]
         ),
@@ -409,6 +410,7 @@ let package = Package(
         .target(
             name: "XCTApodini",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "XCTAssertCrash", package: "XCTAssertCrash", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
@@ -424,11 +426,14 @@ let package = Package(
         .target(
             name: "XCTApodiniNetworking",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
+
+        .target(name: "XCTUtils"),
         
         
         .executableTarget(

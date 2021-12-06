@@ -1,9 +1,17 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 import NIO
 import NIOHPACK
-import Logging
 
 
+/// Type that can handle events on a gRPC connection.
 protocol GRPCStreamRPCHandler: AnyObject {
     /// The function that will be invoked when the stream is first opened
     func handleStreamOpen(context: GRPCStreamConnectionContext)
@@ -24,7 +32,6 @@ extension GRPCStreamRPCHandler {
 }
 
 
-
 /// An open gRPC stream over which messages are sent
 protocol GRPCStreamConnectionContext {
     /// The event loop associated with the connection. (... on which the connection is handled)
@@ -33,10 +40,7 @@ protocol GRPCStreamConnectionContext {
     var initialRequestHeaders: HPACKHeaders { get }
     /// Fully qualified name of the method this connection is calling.
     var grpcMethodName: String { get }
-    ///// A queue that allows stream handlers to submit tasks that will be run when the last currently-queued handler event has finished.
-    //var handleQueue: LKEventLoopFutureBasedQueue { get }
 }
-
 
 
 class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
@@ -44,15 +48,13 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
     let initialRequestHeaders: HPACKHeaders
     let grpcMethodName: String
     private let rpcHandler: GRPCStreamRPCHandler
-    private(set) var isHandlingMessage = false // TODO make just private!
-    let handleQueue: LKEventLoopFutureBasedQueue
+    private(set) var isHandlingMessage = false
     
     init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCStreamRPCHandler, grpcMethodName: String) {
         self.eventLoop = eventLoop
         self.initialRequestHeaders = initialRequestHeaders
         self.rpcHandler = rpcHandler
         self.grpcMethodName = grpcMethodName
-        self.handleQueue = LKEventLoopFutureBasedQueue(eventLoop: eventLoop)
     }
     
     func handleStreamOpen() {
@@ -75,28 +77,23 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
 }
 
 
-
-
-
-class LKEventLoopFutureBasedQueue {
+/// A queue of `EventLoopFuture`s, which will be evaluated one after the other.
+/// - Note: This is not always a useful or desirable thing, so use with caution.
+class EventLoopFutureQueue {
     private let eventLoop: EventLoop?
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
-    private let logger: Logger
     
     init(eventLoop: EventLoop? = nil) {
         self.eventLoop = eventLoop
-        self.logger = Logger(label: "[\(Self.self)]")
     }
     
-    func submit<Result>(on eventLoop: EventLoop? = nil, tmp_debugDesc: String, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
-        logger.notice("submit(desc: \(tmp_debugDesc), task: \(task))")
-        guard let eventLoop = eventLoop ?? self.eventLoop else { // TODO ideally we'd have this take a non-nil EvenrLoop if none was passed to the iniitialiser, but that isn't possible :/
-            fatalError("You need to specify an event loop, either here or in the initialzier!")
+    func submit<Result>(on eventLoop: EventLoop? = nil, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
+        guard let eventLoop = eventLoop ?? self.eventLoop else {
+            fatalError("You need to specify an event loop, either here or in the initializer!")
         }
-        // TODO does any of this need to be thread-safe? looking especially at the numQueuedHandlerCalls thing...
         defer {
-            self.lastMessageResponseFuture!.whenComplete { [/*TODO unowned?*/self] _ in
+            self.lastMessageResponseFuture!.whenComplete { [self] _ in
                 self.numQueuedHandlerCalls -= 1
                 precondition(self.numQueuedHandlerCalls >= 0)
                 if self.numQueuedHandlerCalls == 0 {
@@ -111,25 +108,20 @@ class LKEventLoopFutureBasedQueue {
             let promise = eventLoop.makePromise(of: Void.self)
             self.numQueuedHandlerCalls += 1
             self.lastMessageResponseFuture = promise.futureResult
-            logger.notice("Running task \(tmp_debugDesc). (no current task)")
             let taskFuture = task()
             taskFuture.whenComplete { _ in
                 promise.succeed(())
-                self.logger.notice("Task \(tmp_debugDesc) completed")
             }
             return taskFuture
         }
         let retvalPromise = eventLoop.makePromise(of: Result.self)
         self.numQueuedHandlerCalls += 1
-        logger.notice("Queueing task \(tmp_debugDesc). (current task)")
         self.lastMessageResponseFuture = lastFuture.hop(to: eventLoop).flatMapAlways { _ -> EventLoopFuture<Void> in
             let promise = eventLoop.makePromise(of: Void.self)
-            self.logger.notice("Running queued task \(tmp_debugDesc)")
             let taskFuture = task()
             taskFuture.cascade(to: retvalPromise)
             taskFuture.whenComplete { _ in
                 promise.succeed(())
-                self.logger.notice("Queued task \(tmp_debugDesc) completed")
             }
             return promise.futureResult
         }

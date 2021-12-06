@@ -56,6 +56,7 @@ extension Array {
         return copy
     }
     
+    /// Sorts the array in-place, using a key path
     public mutating func sort<T: Comparable>(by keyPath: KeyPath<Element, T>) {
         self = sorted(by: keyPath)
     }
@@ -91,6 +92,18 @@ extension Sequence {
         return retval
     }
     
+    /// Returns a set created by compact-mapping the elements of the sequence using the specified block
+    public func compactMapIntoSet<Result: Hashable>(_ transform: (Element) throws -> Result?) rethrows -> Set<Result> {
+        var retval = Set<Result>()
+        retval.reserveCapacity(self.underestimatedCount / 2)
+        for element in self {
+            if let mapped = try transform(element) {
+                retval.insert(mapped)
+            }
+        }
+        return retval
+    }
+    
     /// Returns the number of elements in the sequence that satisfy the predicate.
     public func count(where predicate: (Element) -> Bool) -> Int {
         var retval = 0
@@ -101,8 +114,13 @@ extension Sequence {
         }
         return retval
     }
+    
+    
+    /// Creates an array by consuming all of the sequence's elements.
+    public func intoArray() -> [Element] {
+        Array(self)
+    }
 }
-
 
 
 // MARK: Collection
@@ -257,6 +275,18 @@ extension Array {
         }
     }
     
+    /// Removes from the array the first element for which the predicate evaluates to true.
+    /// - returns: The index from which the matching element was removed, `nil` if none of the array's elements matched the predicate.
+    @discardableResult
+    public mutating func removeFirstOccurrence(where predicate: (Element) -> Bool) -> Int? {
+        if let idx = firstIndex(where: predicate) {
+            remove(at: idx)
+            return idx
+        } else {
+            return nil
+        }
+    }
+    
     /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
     public mutating func subtract<S>(_ other: S) where Element: Hashable, S: Sequence, S.Element == Element {
         let otherAsSet = Set(other)
@@ -271,6 +301,30 @@ extension Array {
             try transform(&element)
             self[idx] = element
         }
+    }
+}
+
+
+private struct ThreeValueHashable<A: Hashable, B: Hashable, C: Hashable>: Hashable {
+    let a: A // swiftlint:disable:this identifier_name
+    let b: B // swiftlint:disable:this identifier_name
+    let c: C // swiftlint:disable:this identifier_name
+}
+
+
+extension Array {
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S, A, B>(_ other: S) where Element == (A, B), S: Sequence, S.Element == (A, B), A: Hashable, B: Hashable {
+        let otherAsSet = other.mapIntoSet { ThreeValueHashable(a: $0.0, b: $0.1, c: 0 as UInt8) }
+        self = filter { !otherAsSet.contains(ThreeValueHashable(a: $0.0, b: $0.1, c: 0 as UInt8)) }
+    }
+    
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S, A, B, C>(
+        _ other: S
+    ) where Element == (A, B, C), S: Sequence, S.Element == (A, B, C), A: Hashable, B: Hashable, C: Hashable { // swiftlint:disable:this large_tuple
+        let otherAsSet = other.mapIntoSet { ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2) }
+        self = filter { !otherAsSet.contains(ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2)) }
     }
 }
 
@@ -296,5 +350,19 @@ extension Result {
         case .success:
             return false
         }
+    }
+}
+
+
+// MARK: Dictionary
+
+extension Dictionary {
+    /// Creates a new Dictionary by mapping the values of this dictionary.
+    public func mapValues<NewValue>(_ transform: (Key, Value) throws -> NewValue) rethrows -> [Key: NewValue] {
+        var retval: [Key: NewValue] = [:]
+        for (key, value) in self {
+            retval[key] = try transform(key, value)
+        }
+        return retval
     }
 }

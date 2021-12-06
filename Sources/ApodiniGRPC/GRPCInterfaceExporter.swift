@@ -1,10 +1,18 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import ApodiniExtension
 import ApodiniNetworking
 import ApodiniUtils
 import Logging
 import Dispatch
-import ProtobufferCoding
+@_exported import ProtobufferCoding
 import Foundation
 
 
@@ -25,11 +33,7 @@ extension HTTPMediaType {
 }
 
 
-struct GRPCError: Swift.Error {
-    let message: String
-}
-
-
+/// The gRPC interface exporter's configuration entry point.
 public class GRPC: Configuration {
     let packageName: String
     let serviceName: String
@@ -42,17 +46,14 @@ public class GRPC: Configuration {
     }
     
     public func configure(_ app: Application) {
-        let IE = GRPCInterfaceExporter(app: app, config: self)
-        app.registerExporter(exporter: IE)
+        let exporter = GRPCInterfaceExporter(app: app, config: self)
+        app.registerExporter(exporter: exporter)
     }
 }
 
 
-
-
 class GRPCInterfaceExporter: InterfaceExporter {
     static let serverReflectionPackageName = "grpc.reflection.v1alpha"
-    //static let serverReflectionServiceName = "\(serverReflectionPackageName).ServerReflection"
     static let serverReflectionServiceName = "ServerReflection"
     static let serverReflectionMethodName = "ServerReflectionInfo"
     
@@ -60,21 +61,20 @@ class GRPCInterfaceExporter: InterfaceExporter {
     private let config: GRPC // would love to have a "GRPCConfig" typename or smth like that here, but that'd make the public API ugly and weird... :/
     
     // The proto/gRPC package into which all of the web service's stuff goes,
-    //private var defaultPackageName: String { config.serviceName + "NS" }
     private let defaultPackageName: String
     
-    private let server: GRPCServer
+    internal /* private but tests */ let server: GRPCServer
     
     private var logger: Logger { app.logger }
     
-    private let reflectionInputType: ProtoTypeDerivedFromSwift
-    private let reflectionOutputType: ProtoTypeDerivedFromSwift
+    private let reflectionInputType: ProtoType
+    private let reflectionOutputType: ProtoType
     
     
     init(app: Application, config: GRPC) {
         self.app = app
         self.config = config
-        let defaultPackageName = config.packageName //config.serviceName// + "NS"
+        let defaultPackageName = config.packageName
         self.defaultPackageName = defaultPackageName
         let server = GRPCServer(defaultPackageName: defaultPackageName)
         self.server = server
@@ -83,12 +83,12 @@ class GRPCInterfaceExporter: InterfaceExporter {
               let tlsConfig = app.httpConfiguration.tlsConfiguration,
               tlsConfig.applicationProtocols.contains("h2")
         else {
-            fatalError("Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled. You might need to move your web service's HTTPConfiguration up so that it comes before the GRPC configuration.")
+            fatalError("""
+                Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled.
+                You might need to move your web service's HTTPConfiguration up so that it comes before the GRPC configuration.
+                """
+            )
         }
-//        app.httpConfiguration.supportVersions.insert(.two)
-//        app.httpConfiguration.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
-//        app.http.supportVersions.insert(.two)
-//        app.http.tlsConfiguration!.applicationProtocols.append("h2") // h2, http/1.1, spdy/3
         
         // Create the default service (we only support one atm, but this implementation could also support multiple services
         server.createService(name: config.serviceName, associatedWithPackage: defaultPackageName)
@@ -100,19 +100,12 @@ class GRPCInterfaceExporter: InterfaceExporter {
             self.reflectionOutputType = reflectionTypes.outputType
             try server.schema.informAboutMessageType(FileDescriptorSet.self) // this is enough to pull in the entire descriptors file
         } catch {
-            if case ProtoValidationError.proto3EnumMissingCaseWithZeroValue(let enumTy) = error {
-                print(enumTy, enumTy is Proto2Codable.Type, enumTy as? Proto2Codable.Type)
-            }
             fatalError("Error registering proto types with schema: \(error)")
         }
     }
     
-    deinit {
-        logger.notice("-[\(Self.self) \(#function)]")
-    }
     
-    
-    func export<H: Handler>(_ endpoint: Endpoint<H>) -> () {
+    func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationalPattern.self]
         let methodName = getMethodName(for: endpoint)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
@@ -139,14 +132,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
     }
     
     
-    func export<H: Handler>(blob endpoint: Endpoint<H>) -> () where H.Response.Content == Blob {
-        print("-[\(Self.self) \(#function)] TODO!!!!")
-    }
-    
-    
-    func exportParameter<Type: Codable>(_ parameter: EndpointParameter<Type>) -> () {
-        // TODO this function never seems to get called?
-        fatalError("\(parameter)")
+    func export<H: Handler>(blob endpoint: Endpoint<H>) where H.Response.Content == Blob {
+        logger.warning("Skipping endpoint \(endpoint). The gRPC interface exporter does not support Blob handlers")
     }
     
     
@@ -167,7 +154,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         )
         
         // Makes the types managed by the schema ready for use by the reflection API
-        server.schema.finalize()
+        try! server.schema.finalize()
         server.createFileDescriptors()
         
         setupReflectionHTTPRoutes()
@@ -181,7 +168,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
             ])
         }
     }
-    
     
     
     // MARK: Internal Stuff
@@ -249,7 +235,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 let outputFormat = try req.getParameter("format", as: OutputFormat.self),
                 let filename = req.getMultipleWildcardParameter(named: "filename")?.joined(separator: "/")
             else {
-                throw HTTPAbortError(status: .badRequest) // TODO is there a difference between returning this and throwing this?
+                throw HTTPAbortError(status: .badRequest)
             }
             guard let fileDescriptor = self.server.fileDescriptors.first(where: { $0.fileDescriptor.name == filename })?.fileDescriptor else {
                 return HTTPAbortError(status: .notFound)
@@ -269,8 +255,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
 }
 
 
-
-
 struct GRPCEndpointDecodingStrategy: EndpointDecodingStrategy {
     typealias Input = GRPCMessageIn
     
@@ -281,18 +265,21 @@ struct GRPCEndpointDecodingStrategy: EndpointDecodingStrategy {
     }
     
     func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> {
-        return GRPCEndpointParameterDecodingStrategy<Element>(
+        GRPCEndpointParameterDecodingStrategy<Element>(
             name: parameter.name,
             endpointContext: endpointContext
-        ).typeErased // TODO pass the whole parameter?
+        ).typeErased
     }
 }
-
 
 
 private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
     typealias Element = T
     typealias Input = GRPCMessageIn
+    
+    struct DecodingError: Swift.Error {
+        let message: String
+    }
     
     let name: String
     let endpointContext: GRPCEndpointContext
@@ -300,14 +287,14 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
     // TODO how would this deal w/ @Params that are arrays? we couldn't use .getLast for that. Do array params get properly wrapped? (ie in cases where that's the only param. but also in other cases.)
     func decode(from input: GRPCMessageIn) throws -> T {
         switch endpointContext.endpointRequestType! {
-        case .builtinEmptyType, .enumTy, .primitive, .refdMessageType:
-            fatalError()
-        case let .compositeMessage(name: _, underlyingType, nestedOneofTypes: _, fields):
+        case .enumTy, .primitive, .refdMessageType:
+            throw DecodingError(message: "Unable to decode from non-message proto type \(endpointContext.endpointRequestType!)")
+        case let .message(name: _, underlyingType, nestedOneofTypes: _, fields):
             if underlyingType == T.self {
                 return try ProtobufferDecoder().decode(T.self, from: input.payload)
             }
             guard let field = fields.first(where: { $0.name == name }) else {
-                fatalError() // TODO throw
+                throw DecodingError(message: "Unable to find field named '\(name)' in proto message type.")
             }
             return try ProtobufferDecoder().decode(T.self, from: input.payload, atField: field)
         }
@@ -315,14 +302,13 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
 }
 
 
-
 /// Helper type that stores information about an endpoint.
 /// The main use case of this is to share the mapping of an endpoint's input and output protobuffer
 /// message types with other parts of the interface exporter that need to access this information.
 class GRPCEndpointContext: Hashable {
     let communicationalPattern: CommunicationalPattern
-    var endpointRequestType: ProtoTypeDerivedFromSwift?
-    var endpointResponseType: ProtoTypeDerivedFromSwift?
+    var endpointRequestType: ProtoType?
+    var endpointResponseType: ProtoType?
     
     init(communicationalPattern: CommunicationalPattern) {
         self.communicationalPattern = communicationalPattern

@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 import ProtobufferCoding
 
@@ -9,7 +17,6 @@ extension ProtoPrinter {
         return printer.finalise()
     }
 }
-
 
 
 // MARK: Helper Protocols
@@ -47,11 +54,11 @@ struct ProtoPrinter {
     }
     
     
-    mutating fileprivate func indent() {
+    fileprivate mutating func indent() {
         indentLevel += 1
     }
     
-    mutating fileprivate func outdent() {
+    fileprivate mutating func outdent() {
         indentLevel -= 1
     }
     
@@ -59,7 +66,7 @@ struct ProtoPrinter {
         String(repeating: " ", count: Int(indentWidth) * Int(indentLevel))
     }
     
-    mutating fileprivate func write(_ newText: String) {
+    fileprivate mutating func write(_ newText: String) {
         // Note that we're intentionally using .components(separatedBy:) instead split(separator:),
         // the reason being that the first will produce empty strings for adjacent newlines or newlines
         // at the beginning/end of the input, while the latter will not.
@@ -71,18 +78,17 @@ struct ProtoPrinter {
             self.text.append(contentsOf: line)
             if idx < lines.endIndex - 1 {
                 newline()
-                //self.text.append(makeIndentString())
             }
         }
     }
     
-    mutating fileprivate func newline(_ count: UInt = 1) {
+    fileprivate mutating func newline(_ count: UInt = 1) {
         for _ in 0..<count {
             text.append("\n")
         }
     }
     
-    mutating fileprivate func finalise() -> String {
+    fileprivate mutating func finalise() -> String {
         precondition(indentLevel == 0)
         if !text.hasSuffix("\n") {
             newline()
@@ -91,7 +97,7 @@ struct ProtoPrinter {
     }
     
     
-    mutating fileprivate func print(_ descriptor: FileDescriptorProto) {
+    fileprivate mutating func print(_ descriptor: FileDescriptorProto) {
         self.fileDescriptor = descriptor
         
         write("// \(descriptor.name)\n")
@@ -131,20 +137,28 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func print(_ descriptor: DescriptorProto) {
+    private mutating func print(_ descriptor: DescriptorProto) {
         write("message \(descriptor.name) {\n")
         indent()
-        for field in descriptor.fields.sorted(by: \.name) {
+        let fieldsByOneofIdx: [Int32?: [FieldDescriptorProto]] = .init(
+            grouping: descriptor.fields.sorted(by: \.number),
+            by: \.oneofIndex
+        )
+        for field in fieldsByOneofIdx[nil] ?? [] {
             print(field)
+        }
+        
+        for (oneofIdx, fields) in fieldsByOneofIdx.filter({ $0.key != nil }).sorted(by: \.key!) {
+            let oneofDecl = descriptor.oneofDecls[Int(oneofIdx!)]
+            printOneof(oneofDecl, fields: fields)
         }
         
         for messageType in descriptor.nestedTypes.sorted(by: \.name) {
             print(messageType)
         }
-        // TODO newlines around here!
         
         for enumType in descriptor.enumTypes.sorted(by: \.name) {
-            print(enumType) // TODO do we need to adjust the typename here? prob not, right? since its already nested?
+            print(enumType)
         }
         
         printReservedFieldsInfo(descriptor)
@@ -153,7 +167,7 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func print(_ descriptor: FieldDescriptorProto) {
+    private mutating func print(_ descriptor: FieldDescriptorProto) { // swiftlint:disable:this cyclomatic_complexity
         switch descriptor.label {
         case nil:
             break
@@ -168,7 +182,7 @@ struct ProtoPrinter {
         
         switch descriptor.type {
         case nil:
-            fatalError()
+            fatalError("field descriptor missing type")
         case .TYPE_DOUBLE:
             write("double ")
         case .TYPE_FLOAT:
@@ -188,7 +202,7 @@ struct ProtoPrinter {
         case .TYPE_STRING:
             write("string ")
         case .TYPE_GROUP:
-            fatalError()
+            fatalError("Invalid: group field is deprecated")
         case .TYPE_MESSAGE, .TYPE_ENUM:
             write("\(descriptor.typename!) ")
         case .TYPE_BYTES:
@@ -204,7 +218,7 @@ struct ProtoPrinter {
         case .TYPE_SINT64:
             write("sint64 ")
         }
-        write("\(descriptor.name) = \(descriptor.number)") // TODO default values? packed encoding?
+        write("\(descriptor.name) = \(descriptor.number)")
         if let options = descriptor.options, descriptor.label == .LABEL_REPEATED {
             // we currently only support the packed option, on fields w/ a repeated type.
             write(" [packed = \(options.packed)];")
@@ -215,11 +229,24 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func print(_ descriptor: EnumDescriptorProto) {
+    private mutating func printOneof(_ descriptor: OneofDescriptorProto, fields: [FieldDescriptorProto]) {
+        write("oneof \(descriptor.name!) {")
+        newline()
+        indent()
+        for field in fields {
+            print(field)
+        }
+        outdent()
+        write("}")
+        newline()
+    }
+    
+    
+    private mutating func print(_ descriptor: EnumDescriptorProto) {
         write("enum \(descriptor.name) {\n")
         indent()
         for enumCase in descriptor.values.sorted(by: \.number) {
-            write("\(enumCase.name) = \(enumCase.number);") // TODO options?!!!
+            write("\(enumCase.name) = \(enumCase.number);")
             newline()
         }
         printReservedFieldsInfo(descriptor)
@@ -229,10 +256,9 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func printReservedFieldsInfo<T: ProtoDescriptorWithReservedRangesAndNames>(_ descriptor: T) {
+    private mutating func printReservedFieldsInfo<T: ProtoDescriptorWithReservedRangesAndNames>(_ descriptor: T) {
         guard !descriptor.reservedRanges.isEmpty || !descriptor.reservedNames.isEmpty else {
             return
-            
         }
         newline()
         if !descriptor.reservedRanges.isEmpty {
@@ -249,7 +275,7 @@ struct ProtoPrinter {
                         return "\(start) to \(end)"
                     }
                 }
-            }.joined(separator: ", ")
+            }.joined(separator: ", ") // swiftlint:disable:this multiline_function_chains
             if !rangesText.isEmpty {
                 write("reserved \(rangesText);")
                 newline()
@@ -265,7 +291,7 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func print(_ descriptor: ServiceDescriptorProto) {
+    private mutating func print(_ descriptor: ServiceDescriptorProto) {
         write("service \(descriptor.name) {\n")
         indent()
         for method in descriptor.methods.sorted(by: \.name) {
@@ -277,7 +303,7 @@ struct ProtoPrinter {
     }
     
     
-    mutating private func print(_ descriptor: MethodDescriptorProto) {
+    private mutating func print(_ descriptor: MethodDescriptorProto) {
         write("rpc ")
         write(descriptor.name)
         write("(")
@@ -294,9 +320,3 @@ struct ProtoPrinter {
         newline()
     }
 }
-
-
-
-//extension FieldDescriptorProto.FieldType {
-//    var printableTypename
-//}

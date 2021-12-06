@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import ApodiniUtils
 import Foundation
@@ -5,7 +13,7 @@ import Foundation
 
 struct ProtobufferUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     let codingPath: [CodingKey]
-    let count: Int? = nil // TODO are there instances where we know the number of elements?
+    let count: Int? = nil
     var isAtEnd: Bool { buffer.readableBytes == 0 }
     private(set) var currentIndex: Int = 0
     private var buffer: ByteBuffer

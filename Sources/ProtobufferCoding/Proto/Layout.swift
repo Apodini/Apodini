@@ -1,12 +1,20 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 import NIO
 
 
 struct ProtobufFieldInfo: Hashable {
     enum ValueInfo: Hashable {
-        case varInt(UInt64) // TODO merge the first two cases???
-        case _64Bit(UInt64)
-        case _32Bit(UInt32)
+        case varInt(UInt64)
+        case _64Bit(UInt64) // swiftlint:disable:this identifier_name
+        case _32Bit(UInt32) // swiftlint:disable:this identifier_name
         /// - parameter length: The size of the field, in bytes
         /// - parameter dataOffset: The offset of the start of the field's data, relative to the start of the length-delimited buffer.
         ///         (I.e.: the number of bytes used by the data-preceding VarInt storing the data's length.)
@@ -35,8 +43,7 @@ struct ProtobufFieldInfo: Hashable {
     let valueOffset: Int
     /// For non-length-delimited fields, the value stored in the field.
     /// If the value's size is smaller than 64 bit, the most significant bits will be empty.
-    //let numValue: UInt64
-    let valueInfo: ValueInfo // TODO update this after the fact to cache read values?
+    let valueInfo: ValueInfo
     /// The length of this field, in bytes.
     let fieldLength: Int
     
@@ -45,6 +52,7 @@ struct ProtobufFieldInfo: Hashable {
         valueInfo.wireType
     }
 }
+
 
 struct ProtobufFieldsMapping: Hashable {
     private var storage: [Int: [ProtobufFieldInfo]] = [:]
@@ -104,9 +112,7 @@ struct ProtobufMessageLayoutDecoder {
     private var fields = ProtobufFieldsMapping()
     private var didComputeFields = false
     
-    
     private init(buffer: ByteBuffer) {
-        //precondition(buffer.readerIndex == 0) // We'll potentially read through the buffer multiple times, which means that we'll be resetting the reader index to 0, so we need to make sure it's 0 in the beginning. TODO just store the initial index as an ivar?
         self.buffer = buffer
     }
     
@@ -117,14 +123,11 @@ struct ProtobufMessageLayoutDecoder {
     }
     
     
-    // (field_number << 3) | wire_type
-    
-    private mutating func computeFieldInfo() throws {
+    private mutating func computeFieldInfo() throws {  // swiftlint:disable:this cyclomatic_complexity
         guard !didComputeFields else {
             return
         }
         didComputeFields = true
-        //buffer.moveReaderIndex(to: 0)
         guard buffer.readableBytes > 0 else {
             // If there are no readable bytes (i.e. the buffer is empty), we simply return.
             // Empty buffers are perfectly valid (think e.g. a message type containing an empty string and/or empty array)
@@ -132,9 +135,6 @@ struct ProtobufMessageLayoutDecoder {
         }
         while buffer.readableBytes > 0 {
             let fieldKeyOffset = buffer.readerIndex
-//            guard let fieldKey = try buffer.readVarInt() else {
-//                throw Error.other("Unable to read fieldKey VarInt (despite there being data available!)")
-//            }
             let fieldKey = try buffer.readVarInt()
             let fieldValueOffset = buffer.readerIndex
             let rawWireType = UInt8(fieldKey & 0b111)
@@ -145,7 +145,7 @@ struct ProtobufMessageLayoutDecoder {
             let fieldValueInfo: ProtobufFieldInfo.ValueInfo
             
             switch wireType {
-            case .varInt: 
+            case .varInt:
                 fieldValueInfo = .varInt(try buffer.readVarInt())
             case ._64Bit:
                 guard let u64Val = buffer.readInteger(endianness: .little, as: UInt64.self) else {
@@ -162,7 +162,7 @@ struct ProtobufMessageLayoutDecoder {
                 let length = Int(varIntValue)
                 fieldValueInfo = .lengthDelimited(
                     dataLength: length,
-                    dataOffset: buffer.readerIndex - fieldValueOffset // , buffer.getSlice(at: buffer.readerIndex, length: length)!
+                    dataOffset: buffer.readerIndex - fieldValueOffset
                 )
                 guard buffer.canMoveReaderIndex(forwardBy: Int(length)) else {
                     // We'd be moving the reader beyond the end of the buffer, which:
@@ -185,4 +185,3 @@ struct ProtobufMessageLayoutDecoder {
         }
     }
 }
-

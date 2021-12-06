@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 import NIO
 import NIOHPACK
@@ -59,14 +67,12 @@ enum GRPCMessageCompressionType: RawRepresentable, HTTPHeaderFieldValueCodable {
 }
 
 
-
 extension AnyHTTPHeaderName {
     static let gRPCEncoding = HTTPHeaderName<GRPCMessageCompressionType>("grpc-encoding")
 }
 
 
 extension AnyHTTPHeaderName {
-    // TODO move this to ApodiniNetworking!?!!
     static let pathPseudoHeader = HTTPHeaderName<String>(":path")
     static let statusPseudoHeader = HTTPHeaderName<HTTPResponseStatus>(":status")
 }

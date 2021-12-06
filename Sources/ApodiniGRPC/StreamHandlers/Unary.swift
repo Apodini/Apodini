@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import ApodiniExtension
 import NIO
@@ -20,14 +28,6 @@ class UnaryRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             guard let responseContent = response.content else {
                 return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true)
             }
-            // TODO remove!
-//            if context.grpcMethodName.contains("GetAnInt") {
-//                print(responseContent, type(of: responseContent))
-//                let encoded = try! self.encodeResponseIntoProtoMessage(responseContent)
-//                print(encoded.lk_getAllBytes())
-//                try! ProtobufMessageLayoutDecoder.getFields(in: encoded).debugPrintFieldsInfo()
-//                fatalError()
-//            }
             return .singleMessage(
                 headers: headers,
                 payload: try! self.encodeResponseIntoProtoMessage(responseContent),

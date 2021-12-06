@@ -221,8 +221,7 @@ public final class HTTPServer {
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
                     return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
-                            return channel.configureHTTP2SecureUpgrade { channel in
-                                //channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                            channel.configureHTTP2SecureUpgrade { channel in
                                 channel.addApodiniNetworkingHTTP2Handlers(
                                     inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
                                     httpResponder: self
@@ -285,6 +284,10 @@ public final class HTTPServer {
     
     // MARK: Configuration
     
+    /// Register a HTTP/2 stream configuration handler.
+    /// This handler will be invoked as part of a new channel's configuration phase, allowing custom handlers be added to the channel.
+    /// Whether or not a configuration handler will be used to configure a new cannel depends on the `Content-Type` header sent
+    /// by the client with the channel-opening initial request,
     public func addIncomingHTTP2StreamConfigurationHandler(
         forContentTypes contentTypes: Set<HTTPMediaType>,
         configurationHandler: @escaping (Channel) -> EventLoopFuture<Void>

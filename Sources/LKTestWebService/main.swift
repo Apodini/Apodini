@@ -1,3 +1,5 @@
+// swiftlint:disable all
+
 import Apodini
 import ApodiniHTTP
 import ApodiniREST
@@ -228,11 +230,55 @@ struct City: Codable, ResponseTransformable {
 }
 
 
+//struct GenericStruct<T> {
+enum Color: Int32, ProtobufEnum, ResponseTransformable {
+    case white, black, orange, blue, red
+}
+//}
+
+
+struct ColorMappingHandler_Str2Col: Handler {
+    @Parameter var colorName: String
+    func handle() async throws -> Color {
+        switch colorName.lowercased() {
+        case "white":
+            return .white
+        case "black":
+            return .black
+        case "orange":
+            return .orange
+        case "blue":
+            return .blue
+        case "red":
+            return .red
+        default:
+            return .orange
+        }
+    }
+}
+
+
+struct ColorMappingHandler_Col2Str: Handler {
+//    enum Color: Int32, ProtobufEnum, ResponseTransformable {
+//        case white, black, orange, blue, red
+//    }
+    @Parameter var color: Color
+    func handle() async throws -> String {
+        switch color {
+        case .white: return "white"
+        case .black: return "black"
+        case .orange: return "orange"
+        case .blue: return "blue"
+        case .red: return "red"
+        }
+    }
+}
+
 
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
-            .gRPCMethodName("root")
+            .gRPCMethodName("rooooot")
         Group("greet") {
             Greeter()
                 .gRPCMethodName("greet")
@@ -272,6 +318,8 @@ struct LKTestWebService: Apodini.WebService {
             //WrappedArrayReturningHandler().gRPCMethodName("ListPosts2")
             BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
             BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
+            ColorMappingHandler_Str2Col().gRPCMethodName("GetColorFromName")
+            ColorMappingHandler_Col2Str().gRPCMethodName("GetColorName")
         }.gRPCServiceName("API")
         EchoHandler<String>().gRPCMethodName("EchoString")
         EchoHandler<Int>().gRPCMethodName("EchoInt")

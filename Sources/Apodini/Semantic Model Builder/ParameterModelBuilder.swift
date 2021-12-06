@@ -72,6 +72,7 @@ private class ParameterModelBuilder<H: Handler>: AnyParameterVisitor {
                 id: parameter.id,
                 name: parameter.name ?? trimmedLabel,
                 label: label,
+                originalPropertyType: Element.self,
                 nilIsValidValue: false,
                 necessity: parameter.defaultValue != nil ? .optional : .required, // a parameter is optional when a defaultValue is defined
                 options: parameter.options,
@@ -118,6 +119,7 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: OptionalProt
             id: self.id,
             name: name,
             label: label,
+            originalPropertyType: Element.self,
             nilIsValidValue: true,
             necessity: necessity,
             options: self.options,

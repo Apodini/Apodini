@@ -73,6 +73,24 @@ extension EventLoopFuture {
         self.whenComplete { block($0).cascade(to: promise) }
         return promise.futureResult
     }
+    
+    /// Runs the specified block when the future is completed, regardless of whether the result is a success or a failure
+    public func inspect(_ block: @escaping (Result<Value, Error>) -> Void) -> EventLoopFuture<Value> {
+        self.whenComplete(block)
+        return self
+    }
+    
+    /// Runs the specified block when the future succeeds
+    public func inspectSuccess(_ block: @escaping (Value) -> Void) -> EventLoopFuture<Value> {
+        self.whenSuccess(block)
+        return self
+    }
+    
+    /// Runs the specified block when the future fails
+    public func inspectFailure(_ block: @escaping (Error) -> Void) -> EventLoopFuture<Value> {
+        self.whenFailure(block)
+        return self
+    }
 }
 
 

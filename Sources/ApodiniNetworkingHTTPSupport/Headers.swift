@@ -12,7 +12,7 @@ import NIOHTTP2
 import ApodiniUtils
 import Foundation
 
-// swiftlint:disable redundant_string_enum_value
+// swiftlint:disable redundant_string_enum_value large_tuple
 
 
 /// A type which represents a HTTP header field value
@@ -215,6 +215,7 @@ extension __ANNIOHTTPHeadersType {
         self = applyingHTTP2Validations()
     }
     
+    /// Returns a copy of this headers object, with HTTP/2 validations applied
     public func applyingHTTP2Validations() -> Self {
         var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
         var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
@@ -227,7 +228,6 @@ extension __ANNIOHTTPHeadersType {
         }
         return Self(pseudoHeaderEntries.sorted(by: \.0).appending(contentsOf: nonPseudoHeaderEntries.sorted(by: \.0)))
     }
-
 }
 
 

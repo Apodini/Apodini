@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import NIOHTTP2
 
@@ -50,27 +58,14 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
     
     
     private func applyMappingAction(_ action: Configuration.MappingAction, context: ChannelHandlerContext) {
-        // TODO what if there's new incoming requests while all of this is taking place?
         switch action {
         case .forwardToHTTP1Handler(let responder):
-//            context.pipeline.addHandlers([
-//                HTTP2FramePayloadToHTTP1ServerCodec(),
-//                HTTPServerRequestDecoder(),
-//                HTTPServerResponseEncoder(),
-//                HTTPServerRequestHandler(responder: responder)
-//            ]).flatMap {
             context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(responder: responder)
                 .flatMap { context.pipeline.removeHandler(self) }
-                //.whenSuccess { context.fireChannelRead(readData) }
         case .configureHTTP2Stream(let streamConfigurator):
             streamConfigurator(context.channel)
                 .hop(to: context.eventLoop)
                 .flatMap { context.pipeline.removeHandler(self) }
-//                .whenSuccess {
-//                    print("firing read for data that triggred the channel reconfig", readData)
-//                    context.fireChannelRead(readData)
-//                    context.fireChannelReadComplete()
-//                }
         }
     }
     
@@ -114,4 +109,3 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
         }
     }
 }
-

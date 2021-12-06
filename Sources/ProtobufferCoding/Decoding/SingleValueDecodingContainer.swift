@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import NIO
 import Foundation
 
@@ -15,7 +23,7 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     
     
     func decodeNil() -> Bool {
-        fatalError("TODO how do we want to handle this?")
+        fatalError("Not implemented.")
     }
     
     func decode(_ type: Bool.Type) throws -> Bool {
@@ -31,13 +39,11 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
         // That doesn't apply, though, in this case, since the SingleValueDecoder only ever gets used
         // in cases where we already have data and just need to pipe it through e.g. a String's `init(from:)`.
         // (At least, that's how it is intended to be used. Anything else is UB.)
-        // ^^^ TODO is this still correct/relevant?
         
         // This is somewhat annoying but basically the thing is that bc we don't have any field info we'll just have to make a guess that this is in fact a string and that the first byte is the varInt length
         var bufferCopy = buffer
         let length = Int(try bufferCopy.readVarInt())
-        return try _LKTryDeocdeProtoString(
-            in: buffer,
+        return try buffer.decodeProtoString(
             fieldValueInfo: .lengthDelimited(dataLength: length, dataOffset: bufferCopy.readerIndex - buffer.readerIndex),
             fieldValueOffset: buffer.readerIndex,
             codingPath: codingPath,
@@ -48,15 +54,14 @@ struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: Double.Type) throws -> Double {
-        return try buffer.getProtoDouble(at: buffer.readerIndex)
+        try buffer.getProtoDouble(at: buffer.readerIndex)
     }
     
     func decode(_ type: Float.Type) throws -> Float {
-        return try buffer.getProtoFloat(at: buffer.readerIndex)
+        try buffer.getProtoFloat(at: buffer.readerIndex)
     }
     
     func decode(_ type: Int.Type) throws -> Int {
-//        return Int(bitPattern: UInt(try buffer.getVarInt(at: fieldInfo?.valueOffset ?? buffer.readerIndex)))
         try decodeVarInt(type)
     }
     

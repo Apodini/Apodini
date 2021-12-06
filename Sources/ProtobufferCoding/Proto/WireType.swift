@@ -1,12 +1,21 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Foundation
 @_implementationOnly import Runtime
+import ApodiniUtils
 
 
 enum WireType: UInt8, Hashable {
     /// int32, int64, uint32, uint64, sint32, sint64, bool, enum
     case varInt = 0
-    /// 64-fixed64, sfixed64, double
-    case _64Bit = 1
+    /// ffixed64, sfixed64, double
+    case _64Bit = 1 // swiftlint:disable:this identifier_name
     /// string, bytes, embedded messages, packed repeated fields
     case lengthDelimited = 2
     /// groups (deprecated)
@@ -16,35 +25,19 @@ enum WireType: UInt8, Hashable {
     @available(*, deprecated)
     case endGroup = 4
     ///fixed32, sfixed32, float
-    case _32Bit = 5
+    case _32Bit = 5 // swiftlint:disable:this identifier_name
 }
-
 
 
 /// Attempts to guess the protobuf wire type of the specified type.
 /// - Note: This function should only be called with types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
-func GuessWireType(_ type: Any.Type) -> WireType? {
-    let wireType = _GuessWireType(type)
-//    let wireType2 = { () -> WireType? in // TODO base the wire count on the proto coding kind, that'd reduce rediundancy in the two implementations
-//        switch GetProtoCodingKind(type) {
-//        case nil:
-//            return nil
-//        case .message:
-//            return .lengthDelimited
-//        case .primitive:
-//        }
-//    }()
-//    precondition(wireType == wireType2)
-    return wireType
-}
-
-
-func _GuessWireType(_ type: Any.Type) -> WireType? {
+func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cyclomatic_complexity
     if let optionalTy = type as? AnyOptional.Type {
-        return _GuessWireType(optionalTy.wrappedType)
+        return guessWireType(optionalTy.wrappedType)
     } else if type == String.self {
         return .lengthDelimited
-    } else if Set(Bool.self, Int.self, UInt.self, Int32.self, UInt32.self, Int64.self, UInt64.self).contains(type) || (type as? AnyProtobufEnum.Type != nil) {
+    } else if case let types = Set(Bool.self, Int.self, UInt.self, Int32.self, UInt32.self, Int64.self, UInt64.self),
+              types.contains(type) || (type as? AnyProtobufEnum.Type != nil) {
         return .varInt
     } else if type == Float.self {
         return ._32Bit
@@ -53,60 +46,25 @@ func _GuessWireType(_ type: Any.Type) -> WireType? {
     } else if type as? ProtobufBytesMapped.Type != nil {
         return .lengthDelimited
     } else if let repeatedTy = type as? ProtobufRepeated.Type {
-        return repeatedTy.isPacked ? .lengthDelimited : _GuessWireType(repeatedTy.elementType)
-    } else if let TI = try? typeInfo(of: type) {
+        return repeatedTy.isPacked ? .lengthDelimited : guessWireType(repeatedTy.elementType)
+    } else if let typeInfo = try? Runtime.typeInfo(of: type) {
         // Try to determine the wire type based on the kind of type we're dealing with.
         // For example, all structs that didn't match any of the explicitly-checked-for types above can be assumed to be length-delimited
-        switch TI.kind {
+        switch typeInfo.kind {
         case .struct:
             return .lengthDelimited
         case .enum:
-            // TODO do something based on the raw value?
-            if (type as? AnyProtobufEnumWithAssociatedValues.Type) != nil {
-                // should be unreachable, so we can probably remove this check
-                // TODO we have to ignore the key, and the wire type is determined based on the value set!!!
-                //return .lengthDelimited
-            }
-            if (type as? AnyProtobufEnum.Type) != nil {
+            if type as? AnyProtobufEnum.Type != nil {
                 return .varInt
+            } else {
+                return nil
             }
-            fatalError("Unhandled: \(type)") // TODO how should this be handled?
-        case .optional:
-            fatalError() // TODO how should this be handled?
-        case .opaque:
-            fatalError() // TODO how should this be handled? If at all...
-        case .tuple:
-            fatalError() // TODO how should this be handled? If at all...
-        case .function:
-            fatalError() // TODO how should this be handled? If at all...
-        case .existential:
-            fatalError() // TODO how should this be handled? If at all...
-        case .metatype:
-            fatalError() // TODO how should this be handled? If at all...
-        case .objCClassWrapper:
-            fatalError() // TODO how should this be handled? If at all...
-        case .existentialMetatype:
-            fatalError() // TODO how should this be handled? If at all...
-        case .foreignClass:
-            fatalError() // TODO how should this be handled? If at all...
-        case .heapLocalVariable:
-            fatalError() // TODO how should this be handled? If at all...
-        case .heapGenericLocalVariable:
-            fatalError() // TODO how should this be handled? If at all...
-        case .errorObject:
-            fatalError() // TODO how should this be handled?
-        case .class:
-            fatalError() // TODO how should this be handled?
+        case .optional, .opaque, .tuple, .function, .existential, .metatype, .objCClassWrapper,
+                .existentialMetatype, .foreignClass, .heapLocalVariable, .heapGenericLocalVariable,
+                .errorObject, .class:
+            return nil
         }
     } else {
-        fatalError()
+        return nil
     }
 }
-
-
-/// Attempts to guess the protobuf wire type of the specified value.
-/// - Note: This function should only be called with values of types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
-func GuessWireType(_ value: Any) -> WireType? { // TODO remove this function!
-    return GuessWireType(type(of: value))
-}
-

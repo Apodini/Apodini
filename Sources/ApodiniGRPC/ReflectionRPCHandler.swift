@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import Runtime
 import ApodiniUtils
@@ -5,7 +13,6 @@ import Foundation
 import NIOHPACK
 import AssociatedTypeRequirementsVisitor
 import ProtobufferCoding
-
 
 
 // MARK: RPC Handler
@@ -17,20 +24,18 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
         self.server = server
     }
     
-    
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let reflectionRequest: ReflectionRequest
         do {
             reflectionRequest = try ProtobufferDecoder().decode(ReflectionRequest.self, from: message.payload)
         } catch {
-            // TODO return an error response
-            fatalError("\(error)")
+            return context.eventLoop.makeFailedFuture(GRPCStatus(code: .internal, message: "Unable to decode reflection request"))
         }
         let reflectionResponse: ReflectionResponse
         switch reflectionRequest.messageRequest {
         case .fileByFilename(let filename):
             guard let fileDescriptor = server.fileDescriptor(forFilename: filename) else {
-                fatalError()
+                return context.eventLoop.makeFailedFuture(GRPCStatus(code: .internal, message: "Unable to find file '\(filename)'"))
             }
             reflectionResponse = ReflectionResponse(
                 validHost: reflectionRequest.host,
@@ -39,7 +44,7 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
             )
         case .fileContainingSymbol(let symbol):
             guard let fileDescriptor = server.fileDescriptor(forSymbol: symbol) else {
-                fatalError()
+                return context.eventLoop.makeFailedFuture(GRPCStatus(code: .internal, message: "Unable to find symbol '\(symbol)'"))
             }
             reflectionResponse = ReflectionResponse(
                 validHost: reflectionRequest.host,
@@ -88,7 +93,7 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
     
     static func registerReflectionServiceTypesWithSchema(
         _ schema: ProtoSchema
-    ) throws -> (inputType: ProtoTypeDerivedFromSwift, outputType: ProtoTypeDerivedFromSwift) {
+    ) throws -> (inputType: ProtoType, outputType: ProtoType) {
         let input = try schema.informAboutMessageType(ReflectionRequest.self)
         let output = try schema.informAboutMessageType(ReflectionResponse.self)
         return (input, output)
@@ -96,70 +101,31 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
 }
 
 
-
-
 // MARK: Server Reflection Support
 
 extension GRPCServer {
-    fileprivate func handleMakeFileContainingSymbolRequest(_ reflectionRequest: ReflectionRequest, forSymbol symbolName: String) throws -> ReflectionResponse? {
+    fileprivate func handleMakeFileContainingSymbolRequest(
+        _ reflectionRequest: ReflectionRequest,
+        forSymbol symbolName: String
+    ) throws -> ReflectionResponse? {
         // Proto docs: (https://github.com/grpc/grpc/blob/master/src/proto/grpc/reflection/v1alpha/reflection.proto)
         //      Find the proto file that declares the given fully-qualified symbol name.
         //      This field should be a fully-qualified symbol name
         //      (e.g. <package>.<service>[.<method>] or <package>.<type>).
         // The main issue here is deconstructing the symbol into a service (and method) name. There's also that type thing???
         
-        
-        
         // Normally, this would look need to loop up the file containing the requested symbol.
         // Thing is, however, we don't actually have any files, so we instead just check whether
         // the symbol is known to the server, and, if it is, return the server's whole proto definition.
-        
-        let isKnownSymbol: Bool = { () -> Bool in
-            let components = symbolName.components(separatedBy: ".")
-            if components.count > 2 { // is this a `package.service.method` string?
-                // Is the last component a method?
-                let methodName = components.last!
-                //let serviceName = components[0..<(components.endIndex - 1)].joined(separator: ".")
-                let serviceName = components[components.endIndex - 2]
-                let packageName = components[0..<(components.endIndex - 2)].joined(separator: ".")
-                if let service = service(named: serviceName, inPackage: packageName), let _ = service.method(named: methodName) {
-                    return true
-                }
-            }
-            if components.count > 1 { // is this a `package.service` string?
-                let serviceName = components.last!
-                let packageName = components[0..<(components.endIndex - 1)].joined(separator: ".")
-                if let _ = service(named: serviceName, inPackage: packageName) {
-                    return true
-                }
-            }
-            if services.contains(where: { $0.name == symbolName || $0.packageName == symbolName }) {
-                return true
-            }
-            return false
-        }()
-        
-        guard isKnownSymbol else {
+        if let fileDescriptor = fileDescriptor(forSymbol: symbolName) {
+            return ReflectionResponse(
+                validHost: reflectionRequest.host,
+                originalRequest: reflectionRequest,
+                messageResponse: .fileDescriptorResponse(.init(fileDescriptors: [fileDescriptor]))
+            )
+        } else {
             return nil
         }
-        
-        let reflectionDescriptor = makeFileDescriptorProto(
-            forPackage: GRPCInterfaceExporter.serverReflectionPackageName,
-            name: "grpc_reflection/v1alpha/reflection.proto"
-        )
-        
-        let fileDescriptorResponse = FileDescriptorResponse(fileDescriptors: [
-            makeFileDescriptorProto(forPackage: self.defaultPackageName, dependencies: [
-                reflectionDescriptor.name,
-                "google/protobuf/empty.proto" // TODO include this only when actually necessary!
-            ])
-        ])
-        
-        return ReflectionResponse(
-            validHost: reflectionRequest.host,
-            originalRequest: reflectionRequest,
-            messageResponse: .fileDescriptorResponse(fileDescriptorResponse)
-        )
     }
     
     
@@ -172,52 +138,19 @@ extension GRPCServer {
             ))
         )
     }
-    
-    
-    func makeFileDescriptorProto(forPackage packageName: String, name: String? = nil, outputPackageName: String? = nil, dependencies: [String] = []) -> FileDescriptorProto {
-        return FileDescriptorProto(
-            name: name ?? "\(packageName.replacingOccurrences(of: ".", with: "_")).proto",
-            package: outputPackageName ?? packageName,
-            dependencies: dependencies,
-            publicDependency: [],
-            weakDependency: [],
-            messageTypes: schema.messageTypeDescriptors(forPackage: packageName),
-            enumTypes: schema.enumTypeDescriptors(forPackage: packageName),
-            services: services.compactMap { service -> ServiceDescriptorProto? in
-                guard service.packageName == packageName else {
-                    return nil
-                }
-                return ServiceDescriptorProto(
-                    name: service.name,
-                    methods: service.methods.map { method -> MethodDescriptorProto in
-                        MethodDescriptorProto(
-                            name: method.name,
-                            inputType: method.inputType.fullyQualifiedTypename,
-                            outputType: method.outputType.fullyQualifiedTypename,
-                            options: nil,
-                            clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
-                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
-                        )
-                    },
-                    options: nil // TODO use this to deprecate services? Add an option via a modifier?
-                )
-            },
-            extensions: [],
-            options: nil,
-            sourceCodeInfo: nil,
-            syntax: "proto3"
-        )
-    }
 }
-
-
 
 
 // MARK: Reflection Service Types
 
 protocol __ProtoNS_GRPC_Reflection_V1Alpha: ProtoTypeInPackage {}
 extension __ProtoNS_GRPC_Reflection_V1Alpha {
-    public static var package: ProtobufPackageName { .init("grpc.reflection.v1alpha") }
+    static var package: ProtobufPackageUnit {
+        ProtobufPackageUnit(
+            packageName: "grpc.reflection.v1alpha",
+            filename: "grpc/reflection/v1alpha/reflection.proto"
+        )
+    }
 }
 
 
@@ -263,21 +196,6 @@ struct ReflectionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Re
                 return .listServices(payload as! String)
             }
         }
-        
-        var getCodingKeyAndPayload: (CodingKeys, Any?) {
-            switch self {
-            case .fileByFilename(let value):
-                return (.fileByFilename, value)
-            case .fileContainingSymbol(let value):
-                return (.fileContainingSymbol, value)
-            case .fileContainingExtension(let value):
-                return (.fileContainingExtension, value)
-            case .allExtensionNumbersOfType(let value):
-                return (.allExtensionNumbersOfType, value)
-            case .listServices(let value):
-                return (.listServices, value)
-            }
-        }
     }
     
     let host: String
@@ -290,9 +208,7 @@ struct ReflectionRequest: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Re
 }
 
 
-
 // MARK: ReflectionResponse
-
 
 struct FileDescriptorResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_Reflection_V1Alpha {
     let fileDescriptors: [FileDescriptorProto]
@@ -370,19 +286,6 @@ struct ReflectionResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_R
                 return .errorResponse(payload as! ErrorResponse)
             }
         }
-        
-        var getCodingKeyAndPayload: (CodingKeys, Any?) {
-            switch self {
-            case .fileDescriptorResponse(let value):
-                return (.fileDescriptorResponse, value)
-            case .allExtensionNumbersResponse(let value):
-                return (.allExtensionNumbersResponse, value)
-            case .listServicesResponse(let value):
-                return (.listServicesResponse, value)
-            case .errorResponse(let value):
-                return (.errorResponse, value)
-            }
-        }
     }
     let validHost: String
     let originalRequest: ReflectionRequest
@@ -391,17 +294,6 @@ struct ReflectionResponse: Codable, ProtobufMessage, Equatable, __ProtoNS_GRPC_R
     enum CodingKeys: Int, CodingKey {
         case validHost = 1
         case originalRequest = 2
-        case messageResponse = -1 // TODO???!!!!!!
-    }
-}
-
-
-
-
-extension String {
-    func lk_writeToFile(at path: String) throws {
-        let url = URL(fileURLWithPath: path)
-        let data = self.data(using: .utf8)!
-        try data.write(to: url)
+        case messageResponse = -1
     }
 }

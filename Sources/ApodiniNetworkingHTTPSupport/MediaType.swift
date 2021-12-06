@@ -234,4 +234,3 @@ extension AnyEncoder {
         self.resultMediaTypeRawValue.flatMap { .init($0) }
     }
 }
-

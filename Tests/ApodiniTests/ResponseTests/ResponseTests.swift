@@ -14,7 +14,6 @@ import XCTApodini
 import NIO
 
 
-
 final class ResponseTests: ApodiniTests {
     struct ResponseHandler: Handler {
         var message: String

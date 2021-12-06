@@ -1,3 +1,19 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+//
+// This code is based on the gRPC Swift project: https://github.com/grpc/grpc-swift
+//
+// SPDX-FileCopyrightText: 2019, gRPC Authors All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+
 import NIOHPACK
 import ApodiniNetworking
 import ApodiniNetworkingHTTPSupport
@@ -19,18 +35,13 @@ struct GRPCStatus {
         headers.remove(.grpcMessage)
         headers[.grpcStatus] = Int(code.rawValue)
         if let message = message {
-            headers[.grpcMessage] = Self.percentEncode(message: message)
+            headers[.grpcMessage] = Self.percentEncode(message) ?? message
         }
-    }
-    
-    private static func percentEncode(message: String) -> String {
-        message // TODO
     }
 }
 
 
 /// Having the Status conform to error allows us to return these via EventLoopFutures from rpc handlers.
-/// TODO actually implement this.
 extension GRPCStatus: Swift.Error {}
 
 
@@ -71,7 +82,73 @@ extension GRPCStatus {
         case dataLoss = 15
         /// The request does not have valid authentication credentials for the operation.
         case unauthenticated = 16
-
     }
 }
 
+
+// MARK: Message Percent Encoding
+
+extension GRPCStatus {
+    /// Adds percent encoding to the given message.
+    ///
+    /// gRPC uses percent encoding as defined in RFC 3986 § 2.1 but with a different set of restricted
+    /// characters. The allowed characters are all visible printing characters except for (`%`,
+    /// `0x25`). That is: `0x20`-`0x24`, `0x26`-`0x7E`.
+    ///
+    /// - Parameter message: The message to encode.
+    /// - Returns: Percent encoded string, or `nil` if it could not be encoded.
+    private static func percentEncode(_ message: String) -> String? {
+        let utf8 = message.utf8
+        
+        let encodedLength = self.percentEncodedLength(for: utf8)
+        // Fast-path: all characters are valid, nothing to encode.
+        if encodedLength == utf8.count {
+            return message
+        }
+        
+        var bytes: [UInt8] = []
+        bytes.reserveCapacity(encodedLength)
+        
+        for char in message.utf8 {
+            switch char {
+            // See: https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md#responses
+            case 0x20 ... 0x24, 0x26 ... 0x7E:
+                bytes.append(char)
+            default:
+                bytes.append(UInt8(ascii: "%"))
+                bytes.append(self.toHex(char >> 4))
+                bytes.append(self.toHex(char & 0xF))
+            }
+        }
+        return String(bytes: bytes, encoding: .utf8)
+    }
+    
+    /// Returns the percent encoded length of the given `UTF8View`.
+    private static func percentEncodedLength(for view: String.UTF8View) -> Int {
+        var count = view.count
+        for byte in view {
+            switch byte {
+            case 0x20 ... 0x24, 0x26 ... 0x7E:
+                ()
+            default:
+                count += 2
+            }
+        }
+        return count
+    }
+    
+    /// Encode the given byte as hexadecimal.
+    ///
+    /// - Precondition: Only the four least significant bits may be set.
+    /// - Parameter nibble: The nibble to convert to hexadecimal.
+    private static func toHex(_ nibble: UInt8) -> UInt8 {
+        assert(nibble & 0xF == nibble)
+        
+        switch nibble {
+        case 0 ... 9:
+            return nibble &+ UInt8(ascii: "0")
+        default:
+            return nibble &+ (UInt8(ascii: "A") &- 10)
+        }
+    }
+}

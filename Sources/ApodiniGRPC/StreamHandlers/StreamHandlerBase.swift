@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//
+
 import Apodini
 import ApodiniExtension
 import ApodiniUtils
@@ -41,9 +49,9 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
     
     func encodeResponseIntoProtoMessage(_ responseContent: H.Response.Content) throws -> ByteBuffer {
         switch self.endpointContext.endpointResponseType! {
-        case .builtinEmptyType, .primitive, .enumTy, .refdMessageType:
-            fatalError()
-        case let .compositeMessage(name: _, underlyingType, nestedOneofTypes: _, fields):
+        case .primitive, .enumTy, .refdMessageType:
+            fatalError("Encountered invalid proto type: gRPC method return type must be a message. Got: \(endpointContext.endpointResponseType!)")
+        case let .message(name: _, underlyingType, nestedOneofTypes: _, fields):
             if let underlyingType = underlyingType {
                 precondition(underlyingType == type(of: responseContent))
                 // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
@@ -71,4 +79,3 @@ extension StreamRPCHandlerBase {
         }
     }
 }
-
