@@ -74,6 +74,15 @@
         }
       },
       {
+        "package": "fluent-sqlite-driver",
+        "repositoryURL": "https://github.com/vapor/fluent-sqlite-driver.git",
+        "state": {
+          "branch": null,
+          "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
+          "version": "4.1.0"
+        }
+      },
+      {
         "package": "jmespath.swift",
         "repositoryURL": "https://github.com/adam-fowler/jmespath.swift.git",
         "state": {
@@ -177,8 +186,26 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "1a788f4947c36bc5eff2b8ceb3560a0ce50c4f58",
-          "version": "3.13.1"
+          "revision": "bfcaa637917faf2e2fbb4cec6aa45e9659c945b4",
+          "version": "3.14.0"
+        }
+      },
+      {
+        "package": "sqlite-kit",
+        "repositoryURL": "https://github.com/vapor/sqlite-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "2ec279b9c845cec254646834b66338551a024561",
+          "version": "4.0.2"
+        }
+      },
+      {
+        "package": "sqlite-nio",
+        "repositoryURL": "https://github.com/vapor/sqlite-nio.git",
+        "state": {
+          "branch": null,
+          "revision": "6481dd0b01112d082dd7eb362782126e81964138",
+          "version": "1.1.0"
         }
       },
       {
@@ -267,8 +294,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "b5919e4621973625621980a0408b2a4522b5e67f",
-          "version": "1.18.5"
+          "revision": "39ed0e753596afadad920e302ae769b28f3a982b",
+          "version": "1.19.0"
         }
       },
       {
@@ -296,6 +323,15 @@
           "branch": null,
           "revision": "b1c4df8f6c848c2e977726903bbe6578eed723ad",
           "version": "2.2.0"
+        }
+      },
+      {
+        "package": "XCTAssertCrash",
+        "repositoryURL": "https://github.com/norio-nomura/XCTAssertCrash.git",
+        "state": {
+          "branch": null,
+          "revision": "880c5241254da53f32caf77248ee3d25cb2a9630",
+          "version": "0.2.0"
         }
       },
       {
