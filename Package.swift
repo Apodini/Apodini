@@ -50,6 +50,7 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniObserveOpenTelemetry", targets: ["ApodiniObserveOpenTelemetry"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
@@ -652,9 +653,7 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras"),
-                .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
-                .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
+                .product(name: "Tracing", package: "swift-distributed-tracing")
             ]
         ),
         
@@ -663,6 +662,16 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserveOpenTelemetry",
+            dependencies: [
+                .target(name: "ApodiniObserve"),
+                .product(name: "Tracing", package: "swift-distributed-tracing"),
+                .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
+                .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
             ]
         ),
 
