@@ -61,7 +61,10 @@ extension Application {
 
 class GRPCInterfaceExporterTests: XCTApodiniTest {
     static func grpcurlExecutableUrl() -> URL? {
-        if let url = ChildProcess.findExecutable(named: "grpcurl", additionalSearchPaths: ["/usr/local/bin/"]) {
+        if let url = ChildProcess.findExecutable(
+            named: "grpcurl",
+            additionalSearchPaths: ["/usr/local/bin/", "/opt/homebrew/bin/"]
+        ) {
             return url
         } else {
             // grpcurl is not in the PATH, but it might be somewhere else if it was downloaded by the test runner
