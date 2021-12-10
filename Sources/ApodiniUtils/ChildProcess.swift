@@ -161,13 +161,11 @@ public class ChildProcess {
             NotificationCenter.default.removeObserver(fileHandleObservers.1)
             stdioFileHandlesObserverTokens = nil
         }
-        print("-[\(Self.self) \(#function)")
     }
     
     
     private func launchImpl() throws {
         precondition(!isRunning)
-        print("-[\(Self.self) \(#function)] \(self)")
         if launchInCurrentProcessGroup {
             process.executableURL = ProcessInfo.processInfo.executableUrl
             process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
@@ -370,7 +368,6 @@ extension ChildProcess: CustomStringConvertible {
 extension ChildProcess {
     /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
     public static func killAllInChildrenInProcessGroup() {
-        print(#function)
         sendSignalToAllChildrenInProcessGroup(signal: SIGTERM)
     }
     
