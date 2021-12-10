@@ -37,7 +37,6 @@ jobs:
           xcodebuild -version
           swift --version
     - name: Run ${{ matrix.configuration }} build
-      if: matrix.configuration == 'release'
       run: | 
           swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
           swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx" &
@@ -66,7 +65,6 @@ jobs:
     - name: Check environment
       run: swift --version
     - name: Run ${{ matrix.configuration }} build
-      if: matrix.configuration == 'release'
       run: | 
           swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
           sleep 3

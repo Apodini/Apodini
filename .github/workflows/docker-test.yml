@@ -24,7 +24,7 @@ jobs:
       - name: Test web service
         run: |
           sleep 3
-          sh test.sh
+          sh TestWebService/test.sh
       - name: Stop containers
         if: always()
         run: docker-compose down
