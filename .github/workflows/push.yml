@@ -21,6 +21,8 @@ jobs:
     with:
       packagename: Apodini
       testdocc: true
+      aptgetdependencies: libsqlite3-dev
+      yumdependencies: sqlite-devel
   test_web_service:
     name: Test Web Service
     uses: Apodini/Apodini/.github/workflows/test-web-service.yml@feature/ciimprovements
