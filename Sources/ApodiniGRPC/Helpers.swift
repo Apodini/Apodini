@@ -72,32 +72,6 @@ extension AnyHTTPHeaderName {
 }
 
 
-extension AnyHTTPHeaderName {
-    static let pathPseudoHeader = HTTPHeaderName<String>(":path")
-    static let statusPseudoHeader = HTTPHeaderName<HTTPResponseStatus>(":status")
-}
-
-
-extension HTTPResponseStatus: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        if let intValue = Int(value) {
-            self.init(statusCode: intValue)
-        } else {
-            return nil
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        String(code)
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(code)
-        hasher.combine(reasonPhrase)
-    }
-}
-
-
 /// A stream-like object that will deliver its content to an observer closure, and buffer new content during the absence of such a closure.
 class BufferedStream<Element> {
     typealias ObserverFn = (Element) -> Void

@@ -124,13 +124,6 @@ extension String {
 }
 
 
-extension HTTPMethod: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.rawValue)
-    }
-}
-
-
 final class HTTPRouter {
     struct Route { // Note that routes are explicitly immutable
         let method: HTTPMethod
