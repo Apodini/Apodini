@@ -10,6 +10,7 @@ name: Docker Test
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   dockercompose:

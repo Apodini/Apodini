@@ -10,21 +10,7 @@ name: Test Web Service
 
 on:
   workflow_call:
-    inputs:
-      packagename:
-        description: 'Name of the package e.g., passed as the scheme to xcodebuild on macOS builds'
-        required: true
-        type: string
-      path:
-        description: 'The path where the Swift Package is located. Defaults to $GITHUB_WORKSPACE'
-        required: false
-        type: string
-        default: '.'
-      codecoverage:
-        description: 'Report the test coverage to codecov'
-        required: false
-        type: boolean
-        default: true
+  workflow_dispatch:
 
 jobs:
   macos:
