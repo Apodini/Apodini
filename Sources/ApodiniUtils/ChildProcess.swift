@@ -67,7 +67,7 @@ public class ChildProcess {
     
     private let stdoutPipe = Pipe()
     private let stderrPipe = Pipe()
-    private let stdinPipe = Pipe()
+    public let stdinPipe = Pipe()
     
     private var stdioFileHandlesObserverTokens: (AnyObject, AnyObject)?
     private var didRegisterStdioFileHandleObservers: Bool {
@@ -143,11 +143,10 @@ public class ChildProcess {
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
-
+        process.standardInput = stdinPipe
         if captureOutput {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
-            process.standardInput = stdinPipe
         }
         if redirectStderrToStdout {
             process.standardError = stdoutPipe
@@ -258,15 +257,9 @@ extension ChildProcess {
         }
     }
     
-    /// Whether the task is capturing the child's standard input stream
-    public var isCapturingStdin: Bool {
-        (process.standardInput as? Pipe) == stdinPipe
-    }
-    
-    
-    /// Whether the task is capturing the child's stdout, stdin, and stderr.
-    public var isCapturingStdio: Bool {
-        isCapturingStdout && isCapturingStderr && isCapturingStdin
+    /// Whether the task is capturing the child's stdout and stderr.
+    public var isCapturingAllOutput: Bool {
+        isCapturingStdout && isCapturingStderr
     }
     
     
@@ -465,5 +458,34 @@ extension Process.TerminationReason: CustomStringConvertible {
         @unknown default:
             return "\(Self.self).\(self.rawValue)"
         }
+    }
+}
+
+
+// MARK: ChildProcess+zsh
+
+extension ChildProcess {
+    /// Runs a shell command in the zsh shell
+    public static func runZshShellCommandSync(
+        _ command: String,
+        workingDirectory: URL? = nil,
+        combineStderrIntoStdout: Bool = true
+    ) throws -> (exitCode: Int, output: String) {
+        guard let zshBin = Self.findExecutable(named: "zsh") else {
+            throw ChildProcessError(message: "Unable to find zsh executable")
+        }
+        let child = ChildProcess(
+            executableUrl: zshBin,
+            arguments: ["-c", command],
+            workingDirectory: nil,
+            captureOutput: true,
+            redirectStderrToStdout: combineStderrIntoStdout,
+            launchInCurrentProcessGroup: false,
+            environment: [:],
+            inheritsParentEnvironment: true
+        )
+        let exitCode = try child.launchSync().exitCode
+        let output = try child.readStdoutToEnd()
+        return (Int(exitCode), output)
     }
 }

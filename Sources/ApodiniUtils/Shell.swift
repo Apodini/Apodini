@@ -27,25 +27,5 @@ public enum ShellCommand {
 /// A helper function to run custom shell commands, e.g. on app launch
 @discardableResult
 public func runShellCommand(_ command: ShellCommand) -> String {
-    shell(command.method)
-}
-
-@discardableResult
-private func shell(_ command: String) -> String {
-    let task = Process()
-    let pipe = Pipe()
-
-    task.standardOutput = pipe
-    task.standardError = pipe
-    task.arguments = ["-c", command]
-    task.executableURL = URL(fileURLWithPath: "/bin/zsh")
-    do {
-        try task.run()
-    } catch {
-        return ""
-    }
-    
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-
-    return String(data: data, encoding: .utf8) ?? ""
+    (try? ChildProcess.runZshShellCommandSync(command.method).output) ?? ""
 }
