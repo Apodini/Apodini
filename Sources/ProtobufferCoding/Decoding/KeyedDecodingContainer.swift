@@ -265,6 +265,26 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
             return retval
         } else if let optionalTy = type as? AnyOptional.Type {
             return try _decodeIfPresent(optionalTy.wrappedType as! Decodable.Type, forKey: key, atKeyOffset: keyOffset) as Any
+        } else if keyOffset == nil && type == String.self {
+            return try decode(String.self, forKey: key)
+        } else if keyOffset == nil && type == Int.self {
+            return try decode(Int.self, forKey: key)
+        } else if keyOffset == nil && type == UInt.self {
+            return try decode(UInt.self, forKey: key)
+        } else if keyOffset == nil && type == Int64.self {
+            return try decode(Int64.self, forKey: key)
+        } else if keyOffset == nil && type == UInt64.self {
+            return try decode(UInt64.self, forKey: key)
+        } else if keyOffset == nil && type == Int32.self {
+            return try decode(Int32.self, forKey: key)
+        } else if keyOffset == nil && type == UInt32.self {
+            return try decode(UInt32.self, forKey: key)
+        } else if keyOffset == nil && type == Bool.self {
+            return try decode(Bool.self, forKey: key)
+        } else if keyOffset == nil && type == Double.self {
+            return try decode(Double.self, forKey: key)
+        } else if keyOffset == nil && type == Float.self {
+            return try decode(Float.self, forKey: key)
         } else {
             let (_, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
