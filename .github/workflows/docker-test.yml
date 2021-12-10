@@ -23,7 +23,7 @@ jobs:
       - name: Test web service
         run: |
           sleep 3
-          curl --fail http://localhost/v1/
+          sh test.sh
       - name: Stop containers
         if: always()
         run: docker-compose down

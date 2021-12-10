@@ -1,0 +1,87 @@
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2021 Paul Schmiedmayer and the project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Test Web Service
+
+on:
+  workflow_call:
+    inputs:
+      packagename:
+        description: 'Name of the package e.g., passed as the scheme to xcodebuild on macOS builds'
+        required: true
+        type: string
+      path:
+        description: 'The path where the Swift Package is located. Defaults to $GITHUB_WORKSPACE'
+        required: false
+        type: string
+        default: '.'
+      codecoverage:
+        description: 'Report the test coverage to codecov'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  macos:
+    name: macOS ${{ matrix.configuration }}
+    runs-on: macos-11
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [debug, release]
+    defaults:
+      run:
+        working-directory: TestWebService
+    steps:
+    - uses: actions/checkout@v2
+    - uses: maxim-lobanov/setup-xcode@v1.4.0
+      with:
+        xcode-version: latest
+    - uses: actions/cache@v2
+      with:
+        path: .build
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+    - name: Check environment
+      run: |
+          xcodebuild -version
+          swift --version
+    - name: Run ${{ matrix.configuration }} build
+      if: matrix.configuration == 'release'
+      run: | 
+          swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
+          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx" &
+          sleep 15
+          sh test.sh
+          kill -9 $(lsof -ti:80)
+  linux:
+    name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
+    container:
+      image: swift:${{ matrix.linux }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        linux: [bionic, focal, amazonlinux2, centos8]
+        configuration: [debug, release]
+    defaults:
+      run:
+        working-directory: TestWebService
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: .build
+        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
+    - name: Check environment
+      run: swift --version
+    - name: Run ${{ matrix.configuration }} build
+      if: matrix.configuration == 'release'
+      run: | 
+          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
+          sleep 3
+          sh test.sh
