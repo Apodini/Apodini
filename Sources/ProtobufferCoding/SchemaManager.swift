@@ -1298,7 +1298,6 @@ extension ProtoSchema {
                     guard let reserved = (underlyingType as? __ProtoTypeWithReservedFields.Type)?.reservedFields.allReservedFieldNumbers() else {
                         return []
                     }
-                    print()
                     var retval: [DescriptorProto.ReservedRange] = []
                     for idx in reserved.indices {
                         retval.append(.init(start: idx, end: idx))

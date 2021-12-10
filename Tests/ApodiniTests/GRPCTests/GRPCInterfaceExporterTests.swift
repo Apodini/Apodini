@@ -346,6 +346,85 @@ extension GRPCInterfaceExporterTests {
             .init(value: "🚀🚀🚀 Launch !!! 🚀🚀🚀")
         ])
     }
+}
+
+
+struct ClientSideStreamingGreeter: Apodini.Handler {
+    @Environment(\.connection) var connection
+    @Parameter var name: String
+    @State private var names: [String] = []
+    
+    func handle() -> Response<String> {
+        switch connection.state {
+        case .open:
+            names.append(name)
+            return .send()
+        case .end:
+            names.append(name)
+            fallthrough
+        case .close:
+            switch names.count {
+            case 0:
+                return .final("Hello!")
+            case 1:
+                return .final("Hello, \(names[0])")
+            default:
+                return .final("Hello, \(names[0..<(names.endIndex - 1)].joined(separator: ", ")), and \(names.last!)")
+            }
+        }
+    }
+}
+
+
+extension GRPCInterfaceExporterTests {
+    func testClientSideStreamingEndpoint() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                ClientSideStreamingGreeter()
+                    .pattern(.clientSideStream)
+                    .gRPCMethodName("Greet")
+            }
+        }
+        
+        TestGRPCExporterCollection().configuration.configure(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        WebService().accept(visitor)
+        visitor.finishParsing()
+        try app.start()
+        
+        let pythonScriptUrl = try XCTUnwrap(Bundle.module.url(forResource: "grpc_streaming_test", withExtension: "py"))
+        let grpcurlBin = try XCTUnwrap(Self.grpcurlExecutableUrl())
+        print(try ChildProcess.runZshShellCommandSync("python3 --version"))
+        
+        let grpcurl = ChildProcess(
+            executableUrl: grpcurlBin,
+            arguments: [
+                "-insecure", "-d", "@", "localhost:50051", "de.lukaskollmer.TestWebService.Greet"
+            ],
+            workingDirectory: nil,
+            captureOutput: true,
+            redirectStderrToStdout: true,
+            launchInCurrentProcessGroup: false,
+            environment: [:],
+            inheritsParentEnvironment: true
+        )
+        let grpcurlExitExpectation = XCTestExpectation(description: "grpcurl exit")
+        try grpcurl.launchAsync { terminationInfo in
+            XCTAssertEqual(terminationInfo.exitCode, 0)
+            grpcurlExitExpectation.fulfill()
+        }
+        let inputFH = grpcurl.stdinPipe.fileHandleForWriting
+        try inputFH.write(contentsOf: "{ \"name\": \"Lukas\" }\n".data(using: .utf8)!)
+        try inputFH.write(contentsOf: "{ \"name\": \"Paul\" }\n".data(using: .utf8)!)
+        try inputFH.write(contentsOf: "{ \"name\": \"Bernd\" }\n".data(using: .utf8)!)
+        try inputFH.close()
+        wait(for: [grpcurlExitExpectation], timeout: 10)
+        let output = try grpcurl.readStdoutToEnd()
+        struct Response: Codable {
+            let value: String
+        }
+        XCTAssertEqual(try JSONDecoder().decode(Response.self, from: output.data(using: .utf8)!).value, "Hello, Lukas, Paul, and Bernd")
+    }
     
     
     // The test case is called testResponseHeaders, but it does in fact do a lot more than that,
