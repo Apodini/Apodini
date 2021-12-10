@@ -66,6 +66,8 @@ jobs:
       run: swift --version
     - name: Run ${{ matrix.configuration }} build
       run: | 
-          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
-          sleep 3
+          swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
+          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx" &
+          sleep 15
           sh test.sh
+          kill -9 $(lsof -ti:80)
