@@ -28,7 +28,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
     }
     
     // NOT an RPC response message!!! this is the wrapper type encapsulating the different kinds of responses which can come out of the `GRPCMessageHandler`.
-    enum Output {
+    enum Output: Equatable {
         /// A call resulted in an error.
         /// - parameter connectionCtx: The GRPCStreamConnectionContext belonging to this connection.
         ///         Nil if the channel encounters an error before a connection context was created.
@@ -65,8 +65,8 @@ class GRPCMessageHandler: ChannelInboundHandler {
             guard let rpcHandler = server.makeStreamRPCHandler(toService: serviceName, method: methodName) else {
                 // A nil return value indicates that the method does not exist.
                 // gRPC says we have to handle this by responding w/ the corresponding status code
-                print("Attempted to open channel to non-existing method '\(serviceName)/\(methodName)'")
-                _ = self.handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
+                logger.error("Attempted to open channel to non-existing method '\(serviceName)/\(methodName)'")
+                _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
                     let status = GRPCStatus(code: .unimplemented, message: "Method '\(serviceName)/\(methodName)' not found.")
                     return context.writeAndFlush(self.wrapOutboundOut(.error(status, nil)))
                         .flatMapAlways { _ in context.close() }
@@ -81,14 +81,17 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 grpcMethodName: "\(serviceName)/\(methodName)"
             )
             self.connectionCtx!.handleStreamOpen()
-        
+            logger.notice("[EVENT] OPEN STREAM \(connectionCtx!.grpcMethodName)")
+            
         case .message(let messageIn):
+            logger.notice("messageIn received: \(messageIn)")
             guard let connectionCtx = connectionCtx else {
                 fatalError("Received message but there's no connection.")
             }
-            let reqId = Self.requestIdCounter.get()
+            print("message submitted to event loop")
             _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
-                connectionCtx.handleMessage(messageIn)
+                print("handling message")
+                return connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
                         switch result {
@@ -100,11 +103,13 @@ class GRPCMessageHandler: ChannelInboundHandler {
                         }
                     }
             }
-        
+            logger.notice("[EVENT] MESSAGE IN \(connectionCtx.grpcMethodName)")
+            
         case .closeStream:
             guard let connectionCtx = connectionCtx else {
                 fatalError("[\(Self.self)] received .closeStream but there's no active connection")
             }
+            logger.notice("[EVENT] CLOSE STREAM \(connectionCtx.grpcMethodName)")
             self.isConnectionClosed = true
             self.connectionCtx = nil
             // The RequestDecoder told us to close the stream.
@@ -130,5 +135,10 @@ class GRPCMessageHandler: ChannelInboundHandler {
     
     func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
         context.fireUserInboundEventTriggered(event)
+    }
+    
+    func errorCaught(context: ChannelHandlerContext, error: Error) {
+        logger.error("[\(Self.self)], \(#function) \(error)")
+        context.fireErrorCaught(error)
     }
 }

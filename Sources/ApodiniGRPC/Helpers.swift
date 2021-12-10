@@ -125,3 +125,14 @@ class BufferedStream<Element> {
         }
     }
 }
+
+
+extension BufferedStream: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+    
+    static func == (lhs: BufferedStream<Element>, rhs: BufferedStream<Element>) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+}

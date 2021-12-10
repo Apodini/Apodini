@@ -286,7 +286,7 @@ struct ColorMappingHandler_Col2Str: Handler {
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
-            .gRPCMethodName("rooooot")
+            .gRPCMethodName("root")
         Group("greet") {
             Greeter()
                 .gRPCMethodName("greet")

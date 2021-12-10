@@ -129,6 +129,7 @@ class GRPCRequestDecoder: ChannelInboundHandler {
                         }
                     }
                     if dataFrame.endStream {
+                        context.fireChannelRead(wrapInboundOut(.closeStream))
                         state = .ready
                     }
                 }

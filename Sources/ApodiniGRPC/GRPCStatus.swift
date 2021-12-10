@@ -25,7 +25,7 @@ extension AnyHTTPHeaderName {
 }
 
 
-struct GRPCStatus {
+struct GRPCStatus: Hashable {
     let code: Code
     let message: String?
     

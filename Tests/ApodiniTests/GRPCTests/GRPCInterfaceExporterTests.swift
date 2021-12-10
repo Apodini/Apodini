@@ -348,6 +348,9 @@ extension GRPCInterfaceExporterTests {
     }
     
     
+    // The test case is called testResponseHeaders, but it does in fact do a lot more than that,
+    // because it also serves as a proof-of-concept of using `EmbeddedChannel`s for testing the gRPC IE,
+    // rather than relying on grpcurl.
     func testResponseHeaders() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
@@ -375,15 +378,82 @@ extension GRPCInterfaceExporterTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         WebService().accept(visitor)
         visitor.finishParsing()
-        try app.start()
+        // Intentionally not starting the app here...
         
-        // TODO
+        let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
         
-//        let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
-//        let rpcHandler = try XCTUnwrap(grpcIE.server.makeStreamRPCHandler(toService: "de.lukaskollmer.TestWebService", method: "GetTeam"))
-//        //let rpcContext = GRPCStreamConnectionContext
-//        //rpcHandler.handleStreamOpen(context: <#T##GRPCStreamConnectionContext#>)
-//        let ch = EmbeddedChannel()
+        let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
+        let messageOutInterceptor = OutboundInterceptingChannelHandler<GRPCMessageHandler.OutboundOut>()
+        let httpOutInterceptor = OutboundInterceptingChannelHandler<HTTP2Frame.FramePayload>(closeExpectation: channelCloseExpectation)
+        
+        // We create an embedded channel which receives already-decoded input (skipping the HTTP2 frame -> grpc handler input step here),
+        // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
+        // We also add some intercepting handlers, which allows us to a) check that the data send through the pipeline at certain stages
+        // of the message handling process is what we'd expect, and b) detect the end of the connection.
+        let ch = EmbeddedChannel(handlers: [
+            OutboundSinkholeChannelHandler(),
+            httpOutInterceptor,
+            GRPCResponseEncoder(),
+            messageOutInterceptor,
+            GRPCMessageHandler(server: grpcIE.server),
+        ])
+        // The HTTP/2 headers with which the client initiated the connection
+        let clientHeaders = HPACKHeaders {
+            $0[.methodPseudoHeader] = .POST
+            $0[.schemePseudoHeader] = "https"
+            $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
+            $0[.contentType] = .gRPC(.proto)
+        }
+        try ch.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
+        try ch.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
+            remoteAddress: nil,
+            requestHeaders: clientHeaders,
+            payload: ByteBuffer() // TODO does an empty buffer work here?
+        )))
+        try ch.writeInbound(GRPCMessageHandler.Input.closeStream)
+        
+        wait(for: [channelCloseExpectation], timeout: 5)
+        XCTAssert(try ch.finish(acceptAlreadyClosed: true).isClean)
+        
+        XCTAssertEqual(messageOutInterceptor.interceptedData.count, 2)
+        XCTAssertEqual(messageOutInterceptor.interceptedData[0].asSingleMessage, GRPCMessageOut.singleMessage(
+            headers: HPACKHeaders {
+                $0[.contentType] = .gRPC(.proto)
+            },
+            payload: ByteBuffer(bytes: [10, 13, 65, 108, 105, 99, 101, 32, 97, 110, 100, 32, 66, 111, 98]),
+            closeStream: true
+        ))
+        XCTAssertEqual(messageOutInterceptor.interceptedData[1], .closeStream(trailers: HPACKHeaders()))
+    }
+}
+
+
+extension GRPCMessageHandler.Output {
+    func isMessage(_ expectedMessage: GRPCMessageOut) -> Bool {
+        switch self {
+        case .closeStream, .error:
+            return false
+        case .message(let messageOut, _):
+            return messageOut == expectedMessage
+        }
+    }
+    
+    var asSingleMessage: GRPCMessageOut? {
+        switch self {
+        case .closeStream, .error:
+            return nil
+        case .message(let message, _):
+            return message
+        }
+    }
+    
+    var asCloseStream: HPACKHeaders? {
+        switch self {
+        case .closeStream(let trailers):
+            return trailers
+        case .error, .message:
+            return nil
+        }
     }
 }
 

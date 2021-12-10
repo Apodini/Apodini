@@ -43,7 +43,7 @@ protocol GRPCStreamConnectionContext {
 }
 
 
-class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
+class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
     let eventLoop: EventLoop
     let initialRequestHeaders: HPACKHeaders
     let grpcMethodName: String
@@ -73,6 +73,14 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext {
     
     func handleStreamClose() -> EventLoopFuture<GRPCMessageOut>? {
         rpcHandler.handleStreamClose(context: self)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+    
+    static func == (lhs: GRPCStreamConnectionContextImpl, rhs: GRPCStreamConnectionContextImpl) -> Bool {
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 
