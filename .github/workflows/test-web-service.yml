@@ -64,6 +64,15 @@ jobs:
         key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
     - name: Check environment
       run: swift --version
+    - name: Install apt-get Dependencies
+      if: matrix.linux != 'centos8' && matrix.linux != 'amazonlinux2'
+      run: apt-get update && apt-get install -y --no-install-recommends curl
+    - name: Install yum Dependencies
+      if: matrix.linux == 'amazonlinux2'
+      run: yum update -y && yum install -y curl
+    - name: Install yum Dependencies
+      if: matrix.linux == 'centos8'
+      run: yum update -y --nobest && yum install -y curl
     - name: Run ${{ matrix.configuration }} build
       run: | 
           swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
