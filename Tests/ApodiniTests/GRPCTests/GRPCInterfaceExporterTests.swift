@@ -392,9 +392,7 @@ extension GRPCInterfaceExporterTests {
         visitor.finishParsing()
         try app.start()
         
-        let pythonScriptUrl = try XCTUnwrap(Bundle.module.url(forResource: "grpc_streaming_test", withExtension: "py"))
         let grpcurlBin = try XCTUnwrap(Self.grpcurlExecutableUrl())
-        print(try ChildProcess.runZshShellCommandSync("python3 --version"))
         
         let grpcurl = ChildProcess(
             executableUrl: grpcurlBin,
