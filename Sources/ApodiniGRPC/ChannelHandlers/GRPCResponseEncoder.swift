@@ -157,13 +157,4 @@ class GRPCResponseEncoder: ChannelOutboundHandler {
         ))
         return context.writeAndFlush(self.wrapOutboundOut(trailers))
     }
-    
-    
-    func close(context: ChannelHandlerContext, mode: CloseMode, promise: EventLoopPromise<Void>?) {
-        context.close(mode: mode, promise: promise)
-    }
-    
-    func triggerUserOutboundEvent(context: ChannelHandlerContext, event: Any, promise: EventLoopPromise<Void>?) {
-        context.triggerUserOutboundEvent(event, promise: promise)
-    }
 }

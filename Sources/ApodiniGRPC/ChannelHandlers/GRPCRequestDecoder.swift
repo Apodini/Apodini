@@ -171,12 +171,6 @@ class GRPCRequestDecoder: ChannelInboundHandler {
     }
     
     
-    func errorCaught(context: ChannelHandlerContext, error: Error) {
-        logger.error("Caught error: \(error)")
-        context.fireErrorCaught(error)
-    }
-    
-    
     /// Decodes a gRPC message payload from the specified buffer.
     /// - Note: This function operates on the assumption that the buffer's current reader index does in fact point to the beginning of a gRPC message.
     private func decodeMessagePayload(from buffer: inout ByteBuffer, headers: HPACKHeaders) -> MessageCollectionContext {

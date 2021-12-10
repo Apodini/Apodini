@@ -132,13 +132,4 @@ class GRPCMessageHandler: ChannelInboundHandler {
             }
         }
     }
-    
-    func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
-        context.fireUserInboundEventTriggered(event)
-    }
-    
-    func errorCaught(context: ChannelHandlerContext, error: Error) {
-        logger.error("[\(Self.self)], \(#function) \(error)")
-        context.fireErrorCaught(error)
-    }
 }
