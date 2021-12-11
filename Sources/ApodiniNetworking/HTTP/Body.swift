@@ -150,6 +150,11 @@ public enum BodyStorage {
         stream != nil
     }
     
+    /// Returns `true` iff the underlying storage is a buffer, otherwise `false`.
+    public var isBuffer: Bool {
+        stream == nil
+    }
+    
     /// Returns the underlying stream, if applicable
     public var stream: Stream? {
         switch self {

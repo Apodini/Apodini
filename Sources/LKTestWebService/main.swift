@@ -12,6 +12,7 @@ import Apodini
 import ApodiniHTTP
 import ApodiniREST
 import ApodiniGRPC
+import ApodiniGraphQL
 import Foundation
 
 
@@ -353,6 +354,10 @@ struct LKTestWebService: Apodini.WebService {
         //HTTPConfiguration(hostname: "localhost")
 //        REST()
         GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
+        
+        GraphQLConfig(
+            enableGraphiQL: true
+        )
 //        GRPC()
     }
 }

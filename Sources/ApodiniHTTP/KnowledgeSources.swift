@@ -29,7 +29,7 @@ struct HTTPEndpointKnowledge: KnowledgeSource {
             case let .parameter(parameter):
                 return .namedParameter(parameter.name)
             case let .string(string):
-                return .verbatim(string)
+                return .constant(string)
             }
         }
         self.defaultValues = knowledge.defaultValues

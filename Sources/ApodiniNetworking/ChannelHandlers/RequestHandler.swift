@@ -57,6 +57,10 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     
     private func handleResponse(_ response: HTTPResponse, context: ChannelHandlerContext) {
         response.headers.setUnlessPresent(name: .date, value: Date())
+        if response.bodyStorage.isBuffer {
+            response.headers.setUnlessPresent(name: .contentLength, value: response.bodyStorage.readableBytes)
+        }
+        response.headers.setUnlessPresent(name: .server, value: "ApodiniNetworking")
         // Note might want to use this as an opportunity to log errors/warning if responses are lacking certain headers, to give clients the ability fo address this.
         context.write(self.wrapOutboundOut(response)).whenComplete { result in
             switch result {

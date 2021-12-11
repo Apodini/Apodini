@@ -13,7 +13,7 @@ import Foundation
 
 
 public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
-    case verbatim(String)
+    case constant(String)
     case namedParameter(String)
     case wildcardSingle(String?)
     case wildcardMultiple(String?)
@@ -40,7 +40,17 @@ public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
             precondition(!name.isEmpty, "Invalid wildcard name")
             self = .wildcardMultiple(name)
         } else {
-            self = .verbatim(String(string))
+            self = .constant(String(string))
+        }
+    }
+    
+    /// Whether this path component is a `constant(_)` path component
+    public var isConstant: Bool {
+        switch self {
+        case .constant:
+            return true
+        case .namedParameter, .wildcardSingle, .wildcardMultiple:
+            return false
         }
     }
 }
@@ -70,7 +80,7 @@ extension Array where Element == HTTPPathComponent {
         self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
-            case .verbatim(let value):
+            case .constant(let value):
                 partialResult.append(value)
             case .namedParameter(let name):
                 partialResult.append(":\(name)")
@@ -98,7 +108,7 @@ extension Array where Element == HTTPPathComponent {
         self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
-            case .verbatim(let value):
+            case .constant(let value):
                 partialResult.append("v[\(value)]")
             case .namedParameter:
                 partialResult.append(":")

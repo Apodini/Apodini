@@ -28,6 +28,7 @@ let package = Package(
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
+        .library(name: "ApodiniGraphQL", targets: ["ApodiniGraphQL"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
@@ -113,7 +114,9 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1")),
+
+        .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -169,6 +172,7 @@ let package = Package(
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
@@ -650,11 +654,29 @@ let package = Package(
                 .target(name: "ApodiniGRPC")
             ]
         ),
+
+        .target(
+            name: "ApodiniGraphQL",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "GraphQL", package: "GraphQL")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
         
         .executableTarget(
             name: "LKTestWebService",
             dependencies: [
                 .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .target(name: "Apodini")
