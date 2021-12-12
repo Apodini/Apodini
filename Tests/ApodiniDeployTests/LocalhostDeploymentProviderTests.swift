@@ -63,12 +63,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         }
         
         runShellCommand(.killPort(80))
-        runShellCommand(.killPort(5000))
-        runShellCommand(.killPort(5001))
-        runShellCommand(.killPort(5002))
-        runShellCommand(.killPort(5003))
-        runShellCommand(.killPort(5004))
-        runShellCommand(.killPort(5005))
+        runShellCommand(.killPort(52000))
+        runShellCommand(.killPort(52001))
+        runShellCommand(.killPort(52002))
+        runShellCommand(.killPort(52003))
+        runShellCommand(.killPort(52004))
+        runShellCommand(.killPort(52005))
         
         precondition(task == nil)
         
@@ -154,8 +154,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://localhost:5001` three times,
-            // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
+            // This is determined by finding the text `Server starting on http://localhost:52001` three times,
+            // with the port numbers matching the expected output values (i.e. 52000, 52001, 52002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
                 pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
@@ -183,12 +183,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     // the gateway
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 80),
                     // the nodes
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005)
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52000),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52001),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52002),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52003),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52004),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52005)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
