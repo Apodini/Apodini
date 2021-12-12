@@ -111,13 +111,6 @@ class ProtobufferCodingTests: XCTestCase {
         struct SimpleStructWithIntProperty: Codable, Equatable {
             let value: Int
         }
-//        let input = SimpleStructWithIntProperty(value: 52)
-//        let encoded = try ProtobufferEncoder().encode(input)
-//        try XCTAssertEqual(encoded, [0b1000, 52])
-//        XCTAssertEqual(try ProtobufMessageLayoutDecoder.getFields(in: encoded), ProtobufFieldsMapping([
-//            1: [ProtobufFieldInfo(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .varInt(52), fieldLength: 2)]
-//        ]))
-//        try assertDecodedMatches(encoded, input)
         
         try _testImpl(
             SimpleStructWithIntProperty(value: 52),

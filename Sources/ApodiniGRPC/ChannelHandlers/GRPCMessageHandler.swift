@@ -81,16 +81,12 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 grpcMethodName: "\(serviceName)/\(methodName)"
             )
             self.connectionCtx!.handleStreamOpen()
-            logger.notice("[EVENT] OPEN STREAM \(connectionCtx!.grpcMethodName)")
             
         case .message(let messageIn):
-            logger.notice("messageIn received: \(messageIn)")
             guard let connectionCtx = connectionCtx else {
                 fatalError("Received message but there's no connection.")
             }
-            print("message submitted to event loop")
             _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
-                print("handling message")
                 return connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
@@ -103,13 +99,11 @@ class GRPCMessageHandler: ChannelInboundHandler {
                         }
                     }
             }
-            logger.notice("[EVENT] MESSAGE IN \(connectionCtx.grpcMethodName)")
             
         case .closeStream:
             guard let connectionCtx = connectionCtx else {
                 fatalError("[\(Self.self)] received .closeStream but there's no active connection")
             }
-            logger.notice("[EVENT] CLOSE STREAM \(connectionCtx.grpcMethodName)")
             self.isConnectionClosed = true
             self.connectionCtx = nil
             // The RequestDecoder told us to close the stream.
@@ -119,7 +113,8 @@ class GRPCMessageHandler: ChannelInboundHandler {
                     return future.flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
                         switch result {
                         case .failure(let error):
-                            fatalError("Error: \(error)")
+                            return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders())))
+                                .flatMapAlways { _ in context.close() }
                         case .success(let messageOut):
                             return context.write(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
                                 .flatMapAlways { _ in context.close() }
