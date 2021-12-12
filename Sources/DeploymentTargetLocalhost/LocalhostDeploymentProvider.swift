@@ -32,7 +32,7 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     var port: Int = 80
     
     @Option(help: "The port number for the first-launched child process")
-    var endpointProcessesBasePort: Int = 5000
+    var endpointProcessesBasePort: Int = 52000
     
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String
