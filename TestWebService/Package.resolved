@@ -80,6 +80,7 @@
           "branch": null,
           "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
           "version": "4.1.0"
+        }
       },
       {
         "package": "grpc-swift",
