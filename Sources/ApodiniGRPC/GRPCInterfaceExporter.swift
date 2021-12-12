@@ -38,11 +38,13 @@ public class GRPC: Configuration {
     let packageName: String
     let serviceName: String
     let pathPrefix: String
+    let enableReflection: Bool
     
-    public init(packageName: String, serviceName: String, pathPrefix: String = "__grpc") {
+    public init(packageName: String, serviceName: String, pathPrefix: String = "__grpc", enableReflection: Bool = true) {
         self.packageName = packageName
         self.serviceName = serviceName
         self.pathPrefix = pathPrefix
+        self.enableReflection = enableReflection
     }
     
     public func configure(_ app: Application) {
@@ -157,7 +159,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
         try! server.schema.finalize()
         server.createFileDescriptors()
         
-        setupReflectionHTTPRoutes()
+        if config.enableReflection {
+            setupReflectionHTTPRoutes()
+        }
         
         // Configure ApodiniNetworking's HTTP server to use our gRPC-specific channel handlers for gRPC messages
         app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPCPlain, .gRPC(.proto), .gRPC(.json)]) { channel in
