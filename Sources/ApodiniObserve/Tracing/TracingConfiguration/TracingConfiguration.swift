@@ -45,12 +45,12 @@ public final class TracingConfiguration: Configuration {
         
         // Bootstrap the instrumentation system
         InstrumentationSystem.bootstrap(
-            MultiplexInstrument(constructedInstruments.map(\.instrument))
+            MultiplexInstrument(constructedInstruments.map { $0.instrument }
         )
         
         // Add instrument shutdown lifecycle hooks to app
         constructedInstruments
-            .compactMap(\.instrumentShutdown)
+            .compactMap { $0.instrumentShutdown }
             .map { InstrumentConfiguration.Lifecycle(instrumentShutdown: $0) }
             .forEach { app.lifecycle.use($0) }
         
