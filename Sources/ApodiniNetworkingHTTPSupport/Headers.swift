@@ -12,7 +12,7 @@ import NIOHTTP2
 import ApodiniUtils
 import Foundation
 
-// swiftlint:disable redundant_string_enum_value large_tuple
+// swiftlint:disable redundant_string_enum_value
 
 
 /// A type which represents a HTTP header field value
@@ -40,12 +40,12 @@ public protocol __ANNIOHTTPHeadersType {
     /// Fetches all values for the specified key 
     subscript(name: String) -> [String] { get }
     /// Fetches all key-value entries in this headers data structure
-    var entries: [(String, String, HPACKIndexing)] { get }
+    var entries: [(String, String, HPACKIndexing)] { get } // swiftlint:disable:this large_tuple
 }
 
 
 extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {
-    public var entries: [(String, String, HPACKIndexing)] {
+    public var entries: [(String, String, HPACKIndexing)] { // swiftlint:disable:this large_tuple
         self.map { ($0.name, $0.value, $0.indexable) }
     }
 }
@@ -60,7 +60,7 @@ extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
         replaceOrAdd(name: name, value: value)
     }
     
-    public var entries: [(String, String, HPACKIndexing)] {
+    public var entries: [(String, String, HPACKIndexing)] { // swiftlint:disable:this large_tuple
         self.map { ($0.name, $0.value, .indexable) }
     }
 }
@@ -100,7 +100,7 @@ extension __ANNIOHTTPHeadersType {
     }
     
     /// Initialises a new headers struct with the specified entries
-    public init(_ elements: [(String, String, HPACKIndexing)]) {
+    public init(_ elements: [(String, String, HPACKIndexing)]) { // swiftlint:disable:this large_tuple
         self.init()
         for (name, value, indexing) in elements {
             add(name: name, value: value, indexing: indexing)

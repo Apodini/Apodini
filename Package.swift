@@ -200,6 +200,15 @@ let package = Package(
             exclude: ["Cases"]
         ),
 
+        .testTarget(
+            name: "ApodiniNetworkingTests",
+            dependencies: [
+                .target(name: "XCTUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+
         .target(
             name: "ApodiniDatabase",
             dependencies: [

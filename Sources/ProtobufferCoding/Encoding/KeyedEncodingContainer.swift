@@ -38,7 +38,7 @@ let protobufferUnsupportedNumericTypes = Set(
 func throwUnsupportedNumericTypeEncodingError(value: Any, codingPath: [CodingKey]) throws -> Never {
     precondition(
         protobufferUnsupportedNumericTypes.contains(type(of: value)),
-        "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type."
+        "Asked to throw an \"unsupported numeric type\" error for a type that is not, in fact, an unsupported numeric type."
     )
     throw EncodingError.invalidValue(value, .init(
         codingPath: codingPath,
@@ -91,14 +91,12 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     
     mutating func encode(_ value: Bool, forKey key: Key) throws {
         if shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value == false) {
-        //if value || context.isMarkedAsOptional(codingPath.appending(key)) {
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
             dstBufferRef.value.writeProtoVarInt(UInt8(value ? 1 : 0))
         }
     }
     
     mutating func encode(_ value: String, forKey key: Key) throws {
-        //guard !value.isEmpty || context.isMarkedAsOptional(codingPath.appending(key)) else {
         guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isEmpty) else {
             // Empty strings are simply omitted from the buffer
             return
@@ -108,7 +106,6 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: Float, forKey key: Key) throws {
-        //guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
         guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isZero) else {
             // Zero values are simply omitted
             return
@@ -118,7 +115,6 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     mutating func encode(_ value: Double, forKey key: Key) throws {
-        //guard !value.isZero || context.isMarkedAsOptional(codingPath.appending(key)) else {
         guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value.isZero) else {
             // Zero values are simply omitted
             return

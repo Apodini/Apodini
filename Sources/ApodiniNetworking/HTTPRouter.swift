@@ -173,6 +173,7 @@ final class HTTPRouter {
     
     private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
         guard let candidates = routes[request.method] else {
+            logger.warning("Unable to find route for \(request) [0]")
             return nil
         }
         
@@ -187,6 +188,7 @@ final class HTTPRouter {
                 return route
             }
         }
+        logger.warning("Unable to find route for \(request) [1]")
         return nil
     }
 }

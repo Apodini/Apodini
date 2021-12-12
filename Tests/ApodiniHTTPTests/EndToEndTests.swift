@@ -84,7 +84,6 @@ class EndToEndTests: XCTApodiniTest {
             if counter == start {
                 return .final(Blob("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain)))
             } else {
-                //return .send("\(start - counter)...")
                 return .send(Blob("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain)))
             }
         }

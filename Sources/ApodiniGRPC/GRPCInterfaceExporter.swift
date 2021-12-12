@@ -204,7 +204,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     /// Registers some HTTP routes for accessing the proto reflection schema
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
-        /// - NOTE this might not necessarily be the most dessirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
+        /// - NOTE this might not necessarily be the most desirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
         app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)

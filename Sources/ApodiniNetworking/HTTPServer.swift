@@ -419,8 +419,8 @@ extension Channel {
         pipeline.addHandlers([
             //HTTP2ServerRequestDecoder(),
             HTTP2FramePayloadToHTTP1ServerCodec(),
-            HTTPServerRequestDecoder(),
             HTTPServerResponseEncoder(),
+            HTTPServerRequestDecoder(),
             HTTPServerRequestHandler(responder: responder),
             ErrorHandler(msg: "http2.stream.error")
         ])
@@ -433,8 +433,8 @@ extension Channel {
         httpHandlers += [
             httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
-            HTTPServerRequestDecoder(),
-            HTTPServerResponseEncoder()
+            HTTPServerResponseEncoder(),
+            HTTPServerRequestDecoder()
         ]
         
         let httpRequestHandler = HTTPServerRequestHandler(responder: responder)

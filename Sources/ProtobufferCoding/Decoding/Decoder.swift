@@ -11,7 +11,7 @@ import Foundation
 import ApodiniUtils
 
 
-/// The `ProtobufferEncoder` decodes `Decodable` types from protocol buffers
+/// The `ProtobufferDecoder` decodes `Decodable` types from protocol buffers
 public struct ProtobufferDecoder {
     /// Creates a new decoder
     public init() {}
@@ -39,7 +39,8 @@ public struct ProtobufferDecoder {
             // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
             try validateTypeIsProtoCompatible(T.self)
         } catch let error as ProtoValidationError {
-            // Note that in this function (the one decoding values from fields, instead of encoding entire messages), our requirements to the
+            // Note that in this function (the one decoding values from fields, instead of encoding entire messages),
+            // our requirements to `T` are a bit more relaxed than in the "decode full value" functions...
             switch error {
             case .topLevelArrayNotAllowed:
                 // We swallow all "T cannot be a top-level type" errors, since we're not decoding T as a top-level type (but rather from a field).

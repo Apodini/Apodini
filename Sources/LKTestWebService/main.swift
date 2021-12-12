@@ -287,72 +287,73 @@ struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
             .gRPCMethodName("root")
-        Group("greet") {
-            Greeter()
-                .gRPCMethodName("greet")
-        }
-        Group("greet2") {
-            Greeter2()
-                .gRPCMethodName("greet2")
-        }
-        Group("greet_cs") {
-            StreamingGreeter_CS()
-                .gRPCMethodName("greet_cs")
-                .pattern(.clientSideStream)
-        }
-        Group("greet_bs") {
-            StreamingGreeter_BS()
-                .gRPCMethodName("greet_bs")
-                .pattern(.bidirectionalStream)
-        }
-        Group("rocket") {
-            Rocket()
-                .gRPCMethodName("rocket")
-        }
-        Group("rocketBlob") {
-            RocketBlob()
-                .gRPCMethodName("rocketBlob")
-        }
-        Group("throw") {
-            ThrowingHandler()
-                .gRPCMethodName("throw")
-        }
-        Group("api") {
-            Text("A").gRPCMethodName("GetPost")
-            Text("B").gRPCMethodName("AddPost")
-            Text("C").gRPCMethodName("DeletePost")
-            BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
-            //BlockBasedHandler<WrappedArray> { .init(values: ["", "a", "b", "c", "d"]) }.gRPCMethodName("ListPosts2")
-            //WrappedArrayReturningHandler().gRPCMethodName("ListPosts2")
-            BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
-            BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-            ColorMappingHandler_Str2Col().gRPCMethodName("GetColorFromName")
-            ColorMappingHandler_Col2Str().gRPCMethodName("GetColorName")
-        }.gRPCServiceName("API")
-        EchoHandler<String>().gRPCMethodName("EchoString")
-        EchoHandler<Int>().gRPCMethodName("EchoInt")
-        EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
-        EchoHandler<City>().gRPCMethodName("EchoCity")
+            .operation(.create)
+//        Group("greet") {
+//            Greeter()
+//                .gRPCMethodName("greet")
+//        }
+//        Group("greet2") {
+//            Greeter2()
+//                .gRPCMethodName("greet2")
+//        }
+//        Group("greet_cs") {
+//            StreamingGreeter_CS()
+//                .gRPCMethodName("greet_cs")
+//                .pattern(.clientSideStream)
+//        }
+//        Group("greet_bs") {
+//            StreamingGreeter_BS()
+//                .gRPCMethodName("greet_bs")
+//                .pattern(.bidirectionalStream)
+//        }
+//        Group("rocket") {
+//            Rocket()
+//                .gRPCMethodName("rocket")
+//        }
+//        Group("rocketBlob") {
+//            RocketBlob()
+//                .gRPCMethodName("rocketBlob")
+//        }
+//        Group("throw") {
+//            ThrowingHandler()
+//                .gRPCMethodName("throw")
+//        }
+//        Group("api") {
+//            Text("A").gRPCMethodName("GetPost")
+//            Text("B").gRPCMethodName("AddPost")
+//            Text("C").gRPCMethodName("DeletePost")
+//            BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
+//            //BlockBasedHandler<WrappedArray> { .init(values: ["", "a", "b", "c", "d"]) }.gRPCMethodName("ListPosts2")
+//            //WrappedArrayReturningHandler().gRPCMethodName("ListPosts2")
+//            BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+//            BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
+//            ColorMappingHandler_Str2Col().gRPCMethodName("GetColorFromName")
+//            ColorMappingHandler_Col2Str().gRPCMethodName("GetColorName")
+//        }.gRPCServiceName("API")
+//        EchoHandler<String>().gRPCMethodName("EchoString")
+//        EchoHandler<Int>().gRPCMethodName("EchoInt")
+//        EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
+//        EchoHandler<City>().gRPCMethodName("EchoCity")
     }
     
     var configuration: Configuration {
         HTTPConfiguration(
             //hostname: .init(address: "localhost", port: 50001),
-            bindAddress: .interface("localhost", port: 50001),
-            tlsConfigurationBuilder: TLSConfigurationBuilder(
-                certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
-                keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
-            )
+            bindAddress: .interface("localhost", port: 50001)
+//            tlsConfigurationBuilder: TLSConfigurationBuilder(
+//                certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
+//                keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+//            )
         )
 //        HTTP2Configuration(
 //            cert: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
 //            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
 //        )
-//        ApodiniHTTP.HTTP()
+        ApodiniHTTP.HTTP()
         //HTTP2Configuration(cert: <#T##String?#>, keyPath: <#T##String?#>)
         //HTTPConfiguration(hostname: "localhost")
 //        REST()
-        GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
+//        GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
 //        GRPC()
     }
 }

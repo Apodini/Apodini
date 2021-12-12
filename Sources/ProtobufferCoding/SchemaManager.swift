@@ -861,19 +861,6 @@ extension ProtoSchema {
     private func processTypes() throws { // swiftlint:disable:this cyclomatic_complexity
         precondition(isFinalized, "Cannot process types of non-finalized schema")
         
-//        let fullyQualifiedTypenamePackageMapping: [String: String] = { () -> [String: String] in
-//            var retval: [String: String] = [:]
-//            for enumTypename in self.allEnumTypes.keys {
-//                var prevMapping = retval.updateValue(enumTypename.packageName, forKey: enumTypename.fullyQualified)
-//                precondition(prevMapping == nil, "Duplicate fully qualified typename")
-//            }
-//            for msgTypename in self.allMessageTypes.keys {
-//                var prevMapping = retval.updateValue(msgTypename.packageName, forKey: msgTypename.fullyQualified)
-//                precondition(prevMapping == nil, "Duplicate fully qualified typename")
-//            }
-//            return retval
-//        }()
-        
         self.fqtnByPackageMapping = { () -> [ProtobufPackageUnit: Set<String>] in
             var retval: [ProtobufPackageUnit: Set<String>] = [:]
             let insert = { (key: ProtobufPackageUnit, value: String) in
@@ -891,20 +878,6 @@ extension ProtoSchema {
             }
             return retval
         }()
-        
-//        print("All Enum Typenames (raw):")
-//        for (name, enumTy) in allEnumTypes {
-//            precondition(name.fullyQualified == enumTy.fullyQualifiedTypename)
-//            print("- \(name.fullyQualified)")
-//        }
-//
-//        print("All Enum Typenames (raw):")
-//        for (name, msgTy) in allMessageTypes {
-//            precondition(name.fullyQualified == msgTy.fullyQualifiedTypename)
-//            print("- \(name.fullyQualified)")
-//        }
-//        fatalError()
-        
         
         // We start out by making every type a top-level type
         // Firstly, we process enums, since these are the simplest types (enums can't contain other types, they are a simple key-value mapping)
