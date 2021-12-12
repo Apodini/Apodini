@@ -6,8 +6,17 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Apodini
+
 
 class GraphQLServer {
-    // TODO
-    init() {}
+    let schemaBuilder: GraphQLSchemaBuilder
+    
+    init() {
+        schemaBuilder = GraphQLSchemaBuilder()
+    }
+    
+//    func register<H: Handler>(endpoint: Endpoint<H>) throws {
+//        try schemaBuilder.add(endpoint)
+//    }
 }

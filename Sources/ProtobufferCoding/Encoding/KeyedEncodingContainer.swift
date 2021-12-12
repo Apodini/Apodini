@@ -15,21 +15,6 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
-extension Set where Element == ObjectIdentifier {
-    init(_ types: Any.Type...) {
-        self.init(types)
-    }
-    
-    init<S>(_ other: S) where S: Sequence, S.Element == Any.Type {
-        self = Set(other.map { ObjectIdentifier($0) })
-    }
-    
-    func contains(_ other: Any.Type) -> Bool {
-        contains(ObjectIdentifier(other))
-    }
-}
-
-
 let protobufferUnsupportedNumericTypes = Set(
     Int8.self, UInt8.self, Int16.self, UInt16.self
 )

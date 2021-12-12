@@ -12,6 +12,7 @@ import ApodiniExtension
 import ApodiniNetworking
 import Logging
 import Foundation
+import GraphQL
 
 
 public class GraphQLConfig: Configuration { // Not called GraphQL bc that'd clash w/ the module name TODO call it GraphQL anyway
@@ -46,7 +47,16 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        // TODO
+        let commPattern = endpoint[CommunicationalPattern.self]
+        guard commPattern == .requestResponse else {
+            logger.warning("Endpoint defines currently-unsupported communicational pattern \(commPattern). Ignoring. (Endpoint: \(endpoint)).")
+            return
+        }
+        guard endpoint[Context.self].get(valueFor: TMP_GraphQLRootQueryFieldName.self) != nil else {
+            logger.warning("Unary endpoint does not define GraphQL root query type field name. Skipping. (Endpoint: \(endpoint)).")
+            return
+        }
+        try! server.schemaBuilder.add(endpoint)
     }
     
     
@@ -56,6 +66,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     
     
     func finishedExporting(_ webService: WebServiceModel) {
+        try! server.schemaBuilder.finalize()
         app.httpServer.registerRoute(.GET, config.graphqlEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
         app.httpServer.registerRoute(.POST, config.graphqlEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
         if config.enableGraphiQL {
@@ -83,5 +94,39 @@ class GraphQLInterfaceExporter: InterfaceExporter {
                 bodyStorage: .buffer(.init(data: data))
             )
         }
+    }
+}
+
+
+struct GraphQLEndpointDecodingStrategy: EndpointDecodingStrategy {
+    typealias Input = GraphQL.Map
+    
+    func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> {
+        GraphQLEndpointParameterDecodingStrategy<Element>(name: parameter.name).typeErased
+    }
+}
+
+
+private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
+    typealias Element = T
+    typealias Input = GraphQL.Map
+    
+    struct Error: Swift.Error {
+        let message: String
+    }
+    
+    let name: String
+    
+    func decode(from input: Input) throws -> T {
+        guard let value = try input.dictionaryValue(converting: false /*TODO true?*/)[name] else {
+            throw Error(message: "Unable to find parameter named '\(name)' (T: \(T.self))")
+        }
+        // TODO now we need to somehow "decode" the expected type from the parameter...
+        print(value)
+        // This will only work for objects, but not for fields that are like direct ints or strings...
+        let data = try JSONEncoder().encode(value)
+        let retval = try JSONDecoder().decode(T.self, from: data)
+        print("retval for \(name) (raw: \(value)): \(retval)")
+        return retval
     }
 }

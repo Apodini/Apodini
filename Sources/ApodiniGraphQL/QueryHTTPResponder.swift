@@ -55,40 +55,58 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
             fatalError("Unexpected HTTP method: \(httpRequest.method)")
         }
 //        print(graphQLRequest)
-        let schema = try! GraphQLSchema(
-            query: GraphQLObjectType(
-                name: "RootQuery",
-                description: "root querY desc",
-                fields: [
-                    "hello": GraphQLField(
-                        type: GraphQLString,//<#T##GraphQLOutputType#>,
-                        description: "field desc",
-                        deprecationReason: nil,
-                        args: [:], // TODO
-                        resolve: { (
-                            source: Any, _ args: Map, context: Any,
-                            eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo
-                        ) throws -> EventLoopFuture<Any?> in
-                            // TODO
-                            print(source)
-                            print(args)
-                            print(context)
-                            print(eventLoopGroup)
-                            print(info)
-                            //fatalError()
-                            return eventLoopGroup.next().makeSucceededFuture(["hello", "world"])
-                        },
-                        subscribe: nil //<#T##GraphQLFieldResolve?#>
-                    )
-                ],
-                interfaces: [], //<#T##[GraphQLInterfaceType]#>,
-                isTypeOf: nil//<#T##GraphQLIsTypeOf?##GraphQLIsTypeOf?##(_ source: Any, _ eventLoopGroup: EventLoopGroup, _ info: GraphQLResolveInfo) throws -> Bool#>
-            ),
-            mutation: nil,
-            subscription: nil,
-            types: [], //<#T##[GraphQLNamedType]#>,
-            directives: [] //<#T##[GraphQLDirective]#>
-        )
+//        let schema = try! GraphQLSchema(
+//            query: GraphQLObjectType(
+//                name: "RootQuery",
+//                description: "root querY desc",
+//                fields: [
+//                    "hello": GraphQLField(
+//                        type: GraphQLString,//<#T##GraphQLOutputType#>,
+//                        description: "field desc",
+//                        deprecationReason: nil,
+//                        args: [:], // TODO
+//                        resolve: { (
+//                            source: Any, _ args: Map, context: Any,
+//                            eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo
+//                        ) throws -> EventLoopFuture<Any?> in
+//                            // TODO
+//                            print("source", source)
+//                            print("args", args)
+//                            print("context", context)
+//                            print("eventLoopGroup", eventLoopGroup)
+//                            print("info", info)
+//                            //fatalError()
+//                            return eventLoopGroup.next().makeSucceededFuture(["hello", "world", 123])
+//                        },
+//                        subscribe: nil //<#T##GraphQLFieldResolve?#>
+//                    ),
+//                    "greet": GraphQLField(
+//                        type: GraphQLString,
+//                        description: "Greet. what else should it be?",
+//                        deprecationReason: "oh no",
+//                        args: ["name": GraphQLArgument(type: GraphQLString, description: "YouR name", defaultValue: nil)],
+//                        resolve: { (
+//                            source: Any, _ args: Map, context: Any,
+//                            eventLoopGroup: EventLoopGroup, info: GraphQLResolveInfo
+//                        ) throws -> EventLoopFuture<Any?> in
+//                            print("source", source)
+//                            print("args", args)
+//                            print("context", context)
+//                            print("eventLoopGroup", eventLoopGroup)
+//                            print("info", info)
+//                            let name = try args.dictionaryValue()["name"]!.string!
+//                            return eventLoopGroup.next().makeSucceededFuture("Hello, \(name)!")
+//                        })
+//                ],
+//                interfaces: [], //<#T##[GraphQLInterfaceType]#>,
+//                isTypeOf: nil//<#T##GraphQLIsTypeOf?##GraphQLIsTypeOf?##(_ source: Any, _ eventLoopGroup: EventLoopGroup, _ info: GraphQLResolveInfo) throws -> Bool#>
+//            ),
+//            mutation: nil,
+//            subscription: nil,
+//            types: [], //<#T##[GraphQLNamedType]#>,
+//            directives: [] //<#T##[GraphQLDirective]#>
+//        )
+        let schema = server.schemaBuilder.finalizedSchema!
         
         let graphqlResult: EventLoopFuture<GraphQLResult>
         do {

@@ -288,13 +288,16 @@ struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
             .gRPCMethodName("root")
+            .graphqlRootQueryFieldName("root")
         Group("greet") {
             Greeter()
                 .gRPCMethodName("greet")
+                .graphqlRootQueryFieldName("greet")
         }
         Group("greet2") {
             Greeter2()
                 .gRPCMethodName("greet2")
+                //.graphqlRootQueryFieldName("greet2")
         }
         Group("greet_cs") {
             StreamingGreeter_CS()
