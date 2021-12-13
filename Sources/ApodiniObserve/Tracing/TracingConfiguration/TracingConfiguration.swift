@@ -41,7 +41,7 @@ public final class TracingConfiguration: Configuration {
     /// Configures the `Application` with the ``InstrumentConfiguration``s and bootstraps the `InstrumentationSystem`.
     /// - Parameter app: The to be configured `Application`.
     public func configure(_ app: Application) {
-        let constructedInstruments = instrumentConfigurations.map { $0.factory(app.eventLoopGroup) }
+        let constructedInstruments = instrumentConfigurations.compactMap { $0.factory(app.eventLoopGroup) }
         
         // Bootstrap the instrumentation system
         InstrumentationSystem.bootstrap(
