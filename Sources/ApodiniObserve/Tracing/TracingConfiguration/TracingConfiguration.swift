@@ -50,8 +50,7 @@ public final class TracingConfiguration: Configuration {
         
         // Add instrument shutdown lifecycle hooks to app
         constructedInstruments
-            .compactMap { $0.instrumentShutdown }
-            .map { InstrumentConfiguration.Lifecycle(instrumentShutdown: $0) }
+            .compactMap { $0.instrumentShutdown.map(InstrumentConfiguration.Lifecycle.init(instrumentShutdown:)) }
             .forEach { app.lifecycle.use($0) }
         
         // Write configuration to the storage
