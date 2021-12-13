@@ -56,7 +56,11 @@ extension InstrumentConfiguration {
                 logger: logger
             )
 
-            try! otel.start().wait()
+            do {
+                try otel.start().wait()
+            } catch {
+                return nil
+            }
 
             return (otel.tracer(), { try otel.shutdown().wait() })
         }
