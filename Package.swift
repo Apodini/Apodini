@@ -70,7 +70,7 @@ let package = Package(
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
         // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
-        .package(url: "https://github.com/apple/swift-nio.git", from: "2.33.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.36.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.16.0"),
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.18.0"),
@@ -156,9 +156,6 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
@@ -183,9 +180,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
             ]
         ),
 
