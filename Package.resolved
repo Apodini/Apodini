@@ -186,8 +186,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "d2027b4b81a19d2ac7bd01936e7a778d7f0afa02",
-          "version": "3.15.0"
+          "revision": "9cc30f8cef132e91a07e36005612b37f918731fc",
+          "version": "3.16.0"
         }
       },
       {
@@ -240,8 +240,8 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "bd5abc2a123349b08a345d7d375db2a5d845ed35",
-          "version": "2.0.2"
+          "revision": "9c53b7a758bb849a7df1bd2314395f5f0c14306f",
+          "version": "2.0.3"
         }
       },
       {
@@ -312,8 +312,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "0324d60429870284810ba5bdb039640761bf10c9",
-          "version": "2.17.0"
+          "revision": "2b329e37e9dd34fb382655181a680261d58cbbf1",
+          "version": "2.17.1"
         }
       },
       {
