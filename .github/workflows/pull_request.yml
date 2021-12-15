@@ -35,3 +35,9 @@ jobs:
   swiftlint:
     name: SwiftLint
     uses: Apodini/.github/.github/workflows/swiftlint.yml@main
+  docker-build-and-push:
+    name: Docker Test
+    uses: Apodini/.github/.github/workflows/docker-build-and-push.yml@feature/macos11
+    with:
+      image-name: apodini/testwebservice
+      working-directory: TestWebService
