@@ -680,7 +680,9 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
-                .product(name: "CoreMetrics", package: "swift-metrics")
+                .product(name: "CoreMetrics", package: "swift-metrics"),
+                .product(name: "Instrumentation", package: "swift-distributed-tracing"),
+                .product(name: "Tracing", package: "swift-distributed-tracing")
             ]
         ),
         
