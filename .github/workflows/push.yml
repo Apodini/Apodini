@@ -26,6 +26,8 @@ jobs:
   test_web_service:
     name: Test Web Service
     uses: Apodini/Apodini/.github/workflows/test-web-service.yml@feature/ciimprovements
-  docker_test:
+  docker-compose-test:
     name: Docker Test
-    uses: Apodini/Apodini/.github/workflows/docker-test.yml@feature/ciimprovements
+    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@feature/macos11
+    with:
+      testscript: TestWebService/Test.sh
