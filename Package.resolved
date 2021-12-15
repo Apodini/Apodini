@@ -83,6 +83,15 @@
         }
       },
       {
+        "package": "grpc-swift",
+        "repositoryURL": "https://github.com/grpc/grpc-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "580ba36aec6d96c4e93365e0e55197832853d9ea",
+          "version": "1.5.0"
+        }
+      },
+      {
         "package": "jmespath.swift",
         "repositoryURL": "https://github.com/adam-fowler/jmespath.swift.git",
         "state": {
@@ -116,6 +125,15 @@
           "branch": null,
           "revision": "4986552e76c331a99770428bd2be77ad76068c08",
           "version": "2.4.0"
+        }
+      },
+      {
+        "package": "opentelemetry-swift",
+        "repositoryURL": "https://github.com/slashmo/opentelemetry-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "e4f825fc2c7475553075a3c93b5ddadb5d4f5ec9",
+          "version": "0.1.1"
         }
       },
       {
@@ -231,8 +249,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
-          "version": "1.0.2"
+          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
+          "version": "1.0.1"
         }
       },
       {
@@ -242,6 +260,33 @@
           "branch": null,
           "revision": "9c53b7a758bb849a7df1bd2314395f5f0c14306f",
           "version": "2.0.3"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing.git",
+        "state": {
+          "branch": null,
+          "revision": "fce1f7c91ad5a733500ea1cdd7ccd7aed9130536",
+          "version": "0.1.4"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing-baggage",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage.git",
+        "state": {
+          "branch": null,
+          "revision": "b68b3277985555995298426a35084b832dbc51ae",
+          "version": "0.1.1"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing-baggage-core",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage-core.git",
+        "state": {
+          "branch": null,
+          "revision": "9a2884a37f39e08ebd225627c400feae9c6ea8df",
+          "version": "0.1.1"
         }
       },
       {
@@ -323,6 +368,15 @@
           "branch": null,
           "revision": "e7f5278a26442dc46783ba7e063643d524e414a0",
           "version": "1.11.3"
+        }
+      },
+      {
+        "package": "SwiftProtobuf",
+        "repositoryURL": "https://github.com/apple/swift-protobuf.git",
+        "state": {
+          "branch": null,
+          "revision": "7e2c5f3cbbeea68e004915e3a8961e20bd11d824",
+          "version": "1.18.0"
         }
       },
       {

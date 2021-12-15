@@ -16,9 +16,9 @@ SPDX-License-Identifier: MIT
 
 In order to make in instrumentation of the web service as easy as possible for developers, Apodini provides the `ApodiniObserve` package. The goal of the library is to simplify the observability process within the declarative Apodini framework, remove hurdles for developers to instrument the entire web service extensivly, and allows them to easily state observability features in the DSL of Apodini. Developers have to write as little code as possible in order to achieve observability by using ApodiniObserve’s convenience features. Furthermore, the package is able to automate the observing process completely by collecting default information about the execution of the web service with only a few lines of code written by the developer.
 
-`ApodiniObserve` heavily relies on Apple's observability libraries, especially [swift-log](https://github.com/apple/swift-log) and [swift-metrics](https://github.com/apple/swift-metrics), to provide instrumentation possibilities to developers. It's important to note that these packages just define an observability API ("observability frontend"), but don't actually process and transmit the insturmented telemetry information to an observability software stack. This functionality is left to individual observability integrations ("observability backends") that conform to the processing APIs of Apple’s observability libraries. A list of compatible observability integrations can be found on [GitHub page of swift-log](https://github.com/apple/swift-log) as well as [GitHub page of swift-metrics](https://github.com/apple/swift-metrics).
+`ApodiniObserve` heavily relies on Apple's observability libraries, especially [swift-log](https://github.com/apple/swift-log), [swift-metrics](https://github.com/apple/swift-metrics), and [swift-distributed-tracing](https://github.com/apple/swift-distributed-tracing), to provide instrumentation possibilities to developers. It's important to note that these packages just define an observability API ("observability frontend"), but don't actually process and transmit the instrumented telemetry information to an observability software stack. This functionality is left to individual observability integrations ("observability backends") that conform to the processing APIs of Apple’s observability libraries. A list of compatible observability integrations can be found on the [GitHub page of swift-log](https://github.com/apple/swift-log), the [GitHub page of swift-metrics](https://github.com/apple/swift-metrics), as well as the [GitHub page of swift-distributed-tracing](https://github.com/apple/swift-distributed-tracing).
 
-All in all, `ApodiniObserve` provides functionality to easily collect information about the system's execution in the form of logs and metrics. These observability types are automatically enrichted by adding context information to them in order to extract actionable insights from the information. Furthermore, as mentioned before, the entire observability process can be automated by `ApodiniObserve` to a certain extent by collecting configurable default observability types, so that developers don't have to manually instrument the different web routes themselves.
+All in all, `ApodiniObserve` provides functionality to easily collect information about the system's execution in the form of logs, metrics, and tracing. Logs and metrics are automatically enrichted by adding context information to them in order to extract actionable insights from the information. Furthermore, as mentioned before, the entire observability process can be automated by `ApodiniObserve` to a certain extent by collecting configurable default observability types, so that developers don't have to manually instrument the different web routes themselves. Trace collection is currently not automated yet.
 
 ## Logs
 
@@ -356,6 +356,151 @@ struct CreateSensorType: Handler {
 ```
 
 A further configuration possibility of the `ApodiniMetric` types is to manually pass labels to the initializer of the `ApodiniMetric` property wrapper. These labels will be merged with the automatically attached context information.
+
+## Tracing
+
+The third building block of observability is Tracing.
+
+### Add Target Dependency
+
+In order to use Apodini's tracing capabilities in combination with an appropriate `Instrument`, the developer first has to state the dependency `ApodiniObserve` in the traget as well as the dependency to the respective `Instrument` or *tracing backend* package, in case of OpenTelemetry the [opentelemetry-swift](https://github.com/slashmo/opentelemetry-swift) package.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Apodini/Apodini.git, from: "<version>"),
+    .package(url: "https://github.com/slashmo/opentelemetry-swift.git", from: "0.1.1")
+],
+targets: [
+    .executableTarget(
+        name: "WebService",
+        dependencies: [
+            .product(name: "Apodini", package: "Apodini"),
+            .product(name: "ApodiniObserve", package: "Apodini"),
+            .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
+            .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
+        ]
+    )
+]
+```
+
+### ApodiniTracing Configuration
+
+After stating the dependencies to the respective packages, the developer has to configure the tracing system with the to-be-used `Instrument`'s.
+Add the
+
+```swift
+import Apodini
+import ApodiniObserve
+import OpenTelemetry
+import OtlpGRPCSpanExporting
+
+struct ExampleWebService: WebService {
+    var content: some Component {
+        // ...
+    }
+
+    var configuration: Configuration {
+        // ...
+
+        TracingConfiguration(
+            // Setup of tracing in Apodini with a OpenTelemetry backend
+            InstrumentConfiguration { group in
+                let otel = OTel(
+                    serviceName: "ExampleWebService",
+                    eventLoopGroup: group,
+                    resourceDetection: .automatic(additionalDetectors: []),
+                    idGenerator: OTel.RandomIDGenerator(),
+                    sampler: OTel.ParentBasedSampler(rootSampler: OTel.ConstantSampler(isOn: true)),
+                    processor: { group in
+                        let exporter = OtlpGRPCSpanExporter(config: .init(eventLoopGroup: group))
+                        return OTel.SimpleSpanProcessor(exportingTo: exporter)
+                    },
+                    propagator: OTel.W3CPropagator(),
+                    logger: Logger(label: "org.apodini.observe.OpenTelemetry")
+                )
+
+                try! otel.start().wait()
+
+                return (otel.tracer(), { try otel.shutdown().wait() })
+            }
+        ) 
+    }
+}
+```
+
+As the `InstrumentConfiguration` is quite complex, `ApodiniObserve` offers a separate `ApodiniObserveOpenTelemetry` target that dastically simplifies the configuration process for the common [OpenTelemetry](https://opentelemetry.io) software stack. Add the target dependency like:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Apodini/Apodini.git, from: "<version>")
+],
+targets: [
+    .executableTarget(
+        name: "WebService",
+        dependencies: [
+            .product(name: "Apodini", package: "Apodini"),
+            .product(name: "ApodiniObserve", package: "Apodini"),
+            .product(name: "ApodiniObserveOpenTelemetry", package: "Apodini")
+        ]
+    )
+]
+```
+
+This then enables a way simpler configuration like:
+
+```swift
+import Apodini
+import ApodiniObserve
+import ApodiniObserveOpenTelemetry
+
+struct ExampleWebService: WebService {
+    var content: some Component {
+        // ...
+    }
+
+    var configuration: Configuration {
+        // ...
+
+        TracingConfiguration(
+            // Either, setup tracing in Apodini using the default OpenTelemetry configuration
+            .defaultOpenTelemetry(serviceName: "ExampleWebService"),
+
+            // Or, setup with exposed configuration options
+            // This example shows the defaults            
+            .openTelemetryWithConfig(
+                serviceName: "ExampleWebService",
+                resourceDetection: .automatic(additionalDetectors: []),
+                idGenerator: OTel.RandomIDGenerator(),
+                sampler: OTel.ParentBasedSampler(rootSampler: OTel.ConstantSampler(isOn: true)),
+                processor: {
+                    OTel.SimpleSpanProcessor(exportingTo: OtlpGRPCSpanExporter(config: .init(eventLoopGroup: $0))
+                },
+                propagator: OTel.W3CPropagator(),
+                logger: Logger(label: "org.apodini.observe.OTel")
+            )
+        ) 
+    }
+}
+```
+
+### Instrument
+
+Currently Apodini doesn't offer any automatic tracing of ``Handler``s, but only exposes the `InstrumentationSystem.tracer` through the ``Application``. After configuring the tracing system, ``Handler``s can be traced as follows:
+
+```swift
+struct Greeter: Handler {    
+    @Environment(\.tracer) var tracer: Tracer
+
+    func handle() -> String {
+        let span = tracer.startSpan(operationName: "Greeter.handle()", context: context)
+        defer { span.end() }
+
+        return "Hello World!"
+    }
+}
+```
+
+Refer to the [swift-distributed-tracing instrumentation documentation](https://github.com/apple/swift-distributed-tracing#instrumenting-your-code) for more complex examples.
 
 ## Continuous Observability
 
