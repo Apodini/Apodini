@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 import Apodini
+import ApodiniObserve
 import Logging
+import Tracing
 
 
 struct TraditionalGreeter: Handler {
@@ -19,9 +21,12 @@ struct TraditionalGreeter: Handler {
     
     @Environment(\.connection) var connection: Connection
     @Environment(\.logger) var logger: Logger
+    @Environment(\.tracer) var tracer: Tracer
 
     
     func handle() -> Response<String> {
+        let span = tracer.startSpan("TraditionalGreeter.handle()", baggage: .topLevel)
+        defer { span.end() }
         logger.info("\(connection.state)")
         
         if connection.state == .end {
