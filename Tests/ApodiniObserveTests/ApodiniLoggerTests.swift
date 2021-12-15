@@ -763,10 +763,9 @@ class ApodiniLoggerTests: XCTestCase {
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-            XCTAssertEqual(2, informationMetadata.count)
+            XCTAssertEqual(1, informationMetadata.count)
                 
             XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             // Last log message, End of stream
             let eleventhLogMessage = container.messages[10]
@@ -850,10 +849,9 @@ class ApodiniLoggerTests: XCTestCase {
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-            XCTAssertEqual(2, informationMetadata.count)
+            XCTAssertEqual(1, informationMetadata.count)
                 
             XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             XCTAssertEqual(response.status, .ok)
             let responseStream = try XCTUnwrap(response.bodyStorage.stream)
