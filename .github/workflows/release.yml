@@ -20,8 +20,8 @@ jobs:
     with:
       packagename: Apodini
   docker-build-and-push:
-    name: Docker Test
+    name: Docker Build and Push
     uses: Apodini/.github/.github/workflows/docker-build-and-push.yml@feature/macos11
     with:
       image-name: apodini/testwebservice
-      working-directory: TestWebService
+      docker-file: ./TestWebService/Dockerfile
