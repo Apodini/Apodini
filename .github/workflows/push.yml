@@ -30,4 +30,4 @@ jobs:
     name: Docker Test
     uses: Apodini/.github/.github/workflows/docker-compose-test.yml@feature/macos11
     with:
-      testscript: TestWebService/Test.sh
+      testscript: TestWebService/test.sh
