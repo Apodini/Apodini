@@ -230,6 +230,18 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+            print(
+                """
+                Send test request:
+                HTTPClient.Request(
+                    url: \(request.url),
+                    method: \(request.method),
+                    headers: \(request.headers),
+                    body: \(String(describing: request.body)),
+                    tlsConfiguration: \(String(describing: request.tlsConfiguration))
+                )
+                """
+            )
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
@@ -347,7 +359,11 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
     }
     
     func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
-        XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        if let error = error as? HTTPClientError {
+            XCTFail("Received HTTPClientError in \(Self.self): \(error.description)")
+        } else {
+            XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        }
     }
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
