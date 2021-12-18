@@ -71,8 +71,8 @@ public struct Hostname {
     public func uriPrefix(isTLSEnabled: Bool = true) -> String {
         let portString: String
         switch (port, isTLSEnabled) {
-            case (nil, _), (HTTPConfiguration.Defaults.httpPort, false), (HTTPConfiguration.Defaults.httpsPort, true): portString = ""
-            case let (.some(unwrappedPort), _): portString = ":\(unwrappedPort)"
+        case (nil, _), (HTTPConfiguration.Defaults.httpPort, false), (HTTPConfiguration.Defaults.httpsPort, true): portString = ""
+        case let (.some(unwrappedPort), _): portString = ":\(unwrappedPort)"
         }
         return "http\(isTLSEnabled ? "s" : "")://\(address)\(portString)"
     }
