@@ -47,11 +47,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         let input: GraphQLInputType?
         let output: GraphQLOutputType
         
-//        private init(input: GraphQLInputType?, output: GraphQLOutputType) {
-//            self.input = input
-//            self.output = output
-//        }
-        
         init(inputType: GraphQLInputType? = nil, outputType: GraphQLOutputType) {
             self.input = inputType
             self.output = outputType
@@ -86,20 +81,13 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     // key: field name on the root query thing // TODO improve and move away from putting everyting into the root query!!!
     private var queryHandlers: [String: GraphQLField] = [:]
     private var mutationHandlers: [String: GraphQLField] = [:]
-    private var subscriptionHandlers: [String: GraphQLField] = [:]
-    
-    //private var cachedGraphQLInputTypes: [ObjectIdentifier: GraphQLInputType] = [:]
-    //private var cachedGraphQLOutputTypes: [ObjectIdentifier: GraphQLOutputType] = [:]
-    
-    // NOTE: if a type doesn't have an entry in here, 
-//    private var cachedGraphQLInputTypes: [TypeInformation: GraphQLInputType] = [:]
-//    private var cachedGraphQLOutputTypes: [TypeInformation: GraphQLOutputType] = [:]
     
     private var cachedTypeMappings: [TypeInformation: TypesCacheEntry] = [:]
     
     private(set) var finalizedSchema: GraphQLSchema?
     
     var isMutable: Bool { finalizedSchema == nil }
+    
     
     init() {}
     
@@ -163,29 +151,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     
     
     private func addSubscriptionEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
-        //throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
-        try assertSchemaMutable()
-        guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
-            throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
-        }
-        guard !subscriptionHandlers.keys.contains(endpointName) else {
-            throw SchemaError.duplicateRootQueryFieldKey(endpointName)
-        }
-        subscriptionHandlers[endpointName] = GraphQLField(
-            type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
-            args: try mapEndpointParametersToFieldArgs(endpoint),
-//            resolve: makeQueryOrMutationFieldResolver(for: endpoint),
-//            subscribe: nil
-            resolve: nil,
-            subscribe: { source, args, context, eventLoopGroup, info in
-                print("source: \(source)")
-                print("args: \(args)")
-                print("context: \(context)")
-                print("eventLoopGroup: \(eventLoopGroup)")
-                print("info: \(info)")
-                fatalError()
-            }
-        )
+        throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
     }
     
     
@@ -375,21 +341,13 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
             query: GraphQLObjectType(
                 name: "Query",
                 description: "_todo_",
-                fields: self.queryHandlers // TODO better mapping here!
-                //interfaces: <#T##[GraphQLInterfaceType]#>,
-                //isTypeOf: <#T##GraphQLIsTypeOf?##GraphQLIsTypeOf?##(_ source: Any, _ eventLoopGroup: EventLoopGroup, _ info: GraphQLResolveInfo) throws -> Bool#>
+                fields: self.queryHandlers
             ),
             mutation: self.mutationHandlers.isEmpty ? nil : GraphQLObjectType(
                 name: "Mutation",
                 description: "todo",
                 fields: self.mutationHandlers
-            ),
-            subscription: GraphQLObjectType(
-                name: "Subscription",
-                fields: self.subscriptionHandlers
             )
-            //types: <#T##[GraphQLNamedType]#>,
-            //directives: <#T##[GraphQLDirective]#>
         )
         return finalizedSchema!
     }
