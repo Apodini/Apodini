@@ -84,7 +84,8 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     
     
     // key: field name on the root query thing // TODO improve and move away from putting everyting into the root query!!!
-    private var unaryHandlers: [String: GraphQLField] = [:]
+    private var queryHandlers: [String: GraphQLField] = [:]
+    private var mutationHandlers: [String: GraphQLField] = [:]
     
     //private var cachedGraphQLInputTypes: [ObjectIdentifier: GraphQLInputType] = [:]
     //private var cachedGraphQLOutputTypes: [ObjectIdentifier: GraphQLOutputType] = [:]
@@ -142,10 +143,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
             throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
         }
-        guard !unaryHandlers.keys.contains(endpointName) else {
+        guard !queryHandlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateRootQueryFieldKey(endpointName)
         }
-        unaryHandlers[endpointName] = GraphQLField(
+        queryHandlers[endpointName] = GraphQLField(
             //type: try toGraphQLOutputType(H.Response.Content.self),
             type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
             args: try mapEndpointParametersToFieldArgs(endpoint),
@@ -171,8 +172,32 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     }
     
     
+    
     private func addMutationEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
-        throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
+        try assertSchemaMutable()
+        guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
+            throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
+        }
+        guard !mutationHandlers.keys.contains(endpointName) else {
+            throw SchemaError.duplicateRootQueryFieldKey(endpointName)
+        }
+        //let outTy = try toGraphQLOutputType(<#T##typeInfo: TypeInformation##TypeInformation#>)
+        let outTy = try toGraphQLOutputType(.init(type: H.Response.Content.self))
+        print(outTy)
+        mutationHandlers[endpointName] = GraphQLField(
+            type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
+            args: try mapEndpointParametersToFieldArgs(endpoint),
+            resolve: nil,
+            subscribe: { source, args, context, eventLoopGroup, info in
+                print("source: \(source)")
+                print("args: \(args)")
+                print("context: \(context)")
+                print("eventLoopGroup: \(eventLoopGroup)")
+                print("info: \(info)")
+                fatalError("TODO")
+            }
+        )
+        
     }
     
     
@@ -365,13 +390,17 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         }
         self.finalizedSchema = try! GraphQLSchema(
             query: GraphQLObjectType(
-                name: "RootQueryType",
+                name: "Query",
                 description: "_todo_",
-                fields: self.unaryHandlers // TODO better mapping here!
+                fields: self.queryHandlers // TODO better mapping here!
                 //interfaces: <#T##[GraphQLInterfaceType]#>,
                 //isTypeOf: <#T##GraphQLIsTypeOf?##GraphQLIsTypeOf?##(_ source: Any, _ eventLoopGroup: EventLoopGroup, _ info: GraphQLResolveInfo) throws -> Bool#>
+            ),
+            mutation: self.mutationHandlers.isEmpty ? nil : GraphQLObjectType(
+                name: "Mutation",
+                description: "todo",
+                fields: self.mutationHandlers
             )
-            //mutation: <#T##GraphQLObjectType?#>,
             //subscription: <#T##GraphQLObjectType?#>,
             //types: <#T##[GraphQLNamedType]#>,
             //directives: <#T##[GraphQLDirective]#>

@@ -368,6 +368,7 @@ struct LKTestWebService: Apodini.WebService {
             ]
         }
             .endpointName("books")
+        BlockBasedHandler<Int>
     }
     
     var configuration: Configuration {
