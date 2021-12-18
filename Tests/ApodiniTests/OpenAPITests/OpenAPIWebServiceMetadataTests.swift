@@ -45,6 +45,7 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
         }
 
         var configuration: Configuration {
+            HTTPConfiguration(hostname: Hostname(address: "example.com"))
             REST {
                 ApodiniOpenAPI.OpenAPI(title: "ExampleWebService")
             }
@@ -86,7 +87,7 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
                 ),
                 version: "2.3.0"
             ),
-            servers: [.init(url: URL(string: "http://localhost")!)],
+            servers: [.init(url: URL(string: "http://example.com")!)],
             paths: [:],
             components: .init(),
             tags: [

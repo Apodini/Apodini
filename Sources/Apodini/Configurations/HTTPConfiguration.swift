@@ -37,20 +37,7 @@ public final class HTTPConfiguration: Configuration {
     
     
     public var uriPrefix: String {
-        let httpProtocol: String
-        var port = ""
-        if self.tlsConfiguration == nil {
-            httpProtocol = "http://"
-            if hostname.port != 80 {
-                port = ":\(hostname.port!)"
-            }
-        } else {
-            httpProtocol = "https://"
-            if hostname.port != 443 {
-                port = ":\(hostname.port!)"
-            }
-        }
-        return httpProtocol + hostname.address + port
+        hostname.uriPrefix(isTLSEnabled: self.tlsConfiguration != nil)
     }
     
     

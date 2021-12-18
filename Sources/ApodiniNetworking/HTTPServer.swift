@@ -53,6 +53,7 @@ public final class HTTPServer {
         let tlsConfiguration: TLSConfiguration?
         let enableHTTP2: Bool
         let address: BindAddress
+        let hostname: Hostname
         let logger: Logger
     }
     
@@ -123,6 +124,16 @@ public final class HTTPServer {
         }
     }
     
+    /// The server's hostname
+    public var hostname: Hostname {
+        switch config {
+        case .app(let app):
+            return app.httpConfiguration.hostname
+        case .custom(let storage):
+            return storage.hostname
+        }
+    }
+    
     
     private var logger: Logger {
         switch config {
@@ -150,12 +161,14 @@ public final class HTTPServer {
     /// - parameter tlsConfiguration: The server's TLS configuraton. Pass `nil` to disable TLS entirely.
     /// - parameter enableHTTP2: Whether or not the server should enable HTTP/2. Note that enabling TLS will also enable HTTP/2, regardless of this flag's value.
     /// - parameter address: The address to which the server should bind.
+    /// - parameter hostname: The hostname to which the server corresponds to.
     /// - parameter logger: The logger object used by the server.
     public init(
         eventLoopGroupProvider: NIOEventLoopGroupProvider,
         tlsConfiguration: TLSConfiguration? = nil,
         enableHTTP2: Bool = false,
         address: BindAddress,
+        hostname: Hostname,
         logger: Logger = .init(label: "\(HTTPServer.self)")
     ) {
         let eventLoopGroup: EventLoopGroup = {
@@ -172,6 +185,7 @@ public final class HTTPServer {
             tlsConfiguration: tlsConfiguration,
             enableHTTP2: enableHTTP2,
             address: address,
+            hostname: hostname,
             logger: logger
         ))
         self.router = HTTPRouter(logger: logger)
@@ -220,9 +234,9 @@ public final class HTTPServer {
                     return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
                             channel.configureHTTP2SecureUpgrade { channel in
-                                channel.addApodiniNetworkingHTTP2Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
+                                channel.addApodiniNetworkingHTTP2Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
                             } http1ChannelConfigurator: { channel in
-                                channel.addApodiniNetworkingHTTP1Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
+                                channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
                             }
                         }
                         .flatMapError { error in
@@ -232,26 +246,22 @@ public final class HTTPServer {
                     if enableHTTP2 {
                         fatalError("Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
                     } else {
-                        return channel.addApodiniNetworkingHTTP1Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
+                        return channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
                     }
                 }
             }
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         
+        logger.info("Will bind to \(addressString)")
         switch address {
         case let .interface(hostname, port):
-            logger.info("Will bind to \(addressString)")
-            channel = try bootstrap.bind(
-                host: hostname,
-                port: port ?? (tlsConfiguration != nil ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-            ).wait() // swiftlint:disable:this multiline_function_chains
-            logger.info("Server starting on \(addressString)")
+            let port = port ?? (tlsConfiguration != nil ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            channel = try bootstrap.bind(host: hostname, port: port).wait()
         case .unixDomainSocket(let path):
-            logger.info("Will bind to \(addressString)")
             channel = try bootstrap.bind(unixDomainSocketPath: path).wait()
-            logger.info("Server starting on \(addressString)")
         }
+        logger.info("Server starting on \(addressString)")
     }
     
     
@@ -268,19 +278,6 @@ public final class HTTPServer {
     
     private var addressString: String {
         address.addressString(isTLSEnabled: isTLSEnabled)
-    }
-}
-
-
-extension BindAddress {
-    func addressString(isTLSEnabled: Bool) -> String {
-        switch self {
-        case let .interface(hostname, port):
-            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-            return "http\(isTLSEnabled ? "s" : "")://\(hostname):\(portNumber)"
-        case .unixDomainSocket(let path):
-            return "unix:\(path)"
-        }
     }
 }
 
@@ -374,7 +371,7 @@ extension HTTPServer: HTTPResponder {
 
 
 extension Channel {
-    func addApodiniNetworkingHTTP2Handlers(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP2Handlers(hostname: Hostname, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
             NIOHTTP2Handler(mode: .server, initialSettings: [
@@ -384,17 +381,17 @@ extension Channel {
                 HTTP2Setting(parameter: .initialWindowSize, value: targetWindowSize)
             ]),
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
-                stream.apodiniNetworkingInitializeHTTP2InboundStream(bindAddress: bindAddress, isTLSEnabled: isTLSEnabled, responder: responder)
+                stream.apodiniNetworkingInitializeHTTP2InboundStream(hostname: hostname, isTLSEnabled: isTLSEnabled, responder: responder)
             },
             ErrorHandler(msg: "http2.channel.error")
         ])
     }
     
     
-    func apodiniNetworkingInitializeHTTP2InboundStream(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func apodiniNetworkingInitializeHTTP2InboundStream(hostname: Hostname, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
-            HTTPServerRequestDecoder(serverBindAddress: bindAddress, isTLSEnabled: isTLSEnabled),
+            HTTPServerRequestDecoder(hostname: hostname, isTLSEnabled: isTLSEnabled),
             HTTPServerResponseEncoder(),
             HTTPServerRequestHandler(responder: responder),
             ErrorHandler(msg: "http2.stream.error")
@@ -402,13 +399,13 @@ extension Channel {
     }
     
     
-    func addApodiniNetworkingHTTP1Handlers(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP1Handlers(hostname: Hostname, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         var httpHandlers: [RemovableChannelHandler] = []
         let httpResponseEncoder = HTTPResponseEncoder()
         httpHandlers += [
             httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
-            HTTPServerRequestDecoder(serverBindAddress: bindAddress, isTLSEnabled: isTLSEnabled),
+            HTTPServerRequestDecoder(hostname: hostname, isTLSEnabled: isTLSEnabled),
             HTTPServerResponseEncoder()
         ]
         

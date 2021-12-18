@@ -8,7 +8,7 @@
 
 import NIO
 import NIOHTTP1
-import enum Apodini.BindAddress
+import struct Apodini.Hostname
 
 
 class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
@@ -22,12 +22,12 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     }
     
     private var state: State = .ready
-    private let bindAddress: BindAddress
+    private let hostname: Hostname
     private let isTLSEnabled: Bool
     
     
-    init(serverBindAddress: BindAddress, isTLSEnabled: Bool) {
-        self.bindAddress = serverBindAddress
+    init(hostname: Hostname, isTLSEnabled: Bool) {
+        self.hostname = hostname
         self.isTLSEnabled = isTLSEnabled
     }
     
@@ -36,7 +36,7 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
         let request = unwrapInboundIn(data)
         switch (state, request) {
         case (.ready, .head(let reqHead)):
-            guard let url = URI(string: "\(bindAddress.addressString(isTLSEnabled: isTLSEnabled))\(reqHead.uri)") else {
+            guard let url = URI(string: "\(hostname.uriPrefix(isTLSEnabled: isTLSEnabled))\(reqHead.uri)") else {
                 fatalError("received invalid url: '\(reqHead.uri)'")
             }
             let request = HTTPRequest(
