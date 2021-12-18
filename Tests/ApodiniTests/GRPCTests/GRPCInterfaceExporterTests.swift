@@ -487,7 +487,7 @@ extension GRPCInterfaceExporterTests {
             requestHeaders: clientHeaders,
             payload: ByteBuffer() // TODO does an empty buffer work here?
         )))
-        try ch.writeInbound(GRPCMessageHandler.Input.closeStream)
+        try ch.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
         
         wait(for: [channelCloseExpectation], timeout: 5)
         XCTAssert(try ch.finish(acceptAlreadyClosed: true).isClean)

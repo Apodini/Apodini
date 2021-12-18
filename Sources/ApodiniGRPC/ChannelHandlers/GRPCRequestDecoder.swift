@@ -17,6 +17,7 @@ import Logging
 class GRPCRequestDecoder: ChannelInboundHandler {
     typealias InboundIn = HTTP2Frame.FramePayload
     typealias InboundOut = GRPCMessageHandler.Input
+    typealias OutboundOut = HTTP2Frame.FramePayload
     
     /// Context of a message currently being collected from the stream
     private class MessageCollectionContext: Hashable {
@@ -50,6 +51,8 @@ class GRPCRequestDecoder: ChannelInboundHandler {
         /// - parameter messageCollectionCtx: Context object containing infrmation about the (gRPC) message currently being collected from the stream.
         ///         This will only be set to a nonnull value while reading a message which is spread across multiple DATA frames.
         case handlingStream(initialHeaders: HPACKHeaders, messageCollectionCtx: MessageCollectionContext?)
+        /// The RPC stream has ended and the channel is now closed.
+        case closed
     }
     
     
@@ -65,10 +68,17 @@ class GRPCRequestDecoder: ChannelInboundHandler {
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) { // swiftlint:disable:this cyclomatic_complexity
         let input = unwrapInboundIn(data)
+        
+        guard self.state != .closed else {
+            logger.error("Received unexpected frame on closed channel: \(input)")
+            _ = context.close()
+            return
+        }
+        
         switch input {
         case .data(let dataFrame): // data: HTTP2Frame.FramePayload.Data
             defer {
-                precondition(dataFrame.endStream == (state == .ready))
+                precondition(dataFrame.endStream == (state == .closed))
             }
             switch dataFrame.data {
             case .byteBuffer(let buffer):
@@ -78,9 +88,8 @@ class GRPCRequestDecoder: ChannelInboundHandler {
                 case let .handlingStream(initialHeaders, messageCollectionCtx):
                     var dataFrameDataBuffer = buffer
                     if dataFrameDataBuffer.readableBytes == 0 && dataFrame.endStream {
-                        logger.notice("Received empty DATA frame w/ END_STREAM flag")
-                        context.fireChannelRead(self.wrapInboundOut(.closeStream))
-                        self.state = .ready
+                        self.state = .closed
+                        context.fireChannelRead(self.wrapInboundOut(.closeStream(reason: .client)))
                         return
                     }
                     let didReadForPrevMessage: Bool
@@ -129,15 +138,16 @@ class GRPCRequestDecoder: ChannelInboundHandler {
                         }
                     }
                     if dataFrame.endStream {
-                        context.fireChannelRead(wrapInboundOut(.closeStream))
-                        state = .ready
+                        state = .closed
+                        context.fireChannelRead(wrapInboundOut(.closeStream(reason: .client)))
                     }
+                case .closed:
+                    fatalError("Unreachable, already handled above.")
                 }
             case .fileRegion(let fileRegion):
                 fatalError("Got unexpected FileRegion when expecting ByteBuffer: \(fileRegion)")
             }
         case .headers(let headers):
-            logger.notice("Got some headers: \(headers) (endStream: \(headers.endStream))")
             switch state {
             case .ready:
                 self.state = .handlingStream(initialHeaders: headers.headers, messageCollectionCtx: nil)
@@ -146,27 +156,24 @@ class GRPCRequestDecoder: ChannelInboundHandler {
                 // NOTE that this might in fact be a valid state after all, HEADERS frames can also be sent at the end of a request,
                 // although the gRPC docs don't mention this so idk maybe they don't use that.
                 // (They do use it for responses, but that doesn't apply here...)
-                fatalError("Invalid state: received HEADERS frame when handling a stream.")
+                logger.error("Invalid state: received HEADERS frame when handling a stream.")
+                self.state = .closed
+                context.fireChannelRead(wrapInboundOut(.closeStream(reason: .invalidState)))
+            case .closed:
+                fatalError("Unreachable, already handled above.")
             }
-        case let .priority(priorityData): // HTTP2Frame.StreamPriorityData
-            fatalError("Got .priority: \(priorityData)")
+        case let .ping(pingData, ack):
+            context.writeAndFlush(wrapOutboundOut(.ping(pingData, ack: ack)), promise: nil)
         case let .rstStream(errorCode): // HTTP2ErrorCode
-            print("RECEIVED RST_STREAM (w/ error code \(errorCode). CLOSING CHANNEL")
+            logger.warning("received RST_STREAM (w/ error code \(errorCode). Closing channel in response.")
             context.close(mode: .all, promise: nil)
-        case let .settings(settings): // HTTP2Frame.FramePayload.Settings
-            fatalError("Got .settings: \(settings)")
-        case let .pushPromise(pushPromise): // HTTP2Frame.FramePayload.PushPromise
-            fatalError("Got .pushPromise: \(pushPromise)")
-        case let .ping(pingData, ack): // HTTP2PingData, Bool
-            fatalError("Got .ping(ack=\(ack)): \(pingData)")
-        case let .goAway(lastStreamID, errorCode, opaqueData): // HTTP2StreamID, HTTP2ErrorCode, ByteBuffer?
-            fatalError("Got .goAway(lastStreamId: \(lastStreamID), errorCode: \(errorCode), opaqueData: \(opaqueData as Any))")
-        case let .windowUpdate(windowSizeIncrement): // Int
-            fatalError("Got .windowUpdate: \(windowSizeIncrement)")
-        case let .alternativeService(origin, field): // String?, ByteBuffer?
-            fatalError("Got .alternativeService(origin: \(origin as Any), field: \(field as Any)")
-        case let .origin(origins): // [String]
-            fatalError("Got .origin(\(origins))")
+            // Note: The difference between the branches below (which all close the channel in response to receiving an unexpected frame)
+            // and the branch above (which closes the channel in response to receiving a RST_STREAM frame) is that above we close because
+            // we actually want to end the connection, whereas below we close because we received an invalid frame.
+        case .priority, .settings, .pushPromise, .goAway, .windowUpdate, .alternativeService, .origin:
+            logger.error("Received unexpected frame: \(input). Closing stream in response.")
+            self.state = .closed
+            context.fireChannelRead(wrapInboundOut(.closeStream(reason: .invalidState)))
         }
     }
     
