@@ -54,7 +54,7 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
         default:
             fatalError("Unexpected HTTP method: \(httpRequest.method)")
         }
-//        print(graphQLRequest)
+////        print(graphQLRequest)
 //        let schema = try! GraphQLSchema(
 //            query: GraphQLObjectType(
 //                name: "RootQuery",
@@ -96,7 +96,46 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
 //                            print("info", info)
 //                            let name = try args.dictionaryValue()["name"]!.string!
 //                            return eventLoopGroup.next().makeSucceededFuture("Hello, \(name)!")
-//                        })
+//                        }),
+//                    "formPerson": GraphQLField(
+//                        type: GraphQLObjectType(
+//                            name: "Person",
+//                            fields: [
+//                                "name": GraphQLField(type: GraphQLString),
+//                                //"randomNumber": GraphQLField(type: GraphQLInt)
+//                                "randomNumber": GraphQLField(
+//                                    type: GraphQLString,
+//                                    resolve: { source, args, context, info in
+//                                        print("\n\n=====randomNumber")
+//                                        print("source: \(source)")
+//                                        print("args: \(args)")
+//                                        print("context: \(context)")
+//                                        print("info: \(info)")
+//                                        return nil
+//                                    }
+//                                )
+//                            ]
+//                        ),
+//                        //description: <#T##String?#>,
+//                        //deprecationReason: <#T##String?#>,
+//                        args: ["name": GraphQLArgument(type: GraphQLString, description: nil, defaultValue: nil)],
+//                        resolve: { source, args, context, info in
+//                            print("source", source)
+//                            print("args", args)
+//                            print("context", context)
+//                            print("info", info)
+//                            //fatalError()
+//                            struct Person: Codable {
+//                                let name: String
+//                                let randomNumber: Int
+//                                init(name: String, randomNumber: Int = Int.random(in: Int.min...Int.max)) {
+//                                    self.name = name
+//                                    self.randomNumber = randomNumber
+//                                }
+//                            }
+//                            return Person(name: try args.dictionaryValue()["name"]!.string!)
+//                        }
+//                    )
 //                ],
 //                interfaces: [], //<#T##[GraphQLInterfaceType]#>,
 //                isTypeOf: nil//<#T##GraphQLIsTypeOf?##GraphQLIsTypeOf?##(_ source: Any, _ eventLoopGroup: EventLoopGroup, _ info: GraphQLResolveInfo) throws -> Bool#>

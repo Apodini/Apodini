@@ -45,32 +45,33 @@ extension Component {
 }
 
 
-// MARK: MethodName
-
-struct GRPCMethodNameContextKey: OptionalContextKey {
-    typealias Value = String
-}
-
-
-/// Modifier attaching a gRPC method name to a handler
-public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
-    public let component: H
-    let methodName: String
-    
-    init(_ component: H, methodName: String) {
-        self.component = component
-        self.methodName = methodName
-    }
-    
-    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
-        visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
-    }
-}
-
-
+//// MARK: MethodName
+//
+//struct GRPCMethodNameContextKey: OptionalContextKey {
+//    typealias Value = String
+//}
+//
+//
+///// Modifier attaching a gRPC method name to a handler
+//public struct GRPCMethodModifier<H: Handler>: HandlerModifier {
+//    public let component: H
+//    let methodName: String
+//
+//    init(_ component: H, methodName: String) {
+//        self.component = component
+//        self.methodName = methodName
+//    }
+//
+//    public func parseModifier(_ visitor: SyntaxTreeVisitor) {
+//        visitor.addContext(GRPCMethodNameContextKey.self, value: methodName, scope: .current)
+//    }
+//}
+//
+//
 extension Handler {
     /// Explicitly sets the name of the gRPC service that is exposed for this `Handler`
-    public func gRPCMethodName(_ methodName: String) -> GRPCMethodModifier<Self> {
-        .init(self, methodName: methodName)
+    public func gRPCMethodName(_ methodName: String) -> some Handler { // TODO remove. is essentially just an alias for .endpointName
+        //.init(self, methodName: methodName)
+        self.endpointName(methodName)
     }
 }

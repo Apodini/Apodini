@@ -284,59 +284,90 @@ struct ColorMappingHandler_Col2Str: Handler {
 }
 
 
+
+
+struct Book: Codable {
+    let title: String
+    let author: Person
+    let numPages: Int
+    let contents: String
+}
+
+
+
+
+
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
-            .gRPCMethodName("root")
-            .graphqlRootQueryFieldName("root")
+//            .gRPCMethodName("root")
+//            .graphqlRootQueryFieldName("root")
+            .endpointName("root")
         Group("greet") {
             Greeter()
-                .gRPCMethodName("greet")
-                .graphqlRootQueryFieldName("greet")
+//                .gRPCMethodName("greet")
+//                .graphqlRootQueryFieldName("greet")
+                .endpointName("greet")
         }
         Group("greet2") {
             Greeter2()
-                .gRPCMethodName("greet2")
-                //.graphqlRootQueryFieldName("greet2")
+                .endpointName("greet2")
+//                .graphqlRootQueryFieldName("greet2")
         }
         Group("greet_cs") {
             StreamingGreeter_CS()
-                .gRPCMethodName("greet_cs")
+                .endpointName("greet_cs")
                 .pattern(.clientSideStream)
         }
         Group("greet_bs") {
             StreamingGreeter_BS()
-                .gRPCMethodName("greet_bs")
+                .endpointName("greet_bs")
                 .pattern(.bidirectionalStream)
         }
         Group("rocket") {
             Rocket()
-                .gRPCMethodName("rocket")
+                .endpointName("rocket")
         }
         Group("rocketBlob") {
             RocketBlob()
-                .gRPCMethodName("rocketBlob")
+                .endpointName("rocketBlob")
         }
         Group("throw") {
             ThrowingHandler()
-                .gRPCMethodName("throw")
+                .endpointName("throw")
         }
         Group("api") {
-            Text("A").gRPCMethodName("GetPost")
-            Text("B").gRPCMethodName("AddPost")
-            Text("C").gRPCMethodName("DeletePost")
-            BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
+            Text("A").endpointName("GetPost")
+            Text("B").endpointName("AddPost")
+            Text("C").endpointName("DeletePost")
+            BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
             //BlockBasedHandler<WrappedArray> { .init(values: ["", "a", "b", "c", "d"]) }.gRPCMethodName("ListPosts2")
             //WrappedArrayReturningHandler().gRPCMethodName("ListPosts2")
-            BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
-            BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-            ColorMappingHandler_Str2Col().gRPCMethodName("GetColorFromName")
-            ColorMappingHandler_Col2Str().gRPCMethodName("GetColorName")
+            BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
+            BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
+            ColorMappingHandler_Str2Col().endpointName("GetColorFromName")
+            ColorMappingHandler_Col2Str().endpointName("GetColorName")
         }.gRPCServiceName("API")
-        EchoHandler<String>().gRPCMethodName("EchoString")
-        EchoHandler<Int>().gRPCMethodName("EchoInt")
-        EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
-        EchoHandler<City>().gRPCMethodName("EchoCity")
+        EchoHandler<String>().endpointName("EchoString")
+        EchoHandler<Int>().endpointName("EchoInt")
+        EchoHandler<[Double]>().endpointName("EchoDoubles")
+        //EchoHandler<City>().endpointName("EchoCity")
+        
+        BlockBasedHandler<[Book]> { () -> [Book] in
+            let jrrt = Person(name: "J. R. R. Tolkien", dateOfBirth: .init(year: 1892, month: 1, day: 3))
+            let grrm = Person(name: "George R. R. Martin", dateOfBirth: .init(year: 1948, month: 9, day: 20))
+            return [
+                .init(title: "The Fellowship of the Ring", author: jrrt, numPages: 423, contents: ""),
+                .init(title: "The Two Towers", author: jrrt, numPages: 352, contents: ""),
+                .init(title: "The Return of the King", author: jrrt, numPages: 416, contents: ""),
+                .init(title: "A Game of Thrones", author: grrm, numPages: 694, contents: ""),
+                .init(title: "A Clash of Kings", author: grrm, numPages: 768, contents: ""),
+                .init(title: "A Storm of Swords", author: grrm, numPages: 973, contents: ""),
+                .init(title: "A Feast for Crows", author: grrm, numPages: 753, contents: ""),
+                .init(title: "A Dance with Dragons", author: grrm, numPages: 1056, contents: "")
+            ]
+        }
+            .endpointName("books")
     }
     
     var configuration: Configuration {

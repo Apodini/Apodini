@@ -173,8 +173,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
     // MARK: Internal Stuff
     
     private func getMethodName<H>(for endpoint: Endpoint<H>) -> String {
-        if let methodName = endpoint[Context.self].get(valueFor: GRPCMethodNameContextKey.self) {
-            return methodName
+        //if let methodName = endpoint[Context.self].get(valueFor: GRPCMethodNameContextKey.self) {
+        if let endpointName = endpoint.getEndointName(format: .PascalCase) {
+            return endpointName
         } else {
             // No explicit method name was specified, so we construct a default one based on the information we have about this handler.
             // The problem is that we don't exactly have a lot of information about the handler.

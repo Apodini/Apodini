@@ -47,16 +47,20 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let commPattern = endpoint[CommunicationalPattern.self]
-        guard commPattern == .requestResponse else {
-            logger.warning("Endpoint defines currently-unsupported communicational pattern \(commPattern). Ignoring. (Endpoint: \(endpoint)).")
-            return
+        do {
+            try server.schemaBuilder.add(endpoint)
+            logger.notice("Exported endpoint \(endpoint)")
+        } catch let error as GraphQLSchemaBuilder.SchemaError {
+            switch error {
+            case let .unsupportedOpCommPatternTuple(operation, commPattern):
+                logger.error("Not exporting endpoint: unsupported operation/commPattern tuple (\(operation), \(commPattern)). (endpoint: \(endpoint))")
+            default:
+                fatalError("\(error)")
+            }
         }
-        guard endpoint[Context.self].get(valueFor: TMP_GraphQLRootQueryFieldName.self) != nil else {
-            logger.warning("Unary endpoint does not define GraphQL root query type field name. Skipping. (Endpoint: \(endpoint)).")
-            return
+        catch {
+            fatalError("\(error)")
         }
-        try! server.schemaBuilder.add(endpoint)
     }
     
     
@@ -115,6 +119,10 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
         let message: String
     }
     
+    private struct Wrapped<T: Codable>: Codable {
+        let data: T
+    }
+    
     let name: String
     
     func decode(from input: Input) throws -> T {
@@ -122,11 +130,11 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
             throw Error(message: "Unable to find parameter named '\(name)' (T: \(T.self))")
         }
         // TODO now we need to somehow "decode" the expected type from the parameter...
-        print(value)
+        if value.isUndefined {
+            throw Error(message: "Is undefined")
+        }
         // This will only work for objects, but not for fields that are like direct ints or strings...
-        let data = try JSONEncoder().encode(value)
-        let retval = try JSONDecoder().decode(T.self, from: data)
-        print("retval for \(name) (raw: \(value)): \(retval)")
-        return retval
+        let data = try JSONEncoder().encode(value) // TODO might need to use the Wrapped<T> thing here, since not all values (e.g. numbers/null/ets!) can be encoded into top-level JSON objects
+        return try JSONDecoder().decode(T.self, from: data)
     }
 }

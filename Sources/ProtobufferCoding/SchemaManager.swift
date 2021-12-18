@@ -705,7 +705,7 @@ public class ProtoSchema {
         }
         currentTypesStack.push(cacheKey)
         defer {
-            currentTypesStack.pop()
+            precondition(currentTypesStack.pop() == cacheKey)
         }
         
         if let cached = cachedResults[cacheKey] {
