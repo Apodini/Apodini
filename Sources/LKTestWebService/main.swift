@@ -286,7 +286,7 @@ struct ColorMappingHandler_Col2Str: Handler {
 
 
 
-struct Book: Codable {
+struct Book: Codable, Content {
     let title: String
     let author: Person
     let numPages: Int
@@ -294,6 +294,34 @@ struct Book: Codable {
 }
 
 
+
+enum Library {
+    static let jrrt = Person(name: "J. R. R. Tolkien", dateOfBirth: .init(year: 1892, month: 1, day: 3))
+    static let grrm = Person(name: "George R. R. Martin", dateOfBirth: .init(year: 1948, month: 9, day: 20))
+    static var books: [Book] = [
+        .init(title: "The Fellowship of the Ring", author: jrrt, numPages: 423, contents: ""),
+        .init(title: "The Two Towers", author: jrrt, numPages: 352, contents: ""),
+        .init(title: "The Return of the King", author: jrrt, numPages: 416, contents: ""),
+        .init(title: "A Game of Thrones", author: grrm, numPages: 694, contents: ""),
+        .init(title: "A Clash of Kings", author: grrm, numPages: 768, contents: ""),
+        .init(title: "A Storm of Swords", author: grrm, numPages: 973, contents: ""),
+        .init(title: "A Feast for Crows", author: grrm, numPages: 753, contents: ""),
+        .init(title: "A Dance with Dragons", author: grrm, numPages: 1056, contents: "")
+    ]
+}
+
+
+struct Empty: Codable, ResponseTransformable {}
+
+
+struct AddBook: Handler {
+    @Parameter var book: Book
+    
+    func handle() async throws -> Book {
+        Library.books.append(book)
+        return book
+    }
+}
 
 
 
@@ -354,21 +382,13 @@ struct LKTestWebService: Apodini.WebService {
         //EchoHandler<City>().endpointName("EchoCity")
         
         BlockBasedHandler<[Book]> { () -> [Book] in
-            let jrrt = Person(name: "J. R. R. Tolkien", dateOfBirth: .init(year: 1892, month: 1, day: 3))
-            let grrm = Person(name: "George R. R. Martin", dateOfBirth: .init(year: 1948, month: 9, day: 20))
-            return [
-                .init(title: "The Fellowship of the Ring", author: jrrt, numPages: 423, contents: ""),
-                .init(title: "The Two Towers", author: jrrt, numPages: 352, contents: ""),
-                .init(title: "The Return of the King", author: jrrt, numPages: 416, contents: ""),
-                .init(title: "A Game of Thrones", author: grrm, numPages: 694, contents: ""),
-                .init(title: "A Clash of Kings", author: grrm, numPages: 768, contents: ""),
-                .init(title: "A Storm of Swords", author: grrm, numPages: 973, contents: ""),
-                .init(title: "A Feast for Crows", author: grrm, numPages: 753, contents: ""),
-                .init(title: "A Dance with Dragons", author: grrm, numPages: 1056, contents: "")
-            ]
+            Library.books
         }
             .endpointName("books")
-        BlockBasedHandler<Int>
+        //BlockBasedHandler<Int>
+        AddBook()
+            .operation(.create)
+            .endpointName("AddBook")
     }
     
     var configuration: Configuration {

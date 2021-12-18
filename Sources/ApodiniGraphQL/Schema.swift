@@ -86,6 +86,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     // key: field name on the root query thing // TODO improve and move away from putting everyting into the root query!!!
     private var queryHandlers: [String: GraphQLField] = [:]
     private var mutationHandlers: [String: GraphQLField] = [:]
+    private var subscriptionHandlers: [String: GraphQLField] = [:]
     
     //private var cachedGraphQLInputTypes: [ObjectIdentifier: GraphQLInputType] = [:]
     //private var cachedGraphQLOutputTypes: [ObjectIdentifier: GraphQLOutputType] = [:]
@@ -113,80 +114,68 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         let commPattern = endpoint[CommunicationalPattern.self]
         switch (operation, commPattern) {
         case (.read, .requestResponse):
-            try addQueryEndpoint(endpoint)
+            try addQueryOrMutationEndpoint(to: &queryHandlers, endpoint: endpoint)
         case (.create, .requestResponse), (.update, .requestResponse), (.delete, .requestResponse):
-            try addMutationEndpoint(endpoint)
+            try addQueryOrMutationEndpoint(to: &mutationHandlers, endpoint: endpoint)
         case (.read, .serviceSideStream):
             try addSubscriptionEndpoint(endpoint)
         default:
             throw SchemaError.unsupportedOpCommPatternTuple(operation, commPattern)
-//        case (.read, .requestResponse):
-//            try addUnaryEndpoint(endpoint)
-//        case .serviceSideStream:
-//            // TODO addSubscriptionEndpoint
-//            fatalError("Not yet implemented")
-//        case .clientSideStream:
-//            // TODO model as a single function that expects an array as its parameter? (wouldn't really work bc these arguments would need to be all available when making the request, rather than sending them one after another...)
-//            fatalError("Not (yet?) supported")
-//        case .bidirectionalStream:
-//            // Same reason as the client-side streams: only the service-streaming half would make sense (via a subscription), but im not so sure about the client-streaming part...
-//            fatalError("Not (yet?) supported")
         }
     }
     
     
-    private func addQueryEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
+    private func addQueryOrMutationEndpoint<H: Handler>(to handlers: inout [String: GraphQLField], endpoint: Endpoint<H>) throws {
         try assertSchemaMutable()
-//        guard let tmp_rootQueryFieldName = endpoint[Context.self].get(valueFor: TMP_GraphQLRootQueryFieldName.self) else {
-//            throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
-//        }
         guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
             throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
         }
-        guard !queryHandlers.keys.contains(endpointName) else {
+        guard !handlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateRootQueryFieldKey(endpointName)
         }
-        queryHandlers[endpointName] = GraphQLField(
-            //type: try toGraphQLOutputType(H.Response.Content.self),
+        handlers[endpointName] = GraphQLField(
             type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
             args: try mapEndpointParametersToFieldArgs(endpoint),
-            resolve: { source, args, context, eventLoopGroup, info in
-                // TODO do some of these need to be lifted out of the closure?
-                let defaults = endpoint[DefaultValueStore.self]
-                let delegateFactory = endpoint[DelegateFactory<H, GraphQLInterfaceExporter>.self]
-                let delegate = delegateFactory.instance()
-                let decodingStrategy = GraphQLEndpointDecodingStrategy().applied(to: endpoint).typeErased
-                let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
-                    .decodeRequest(from: args, with: DefaultRequestBasis(), with: eventLoopGroup.next()) // TODO request basis!!!
-                    .insertDefaults(with: defaults)
-                    .cache()
-                    .evaluate(on: delegate)
-                return responseFuture // TODO does this need to be wrapped in some kind of dedicated data structure?
-                    .map { $0.content }
-                    .inspect { print("result for \(endpointName): \($0)") }
-                    .map { $0 }
-                
-            },
+            resolve: makeQueryOrMutationFieldResolver(for: endpoint),
             subscribe: nil
         )
     }
     
     
+    private func makeQueryOrMutationFieldResolver<H: Handler>(for endpoint: Endpoint<H>) -> GraphQLFieldResolve {
+        let defaults = endpoint[DefaultValueStore.self]
+        let delegateFactory = endpoint[DelegateFactory<H, GraphQLInterfaceExporter>.self]
+        return { source, args, context, eventLoopGroup, info in
+            let delegate = delegateFactory.instance()
+            let decodingStrategy = GraphQLEndpointDecodingStrategy().applied(to: endpoint).typeErased
+            let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
+                .decodeRequest(from: args, with: DefaultRequestBasis(), with: eventLoopGroup.next()) // TODO request basis!!!
+                .insertDefaults(with: defaults)
+                .cache()
+                .evaluate(on: delegate)
+            return responseFuture // TODO does this need to be wrapped in some kind of dedicated data structure?
+                .map { $0.content }
+                .inspect { print("result for \(endpoint.getEndointName(format: .verbatim) as Any): \($0)") }
+                .map { $0 }
+            
+        }
+    }
     
-    private func addMutationEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
+    
+    private func addSubscriptionEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
+        //throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
         try assertSchemaMutable()
         guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
             throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
         }
-        guard !mutationHandlers.keys.contains(endpointName) else {
+        guard !subscriptionHandlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateRootQueryFieldKey(endpointName)
         }
-        //let outTy = try toGraphQLOutputType(<#T##typeInfo: TypeInformation##TypeInformation#>)
-        let outTy = try toGraphQLOutputType(.init(type: H.Response.Content.self))
-        print(outTy)
-        mutationHandlers[endpointName] = GraphQLField(
+        subscriptionHandlers[endpointName] = GraphQLField(
             type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
             args: try mapEndpointParametersToFieldArgs(endpoint),
+//            resolve: makeQueryOrMutationFieldResolver(for: endpoint),
+//            subscribe: nil
             resolve: nil,
             subscribe: { source, args, context, eventLoopGroup, info in
                 print("source: \(source)")
@@ -194,15 +183,9 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 print("context: \(context)")
                 print("eventLoopGroup: \(eventLoopGroup)")
                 print("info: \(info)")
-                fatalError("TODO")
+                fatalError()
             }
         )
-        
-    }
-    
-    
-    private func addSubscriptionEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
-        throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
     }
     
     
@@ -400,8 +383,11 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 name: "Mutation",
                 description: "todo",
                 fields: self.mutationHandlers
+            ),
+            subscription: GraphQLObjectType(
+                name: "Subscription",
+                fields: self.subscriptionHandlers
             )
-            //subscription: <#T##GraphQLObjectType?#>,
             //types: <#T##[GraphQLNamedType]#>,
             //directives: <#T##[GraphQLDirective]#>
         )
