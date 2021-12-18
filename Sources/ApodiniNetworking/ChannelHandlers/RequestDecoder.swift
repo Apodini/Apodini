@@ -8,6 +8,7 @@
 
 import NIO
 import NIOHTTP1
+import enum Apodini.BindAddress
 
 
 class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
@@ -21,13 +22,21 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     }
     
     private var state: State = .ready
+    private let bindAddress: BindAddress
+    private let isTLSEnabled: Bool
+    
+    
+    init(serverBindAddress: BindAddress, isTLSEnabled: Bool) {
+        self.bindAddress = serverBindAddress
+        self.isTLSEnabled = isTLSEnabled
+    }
     
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) { // swiftlint:disable:this cyclomatic_complexity
         let request = unwrapInboundIn(data)
         switch (state, request) {
         case (.ready, .head(let reqHead)):
-            guard let url = URI(string: reqHead.uri) else {
+            guard let url = URI(string: "\(bindAddress.addressString(isTLSEnabled: isTLSEnabled))\(reqHead.uri)") else {
                 fatalError("received invalid url: '\(reqHead.uri)'")
             }
             let request = HTTPRequest(

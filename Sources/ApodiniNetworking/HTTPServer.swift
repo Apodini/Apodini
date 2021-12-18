@@ -98,6 +98,11 @@ public final class HTTPServer {
         }
     }
     
+    /// Whether the server is using TLS
+    public var isTLSEnabled: Bool {
+        tlsConfiguration != nil
+    }
+    
     /// Whether or not the server should enable HTTP/2
     public var enableHTTP2: Bool {
         switch config {
@@ -117,6 +122,7 @@ public final class HTTPServer {
             return storage.address
         }
     }
+    
     
     private var logger: Logger {
         switch config {
@@ -214,9 +220,9 @@ public final class HTTPServer {
                     return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
                             channel.configureHTTP2SecureUpgrade { channel in
-                                channel.addApodiniNetworkingHTTP2Handlers(responder: self)
+                                channel.addApodiniNetworkingHTTP2Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
                             } http1ChannelConfigurator: { channel in
-                                channel.addApodiniNetworkingHTTP1Handlers(responder: self)
+                                channel.addApodiniNetworkingHTTP1Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
                             }
                         }
                         .flatMapError { error in
@@ -226,7 +232,7 @@ public final class HTTPServer {
                     if enableHTTP2 {
                         fatalError("Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
                     } else {
-                        return channel.addApodiniNetworkingHTTP1Handlers(responder: self)
+                        return channel.addApodiniNetworkingHTTP1Handlers(bindAddress: self.address, isTLSEnabled: self.isTLSEnabled, responder: self)
                     }
                 }
             }
@@ -249,17 +255,6 @@ public final class HTTPServer {
     }
     
     
-    private var addressString: String {
-        switch address {
-        case let .interface(hostname, port):
-            let isTLSEnabled = tlsConfiguration != nil
-            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-            return "http\(isTLSEnabled ? "s" : "")://\(hostname):\(portNumber)"
-        case .unixDomainSocket(let path):
-            return "unix:\(path)"
-        }
-    }
-    
     /// Shut down the server, if it is running
     public func shutdown() throws {
         if let channel = channel {
@@ -267,6 +262,24 @@ public final class HTTPServer {
             try channel.close(mode: .all).wait()
             self.channel = nil
             print("Did shut down NIO channel bound to \(addressString)")
+        }
+    }
+    
+    
+    private var addressString: String {
+        address.addressString(isTLSEnabled: isTLSEnabled)
+    }
+}
+
+
+extension BindAddress {
+    func addressString(isTLSEnabled: Bool) -> String {
+        switch self {
+        case let .interface(hostname, port):
+            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            return "http\(isTLSEnabled ? "s" : "")://\(hostname):\(portNumber)"
+        case .unixDomainSocket(let path):
+            return "unix:\(path)"
         }
     }
 }
@@ -361,7 +374,7 @@ extension HTTPServer: HTTPResponder {
 
 
 extension Channel {
-    func addApodiniNetworkingHTTP2Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP2Handlers(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
             NIOHTTP2Handler(mode: .server, initialSettings: [
@@ -371,17 +384,17 @@ extension Channel {
                 HTTP2Setting(parameter: .initialWindowSize, value: targetWindowSize)
             ]),
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
-                stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
+                stream.apodiniNetworkingInitializeHTTP2InboundStream(bindAddress: bindAddress, isTLSEnabled: isTLSEnabled, responder: responder)
             },
             ErrorHandler(msg: "http2.channel.error")
         ])
     }
     
     
-    func apodiniNetworkingInitializeHTTP2InboundStream(responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func apodiniNetworkingInitializeHTTP2InboundStream(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
-            HTTPServerRequestDecoder(),
+            HTTPServerRequestDecoder(serverBindAddress: bindAddress, isTLSEnabled: isTLSEnabled),
             HTTPServerResponseEncoder(),
             HTTPServerRequestHandler(responder: responder),
             ErrorHandler(msg: "http2.stream.error")
@@ -389,13 +402,13 @@ extension Channel {
     }
     
     
-    func addApodiniNetworkingHTTP1Handlers(responder: HTTPResponder) -> EventLoopFuture<Void> {
+    func addApodiniNetworkingHTTP1Handlers(bindAddress: BindAddress, isTLSEnabled: Bool, responder: HTTPResponder) -> EventLoopFuture<Void> {
         var httpHandlers: [RemovableChannelHandler] = []
         let httpResponseEncoder = HTTPResponseEncoder()
         httpHandlers += [
             httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
-            HTTPServerRequestDecoder(),
+            HTTPServerRequestDecoder(serverBindAddress: bindAddress, isTLSEnabled: isTLSEnabled),
             HTTPServerResponseEncoder()
         ]
         
