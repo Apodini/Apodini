@@ -120,6 +120,11 @@ extension Sequence {
     public func intoArray() -> [Element] {
         Array(self)
     }
+    
+    /// Creates a Set by consuming all of the sequence's elements.
+    public func intoSet() -> Set<Element> where Element: Hashable {
+        Set(self)
+    }
 }
 
 

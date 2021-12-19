@@ -134,6 +134,11 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         let defaults = endpoint[DefaultValueStore.self]
         let delegateFactory = endpoint[DelegateFactory<H, GraphQLInterfaceExporter>.self]
         return { source, args, context, eventLoopGroup, info in
+            print("source: \(source)")
+            print("args: \(args)")
+            print("context: \(context)")
+            print("eventLoopGroup: \(eventLoopGroup)")
+            print("info: \(info)")
             let delegate = delegateFactory.instance()
             let decodingStrategy = GraphQLEndpointDecodingStrategy().applied(to: endpoint).typeErased
             let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
@@ -194,7 +199,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 output: { GraphQLNonNull($0 as! GraphQLNullableType) }
             )
         case .optional(let wrappedValue):
-            result = try _toGraphQLType(wrappedValue, for: usageCtx)
+            result = try _toGraphQLType(wrappedValue, for: usageCtx).map(
+                input: { (($0 as? GraphQLNonNull)?.ofType as? GraphQLInputType) ?? $0 },
+                output: { ($0 as? GraphQLNonNull)?.ofType as! GraphQLOutputType }
+            )
         }
         precondition(cachedTypeMappings.updateValue(result, forKey: typeInfo) == nil)
         return result
@@ -205,6 +213,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     
     private func _toGraphQLType(_ typeInfo: TypeInformation, for usageCtx: GraphQLTypeUsageContext) throws -> TypesCacheEntry {
         precondition(!currentTypeStack.contains(typeInfo))
+        
+        if let cached = cachedTypeMappings[typeInfo] {
+            return cached
+        }
         
         currentTypeStack.push(typeInfo)
         defer {
@@ -259,7 +271,11 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 return .init(inputAndOutputType: GraphQLList(GraphQLInt))
             }
         case .repeated(let element):
-            return .init(inputAndOutputType: GraphQLList(try toGraphQLType(element, for: usageCtx).type(for: usageCtx)!))
+            let type = try toGraphQLType(element, for: usageCtx)
+            return .init(
+                inputType: GraphQLList(type.input!),
+                outputType: GraphQLList(type.output)
+            )
         case let .dictionary(key, value):
             fatalError("dict: \(key) \(value)")
         case .optional(let wrappedValue):
@@ -321,10 +337,13 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         }
         var argsMap: GraphQLArgumentConfigMap = [:]
         for parameter in endpoint.parameters {
+            let ty = try toGraphQLInputType(.init(type: parameter.originalPropertyType))
+            print("\(endpoint): \(parameter.originalPropertyType) -> \(ty)")
             argsMap[parameter.name] = GraphQLArgument(
-                type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
+                //type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
+                type: ty,
                 description: "todo?",
-                defaultValue: nil // TODO?
+                defaultValue: parameter.nilIsValidValue ? .null : nil
             )
         }
         return argsMap
@@ -352,4 +371,3 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         return finalizedSchema!
     }
 }
-
