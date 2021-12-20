@@ -38,7 +38,11 @@ jobs:
           swift --version
     - name: Run ${{ matrix.configuration }} build
       run: |
-          swift run -c ${{ matrix.configuration }}
+          swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker /usr/lib/swift
+          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker /usr/lib/swift &
+          sleep 15
+          sh test.sh
+          kill -9 $(lsof -ti:80)
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
