@@ -230,18 +230,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
-            print(
-                """
-                Send test request:
-                HTTPClient.Request(
-                    url: \(request.url),
-                    method: \(request.method),
-                    headers: \(request.headers),
-                    body: \(String(describing: request.body)),
-                    tlsConfiguration: \(String(describing: request.tlsConfiguration))
-                )
-                """
-            )
+            print("[DP] [Tests] Send \(request.method) test request to \(request.url)")
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
