@@ -37,9 +37,9 @@ jobs:
           xcodebuild -version
           swift --version
     - name: Run ${{ matrix.configuration }} build
-      run: | 
-          swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
-          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx" &
+      run: |
+          swift build -c ${{ matrix.configuration }}
+          swift run -c ${{ matrix.configuration }} &
           sleep 15
           sh test.sh
           kill -9 $(lsof -ti:80)
@@ -74,9 +74,9 @@ jobs:
       if: matrix.linux == 'centos8'
       run: yum update -y --nobest && yum install -y curl lsof
     - name: Run ${{ matrix.configuration }} build
-      run: | 
-          swift build -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx"
-          swift run -c ${{ matrix.configuration }} -Xlinker -rpath -Xlinker "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx" &
+      run: |
+          swift build -c ${{ matrix.configuration }}
+          swift run -c ${{ matrix.configuration }} &
           sleep 15
           sh test.sh
           kill -9 $(lsof -ti:80)
