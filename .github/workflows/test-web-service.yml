@@ -38,11 +38,7 @@ jobs:
           swift --version
     - name: Run ${{ matrix.configuration }} build
       run: |
-          swift build -c ${{ matrix.configuration }}
-          swift run -c ${{ matrix.configuration }} &
-          sleep 15
-          sh test.sh
-          kill -9 $(lsof -ti:80)
+          swift run -c ${{ matrix.configuration }}
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
