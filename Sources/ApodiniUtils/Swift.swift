@@ -58,7 +58,7 @@ extension Array {
     
     /// Sorts the array in-place, using a key path
     public mutating func sort<T: Comparable>(by keyPath: KeyPath<Element, T>) {
-        self = sorted(by: keyPath)
+        self = sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
     }
 }
 
