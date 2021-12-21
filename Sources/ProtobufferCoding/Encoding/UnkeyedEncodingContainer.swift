@@ -97,6 +97,10 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
     
     mutating func encode<T: Encodable>(_ value: T) throws {
+        try _encode(value)
+    }
+    
+    mutating func _encode(_ value: Encodable) throws { // swiftlint:disable:this identifier_name
         let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
         try value.encode(to: encoder)
     }

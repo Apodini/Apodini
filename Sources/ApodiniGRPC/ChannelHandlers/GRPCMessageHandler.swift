@@ -94,7 +94,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 fatalError("Received message but there's no connection.")
             }
             _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
-                return connectionCtx.handleMessage(messageIn)
+                connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
                         switch result {

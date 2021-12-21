@@ -84,6 +84,7 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
@@ -445,7 +446,12 @@ let package = Package(
             ]
         ),
 
-        .target(name: "XCTUtils"),
+        .target(
+            name: "XCTUtils",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
         
         
         .executableTarget(
@@ -531,6 +537,7 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "XCTUtils"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
                 .product(name: "SotoApiGatewayV2", package: "soto"),
@@ -670,7 +677,9 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC")
+                .target(name: "ApodiniGRPC"),
+                .target(name: "XCTUtils"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         ),
         

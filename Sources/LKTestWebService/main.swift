@@ -235,6 +235,14 @@ struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
 struct City: Codable, ResponseTransformable {
     let name: String
     let country: String
+    let metadata: [String: String]
+    let next: City2
+}
+
+
+struct City2: Codable, ProtoTypeInPackage {
+    static let package: ProtobufPackageUnit = .init(packageName: "de.lukaskollmer.utils", filename: "utils.proto")
+    let evenMoreMetadata: [String: String]
 }
 
 

@@ -13,6 +13,8 @@ import Foundation
 import NIO
 @testable import ProtobufferCoding
 @testable import ApodiniGRPC
+import Algorithms
+import XCTUtils
 
 
 // MARK: Test Utils
@@ -378,6 +380,102 @@ class ProtobufferCodingTests: XCTestCase {
         
         let decoded = try ProtobufferDecoder().decode(Message.self, from: Data(bytes))
         XCTAssertEqual(decoded, Message(names: ["Lukas", "Paul"], number: 52))
+    }
+    
+    
+    func testDictionaryCoding() throws {
+        let inputMessage = GenericSingleFieldMessage<[String: String]>(value: ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"])
+        let encodedMessage = try ProtobufferEncoder().encode(inputMessage)
+        // We have to check the encoded message against multiple potential expected values, because the order of the elements
+        // in the Dictionary (and therefore the order in which they're written into the buffer) is undefined.
+        let possibleEncodingResults: [[UInt8]] = [
+            [10, 16, 10, 5, 76, 117, 107, 97, 115, 18, 7, 75, 111, 108, 108, 109, 101, 114],
+            [10, 20, 10, 4, 80, 97, 117, 108, 18, 12, 83, 99, 104, 109, 105, 101, 100, 109, 97, 121, 101, 114],
+            [10, 16, 10, 5, 66, 101, 114, 110, 100, 18, 7, 66, 114, 195, 188, 103, 103, 101]
+        ].permutations().map { $0.flatMap { $0 } }
+        let encodedMessageBytes = try XCTUnwrap(encodedMessage.getAllBytes())
+        XCTAssertEqual(possibleEncodingResults.count { $0 == encodedMessageBytes }, 1)
+        
+        let layout = try ProtobufMessageLayoutDecoder.getFields(in: encodedMessage)
+        let possibleLayouts: [[ProtobufFieldInfo]] = [16, 16, 20]
+            .uniquePermutations()
+            .map { (msgLengths: [Int]) -> [ProtobufFieldInfo] in
+                let msg1Len = msgLengths[0]
+                let msg2Len = msgLengths[1]
+                let msg3Len = msgLengths[2]
+                return [
+                    .init(
+                        tag: 1,
+                        keyOffset: 0,
+                        valueOffset: 1,
+                        valueInfo: .lengthDelimited(dataLength: msg1Len, dataOffset: 1),
+                        fieldLength: msg1Len + 2
+                    ),
+                    .init(
+                        tag: 1,
+                        keyOffset: msg1Len + 2,
+                        valueOffset: msg1Len + 3,
+                        valueInfo: .lengthDelimited(dataLength: msg2Len, dataOffset: 1),
+                        fieldLength: msg2Len + 2
+                    ),
+                    .init(
+                        tag: 1,
+                        keyOffset: msg1Len + msg2Len + 4,
+                        valueOffset: msg1Len + msg2Len + 5,
+                        valueInfo: .lengthDelimited(dataLength: msg3Len, dataOffset: 1),
+                        fieldLength: msg3Len + 2
+                    )
+                ]
+            }
+        XCTAssertEqual(possibleLayouts.count { $0 == layout.allFields }, 1, "List of expected results did not contain actual result: \(layout.allFields).")
+        
+        let encodedMapMessage = try ProtobufferEncoder().encode(
+            GenericSingleFieldMessage<[String: String]>(value: ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"])
+        )
+        
+        //let namesDict = ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"]
+        let namesDict: [String: String] = ["a": "1"]
+        
+        struct Msg: Codable {
+            let values: [ProtobufMapFieldEntry<String, String>]
+        }
+        
+        let encodedDesugaredMapMessage = try ProtobufferEncoder().encode(Msg(values: namesDict.map { .init(key: $0, value: $1) }))
+        print(encodedDesugaredMapMessage.getBytes(at: encodedDesugaredMapMessage.readerIndex, length: encodedDesugaredMapMessage.readableBytes)!)
+        
+        let decodedAsRepeated = try ProtobufferDecoder().decode(
+            //GenericSingleFieldMessage<[ProtobufMapFieldEntry<String, String>]>.self,
+            Msg.self,
+            //from: encodedDesugaredMapMessage
+            from: encodedMapMessage
+        )
+        print(decodedAsRepeated)
+    }
+    
+    
+    func testDictionaryCodingSugaring() throws {
+        let inputDict = ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"]
+        // 1: Try to encode as a dict and decode as a repeated field
+        do {
+            let dictEncoded = try ProtobufferEncoder().encode(GenericSingleFieldMessage(value: inputDict))
+            let decodedAsRepeated = try ProtobufferDecoder().decode(
+                GenericSingleFieldMessage<[ProtobufMapFieldEntry<String, String>]>.self,
+                from: dictEncoded
+            ).value
+            let possibleResults: PermutationsSequence<[ProtobufMapFieldEntry<String, String>]> = inputDict
+                .map { ProtobufMapFieldEntry(key: $0.key, value: $0.value) }
+                .permutations()
+            XCTAssertEqual(possibleResults.count { $0 == decodedAsRepeated }, 1)
+        }
+        
+        // 2: Try to encode as a repeated field and decode as a dict
+        do {
+            let encoded = try ProtobufferEncoder().encode(GenericSingleFieldMessage<[ProtobufMapFieldEntry]>(value: inputDict.map {
+                .init(key: $0.key, value: $0.value)
+            }))
+            let decoded = try ProtobufferDecoder().decode(GenericSingleFieldMessage<[String: String]>.self, from: encoded)
+            XCTAssertEqual(decoded.value, inputDict)
+        }
     }
     
     

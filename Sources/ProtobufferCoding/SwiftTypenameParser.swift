@@ -304,6 +304,9 @@ private struct Lexer {
             case ")":
                 tokens.append(.closingParen)
                 position += 1
+            case " ":
+                precondition(tokens.last == .comma)
+                position += 1
             default:
                 precondition(isIdentChar(char))
                 var ident = ""

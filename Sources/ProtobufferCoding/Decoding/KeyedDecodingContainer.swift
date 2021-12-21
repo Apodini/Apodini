@@ -219,7 +219,11 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
     }
     
     
-    func _decode(_ type: Decodable.Type, forKey key: Key, keyOffset: Int?) throws -> Any { // swiftlint:disable:this identifier_name
+    func _decode( // swiftlint:disable:this identifier_name cyclomatic_complexity
+        _ type: Decodable.Type,
+        forKey key: Key,
+        keyOffset: Int?
+    ) throws -> Any {
         // NOTE the order here is important, since some types might match multiple branches!!!
         if type == DecodeTypeErasedDecodableTypeHelper.self {
             let type = typeToDecode.currentValue!.value
@@ -234,27 +238,6 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
             // Note: since oneofs can't be repeated, we can safely ignore a potentially specified offset here
             precondition(keyOffset == nil)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
-        } else if ((type as? ProtobufMessage.Type) != nil) || (type == Array<UInt8>.self) || (type == Data.self) {
-            // We're asked to decode an embedded message, or a lump of bytes.
-            // Embedded messages are essentially the same as normal key-value pairs, but we have to drop the preceding length delimiter first.
-            // Same goes for byte fields, the only difference here is that we don't have to decode them into a concrete type.
-            let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-            precondition(fieldInfo.wireType == .lengthDelimited)
-            var adjustedValueBytes = valueBytes
-            let length = Int(try adjustedValueBytes.readVarInt())
-            precondition(adjustedValueBytes.readableBytes >= length)
-            precondition(
-                fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex)
-            )
-            if (type as? ProtobufMessage.Type) != nil {
-                return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
-            } else if type == [UInt8].self {
-                return [UInt8](buffer: adjustedValueBytes)
-            } else if type == Data.self {
-                return Data(buffer: adjustedValueBytes)
-            } else {
-                fatalError("Unreacahable")
-            }
         } else if let protobufRepeatedTy = type as? ProtobufRepeated.Type {
             let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
             let retval = try protobufRepeatedTy.init(
@@ -286,8 +269,28 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         } else if keyOffset == nil && type == Float.self {
             return try decode(Float.self, forKey: key)
         } else {
-            let (_, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
-            return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+            let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
+            switch guessWireType(type)! {
+            case .lengthDelimited:
+                // We're asked to decode an embedded message, or a lump of bytes.
+                // Embedded messages are essentially the same as normal key-value pairs, but we have to drop the preceding length delimiter first.
+                // Same goes for byte fields, the only difference here is that we don't have to decode them into a concrete type.
+                var adjustedValueBytes = valueBytes
+                let length = Int(try adjustedValueBytes.readVarInt())
+                precondition(adjustedValueBytes.readableBytes >= length)
+                precondition(
+                    fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex)
+                )
+                if let bytesMappedTy = type as? ProtobufBytesMapped.Type {
+                    return try bytesMappedTy.init(rawBytes: adjustedValueBytes)
+                } else if type == String.self {
+                    return try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                } else {
+                    return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
+                }
+            default:
+                return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+            }
         }
     }
     

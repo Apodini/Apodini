@@ -158,6 +158,10 @@ class _ProtobufferEncoder: Encoder { // swiftlint:disable:this type_name
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
+        internalUnkeyedContainer()
+    }
+    
+    func internalUnkeyedContainer() -> ProtobufferUnkeyedEncodingContainer {
         ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     

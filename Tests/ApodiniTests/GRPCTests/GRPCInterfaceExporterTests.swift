@@ -467,12 +467,12 @@ extension GRPCInterfaceExporterTests {
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
         // We also add some intercepting handlers, which allows us to a) check that the data send through the pipeline at certain stages
         // of the message handling process is what we'd expect, and b) detect the end of the connection.
-        let ch = EmbeddedChannel(handlers: [
+        let channel = EmbeddedChannel(handlers: [
             OutboundSinkholeChannelHandler(),
             httpOutInterceptor,
             GRPCResponseEncoder(),
             messageOutInterceptor,
-            GRPCMessageHandler(server: grpcIE.server),
+            GRPCMessageHandler(server: grpcIE.server)
         ])
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
@@ -481,16 +481,16 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
             $0[.contentType] = .gRPC(.proto)
         }
-        try ch.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
-        try ch.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
+        try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
+        try channel.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
             remoteAddress: nil,
             requestHeaders: clientHeaders,
-            payload: ByteBuffer() // TODO does an empty buffer work here?
+            payload: ByteBuffer()
         )))
-        try ch.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
+        try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
         
         wait(for: [channelCloseExpectation], timeout: 5)
-        XCTAssert(try ch.finish(acceptAlreadyClosed: true).isClean)
+        XCTAssert(try channel.finish(acceptAlreadyClosed: true).isClean)
         
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 2)
         XCTAssertEqual(messageOutInterceptor.interceptedData[0].asSingleMessage, GRPCMessageOut.singleMessage(

@@ -15,6 +15,7 @@ import ApodiniNetworking
 import ApodiniUtils
 import AsyncHTTPClient
 import XCTest
+import XCTUtils
 
 
 struct ResponseWithPid<T: Codable>: Codable {

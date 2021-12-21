@@ -293,8 +293,6 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
     switch typeInfo.kind {
     case .struct:
         // The type is a struct, it is codable, but it is not a primitive.
-        // This is the point where we'd like to just be able to assume that it's a message, but I'm not really comfortable w/ thhat...
-        // TODO simply returning message here for all sructs will absolutely fuck shit up down the line. eg: dictionaries? sets? literally every other codable struct type? None of these should be encoded length-delimited in the first place!
         return .message
     case .enum:
         let isSimpleEnum = (type as? AnyProtobufEnum.Type) != nil

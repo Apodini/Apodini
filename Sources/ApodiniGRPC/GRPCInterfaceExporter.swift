@@ -194,12 +194,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 case .string(let value):
                     partialResult.append(value.capitalisingFirstCharacter)
                 case .parameter(let parameter):
-                    // TODO how should this be handled?
-                    // Maybe pull an objc and turn this into a "withX" schema?
-                    fatalError("TODO?")
+                    break
                 }
             }
-            // TODO if the path-derived method name is the "root" thing (eg: "V1"), somehow give it special handling!!!
             return methodName
         }
     }
@@ -288,7 +285,6 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
     let name: String
     let endpointContext: GRPCEndpointContext
     
-    // TODO how would this deal w/ @Params that are arrays? we couldn't use .getLast for that. Do array params get properly wrapped? (ie in cases where that's the only param. but also in other cases.)
     func decode(from input: GRPCMessageIn) throws -> T {
         switch endpointContext.endpointRequestType! {
         case .enumTy, .primitive, .refdMessageType:

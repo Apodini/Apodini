@@ -11,9 +11,16 @@ import ProtobufferCoding
 import Foundation
 
 
-struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
+//struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
+//    let value: T
+//}
+
+struct GenericSingleFieldMessage<T: Codable>: Codable {
     let value: T
 }
+
+extension GenericSingleFieldMessage: Equatable where T: Equatable {}
+extension GenericSingleFieldMessage: Hashable where T: Hashable {}
 
 
 struct SingleFieldProtoTestMessage<T: Codable & Equatable>: Codable & Equatable & ProtobufMessage {
@@ -49,7 +56,7 @@ struct ProtoComplexTestMessage: Codable, Equatable {
 struct ProtoComplexTestMessageWithOptionals: Codable, Equatable {
     var numberInt32: Int32?
     var numberUint32: UInt32?
-    var numberBool: Bool?
+    var numberBool: Bool? // swiftlint:disable:this discouraged_optional_boolean
     var enumValue: Int32?
     var numberDouble: Double?
     var content: String?
