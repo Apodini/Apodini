@@ -56,10 +56,7 @@ let package = Package(
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
-        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
-
-        // Lukas' playground
-        .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
@@ -680,16 +677,6 @@ let package = Package(
                 .target(name: "ApodiniGRPC"),
                 .target(name: "XCTUtils"),
                 .product(name: "Algorithms", package: "swift-algorithms")
-            ]
-        ),
-        
-        .executableTarget(
-            name: "LKTestWebService",
-            dependencies: [
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "Apodini")
             ]
         ),
 
