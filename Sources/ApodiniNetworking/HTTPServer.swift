@@ -402,7 +402,6 @@ extension Channel {
                 HTTP2Setting(parameter: .initialWindowSize, value: targetWindowSize)
             ]),
             HTTP2StreamMultiplexer(mode: .server, channel: self, targetWindowSize: targetWindowSize) { stream in
-                //stream.apodiniNetworkingInitializeHTTP2InboundStream(responder: responder)
                 stream.pipeline.addHandler(
                     HTTP2InboundStreamConfigurator(configuration: .init(
                         mappings: inboundStreamConfigMappings,
@@ -417,7 +416,6 @@ extension Channel {
     
     func initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(responder: HTTPResponder) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
-            //HTTP2ServerRequestDecoder(),
             HTTP2FramePayloadToHTTP1ServerCodec(),
             HTTPServerResponseEncoder(),
             HTTPServerRequestDecoder(),
@@ -436,15 +434,11 @@ extension Channel {
             HTTPServerResponseEncoder(),
             HTTPServerRequestDecoder()
         ]
-        
         let httpRequestHandler = HTTPServerRequestHandler(responder: responder)
-        
         let upgrader = HTTPUpgradeHandler(
             handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
         )
-        
         httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [RemovableChannelHandler])
-        
         return pipeline.addHandlers(httpHandlers).flatMap {
             self.pipeline.addHandler(ErrorHandler(msg: "HTTP1Pipeline"))
         }

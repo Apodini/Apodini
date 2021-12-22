@@ -428,28 +428,15 @@ class ProtobufferCodingTests: XCTestCase {
                 ]
             }
         XCTAssertEqual(possibleLayouts.count { $0 == layout.allFields }, 1, "List of expected results did not contain actual result: \(layout.allFields).")
-        
-        let encodedMapMessage = try ProtobufferEncoder().encode(
-            GenericSingleFieldMessage<[String: String]>(value: ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"])
+    }
+    
+    
+    func testDictionaryTestingEmptyValues() throws {
+        try _testImpl(
+            GenericSingleFieldMessage<[String: Int]>(value: [:]),
+            expectedBytes: [],
+            expectedFieldMapping: [:]
         )
-        
-        //let namesDict = ["Lukas": "Kollmer", "Paul": "Schmiedmayer", "Bernd": "Brügge"]
-        let namesDict: [String: String] = ["a": "1"]
-        
-        struct Msg: Codable {
-            let values: [ProtobufMapFieldEntry<String, String>]
-        }
-        
-        let encodedDesugaredMapMessage = try ProtobufferEncoder().encode(Msg(values: namesDict.map { .init(key: $0, value: $1) }))
-        print(encodedDesugaredMapMessage.getBytes(at: encodedDesugaredMapMessage.readerIndex, length: encodedDesugaredMapMessage.readableBytes)!)
-        
-        let decodedAsRepeated = try ProtobufferDecoder().decode(
-            //GenericSingleFieldMessage<[ProtobufMapFieldEntry<String, String>]>.self,
-            Msg.self,
-            //from: encodedDesugaredMapMessage
-            from: encodedMapMessage
-        )
-        print(decodedAsRepeated)
     }
     
     
