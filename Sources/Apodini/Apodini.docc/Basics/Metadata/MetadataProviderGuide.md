@@ -142,7 +142,7 @@ struct  TestHandler: Handler {
 }
 ```
 
-You can also provide convenience Metadata modifies to, e.g., a Handler using an extension that typically looks like follows:
+You can also provide convenience Metadata modifies to, e.g., a ``Handler`` using an extension that typically looks like follows:
 ```swift
 extension Handler {
     public func description(_ description: String) -> HandlerMetadataModifier<Self> {
@@ -150,7 +150,7 @@ extension Handler {
     }
 }
 ```
-This allows adding or overriding the Metadata from outside of the Handler when composing your web service interface in the Apodini DSL:
+This allows adding or overriding the Metadata from outside of the ``Handler`` when composing your web service interface in the Apodini DSL:
 ```swift
 TestHandler()
     .description("The TestHandler serves as a Hello World Endpoint! 👋")
