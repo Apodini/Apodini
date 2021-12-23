@@ -946,7 +946,9 @@ extension ProtoSchema {
                     retval[key]!.insert(value)
                 }
             }
-            precondition(protoTypenameToPackageUnitMapping.keys.allSatisfy { $0.packageName != ProtobufPackageUnit.inlineInParentTypePackage.packageName })
+            precondition(protoTypenameToPackageUnitMapping.keys.allSatisfy {
+                $0.packageName != ProtobufPackageUnit.inlineInParentTypePackage.packageName
+            })
             for enumTypename in self.allEnumTypes.keys {
                 insert(protoTypenameToPackageUnitMapping[enumTypename]!, enumTypename.fullyQualified)
             }
