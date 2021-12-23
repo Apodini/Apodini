@@ -446,6 +446,7 @@ extension GRPCInterfaceExporterTests {
                     Text("C").gRPCMethodName("DeletePost")
                     BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
                     BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
+                    BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.gRPCMethodName("ListIDs2")
                     BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
                 }.gRPCServiceName("API")
             }

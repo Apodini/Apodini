@@ -204,8 +204,13 @@ protocol ProtobufMap: ProtobufRepeated {
 }
 
 
+/// Internal helper protocol to identify `ProtobufMapFieldEntry` objects.
+/// - Note: The `ProtobufMapFieldEntry` type should be the only type conforming to this protocol!
+protocol AnyProtobufMapFieldEntry {}
+
+
 /// Internal proto message type which is used to model the key-value-pair entries in a proto3 map.
-struct ProtobufMapFieldEntry<Key: Codable, Value: Codable>: Codable, ProtoTypeInPackage {
+struct ProtobufMapFieldEntry<Key: Codable, Value: Codable>: Codable, ProtoTypeInPackage, AnyProtobufMapFieldEntry {
     static var package: ProtobufPackageUnit { .inlineInParentTypePackage }
     
     let key: Key

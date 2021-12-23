@@ -611,7 +611,7 @@ public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldM
 //    // instead. The option should only be implicitly set by the proto compiler
 //    // parser.
 //    optional bool map_entry = 7;
-//    public var mapEntry: Bool
+    public var mapEntry: Bool
     
 //    reserved 8;  // javalite_serializable
 //    reserved 9;  // javanano_as_lite
@@ -625,7 +625,7 @@ public struct MessageOptions: Codable, Hashable, ProtobufMessageWithCustomFieldM
     
     public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case deprecated = 3
-//        case mapEntry = 7
+        case mapEntry = 7
     }
     
     public static var reservedFields: Set<ProtoReservedField> {

@@ -391,7 +391,7 @@ public class ProtoSchema {
     private var protoTypenameToPackageUnitMapping: [ProtoTypename: ProtobufPackageUnit] = [:]
     
     /// Information about a finalized proto package.
-    public struct FinalizedPackage {
+    public struct FinalizedPackage: Hashable {
         /// The name of the packae
         public let packageUnit: ProtobufPackageUnit
         /// The package's syntax. It is guaranteed for all `FinalizedPackage`s returned from the schema,
@@ -533,8 +533,14 @@ public class ProtoSchema {
         // depending on the context in which the type is used. Therefore, typenames generated for Swift types cannot be cached.
         func cacheRetval(_ typename: ProtoTypename) -> ProtoTypename {
             let packageIdentifier = (type as? ProtoTypeInPackage.Type)?.package ?? .init(packageName: defaultPackageName)
+            let inlineInParentPackageName = ProtobufPackageUnit.inlineInParentTypePackage.packageName
             if let oldValue = protoTypenameToPackageUnitMapping.updateValue(packageIdentifier, forKey: typename) {
-                precondition(oldValue == packageIdentifier)
+                switch (oldValue.packageName == inlineInParentPackageName, packageIdentifier.packageName == inlineInParentPackageName) {
+                case (true, true), (false, false):
+                    precondition(oldValue == packageIdentifier)
+                case (false, true), (true, false):
+                    break
+                }
             }
             return typename
         }
@@ -689,7 +695,7 @@ public class ProtoSchema {
                             precondition(((fieldProtoUnderlyingType as? ProtoTypeInPackage.Type)?.package == .inlineInParentTypePackage))
                             // The field's underlying Swift type has stated that it wants to be "inlined" into the parent type's package.
                             // (The parent type being the type to which this field belongs.)
-                            let parentPackage = self.protoTypenameToPackageUnitMapping[typename]!
+                            let parentPackage = self.protoTypenameToPackageUnitMapping[typename] ?? .init(packageName: self.defaultPackageName)
                             fieldProtoType = fieldProtoType.movedIntoPackage(typename.packageName)
                             precondition(fieldProtoType.typename != fieldProtoTypename)
                             if self.protoTypenameToPackageUnitMapping.removeValue(forKey: fieldProtoTypename) != nil {
@@ -940,6 +946,7 @@ extension ProtoSchema {
                     retval[key]!.insert(value)
                 }
             }
+            precondition(protoTypenameToPackageUnitMapping.keys.allSatisfy { $0.packageName != ProtobufPackageUnit.inlineInParentTypePackage.packageName })
             for enumTypename in self.allEnumTypes.keys {
                 insert(protoTypenameToPackageUnitMapping[enumTypename]!, enumTypename.fullyQualified)
             }
@@ -1336,7 +1343,10 @@ extension ProtoSchema {
                         )
                     }
                 }(),
-                options: nil,
+                options: MessageOptions(
+                    deprecated: false,
+                    mapEntry: (underlyingType as? AnyProtobufMapFieldEntry.Type) != nil
+                ),
                 reservedRanges: { () -> [DescriptorProto.ReservedRange] in
                     guard let reserved = (underlyingType as? __ProtoTypeWithReservedFields.Type)?.reservedFields.allReservedFieldNumbers() else {
                         return []
