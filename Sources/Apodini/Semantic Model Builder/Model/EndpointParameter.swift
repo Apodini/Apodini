@@ -7,6 +7,7 @@
 //              
 
 import Foundation
+import ApodiniUtils
 
 /// Defines the necessity of a `EndpointParameter`
 public enum Necessity {
@@ -56,6 +57,10 @@ public protocol AnyEndpointParameter: CustomStringConvertible, CustomDebugString
     ///
     /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
     var propertyType: Codable.Type { get }
+    /// The "original" property type, without any modifications.
+    /// This will almost always be identical to `propertyType`, except for e.g. optional properties,
+    /// in which case the `propertyType` will be some `T`, and this property will be `Optional<T>`
+    var originalPropertyType: Codable.Type { get }
     /// See documentation of `propertyType`
     var nilIsValidValue: Bool { get }
     /// Defines the `Necessity` of the parameter.
@@ -125,6 +130,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
     public let name: String
     public let label: String
     public let propertyType: Codable.Type
+    public let originalPropertyType: Codable.Type
     public let nilIsValidValue: Bool
     public let necessity: Necessity
     public let parameterType: ParameterType
@@ -143,6 +149,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         id: UUID,
         name: String,
         label: String,
+        originalPropertyType: Codable.Type,
         nilIsValidValue: Bool,
         necessity: Necessity,
         options: PropertyOptionSet<ParameterOptionNameSpace>,
@@ -152,7 +159,9 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         self.name = name
         self.label = label
         self.propertyType = Type.self
+        self.originalPropertyType = originalPropertyType
         self.nilIsValidValue = nilIsValidValue
+        precondition(nilIsValidValue == (originalPropertyType as? AnyOptional.Type != nil))
         self.options = options
         self.necessity = necessity
         self.defaultValue = defaultValue

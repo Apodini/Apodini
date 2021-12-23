@@ -94,7 +94,6 @@ public extension AsyncSequence where Element == Event {
                 guard let request = latestRequest else {
                     fatalError("Cannot handle TriggerEvent before first Request!")
                 }
-                
                 do {
                     return .success(try await handler.evaluate(trigger, using: request, with: connectionState))
                 } catch {

@@ -11,7 +11,11 @@ import Foundation
 import FoundationNetworking
 #endif
 import XCTApodini
+import ApodiniNetworking
 import ApodiniUtils
+import AsyncHTTPClient
+import XCTest
+import XCTUtils
 
 
 struct ResponseWithPid<T: Codable>: Codable {
@@ -55,13 +59,17 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
     func testLocalhostDeploymentProvider() throws { // swiftlint:disable:this function_body_length
         try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
+        defer {
+            XCTAssertApodiniApplicationNotRunning()
+        }
+        
         runShellCommand(.killPort(80))
-        runShellCommand(.killPort(5000))
-        runShellCommand(.killPort(5001))
-        runShellCommand(.killPort(5002))
-        runShellCommand(.killPort(5003))
-        runShellCommand(.killPort(5004))
-        runShellCommand(.killPort(5005))
+        runShellCommand(.killPort(52000))
+        runShellCommand(.killPort(52001))
+        runShellCommand(.killPort(52002))
+        runShellCommand(.killPort(52003))
+        runShellCommand(.killPort(52004))
+        runShellCommand(.killPort(52005))
         
         precondition(task == nil)
         
@@ -106,10 +114,13 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         var currentLineOutput = String(reservingCapacity: 250)
         /// Whether the previously collected output ended with a line break
         var previousOutputDidEndWithNewline = false
+        let handleOutputLock = NSLock()
         
         func handleOutput(_ text: String, printToStdout: Bool = false) {
+            handleOutputLock.lock()
+            defer { handleOutputLock.unlock() }
             if printToStdout {
-                print("\(previousOutputDidEndWithNewline ? "[DP] " : "")\(text)", terminator: "")
+                print(text.replacingOccurrences(of: "\n", with: "\n[DP] "))
                 fflush(stdout)
             }
             currentLineOutput.append(text)
@@ -144,8 +155,8 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://localhost:5001` three times,
-            // with the port numbers matching the expected output values (i.e. 5000, 5001, 5002 if no explicit port was specified).
+            // This is determined by finding the text `Server starting on http://localhost:52001` three times,
+            // with the port numbers matching the expected output values (i.e. 52000, 52001, 52002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
                 pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
@@ -173,12 +184,12 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                     // the gateway
                     StartedServerInfo(ipAddress: "0.0.0.0", port: 80),
                     // the nodes
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5000),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5001),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5002),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5003),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5004),
-                    StartedServerInfo(ipAddress: "0.0.0.0", port: 5005)
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52000),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52001),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52002),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52003),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52004),
+                    StartedServerInfo(ipAddress: "0.0.0.0", port: 52005)
                 ])
                 launchDPExpectation.fulfill()
             } else if startedServers.count < expectedNumberOfNodes {
@@ -204,39 +215,36 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // second test phase: send some requests to the web service and see how it handles them //
         // ------------------------------------------------------------------------------------ //
         
+        let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
+        defer {
+            try! httpClient.syncShutdown()
+        }
         
-        func sendTestRequest(
-            to path: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
-        ) throws -> URLSessionDataTask {
-            let url = try XCTUnwrap(URL(string: "http://localhost\(path)"))
-            return URLSession.shared.dataTask(with: url) { data, response, error in
-                if let error = error {
-                    XCTFail("Unexpected error in request to \(url): \(error.localizedDescription)")
-                    return
-                }
-                let msg = "request to '\(path)' failed."
+        func sendTestRequest(to path: String, responseValidator: @escaping (HTTPResponse, Data) throws -> Void) throws {
+            let msg = "request to '\(path)' failed."
+            let delegate = HTTPRequestClientResponseDelegate { response in
                 do {
-                    let response = try XCTUnwrap(response as? HTTPURLResponse, msg)
-                    let data = try XCTUnwrap(data, msg)
-                    try responseValidator(response, data)
+                    let body = try XCTUnwrap(response.bodyStorage.getFullBodyData(), msg)
+                    try responseValidator(response, body)
                 } catch {
-                    XCTFail("\(msg): \(error.localizedDescription)")
+                    XCTFail("\(msg): \(error.localizedDescription) \(error)")
                 }
             }
+            let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+            _ = httpClient.execute(request: request, delegate: delegate)
         }
         
         try sendTestRequest(to: "/v1/") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
             responseExpectationV1.fulfill()
-        }.resume()
-        
+        }
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
         try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
             textMutPid.write { pid in
@@ -248,11 +256,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             responseExpectationV1TextMut.fulfill()
-        }.resume()
-        
+        }
         
         try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
-            XCTAssertEqual(200, httpResponse.statusCode)
+            XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
                 let text: String
                 let textMutPid: pid_t
@@ -268,8 +275,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             }
             XCTAssertNotEqual(response.pid, response.value.textMutPid)
             responseExpectationV1Greeter.fulfill()
-        }.resume()
-        
+        }
         
         // Wait for the second phase to complete.
         // This phase sends some requests to the deployed web service and checks that they were handled correctly.
@@ -279,6 +285,10 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             timeout: 15,
             enforceOrder: false
         )
+        
+        resetOutput()
+        stdioObserverHandle = nil
+        
         
         resetOutput()
         stdioObserverHandle = nil
@@ -311,7 +321,44 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         // extend all the way down here, so that we can know for a fact that the tests above work properly
         stdioObserverHandle = nil
         task = nil
-        
-        XCTAssertApodiniApplicationNotRunning()
+    }
+}
+
+
+class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate {
+    typealias Response = Void
+    
+    private let responseHandler: (HTTPResponse) -> Void
+    private var response: HTTPResponse?
+    
+    init(responseHandler: @escaping (HTTPResponse) -> Void) {
+        self.responseHandler = responseHandler
+    }
+    
+    func didReceiveHead(task: HTTPClient.Task<Response>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
+        self.response = HTTPResponse(version: head.version, status: head.status, headers: head.headers)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didReceiveBodyPart(task: HTTPClient.Task<Response>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+        guard let response = self.response else {
+            return task.eventLoop.makeFailedFuture(NSError(domain: "Apodini", code: 0, userInfo: [
+                NSLocalizedDescriptionKey: "Received response body before receiving response head"
+            ]))
+        }
+        response.bodyStorage.write(buffer)
+        return task.eventLoop.makeSucceededVoidFuture()
+    }
+    
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+        XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+    }
+    
+    func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
+        guard let response = response else {
+            XCTFail("nil response object. this should literally never happen.")
+            fatalError("Missing response")
+        }
+        responseHandler(response)
     }
 }

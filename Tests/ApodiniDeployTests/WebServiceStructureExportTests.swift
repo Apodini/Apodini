@@ -7,6 +7,8 @@
 //              
 
 import Foundation
+import XCTest
+import XCTUtils
 import XCTApodini
 @testable import Apodini
 import ApodiniREST
@@ -124,7 +126,7 @@ class WebServiceStructureExportTests: ApodiniDeployTestCase {
                 "--identifier",
                 StaticDeploymentProvider.identifier.rawValue,
                 "--endpoint-processes-base-port",
-                "5000"
+                "52000"
             ], as: LocalhostDeployedSystem.self)
         
         let exportedEndpoints = deployedSystem.nodes

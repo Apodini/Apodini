@@ -19,6 +19,7 @@ import NIOHTTP2
 import NIOWebSocket
 import WebSocketKit
 import Logging
+import ApodiniUtils
 
 
 /// A removable channel handler which can be used to upgrade HTTP1 requests to a different protocol.
@@ -38,11 +39,12 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
     private let handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]
     private var state: State = .ready
     private var bufferedData: [NIOAny] = []
-    private let logger = Logger(label: "HTTPUpgradeHandler")
+    private var logger = Logger(label: "HTTPUpgradeHandler")
     
     
     init(handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]) {
         self.handlersToRemoveOnWebSocketUpgrade = handlersToRemoveOnWebSocketUpgrade
+        logger[metadataKey: "self"] = "\(getMemoryAddressAsHexString(self))"
     }
     
     

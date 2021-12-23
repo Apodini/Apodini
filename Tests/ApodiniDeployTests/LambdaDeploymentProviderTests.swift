@@ -11,6 +11,7 @@ import Foundation
 import FoundationNetworking
 #endif
 import XCTest
+import XCTUtils
 import XCTApodini
 import ApodiniUtils
 import SotoIAM

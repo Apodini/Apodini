@@ -10,26 +10,27 @@ import NIO
 import Foundation
 import NIOFoundationCompat
 import ApodiniTypeInformation
+import ApodiniNetworkingHTTPSupport
 
 
 /// A binary large object (blob) that can be used to return binary data from a `Handler`
 public struct Blob: Encodable, ResponseTransformable {
     enum CodingKeys: String, CodingKey {
-        case byteBuffer
-        case type
+        case data
+        case mediaType
     }
     
     
     /// The `ByteBuffer` representation of the `Blob`
     public let byteBuffer: ByteBuffer
-    /// The MIME type associated with the `Blob`
-    public let type: MimeType?
+    /// The HTTP Media Type associated with the `Blob`
+    public let type: HTTPMediaType?
     
     
     /// - Parameters:
     ///   - data: The `Data` representation of the `Blob`
     ///   - type: The MIME type associated with the `Blob`
-    public init(_ data: Data, type: MimeType? = nil) {
+    public init(_ data: Data, type: HTTPMediaType? = nil) {
         self.init(ByteBuffer(data: data), type: type)
     }
     
@@ -37,7 +38,7 @@ public struct Blob: Encodable, ResponseTransformable {
     /// - Parameters:
     ///   - byteBuffer: The `ByteBuffer` representation of the `Blob`
     ///   - type: The MIME type associated with the `Blob`
-    public init(_ byteBuffer: ByteBuffer, type: MimeType? = nil) {
+    public init(_ byteBuffer: ByteBuffer, type: HTTPMediaType? = nil) {
         self.byteBuffer = byteBuffer
         self.type = type
     }
@@ -52,8 +53,8 @@ public struct Blob: Encodable, ResponseTransformable {
         )
         
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes), forKey: .byteBuffer)
-        try container.encode(type, forKey: .type)
+        try container.encode(byteBuffer.getData(at: byteBuffer.readerIndex, length: byteBuffer.readableBytes) ?? Data(), forKey: .data)
+        try container.encode(type, forKey: .mediaType)
     }
 }
 

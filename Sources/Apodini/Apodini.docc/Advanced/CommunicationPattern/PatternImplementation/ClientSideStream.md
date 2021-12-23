@@ -20,7 +20,7 @@ You can access the connection state using the `Connection`'s `state` property th
 ```swift
 struct SingleParameterHandler: Handler {
     @Parameter var name: String
-    @Environemnt(\.connection) var connection: Connection
+    @Environment(\.connection) var connection: Connection
 
 
     func handle() -> Response<String> {
@@ -41,7 +41,7 @@ To take full advantage of client-side streams, web services can collect content 
 struct Greeter: Handler {
     @Parameter var name: String
     @State var names: [String] = []
-    @Environemnt(\.connection) var connection: Connection
+    @Environment(\.connection) var connection: Connection
 
 
     func handle() -> Response<String> {

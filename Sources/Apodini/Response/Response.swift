@@ -88,6 +88,10 @@ public struct Response<Content: Encodable>: ResponseTransformable {
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>> {
         eventLoop.makeSucceededFuture(self)
     }
+    
+    public var isNothing: Bool {
+        status == nil && content == nil && information.isEmpty && connectionEffect == .open
+    }
 }
 
 

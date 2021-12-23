@@ -14,6 +14,7 @@ import ApodiniUtils
 @testable import ApodiniDeployBuildSupport
 import ApodiniDeployRuntimeSupport
 import XCTest
+import XCTUtils
 
 
 private struct TestWebService: Apodini.WebService {

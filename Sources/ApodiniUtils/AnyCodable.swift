@@ -57,6 +57,7 @@ public protocol AnyDecoder {
 
 extension JSONDecoder: AnyDecoder {}
 
+
 // MARK: Null
 
 /// A `Codable`-conformant equivalent of `NSNull`
@@ -108,5 +109,14 @@ extension Decodable {
     public init(decodingJSONAt url: URL) throws {
         let data = try Data(contentsOf: url)
         self = try JSONDecoder().decode(Self.self, from: data)
+    }
+}
+
+
+extension JSONEncoder {
+    /// Creates a new `JSONEncoder`, with the specified output formatting options
+    public convenience init(outputFormatting: JSONEncoder.OutputFormatting) {
+        self.init()
+        self.outputFormatting = outputFormatting
     }
 }

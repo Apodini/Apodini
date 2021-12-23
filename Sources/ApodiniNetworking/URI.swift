@@ -121,6 +121,5 @@ extension URL {
         components.query = uri.rawQuery.isEmpty ? nil : uri.rawQuery
         components.fragment = uri.fragment.isEmpty ? nil : uri.fragment
         self = components.url!
-        //return components.url!
     }
 }

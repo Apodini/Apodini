@@ -28,6 +28,10 @@ extension Exporter {
                 .cache()
                 .evaluate(on: delegate)
                 .transform(using: transformer)
+                .map { response in
+                    response.setContentLengthForCurrentBody()
+                    return response
+                }
         }
     }
     
@@ -46,6 +50,10 @@ extension Exporter {
                 .cache()
                 .evaluate(on: delegate)
                 .transform(using: transformer)
+                .map { response in
+                    response.setContentLengthForCurrentBody()
+                    return response
+                }
         }
     }
 }

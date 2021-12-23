@@ -201,11 +201,11 @@ class ApodiniLoggerTests: XCTestCase {
             if counter == start {
                 logger.info("Hello world - Launch!")
                 serverSideStreamingHandlerFinalLine = #line - 1
-                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
+                return .final(.init("🚀🚀🚀 Launch !!! 🚀🚀🚀\n".data(using: .utf8)!, type: .text(.plain)))
             } else {
                 logger.info("Hello world - Countdown!")
                 serverSideStreamingHandlerStreamingLine = #line - 1
-                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain, parameters: ["charset": "utf-8"])))
+                return .send(.init("\(start - counter)...\n".data(using: .utf8)!, type: .text(.plain)))
             }
         }
         
@@ -228,25 +228,22 @@ class ApodiniLoggerTests: XCTestCase {
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
+            switch connection.state {
+            case .open:
+                list.append(country ?? "the World")
+                logger.info("Hello world - Streaming!")
+                clientSideStreamingHandlerStreamingLine = #line - 1
+                return .nothing
+            case .end, .close:
                 var response = "Hello, " + list[0..<list.count - 1].joined(separator: ", ")
                 if let last = list.last {
                     response += " and " + last
                 } else {
                     response += "everyone"
                 }
-                
                 logger.info("Hello world - End!")
                 clientSideStreamingHandlerFinalLine = #line - 1
-                
                 return .final(response + "!")
-            } else {
-                list.append(country ?? "the World")
-                
-                logger.info("Hello world - Streaming!")
-                clientSideStreamingHandlerStreamingLine = #line - 1
-                
-                return .nothing
             }
         }
         
@@ -266,16 +263,15 @@ class ApodiniLoggerTests: XCTestCase {
         @ApodiniLogger(label: ApodiniLoggerTests.loggingLabel) var logger
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
-                logger.info("Hello world - End!")
-                bidirectionalStreamingHandlerFinalLine = #line - 1
-                
-                return .end
-            } else {
+            switch connection.state {
+            case .open:
                 logger.info("Hello world - Streaming!")
                 bidirectionalStreamingHandlerStreamingLine = #line - 1
-                
                 return .send("Hello, \(country ?? "World")!")
+            case .end, .close:
+                logger.info("Hello world - End!")
+                bidirectionalStreamingHandlerFinalLine = #line - 1
+                return .end
             }
         }
         
@@ -377,7 +373,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .path) var name: String"),
@@ -387,7 +383,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse"))
@@ -474,7 +469,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .path) var name: String"),
@@ -484,7 +479,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse2"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse2"))
@@ -572,7 +566,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             let endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .path) var name: String"),
@@ -582,7 +576,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/requestResponse4"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("RequestResponse4"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse4"))
@@ -741,7 +734,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             var parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array(
                     [
@@ -759,7 +752,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ServerSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
@@ -830,7 +822,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             parameterEndpointMetadata = try XCTUnwrap(endpointMetadata["parameters"])
             if !(parameterEndpointMetadata == .array(
                     [
@@ -847,7 +839,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ServerSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
@@ -968,7 +959,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .query) var country: String?")
@@ -977,7 +968,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
@@ -1086,7 +1076,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .query) var country: String?")
@@ -1095,7 +1085,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/clientSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("ClientSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
@@ -1198,7 +1187,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             var endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .query) var country: String?")
@@ -1207,7 +1196,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
@@ -1316,7 +1304,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Endpoint metadata
             endpointMetadata = try XCTUnwrap(metadata["endpoint"]?.metadataDictionary)
             
-            XCTAssertEqual(9, endpointMetadata.count)
+            XCTAssertEqual(8, endpointMetadata.count)
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["parameters"]), .array(
                 [
                     .string("@Parameter(HTTPParameterMode = .query) var country: String?")
@@ -1325,7 +1313,6 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["operation"]), .string("read"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["endpointPath"]), .string("/bidirectionalStreaming"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerType"]), .string("BidirectionalStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["serviceType"]), .string("unary"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))

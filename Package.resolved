@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "748c026f4dc93c0b9d05fe43a07d3922ca126744",
-          "version": "1.10.0"
+          "revision": "3b1e7e9069a62295151c6c1609050cd38a0a7af5",
+          "version": "1.11.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "9fbef6bad614e0b1bf3083f629b40574c97ab0b9",
-          "version": "1.16.0"
+          "revision": "2f1af22f4d495bc6f35365e537c4bb5eb60c5f17",
+          "version": "1.18.0"
         }
       },
       {
@@ -80,6 +80,15 @@
           "branch": null,
           "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
           "version": "4.1.0"
+        }
+      },
+      {
+        "package": "grpc-swift",
+        "repositoryURL": "https://github.com/grpc/grpc-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "5cc08ebf77e68598bfe4c793927d0f2838598607",
+          "version": "1.6.1"
         }
       },
       {
@@ -119,6 +128,15 @@
         }
       },
       {
+        "package": "opentelemetry-swift",
+        "repositoryURL": "https://github.com/slashmo/opentelemetry-swift.git",
+        "state": {
+          "branch": null,
+          "revision": "e4f825fc2c7475553075a3c93b5ddadb5d4f5ec9",
+          "version": "0.1.1"
+        }
+      },
+      {
         "package": "PathKit",
         "repositoryURL": "https://github.com/kylef/PathKit.git",
         "state": {
@@ -150,8 +168,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "c735c22ce67c78b39664fb6f63e3b340c97d024c",
-          "version": "5.10.0"
+          "revision": "cd90cff19b892078c17baae08270707e3fc1590c",
+          "version": "5.11.0"
         }
       },
       {
@@ -186,8 +204,8 @@
         "repositoryURL": "https://github.com/vapor/sql-kit.git",
         "state": {
           "branch": null,
-          "revision": "8587674e7e2499fd2017840973f416182025b02d",
-          "version": "3.12.1"
+          "revision": "9cc30f8cef132e91a07e36005612b37f918731fc",
+          "version": "3.16.0"
         }
       },
       {
@@ -195,8 +213,8 @@
         "repositoryURL": "https://github.com/vapor/sqlite-kit.git",
         "state": {
           "branch": null,
-          "revision": "2ec279b9c845cec254646834b66338551a024561",
-          "version": "4.0.2"
+          "revision": "0b3b12b032991de3ab5999b428a652ec29139746",
+          "version": "4.1.0"
         }
       },
       {
@@ -218,6 +236,15 @@
         }
       },
       {
+        "package": "swift-algorithms",
+        "repositoryURL": "https://github.com/apple/swift-algorithms",
+        "state": {
+          "branch": null,
+          "revision": "b14b7f4c528c942f121c8b860b9410b2bf57825e",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "swift-argument-parser",
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
@@ -231,8 +258,8 @@
         "repositoryURL": "https://github.com/apple/swift-collections",
         "state": {
           "branch": null,
-          "revision": "2d33a0ea89c961dcb2b3da2157963d9c0370347e",
-          "version": "1.0.1"
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
@@ -240,8 +267,35 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "9b5ef28601a9c745c9cdb54d3f243e28ac830982",
-          "version": "2.0.1"
+          "revision": "9c53b7a758bb849a7df1bd2314395f5f0c14306f",
+          "version": "2.0.3"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing.git",
+        "state": {
+          "branch": null,
+          "revision": "fce1f7c91ad5a733500ea1cdd7ccd7aed9130536",
+          "version": "0.1.4"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing-baggage",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage.git",
+        "state": {
+          "branch": null,
+          "revision": "b68b3277985555995298426a35084b832dbc51ae",
+          "version": "0.1.1"
+        }
+      },
+      {
+        "package": "swift-distributed-tracing-baggage-core",
+        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage-core.git",
+        "state": {
+          "branch": null,
+          "revision": "9a2884a37f39e08ebd225627c400feae9c6ea8df",
+          "version": "0.1.1"
         }
       },
       {
@@ -303,8 +357,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "326f7f9a8c8c8402e3691adac04911cac9f9d87f",
-          "version": "1.18.4"
+          "revision": "6e94a7be32891d1b303a3fcfde8b5bf64d162e74",
+          "version": "1.19.1"
         }
       },
       {
@@ -312,8 +366,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "08e701df9a3b9108c56f1aef5d9ef9a78fda2846",
-          "version": "2.16.2"
+          "revision": "2b329e37e9dd34fb382655181a680261d58cbbf1",
+          "version": "2.17.1"
         }
       },
       {
@@ -326,12 +380,21 @@
         }
       },
       {
-        "package": "SwiftPrometheus",
-        "repositoryURL": "https://github.com/MrLotU/SwiftPrometheus.git",
+        "package": "swift-numerics",
+        "repositoryURL": "https://github.com/apple/swift-numerics",
         "state": {
           "branch": null,
-          "revision": "ba329daafa03027d36cda605df6c0d9b065b088e",
-          "version": "1.0.0-alpha.15"
+          "revision": "0a5bc04095a675662cf24757cc0640aa2204253b",
+          "version": "1.0.2"
+        }
+      },
+      {
+        "package": "SwiftProtobuf",
+        "repositoryURL": "https://github.com/apple/swift-protobuf.git",
+        "state": {
+          "branch": null,
+          "revision": "7e2c5f3cbbeea68e004915e3a8961e20bd11d824",
+          "version": "1.18.0"
         }
       },
       {
