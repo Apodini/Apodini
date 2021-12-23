@@ -76,7 +76,7 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
 /// the OpenAPI exporter would want to export the exact same information as the REST exporter. Thus,
 /// the OpenAPI exporter would use `Relationship<RESTInterfaceExporter>`, too.
 /// For that to work both `RESTInterfaceExporter` and `GraphQLInterfaceExporter` must conform
-/// to `TrustAnchor`.
+/// to `TruthAnchor`.
 /// - Note: This is not particularly helpful yet, since we always expose the **whole** service definition to all
 /// exporters. However, one could envision a `.hide(from exporter: TruthAnchor.Type)` modifier on
 /// `Component`s, where this feature becomes crucial.

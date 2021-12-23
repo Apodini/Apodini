@@ -332,7 +332,7 @@ extension EndpointPath {
 
 // MARK: PathBuilder
 public extension Array where Element == EndpointPath {
-    /// Applies and instantiated `PathBuilder` to the given `EndpointPath` array.
+    /// Applies an instantiated `PathBuilder` to the given `EndpointPath` array.
     /// - Parameter builder: The `PathBuilder` to be applied.
     func build<Builder: PathBuilder>(with builder: inout Builder) {
         for path in self {
