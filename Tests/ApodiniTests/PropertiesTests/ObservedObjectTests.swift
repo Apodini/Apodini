@@ -323,7 +323,7 @@ class ObservedObjectTests: ApodiniTests {
                 switch connection.state {
                 case .open:
                     return .send(response)
-                case .end:
+                case .end, .close:
                     return .final(response)
                 }
             }
@@ -409,7 +409,7 @@ class ObservedObjectTests: ApodiniTests {
                 switch connection.state {
                 case .open:
                     return .send(response)
-                case .end:
+                case .end, .close:
                     return .final(response)
                 }
             }
@@ -505,7 +505,7 @@ class ObservedObjectTests: ApodiniTests {
                 switch connection.state {
                 case .open:
                     return .send(response)
-                case .end:
+                case .end, .close:
                     return .final(response)
                 }
             }

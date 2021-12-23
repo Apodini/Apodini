@@ -84,18 +84,18 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
         @State var list: [String] = []
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
+            switch connection.state {
+            case .open:
+                list.append(country ?? "the World")
+                return .nothing
+            case .end, .close:
                 var response = "Hello, " + list[0..<list.count - 1].joined(separator: ", ")
                 if let last = list.last {
                     response += " and " + last
                 } else {
                     response += "everyone"
                 }
-                
                 return .final(response + "!")
-            } else {
-                list.append(country ?? "the World")
-                return .nothing
             }
         }
         
@@ -110,10 +110,11 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
         @Apodini.Environment(\.connection) var connection
         
         func handle() -> Apodini.Response<String> {
-            if connection.state == .end {
-                return .end
-            } else {
+            switch connection.state {
+            case .open:
                 return .send("Hello, \(country ?? "World")!")
+            case .end, .close:
+                return .end
             }
         }
         

@@ -12,18 +12,15 @@ import ApodiniUtils
 import Foundation
 
 
-extension AnyEncoder {
-    /// Type-safe HTTP media type this encoder would encode into.
-    public var resultMediaType: HTTPMediaType? {
-        self.resultMediaTypeRawValue.flatMap { .init($0) }
-    }
-}
-
-
 extension ByteBuffer {
     /// Reads all data currently in the byte buffer, without moving the reader index (i.e. non-consuming).
     public func getAllData() -> Data? {
         self.getData(at: 0, length: self.writerIndex)
+    }
+    
+    /// Reads all bytes currently in the byte buffer, without moving the reader index (i.e. non-consuming).
+    public func getAllBytes() -> [UInt8]? { // swiftlint:disable:this discouraged_optional_collection
+        self.getBytes(at: 0, length: self.writerIndex)
     }
 }
 
@@ -79,6 +76,46 @@ extension EventLoopFuture {
     ) -> EventLoopFuture<NewValue> {
         let promise = self.eventLoop.makePromise(of: NewValue.self, file: file, line: line)
         self.whenComplete { block($0).cascade(to: promise) }
+        return promise.futureResult
+    }
+    
+    /// Runs the specified block when the future is completed, regardless of whether the result is a success or a failure
+    public func inspect(_ block: @escaping (Result<Value, Error>) -> Void) -> EventLoopFuture<Value> {
+        self.whenComplete(block)
+        return self
+    }
+    
+    /// Runs the specified block when the future succeeds
+    public func inspectSuccess(_ block: @escaping (Value) -> Void) -> EventLoopFuture<Value> {
+        self.whenSuccess(block)
+        return self
+    }
+    
+    /// Runs the specified block when the future fails
+    public func inspectFailure(_ block: @escaping (Error) -> Void) -> EventLoopFuture<Value> {
+        self.whenFailure(block)
+        return self
+    }
+}
+
+
+extension AsyncSequence {
+    /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
+    public func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+        let promise = eventLoop.makePromise(of: Element?.self)
+        Task {
+            var idx = 0
+            for try await element in self {
+                if idx == 0 {
+                    promise.succeed(element)
+                }
+                idx += 1
+                objectsHandler(element)
+            }
+            if idx == 0 {
+                promise.succeed(nil)
+            }
+        }
         return promise.futureResult
     }
 }

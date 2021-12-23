@@ -64,7 +64,9 @@ public final class HTTPConfiguration: Configuration {
         
         if let tlsConfigBuilder = tlsConfigurationBuilder {
             self.supportVersions = [.one, .two]
-            self.tlsConfiguration = tlsConfigBuilder.tlsConfiguration
+            var tlsConfig = tlsConfigBuilder.tlsConfiguration
+            tlsConfig.applicationProtocols.append(contentsOf: ["h2", "http/1.1"])
+            self.tlsConfiguration = tlsConfig
             defaultPort = Defaults.httpsPort
         } else {
             self.supportVersions = [.one]

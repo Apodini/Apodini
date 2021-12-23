@@ -97,7 +97,7 @@ extension OpenAPI.Path {
     func toHTTPPathComponentPath() -> [HTTPPathComponent] {
         self.components.map { component in
             if component.hasPrefix("{") && component.hasSuffix("}") {
-                return .wildcardSingle
+                return .wildcardSingle(nil)
             } else {
                 return .verbatim(component)
             }

@@ -43,7 +43,7 @@ extension FixedWidthInteger {
     }
 
     /// Replace the bits in the specified range with the equivalent bits (in terms of range) in the other bitset
-    mutating func replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitset: Self) {
+    public mutating func replaceBits(in range: Range<Int>, withEquivalentRangeIn otherBitset: Self) {
         assertIsValidRange(range)
         for idx in range {
             self[bitAt: idx] = otherBitset[bitAt: idx]
@@ -52,8 +52,8 @@ extension FixedWidthInteger {
     
     /// Returns a string representation of the base-2 encoded integer value
     public var binaryString: String {
-        (0..<Self.bitWidth).reduce(into: "") { string, idx in
-            string += self[bitAt: idx] ? "1" : "0"
-        }
+        String((0..<Self.bitWidth).reversed().reduce(into: []) { (chars: inout [Character], idx) in
+            chars.append(self[bitAt: idx] ? "1" : "0")
+        })
     }
 }

@@ -8,8 +8,6 @@
 
 import Apodini
 import ApodiniREST
-import ApodiniGRPC
-import ApodiniProtobuffer
 import ApodiniOpenAPI
 import ApodiniWebSocket
 import ApodiniMigration
@@ -48,10 +46,6 @@ struct TestWebService: Apodini.WebService {
                 swaggerUiEndpoint: openApiEndpoint + "-ui",
                 title: "The great TestWebService - presented by Apodini"
             )
-        }
-        
-        GRPC {
-            Protobuffer()
         }
         
         WebSocket()

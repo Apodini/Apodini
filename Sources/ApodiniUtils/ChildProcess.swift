@@ -67,7 +67,8 @@ public class ChildProcess {
     
     private let stdoutPipe = Pipe()
     private let stderrPipe = Pipe()
-    private let stdinPipe = Pipe()
+    /// The task's standard input pipe. Can be used to write to the child's stdin.
+    public let stdinPipe = Pipe()
     
     private var stdioFileHandlesObserverTokens: (AnyObject, AnyObject)?
     private var didRegisterStdioFileHandleObservers: Bool {
@@ -143,11 +144,10 @@ public class ChildProcess {
         process.terminationHandler = { [weak self] process in
             self?.processTerminationHandlerImpl(process: process)
         }
-
+        process.standardInput = stdinPipe
         if captureOutput {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
-            process.standardInput = stdinPipe
         }
         if redirectStderrToStdout {
             process.standardError = stdoutPipe
@@ -162,13 +162,11 @@ public class ChildProcess {
             NotificationCenter.default.removeObserver(fileHandleObservers.1)
             stdioFileHandlesObserverTokens = nil
         }
-        print("-[\(Self.self) \(#function)")
     }
     
     
     private func launchImpl() throws {
         precondition(!isRunning)
-        print("-[\(Self.self) \(#function)] \(self)")
         if launchInCurrentProcessGroup {
             process.executableURL = ProcessInfo.processInfo.executableUrl
             process.arguments = [Self.processIsChildProcessInvocationWrapper, self.executableUrl.path] + self.arguments
@@ -258,15 +256,9 @@ extension ChildProcess {
         }
     }
     
-    /// Whether the task is capturing the child's standard input stream
-    public var isCapturingStdin: Bool {
-        (process.standardInput as? Pipe) == stdinPipe
-    }
-    
-    
-    /// Whether the task is capturing the child's stdout, stdin, and stderr.
-    public var isCapturingStdio: Bool {
-        isCapturingStdout && isCapturingStderr && isCapturingStdin
+    /// Whether the task is capturing the child's stdout and stderr.
+    public var isCapturingAllOutput: Bool {
+        isCapturingStdout && isCapturingStderr
     }
     
     
@@ -377,7 +369,6 @@ extension ChildProcess: CustomStringConvertible {
 extension ChildProcess {
     /// Kill all child processes which were launched in the current process group and are currently running, by sending them the `SIGTERM` signal.
     public static func killAllInChildrenInProcessGroup() {
-        print(#function)
         sendSignalToAllChildrenInProcessGroup(signal: SIGTERM)
     }
     
@@ -404,14 +395,19 @@ extension ChildProcess {
 
 extension ChildProcess {
     /// Attempts to find the location of the executable with the specified name, by looking through the current environment's search paths.
-    public static func findExecutable(named binaryName: String) -> URL? {
-        guard let searchPaths = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
+    /// - parameter additionalSearchPaths: An array of directories which should be searched in addition to the directories found in the PATH.
+    ///         Note that the directories in this path take precedence over the ones in the PATH
+    public static func findExecutable(named binaryName: String, additionalSearchPaths: [String] = []) -> URL? {
+        guard let pathSplit = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
             return nil
         }
+        let fileManager = FileManager.default
+        let searchPaths = additionalSearchPaths + pathSplit
         for searchPath in searchPaths {
             let executableUrl = URL(fileURLWithPath: searchPath, isDirectory: true)
                 .appendingPathComponent(binaryName, isDirectory: false)
-            if FileManager.default.fileExists(atPath: executableUrl.path) {
+                .absoluteURL
+            if fileManager.fileExists(atPath: executableUrl.path) { //} && fileManager.isExecutableFile(atPath: executableUrl.path) {
                 return executableUrl
             }
         }
@@ -460,5 +456,34 @@ extension Process.TerminationReason: CustomStringConvertible {
         @unknown default:
             return "\(Self.self).\(self.rawValue)"
         }
+    }
+}
+
+
+// MARK: ChildProcess+zsh
+
+extension ChildProcess {
+    /// Runs a shell command in the zsh shell
+    public static func runZshShellCommandSync(
+        _ command: String,
+        workingDirectory: URL? = nil,
+        combineStderrIntoStdout: Bool = true
+    ) throws -> (exitCode: Int, output: String) {
+        guard let zshBin = Self.findExecutable(named: "zsh") else {
+            throw ChildProcessError(message: "Unable to find zsh executable")
+        }
+        let child = ChildProcess(
+            executableUrl: zshBin,
+            arguments: ["-c", command],
+            workingDirectory: nil,
+            captureOutput: true,
+            redirectStderrToStdout: combineStderrIntoStdout,
+            launchInCurrentProcessGroup: false,
+            environment: [:],
+            inheritsParentEnvironment: true
+        )
+        let exitCode = try child.launchSync().exitCode
+        let output = try child.readStdoutToEnd()
+        return (Int(exitCode), output)
     }
 }

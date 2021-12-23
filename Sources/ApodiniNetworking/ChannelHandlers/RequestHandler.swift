@@ -65,11 +65,11 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
                 switch response.bodyStorage {
                 case .buffer:
                     if !keepAlive {
-                        context.close(mode: .output, promise: nil)
+                        context.close(promise: nil)
                     }
                 case .stream(let stream):
                     if !keepAlive && stream.isClosed {
-                        context.close(mode: .output, promise: nil)
+                        context.close(promise: nil)
                     }
                 }
             case .failure(let error):

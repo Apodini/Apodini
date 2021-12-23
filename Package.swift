@@ -21,16 +21,15 @@ let package = Package(
         .library(name: "ApodiniNetworking", targets: ["ApodiniNetworking"]),
         .library(name: "ApodiniUtils", targets: ["ApodiniUtils"]),
         .library(name: "ApodiniDatabase", targets: ["ApodiniDatabase"]),
-        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniJobs", targets: ["ApodiniJobs"]),
         .library(name: "ApodiniNotifications", targets: ["ApodiniNotifications"]),
         .library(name: "ApodiniOpenAPI", targets: ["ApodiniOpenAPI"]),
-        .library(name: "ApodiniProtobuffer", targets: ["ApodiniProtobuffer"]),
         .library(name: "ApodiniREST", targets: ["ApodiniREST"]),
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
-        .library(name: "ApodiniTypeReflection", targets: ["ApodiniTypeReflection"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
+        .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
         // Authorization
         .library(name: "ApodiniAuthorization", targets: ["ApodiniAuthorization"]),
@@ -82,6 +81,7 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
@@ -172,7 +172,6 @@ let package = Package(
                 .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
@@ -189,6 +188,7 @@ let package = Package(
         .testTarget(
             name: "NegativeCompileTestsRunner",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .target(name: "ApodiniUtils")
             ]
         ),
@@ -201,23 +201,21 @@ let package = Package(
             exclude: ["Cases"]
         ),
 
+        .testTarget(
+            name: "ApodiniNetworkingTests",
+            dependencies: [
+                .target(name: "XCTUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+
         .target(
             name: "ApodiniDatabase",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "FluentKit", package: "fluent-kit")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniGRPC",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ProtobufferCoding")
             ]
         ),
 
@@ -283,17 +281,6 @@ let package = Package(
         ),
 
         .target(
-            name: "ApodiniProtobuffer",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniTypeReflection"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC")
-            ]
-        ),
-
-        .target(
             name: "ApodiniREST",
             dependencies: [
                 .target(name: "Apodini"),
@@ -310,14 +297,6 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniNetworking")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniTypeReflection",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "Runtime", package: "Runtime")
             ]
         ),
 
@@ -424,24 +403,6 @@ let package = Package(
                 .target(name: "XCTApodini")
             ]
         ),
-
-        // ProtobufferCoding
-
-        .target(
-            name: "ProtobufferCoding",
-            dependencies: [
-                .target(name: "ApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime")
-            ],
-            exclude: ["README.md"]
-        ),
-
-        .testTarget(
-            name: "ProtobufferCodingTests",
-            dependencies: [
-                .target(name: "ProtobufferCoding")
-            ]
-        ),
         
         // ApodiniMigration
         
@@ -459,6 +420,7 @@ let package = Package(
         .target(
             name: "XCTApodini",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver"),
                 .product(name: "XCTAssertCrash", package: "XCTAssertCrash", condition: .when(platforms: [.macOS])),
                 .target(name: "Apodini"),
@@ -474,9 +436,17 @@ let package = Package(
         .target(
             name: "XCTApodiniNetworking",
             dependencies: [
+                .target(name: "XCTUtils"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]
+        ),
+
+        .target(
+            name: "XCTUtils",
+            dependencies: [
+                .target(name: "ApodiniUtils")
             ]
         ),
         
@@ -489,8 +459,6 @@ let package = Package(
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniProtobuffer"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
@@ -566,6 +534,7 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "XCTUtils"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
                 .product(name: "SotoApiGatewayV2", package: "soto"),
@@ -672,6 +641,42 @@ let package = Package(
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
                 .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
+            ]
+        ),
+
+        .target(
+            name: "ApodiniGRPC",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: [
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "XCTUtils"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         ),
 

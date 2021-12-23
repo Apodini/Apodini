@@ -50,7 +50,7 @@ final class DelegationTests: ApodiniTests {
                 switch connection.state {
                 case .open:
                     return .send("Invalid Login")
-                case .end:
+                case .end, .close:
                     return .final("Invalid Login")
                 }
             }
@@ -60,7 +60,7 @@ final class DelegationTests: ApodiniTests {
             switch delegate.connection.state {
             case .open:
                 return .send(sendDate ? delegate.observable.date.timeIntervalSince1970.description : delegate.message)
-            case .end:
+            case .end, .close:
                 return .final(sendDate ? delegate.observable.date.timeIntervalSince1970.description : delegate.message)
             }
         }
@@ -364,6 +364,7 @@ final class DelegationTests: ApodiniTests {
         let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
         
         XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(ObjectIdentifier(parameter.originalPropertyType), ObjectIdentifier(String.self))
         XCTAssertEqual(parameter.necessity, .required)
         XCTAssertEqual(parameter.nilIsValidValue, false)
         XCTAssertEqual(parameter.hasDefaultValue, false)
@@ -390,6 +391,7 @@ final class DelegationTests: ApodiniTests {
         let parameter = try XCTUnwrap(SomeHandler().buildParametersModel().first as? EndpointParameter<String>)
         
         XCTAssertEqual(ObjectIdentifier(parameter.propertyType), ObjectIdentifier(String.self))
+        XCTAssertEqual(ObjectIdentifier(parameter.originalPropertyType), ObjectIdentifier(String.self))
         XCTAssertEqual(parameter.necessity, .required)
         XCTAssertEqual(parameter.nilIsValidValue, false)
         XCTAssertEqual(parameter.hasDefaultValue, false)

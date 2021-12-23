@@ -15,8 +15,8 @@ import Foundation
 public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
     case verbatim(String)
     case namedParameter(String)
-    case wildcardSingle
-    case wildcardMultiple
+    case wildcardSingle(String?)
+    case wildcardMultiple(String?)
     
     public init(stringLiteral value: String) {
         self.init(string: value)
@@ -26,9 +26,19 @@ public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
         if string.hasPrefix(":") {
             self = .namedParameter(.init(string.dropFirst()))
         } else if string == "*" {
-            self = .wildcardSingle
+            self = .wildcardSingle(nil)
+        } else if string.hasPrefix("*[") {
+            precondition(string.hasSuffix("]"), "Invalid wildcard pattern")
+            let name = String(string.dropFirst(2).dropLast())
+            precondition(!name.isEmpty, "Invalid wildcard name")
+            self = .wildcardSingle(name)
         } else if string == "**" {
-            self = .wildcardMultiple
+            self = .wildcardMultiple(nil)
+        } else if string.hasPrefix("**[") {
+            precondition(string.hasSuffix("]"), "Invalid wildcard pattern")
+            let name = String(string.dropFirst(3).dropLast())
+            precondition(!name.isEmpty, "Invalid wildcard name")
+            self = .wildcardMultiple(name)
         } else {
             self = .verbatim(String(string))
         }
@@ -64,10 +74,14 @@ extension Array where Element == HTTPPathComponent {
                 partialResult.append(value)
             case .namedParameter(let name):
                 partialResult.append(":\(name)")
-            case .wildcardSingle:
+            case .wildcardSingle(nil):
                 partialResult.append("*")
-            case .wildcardMultiple:
+            case .wildcardSingle(.some(let name)):
+                partialResult.append("*[\(name)]")
+            case .wildcardMultiple(nil):
                 partialResult.append("**")
+            case .wildcardMultiple(.some(let name)):
+                partialResult.append("**[\(name)]")
             }
         }
     }
@@ -88,10 +102,14 @@ extension Array where Element == HTTPPathComponent {
                 partialResult.append("v[\(value)]")
             case .namedParameter:
                 partialResult.append(":")
-            case .wildcardSingle:
+            case .wildcardSingle(nil):
                 partialResult.append("*")
-            case .wildcardMultiple:
+            case .wildcardSingle(.some(let name)):
+                partialResult.append("*[\(name)]")
+            case .wildcardMultiple(nil):
                 partialResult.append("**")
+            case .wildcardMultiple(.some(let name)):
+                partialResult.append("**[\(name)]")
             }
         }
     }
@@ -102,13 +120,6 @@ extension String {
     /// The string split into an array of path components
     public var httpPathComponents: [HTTPPathComponent] {
         .init(self)
-    }
-}
-
-
-extension HTTPMethod: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(self.rawValue)
     }
 }
 
@@ -162,6 +173,7 @@ final class HTTPRouter {
     
     private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
         guard let candidates = routes[request.method] else {
+            logger.warning("Unable to find route for \(request) [0]")
             return nil
         }
         
@@ -176,6 +188,7 @@ final class HTTPRouter {
                 return route
             }
         }
+        logger.warning("Unable to find route for \(request) [1]")
         return nil
     }
 }

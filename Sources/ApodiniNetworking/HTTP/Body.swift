@@ -196,59 +196,6 @@ public enum BodyStorage {
             stream: { $0.mutateStorage { $0.reserveCapacity(capacity) } }
         )
     }
-    
-    
-    /// Collecrs all data in the storage, returned via an EventLoopFuture which will be fulfilled when all data has been written
-    /// In the case of buffer-based storages, this will simply return the data currently in the storage, immediately fulfilling the future.
-    /// In the case of stream-based storages, this will register an observer on the stream, fulfilling the future when the stream was closed.
-    public mutating func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
-        visitMutating(
-            buffer: { buffer in
-                eventLoop.makeSucceededFuture(buffer.readSlice(length: buffer.readableBytes) ?? .init())
-            },
-            stream: { stream in
-                // Note: ideally this would, once the stream ended, simply turn self into a .buffer with the collected data...
-                let promise = eventLoop.makePromise(of: ByteBuffer.self)
-                stream.setObserver { stream, _ in
-                    if stream.isClosed {
-                        promise.succeed(stream.readNewData() ?? .init())
-                    }
-                }
-                return promise.futureResult
-            }
-        )
-    }
-    
-    
-    /// A chunk of data read from the storage.
-    public enum BodyStorageDrainResult {
-        /// A chunk of new data read from the storage.
-        case buffer(ByteBuffer)
-        /// The storage has no further data.
-        case end
-    }
-    
-    /// Drains the contents of the storage, by reading it in chunks, and calling the specified handler for each chunk,
-    public mutating func drain(_ handler: @escaping (BodyStorageDrainResult) -> Void) {
-        visitMutating(
-            buffer: { buffer in
-                if let slice = buffer.readSlice(length: buffer.readableBytes) {
-                    handler(.buffer(slice))
-                }
-                handler(.end)
-            },
-            stream: { stream in
-                stream.setObserver { stream, _ in
-                    if stream.isClosed {
-                        if let buffer = stream.readNewData() {
-                            handler(.buffer(buffer))
-                        }
-                        handler(.end)
-                    }
-                }
-            }
-        )
-    }
 }
 
 

@@ -136,14 +136,15 @@ struct HTTPPathMatcher {
             pathComponentsIdx += 1
             return .successAndContinue
         
-        case .wildcardSingle:
-            wipResult.parameters.singleComponentWildcards[pathComponentsIdx] = currentUrlComponent
+        case .wildcardSingle(let name):
+            let key: HTTPRequest.ParametersStorage.WildcardKey = name.map { .named($0) } ?? .unnamed(pathComponentsIdx)
+            wipResult.parameters.singleComponentWildcards[key] = currentUrlComponent
             wipResult.penaltyScore += 1 // one penalty point per matched wildcard
             urlComponentsIdx += 1
             pathComponentsIdx += 1
             return .successAndContinue
         
-        case .wildcardMultiple:
+        case .wildcardMultiple(let name):
             // We've reached a point where either:
             // - a multi-component (1+) wildcard pattern is about to start, with the current component as its first component,
             // - an empty multi-component wildcard pattern is (not) about to start, but we don't know that
@@ -151,10 +152,11 @@ struct HTTPPathMatcher {
             // The problem about all this is that we don't know how many url components the wildcard should consume.
             // So what we do is that we create multiple copies of the current parser, and have them attempt to parse the url components,
             // with different assumptions as to how long the wildcard should be
-            for wildcardLength in (allowsEmptyMultiWildcards ? 0 : 1)..<(urlComponents.endIndex - urlComponentsIdx) {
+            for wildcardLength in (allowsEmptyMultiWildcards ? 0 : 1)...(urlComponents.endIndex - urlComponentsIdx) {
                 var copy = self
-                copy.wipResult.parameters.multipleComponentWildcards[copy.pathComponentsIdx] =
-                    Array(copy.urlComponents[copy.urlComponentsIdx...(copy.urlComponentsIdx + wildcardLength)])
+                let key: HTTPRequest.ParametersStorage.WildcardKey = name.map { .named($0) } ?? .unnamed(copy.pathComponentsIdx)
+                copy.wipResult.parameters.multipleComponentWildcards[key] =
+                    Array(copy.urlComponents[copy.urlComponentsIdx..<(copy.urlComponentsIdx + wildcardLength)])
                 copy.urlComponentsIdx += wildcardLength
                 copy.pathComponentsIdx += 1
                 copy.wipResult.penaltyScore += wildcardLength * 2 // two penalty points per matched wildcard component
