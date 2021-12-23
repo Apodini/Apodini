@@ -59,7 +59,8 @@ public struct ProtobufferEncoder {
             // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
             try validateTypeIsProtoCompatible(T.self)
         } catch let error as ProtoValidationError {
-            // Note that in this function (the one encoding values into fields, instead of encoding entire messages), our requirements to the
+            // Note that in this function (the one encoding values into fields, instead of encoding entire messages),
+            // our requirements to `T` are a bit more relaxed than in the "encode full value" functions...
             switch error {
             case .topLevelArrayNotAllowed:
                 // We swallow all "T cannot be a top-level type" errors, since we're not encoding T into a top-level type (but rather into a field).
@@ -104,7 +105,7 @@ class EncoderContext {
     /// Marking a coding path as "required output" will indicate to the encoder that values for this field should
     /// always be written into the proto buffer, even if the value is the field's zero default value.
     func markAsRequiredOutput(_ codingPath: [CodingKey]) {
-        fieldsMarkedAsRequiredOutput.insert(Self.codingPathToInts(codingPath))
+        fieldsMarkedAsRequiredOutput.insert(Self.codingPathToFieldNumbers(codingPath))
     }
     
     func markAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
@@ -114,7 +115,7 @@ class EncoderContext {
     }
     
     func unmarkAsRequiredOutput(_ codingPath: [CodingKey]) {
-        fieldsMarkedAsRequiredOutput.remove(Self.codingPathToInts(codingPath))
+        fieldsMarkedAsRequiredOutput.remove(Self.codingPathToFieldNumbers(codingPath))
     }
     
     func unmarkAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
@@ -124,10 +125,10 @@ class EncoderContext {
     }
     
     func isMarkedAsRequiredOutput(_ codingPath: [CodingKey]) -> Bool {
-        fieldsMarkedAsRequiredOutput.contains(Self.codingPathToInts(codingPath))
+        fieldsMarkedAsRequiredOutput.contains(Self.codingPathToFieldNumbers(codingPath))
     }
     
-    private static func codingPathToInts(_ codingPath: [CodingKey]) -> [Int] {
+    private static func codingPathToFieldNumbers(_ codingPath: [CodingKey]) -> [Int] {
         codingPath.map { $0.getProtoFieldNumber() }
     }
 }
@@ -157,6 +158,10 @@ class _ProtobufferEncoder: Encoder { // swiftlint:disable:this type_name
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
+        internalUnkeyedContainer()
+    }
+    
+    func internalUnkeyedContainer() -> ProtobufferUnkeyedEncodingContainer {
         ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     

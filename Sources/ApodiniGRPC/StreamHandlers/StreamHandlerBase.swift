@@ -55,9 +55,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
             if let underlyingType = underlyingType {
                 precondition(underlyingType == type(of: responseContent))
                 // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
-                let payload = try ProtobufferEncoder().encode(responseContent)
-                return payload
-                //return .singleMessage(headers: headers, payload: payload, closeStream: true)
+                return try ProtobufferEncoder().encode(responseContent)
             } else {
                 // If there is no underlying type, the handler returns something primitive which we'll have to manually wrap into a message
                 precondition(fields.count == 1)

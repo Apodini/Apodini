@@ -224,6 +224,63 @@ public enum ProtoType: Hashable {
             return false
         }
     }
+    
+    
+    /// The proto type's underlying Swift type, if available
+    var underlyingType: Any.Type? {
+        switch self {
+        case .primitive(let type):
+            return type
+        case .message(_, let underlyingType, _, _):
+            return underlyingType
+        case .enumTy(_, let enumType, _):
+            return enumType
+        case .refdMessageType:
+            return nil
+        }
+    }
+    
+    
+    var typename: ProtoTypename? {
+        switch self {
+        case .primitive:
+            return nil
+        case .message(let typename, _, _, _):
+            return typename
+        case .enumTy(let typename, _, _):
+            return typename
+        case .refdMessageType(let typename):
+            return typename
+        }
+    }
+    
+    
+    /// Returns a copy of `self`, with the typename's package adjusted to be the specified `packageName`.
+    /// If `self` is a type that is not bound to some specific package, the unchanged input is returned.
+    func movedIntoPackage(_ packageName: String) -> Self {
+        switch self {
+        case .primitive:
+            return self
+        case let .message(typename, underlyingType, nestedOneofTypes, fields):
+            return .message(
+                name: ProtoTypename(packageName: packageName, typename: typename.typename),
+                underlyingType: underlyingType,
+                nestedOneofTypes: nestedOneofTypes,
+                fields: fields
+            )
+        case let .enumTy(typename, enumType, cases):
+            return .enumTy(
+                name: ProtoTypename(packageName: packageName, typename: typename.typename),
+                enumType: enumType,
+                cases: cases
+            )
+        case .refdMessageType:
+            // The problem here is that this might well be referring to a type in a package,
+            // but we can't replace the package name in the typename w/out breaking the reference.
+            // So instead we just return self.
+            return self
+        }
+    }
 }
 
 
@@ -330,12 +387,11 @@ public class ProtoSchema {
     /// Mapping from package names to the set of fully qualified typenames contained in that package (including nested types
     public private(set) var fqtnByPackageMapping: [ProtobufPackageUnit: Set<String>] = [:]
     
-    private var typenameCache: [ObjectIdentifier: ProtoTypename] = [:]
     /// The mapping between all proto types known to the schema, and their respective package names.
     private var protoTypenameToPackageUnitMapping: [ProtoTypename: ProtobufPackageUnit] = [:]
     
     /// Information about a finalized proto package.
-    public struct FinalizedPackage {
+    public struct FinalizedPackage: Hashable {
         /// The name of the packae
         public let packageUnit: ProtobufPackageUnit
         /// The package's syntax. It is guaranteed for all `FinalizedPackage`s returned from the schema,
@@ -473,16 +529,18 @@ public class ProtoSchema {
         //   1. Do no longer contain any invalid characters (e.g. the '<')
         //   2. Still retain the information contained in the generic parameters (this might be important in case a client wants to re-assemble the type)
         //   3. Still uniquely identify the type. What this means is that if we have multiple instantiations of a generic type, all with the same parameters, they should result in the same proto typename. (assuming of course we also use the same prefix)
-        if let typename = typenameCache[ObjectIdentifier(type)] {
-            return typename
-        }
+        // Note also that the same type (same in the sense that `ObjectIdentifier(a) == ObjectIdentifier(b)` would be true) can end up getting mapped to multiple typenames,
+        // depending on the context in which the type is used. Therefore, typenames generated for Swift types cannot be cached.
         func cacheRetval(_ typename: ProtoTypename) -> ProtoTypename {
-            if let oldValue = typenameCache.updateValue(typename, forKey: ObjectIdentifier(type)) {
-                precondition(oldValue == typename)
-            }
             let packageIdentifier = (type as? ProtoTypeInPackage.Type)?.package ?? .init(packageName: defaultPackageName)
+            let inlineInParentPackageName = ProtobufPackageUnit.inlineInParentTypePackage.packageName
             if let oldValue = protoTypenameToPackageUnitMapping.updateValue(packageIdentifier, forKey: typename) {
-                precondition(oldValue == packageIdentifier)
+                switch (oldValue.packageName == inlineInParentPackageName, packageIdentifier.packageName == inlineInParentPackageName) {
+                case (true, true), (false, false):
+                    precondition(oldValue == packageIdentifier)
+                case (false, true), (true, false):
+                    break
+                }
             }
             return typename
         }
@@ -621,14 +679,32 @@ public class ProtoSchema {
                         }
                     }(),
                     type: try { () -> ProtoType in
+                        var fieldProtoType: ProtoType
                         if let repeatedType = fieldType as? ProtobufRepeated.Type, fieldType as? ProtobufBytesMapped.Type == nil {
                             guard repeatedType.elementType as? AnyOptional.Type == nil else {
                                 throw ProtoValidationError.arrayOfOptionalsNotAllowed(repeatedType)
                             }
-                            return try protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
+                            fieldProtoType = try protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
                         } else {
-                            return try protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
+                            fieldProtoType = try protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
                         }
+                        // Adjust the field type's package if necessary
+                        if let fieldProtoTypename = fieldProtoType.typename,
+                           let fieldProtoUnderlyingType = fieldProtoType.underlyingType,
+                           fieldProtoTypename.packageName == ProtobufPackageUnit.inlineInParentTypePackage.packageName {
+                            precondition(((fieldProtoUnderlyingType as? ProtoTypeInPackage.Type)?.package == .inlineInParentTypePackage))
+                            // The field's underlying Swift type has stated that it wants to be "inlined" into the parent type's package.
+                            // (The parent type being the type to which this field belongs.)
+                            let parentPackage = self.protoTypenameToPackageUnitMapping[typename] ?? .init(packageName: self.defaultPackageName)
+                            fieldProtoType = fieldProtoType.movedIntoPackage(typename.packageName)
+                            precondition(fieldProtoType.typename != fieldProtoTypename)
+                            if self.protoTypenameToPackageUnitMapping.removeValue(forKey: fieldProtoTypename) != nil {
+                                // If the type being moved into the current package already had a typename -> package mapping,
+                                // adjust that to point to the new pacjage
+                                self.protoTypenameToPackageUnitMapping[fieldProtoType.typename!] = parentPackage
+                            }
+                        }
+                        return fieldProtoType
                     }(),
                     isOptional: fieldType as? AnyOptional.Type != nil,
                     isRepeated: fieldType as? ProtobufRepeated.Type != nil,
@@ -705,7 +781,7 @@ public class ProtoSchema {
         }
         currentTypesStack.push(cacheKey)
         defer {
-            precondition(currentTypesStack.pop() == cacheKey)
+            currentTypesStack.pop()
         }
         
         if let cached = cachedResults[cacheKey] {
@@ -861,19 +937,6 @@ extension ProtoSchema {
     private func processTypes() throws { // swiftlint:disable:this cyclomatic_complexity
         precondition(isFinalized, "Cannot process types of non-finalized schema")
         
-//        let fullyQualifiedTypenamePackageMapping: [String: String] = { () -> [String: String] in
-//            var retval: [String: String] = [:]
-//            for enumTypename in self.allEnumTypes.keys {
-//                var prevMapping = retval.updateValue(enumTypename.packageName, forKey: enumTypename.fullyQualified)
-//                precondition(prevMapping == nil, "Duplicate fully qualified typename")
-//            }
-//            for msgTypename in self.allMessageTypes.keys {
-//                var prevMapping = retval.updateValue(msgTypename.packageName, forKey: msgTypename.fullyQualified)
-//                precondition(prevMapping == nil, "Duplicate fully qualified typename")
-//            }
-//            return retval
-//        }()
-        
         self.fqtnByPackageMapping = { () -> [ProtobufPackageUnit: Set<String>] in
             var retval: [ProtobufPackageUnit: Set<String>] = [:]
             let insert = { (key: ProtobufPackageUnit, value: String) in
@@ -883,6 +946,9 @@ extension ProtoSchema {
                     retval[key]!.insert(value)
                 }
             }
+            precondition(protoTypenameToPackageUnitMapping.keys.allSatisfy {
+                $0.packageName != ProtobufPackageUnit.inlineInParentTypePackage.packageName
+            })
             for enumTypename in self.allEnumTypes.keys {
                 insert(protoTypenameToPackageUnitMapping[enumTypename]!, enumTypename.fullyQualified)
             }
@@ -891,20 +957,6 @@ extension ProtoSchema {
             }
             return retval
         }()
-        
-//        print("All Enum Typenames (raw):")
-//        for (name, enumTy) in allEnumTypes {
-//            precondition(name.fullyQualified == enumTy.fullyQualifiedTypename)
-//            print("- \(name.fullyQualified)")
-//        }
-//
-//        print("All Enum Typenames (raw):")
-//        for (name, msgTy) in allMessageTypes {
-//            precondition(name.fullyQualified == msgTy.fullyQualifiedTypename)
-//            print("- \(name.fullyQualified)")
-//        }
-//        fatalError()
-        
         
         // We start out by making every type a top-level type
         // Firstly, we process enums, since these are the simplest types (enums can't contain other types, they are a simple key-value mapping)
@@ -1293,7 +1345,10 @@ extension ProtoSchema {
                         )
                     }
                 }(),
-                options: nil,
+                options: MessageOptions(
+                    deprecated: false,
+                    mapEntry: (underlyingType as? AnyProtobufMapFieldEntry.Type) != nil
+                ),
                 reservedRanges: { () -> [DescriptorProto.ReservedRange] in
                     guard let reserved = (underlyingType as? __ProtoTypeWithReservedFields.Type)?.reservedFields.allReservedFieldNumbers() else {
                         return []

@@ -17,6 +17,11 @@ extension ByteBuffer {
     public func getAllData() -> Data? {
         self.getData(at: 0, length: self.writerIndex)
     }
+    
+    /// Reads all bytes currently in the byte buffer, without moving the reader index (i.e. non-consuming).
+    public func getAllBytes() -> [UInt8]? { // swiftlint:disable:this discouraged_optional_collection
+        self.getBytes(at: 0, length: self.writerIndex)
+    }
 }
 
 

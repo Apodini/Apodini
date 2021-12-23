@@ -24,7 +24,14 @@ class GRPCMessageHandler: ChannelInboundHandler {
     enum Input {
         case openStream(HPACKHeaders)
         case message(GRPCMessageIn)
-        case closeStream
+        case closeStream(reason: CloseStreamReason)
+        
+        enum CloseStreamReason {
+            /// The client has asked the channel be closed
+            case client
+            /// The channel received an unexpected frame and is now in an invalid state, requiring it be closed.
+            case invalidState
+        }
     }
     
     // NOT an RPC response message!!! this is the wrapper type encapsulating the different kinds of responses which can come out of the `GRPCMessageHandler`.
@@ -81,17 +88,13 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 grpcMethodName: "\(serviceName)/\(methodName)"
             )
             self.connectionCtx!.handleStreamOpen()
-            logger.notice("[EVENT] OPEN STREAM \(connectionCtx!.grpcMethodName)")
             
         case .message(let messageIn):
-            logger.notice("messageIn received: \(messageIn)")
             guard let connectionCtx = connectionCtx else {
                 fatalError("Received message but there's no connection.")
             }
-            print("message submitted to event loop")
             _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
-                print("handling message")
-                return connectionCtx.handleMessage(messageIn)
+                connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
                         switch result {
@@ -103,15 +106,25 @@ class GRPCMessageHandler: ChannelInboundHandler {
                         }
                     }
             }
-            logger.notice("[EVENT] MESSAGE IN \(connectionCtx.grpcMethodName)")
             
-        case .closeStream:
+        case .closeStream(let closeReason):
             guard let connectionCtx = connectionCtx else {
                 fatalError("[\(Self.self)] received .closeStream but there's no active connection")
             }
-            logger.notice("[EVENT] CLOSE STREAM \(connectionCtx.grpcMethodName)")
             self.isConnectionClosed = true
             self.connectionCtx = nil
+            switch closeReason {
+            case .invalidState:
+                // The channel is being closed due to a bad stream. In this case we do not invoke the connectionContext's handleStreamClose function,
+                // because we would be unable to return the result back to the client.
+                _ = context.close()
+                return
+            case .client:
+                // The channel is being closed in response to the client asking it be.
+                // In this case we know that we'll be able to write one final message back to the client before closing the channel,
+                // so we do invoke the connectionContext's handleStreamClose function.
+                break
+            }
             // The RequestDecoder told us to close the stream.
             // We queue this to be run once the previous request is completed.
             _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
@@ -119,7 +132,8 @@ class GRPCMessageHandler: ChannelInboundHandler {
                     return future.flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
                         switch result {
                         case .failure(let error):
-                            fatalError("Error: \(error)")
+                            return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders())))
+                                .flatMapAlways { _ in context.close() }
                         case .success(let messageOut):
                             return context.write(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
                                 .flatMapAlways { _ in context.close() }

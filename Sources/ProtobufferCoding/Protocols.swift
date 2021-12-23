@@ -222,16 +222,40 @@ public struct EmptyMessage: Codable, ProtobufMessage, ProtoTypeInPackage, ProtoT
 
 
 /// A type which is mapped to the `bytes` type
-protocol ProtobufBytesMapped: ProtobufPrimitive {}
+protocol ProtobufBytesMapped: ProtobufPrimitive {
+    init(rawBytes: ByteBuffer) throws
+    func asRawBytes() throws -> ByteBuffer
+}
 
-extension Data: ProtobufBytesMapped {}
-extension Array: ProtobufBytesMapped, ProtobufPrimitive where Element == UInt8 {}
+extension Data: ProtobufBytesMapped {
+    init(rawBytes: ByteBuffer) throws {
+        self.init(buffer: rawBytes)
+    }
+    func asRawBytes() throws -> ByteBuffer {
+        ByteBuffer(data: self)
+    }
+}
+
+extension Array: ProtobufBytesMapped, ProtobufPrimitive where Element == UInt8 {
+    init(rawBytes: ByteBuffer) throws {
+        if let bytes = rawBytes.getBytes(at: rawBytes.readerIndex, length: rawBytes.readableBytes) {
+            self = bytes
+        } else {
+            throw ProtoDecodingError.other("Unable to get bytes from ByteBuffer")
+        }
+    }
+    func asRawBytes() throws -> ByteBuffer {
+        ByteBuffer(bytes: self)
+    }
+}
 
 
 // MARK: Package & Typename
 
 /// A protobuffer package name. Should be in reverse DNS notation.
 public struct ProtobufPackageUnit: Hashable {
+    static let inlineInParentTypePackage = ProtobufPackageUnit(packageName: "<inlineInParentTypePackage>")
+    
     public let packageName: String
     public let filename: String
     

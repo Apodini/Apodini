@@ -50,6 +50,7 @@ let package = Package(
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
         .library(name: "ApodiniLoggingSupport", targets: ["ApodiniLoggingSupport"]),
+        .library(name: "ApodiniObserveOpenTelemetry", targets: ["ApodiniObserveOpenTelemetry"]),
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
@@ -84,6 +85,7 @@ let package = Package(
         // CLI-Argument parsing in the WebService and ApodiniDeploy
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
         
         .package(url: "https://github.com/jpsim/Yams.git", from: "4.0.0"),
@@ -109,6 +111,8 @@ let package = Package(
         // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
         // is versioned and already contains test functionality
         .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/apple/swift-distributed-tracing.git", .upToNextMinor(from: "0.1.2")),
+        .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
@@ -202,6 +206,15 @@ let package = Package(
                 .target(name: "Apodini")
             ],
             exclude: ["Cases"]
+        ),
+
+        .testTarget(
+            name: "ApodiniNetworkingTests",
+            dependencies: [
+                .target(name: "XCTUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniUtils")
+            ]
         ),
 
         .target(
@@ -437,8 +450,12 @@ let package = Package(
             ]
         ),
 
-        .target(name: "XCTUtils"),
-        
+        .target(
+            name: "XCTUtils",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
         
         .executableTarget(
             name: "ApodiniDeployTestWebService",
@@ -523,6 +540,7 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniDeployTestWebService"),
                 .target(name: "ApodiniUtils"),
+                .target(name: "XCTUtils"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
                 .product(name: "SotoApiGatewayV2", package: "soto"),
@@ -609,7 +627,8 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SystemMetrics", package: "swift-metrics-extras")
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "Tracing", package: "swift-distributed-tracing")
             ]
         ),
         
@@ -618,6 +637,16 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserveOpenTelemetry",
+            dependencies: [
+                .target(name: "ApodiniObserve"),
+                .product(name: "Tracing", package: "swift-distributed-tracing"),
+                .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
+                .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
             ]
         ),
 
@@ -651,7 +680,9 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC")
+                .target(name: "ApodiniGRPC"),
+                .target(name: "XCTUtils"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         ),
 
@@ -688,7 +719,9 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniObserve"),
-                .product(name: "CoreMetrics", package: "swift-metrics")
+                .product(name: "CoreMetrics", package: "swift-metrics"),
+                .product(name: "Instrumentation", package: "swift-distributed-tracing"),
+                .product(name: "Tracing", package: "swift-distributed-tracing")
             ]
         ),
         

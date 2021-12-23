@@ -11,7 +11,10 @@ import ApodiniREST
 import ApodiniOpenAPI
 import ApodiniWebSocket
 import ApodiniMigration
+import ApodiniObserve
+import ApodiniObserveOpenTelemetry
 import ArgumentParser
+import Tracing
 
 
 @main
@@ -48,5 +51,10 @@ struct TestWebService: Apodini.WebService {
         WebSocket()
         
         Migrator()
+        
+        // Tracing configuration for an OpenTelemetry backend with default configuration options
+        TracingConfiguration(
+            .defaultOpenTelemetry(serviceName: "TestWebService")
+        )
     }
 }

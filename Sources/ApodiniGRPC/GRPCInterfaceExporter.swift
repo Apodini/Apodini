@@ -38,11 +38,13 @@ public class GRPC: Configuration {
     let packageName: String
     let serviceName: String
     let pathPrefix: String
+    let enableReflection: Bool
     
-    public init(packageName: String, serviceName: String, pathPrefix: String = "__grpc") {
+    public init(packageName: String, serviceName: String, pathPrefix: String = "__grpc", enableReflection: Bool = true) {
         self.packageName = packageName
         self.serviceName = serviceName
         self.pathPrefix = pathPrefix
+        self.enableReflection = enableReflection
     }
     
     public func configure(_ app: Application) {
@@ -157,7 +159,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
         try! server.schema.finalize()
         server.createFileDescriptors()
         
-        setupReflectionHTTPRoutes()
+        if config.enableReflection {
+            setupReflectionHTTPRoutes()
+        }
         
         // Configure ApodiniNetworking's HTTP server to use our gRPC-specific channel handlers for gRPC messages
         app.httpServer.addIncomingHTTP2StreamConfigurationHandler(forContentTypes: [.gRPCPlain, .gRPC(.proto), .gRPC(.json)]) { channel in
@@ -205,7 +209,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     /// Registers some HTTP routes for accessing the proto reflection schema
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
-        /// - NOTE this might not necessarily be the most dessirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
+        /// - NOTE this might not necessarily be the most desirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
         app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)
@@ -285,7 +289,6 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
     let name: String
     let endpointContext: GRPCEndpointContext
     
-    // TODO how would this deal w/ @Params that are arrays? we couldn't use .getLast for that. Do array params get properly wrapped? (ie in cases where that's the only param. but also in other cases.)
     func decode(from input: GRPCMessageIn) throws -> T {
         switch endpointContext.endpointRequestType! {
         case .enumTy, .primitive, .refdMessageType:

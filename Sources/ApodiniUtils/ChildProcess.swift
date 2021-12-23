@@ -67,6 +67,7 @@ public class ChildProcess {
     
     private let stdoutPipe = Pipe()
     private let stderrPipe = Pipe()
+    /// The task's standard input pipe. Can be used to write to the child's stdin.
     public let stdinPipe = Pipe()
     
     private var stdioFileHandlesObserverTokens: (AnyObject, AnyObject)?

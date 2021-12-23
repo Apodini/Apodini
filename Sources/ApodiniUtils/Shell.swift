@@ -27,7 +27,6 @@ public enum ShellCommand {
 /// A helper function to run custom shell commands, e.g. on app launch
 @discardableResult
 public func runShellCommand(_ command: ShellCommand) -> String {
-    //(try? ChildProcess.runZshShellCommandSync(command.method).output) ?? ""
     let task = Process()
     let pipe = Pipe()
     
@@ -40,7 +39,6 @@ public func runShellCommand(_ command: ShellCommand) -> String {
     } catch {
         return ""
     }
-    
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     return String(data: data, encoding: .utf8) ?? ""
 }
