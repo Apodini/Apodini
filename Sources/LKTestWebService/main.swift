@@ -389,6 +389,10 @@ struct LKTestWebService: Apodini.WebService {
         AddBook()
             .operation(.create)
             .endpointName("AddBook")
+        
+        Group("music") {
+            MusicLibraryWebService()
+        }
     }
     
     var configuration: Configuration {

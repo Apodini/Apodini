@@ -126,7 +126,6 @@ struct FetchAlbumsHandler: Handler {
                     return true
                 }
                 if let songTitle = songTitle, album.songs.contains(where: { $0.title.localizedCaseInsensitiveContains(songTitle) }) {
-                    print("\(album.title) contains a song where the title contaims \(songTitle)")
                     return true
                 }
                 // Simply return all albums if no filters were passed
