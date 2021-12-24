@@ -25,9 +25,9 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     enum SchemaError: Swift.Error {
         case unableToConstructInputType(TypeInformation, underlying: Swift.Error?)
         case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
-        case noRootQueryFieldKeySpecified(AnyEndpoint)
+        case noEndpointNameSpecified(AnyEndpoint)
         // Two or more handlers have defined the same key
-        case duplicateRootQueryFieldKey(String)
+        case duplicateEndpointNames(String)
         
         case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationalPattern)
         // Somewhere while handling a type, the schema encountered a `Swift.Never` type (which can't be represented in GraphQL)
@@ -116,10 +116,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     private func addQueryOrMutationEndpoint<H: Handler>(to handlers: inout [String: GraphQLField], endpoint: Endpoint<H>) throws {
         try assertSchemaMutable()
         guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
-            throw SchemaError.noRootQueryFieldKeySpecified(endpoint)
+            throw SchemaError.noEndpointNameSpecified(endpoint)
         }
         guard !handlers.keys.contains(endpointName) else {
-            throw SchemaError.duplicateRootQueryFieldKey(endpointName)
+            throw SchemaError.duplicateEndpointNames(endpointName)
         }
         handlers[endpointName] = GraphQLField(
             type: try toGraphQLOutputType(.init(type: H.Response.Content.self)),
