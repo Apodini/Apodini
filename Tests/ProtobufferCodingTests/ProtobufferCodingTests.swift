@@ -466,6 +466,21 @@ class ProtobufferCodingTests: XCTestCase {
     }
     
     
+    func testUUIDCoding() throws {
+        let uuid = UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")!
+        try _testImpl(
+            GenericSingleFieldMessage<UUID>(value: uuid),
+            expectedBytes: [
+                0b1010, 36, 69, 54, 50, 49, 69, 49, 70, 56, 45, 67, 51, 54, 67, 45, 52, 57, 53,
+                65, 45, 57, 51, 70, 67, 45, 48, 67, 50, 52, 55, 65, 51, 69, 54, 69, 53, 70
+            ],
+            expectedFieldMapping: [
+                1: [.init(tag: 1, keyOffset: 0, valueOffset: 1, valueInfo: .lengthDelimited(dataLength: 36, dataOffset: 1), fieldLength: 38)]
+            ]
+        )
+    }
+    
+    
     func testSimpleEnumCoding() throws {
         enum Shape: Int32, ProtobufEnum {
             case square = 0

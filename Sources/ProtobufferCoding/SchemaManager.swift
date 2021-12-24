@@ -847,6 +847,8 @@ public class ProtoSchema {
             }
         } else if type == EmptyMessage.self || type == Void.self {
             return cacheRetval(.message(name: protoTypename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))
+        } else if type == Foundation.UUID.self {
+            return cacheRetval(try protoType(for: String.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput, singleParamHandlingContext: singleParamHandlingContext))
         }
         
         let typeInfo: TypeInfo

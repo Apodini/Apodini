@@ -239,6 +239,9 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         } else if let floatValue = value as? Float {
             precondition(type(of: value) == Float.self)
             try encode(floatValue, forKey: key)
+        } else if let uuidValue = value as? Foundation.UUID {
+            precondition(type(of: value) == UUID.self)
+            try encode(uuidValue.uuidString, forKey: key)
         } else if let array = value as? Array<UInt8>, type(of: value) == Array<UInt8>.self {
             // ^^^ We need the additional type(of:) check bc Swift will happily convert
             // empty arrays of type X to empty arrays of type Y :/

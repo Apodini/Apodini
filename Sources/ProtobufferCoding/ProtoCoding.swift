@@ -42,6 +42,9 @@ extension CodingKey {
 enum ProtoDecodingError: Swift.Error {
     case noData
     case foundDeprecatedWireType(WireType, tag: Int, offset: Int)
+    /// The error thrown when the decoder is asked to decode a `Foundation.UUID` value from a field,
+    /// but the field's data does not constitute a valid UUID string.
+    case unableToParseUUID(rawValue: String)
     case other(String)
 }
 

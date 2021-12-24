@@ -285,6 +285,13 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                     return try bytesMappedTy.init(rawBytes: adjustedValueBytes)
                 } else if type == String.self {
                     return try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                } else if type == Foundation.UUID.self {
+                    let rawValue = try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                    if let uuid = UUID(uuidString: rawValue) {
+                        return uuid
+                    } else {
+                        throw ProtoDecodingError.unableToParseUUID(rawValue: rawValue)
+                    }
                 } else {
                     return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
                 }
