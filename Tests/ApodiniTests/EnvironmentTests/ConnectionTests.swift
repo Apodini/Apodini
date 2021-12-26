@@ -29,7 +29,7 @@ final class ConnectionTests: ApodiniTests {
             switch connection.state {
             case .open:
                 return .send(openMessage)
-            case .end:
+            case .end, .close:
                 return .final(endMessage)
             }
         }

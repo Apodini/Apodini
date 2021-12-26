@@ -27,7 +27,11 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
     let handlerMetadata: AnyHandlerMetadata
 
-    init<Metadata: HandlerMetadataDefinition>(modifies handler: H, with metadata: Metadata) {
+    /// Creates a new `HandlerMetadataModifier` used to modify the Metadata of a given ``Handler``.
+    /// - Parameters:
+    ///   - handler: The ``Handler`` which is to be modified.
+    ///   - metadata: The Metadata used to modify the ``Handler``.
+    public init<Metadata: HandlerMetadataDefinition>(modifies handler: H, with metadata: Metadata) {
         self.component = handler
         self.handlerMetadata = metadata
     }

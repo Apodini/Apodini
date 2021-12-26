@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import NIOHTTP1
+@_exported import NIOHTTP1
 import NIOHTTP2
-import NIOHPACK
+@_exported import NIOHPACK
 import ApodiniUtils
 import Foundation
 
@@ -35,14 +35,20 @@ public protocol __ANNIOHTTPHeadersType {
     mutating func add(name: String, value: String, indexing: HPACKIndexing)
     /// Removes a header entry
     mutating func remove(name: String)
-    /// Adds a header entry, removing any existing entities with the same key if necessary
+    /// Adds a header entry, removing any existing entries with the same key if necessary
     mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing)
     /// Fetches all values for the specified key 
     subscript(name: String) -> [String] { get }
+    /// Fetches all key-value entries in this headers data structure
+    var entries: [(String, String, HPACKIndexing)] { get } // swiftlint:disable:this large_tuple
 }
 
 
-extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {}
+extension NIOHPACK.HPACKHeaders: __ANNIOHTTPHeadersType {
+    public var entries: [(String, String, HPACKIndexing)] { // swiftlint:disable:this large_tuple
+        self.map { ($0.name, $0.value, $0.indexable) }
+    }
+}
 
 
 extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
@@ -52,6 +58,10 @@ extension NIOHTTP1.HTTPHeaders: __ANNIOHTTPHeadersType {
     
     public mutating func replaceOrAdd(name: String, value: String, indexing: HPACKIndexing) {
         replaceOrAdd(name: name, value: value)
+    }
+    
+    public var entries: [(String, String, HPACKIndexing)] { // swiftlint:disable:this large_tuple
+        self.map { ($0.name, $0.value, .indexable) }
     }
 }
 
@@ -84,6 +94,19 @@ public class HTTPHeaderName<T: HTTPHeaderFieldValueCodable>: AnyHTTPHeaderName {
 
 
 extension __ANNIOHTTPHeadersType {
+    /// Initialises a new empty headers struct
+    public init() {
+        self.init([])
+    }
+    
+    /// Initialises a new headers struct with the specified entries
+    public init(_ elements: [(String, String, HPACKIndexing)]) { // swiftlint:disable:this large_tuple
+        self.init()
+        for (name, value, indexing) in elements {
+            add(name: name, value: value, indexing: indexing)
+        }
+    }
+    
     /// Creates a new headers struct, giving the caller the opportunity to initialise it via the closure.
     /// - Note: The reason this initialiser exists is to offer a type-safe way of declaring immutable headers objects.
     ///         The underlying problem here is that Swift doesn't support variadic generics, meaning that (since the type-safe header
@@ -111,6 +134,11 @@ extension __ANNIOHTTPHeadersType {
             return
         }
         self.add(name: name.rawValue, value: value().encodeToHTTPHeaderFieldValue(), indexing: indexing)
+    }
+    
+    /// Removes all entries for the specified header name
+    public mutating func remove<T>(_ name: HTTPHeaderName<T>) {
+        remove(name: name.rawValue)
     }
     
     /// Access a single-value typed header field
@@ -170,6 +198,36 @@ extension __ANNIOHTTPHeadersType {
             }
         }
     }
+    
+    /// Lowercases, in-place, all header names.
+    public mutating func lowercaseAllHeaderNames() {
+        self = withLowercasedHeaderNames()
+    }
+    
+    /// Returns a copy of the struct where all header names are lowercased
+    public func withLowercasedHeaderNames() -> Self {
+        Self(entries.map { ($0.lowercased(), $1, $2) })
+    }
+    
+    
+    /// Makes, to this headers object, the modificatios required to ensure that they can be handed over to NIO to form a HTTP/2 HEADERS frame
+    public mutating func applyHTTP2Validations() {
+        self = applyingHTTP2Validations()
+    }
+    
+    /// Returns a copy of this headers object, with HTTP/2 validations applied
+    public func applyingHTTP2Validations() -> Self {
+        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        for (headerName, headerValue, indexing) in entries {
+            if headerName.hasPrefix(":") {
+                pseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
+            } else {
+                nonPseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
+            }
+        }
+        return Self(pseudoHeaderEntries.sorted(by: \.0).appending(contentsOf: nonPseudoHeaderEntries.sorted(by: \.0)))
+    }
 }
 
 
@@ -201,6 +259,51 @@ public extension AnyHTTPHeaderName {
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
     /// The `ETag` HTTP header field
     static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
+}
+
+
+public extension AnyHTTPHeaderName {
+    /// The HTTP/2 `:method` pseudo header field
+    static let methodPseudoHeader = HTTPHeaderName<HTTPMethod>(":method")
+    /// The HTTP/2 `:path` pseudo header field
+    static let pathPseudoHeader = HTTPHeaderName<String>(":path")
+    /// The HTTP/2 `:status` pseudo header field
+    static let statusPseudoHeader = HTTPHeaderName<HTTPResponseStatus>(":status")
+    /// The HTTP/2 `:authority` pseudo header field
+    static let authorityPseudoHeader = HTTPHeaderName<String>(":authority")
+    /// The HTTP/2 `:scheme` pseudo header field
+    static let schemePseudoHeader = HTTPHeaderName<String>(":scheme")
+}
+
+
+extension HTTPMethod: HTTPHeaderFieldValueCodable {
+    public init?(httpHeaderFieldValue value: String) {
+        self.init(rawValue: value)
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        self.rawValue
+    }
+}
+
+
+extension HTTPResponseStatus: HTTPHeaderFieldValueCodable {
+    public init?(httpHeaderFieldValue value: String) {
+        if let intValue = Int(value) {
+            self.init(statusCode: intValue)
+        } else {
+            return nil
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        String(code)
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(code)
+        hasher.combine(reasonPhrase)
+    }
 }
 
 

@@ -5,16 +5,10 @@
 //
 // SPDX-License-Identifier: MIT
 //
-//
-// This code is based on the Vapor project: https://github.com/vapor/vapor
-//
-// SPDX-FileCopyrightText: 2020 Qutheory, LLC
-//
-// SPDX-License-Identifier: MIT
-//
-
 
 import Foundation
+import AssociatedTypeRequirementsVisitor
+
 
 /// A rather crude, simple, and limited implementation of a URL query parameter value decoder
 struct URLQueryParameterValueDecoder {

@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: MIT
 //
+
 import Apodini
 
 
@@ -14,8 +15,6 @@ struct GreetComponent: Component {
     var content: some Component {
         Group("greet") {
             TraditionalGreeter()
-                .serviceName("GreetService")
-                .rpcName("greetMe")
                 .response(EmojiTransformer())
                 .destination(of: greeterRelationship)
                 .identified(by: "greetMe")

@@ -130,7 +130,6 @@ extension Node {
         let partialResults = try children.map { child in
             try child.reduce(nextPartialResult)
         }
-
         return try nextPartialResult(partialResults, value)
     }
 

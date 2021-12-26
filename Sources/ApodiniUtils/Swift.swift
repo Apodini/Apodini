@@ -55,6 +55,11 @@ extension Array {
         copy.append(contentsOf: elements)
         return copy
     }
+    
+    /// Sorts the array in-place, using a key path
+    public mutating func sort<T: Comparable>(by keyPath: KeyPath<Element, T>) {
+        self = sorted { $0[keyPath: keyPath] < $1[keyPath: keyPath] }
+    }
 }
 
 
@@ -75,6 +80,45 @@ extension Sequence {
     /// - Note: This only removes one level of nullability. If you have nested optionals, you'll have to take care of that separately.
     public func dropNilValues<T>() -> [T] where Element == T? {
         self.compactMap { $0 }
+    }
+    
+    /// Returns a set created by mapping the elements of the sequence using the specified block
+    public func mapIntoSet<Result: Hashable>(_ transform: (Element) throws -> Result) rethrows -> Set<Result> {
+        var retval = Set<Result>()
+        retval.reserveCapacity(self.underestimatedCount)
+        for element in self {
+            retval.insert(try transform(element))
+        }
+        return retval
+    }
+    
+    /// Returns a set created by compact-mapping the elements of the sequence using the specified block
+    public func compactMapIntoSet<Result: Hashable>(_ transform: (Element) throws -> Result?) rethrows -> Set<Result> {
+        var retval = Set<Result>()
+        retval.reserveCapacity(self.underestimatedCount / 2)
+        for element in self {
+            if let mapped = try transform(element) {
+                retval.insert(mapped)
+            }
+        }
+        return retval
+    }
+    
+    /// Returns the number of elements in the sequence that satisfy the predicate.
+    public func count(where predicate: (Element) -> Bool) -> Int {
+        var retval = 0
+        for element in self {
+            if predicate(element) {
+                retval += 1
+            }
+        }
+        return retval
+    }
+    
+    
+    /// Creates an array by consuming all of the sequence's elements.
+    public func intoArray() -> [Element] {
+        Array(self)
     }
 }
 
@@ -192,5 +236,133 @@ extension Date {
         fmt.locale = Locale(identifier: "en_US")
         fmt.dateFormat = formatString
         return fmt.string(from: self)
+    }
+}
+
+
+extension Array {
+    /// Returns a string descriptioin of the elements of this array,
+    /// containing as many elements as fit until the resulting string exceeds `maxLength` characters.
+    public func description(maxLength: Int) -> String {
+        guard !isEmpty else {
+            return "[]"
+        }
+        var desc = "["
+        for (idx, element) in self.enumerated() {
+            if idx != startIndex {
+                desc.append(", ")
+            }
+            let elementDesc = String(describing: element)
+            if desc.count + elementDesc.count + 1 > maxLength {
+                // The resulting string would be too large, don't add the desc
+                return desc + ", ...]"
+            } else {
+                desc += ", \(elementDesc)"
+            }
+        }
+        return desc + "]"
+    }
+    
+    /// Removes the first occurrence of the specified object from the array.
+    /// - returns: The index from which the object was removed, `nil` if the object was not found in the array
+    @discardableResult
+    public mutating func removeFirstOccurrence(of element: Element) -> Int? where Element: Equatable {
+        if let idx = firstIndex(of: element) {
+            remove(at: idx)
+            return idx
+        } else {
+            return nil
+        }
+    }
+    
+    /// Removes from the array the first element for which the predicate evaluates to true.
+    /// - returns: The index from which the matching element was removed, `nil` if none of the array's elements matched the predicate.
+    @discardableResult
+    public mutating func removeFirstOccurrence(where predicate: (Element) -> Bool) -> Int? {
+        if let idx = firstIndex(where: predicate) {
+            remove(at: idx)
+            return idx
+        } else {
+            return nil
+        }
+    }
+    
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S>(_ other: S) where Element: Hashable, S: Sequence, S.Element == Element {
+        let otherAsSet = Set(other)
+        self = filter { !otherAsSet.contains($0) }
+    }
+    
+    
+    /// Performs an in-place map operation.
+    public mutating func mapInPlace(_ transform: (inout Element) throws -> Void) rethrows {
+        for idx in indices {
+            var element = self[idx]
+            try transform(&element)
+            self[idx] = element
+        }
+    }
+}
+
+
+private struct ThreeValueHashable<A: Hashable, B: Hashable, C: Hashable>: Hashable {
+    let a: A // swiftlint:disable:this identifier_name
+    let b: B // swiftlint:disable:this identifier_name
+    let c: C // swiftlint:disable:this identifier_name
+}
+
+
+extension Array {
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S, A, B>(_ other: S) where Element == (A, B), S: Sequence, S.Element == (A, B), A: Hashable, B: Hashable {
+        let otherAsSet = other.mapIntoSet { ThreeValueHashable(a: $0.0, b: $0.1, c: 0 as UInt8) }
+        self = filter { !otherAsSet.contains(ThreeValueHashable(a: $0.0, b: $0.1, c: 0 as UInt8)) }
+    }
+    
+    /// Performs an in-place removal of all elements in the array that are also in the specified other sequence.
+    public mutating func subtract<S, A, B, C>(
+        _ other: S
+    ) where Element == (A, B, C), S: Sequence, S.Element == (A, B, C), A: Hashable, B: Hashable, C: Hashable { // swiftlint:disable:this large_tuple
+        let otherAsSet = other.mapIntoSet { ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2) }
+        self = filter { !otherAsSet.contains(ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2)) }
+    }
+}
+
+
+// MARK: Result
+
+extension Result {
+    /// Whether the result is a success
+    public var isSuccess: Bool {
+        switch self {
+        case .success:
+            return true
+        case .failure:
+            return false
+        }
+    }
+    
+    /// Whether the result is a failure
+    public var isFailure: Bool {
+        switch self {
+        case .failure:
+            return true
+        case .success:
+            return false
+        }
+    }
+}
+
+
+// MARK: Dictionary
+
+extension Dictionary {
+    /// Creates a new Dictionary by mapping the values of this dictionary.
+    public func mapValues<NewValue>(_ transform: (Key, Value) throws -> NewValue) rethrows -> [Key: NewValue] {
+        var retval: [Key: NewValue] = [:]
+        for (key, value) in self {
+            retval[key] = try transform(key, value)
+        }
+        return retval
     }
 }

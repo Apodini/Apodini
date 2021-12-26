@@ -47,7 +47,7 @@ public extension Array where Element == ParameterNamespace {
     /// This is the default namespace when nothing is specified by the exporter.
     static let global: [ParameterNamespace] = [.all]
     /// With the `.individual` level, a parameter name must be
-    /// unique across all parameters with the same `ParameterTyp` on the given `Endpoint`.
+    /// unique across all parameters with the same `ParameterType` on the given `Endpoint`.
     static let individual: [ParameterNamespace] = [.lightweight, .content, .path]
 }
 

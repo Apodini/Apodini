@@ -15,6 +15,7 @@ import ApodiniNetworking
 import ApodiniUtils
 import AsyncHTTPClient
 import XCTest
+import XCTUtils
 
 
 struct ResponseWithPid<T: Codable>: Codable {
@@ -285,6 +286,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             timeout: 15,
             enforceOrder: false
         )
+        
+        resetOutput()
+        stdioObserverHandle = nil
         
         
         resetOutput()
