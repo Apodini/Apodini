@@ -22,7 +22,7 @@ extension Exporter {
         let transformer = HTTPResponseTransformer<H>(configuration.encoder)
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         return { (request: HTTPRequest) in
-            guard let requestCount = try! configuration.decoder.decode(
+            guard let requestCount = try? configuration.decoder.decode(
                 ArrayCount.self,
                 from: request.bodyStorage.getFullBodyData() ?? .init()
             ).count else {
