@@ -11,31 +11,74 @@ import NIO
 import ApodiniUtils
 
 
+/// A type which can be both encoded and decoded as a `repeated` proto field.
+typealias ProtobufRepeatedCodable = ProtobufRepeatedEncodable & ProtobufRepeatedDecodable
+
+
 /// A type which can be encoded into a `repeated` field.
 /// - Note: This protocol is intentionally not public, because we don't want users to conform their custom types to it.
-protocol ProtobufRepeated {
-    /// Type of the repeated elements stored by this type.
-    /// - Note: This is not necessarily the same type as the actual Swift type stored in the collection,
-    ///         but rather the Swift type that is encoded/decoded to/from a proto message.
-    ///         (In reality, it will be the same type for arrays, but not for dictionaries.)
-    static var elementType: Codable.Type { get }
+protocol ProtobufRepeatedEncodable {
+    static var elementType: Encodable.Type { get }
+    /// Whether the elements are encoded using the packed encoding
+    static var isPacked: Bool { get }
+    /// Encodes the object's elements into the encoder, keyed by the specified key.
+    func encodeElements<Key: CodingKey>(to encoder: _ProtobufferEncoder, forKey key: Key) throws
+    /// The elements in the repeated value.
+    /// - Note: This is used by `encodeElements(to:forKey:)`'s default implementation to get the elements in the repeated value.
+    ///         This computed property should return an array of objects of the same type as `Self.elementType`.
+    var typeErasedElements: [Encodable] { get }
+}
+
+
+/// A type which can be decoded from a `repeated` field.
+/// - Note: This protocol is intentionally not public, because we don't want users to conform their custom types to it.
+protocol ProtobufRepeatedDecodable {
+    static var elementType: Decodable.Type { get }
     /// Whether the elements are encoded using the packed encoding
     static var isPacked: Bool { get }
     /// Initialises the type by decoding its elements from a ProtobufferDecoder, at the specified fields.
     init<Key: CodingKey>(decodingFrom decoder: _ProtobufferDecoder, forKey key: Key, atFields fields: [ProtobufFieldInfo]) throws
-    /// Encodes the object's elements into the encoder, keyed by the specified key.
-    func encodeElements<Key: CodingKey>(to encoder: _ProtobufferEncoder, forKey key: Key) throws
     /// Initializes the repeated type with the specified elements.
     /// - Note: This initializer is called by `ProtobufRepeated`'s default `decodingFrom:` initializer. It is guaranteed that the elements have the same type as `Self.elementType`.
     init(typeErasedElements elements: [Any])
-    /// The elements in the repeated value.
-    /// - Note: This is used by `encodeElements(to:forKey:)`'s default implementation to get the elements in the repeated value.
-    ///         This computed property should return an array of objects of the same type as `Self.elementType`.
-    var typeErasedElements: [Codable] { get }
 }
 
 
-extension ProtobufRepeated {
+extension ProtobufRepeatedEncodable {
+    func encodeElements<Key: CodingKey>(to encoder: _ProtobufferEncoder, forKey key: Key) throws {
+        let elements = self.typeErasedElements
+        guard !elements.isEmpty else {
+            return
+        }
+        if Self.isPacked {
+            let dstBufferRef = encoder.dstBufferRef
+            let oldWriterIdx = dstBufferRef.value.writerIndex
+            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
+            let elementsBuffer = try { () -> ByteBuffer in
+                let elementsBuffer = Box(ByteBuffer())
+                let elementsEncoder = _ProtobufferEncoder(codingPath: encoder.codingPath, dstBufferRef: elementsBuffer, context: encoder.context)
+                var elementsContainer = elementsEncoder.internalUnkeyedContainer()
+                for element in elements {
+                    try elementsContainer._encode(element)
+                }
+                return elementsBuffer.value
+            }()
+            dstBufferRef.value.writeProtoLengthDelimited(elementsBuffer)
+        } else {
+            encoder.context.markAsRequiredOutput(encoder.codingPath.appending(key))
+            defer {
+                encoder.context.unmarkAsRequiredOutput(encoder.codingPath.appending(key))
+            }
+            var keyedContainer = encoder.internalKeyedContainer(keyedBy: Key.self)
+            for element in elements {
+                try keyedContainer._encode(element, forKey: key)
+            }
+        }
+    }
+}
+
+
+extension ProtobufRepeatedDecodable {
     init<Key: CodingKey>( // swiftlint:disable:this cyclomatic_complexity
         decodingFrom decoder: _ProtobufferDecoder,
         forKey key: Key,
@@ -137,44 +180,31 @@ extension ProtobufRepeated {
             })
         }
     }
-    
-    func encodeElements<Key: CodingKey>(to encoder: _ProtobufferEncoder, forKey key: Key) throws {
-        let elements = self.typeErasedElements
-        guard !elements.isEmpty else {
-            return
-        }
-        if Self.isPacked {
-            let dstBufferRef = encoder.dstBufferRef
-            let oldWriterIdx = dstBufferRef.value.writerIndex
-            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
-            let elementsBuffer = try { () -> ByteBuffer in
-                let elementsBuffer = Box(ByteBuffer())
-                let elementsEncoder = _ProtobufferEncoder(codingPath: encoder.codingPath, dstBufferRef: elementsBuffer, context: encoder.context)
-                var elementsContainer = elementsEncoder.internalUnkeyedContainer()
-                for element in elements {
-                    try elementsContainer._encode(element)
-                }
-                return elementsBuffer.value
-            }()
-            dstBufferRef.value.writeProtoLengthDelimited(elementsBuffer)
-        } else {
-            encoder.context.markAsRequiredOutput(encoder.codingPath.appending(key))
-            defer {
-                encoder.context.unmarkAsRequiredOutput(encoder.codingPath.appending(key))
-            }
-            var keyedContainer = encoder.internalKeyedContainer(keyedBy: Key.self)
-            for element in elements {
-                try keyedContainer._encode(element, forKey: key)
-            }
-        }
-    }
 }
 
 
 // MARK: Array
 
-extension Array: ProtobufRepeated where Element: Codable {
-    static var elementType: Codable.Type { Element.self }
+extension Array: ProtobufRepeatedEncodable where Element: Encodable {
+    static var elementType: Encodable.Type { Element.self }
+    
+    static var isPacked: Bool {
+        switch guessWireType(Element.self)! {
+        case .varInt, ._32Bit, ._64Bit:
+            return true
+        case .lengthDelimited, .startGroup, .endGroup:
+            return false
+        }
+    }
+    
+    var typeErasedElements: [Encodable] {
+        self
+    }
+}
+
+
+extension Array: ProtobufRepeatedDecodable where Element: Decodable {
+    static var elementType: Decodable.Type { Element.self }
     
     static var isPacked: Bool {
         switch guessWireType(Element.self)! {
@@ -188,19 +218,27 @@ extension Array: ProtobufRepeated where Element: Codable {
     init(typeErasedElements elements: [Any]) {
         self = elements as! [Element]
     }
-    
-    var typeErasedElements: [Codable] {
-        self
-    }
 }
 
 
 // MARK: Dictionary
 
-/// A `map<K, V>` in proto3. Maps are encoded as repeated fields, so we inherit the `ProtobufRepeated` protocol to get that behaviour.
-protocol ProtobufMap: ProtobufRepeated {
-    static var keyType: Codable.Type { get }
-    static var valueType: Codable.Type { get }
+/// A type which can be encoded and decoded as a `map<K, V>` field in proto3, with `K` and `V` also being proto-compatible types.
+/// In Swift, proto3 `map<K, V>`s are represented as `Dictionary<K, V>` objects.
+typealias ProtobufMapCodable = ProtobufMapEncodable & ProtobufMapDecodable
+
+
+/// A proto3 `map<K, V>`-encodable type, i.e. a `Dictionary<K, V>` in Swift. Maps are encoded as repeated fields, so we inherit the `ProtobufRepeatedEncodable` protocol to get that behaviour.
+protocol ProtobufMapEncodable: ProtobufRepeatedEncodable {
+    static var keyType: Encodable.Type { get }
+    static var valueType: Encodable.Type { get }
+}
+
+
+/// A proto3 `map<K, V>`-decodable type, i.e. a `Dictionary<K, V>` in Swift. Maps are encoded as repeated fields, so we inherit the `ProtobufRepeatedEncodable` protocol to get that behaviour.
+protocol ProtobufMapDecodable: ProtobufRepeatedDecodable {
+    static var keyType: Decodable.Type { get }
+    static var valueType: Decodable.Type { get }
 }
 
 
@@ -210,30 +248,42 @@ protocol AnyProtobufMapFieldEntry {}
 
 
 /// Internal proto message type which is used to model the key-value-pair entries in a proto3 map.
-struct ProtobufMapFieldEntry<Key: Codable, Value: Codable>: Codable, ProtoTypeInPackage, AnyProtobufMapFieldEntry {
+struct ProtobufMapFieldEntry<Key, Value>: ProtoTypeInPackage, AnyProtobufMapFieldEntry {
     static var package: ProtobufPackageUnit { .inlineInParentTypePackage }
     
     let key: Key
     let value: Value
 }
 
+extension ProtobufMapFieldEntry: Encodable where Key: Encodable, Value: Encodable {}
+extension ProtobufMapFieldEntry: Decodable where Key: Decodable, Value: Decodable {}
+
 extension ProtobufMapFieldEntry: Equatable where Key: Equatable, Value: Equatable {}
 extension ProtobufMapFieldEntry: Hashable where Key: Hashable, Value: Hashable {}
 
 
-extension Dictionary: ProtobufMap & ProtobufRepeated where Key: Codable, Value: Codable {
-    static var keyType: Codable.Type { Key.self }
-    static var valueType: Codable.Type { Value.self }
+extension Dictionary: ProtobufMapEncodable & ProtobufRepeatedEncodable where Key: Encodable, Value: Encodable {
+    static var keyType: Encodable.Type { Key.self }
+    static var valueType: Encodable.Type { Value.self }
     
-    static var elementType: Codable.Type { ProtobufMapFieldEntry<Key, Value>.self }
+    static var elementType: Encodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
+    static var isPacked: Bool { false }
+    
+    var typeErasedElements: [Encodable] {
+        self.map { ProtobufMapFieldEntry(key: $0, value: $1) }
+    }
+}
+
+
+extension Dictionary: ProtobufMapDecodable & ProtobufRepeatedDecodable where Key: Decodable, Value: Decodable {
+    static var keyType: Decodable.Type { Key.self }
+    static var valueType: Decodable.Type { Value.self }
+    
+    static var elementType: Decodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
     static var isPacked: Bool { false }
     
     init(typeErasedElements elements: [Any]) {
         let elements = elements as! [ProtobufMapFieldEntry<Key, Value>]
         self.init(uniqueKeysWithValues: elements.map { ($0.key, $0.value) })
-    }
-    
-    var typeErasedElements: [Codable] {
-        self.map { ProtobufMapFieldEntry(key: $0, value: $1) }
     }
 }

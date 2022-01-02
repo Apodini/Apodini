@@ -274,11 +274,11 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
         return getProtoCodingKind(optionalTy.wrappedType)
     } else if type as? ProtobufBytesMapped.Type != nil {
         return .primitive
-    } else if type as? ProtobufRepeated.Type != nil {
+    } else if isProtoRepeatedEncodableOrDecodable(type) {
         return .repeated
     }
     
-    guard (type as? Codable.Type) != nil else {
+    guard (type as? Encodable.Type != nil) || (type as? Decodable.Type != nil) else {
         // A type which isn't codable couldn't be en- or decoded in the first place
         fatalError("Type '\(type)' is not supported by ProtobufferCoding, because it does not conform to Codable")
     }

@@ -250,7 +250,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             encodeLengthDelimitedKeyedBytes(array)
         } else if let data = value as? Data {
             encodeLengthDelimitedKeyedBytes(data)
-        } else if let protobufRepeatedTy = value as? ProtobufRepeated {
+        } else if let protobufRepeatedTy = value as? ProtobufRepeatedEncodable {
             let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
             try protobufRepeatedTy.encodeElements(to: encoder, forKey: key)
         } else {

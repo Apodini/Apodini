@@ -288,13 +288,13 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     /// The error thrown if the schema encounters an enum that is not defined as a proto2 enum and is missing a case with the raw value `0`.
     case proto3EnumMissingCaseWithZeroValue(AnyProtobufEnum.Type)
     /// The error thrown if the schema encounters a type which is an array of optional values.
-    /// - Note: The associated value here should be a `ProtobufRepeated.Type`
+    /// - Note: The associated value here should be a `ProtobufRepeated{En,De}codable.Type`
     case arrayOfOptionalsNotAllowed(Any.Type)
     /// The error thrown if the schema encounters a type which is an optional array.
-    /// - Note: The associated value here is an `Optional`, and this optional's wrapped type is pretty much guaranteed to be a `ProtobufRepeated`.
+    /// - Note: The associated value here is an `Optional`, and this optional's wrapped type is pretty much guaranteed to be a `ProtobufRepeated{En,De}codable.Type`.
     case optionalArrayNotAllowed(AnyOptional.Type)
     /// The error thrown when the schema is asked to produce the proto type for an Array, but is now allowed to wrap the array in a composite message type
-    /// - Note: The associated value here should be a `ProtobufRepeated.Type`
+    /// - Note: The associated value here should be a `ProtobufRepeated{En,De}codable.Type`
     case topLevelArrayNotAllowed(Any.Type)
     /// The error thrown when the schema encounters a type wich is an enum, but does not implement either of the two proto enum protocols.
     case missingEnumProtocolConformance(Any.Type)
@@ -313,6 +313,13 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     case invalidProto2AndProto3TypeNesting(parent: ProtoTypename, prospectiveChild: ProtoTypename)
     /// The error thrown if the schema encounters a package which contains both proto2 and proto3 types
     case invalidProto2AndProto3TypeMixing
+    /// The error thrown if the schema encounters a `repeated` type within a `oneof`, i.e. in Swift an enum w/ associated values
+    /// where one of the values is a type which gets mapped into a `repeated` type
+    /// - Note: The associated value here should be a `ProtobufRepeated{En,De}codable.Type`
+    case invalidRepeatedInOneof(Any.Type)
+    /// The error thrown if the schema encounters an `optional` type within a `oneof`, i.e. in Swift an enum w/ associated values
+    /// where one of the values is an `Optional` type.
+    case invalidOptionalInOneof(Any.Type)
     /// Some other, unspecified error occurred while handling a type
     /// - parameter message: A String describing the error
     /// - parameter type: The type that caused this error, if applicable
@@ -346,11 +353,46 @@ public enum ProtoValidationError: Swift.Error, Equatable {
             return lhsParent == rhsParent && lhsChild == rhsChild
         case (.invalidProto2AndProto3TypeMixing, .invalidProto2AndProto3TypeMixing):
             return true
+        case let (.invalidRepeatedInOneof(lhsTy), .invalidRepeatedInOneof(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.invalidOptionalInOneof(lhsTy), .invalidOptionalInOneof(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.other(lhsMessage, lhsTy), .other(rhsMessage, rhsTy)):
             return lhsMessage == rhsMessage && lhsTy.map(ObjectIdentifier.init) == rhsTy.map(ObjectIdentifier.init)
         default:
             return false
         }
+    }
+}
+
+
+/// Checks whether the type can be en- or decoded as a `repeated` proto type
+func isProtoRepeatedEncodableOrDecodable(_ type: Any.Type) -> Bool {
+    (type as? ProtobufRepeatedEncodable.Type != nil) || (type as? ProtobufRepeatedDecodable.Type != nil)
+}
+
+
+/// Retrieves, if `type` is a repeated type, the underlying element type.
+/// - Note: This function returning a nonnil value implies that `type` is either repeated-field-encodable, or repeated-field-decodable, or both.
+/// - Note: This function also checks whether, if `type` is both encodable and decodable, the underlying type is the same in both cases.
+func getProtoRepeatedElementType(_ type: Any.Type) -> Any.Type? {
+    let encodableUnderlyingType = (type as? ProtobufRepeatedEncodable.Type)?.elementType
+    let decodableUnderlyingType = (type as? ProtobufRepeatedDecodable.Type)?.elementType
+    if let encodableUnderlyingType = encodableUnderlyingType, let decodableUnderlyingType = decodableUnderlyingType {
+        precondition(ObjectIdentifier(encodableUnderlyingType) == ObjectIdentifier(decodableUnderlyingType))
+    }
+    return encodableUnderlyingType ?? decodableUnderlyingType
+}
+
+
+/// Returns `true` iff the type is en/decodable as a `repeated`, and has packed fields.
+func isProtoRepeatedPacked(_ type: Any.Type) -> Bool {
+    if let encodableType = type as? ProtobufRepeatedEncodable.Type {
+        return encodableType.isPacked
+    } else if let decodableType = type as? ProtobufRepeatedDecodable.Type {
+        return decodableType.isPacked
+    } else {
+        return false
     }
 }
 
@@ -549,8 +591,8 @@ public class ProtoSchema {
         if let optionalTy = type as? AnyOptional.Type {
             // intentionally not caching here, bc we want the actual type as the cache key, rather than the Optional version
             return getProtoTypename(optionalTy.wrappedType)
-        } else if let repeatedTy = type as? ProtobufRepeated.Type {
-            return cacheRetval(getProtoTypename(repeatedTy.elementType))
+        } else if let repeatedElementTy = getProtoRepeatedElementType(type) {
+            return cacheRetval(getProtoTypename(repeatedElementTy))
         }
         
         let swiftTypename = SwiftTypename(type: type)
@@ -644,8 +686,15 @@ public class ProtoSchema {
                     ($0.stringValue, $0.intValue!)
                 })
                 newFields = try typeInfo.cases.map { enumCase in
-                    precondition(enumCase.payloadType as? ProtobufRepeated.Type == nil)
-                    precondition(enumCase.payloadType as? AnyOptional.Type == nil)
+                    guard let payloadType = enumCase.payloadType else {
+                        fatalError("Runtime introspection error: Unable to get payload type for enum w/ associated values")
+                    }
+                    if isProtoRepeatedEncodableOrDecodable(payloadType) {
+                        throw ProtoValidationError.invalidRepeatedInOneof(payloadType)
+                    }
+                    if enumCase.payloadType as? AnyOptional.Type != nil {
+                        throw ProtoValidationError.invalidOptionalInOneof(payloadType)
+                    }
                     return ProtoType.MessageField(
                         name: enumCase.name,
                         fieldNumber: fieldNumbersByFieldName[enumCase.name]!,
@@ -653,7 +702,7 @@ public class ProtoSchema {
                         // ideally we'd just add some dummy value that subsequently gets ignored.
                         // would need to support that in the en/decoders as well, though.
                         // probably easier to simply require the user define that unused value (eg what the reflection API does...)
-                        type: try protoType(for: enumCase.payloadType!, requireTopLevelCompatibleOutput: false),
+                        type: try protoType(for: payloadType, requireTopLevelCompatibleOutput: false),
                         isOptional: false, // Fields inside a oneof cannot be optional
                         isRepeated: false, // not supported
                         isPacked: false, // if it can't be repeated, it also can't be packed
@@ -680,11 +729,11 @@ public class ProtoSchema {
                     }(),
                     type: try { () -> ProtoType in
                         var fieldProtoType: ProtoType
-                        if let repeatedType = fieldType as? ProtobufRepeated.Type, fieldType as? ProtobufBytesMapped.Type == nil {
-                            guard repeatedType.elementType as? AnyOptional.Type == nil else {
-                                throw ProtoValidationError.arrayOfOptionalsNotAllowed(repeatedType)
+                        if let repeatedElementType = getProtoRepeatedElementType(fieldType), fieldType as? ProtobufBytesMapped.Type == nil {
+                            guard repeatedElementType as? AnyOptional.Type == nil else {
+                                throw ProtoValidationError.arrayOfOptionalsNotAllowed(fieldType)
                             }
-                            fieldProtoType = try protoType(for: repeatedType.elementType, requireTopLevelCompatibleOutput: false)
+                            fieldProtoType = try protoType(for: repeatedElementType, requireTopLevelCompatibleOutput: false)
                         } else {
                             fieldProtoType = try protoType(for: fieldType, requireTopLevelCompatibleOutput: false)
                         }
@@ -707,8 +756,8 @@ public class ProtoSchema {
                         return fieldProtoType
                     }(),
                     isOptional: fieldType as? AnyOptional.Type != nil,
-                    isRepeated: fieldType as? ProtobufRepeated.Type != nil,
-                    isPacked: (fieldType as? ProtobufRepeated.Type)?.isPacked ?? false,
+                    isRepeated: isProtoRepeatedEncodableOrDecodable(fieldType),
+                    isPacked: isProtoRepeatedPacked(fieldType),
                     containingOneof: nil
                 )] // swiftlint:disable:this multiline_literal_brackets
             }
@@ -812,7 +861,7 @@ public class ProtoSchema {
         }
         
         if let optionalTy = type as? AnyOptional.Type {
-            guard (optionalTy.wrappedType as? ProtobufRepeated.Type) == nil else {
+            guard !isProtoRepeatedEncodableOrDecodable(optionalTy.wrappedType) else {
                 // type is an `[T]?`, which is not an allowed proto field type
                 throw ProtoValidationError.optionalArrayNotAllowed(optionalTy)
             }
@@ -826,10 +875,12 @@ public class ProtoSchema {
             } else {
                 return cacheRetval(try wrapSingleFieldInMessageType(type: type, fallbackTypename: makeUniqueMessageTypename()))
             }
-        } else if let repeatedTy = type as? ProtobufRepeated.Type {
+        } else if let repeatedElementTy = getProtoRepeatedElementType(type) {
+            // The check above will only succeed if type conforms is an en- or decodable repeated type.
+            precondition(isProtoRepeatedEncodableOrDecodable(type))
             precondition((type as? ProtobufBytesMapped.Type) == nil)
-            guard (repeatedTy.elementType as? AnyOptional.Type) == nil else {
-                throw ProtoValidationError.arrayOfOptionalsNotAllowed(repeatedTy)
+            guard (repeatedElementTy as? AnyOptional.Type) == nil else {
+                throw ProtoValidationError.arrayOfOptionalsNotAllowed(type)
             }
             if requireTopLevelCompatibleOutput {
 //                // We're asked to wrap an array into a message
@@ -840,10 +891,10 @@ public class ProtoSchema {
 //                        (singleParamHandlingContext!.paramName, repeatedTy)
 //                    ]
 //                ))
-                return cacheRetval(try wrapSingleFieldInMessageType(type: repeatedTy, fallbackTypename: makeUniqueMessageTypename()))
+                return cacheRetval(try wrapSingleFieldInMessageType(type: type, fallbackTypename: makeUniqueMessageTypename()))
             } else {
                 // We're given an array, which cannot be a top-level type, and not told to turn it into a top-level type
-                throw ProtoValidationError.topLevelArrayNotAllowed(repeatedTy)
+                throw ProtoValidationError.topLevelArrayNotAllowed(type)
             }
         } else if type == EmptyMessage.self || type == Void.self {
             return cacheRetval(.message(name: protoTypename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))

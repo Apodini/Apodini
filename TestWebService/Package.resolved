@@ -83,6 +83,15 @@
         }
       },
       {
+        "package": "GraphQL",
+        "repositoryURL": "https://github.com/GraphQLSwift/GraphQL",
+        "state": {
+          "branch": null,
+          "revision": "588b7b4dc9dcb352ad185012003f84823108540d",
+          "version": "2.1.2"
+        }
+      },
+      {
         "package": "grpc-swift",
         "repositoryURL": "https://github.com/grpc/grpc-swift.git",
         "state": {

@@ -15,6 +15,7 @@ import ApodiniObserve
 import ApodiniObserveOpenTelemetry
 import ArgumentParser
 import Tracing
+import ApodiniGRPC
 
 
 @main
@@ -48,9 +49,16 @@ struct TestWebService: Apodini.WebService {
             )
         }
         
+        HTTPConfiguration(tlsConfigurationBuilder: .init(
+            certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
+            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+        ))
+        
         WebSocket()
         
         Migrator()
+        
+        GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
         
         // Tracing configuration for an OpenTelemetry backend with default configuration options
         TracingConfiguration(

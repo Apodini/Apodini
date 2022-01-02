@@ -238,7 +238,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
             // Note: since oneofs can't be repeated, we can safely ignore a potentially specified offset here
             precondition(keyOffset == nil)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
-        } else if let protobufRepeatedTy = type as? ProtobufRepeated.Type {
+        } else if let protobufRepeatedTy = type as? ProtobufRepeatedDecodable.Type {
             let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
             let retval = try protobufRepeatedTy.init(
                 decodingFrom: decoder,
