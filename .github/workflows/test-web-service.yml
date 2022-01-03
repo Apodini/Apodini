@@ -9,6 +9,10 @@
 name: Test Web Service
 
 on:
+  pull_request:
+  push:
+    branches:
+      - develop
   workflow_call:
   workflow_dispatch:
 

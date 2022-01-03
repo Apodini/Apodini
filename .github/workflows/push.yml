@@ -24,12 +24,6 @@ jobs:
       aptgetdependencies: libsqlite3-dev
       yumdependencies: sqlite-devel
       installgrpcurl: true
-  test_web_service:
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Test Web Service
-        uses: ./.github/workflows/test-web-service.yml
   docker-compose-test:
     name: Docker Compose Test
     uses: Apodini/.github/.github/workflows/docker-compose-test.yml@v1
