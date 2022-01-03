@@ -8,11 +8,10 @@
 
 @testable import Apodini
 import ApodiniREST
-import NIOCore
+import NIO
 import XCTApodini
 import XCTApodiniNetworking
 import XCTest
-import NIO
 
 
 final class ConnectionTests: ApodiniTests {

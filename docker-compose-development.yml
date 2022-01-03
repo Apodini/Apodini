@@ -1,0 +1,52 @@
+#                   
+# This source file is part of the Apodini open source project
+# 
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+# 
+# SPDX-License-Identifier: MIT
+# 
+
+version: '3.9'
+
+services:
+  # An Apodini TestWebService
+  test-web-service:
+    container_name: "test-web-service"
+    image: "apodini/testwebservice:latest"
+    build:
+      context: ./
+      dockerfile: ./TestWebService/Dockerfile
+    expose:
+      - "80"
+    labels:
+      # The domain the service will respond to
+      - "traefik.http.routers.backend.rule=Host(`localhost`)"
+      # Allow request only from the predefined entry point named "web"
+      - "traefik.http.routers.backend.entrypoints=web"
+      # We need to define the a service and specify, on which port our server is reachable
+      - "traefik.http.services.backend-service.loadbalancer.server.port=80"
+      # We have to add this service to our router "backend". That's how the router knows where to forward the  requests
+      - "traefik.http.routers.backend.service=backend-service"
+  # Reverse Proxy to protect our service from direct access
+  traefik:
+    container_name: "traefik"
+    image: "traefik:v2.4"
+    command:
+      # Enable Debug output
+      - "--log.level=DEBUG"
+      # Enable the api and the traefik dashboard for debugging purposes, which can be reached under 127.0.0.1:8080
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      # Enabling docker provider
+      - "--providers.docker=true"
+      # Traefik will listen to incoming request on the port 80
+      - "--entrypoints.web.address=:80"
+    ports:
+      # 8080 on the container is mapped to 8080 on the server/VM/your Machine.
+      # Port 8080 is where the api traefik dashboard is located
+      - "8080:8080"
+      # Port 80 is where our test-web-service is running
+      - "80:80"
+    # Traefik needs the docker.sock to detect new docker container
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"

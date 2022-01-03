@@ -8,10 +8,9 @@
 
 @testable import Apodini
 import ApodiniUtils
-import NIOCore
+import NIO
 import XCTest
 import XCTApodini
-import NIO
 
 
 final class ResponseTests: ApodiniTests {

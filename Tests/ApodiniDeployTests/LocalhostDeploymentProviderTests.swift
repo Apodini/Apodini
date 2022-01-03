@@ -155,11 +155,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://localhost:52001` three times,
+            // This is determined by finding the text `Server starting on 0.0.0.0:52001` three times,
             // with the port numbers matching the expected output values (i.e. 52000, 52001, 52002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
-                pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
+                pattern: #"Server starting on (\d+\.\d+\.\d+\.\d+):(\d+)$"#,
                 options: [.anchorsMatchLines]
             )
             
@@ -231,6 +231,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+            print("[DP] [Tests] Send \(request.method) test request to \(request.url)")
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
@@ -351,7 +352,11 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
     }
     
     func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
-        XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        if let error = error as? HTTPClientError {
+            XCTFail("Received HTTPClientError in \(Self.self): \(error.description)")
+        } else {
+            XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        }
     }
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
