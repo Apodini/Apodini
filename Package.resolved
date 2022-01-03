@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "988f0d906f5c76cf93c88fa5820f7c72e4b8fd98",
-          "version": "5.8.0"
+          "revision": "032375fb9882a06c5edbc41e5e174bf308f5870c",
+          "version": "5.9.0"
         }
       },
       {

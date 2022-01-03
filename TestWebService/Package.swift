@@ -14,7 +14,7 @@ import PackageDescription
 let package = Package(
     name: "TestWebService",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v11)
     ],
     products: [
         .executable(name: "TestWebService", targets: ["TestWebService"])
