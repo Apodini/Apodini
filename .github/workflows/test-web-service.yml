@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [Debug, Release]
+        configuration: [debug, release]
     defaults:
       run:
         working-directory: TestWebService
