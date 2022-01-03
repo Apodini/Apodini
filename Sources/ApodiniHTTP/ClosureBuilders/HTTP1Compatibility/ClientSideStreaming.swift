@@ -29,7 +29,8 @@ extension Exporter {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
-                    description: "Input for client side steaming endpoints must be an array at top level.")
+                    description: "Input for client side steaming endpoints must be an array at top level."
+                )
             }
             let delegate = factory.instance()
             return Array(0..<requestCount)
