@@ -124,7 +124,7 @@ the web service via a `migrator` subsubcommand, include `--run-web-service` flag
 ```console
 $ swift run YourWebService migrator document --doc-endpoint=api-document --doc-format=yaml --run-web-service
 info org.apodini.migrator : API Document served at /api-document in yaml format
-notice codes.vapor.application : Server starting on http://0.0.0.0
+notice codes.vapor.application : Server starting on 0.0.0.0:80
 ```
 
 For the future versions of the Web Service, one can make use of either `read` or `compare` subsubcommands of `migrator` to additionally export the migration guide: 
@@ -135,7 +135,7 @@ $ swift run YourWebService migrator compare --old-document-path=./api_v1.0.0.yam
 > --doc-endpoint=api-document --doc-format=yaml --guide-endpoint=migration-guide --run-web-service
 info org.apodini.migrator : API Document served at /api-document in yaml format
 info org.apodini.migrator : Migration Guide served at /migration-guide in json format
-notice codes.vapor.application : Server starting on http://0.0.0.0
+notice codes.vapor.application : Server starting on 0.0.0.0:80
 ```
 
 By default, configurations provided in source code in `configuration` property of the web service, overwrite the CLI arguments. 

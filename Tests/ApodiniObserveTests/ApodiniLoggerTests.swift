@@ -710,9 +710,9 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /serverSideStreaming"))
             var parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["start"]), .string("10"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http:///serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://localhost/serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://localhost/serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://localhost/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
@@ -759,10 +759,9 @@ class ApodiniLoggerTests: XCTestCase {
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-            XCTAssertEqual(2, informationMetadata.count)
+            XCTAssertEqual(1, informationMetadata.count)
                 
             XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             // Last log message, End of stream
             let eleventhLogMessage = container.messages[10]
@@ -798,9 +797,9 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(requestMetadata["route"]), .string("GET /serverSideStreaming"))
             parameterRequestMetadata = try XCTUnwrap(requestMetadata["parameters"]?.metadataDictionary)
             XCTAssertEqual(try XCTUnwrap(parameterRequestMetadata["start"]), .string("10"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http:///serverSideStreaming?start=10>"))
-            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http:///serverSideStreaming?start=10"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["description"]), .string("<HTTPRequest HTTP/1.1 GET http://localhost/serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["ApodiniNetworkingRequestDescription"]), .string("<HTTPRequest HTTP/1.1 GET http://localhost/serverSideStreaming?start=10>"))
+            XCTAssertEqual(try XCTUnwrap(requestMetadata["url"]), .string("http://localhost/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url.path"]), .string("/serverSideStreaming"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["url.pathAndQuery"]), .string("/serverSideStreaming?start=10"))
             XCTAssertEqual(try XCTUnwrap(requestMetadata["HTTPBody"]), .string(""))
@@ -846,10 +845,9 @@ class ApodiniLoggerTests: XCTestCase {
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
-            XCTAssertEqual(2, informationMetadata.count)
+            XCTAssertEqual(1, informationMetadata.count)
                 
             XCTAssertEqual(try XCTUnwrap(informationMetadata["host"]), .string("0.0.0.0"))
-            XCTAssertEqual(try XCTUnwrap(informationMetadata["content-length"]), .string("0"))
             
             XCTAssertEqual(response.status, .ok)
             let responseStream = try XCTUnwrap(response.bodyStorage.stream)

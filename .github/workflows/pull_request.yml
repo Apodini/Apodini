@@ -1,0 +1,35 @@
+#
+# This source file is part of the Apodini open source project
+#
+# SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+#
+# SPDX-License-Identifier: MIT
+#
+
+name: Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    uses: Apodini/.github/.github/workflows/build-and-test.yml@v1
+    with:
+      packagename: Apodini
+      testdocc: true
+      aptgetdependencies: libsqlite3-dev
+      yumdependencies: sqlite-devel
+      installgrpcurl: true
+  docker-compose-test:
+    name: Docker Compose Test
+    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@v1
+    with:
+      testscript: TestWebService/test.sh
+  reuse_action:
+    name: REUSE Compliance Check
+    uses: Apodini/.github/.github/workflows/reuse.yml@v1
+  swiftlint:
+    name: SwiftLint
+    uses: Apodini/.github/.github/workflows/swiftlint.yml@v1

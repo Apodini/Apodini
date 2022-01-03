@@ -8,6 +8,7 @@
 
 import NIO
 import NIOHTTP2
+import struct Apodini.Hostname
 
 
 class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHandler {
@@ -49,18 +50,26 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
     }
     
     private let configuration: Configuration
+    private let hostname: Hostname
+    private let isTLSEnabled: Bool
     private var state: State = .ready
     private var bufferedInput: [NIOAny] = []
     
-    init(configuration: Configuration) {
+    init(configuration: Configuration, hostname: Hostname, isTLSEnabled: Bool) {
         self.configuration = configuration
+        self.hostname = hostname
+        self.isTLSEnabled = isTLSEnabled
     }
     
     
     private func applyMappingAction(_ action: Configuration.MappingAction, context: ChannelHandlerContext) {
         switch action {
         case .forwardToHTTP1Handler(let responder):
-            context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(responder: responder)
+            context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(
+                hostname: hostname,
+                isTLSEnabled: isTLSEnabled,
+                responder: responder
+            )
                 .flatMap { context.pipeline.removeHandler(self) }
         case .configureHTTP2Stream(let streamConfigurator):
             streamConfigurator(context.channel)
