@@ -17,7 +17,7 @@ on:
 jobs:
   build_and_test:
     name: Build and Test
-    uses: Apodini/.github/.github/workflows/build-and-test.yml@feature/macos11
+    uses: Apodini/.github/.github/workflows/build-and-test.yml@v1
     with:
       packagename: Apodini
       testdocc: true
@@ -26,9 +26,9 @@ jobs:
       installgrpcurl: true
   test_web_service:
     name: Test Web Service
-    uses: Apodini/Apodini/.github/workflows/test-web-service.yml@feature/ciimprovements
+    uses: Apodini/Apodini/.github/workflows/test-web-service.yml
   docker-compose-test:
     name: Docker Compose Test
-    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@feature/macos11
+    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@v1
     with:
       testscript: TestWebService/test.sh
