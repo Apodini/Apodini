@@ -24,7 +24,7 @@ jobs:
       installgrpcurl: true
   test_web_service:
     name: Test Web Service
-    uses: Apodini/Apodini/.github/workflows/test-web-service.yml
+    uses: ./.github/workflows/test-web-service.yml
   docker-compose-test:
     name: Docker Compose Test
     uses: Apodini/.github/.github/workflows/docker-compose-test.yml@v1
