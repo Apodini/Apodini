@@ -26,19 +26,69 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
     }
     
     
-    func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible /*EventLoopFuture<HTTPResponse>*/ {
+    func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible {
+        let resultFuture: EventLoopFuture<GraphQLResult>
+        do {
+            resultFuture = try handleRequest(httpRequest)
+        } catch let error as GraphQLError {
+            resultFuture = httpRequest.eventLoop.makeSucceededFuture(GraphQLResult(data: nil, errors: [error]))
+        } catch {
+            resultFuture = httpRequest.eventLoop.makeSucceededFuture(GraphQLResult(data: nil, errors: [GraphQLError(error)]))
+        }
+        return resultFuture
+            .hop(to: httpRequest.eventLoop)
+            .map { (result: GraphQLResult) -> HTTPResponse in
+                let httpResponse = HTTPResponse(
+                    version: httpRequest.version,
+                    status: .ok,
+                    headers: HTTPHeaders {
+                        $0[.contentType] = .json
+                    }
+                )
+                do {
+                    try httpResponse.bodyStorage.write(encoding: result, using: JSONEncoder())
+                } catch {
+                    httpResponse.bodyStorage.write(#"{"errors": [{"message": "Error encoding response", "path": []}]}"#)
+                }
+                return httpResponse
+            }
+    }
+    
+    
+    private func handleRequest(_ httpRequest: HTTPRequest) throws -> EventLoopFuture<GraphQLResult> {
+        func wrappingError<T>(_ block: @autoclosure () throws -> T, errorPrefix: @autoclosure () -> String) rethrows -> T {
+            do {
+                return try block()
+            } catch {
+                throw GraphQLError(
+                    message: "\(errorPrefix()): \(error.localizedDescription)",
+                    originalError: error
+                )
+            }
+        }
         let graphQLRequest: GraphQLRequest
+        
         switch httpRequest.method {
         case .GET:
-            graphQLRequest = GraphQLRequest(
-                query: try! httpRequest.getQueryParam(for: "query", as: String.self)!,
-                variables: (try! httpRequest.getQueryParam(for: "variables", as: [String: Map].self)) ?? [:],
-                operationName: try! httpRequest.getQueryParam(for: "operationName", as: String.self)
+            guard let query = try wrappingError(try httpRequest.getQueryParam(for: "query", as: String.self), errorPrefix: "Error decoding query") else {
+                throw GraphQLError(message: "missing query")
+            }
+            let variables = try wrappingError(
+                try httpRequest.getQueryParam(for: "variables", as: [String: Map].self),
+                errorPrefix: "Error decoding variables"
+            ) ?? [:]
+            let operationName = try wrappingError(
+                try httpRequest.getQueryParam(for: "operationName", as: String.self),
+                errorPrefix: "Error decoding operationName"
             )
+            graphQLRequest = GraphQLRequest(query: query, variables: variables, operationName: operationName)
         case .POST:
             switch httpRequest.headers[.contentType]! {
             case .json, .json(charset: nil): // TODO do we have to explicitly support all of these here? or would it make more sense to define the pattern matching/equality checks in a way that it only considers the type and subtype, but ignores stuff like the charset?
-                graphQLRequest = try! httpRequest.bodyStorage.getFullBodyData(decodedAs: GraphQLRequest.self, using: JSONDecoder())
+                graphQLRequest = try wrappingError(
+                    try httpRequest.bodyStorage.getFullBodyData(decodedAs: GraphQLRequest.self, using: JSONDecoder()),
+                    errorPrefix: "Error decoding request body"
+                    )
             case .graphQL:
                 // According to https://graphql.org/learn/serving-over-http/ , in this case the body contains the query string
                 // TODO where do we get the other things from?
@@ -49,44 +99,28 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
                     operationName: nil
                 )
             default:
-                fatalError("Unexpected Content-Type: \(httpRequest.headers[.contentType] as Any)")
+                throw GraphQLError(message: "Unexpected Content-Type: \(httpRequest.headers[.contentType] as Any)")
             }
         default:
-            fatalError("Unexpected HTTP method: \(httpRequest.method)")
+            throw GraphQLError(message: "Unexpected HTTP method: \(httpRequest.method)")
         }
-        let schema = server.schemaBuilder.finalizedSchema!
-        
-        let graphqlResult: EventLoopFuture<GraphQLResult>
+        guard let schema = server.schemaBuilder.finalizedSchema else {
+            throw GraphQLError(message: "Internal Error: Unable to access finalised schema.")
+        }
         do {
-            graphqlResult = try graphql(
+            return try graphql(
                 schema: schema,
                 request: graphQLRequest.query,
                 eventLoopGroup: httpRequest.eventLoop,
                 variableValues: graphQLRequest.variables
             )
         } catch let error as GraphQLError {
-            graphqlResult = httpRequest.eventLoop.makeSucceededFuture(GraphQLResult(data: nil, errors: [error]))
+            throw error
         } catch {
-            return HTTPResponse(
-                version: httpRequest.version,
-                status: .internalServerError,
-                headers: HTTPHeaders {
-                    $0[.contentType] = .text(.plain)
-                },
-                bodyStorage: .buffer(initialValue: "\(error)") // TODO don't do this. no need to leak the error
-            )
-        }
-        
-        return graphqlResult.map { (result: GraphQLResult) -> HTTPResponse in
-            let httpResponse = HTTPResponse(
-                version: httpRequest.version,
-                status: .ok,
-                headers: HTTPHeaders {
-                    $0[.contentType] = .json
-                }
-            )
-            try! httpResponse.bodyStorage.write(encoding: result, using: JSONEncoder())
-            return httpResponse
+            // We caught an error while evaluating the request, but it is not a GraphQLError.
+            // This usually means that something else (e.g. somewhere in Apodini) failed.
+            // TODO do we really want to just leak this error?
+            throw error
         }
     }
 }

@@ -337,13 +337,18 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         }
         var argsMap: GraphQLArgumentConfigMap = [:]
         for parameter in endpoint.parameters {
-            let ty = try toGraphQLInputType(.init(type: parameter.originalPropertyType))
-            print("\(endpoint): \(parameter.originalPropertyType) -> \(ty)")
             argsMap[parameter.name] = GraphQLArgument(
-                //type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
-                type: ty,
+                type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
                 description: "todo?",
-                defaultValue: parameter.nilIsValidValue ? .null : nil
+                defaultValue: try { () -> Map? in
+                    if let paramDefaultValueBlock = parameter.typeErasuredDefaultValue {
+                        return try map(from: paramDefaultValueBlock())
+                    } else {
+                        // The endpoint parameter does not specify a default value,
+                        // meaning that the only adjustment we make is to default Optionals to `nil` if possible
+                        return parameter.nilIsValidValue ? .null : nil
+                    }
+                }()
             )
         }
         return argsMap
