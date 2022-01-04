@@ -111,10 +111,10 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.4")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -174,6 +174,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
+                .product(name: "RESTMigrator", package: "ApodiniMigrator"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),

@@ -274,15 +274,15 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
         let enums = casino.enums()
         
         XCTAssertEqual(objectTypes.count, 4)
-        XCTAssertEqual(casino.typeName.name, "Casino")
+        XCTAssertEqual(casino.typeName.mangledName, "Casino")
         XCTAssertEqual(casino.typeName.definedIn, "ApodiniTests")
         XCTAssertEqual(casino.property("tables")?.type, .repeated(element: game))
         
-        let unwrappedBadge = try XCTUnwrap(enums.first { $0.typeName.name == "Badge" })
+        let unwrappedBadge = try XCTUnwrap(enums.first { $0.typeName.mangledName == "Badge" })
         XCTAssertEqual(unwrappedBadge.rawValueType, .scalar(.string))
         XCTAssertEqual(unwrappedBadge, badge)
         
-        let unwrappedNumber = try XCTUnwrap(enums.first { $0.typeName.name == "Number" })
+        let unwrappedNumber = try XCTUnwrap(enums.first { $0.typeName.mangledName == "Number" })
         XCTAssertEqual(unwrappedNumber.rawValueType, .scalar(.uint8))
         XCTAssertEqual(unwrappedNumber, number)
         

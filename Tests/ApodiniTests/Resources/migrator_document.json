@@ -1,7 +1,7 @@
 {
     "id": "24C6C9D9-35A6-4CC4-9AB2-19297A33E8F5",
     "info": {
-        "serverPath": "",
+        "serverPath": "http://127.0.0.1:8080",
         "version": "v_1.0.0",
         "encoderConfiguration": {
             "dateEncodingStrategy": "deferredToDate",
