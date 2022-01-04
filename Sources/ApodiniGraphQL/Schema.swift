@@ -341,7 +341,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
                 description: "todo?",
                 defaultValue: try { () -> Map? in
-                    if let paramDefaultValueBlock = parameter.typeErasuredDefaultValue {
+                    if let paramDefaultValueBlock = parameter.typeErasedDefaultValue {
                         return try map(from: paramDefaultValueBlock())
                     } else {
                         // The endpoint parameter does not specify a default value,

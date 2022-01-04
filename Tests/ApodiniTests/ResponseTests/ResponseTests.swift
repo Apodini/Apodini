@@ -153,7 +153,7 @@ final class ResponseTests: ApodiniTests {
         try ["Paul": 42]
             .transformToResponse(on: app.eventLoopGroup.next())
             .map { response in
-                let transformedResponse = response.typeErasured.typed([String: Int].self)
+                let transformedResponse = response.typeErased.typed([String: Int].self)
                 XCTAssertEqual(transformedResponse?.content, ["Paul": 42])
             }
             .wait()
@@ -169,29 +169,29 @@ final class ResponseTests: ApodiniTests {
             .end
         ]
         
-        let typeErasuredResponses = responses.map { response in
-            response.typeErasured
+        let typeErasedResponses = responses.map { response in
+            response.typeErased
         }
-        typeErasuredResponses.forEach { typeErasuredResponse in
-            XCTAssert(type(of: typeErasuredResponse).self == Response<AnyEncodable>.self)
-        }
-        
-        // Make sure that type erasing a already type erasured Response doesn't have any effect
-        let doubbleTypeErasuredResponses = typeErasuredResponses.map { response in
-            response.typeErasured
-        }
-        doubbleTypeErasuredResponses.forEach { typeErasuredResponse in
-            XCTAssert(type(of: typeErasuredResponse).self == Response<AnyEncodable>.self)
+        typeErasedResponses.forEach { typeErasedResponse in
+            XCTAssert(type(of: typeErasedResponse).self == Response<AnyEncodable>.self)
         }
         
-        let typedResponses = typeErasuredResponses.map { typedResponse in
+        // Make sure that type erasing a already type-erased Response doesn't have any effect
+        let doubleTypeErasedResponses = typeErasedResponses.map { response in
+            response.typeErased
+        }
+        doubleTypeErasedResponses.forEach { typeErasedResponse in
+            XCTAssert(type(of: typeErasedResponse).self == Response<AnyEncodable>.self)
+        }
+        
+        let typedResponses = typeErasedResponses.map { typedResponse in
             typedResponse.typed([String: Int].self)
         }
         zip(responses, typedResponses).forEach { response, typedResponse in
             XCTAssertEqual(response.content, typedResponse?.content)
         }
         
-        let typedResponsesFailed = typeErasuredResponses.map { typedResponse in
+        let typedResponsesFailed = typeErasedResponses.map { typedResponse in
             typedResponse.typed(Int.self)
         }
         

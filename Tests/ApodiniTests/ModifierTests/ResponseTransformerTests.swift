@@ -209,22 +209,22 @@ final class ResponseTransformerTests: ApodiniTests {
         let response: Apodini.Response<Int> = .final(42)
         XCTAssertRuntimeFailure(
             EmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErased, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             EmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErased, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             OptionalEmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErased, on: self.app.eventLoopGroup.next())
         )
         
         XCTAssertRuntimeFailure(
             OptionalEmojiResponseTransformer()
-                .transform(response: response.typeErasured, on: self.app.eventLoopGroup.next())
+                .transform(response: response.typeErased, on: self.app.eventLoopGroup.next())
         )
     }
 }

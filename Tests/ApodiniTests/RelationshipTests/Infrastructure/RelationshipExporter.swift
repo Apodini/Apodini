@@ -41,7 +41,7 @@ class RelationshipExporter: MockExporter<String> {
                 eventLoop: app.eventLoopGroup.next(),
                 final: true)
                 .wait()
-            return try XCTUnwrap(response.typeErasured.map { anyEncodable in
+            return try XCTUnwrap(response.typeErased.map { anyEncodable in
                 EnrichedContent(for: rendpoint, response: anyEncodable, parameters: parameters)
             })
         }))

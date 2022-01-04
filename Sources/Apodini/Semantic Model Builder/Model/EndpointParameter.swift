@@ -28,7 +28,7 @@ protocol EndpointParameterThrowingVisitor {
     func visit<Element: Codable>(parameter: EndpointParameter<Element>) throws -> Output
 }
 
-/// Describes a type erasured `EndpointParameter`
+/// Describes a type-erased `EndpointParameter`
 public protocol AnyEndpointParameter: CustomStringConvertible, CustomDebugStringConvertible {
     /// The `UUID` which uniquely identifies the given `AnyEndpointParameter` and the `Parameter` it represents.
     var id: UUID { get }
@@ -68,7 +68,7 @@ public protocol AnyEndpointParameter: CustomStringConvertible, CustomDebugString
     /// Defines the `EndpointParameterType` of the parameter.
     var parameterType: ParameterType { get }
     /// Specifies the default value for the parameter. Nil if the parameter doesn't have a default value.
-    var typeErasuredDefaultValue: (() -> Any)? { get }
+    var typeErasedDefaultValue: (() -> Any)? { get }
 
     /// See `CustomStringConvertible`
     var description: String { get }
@@ -98,7 +98,7 @@ protocol _AnyEndpointParameter: AnyEndpointParameter {
 extension AnyEndpointParameter {
     /// Whether the parameter defines/has a default value
     public var hasDefaultValue: Bool {
-        typeErasuredDefaultValue != nil
+        typeErasedDefaultValue != nil
     }
 
     func toInternal() -> _AnyEndpointParameter {
@@ -136,7 +136,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
     public let parameterType: ParameterType
 
     public let defaultValue: (() -> Type)?
-    public var typeErasuredDefaultValue: (() -> Any)? {
+    public var typeErasedDefaultValue: (() -> Any)? {
         defaultValue
     }
 

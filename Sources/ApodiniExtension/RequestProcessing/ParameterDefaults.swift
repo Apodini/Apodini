@@ -20,7 +20,7 @@ public struct DefaultValueStore {
     
     internal init(_ parameters: EndpointParameters) {
         let defaultValues = parameters.reduce(into: [UUID: () -> Any](), { storage, parameter in
-            if let defaultValue = parameter.typeErasuredDefaultValue, parameter.necessity == .optional {
+            if let defaultValue = parameter.typeErasedDefaultValue, parameter.necessity == .optional {
                 storage[parameter.id] = defaultValue
             }
         })

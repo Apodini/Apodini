@@ -84,8 +84,7 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
                 eventLoop: app.eventLoopGroup.next(),
                 final: true)
                 .wait()
-
-            return response.typeErasured
+            return response.typeErased
         })
     }
 
