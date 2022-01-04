@@ -865,9 +865,17 @@ public class ProtoSchema {
                 // type is an `[T]?`, which is not an allowed proto field type
                 throw ProtoValidationError.optionalArrayNotAllowed(optionalTy)
             }
-            return try protoType(for: optionalTy.wrappedType, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+            return try protoType(
+                for: optionalTy.wrappedType,
+                requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                singleParamHandlingContext: singleParamHandlingContext
+            )
         } else if type == Never.self {
-            return cacheRetval(try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput))
+            return cacheRetval(try protoType(
+                for: EmptyMessage.self,
+                requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                singleParamHandlingContext: singleParamHandlingContext
+            ))
         } else if type == Array<UInt8>.self || type == Data.self {
             precondition((type as? ProtobufBytesMapped.Type) != nil)
             if !requireTopLevelCompatibleOutput {
@@ -899,7 +907,11 @@ public class ProtoSchema {
         } else if type == EmptyMessage.self || type == Void.self {
             return cacheRetval(.message(name: protoTypename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))
         } else if type == Foundation.UUID.self {
-            return cacheRetval(try protoType(for: String.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput, singleParamHandlingContext: singleParamHandlingContext))
+            return cacheRetval(try protoType(
+                for: String.self,
+                requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                singleParamHandlingContext: singleParamHandlingContext
+            ))
         }
         
         let typeInfo: TypeInfo
@@ -918,7 +930,11 @@ public class ProtoSchema {
             case .struct:
                 switch typeInfo.properties.count {
                 case 0:
-                    return try protoType(for: EmptyMessage.self, requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput)
+                    return try protoType(
+                        for: EmptyMessage.self,
+                        requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                        singleParamHandlingContext: singleParamHandlingContext
+                    )
                 default:
                     return cacheRetval(try combineIntoCompoundMessageType(
                         typename: protoTypename,
