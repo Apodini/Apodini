@@ -133,11 +133,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     func finishedExporting(_ webService: WebServiceModel) {
         let http = HTTPInformation(
             hostname: app.httpConfiguration.hostname.address,
-            port: app.httpConfiguration.hostname.port ?? (
-                app.httpConfiguration.tlsConfiguration == nil
-                    ? HTTPConfiguration.Defaults.httpPort
-                    : HTTPConfiguration.Defaults.httpsPort
-            )
+            port: app.httpConfiguration.hostname.port ??
+                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
         )
         let serviceInformation = ServiceInformation(
             version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),

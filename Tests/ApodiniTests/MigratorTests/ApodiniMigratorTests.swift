@@ -356,4 +356,11 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssert(swiftFiles.contains("NetworkingService.swift"))
         XCTAssert(swiftFiles.contains("TestPackageTests.swift"))
     }
+
+    func testPatternMapping() {
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.requestResponse), .requestResponse)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.serviceSideStream), .serviceSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.clientSideStream), .clientSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.bidirectionalStream), .bidirectionalStream)
+    }
 }
