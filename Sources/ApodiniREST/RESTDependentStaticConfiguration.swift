@@ -8,12 +8,12 @@
 
 import Apodini
 
-/// `RESTDependentStaticConfiguration`s are used to register static services dependend on the `RESTInterfaceExporter`
+/// `RESTDependentStaticConfiguration`s are used to register static services dependent on the `RESTInterfaceExporter`
 public protocol RESTDependentStaticConfiguration {
-    /// A method that handels the configuration of dependend static exporters
+    /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
-    ///    - parentConfiguration: The `RESTExporterConfiguration` of the parent of the dependend exporter
+    ///    - parentConfiguration: The `RESTExporterConfiguration` of the parent of the dependent exporter
     func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration)
 }
 
@@ -25,10 +25,10 @@ public struct EmptyRESTDependentStaticConfiguration: RESTDependentStaticConfigur
 }
 
 extension Array where Element == RESTDependentStaticConfiguration {
-    /// A method that handels the configuration of dependend static exporters
+    /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
-    ///    - parentConfiguration: The `Configuration` of the parent of the dependend static exporters
+    ///    - parentConfiguration: The `Configuration` of the parent of the dependent static exporters
     func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) {
         forEach {
             $0.configure(app, parentConfiguration: parentConfiguration)

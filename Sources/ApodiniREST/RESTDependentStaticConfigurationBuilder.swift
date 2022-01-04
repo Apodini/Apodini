@@ -11,7 +11,7 @@
 public enum RESTDependentStaticConfigurationBuilder {
     /// A method that transforms multiple `RESTDependentStaticConfiguration`s
     ///
-    /// - Parameter configs: A variadic number of `RESTDependentStaticConfiguration`
+    /// - Parameter staticConfigurations: A variadic number of `RESTDependentStaticConfiguration`
     ///
     /// - Returns: An `AnyConfigurationCollection` which consists of `ConfigurationConvertible`s
     public static func buildBlock(_ staticConfigurations: RESTDependentStaticConfiguration...) -> [RESTDependentStaticConfiguration] {

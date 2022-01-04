@@ -34,14 +34,14 @@ public final class REST: Configuration {
     /// - Parameters:
     ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
         self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
     public func configure(_ app: Apodini.Application) {
-        /// Instanciate exporter
+        /// Instantiate exporter
         let restExporter = RESTInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
@@ -57,8 +57,8 @@ extension REST {
     /// - Parameters:
     ///    - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
-    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
-    ///    - staticConfiguraiton: A result builder that allows passing dependend static Exporters like the OpenAPI Exporter
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
+    ///    - staticConfigurations: A result builder that allows passing dependent static Exporters like the OpenAPI Exporter
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
                             caseInsensitiveRouting: Bool = false,

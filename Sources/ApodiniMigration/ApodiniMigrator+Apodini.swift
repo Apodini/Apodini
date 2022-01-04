@@ -61,6 +61,21 @@ extension ApodiniMigratorCore.Operation {
     }
 }
 
+extension ApodiniMigratorCore.CommunicationalPattern {
+    init(_ from: Apodini.CommunicationalPattern) {
+        switch from {
+        case .requestResponse:
+            self = .requestResponse
+        case .serviceSideStream:
+            self = .serviceSideStream
+        case .clientSideStream:
+            self = .clientSideStream
+        case .bidirectionalStream:
+            self = .bidirectionalStream
+        }
+    }
+}
+
 // MARK: - ApodiniMigratorCore.ParameterType
 extension ApodiniMigratorCore.ParameterType {
     init(_ from: Apodini.ParameterType) {
