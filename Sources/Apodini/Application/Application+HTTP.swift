@@ -39,8 +39,8 @@ public enum BindAddress: Equatable {
 
 /// Hostname
 public struct Hostname {
-    let address: String
-    let port: Int?
+    public let address: String
+    public let port: Int?
     
     /// Create a new `Hostname`
     ///

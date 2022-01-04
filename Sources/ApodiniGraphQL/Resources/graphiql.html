@@ -20,7 +20,7 @@
     ></script>
 
     <script>
-      const fetcher = GraphiQL.createFetcher({ url: 'https://localhost:50001/graphql' });
+      const fetcher = GraphiQL.createFetcher({ url: '{{APODINI_GRAPHQL_ENDPOINT_URL}}' });
       ReactDOM.render(
         React.createElement(GraphiQL, { fetcher: fetcher }),
         document.getElementById('graphiql'),

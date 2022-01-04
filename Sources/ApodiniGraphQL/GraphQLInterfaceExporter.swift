@@ -16,13 +16,16 @@ import GraphQL
 
 
 public class GraphQLConfig: Configuration { // Not called GraphQL bc that'd clash w/ the module name TODO call it GraphQL anyway
-    fileprivate let graphqlEndpoint: [HTTPPathComponent]
+    fileprivate let graphQLEndpoint: [HTTPPathComponent]
     fileprivate let enableGraphiQL: Bool
+    fileprivate let graphiQLEndpoint: [HTTPPathComponent]
     
-    public init(graphqlEndpoint: [HTTPPathComponent] = "/graphql", enableGraphiQL: Bool) {
-        precondition(graphqlEndpoint.allSatisfy(\.isConstant), "GraphQL endpoint must be a constant path")
-        self.graphqlEndpoint = graphqlEndpoint
+    public init(graphQLEndpoint: [HTTPPathComponent] = "/graphql", enableGraphiQL: Bool = false, graphiQLEndpoint: [HTTPPathComponent] = "/graphiql") {
+        precondition(graphQLEndpoint.allSatisfy(\.isConstant), "GraphQL endpoint must be a constant path")
+        precondition(graphiQLEndpoint.allSatisfy(\.isConstant), "GraphiQL endpoint must be a constant path")
+        self.graphQLEndpoint = graphQLEndpoint
         self.enableGraphiQL = enableGraphiQL
+        self.graphiQLEndpoint = graphiQLEndpoint
     }
     
     public func configure(_ app: Application) {
@@ -45,7 +48,6 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         self.server = GraphQLServer()
     }
     
-    
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
             try server.schemaBuilder.add(endpoint)
@@ -63,39 +65,40 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         }
     }
     
-    
     func export<H: Handler>(blob endpoint: Endpoint<H>) where H.Response.Content == Blob {
         logger.error("Blob endpoint \(endpoint) cannot be exported")
     }
     
-    
     func finishedExporting(_ webService: WebServiceModel) {
-        try! server.schemaBuilder.finalize()
-        app.httpServer.registerRoute(.GET, config.graphqlEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
-        app.httpServer.registerRoute(.POST, config.graphqlEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
+        do {
+            try server.schemaBuilder.finalize()
+        } catch {
+            fatalError("Error finalizing GraphQL schema: \(error)")
+        }
+        app.httpServer.registerRoute(.GET, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
+        app.httpServer.registerRoute(.POST, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
         if config.enableGraphiQL {
             registerGraphiQLEndpoint()
         }
     }
     
     private func registerGraphiQLEndpoint() {
-        app.httpServer.registerRoute(.GET, "/graphiql") { req -> HTTPResponse in
+        let graphqlEndpointUrl = app.httpConfiguration.uriPrefix + config.graphQLEndpoint.httpPathString
+        app.httpServer.registerRoute(.GET, config.graphiQLEndpoint) { req -> HTTPResponse in
             guard let url = Bundle.module.url(forResource: "graphiql", withExtension: "html") else {
                 throw HTTPAbortError(status: .internalServerError)
             }
-            let data: Data
-            do {
-                data = try Data(contentsOf: url)
-            } catch {
+            guard var htmlPage = (try? Data(contentsOf: url)).flatMap({ String(data: $0, encoding: .utf8) }) else {
                 throw HTTPAbortError(status: .internalServerError)
             }
+            htmlPage = htmlPage.replacingOccurrences(of: "{{APODINI_GRAPHQL_ENDPOINT_URL}}", with: graphqlEndpointUrl)
             return HTTPResponse(
                 version: req.version,
                 status: .ok,
                 headers: HTTPHeaders {
                     $0[.contentType] = .html
                 },
-                bodyStorage: .buffer(.init(data: data))
+                bodyStorage: .buffer(.init(string: htmlPage))
             )
         }
     }

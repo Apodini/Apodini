@@ -33,6 +33,8 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         // Somewhere while handling a type, the schema encountered a `Swift.Never` type (which can't be represented in GraphQL)
         // ^^ TODO can we somehow represent these anyway?
         case unexpectedNeverType
+        /// There must be at least one query handler (i.e. an unary handler w/ a `.read` operation type) in the web service
+        case missingQueryHandler
         
         case other(String)
     }
@@ -361,18 +363,21 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         if let finalizedSchema = finalizedSchema {
             return finalizedSchema
         }
-        self.finalizedSchema = try! GraphQLSchema(
+        guard !queryHandlers.isEmpty else {
+            throw SchemaError.missingQueryHandler
+        }
+        self.finalizedSchema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
-                description: "_todo_",
-                fields: self.queryHandlers
+                description: "The query type contains all query-mapped handlers in a web service, i.e. all `Handler`s with a `.read` operation type and the unary communicational pattern.",
+                fields: queryHandlers
             ),
-            mutation: self.mutationHandlers.isEmpty ? nil : GraphQLObjectType(
+            mutation: mutationHandlers.isEmpty ? nil : GraphQLObjectType(
                 name: "Mutation",
                 description: "todo",
-                fields: self.mutationHandlers
+                fields: mutationHandlers
             )
         )
-        return finalizedSchema!
+        return finalizedSchema! // Force-unwrap is fine bc we just assigned the variable above
     }
 }
