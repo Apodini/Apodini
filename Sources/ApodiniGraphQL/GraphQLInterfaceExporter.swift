@@ -39,18 +39,18 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     private let app: Application
     private let config: GraphQLConfig
     private let logger: Logger
-    private let server: GraphQLServer
+    private let schemaBuilder: GraphQLSchemaBuilder
     
     init(app: Application, config: GraphQLConfig) {
         self.app = app
         self.config = config
         self.logger = Logger(label: "\(app.logger.label).GraphQL")
-        self.server = GraphQLServer()
+        self.schemaBuilder =  GraphQLSchemaBuilder()
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         do {
-            try server.schemaBuilder.add(endpoint)
+            try schemaBuilder.add(endpoint)
             logger.notice("Exported endpoint \(endpoint)")
         } catch let error as GraphQLSchemaBuilder.SchemaError {
             switch error {
@@ -70,13 +70,14 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
+        let schema: GraphQLSchema
         do {
-            try server.schemaBuilder.finalize()
+            schema = try schemaBuilder.finalize()
         } catch {
             fatalError("Error finalizing GraphQL schema: \(error)")
         }
-        app.httpServer.registerRoute(.GET, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
-        app.httpServer.registerRoute(.POST, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(server: server))
+        app.httpServer.registerRoute(.GET, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
+        app.httpServer.registerRoute(.POST, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
         if config.enableGraphiQL {
             registerGraphiQLEndpoint()
         }

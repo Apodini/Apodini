@@ -18,13 +18,12 @@ extension HTTPMediaType {
 }
 
 
-class GraphQLQueryHTTPResponder: HTTPResponder {
-    private let server: GraphQLServer
+struct GraphQLQueryHTTPResponder: HTTPResponder {
+    private let schema: GraphQLSchema
     
-    init(server: GraphQLServer) {
-        self.server = server
+    init(schema: GraphQLSchema) {
+        self.schema = schema
     }
-    
     
     func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible {
         let resultFuture: EventLoopFuture<GraphQLResult>
@@ -103,9 +102,6 @@ class GraphQLQueryHTTPResponder: HTTPResponder {
             }
         default:
             throw GraphQLError(message: "Unexpected HTTP method: \(httpRequest.method)")
-        }
-        guard let schema = server.schemaBuilder.finalizedSchema else {
-            throw GraphQLError(message: "Internal Error: Unable to access finalised schema.")
         }
         do {
             return try graphql(
