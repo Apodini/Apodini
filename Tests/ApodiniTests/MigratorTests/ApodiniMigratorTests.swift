@@ -166,28 +166,22 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         XCTAssertEqual(stored, exported)
 
-        // TODO fix!
-        print(exported.serviceChanges)
-        print(exported.endpointChanges)
-        print(exported.modelChanges)
-        /*
-        let changes = exported
-        XCTAssert(changes.contains { $0.element == .networking(target: .serverPath) })
-        XCTAssert(changes.contains { $0.element == .endpoint("multiplyHandler", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("blob", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("throwingHandler", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("text", target: .`self`) })
-        */
-        /*
-        
-        let addedModelChange = try XCTUnwrap(changes.first { $0.element.isModel } as? AddChange)
-        XCTAssertEqual(addedModelChange.elementID, "HTTPMediaType")
-        
-        if case let .element(anyCodable) = addedModelChange.added {
-            XCTAssertEqual(anyCodable.typed(TypeInformation.self), try TypeInformation(type: HTTPMediaType.self))
-        } else {
-            XCTFail("Migration guide did not store the added model")
-        }*/
+        XCTAssert(exported.serviceChanges.contains { change in
+            if change.id == ServiceInformation.deltaIdentifier,
+               case .http = change.modeledUpdateChange?.updated {
+                return true
+            }
+            return false
+        })
+
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "MultiplyHandler" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "blob" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "ThrowingHandler" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "Text" && $0.type == .addition }))
+
+        let addedModelChange = try XCTUnwrap(exported.modelChanges.first?.modeledAdditionChange)
+        XCTAssertEqual(addedModelChange.id, "HTTPMediaType")
+        XCTAssertEqual(addedModelChange.added, try TypeInformation(type: HTTPMediaType.self))
     }
     
     func testMigrationGuideCompareFromResources() throws {
