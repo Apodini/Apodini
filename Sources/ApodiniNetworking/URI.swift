@@ -39,9 +39,13 @@ public struct URI: LosslessStringConvertible {
         self.path = path
         self.rawQuery = rawQuery.hasPrefix("?") ? String(rawQuery.dropFirst()) : rawQuery
         self.fragment = fragment
-        self.queryItems = .init(
-            uniqueKeysWithValues: (URLComponents(string: "?\(self.rawQuery)")?.queryItems ?? []).map { ($0.name, $0.value) }
-        )
+        var queryItems: [String: String?] = [:]
+        let keyValuePairs: [(String, String?)] = (URLComponents(string: "?\(self.rawQuery)")?.queryItems ?? []).map { ($0.name, $0.value) }
+        // We iterate over the key-value pairs in reverse order so that, for duplicate entries, the last one always "wins".
+        for (key, value) in keyValuePairs.reversed() where !queryItems.keys.contains(key) {
+            queryItems[key] = value
+        }
+        self.queryItems = queryItems
     }
     
     public init?(string: String) {
