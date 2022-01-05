@@ -56,7 +56,10 @@ let package = Package(
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
-        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"])
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
+
+        // Moritz Test
+        .executable(name: "ErrorForwardingTest", targets: ["ErrorForwardingTest"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
@@ -704,6 +707,15 @@ let package = Package(
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
+            ]
+        ),
+
+        // Moritz Test
+        .executableTarget(
+            name: "ErrorForwardingTest",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTP")
             ]
         )
     ]
