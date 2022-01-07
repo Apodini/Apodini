@@ -38,7 +38,8 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
     
     
     public func configure(_ app: Apodini.Application) throws {
-        fatalError("Not yet implemented")
+        app.httpServer.shouldBindOnStart = false
+        app.lifecycle.use(LambdaServer(application: app))
     }
     
     

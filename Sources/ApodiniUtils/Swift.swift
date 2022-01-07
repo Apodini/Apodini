@@ -104,6 +104,16 @@ extension Sequence {
         return retval
     }
     
+    /// Returns a `Dictionary` constructed from the key-value pairs returned by the `transform` closure
+    public func mapIntoDict<Key: Hashable, Value>(_ transform: (Element) throws -> (Key, Value)) rethrows -> [Key: Value] {
+        var retval: [Key: Value] = [:]
+        for element in self {
+            let (key, value) = try transform(element)
+            retval[key] = value
+        }
+        return retval
+    }
+    
     /// Returns the number of elements in the sequence that satisfy the predicate.
     public func count(where predicate: (Element) -> Bool) -> Int {
         var retval = 0

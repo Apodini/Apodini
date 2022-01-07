@@ -26,8 +26,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLambdaDeploymentProvider() throws { // swiftlint:disable:this function_body_length cyclomatic_complexity
-        throw XCTSkip() // Remove this once the lambda DP is fixed
-        //try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
+        try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
         let awsAccessKeyId: String
         let awsSecretAccessKey: String
@@ -97,7 +96,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         print("Waiting a bit so that the deployed resources are available")
-        sleep(30)
+        sleep(15)
         print("Investigate the deployed resources")
         
         // It's important that the test continues until the end, since we need to (at least attempt to) clean up the AWS resources...
@@ -299,6 +298,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     private func sendTestRequest(
         to path: String, invokeUrl: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
     ) throws -> URLSessionDataTask {
+        let invokeUrl = invokeUrl.hasSuffix("/") ? String(invokeUrl.dropLast()) : invokeUrl
         let url = try XCTUnwrap(URL(string: "\(invokeUrl)\(path)"))
         print("Send Request to \(url)")
         return URLSession.shared.dataTask(with: url) { data, response, error in
