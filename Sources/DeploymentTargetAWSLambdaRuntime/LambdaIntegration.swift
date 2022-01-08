@@ -8,7 +8,7 @@
 //
 // This code is based on the vapor-aws-lambda-runtime project: https://github.com/vapor-community/vapor-aws-lambda-runtime
 //
-// SPDX-FileCopyrightText: TODO @Paul what should I put here?
+// SPDX-FileCopyrightText: 2020-2022 the vapor-aws-lambda authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
