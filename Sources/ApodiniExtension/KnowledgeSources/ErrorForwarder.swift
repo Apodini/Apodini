@@ -20,4 +20,8 @@ public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
     public init(from forward: Key.Value?) throws {
         self.forward = forward
     }
+
+    public func forwardError(_ error: Error) {
+        forward?(error)
+    }
 }

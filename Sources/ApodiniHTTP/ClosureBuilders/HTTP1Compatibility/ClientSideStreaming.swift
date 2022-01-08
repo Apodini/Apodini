@@ -18,8 +18,14 @@ extension Exporter {
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
-        let abortAnyError = AbortTransformer<H>()
-        let transformer = HTTPResponseTransformer<H>(configuration.encoder)
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer<H>(),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
+        let transformer = ErrorForwardingResultTransformer(
+            wrapped: HTTPResponseTransformer<H>(configuration.encoder),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         return { (request: HTTPRequest) in
             guard let requestCount = try! configuration.decoder.decode(
@@ -41,6 +47,7 @@ extension Exporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
