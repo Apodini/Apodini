@@ -20,19 +20,24 @@ class UnaryRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             .decodeRequest(from: message, with: message, with: context.eventLoop)
             .insertDefaults(with: defaults)
             .cache()
+            .forwardDecodingErrors(with: errorForwarder)
             .evaluate(on: delegate)
-        return responseFuture.map { (response: Apodini.Response<H.Response.Content>) -> GRPCMessageOut in
-            let headers = HPACKHeaders {
-                $0[.contentType] = .gRPC(.proto)
+        return responseFuture
+            .map { (response: Apodini.Response<H.Response.Content>) -> GRPCMessageOut in
+                let headers = HPACKHeaders {
+                    $0[.contentType] = .gRPC(.proto)
+                }
+                guard let responseContent = response.content else {
+                    return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true)
+                }
+                return .singleMessage(
+                    headers: headers,
+                    payload: try! self.encodeResponseIntoProtoMessage(responseContent),
+                    closeStream: true
+                )
             }
-            guard let responseContent = response.content else {
-                return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true)
+            .inspectFailure { [weak self] error in
+                self?.errorForwarder.forwardError(error)
             }
-            return .singleMessage(
-                headers: headers,
-                payload: try! self.encodeResponseIntoProtoMessage(responseContent),
-                closeStream: true
-            )
-        }
     }
 }
