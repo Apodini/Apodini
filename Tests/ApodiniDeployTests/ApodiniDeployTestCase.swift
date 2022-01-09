@@ -41,11 +41,12 @@ class ApodiniDeployTestCase: XCTestCase {
     
     
     static var shouldRunDeploymentProviderTests: Bool {
-        #if os(macOS) && !Xcode
-        return true
-        #else
-        return false
-        #endif
+        true
+        // #if os(macOS) && !Xcode
+        // return true
+        // #else
+        // return false
+        // #endif
     }
     
     
