@@ -8,6 +8,8 @@
 
 import Apodini
 
+/// A ``ResultTransformer`` that wraps another ``ResultTransformer`` and
+/// forwards all handled `Error`s transparently using an ``ErrorForwarder``.
 public struct ErrorForwardingResultTransformer<R: ResultTransformer>: ResultTransformer {
     let wrapped: R
     let forwarder: ErrorForwarder
@@ -22,7 +24,7 @@ public struct ErrorForwardingResultTransformer<R: ResultTransformer>: ResultTran
     }
 
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<R.Output, R.Failure> {
-        forwarder.forward?(error)
+        forwarder.forwardError(error)
         return wrapped.handle(error: error)
     }
 }

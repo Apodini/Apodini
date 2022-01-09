@@ -12,6 +12,10 @@ public struct ErrorForwarderContextKey: OptionalContextKey {
     public typealias Value = (Error) -> Void
 }
 
+/// This value stores an optional closure that can be used to receive
+/// forwarded `Error`s that occur during the `Endpoint` evaluation.
+///
+/// - Note: An instance can be obtained from any local `Blackboard`, e.g. an `Endpoint`.
 public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
     public typealias Key = ErrorForwarderContextKey
 
@@ -21,6 +25,9 @@ public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
         self.forward = forward
     }
 
+    /// Forward an error using the forwarders forwarding closure, if it is non-nil.
+    ///
+    /// - Parameter error: The error to forward.
     public func forwardError(_ error: Error) {
         forward?(error)
     }

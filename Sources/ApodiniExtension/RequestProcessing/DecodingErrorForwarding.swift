@@ -8,7 +8,11 @@
 
 import Apodini
 
-/// Forwards errors that happen while retrieving parameters to the passed closure.
+/// A `Request` which forwards errors that occur when retrieving
+/// parameters from another `Request`.
+///
+/// - Note: Thrown `Error`s will be forwarded transparently so they can be
+///         handled properly afterwards.
 public struct DecodingErrorForwardingRequest: WithRequest {
     public let request: Request
     let forward: (Error) -> Void
@@ -38,14 +42,23 @@ extension ErrorForwarder {
 }
 
 extension Request {
-    /// - Note: Best to use this just before evaluate() or subscribe() to catch all errors
+    /// Wraps each incoming `Request` into a ``DecodingErrorForwardingRequest`` using
+    /// the given `ErrorForwarder`.
+    ///
+    /// - Note: It's best to use this wrapper just before `evaluate(on:)` to
+    ///         catch errors in all decoding steps.
     public func forwardDecodingErrors(with forwarder: ErrorForwarder) -> DecodingErrorForwardingRequest {
         forwarder.forwardDecodingErrors(self)
     }
 }
 
 extension AsyncSequence where Element: Request {
-    /// - Note: Best to use this just before evaluate() or subscribe() to catch all errors
+    /// Wraps each incoming `Request` into a ``DecodingErrorForwardingRequest`` using
+    /// the given `ErrorForwarder`.
+    ///
+    /// - Note: It's best to use this wrapper just before
+    ///         `evaluate(on:)` / `subscribe(to:)` to catch errors in all
+    ///         decoding steps.
     public func forwardDecodingErrors(with forwarder: ErrorForwarder) -> AsyncMapSequence<Self, DecodingErrorForwardingRequest> {
         self.map { request in
             request.forwardDecodingErrors(with: forwarder)
