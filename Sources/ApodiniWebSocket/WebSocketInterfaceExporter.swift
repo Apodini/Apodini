@@ -58,7 +58,10 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         }))
         let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint)
         let defaultValueStore = endpoint[DefaultValueStore.self]
-        let transformer = Transformer<H>()
+        let transformer = ErrorForwardingResultTransformer(
+            wrapped: Transformer<H>(),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
         let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
         self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: HTTPRequest) -> (
                     defaultInput: SomeInput,
@@ -82,6 +85,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .insertDefaults(with: defaultValueStore)
             .validateParameterMutability()
             .cache()
+            .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
             .subscribe(to: delegate)
             .evaluate(on: delegate)
             .transform(using: transformer)
