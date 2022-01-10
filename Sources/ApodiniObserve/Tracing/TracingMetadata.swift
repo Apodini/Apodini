@@ -17,10 +17,12 @@ extension ComponentMetadataNamespace {
     public typealias Tracing = TracingMetadata
 }
 
-public struct TracingMetadata: ComponentMetadataDefinition {
+public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelegatingHandler {
     public typealias Key = TracingContextKey
 
     public var value: Bool
+
+    public let initializer: DelegatingHandlerContextKey.Value = [.init(TracingHandlerInitializer())]
 
     public init(isEnabled: Bool) {
         self.value = isEnabled
