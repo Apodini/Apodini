@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "2f1af22f4d495bc6f35365e537c4bb5eb60c5f17",
-          "version": "1.18.0"
+          "revision": "c6cd5994f371b8e31b34f4339774cc25cf8a086a",
+          "version": "1.19.0"
         }
       },
       {
@@ -168,8 +168,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "cd90cff19b892078c17baae08270707e3fc1590c",
-          "version": "5.11.0"
+          "revision": "48a92c71332480cdd493cfeae4e184a80f418595",
+          "version": "5.12.0"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "032375fb9882a06c5edbc41e5e174bf308f5870c",
-          "version": "5.9.0"
+          "revision": "6ba2fddd0260da0621438bb1523e9aaea4eb9464",
+          "version": "5.9.1"
         }
       },
       {
