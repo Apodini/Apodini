@@ -29,6 +29,7 @@ let package = Package(
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
+        .library(name: "ApodiniDocumentExport", targets: ["ApodiniDocumentExport"]),
         .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
         // Authorization
@@ -114,7 +115,11 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
+        
+        // Docuement Export
+        .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.1"),
+        .package(url: "https://github.com/omochi/FineJSON.git", from: "1.14.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -352,6 +357,16 @@ let package = Package(
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniDocumentExport",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "PathKit", package: "PathKit"),
+                .product(name: "FineJSON", package: "FineJSON"),
+                .product(name: "Yams", package: "Yams")
             ]
         ),
 
