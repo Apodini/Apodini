@@ -57,7 +57,8 @@ let package = Package(
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
-        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"])
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
+        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
