@@ -135,7 +135,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
         let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model
-    
+        
         #warning("TODO: Is there a smart way to detect if no endpoint is registered at the root if versionAsRootPrefix is false")
         if root.node.endpoints[.read] == nil && exporterConfiguration.versionAsRootPrefix {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
@@ -159,7 +159,6 @@ extension AnyEndpoint {
     public func absoluteRESTPath(versionAsRootPrefix version: Version?) -> [EndpointPath] {
         var path = self[EndpointPathComponentsHTTP.self].value
         if let version = version {
-            #warning("TODO: The API Version we get here is always Version 1. How can we retrieve the version here? Some other mechanism?")
             path.insert(version.pathComponent, at: 1)
         }
         return path

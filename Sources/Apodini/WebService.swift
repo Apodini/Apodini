@@ -163,7 +163,7 @@ extension WebService {
     func start(app: Application) {
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         metadata.collectMetadata(visitor)
-        app.storage[VersionStorageKey.self]  = visitor.currentNode.peekValue(for: APIVersionContextKey.self)
+        app.storage[VersionStorageKey.self] = visitor.currentNode.peekValue(for: APIVersionContextKey.self) ?? APIVersionContextKey.defaultValue
         
         /// Configure application and instanciate exporters
         self.configuration.configure(app)

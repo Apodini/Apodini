@@ -24,7 +24,7 @@ struct LinksFormatter: RelationshipFormatter {
         
         let versionPrefix: String
         if let version = version {
-            versionPrefix = "\(version.pathComponent)/"
+            versionPrefix = "/\(version.pathComponent)"
         } else {
             versionPrefix = ""
         }
