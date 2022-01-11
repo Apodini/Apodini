@@ -40,7 +40,7 @@ final class OpenAPIParameterMetadataTests: ApodiniTests {
 
         pathsBuilder.addPathItem(from: endpoint)
 
-        let document = try XCTUnwrap(pathsBuilder.pathsObject["/"]?.get)
+        let document = try XCTUnwrap(pathsBuilder.pathsObject["v1"]?.get)
         let parameter = try XCTUnwrap(document.parameters[safe: 0]?.b)
 
         XCTAssertEqual(parameter.name, "id")

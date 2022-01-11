@@ -49,7 +49,7 @@ final class OperationModifierTests: ApodiniTests {
         }
 
         var configuration: Configuration {
-            REST()
+            REST(versionAsRootPrefix: true)
         }
     }
     

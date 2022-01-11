@@ -59,4 +59,9 @@ public extension Version {
     var semVerString: String {
         "\(major).\(minor).\(patch)"
     }
+    
+    /// PathComponent
+    var pathComponent: EndpointPath {
+        .string("\(prefix)\(major)")
+    }
 }

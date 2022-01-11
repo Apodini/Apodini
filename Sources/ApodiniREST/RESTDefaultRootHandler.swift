@@ -17,13 +17,13 @@ struct RESTDefaultRootHandler {
     let relationships: Set<RelationshipDestination>
     
     /// Registers a GET handler on root path
-    func register(on app: Apodini.Application, versionConfiguration: LinksFormatter.VersionConfiguration) {
+    func register(on app: Apodini.Application, version: Version?) {
         app.httpServer.registerRoute(.GET, []) { request in
             ResponseContainer(
                 Empty.self,
                 links: relationships.formatRelationships(
                     into: [:],
-                    with: LinksFormatter(configuration: app.httpConfiguration, versionConfiguration: versionConfiguration)
+                    with: LinksFormatter(configuration: app.httpConfiguration, version: version)
                 ),
                 encoder: exporterConfiguration.encoder
             ).encodeResponse(for: request)

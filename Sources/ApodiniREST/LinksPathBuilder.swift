@@ -10,13 +10,8 @@ import Apodini
 import Foundation
 
 struct LinksFormatter: RelationshipFormatter {
-    enum VersionConfiguration {
-        case versionAsRootPrefix
-        case removeVersion(Version)
-    }
-    
     let configuration: HTTPConfiguration
-    let versionConfiguration: VersionConfiguration
+    let version: Version?
 
     func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
         into[of.name] = representation
@@ -26,8 +21,14 @@ struct LinksFormatter: RelationshipFormatter {
         if destination.hideLink {
             return nil
         }
-
-        return configuration.uriPrefix + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
+        
+        let versionPrefix: String
+        if let version = version {
+            versionPrefix = "\(version.pathComponent)/"
+        } else {
+            versionPrefix = ""
+        }
+        return configuration.uriPrefix + versionPrefix + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
     }
 }
 

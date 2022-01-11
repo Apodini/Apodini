@@ -36,7 +36,12 @@ public final class REST: Configuration {
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
     public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false, versionAsRootPrefix: Bool = false) {
-        self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
+        self.configuration = REST.ExporterConfiguration(
+            encoder: encoder,
+            decoder: decoder,
+            caseInsensitiveRouting: caseInsensitiveRouting,
+            versionAsRootPrefix: versionAsRootPrefix
+        )
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
@@ -136,13 +141,13 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
             let relationships = relationshipModel.rootRelationships(for: .read)
             let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
-            let versionConfiguration: LinksFormatter.VersionConfiguration
+            let version: Version?
             if exporterConfiguration.versionAsRootPrefix {
-                versionConfiguration = .versionAsRootPrefix
+                version = webService.context.get(valueFor: APIVersionContextKey.self)
             } else {
-                versionConfiguration = .removeVersion(webService.context.get(valueFor: APIVersionContextKey.self))
+                version = nil
             }
-            handler.register(on: app, versionConfiguration: versionConfiguration)
+            handler.register(on: app, version: version)
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
@@ -159,9 +164,10 @@ extension AnyEndpoint {
     /// path-elements on the `Component`-tree as additional path elements at the end of the path.
     public func absoluteRESTPath(versionAsRootPrefix: Bool) -> [EndpointPath] {
         var path = self[EndpointPathComponentsHTTP.self].value
-        let version = self[Context.self].get(valueFor: APIVersionContextKey.self)
-        if versionAsRootPrefix == false, path.count >= 2 && path[1] == .string(version.description) {
-            path.remove(at: 1)
+        if versionAsRootPrefix {
+            #warning("The APIVersion we get here is always Version 1. How can we retrieve the version here? Some other mechanism?")
+            let version = self[Context.self].get(valueFor: APIVersionContextKey.self)
+            path.insert(version.pathComponent, at: 1)
         }
         return path
     }
