@@ -35,7 +35,7 @@ public final class REST: Configuration {
     ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
-    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
+    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false, versionAsRootPrefix: Bool = false) {
         self.configuration = REST.ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
@@ -62,8 +62,9 @@ extension REST {
     public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
                             decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
                             caseInsensitiveRouting: Bool = false,
+                            versionAsRootPrefix: Bool = false,
                             @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }) {
-        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
+        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, versionAsRootPrefix: versionAsRootPrefix)
         self.staticConfigurations = staticConfigurations()
     }
 }
@@ -85,7 +86,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         var pathBuilder = RESTPathBuilder()
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
-        let absolutePath = endpoint.absoluteRESTPath
+        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: exporterConfiguration.versionAsRootPrefix)
         absolutePath.build(with: &pathBuilder)
         
         let operation = endpoint[Operation.self]
@@ -129,12 +130,19 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     func finishedExporting(_ webService: WebServiceModel) {
         let root = webService[WebServiceRoot<RESTInterfaceExporter>.self]
         let relationshipModel = webService[RelationshipModelKnowledgeSource.self].model
-        
-        if root.node.endpoints[.read] == nil {
+    
+        #warning("TODO: Is there a smart way to detect if no endpoint is registered at the root if versionAsRootPrefix is false")
+        if root.node.endpoints[.read] == nil && exporterConfiguration.versionAsRootPrefix {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
             let relationships = relationshipModel.rootRelationships(for: .read)
             let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
-            handler.register(on: app)
+            let versionConfiguration: LinksFormatter.VersionConfiguration
+            if exporterConfiguration.versionAsRootPrefix {
+                versionConfiguration = .versionAsRootPrefix
+            } else {
+                versionConfiguration = .removeVersion(webService.context.get(valueFor: APIVersionContextKey.self))
+            }
+            handler.register(on: app, versionConfiguration: versionConfiguration)
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
@@ -149,7 +157,12 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
     /// path-elements on the `Component`-tree as additional path elements at the end of the path.
-    var absoluteRESTPath: [EndpointPath] {
-        self[EndpointPathComponentsHTTP.self].value
+    public func absoluteRESTPath(versionAsRootPrefix: Bool) -> [EndpointPath] {
+        var path = self[EndpointPathComponentsHTTP.self].value
+        let version = self[Context.self].get(valueFor: APIVersionContextKey.self)
+        if versionAsRootPrefix == false, path.count >= 2 && path[1] == .string(version.description) {
+            path.remove(at: 1)
+        }
+        return path
     }
 }

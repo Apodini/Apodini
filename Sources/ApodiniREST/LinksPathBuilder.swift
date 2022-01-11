@@ -10,7 +10,13 @@ import Apodini
 import Foundation
 
 struct LinksFormatter: RelationshipFormatter {
+    enum VersionConfiguration {
+        case versionAsRootPrefix
+        case removeVersion(Version)
+    }
+    
     let configuration: HTTPConfiguration
+    let versionConfiguration: VersionConfiguration
 
     func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
         into[of.name] = representation

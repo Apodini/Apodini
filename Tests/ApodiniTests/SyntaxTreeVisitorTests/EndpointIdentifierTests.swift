@@ -29,7 +29,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         init(endpoint: AnyEndpoint) {
             self.init(
                 id: endpoint[AnyHandlerIdentifier.self].rawValue,
-                path: endpoint.absoluteRESTPath.asPathString(),
+                path: endpoint.absoluteRESTPath(versionAsRootPrefix: true).asPathString(),
                 description: endpoint.description
             )
         }
@@ -154,7 +154,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

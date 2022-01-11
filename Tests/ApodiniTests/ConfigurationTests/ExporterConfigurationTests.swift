@@ -100,7 +100,7 @@ class ExporterConfigurationTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(response.headers[.contentType], HTTPMediaType(type: "application", subtype: "x-apodini-json"))
             XCTAssertEqual("Servus", try XCTUnwrapRESTResponseData(String.self, from: response))

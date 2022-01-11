@@ -109,7 +109,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let multiplyEndpoint = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "multiplyHandler" })
         
         XCTAssertEqual(multiplyEndpoint.response, .scalar(.int))
-        XCTAssertEqual(multiplyEndpoint.path, .init("/v1/{rhs}"))
+        XCTAssertEqual(multiplyEndpoint.path, .init("/{rhs}"))
         XCTAssertEqual(multiplyEndpoint.operation, .read)
         XCTAssertEqual(multiplyEndpoint.deltaIdentifier.rawValue, multiplyEndpoint.handlerName.lowerFirst)
         

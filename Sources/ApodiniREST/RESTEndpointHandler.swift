@@ -20,6 +20,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     private let strategy: AnyDecodingStrategy<HTTPRequest>
+    private let versionConfiguration: LinksFormatter.VersionConfiguration
     let defaultStore: DefaultValueStore
     
     init(
@@ -40,6 +41,12 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             path: PathStrategy(useNameAsIdentifier: false),
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
+        
+        if exporterConfiguration.versionAsRootPrefix {
+            self.versionConfiguration = .versionAsRootPrefix
+        } else {
+            self.versionConfiguration = .removeVersion(endpoint[Context.self].get(valueFor: APIVersionContextKey.self))
+        }
         
         self.defaultStore = endpoint[DefaultValueStore.self]
         self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
@@ -89,7 +96,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
-                let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
+                let formatter = LinksFormatter(configuration: self.app.httpConfiguration, versionConfiguration: versionConfiguration)
                 var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
                 let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)

@@ -82,7 +82,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -132,7 +132,7 @@ final class GuardTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -160,7 +160,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -193,7 +193,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -231,7 +231,7 @@ final class GuardTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {

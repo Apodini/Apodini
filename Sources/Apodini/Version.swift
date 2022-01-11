@@ -48,17 +48,6 @@ public struct Version: Decodable {
     }
 }
 
-
-extension Version: _PathComponent, CustomStringConvertible {
-    public var description: String {
-        "\(prefix)\(major)"
-    }
-
-    func append<Parser: PathComponentParser>(to parser: inout Parser) {
-        parser.visit(self)
-    }
-}
-
 extension Version: CustomDebugStringConvertible {
     public var debugDescription: String {
         "\(prefix)\(major).\(minor).\(patch)"

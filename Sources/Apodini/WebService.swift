@@ -178,9 +178,6 @@ extension WebService {
     func accept(_ visitor: SyntaxTreeVisitor) {
         metadata.collectMetadata(visitor)
 
-        let version = visitor.currentNode.peekValue(for: APIVersionContextKey.self)
-        visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-
         visitor.visit(webService: self)
 
         if Content.self != Never.self {
