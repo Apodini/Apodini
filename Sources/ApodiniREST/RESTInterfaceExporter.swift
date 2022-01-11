@@ -91,7 +91,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         var pathBuilder = RESTPathBuilder()
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
-        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: exporterConfiguration.versionAsRootPrefix)
+        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: exporterConfiguration.versionAsRootPrefix ? app.version : nil)
         absolutePath.build(with: &pathBuilder)
         
         let operation = endpoint[Operation.self]
@@ -141,13 +141,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
             let relationships = relationshipModel.rootRelationships(for: .read)
             let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
-            let version: Version?
-            if exporterConfiguration.versionAsRootPrefix {
-                version = webService.context.get(valueFor: APIVersionContextKey.self)
-            } else {
-                version = nil
-            }
-            handler.register(on: app, version: version)
+            handler.register(on: app, version: exporterConfiguration.versionAsRootPrefix ? app.version : nil)
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
@@ -162,11 +156,10 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
     /// path-elements on the `Component`-tree as additional path elements at the end of the path.
-    public func absoluteRESTPath(versionAsRootPrefix: Bool) -> [EndpointPath] {
+    public func absoluteRESTPath(versionAsRootPrefix version: Version?) -> [EndpointPath] {
         var path = self[EndpointPathComponentsHTTP.self].value
-        if versionAsRootPrefix {
+        if let version = version {
             #warning("TODO: The API Version we get here is always Version 1. How can we retrieve the version here? Some other mechanism?")
-            let version = self[Context.self].get(valueFor: APIVersionContextKey.self)
             path.insert(version.pathComponent, at: 1)
         }
         return path

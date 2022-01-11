@@ -322,10 +322,10 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         WebService().register(builder)
         
-        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(versionAsRootPrefix: true).asPathString() }.sorted()
+        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(versionAsRootPrefix: Version()).asPathString() }.sorted()
         
         let expectedEndpointPaths: [String] = [
-            "/api/user", "/api/user", "/api/post"
+            "/v1/api/user", "/v1/api/user", "/v1/api/post"
         ].sorted()
         XCTAssert(endpointPaths.compareIgnoringOrder(expectedEndpointPaths))
     }

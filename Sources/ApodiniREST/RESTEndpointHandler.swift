@@ -42,13 +42,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
-        if exporterConfiguration.versionAsRootPrefix, let version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self) {
-            #warning("TODO: The version value always seems to nil here")
-            self.version = version
-        } else {
-            self.version = nil
-        }
-        
+        self.version = exporterConfiguration.versionAsRootPrefix ? app.version : nil
         self.defaultStore = endpoint[DefaultValueStore.self]
         self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }

@@ -64,7 +64,8 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
         self.exporterConfiguration = exporterConfiguration
         
         self.documentBuilder = OpenAPIDocumentBuilder(
-            configuration: self.exporterConfiguration
+            configuration: self.exporterConfiguration,
+            versionAsRootPrefix: exporterConfiguration.parentConfiguration.versionAsRootPrefix ? app.version : nil
         )
         updateStorage()
     }

@@ -65,3 +65,18 @@ public extension Version {
         .string("\(prefix)\(major)")
     }
 }
+
+extension Application {
+    /// The Version of the Web Service
+    public var version: Version {
+        guard let version = self.storage[VersionStorageKey.self] else {
+            fatalError("Version of the Web Service retrieved before parsing the version")
+        }
+        return version
+    }
+}
+
+/// VersionStorageKey
+public struct VersionStorageKey: StorageKey {
+    public typealias Value = Version
+}

@@ -34,9 +34,9 @@ struct OpenAPIPathBuilder: PathBuilderWithResult {
 struct OpenAPIPathsObjectBuilder {
     var pathsObject: OpenAPIKit.OpenAPI.PathItem.Map = [:]
     let componentsObjectBuilder: OpenAPIComponentsObjectBuilder
-    let versionAsRootPrefix: Bool
+    let versionAsRootPrefix: Version?
     
-    init(componentsObjectBuilder: OpenAPIComponentsObjectBuilder, versionAsRootPrefix: Bool) {
+    init(componentsObjectBuilder: OpenAPIComponentsObjectBuilder, versionAsRootPrefix: Version?) {
         self.componentsObjectBuilder = componentsObjectBuilder
         self.versionAsRootPrefix = versionAsRootPrefix
     }

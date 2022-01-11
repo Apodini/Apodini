@@ -21,12 +21,12 @@ struct OpenAPIDocumentBuilder {
     var pathsObjectBuilder: OpenAPIPathsObjectBuilder
     var componentsObjectBuilder: OpenAPIComponentsObjectBuilder
     
-    init(configuration: OpenAPI.ExporterConfiguration) {
+    init(configuration: OpenAPI.ExporterConfiguration, versionAsRootPrefix: Version?) {
         self.configuration = configuration
         self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(
             componentsObjectBuilder: self.componentsObjectBuilder,
-            versionAsRootPrefix: configuration.parentConfiguration.versionAsRootPrefix
+            versionAsRootPrefix: versionAsRootPrefix
         )
     }
     
