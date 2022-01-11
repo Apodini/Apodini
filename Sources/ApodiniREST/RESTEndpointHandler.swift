@@ -42,9 +42,9 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
-        if exporterConfiguration.versionAsRootPrefix {
-            #warning("The version value always seems to be Verion 1.0.0 here")
-            self.version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self)
+        if exporterConfiguration.versionAsRootPrefix, let version = endpoint[Context.self].get(valueFor: APIVersionContextKey.self) {
+            #warning("TODO: The version value always seems to nil here")
+            self.version = version
         } else {
             self.version = nil
         }

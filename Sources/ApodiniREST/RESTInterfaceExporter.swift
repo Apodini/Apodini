@@ -165,7 +165,7 @@ extension AnyEndpoint {
     public func absoluteRESTPath(versionAsRootPrefix: Bool) -> [EndpointPath] {
         var path = self[EndpointPathComponentsHTTP.self].value
         if versionAsRootPrefix {
-            #warning("The APIVersion we get here is always Version 1. How can we retrieve the version here? Some other mechanism?")
+            #warning("TODO: The API Version we get here is always Version 1. How can we retrieve the version here? Some other mechanism?")
             let version = self[Context.self].get(valueFor: APIVersionContextKey.self)
             path.insert(version.pathComponent, at: 1)
         }
