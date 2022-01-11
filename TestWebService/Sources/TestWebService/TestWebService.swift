@@ -19,7 +19,7 @@ import Tracing
 
 @main
 struct TestWebService: Apodini.WebService {
-    let greeterRelationship = Relationship(name: "greeter")
+    private static let greeterRelationship = Relationship(name: "greeter")
 
     @Argument(help: "Endpoint to expose OpenAPI specification")
     var openApiEndpoint: String = "oas"
@@ -31,10 +31,10 @@ struct TestWebService: Apodini.WebService {
 
         // Bigger Subsystems:
         AuctionComponent()
-        GreetComponent(greeterRelationship: greeterRelationship)
-        RandomComponent(greeterRelationship: greeterRelationship)
+        GreetComponent(greeterRelationship: TestWebService.greeterRelationship)
+        RandomComponent(greeterRelationship: TestWebService.greeterRelationship)
         SwiftComponent()
-        UserComponent(greeterRelationship: greeterRelationship)
+        UserComponent(greeterRelationship: TestWebService.greeterRelationship)
         WeatherComponent()
     }
     
