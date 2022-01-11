@@ -7,8 +7,10 @@
 //
 
 import XCTest
+import XCTApodini
 @testable import Apodini
 @testable import ApodiniMigration
+@testable import RESTMigrator
 @testable import ApodiniMigrator
 @_implementationOnly import PathKit
 @testable import ApodiniNetworking
@@ -106,12 +108,12 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        let multiplyEndpoint = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "multiplyHandler" })
+        let multiplyEndpoint = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "MultiplyHandler" })
         
         XCTAssertEqual(multiplyEndpoint.response, .scalar(.int))
         XCTAssertEqual(multiplyEndpoint.path, .init("/{rhs}"))
         XCTAssertEqual(multiplyEndpoint.operation, .read)
-        XCTAssertEqual(multiplyEndpoint.deltaIdentifier.rawValue, multiplyEndpoint.handlerName.lowerFirst)
+        XCTAssertEqual(multiplyEndpoint.deltaIdentifier.rawValue, multiplyEndpoint.handlerName.rawValue)
         
         let blob = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "blob" })
         XCTAssertEqual(blob.response, .scalar(.data))
@@ -126,7 +128,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        let exportedDocument = try Document.decode(from: testDirectory + "\(document.fileName).yaml")
+        let exportedDocument = try APIDocument.decode(from: testDirectory + "\(document.fileName).yaml")
         
         XCTAssertEqual(document, exportedDocument)
     }
@@ -140,12 +142,16 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         try app.testable().test(.GET, path) { response in
             XCTAssertEqual(response.status, .ok)
-            XCTAssertNoThrow(try response.bodyStorage.getFullBodyData(decodedAs: Document.self, using: JSONDecoder()))
+            XCTAssertNoThrow(try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder()))
         }
     }
     
     func testMigrationGuideCompareFromFile() throws {
-        let emptyDocument = Document()
+        let emptyDocument = APIDocument(serviceInformation: ServiceInformation(
+            version: .default,
+            http: HTTPInformation(hostname: "127.0.0.1"),
+            exporters: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default)
+        ))
         let exportPath = try emptyDocument.write(at: testDirectory.string, fileName: emptyDocument.fileName)
         
         Self.sut = MigratorConfiguration(
@@ -159,22 +165,23 @@ final class ApodiniMigratorTests: ApodiniTests {
         let exported = try MigrationGuide.decode(from: testDirectory + "migration_guide.json")
         
         XCTAssertEqual(stored, exported)
-        
-        let changes = exported.changes
-        XCTAssert(changes.contains { $0.element == .networking(target: .serverPath) })
-        XCTAssert(changes.contains { $0.element == .endpoint("multiplyHandler", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("blob", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("throwingHandler", target: .`self`) })
-        XCTAssert(changes.contains { $0.element == .endpoint("text", target: .`self`) })
-        
-        let addedModelChange = try XCTUnwrap(changes.first { $0.element.isModel } as? AddChange)
-        XCTAssertEqual(addedModelChange.elementID, "HTTPMediaType")
-        
-        if case let .element(anyCodable) = addedModelChange.added {
-            XCTAssertEqual(anyCodable.typed(TypeInformation.self), try TypeInformation(type: HTTPMediaType.self))
-        } else {
-            XCTFail("Migration guide did not store the added model")
-        }
+
+        XCTAssert(exported.serviceChanges.contains { change in
+            if change.id == ServiceInformation.deltaIdentifier,
+               case .http = change.modeledUpdateChange?.updated {
+                return true
+            }
+            return false
+        })
+
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "MultiplyHandler" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "blob" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "ThrowingHandler" && $0.type == .addition }))
+        XCTAssert(exported.endpointChanges.contains(where: { $0.id == "Text" && $0.type == .addition }))
+
+        let addedModelChange = try XCTUnwrap(exported.modelChanges.first?.modeledAdditionChange)
+        XCTAssertEqual(addedModelChange.id, "HTTPMediaType")
+        XCTAssertEqual(addedModelChange.added, try TypeInformation(type: HTTPMediaType.self))
     }
     
     func testMigrationGuideCompareFromResources() throws {
@@ -205,7 +212,9 @@ final class ApodiniMigratorTests: ApodiniTests {
         try app.testable().test(.GET, endpointPath) { response in
             XCTAssertEqual(response.status, .ok)
             let migrationGuide = try response.bodyStorage.getFullBodyData(decodedAs: MigrationGuide.self, using: JSONDecoder())
-            XCTAssert(migrationGuide.changes.isEmpty)
+            XCTAssert(migrationGuide.serviceChanges.isEmpty)
+            XCTAssert(migrationGuide.modelChanges.isEmpty)
+            XCTAssert(migrationGuide.endpointChanges.isEmpty)
         }
     }
     
@@ -225,7 +234,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             XCTAssertEqual(response.status, .notFound)
         }
         
-        XCTAssertThrowsError(try Document.decode(from: readOnly.asPath))
+        XCTAssertThrowsError(try APIDocument.decode(from: Path(readOnly)))
     }
     
     func testMigratorDocumentCommand() throws {
@@ -242,7 +251,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(commandType.configuration.commandName, "document")
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        XCTAssertEqual(document.allModels(), [try TypeInformation(type: HTTPMediaType.self)])
+        XCTAssertEqual(document.models, [try TypeInformation(type: HTTPMediaType.self)])
     }
     
     func testMigratorCompareCommand() throws {
@@ -263,13 +272,16 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(commandType.configuration.commandName, "compare")
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
-        XCTAssertEqual(document.allModels(), [try TypeInformation(type: HTTPMediaType.self)])
+        XCTAssertEqual(document.models, [try TypeInformation(type: HTTPMediaType.self)])
         
         let migrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
-        XCTAssertEqual(migrationGuide.id, try Document.decode(from: documentPath.asPath).id)
+        XCTAssertEqual(migrationGuide.id, try APIDocument.decode(from: Path(documentPath)).id)
     }
     
     func testMigratorReadCommand() throws {
+        let mg = MigrationGuide.empty(id: UUID())
+        print(mg.yaml)
+
         Self.sut = .init()
         let guidePath = try XCTUnwrap(ResourceLocation.resource(.module, fileName: "empty_migration_guide", format: .yaml).path)
         
@@ -289,7 +301,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(commandType.configuration.commandName, "read")
         
         let migrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
-        XCTAssertEqual(migrationGuide, try MigrationGuide.decode(from: guidePath.asPath))
+        XCTAssertEqual(migrationGuide, try MigrationGuide.decode(from: Path(guidePath)))
     }
     
     func testCustomHTTPConfig() throws {
@@ -312,8 +324,8 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
-            let document = try response.bodyStorage.getFullBodyData(decodedAs: Document.self, using: JSONDecoder())
-            XCTAssertEqual(document.metaData.versionedServerPath, "http://1.2.3.4:56/789")
+            let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
+            XCTAssertEqual(document.serviceInformation.http.description, "1.2.3.4:56")
         }
     }
     
@@ -323,18 +335,14 @@ final class ApodiniMigratorTests: ApodiniTests {
         start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
+
+        let migrator = try RESTMigrator(documentPath: (testDirectory + "\(document.fileName).json").string)
         
-        let migrator = try ApodiniMigrator.Migrator(
-            packageName: "TestPackage",
-            packagePath: testDirectory.string,
-            documentPath: (testDirectory + "\(document.fileName).json").string
-        )
-        
-        XCTAssertNoThrow(try migrator.run())
+        XCTAssertNoThrow(try migrator.run(packageName: "TestPackage", packagePath: testDirectory.string))
         
         let swiftFiles = try testDirectory.recursiveSwiftFiles().map { $0.lastComponent }
         
-        let modelNames = document.allModels().map { $0.typeString + .swift }
+        let modelNames = document.models.map { $0.typeString + .swift }
         for modelName in modelNames {
             XCTAssert(swiftFiles.contains(modelName))
         }
@@ -347,5 +355,12 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssert(swiftFiles.contains("Handler.swift"))
         XCTAssert(swiftFiles.contains("NetworkingService.swift"))
         XCTAssert(swiftFiles.contains("TestPackageTests.swift"))
+    }
+
+    func testPatternMapping() {
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.requestResponse), .requestResponse)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.serviceSideStream), .serviceSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.clientSideStream), .clientSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.bidirectionalStream), .bidirectionalStream)
     }
 }

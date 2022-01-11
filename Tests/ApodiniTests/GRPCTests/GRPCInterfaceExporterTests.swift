@@ -179,7 +179,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
         ]
         XCTAssert(responseParts.allSatisfy { describeServices.output.contains($0) })
-        XCTAssertEqual(describeServices.output.split(string: " is a service:").count - 1, responseParts.count)
+        XCTAssertEqual(describeServices.output.components(separatedBy: " is a service:").count - 1, responseParts.count)
     }
 }
 

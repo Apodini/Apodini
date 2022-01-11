@@ -56,7 +56,8 @@ let package = Package(
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
-        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"])
+        .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
+        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
@@ -111,10 +112,10 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.4")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -174,6 +175,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
+                .product(name: "RESTMigrator", package: "ApodiniMigrator"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
