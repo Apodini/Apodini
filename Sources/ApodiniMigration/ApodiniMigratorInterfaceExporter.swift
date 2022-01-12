@@ -208,7 +208,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             }
         }
         
-        if exportOptions.directory == nil && exportOptions.directory == nil {
+        if exportOptions.directory == nil && exportOptions.endpoint == nil {
             logger.notice("No export paths provided to handle \(itemName)")
         }
     }
