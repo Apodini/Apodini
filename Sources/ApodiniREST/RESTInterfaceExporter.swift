@@ -10,6 +10,7 @@ import Apodini
 import NIO
 import ApodiniUtils
 import ApodiniNetworking
+import ApodiniHTTPProtocol
 import Foundation
 
 
@@ -35,12 +36,12 @@ public final class REST: Configuration {
     ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
-    ///    - versionAsRootPrefix: Configures if the current web service version should be used as a prefix for all HTTP paths
+    ///    - rootPath: Configures the root path for the HTTP endpoints
     public init(
         encoder: AnyEncoder = defaultEncoder,
         decoder: AnyDecoder = defaultDecoder,
         caseInsensitiveRouting: Bool = false,
-        rootPath: REST.ExporterConfiguration.RootPath? = nil
+        rootPath: RootPath? = nil
     ) {
         self.configuration = REST.ExporterConfiguration(
             encoder: encoder,
@@ -69,13 +70,13 @@ extension REST {
     ///    - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
-    ///    - versionAsRootPrefix: Configures if the current web service version should be used as a prefix for all HTTP paths
+    ///    - rootPath: Configures the root path for the HTTP endpoints
     ///    - staticConfigurations: A result builder that allows passing dependent static Exporters like the OpenAPI Exporter
     public convenience init(
         encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
         decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
         caseInsensitiveRouting: Bool = false,
-        rootPath: REST.ExporterConfiguration.RootPath? = nil,
+        rootPath: RootPath? = nil,
         @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }
     ) {
         self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, rootPath: rootPath)

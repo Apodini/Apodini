@@ -9,36 +9,12 @@
 import Apodini
 import ApodiniUtils
 import ApodiniNetworking
+import ApodiniHTTPProtocol
 
 
 extension REST {
     /// Configuration of the `RESTInterfaceExporter`
     public struct ExporterConfiguration {
-        /// Configures the root path of all endpoints
-        public enum RootPath: ExpressibleByStringLiteral {
-            /// A custom path defined by a String
-            case path(String)
-            /// The current version is used as a root path
-            case version
-            
-            
-            public init(stringLiteral: String) {
-                self = .path(stringLiteral)
-            }
-            
-            
-            /// Creates an `EndpointPath` based on the `RootPath`.
-            /// - Parameter withVersion: The version used to create the EndpointPath
-            public func endpointPath(withVersion version: Version) -> EndpointPath {
-                switch self {
-                case let .path(path):
-                    return .string(path)
-                case .version:
-                    return version.pathComponent
-                }
-            }
-        }
-        
         /// The to be used `AnyEncoder` for encoding responses of the `RESTInterfaceExporter`
         public let encoder: AnyEncoder
         /// The to be used `AnyDecoder` for decoding requests to the `RESTInterfaceExporter`
