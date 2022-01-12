@@ -6,4 +6,5 @@
 # SPDX-License-Identifier: MIT
 #
 
-curl --fail http://localhost/v1/
+curl --fail http://localhost/
+curl --fail http://localhost/http

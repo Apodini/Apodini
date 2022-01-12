@@ -78,7 +78,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
             logger.notice("Received WebSocket upgrade request")
             context.fireChannelRead(data)
         } else {
-            fatalError("Received unexpected Upgrade handler (value: '\(upgradeHeaderValues)')")
+            logger.error("Received unexpected Upgrade handler (value: '\(upgradeHeaderValues)')")
         }
     }
     

@@ -68,7 +68,7 @@ final class CustomComponentTests: ApodiniTests {
         let birdJSON = try JSONEncoder().encode(bird3)
         let body = ByteBuffer(data: birdJSON)
         
-        try app.testable().test(.GET, "/v1/", headers: headers, body: body) { res in
+        try app.testable().test(.GET, "/", headers: headers, body: body) { res in
             XCTAssertEqual(res.status, .ok)
             
             struct ResponseContent: Decodable {

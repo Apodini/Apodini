@@ -55,7 +55,7 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
 
         let exporterConfiguration = OpenAPI.ExporterConfiguration()
 
-        var documentBuilder = OpenAPIDocumentBuilder(configuration: exporterConfiguration)
+        var documentBuilder = OpenAPIDocumentBuilder(configuration: exporterConfiguration, rootPath: nil)
         documentBuilder.addEndpoint(endpoint)
         let document = OpenAPI.Document(
             info: OpenAPI.Document.Info(title: exporterConfiguration.title ?? "", version: exporterConfiguration.version ?? ""),

@@ -19,19 +19,22 @@ struct Auction: Handler {
     @State var highestBid: UInt = 0
     
     func handle() throws -> Response<String> {
-        if connection.state == .open {
+        switch connection.state {
+        case .open:
             if bid > highestBid {
                 highestBid = bid
                 return .send("bid accepted")
             } else {
                 throw bidTooLowError(description: "highest: \(highestBid); received: \(bid)")
             }
-        } else {
+        case .end:
             if highestBid >= Self.minimumBid {
                 return .final("sold")
             } else {
                 return .final("not sold")
             }
+        case .close:
+            return .end
         }
     }
 }

@@ -154,22 +154,22 @@ final class OpenAPISecurityMetadataTests: ApodiniTests, InterfaceExporterVisitor
         XCTAssertEqual(securitySchemes, expectedSecuritySchemes)
 
 
-        let aSecurity = try XCTUnwrap(document.paths["v1/a"]?.get).security
+        let aSecurity = try XCTUnwrap(document.paths["a"]?.get).security
         XCTAssertEqual(aSecurity, [[.component(named: "auth_token"): []]])
 
-        let bSecurity = try XCTUnwrap(document.paths["v1/b"]?.get).security
+        let bSecurity = try XCTUnwrap(document.paths["b"]?.get).security
         XCTAssertEqual(bSecurity, [[.component(named: "auth_user"): []], [:]])
 
-        let cSecurity = try XCTUnwrap(document.paths["v1/c"]?.get).security
+        let cSecurity = try XCTUnwrap(document.paths["c"]?.get).security
         XCTAssertEqual(cSecurity, [[.component(named: "api_key"): []]])
 
-        let dSecurity = try XCTUnwrap(document.paths["v1/d"]?.get).security
+        let dSecurity = try XCTUnwrap(document.paths["d"]?.get).security
         XCTAssertEqual(dSecurity, [[.component(named: "petstore_auth"): ["write:pets", "read:pets"]]])
 
-        let eSecurity = try XCTUnwrap(document.paths["v1/e"]?.get).security
+        let eSecurity = try XCTUnwrap(document.paths["e"]?.get).security
         XCTAssertEqual(eSecurity, [[.component(named: "petstore_oauth"): ["write:pets", "read:pets"]]])
 
-        let fSecurity = try XCTUnwrap(document.paths["v1/f"]?.get).security
+        let fSecurity = try XCTUnwrap(document.paths["f"]?.get).security
         XCTAssertEqual(fSecurity, [
             [
                 .component(named: "api_key2"): [],

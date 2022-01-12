@@ -199,11 +199,11 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         print("Send requests to lambda functions")
         
-        do { // Send some test requests to the /v1/rand endpoint
+        do { // Send some test requests to the /rand endpoint
             let numRandTests = 25
-            let expectation = XCTestExpectation("Test /v1/aws_rand", expectedFulfillmentCount: numRandTests)
+            let expectation = XCTestExpectation("Test /aws_rand", expectedFulfillmentCount: numRandTests)
             for _ in 0..<numRandTests {
-                try sendTestRequest(to: "/v1/aws_rand?lowerBound=7&upperBound=520", invokeUrl: invokeUrl) { httpResponse, data in
+                try sendTestRequest(to: "/aws_rand?lowerBound=7&upperBound=520", invokeUrl: invokeUrl) { httpResponse, data in
                     XCTAssertEqual(200, httpResponse.statusCode)
                     let randomValue = try JSONDecoder().decode(WrappedRESTResponse<Int>.self, from: data).data
                     XCTAssert((7...520).contains(randomValue))
@@ -215,9 +215,9 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         do {
-            // Send a test request to the /v1/greet endpoint
-            let expectation = XCTestExpectation("Test /v1/aws_greet")
-            try sendTestRequest(to: "/v1/aws_greet/Lukas?age=22", invokeUrl: invokeUrl) { httpResponse, data in
+            // Send a test request to the /greet endpoint
+            let expectation = XCTestExpectation("Test /aws_greet")
+            try sendTestRequest(to: "/aws_greet/Lukas?age=22", invokeUrl: invokeUrl) { httpResponse, data in
                 XCTAssertEqual(200, httpResponse.statusCode)
                 do {
                     let responseString = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data

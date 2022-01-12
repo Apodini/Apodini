@@ -322,7 +322,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         WebService().register(builder)
         
-        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath.asPathString() }.sorted()
+        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(rootPrefix: Version().pathComponent).asPathString() }.sorted()
         
         let expectedEndpointPaths: [String] = [
             "/v1/api/user", "/v1/api/user", "/v1/api/post"
@@ -411,12 +411,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.testable().test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], HTTPMediaType.json)
             XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
             let responseJSON = try XCTUnwrapRESTResponse(String.self, from: response)
-            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://localhost/v1"]))
+            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://localhost"]))
         }
     }
     
@@ -443,7 +443,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.testable().test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], .pdf)
             XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")
             XCTAssertEqual(response.headers["Test"], ["Test"])

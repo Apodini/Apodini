@@ -9,6 +9,7 @@
 import Apodini
 import ApodiniUtils
 import ApodiniNetworking
+import ApodiniHTTPProtocol
 
 
 extension REST {
@@ -20,6 +21,8 @@ extension REST {
         public let decoder: AnyDecoder
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
+        /// Configures if the current web service version should be used as a prefix for all HTTP paths
+        public let rootPath: RootPath?
         
         
         /// Initializes the `RESTExporterConfiguration` of the `RESTInterfaceExporter`
@@ -29,10 +32,12 @@ extension REST {
         ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
         public init(encoder: AnyEncoder = REST.defaultEncoder,
                     decoder: AnyDecoder = REST.defaultDecoder,
-                    caseInsensitiveRouting: Bool = false) {
+                    caseInsensitiveRouting: Bool = false,
+                    rootPath: RootPath? = nil) {
             self.encoder = encoder
             self.decoder = decoder
             self.caseInsensitiveRouting = caseInsensitiveRouting
+            self.rootPath = rootPath
         }
     }
 }
