@@ -316,7 +316,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 data: try apiGatewayImportDef.encodeToJSON(outputFormatting: [.prettyPrinted, .withoutEscapingSlashes]),
                 encoding: .utf8
             )!,
-            failOnWarnings: true // Too strict?
+            failOnWarnings: false
         )).wait()
         
         logger.notice("Updating API Gateway name")
