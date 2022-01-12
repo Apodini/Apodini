@@ -35,8 +35,9 @@ public final class HTTP: Configuration {
     ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
-    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false) {
-        self.configuration = ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting)
+    ///    - rootPath: Configures the root path for the HTTP endpoints
+    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false, rootPath: RootPath? = nil) {
+        self.configuration = ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, rootPath: rootPath)
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -69,34 +70,35 @@ struct Exporter: InterfaceExporter {
     
     func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let knowledge = endpoint[HTTPEndpointKnowledge.self]
+        let path = path(from: knowledge)
         
         switch knowledge.pattern {
         case .requestResponse:
-            logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(knowledge.path)")
+            logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(path)")
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
-            logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
+            logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(path)")
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .clientSideStream:
-            logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
+            logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(path)")
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .bidirectionalStream:
-            logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(knowledge.path)")
+            logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(path)")
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         }
@@ -104,22 +106,23 @@ struct Exporter: InterfaceExporter {
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         let knowledge = endpoint[HTTPEndpointKnowledge.self]
+        let path = path(from: knowledge)
         
         switch knowledge.pattern {
         case .requestResponse:
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
             app.httpServer.registerRoute(
                 knowledge.method,
-                knowledge.path,
+                path,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         default:
-            logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(knowledge.path) is exported with degraded functionality.")
+            logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
             self.export(endpoint)
         }
     }
@@ -169,6 +172,14 @@ struct Exporter: InterfaceExporter {
     }
     
     // MARK: Helpers
+    
+    private func path(from knowledge: HTTPEndpointKnowledge) -> [HTTPPathComponent] {
+        var path = knowledge.path
+        if let rootPath = configuration.rootPath {
+            path.insert(.verbatim(rootPath.endpointPath(withVersion: app.version).description), at: 0)
+        }
+        return path
+    }
     
     struct ArrayCount: Decodable {
         let count: Int?

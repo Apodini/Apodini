@@ -32,7 +32,12 @@ class ProxyServer {
     
     
     init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
-        let httpServer = HTTPServer(eventLoopGroupProvider: .createNew, address: .interface("0.0.0.0", port: port), logger: logger)
+        let httpServer = HTTPServer(
+            eventLoopGroupProvider: .createNew,
+            address: .interface("0.0.0.0", port: port),
+            hostname: Hostname(address: "localhost", port: port),
+            logger: logger
+        )
         self.httpServer = httpServer
         self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(httpServer.eventLoopGroup))
         
@@ -153,7 +158,8 @@ private struct ProxyRequestResponder: HTTPResponder {
         )
         let responseDelegate = ProxyServerForwardingResponseDelegate(
             on: httpClient.eventLoopGroup.next(),
-            endpointCommPattern: endpointCommPattern
+            endpointCommPattern: endpointCommPattern,
+            logger: logger
         )
         let reqEndFuture = proxyServer.httpClient.execute(request: forwardingRequest, delegate: responseDelegate).futureResult
         reqEndFuture.whenComplete { _ in
@@ -172,15 +178,17 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
     private var response: HTTPResponse?
     private let endpointCommPattern: Apodini.CommunicationalPattern
     private let httpResponsePromise: EventLoopPromise<HTTPResponse>
+    private var logger: Logger
     var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
     
     private var expectedContentLength: Int? {
         response?.headers[.contentLength]
     }
     
-    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern) {
+    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern, logger: Logger) {
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointCommPattern = endpointCommPattern
+        self.logger = logger
         print(Self.self, #function, getMemoryAddressAsHexString(self))
     }
     
@@ -222,8 +230,8 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
         switch response.bodyStorage {
         case .buffer:
             if let expectedContentLength = expectedContentLength {
+                logger.notice("precondition match. \(response.bodyStorage.readableBytes) == \(expectedContentLength)")
                 precondition(response.bodyStorage.readableBytes == expectedContentLength)
-                print("precondition match. \(response.bodyStorage.readableBytes) == \(expectedContentLength)")
             }
             httpResponsePromise.succeed(response)
         case .stream:
@@ -234,8 +242,17 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
         guard let response = response else {
+            logger.error("Already handling response")
             throw ProxyServer.Error(message: "Already handling response")
         }
         response.bodyStorage.stream?.close()
+    }
+    
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+        if let error = error as? HTTPClientError {
+            logger.error("Received HTTPClientError in \(Self.self): \(error.description)")
+        } else {
+            logger.error("Received error in \(Self.self): \(error.localizedDescription)")
+        }
     }
 }

@@ -48,17 +48,6 @@ public struct Version: Decodable {
     }
 }
 
-
-extension Version: _PathComponent, CustomStringConvertible {
-    public var description: String {
-        "\(prefix)\(major)"
-    }
-
-    func append<Parser: PathComponentParser>(to parser: inout Parser) {
-        parser.visit(self)
-    }
-}
-
 extension Version: CustomDebugStringConvertible {
     public var debugDescription: String {
         "\(prefix)\(major).\(minor).\(patch)"
@@ -70,4 +59,24 @@ public extension Version {
     var semVerString: String {
         "\(major).\(minor).\(patch)"
     }
+    
+    /// PathComponent
+    var pathComponent: EndpointPath {
+        .string("\(prefix)\(major)")
+    }
+}
+
+extension Application {
+    /// The Version of the Web Service
+    public var version: Version {
+        guard let version = self.storage[VersionStorageKey.self] else {
+            fatalError("Version of the Web Service retrieved before parsing the version")
+        }
+        return version
+    }
+}
+
+/// VersionStorageKey
+public struct VersionStorageKey: StorageKey {
+    public typealias Value = Version
 }

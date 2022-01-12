@@ -91,9 +91,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
         
         // Request handling expectations
-        let responseExpectationV1 = XCTestExpectation("Web Service response for /v1/ request")
-        let responseExpectationV1TextMut = XCTestExpectation("Web Service response for /v1/textMut/ request")
-        let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
+        let responseExpectationV1 = XCTestExpectation("Web Service response for / request")
+        let responseExpectationV1TextMut = XCTestExpectation("Web Service response for /textMut/ request")
+        let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /greet/ request")
         
         /// Expectation that the servers spawned as part of launching the web service are all shut down
         let didShutDownNodesExpectation = XCTestExpectation(
@@ -155,11 +155,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             handleOutput(text, printToStdout: true)
             
             // We're in the phase which is checking whether the web service sucessfully launched.
-            // This is determined by finding the text `Server starting on http://localhost:52001` three times,
+            // This is determined by finding the text `Server starting on 0.0.0.0:52001` three times,
             // with the port numbers matching the expected output values (i.e. 52000, 52001, 52002 if no explicit port was specified).
             
             let serverLaunchedRegex = try! NSRegularExpression( // swiftlint:disable:this force_try
-                pattern: #"Server starting on http://(\d+\.\d+\.\d+\.\d+):(\d+)$"#,
+                pattern: #"Server starting on (\d+\.\d+\.\d+\.\d+):(\d+)$"#,
                 options: [.anchorsMatchLines]
             )
             
@@ -231,10 +231,11 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
                 }
             }
             let request = try HTTPClient.Request(url: "http://localhost:80\(path)", method: .GET, headers: [:], body: nil)
+            print("[DP] [Tests] Send \(request.method) test request to \(request.url)")
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
-        try sendTestRequest(to: "/v1/") { httpResponse, data in
+        try sendTestRequest(to: "/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
@@ -243,7 +244,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
-        try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
+        try sendTestRequest(to: "/lh_textmut/?text=TUM") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
@@ -258,7 +259,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             responseExpectationV1TextMut.fulfill()
         }
         
-        try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
+        try sendTestRequest(to: "/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
                 let text: String
@@ -351,7 +352,11 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
     }
     
     func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
-        XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        if let error = error as? HTTPClientError {
+            XCTFail("Received HTTPClientError in \(Self.self): \(error.description)")
+        } else {
+            XCTFail("Received error in \(Self.self): \(error.localizedDescription)")
+        }
     }
     
     func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {

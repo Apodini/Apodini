@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "c2bb44275a82ec61de70e114d07eafc803d73f41",
-          "version": "0.1.4"
+          "revision": "b224604bedf270e4c08ba94bbfc1ebfd99c6b9ae",
+          "version": "0.2.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
         "state": {
           "branch": null,
-          "revision": "95109a6f3cf93a828d1b0adf2cdc299e31fe5e87",
-          "version": "0.2.1"
+          "revision": "b4e73a6f92bd0930c9f1f8a857504b85b943dd88",
+          "version": "0.3.0"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "1081b0b0541f535ca088acdb56f5ca5598bc6247",
-          "version": "1.6.3"
+          "revision": "70826d038d5bdc3142a386b735792d87ef7a5dfc",
+          "version": "1.8.1"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/fluent-kit.git",
         "state": {
           "branch": null,
-          "revision": "2f1af22f4d495bc6f35365e537c4bb5eb60c5f17",
-          "version": "1.18.0"
+          "revision": "c6cd5994f371b8e31b34f4339774cc25cf8a086a",
+          "version": "1.19.0"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "cd90cff19b892078c17baae08270707e3fc1590c",
-          "version": "5.11.0"
+          "revision": "48a92c71332480cdd493cfeae4e184a80f418595",
+          "version": "5.12.0"
         }
       },
       {
@@ -186,8 +186,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "988f0d906f5c76cf93c88fa5820f7c72e4b8fd98",
-          "version": "5.8.0"
+          "revision": "6ba2fddd0260da0621438bb1523e9aaea4eb9464",
+          "version": "5.9.1"
         }
       },
       {
@@ -348,8 +348,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "6aa9347d9bc5bbfe6a84983aec955c17ffea96ef",
-          "version": "2.33.0"
+          "revision": "213eb6887e526e0dfac526a2eae559a1893ebbac",
+          "version": "2.36.0"
         }
       },
       {
@@ -411,8 +411,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "b1c4df8f6c848c2e977726903bbe6578eed723ad",
-          "version": "2.2.0"
+          "revision": "ff8fbce837ef01a93d49c6fb49a72be0f150dac7",
+          "version": "2.3.0"
         }
       },
       {

@@ -161,6 +161,10 @@ extension WebService {
     
     /// Start up a web service using the specified application. Does not boot or run the web service. Intended primarily for testing purposes.
     func start(app: Application) {
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        metadata.collectMetadata(visitor)
+        app.storage[VersionStorageKey.self] = visitor.currentNode.peekValue(for: APIVersionContextKey.self) ?? APIVersionContextKey.defaultValue
+        
         /// Configure application and instanciate exporters
         self.configuration.configure(app)
         self.register(SemanticModelBuilder(app))
@@ -177,10 +181,7 @@ extension WebService {
     
     func accept(_ visitor: SyntaxTreeVisitor) {
         metadata.collectMetadata(visitor)
-
-        let version = visitor.currentNode.peekValue(for: APIVersionContextKey.self)
-        visitor.addContext(PathComponentContextKey.self, value: [version], scope: .environment)
-
+        
         visitor.visit(webService: self)
 
         if Content.self != Never.self {

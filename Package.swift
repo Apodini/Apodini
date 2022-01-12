@@ -13,7 +13,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v11)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
@@ -60,7 +60,8 @@ let package = Package(
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
 
         // Lukas' playground
-        .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
+        .executable(name: "LKTestWebService", targets: ["LKTestWebService"]),
+        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
@@ -73,8 +74,8 @@ let package = Package(
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
-        // Event-driven network application framework for high performance protocol servers & clients, non-blocking
-        .package(url: "https://github.com/apple/swift-nio.git", .upToNextMinor(from: "2.33.0")),
+        // Event-driven network application framework for high performance protocol servers & clients, non-blocking.
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.36.0"),
         // Bindings to OpenSSL-compatible libraries for TLS support in SwiftNIO
         .package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.16.0"),
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.18.0"),
@@ -83,7 +84,7 @@ let package = Package(
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
         // CLI-Argument parsing in the WebService and ApodiniDeploy
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.0")),
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.4")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
         .package(url: "https://github.com/wickwirew/Runtime.git", from: "2.2.4"),
@@ -115,11 +116,12 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.2.1")),
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
 
+        // GraphQL
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2")
     ],
     targets: [
@@ -181,6 +183,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
+                .product(name: "RESTMigrator", package: "ApodiniMigrator"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),

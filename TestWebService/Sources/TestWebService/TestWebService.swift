@@ -7,6 +7,7 @@
 //              
 
 import Apodini
+import ApodiniHTTP
 import ApodiniREST
 import ApodiniOpenAPI
 import ApodiniWebSocket
@@ -20,7 +21,7 @@ import ApodiniGRPC
 
 @main
 struct TestWebService: Apodini.WebService {
-    let greeterRelationship = Relationship(name: "greeter")
+    private static let greeterRelationship = Relationship(name: "greeter")
 
     @Argument(help: "Endpoint to expose OpenAPI specification")
     var openApiEndpoint: String = "oas"
@@ -29,17 +30,20 @@ struct TestWebService: Apodini.WebService {
         // Hello World! 👋
         Text("Hello World! 👋")
             .response(EmojiTransformer(emojis: "🎉"))
+            .pattern(.requestResponse)
 
         // Bigger Subsystems:
         AuctionComponent()
-        GreetComponent(greeterRelationship: greeterRelationship)
-        RandomComponent(greeterRelationship: greeterRelationship)
+        GreetComponent(greeterRelationship: TestWebService.greeterRelationship)
+        RandomComponent(greeterRelationship: TestWebService.greeterRelationship)
         SwiftComponent()
-        UserComponent(greeterRelationship: greeterRelationship)
+        UserComponent(greeterRelationship: TestWebService.greeterRelationship)
         WeatherComponent()
     }
     
     var configuration: Configuration {
+        HTTP(rootPath: "http")
+        
         REST {
             OpenAPI(
                 outputFormat: .json,

@@ -15,7 +15,7 @@ import ApodiniNetworking
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
 public struct MigratorDocumentStorageKey: Apodini.StorageKey {
-    public typealias Value = Document
+    public typealias Value = APIDocument
 }
 
 /// Identifying storage key for `ApodiniMigrator` ``MigrationGuide``
@@ -48,7 +48,7 @@ protocol MigratorItem: Encodable {
 }
 
 // MARK: - Document + MigratorItem
-extension Document: MigratorItem {
+extension APIDocument: MigratorItem {
     static var itemName: String {
         "API Document"
     }
@@ -70,20 +70,22 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     static var parameterNamespace: [ParameterNamespace] = .global
 
     private let app: Apodini.Application
-    private var document = Document()
     private let documentConfig: DocumentConfiguration?
     private let migrationGuideConfig: MigrationGuideConfiguration?
     private let logger = Logger(label: "org.apodini.migrator")
 
+    private var endpoints: [ApodiniMigratorCore.Endpoint] = []
+
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
-        self.documentConfig = configuration.documentConfig ?? app.storage.get(DocumentConfigStorageKey.self)
-        self.migrationGuideConfig = configuration.migrationGuideConfig ?? app.storage.get(MigrationGuideConfigStorageKey.self)
+        self.documentConfig = app.storage.get(DocumentConfigStorageKey.self) ?? configuration.documentConfig
+        self.migrationGuideConfig = app.storage.get(MigrationGuideConfigStorageKey.self) ?? configuration.migrationGuideConfig
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
+        let communicationalPattern = endpoint[Apodini.CommunicationalPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
         let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
 
@@ -114,13 +116,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
+            communicationalPattern: .init(communicationalPattern),
             absolutePath: absolutePath,
             parameters: params,
             response: response,
             errors: errors
         )
 
-        document.add(endpoint: migratorEndpoint)
+        endpoints.append(migratorEndpoint)
     }
 
     func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
@@ -128,15 +131,34 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
-        document.setServerPath(app.httpConfiguration.uriPrefix)
-        document.setVersion(.init(with: webService.context.get(valueFor: APIVersionContextKey.self)))
+        let http = HTTPInformation(
+            hostname: app.httpConfiguration.hostname.address,
+            port: app.httpConfiguration.hostname.port ??
+                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
+        )
+        let serviceInformation = ServiceInformation(
+            version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
+            http: http
+        )
+
+        var document = APIDocument(serviceInformation: serviceInformation)
+
+        // for now we assume existence of REST. Currently REST is the only supported anyways.
+        // we move to a dynamic approach once we fully support gRPC client generation.
+        document.add(exporter: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default))
+
+        for endpoint in endpoints {
+            document.add(endpoint: endpoint)
+        }
+        endpoints.removeAll()
+
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
         
-        handleDocument()
-        handleMigrationGuide()
+        handleDocument(document: document)
+        handleMigrationGuide(document: document)
     }
     
-    private func handleDocument() {
+    private func handleDocument(document: APIDocument) {
         guard let exportOptions = documentConfig?.exportOptions else {
             return logger.notice("No configuration provided to handle the document of the current version")
         }
@@ -144,7 +166,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         handle(document, with: exportOptions)
     }
     
-    private func handleMigrationGuide() {
+    private func handleMigrationGuide(document: APIDocument) {
         guard let migrationGuideConfig = migrationGuideConfig else {
             return logger.notice("No migration guide configurations provided")
         }
@@ -153,9 +175,9 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             let exportOptions = migrationGuideConfig.exportOptions
             var migrationGuide: MigrationGuide?
             if let migrationGuidePath = migrationGuideConfig.migrationGuidePath {
-                migrationGuide = try MigrationGuide.decode(from: migrationGuidePath.asPath)
+                migrationGuide = try MigrationGuide.decode(from: Path(migrationGuidePath))
             } else if let oldDocumentPath = migrationGuideConfig.oldDocumentPath {
-                migrationGuide = MigrationGuide(for: try Document.decode(from: oldDocumentPath.asPath), rhs: document)
+                migrationGuide = MigrationGuide(for: try APIDocument.decode(from: Path(oldDocumentPath)), rhs: document)
             }
             if let migrationGuide = migrationGuide {
                 handle(migrationGuide, with: exportOptions)

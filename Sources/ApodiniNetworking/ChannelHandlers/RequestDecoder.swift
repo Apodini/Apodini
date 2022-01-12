@@ -8,6 +8,7 @@
 
 import NIO
 import NIOHTTP1
+import struct Apodini.Hostname
 import Logging
 
 
@@ -29,9 +30,13 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     
     private var state: State = .ready
     private let logger: Logger
+    private let hostname: Hostname
+    private let isTLSEnabled: Bool
     
     
-    init() {
+    init(hostname: Hostname, isTLSEnabled: Bool) {
+        self.hostname = hostname
+        self.isTLSEnabled = isTLSEnabled
         logger = Logger(label: "\(Self.self)")
     }
     
@@ -40,7 +45,7 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
         let request = unwrapInboundIn(data)
         switch (state, request) {
         case (.ready, .head(let reqHead)):
-            guard let url = URI(string: reqHead.uri) else {
+            guard let url = URI(string: "\(hostname.uriPrefix(isTLSEnabled: isTLSEnabled))\(reqHead.uri)") else {
                 logger.error("received invalid url: '\(reqHead.uri)' (full req head: \(reqHead)")
                 handleError(context: context, requestVersion: reqHead.version, errorMessage: "Unable to process URL")
                 return

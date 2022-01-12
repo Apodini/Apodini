@@ -1,6 +1,5 @@
 summary: A summary of what changed between versions
-service-type: REST
-api-spec: Apodini DSL
+document-id: F1D7EDF0-7231-424E-B115-3A8057287807
 from: v_1.0.0
 to: v_1.0.0
 changes: []

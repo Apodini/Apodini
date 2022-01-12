@@ -34,6 +34,19 @@ public enum BindAddress: Equatable {
         let port = components.last.flatMap { Int($0) }
         return .interface(address!, port: port)
     }
+    
+    
+    /// Generates a address string representation based on the address, port and if TLS is enabled if no port is provided
+    /// - Parameter isTLSEnabled: If the server supports TLS, defaults to `true`
+    public func addressString(isTLSEnabled: Bool = true) -> String {
+        switch self {
+        case let .interface(hostname, port):
+            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+            return "\(hostname):\(portNumber)"
+        case .unixDomainSocket(let path):
+            return "unix:\(path)"
+        }
+    }
 }
 
 
@@ -50,6 +63,18 @@ public struct Hostname {
     public init(address: String, port: Int? = nil) {
         self.address = address
         self.port = port
+    }
+    
+    
+    /// Generates a URI prefix based on the address, port and if TLS is enabled if no port is provided
+    /// - Parameter isTLSEnabled: If the server supports TLS, defaults to `true`
+    public func uriPrefix(isTLSEnabled: Bool = true) -> String {
+        let portString: String
+        switch (port, isTLSEnabled) {
+        case (nil, _), (HTTPConfiguration.Defaults.httpPort, false), (HTTPConfiguration.Defaults.httpsPort, true): portString = ""
+        case let (.some(unwrappedPort), _): portString = ":\(unwrappedPort)"
+        }
+        return "http\(isTLSEnabled ? "s" : "")://\(address)\(portString)"
     }
 }
 
