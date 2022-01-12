@@ -7,6 +7,7 @@
 //              
 
 import Apodini
+import ApodiniHTTP
 import ApodiniREST
 import ApodiniOpenAPI
 import ApodiniWebSocket
@@ -39,6 +40,8 @@ struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
+        HTTP(rootPath: "http")
+        
         REST {
             OpenAPI(
                 outputFormat: .json,
