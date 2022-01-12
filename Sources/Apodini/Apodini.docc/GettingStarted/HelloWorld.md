@@ -104,11 +104,11 @@ HelloWorld.main()
 
 Now you can send a request to see your new server in action!
 
-Visit [http://localhost/v1](http://localhost/v1) will return:
+Visit [http://localhost](http://localhost) will return:
 ```swift
 "Hello, World!"
 ```
-or [http://localhost/v1?country=Italy](http://localhost/v1?country=Italy):
+or [http://localhost?country=Italy](http://localhost?country=Italy):
 ```swift
 "Hello, Italy!"
 ```

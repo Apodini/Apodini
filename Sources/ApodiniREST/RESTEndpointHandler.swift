@@ -20,6 +20,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     private let strategy: AnyDecodingStrategy<HTTPRequest>
+    private let rootPath: EndpointPath?
     let defaultStore: DefaultValueStore
     
     init(
@@ -41,6 +42,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
+        self.rootPath = exporterConfiguration.rootPath?.endpointPath(withVersion: app.version)
         self.defaultStore = endpoint[DefaultValueStore.self]
         self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }
@@ -89,7 +91,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
-                let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
+                let formatter = LinksFormatter(configuration: self.app.httpConfiguration, rootPath: rootPath)
                 var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
                 let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)

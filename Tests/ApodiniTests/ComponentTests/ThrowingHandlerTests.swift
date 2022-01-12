@@ -55,7 +55,7 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .internalServerError)
             let responseText = try XCTUnwrap(res.bodyStorage.getFullBodyDataAsString())
             XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")
@@ -74,7 +74,7 @@ class ThrowingErrorTests: ApodiniTests {
         
         TestWebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .internalServerError)
             let responseText = try XCTUnwrap(res.bodyStorage.getFullBodyDataAsString())
             XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")
@@ -94,7 +94,7 @@ class ThrowingErrorTests: ApodiniTests {
         
         WebService().start(app: app)
         
-        try app.testable().test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.status, .internalServerError)
             let responseText = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
             XCTAssertEqual(responseText, "MyError(reason: \"The operation failed\")")

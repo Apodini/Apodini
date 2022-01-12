@@ -78,8 +78,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
-        self.documentConfig = configuration.documentConfig ?? app.storage.get(DocumentConfigStorageKey.self)
-        self.migrationGuideConfig = configuration.migrationGuideConfig ?? app.storage.get(MigrationGuideConfigStorageKey.self)
+        self.documentConfig = app.storage.get(DocumentConfigStorageKey.self) ?? configuration.documentConfig
+        self.migrationGuideConfig = app.storage.get(MigrationGuideConfigStorageKey.self) ?? configuration.migrationGuideConfig
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {

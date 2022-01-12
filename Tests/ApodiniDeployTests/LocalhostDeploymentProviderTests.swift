@@ -91,9 +91,9 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         let launchDPExpectation = XCTestExpectation("Run deployment provider & launch web service")
         
         // Request handling expectations
-        let responseExpectationV1 = XCTestExpectation("Web Service response for /v1/ request")
-        let responseExpectationV1TextMut = XCTestExpectation("Web Service response for /v1/textMut/ request")
-        let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /v1/greet/ request")
+        let responseExpectationV1 = XCTestExpectation("Web Service response for / request")
+        let responseExpectationV1TextMut = XCTestExpectation("Web Service response for /textMut/ request")
+        let responseExpectationV1Greeter = XCTestExpectation("Web Service response for /greet/ request")
         
         /// Expectation that the servers spawned as part of launching the web service are all shut down
         let didShutDownNodesExpectation = XCTestExpectation(
@@ -235,7 +235,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             _ = httpClient.execute(request: request, delegate: delegate)
         }
         
-        try sendTestRequest(to: "/v1/") { httpResponse, data in
+        try sendTestRequest(to: "/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
             XCTAssertEqual(response, "change is")
@@ -244,7 +244,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
         
         let textMutPid = ThreadSafeVariable<pid_t?>(nil)
         
-        try sendTestRequest(to: "/v1/lh_textmut/?text=TUM") { httpResponse, data in
+        try sendTestRequest(to: "/lh_textmut/?text=TUM") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             let response = try JSONDecoder().decode(WrappedRESTResponse<ResponseWithPid<String>>.self, from: data).data
             XCTAssertEqual("tum", response.value)
@@ -259,7 +259,7 @@ class LocalhostDeploymentProviderTests: ApodiniDeployTestCase {
             responseExpectationV1TextMut.fulfill()
         }
         
-        try sendTestRequest(to: "/v1/lh_greet/Lukas/") { httpResponse, data in
+        try sendTestRequest(to: "/lh_greet/Lukas/") { httpResponse, data in
             XCTAssertEqual(.ok, httpResponse.status)
             struct GreeterResponse: Codable {
                 let text: String

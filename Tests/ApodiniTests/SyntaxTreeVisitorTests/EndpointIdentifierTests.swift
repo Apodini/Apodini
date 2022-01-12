@@ -29,7 +29,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         init(endpoint: AnyEndpoint) {
             self.init(
                 id: endpoint[AnyHandlerIdentifier.self].rawValue,
-                path: endpoint.absoluteRESTPath.asPathString(),
+                path: endpoint.absoluteRESTPath(rootPrefix: nil).asPathString(),
                 description: endpoint.description
             )
         }
@@ -65,8 +65,8 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0.0.0", path: "/v1/x", description: String(describing: type(of: Text("a")))),
-            EndpointSummary(id: "0.1.0", path: "/v1/x/y", description: String(describing: type(of: Text("b"))))
+            EndpointSummary(id: "0.0.0", path: "/x", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0.1.0", path: "/x/y", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
@@ -94,10 +94,10 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0.0", path: "/v1", description: String(describing: type(of: Text("a")))),
-            EndpointSummary(id: "0.1", path: "/v1", description: String(describing: type(of: Text("b")))),
-            EndpointSummary(id: "0.2.0", path: "/v1/x", description: String(describing: type(of: Text("c")))),
-            EndpointSummary(id: "0.3.0", path: "/v1/x/y", description: String(describing: type(of: Text("d"))))
+            EndpointSummary(id: "0.0", path: "", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0.1", path: "", description: String(describing: type(of: Text("b")))),
+            EndpointSummary(id: "0.2.0", path: "/x", description: String(describing: type(of: Text("c")))),
+            EndpointSummary(id: "0.3.0", path: "/x/y", description: String(describing: type(of: Text("d"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
@@ -122,8 +122,8 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0.0.0.0", path: "/v1/x/y/z", description: String(describing: type(of: Text("a")))),
-            EndpointSummary(id: "0.1", path: "/v1", description: String(describing: type(of: Text("b"))))
+            EndpointSummary(id: "0.0.0.0", path: "/x/y/z", description: String(describing: type(of: Text("a")))),
+            EndpointSummary(id: "0.1", path: "", description: String(describing: type(of: Text("b"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
@@ -154,7 +154,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         TestWebService().start(app: app)
         
         
-        try app.testable().test(.GET, "/v1/") { res in
+        try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
             
             struct Content: Decodable {
@@ -190,7 +190,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         let actualEndpoints: [EndpointSummary] = builder.collectedEndpoints.map(EndpointSummary.init)
         
         let expectedEndpoints: [EndpointSummary] = [
-            EndpointSummary(id: "0.0.0.0.0.0.0", path: "/v1", description: String(describing: type(of: Text("text"))))
+            EndpointSummary(id: "0.0.0.0.0.0.0", path: "", description: String(describing: type(of: Text("text"))))
         ]
         
         XCTAssert(actualEndpoints.compareIgnoringOrder(expectedEndpoints), "Expected: \(expectedEndpoints). Actual: \(actualEndpoints)")
