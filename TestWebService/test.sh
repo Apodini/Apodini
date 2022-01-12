@@ -7,4 +7,4 @@
 #
 
 curl --fail http://localhost/
-curl --fail http://localhost/rest
+curl --fail http://localhost/http
