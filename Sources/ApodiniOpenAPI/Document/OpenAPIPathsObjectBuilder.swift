@@ -34,17 +34,17 @@ struct OpenAPIPathBuilder: PathBuilderWithResult {
 struct OpenAPIPathsObjectBuilder {
     var pathsObject: OpenAPIKit.OpenAPI.PathItem.Map = [:]
     let componentsObjectBuilder: OpenAPIComponentsObjectBuilder
-    let versionAsRootPrefix: Version?
+    let rootPath: Apodini.EndpointPath?
     
-    init(componentsObjectBuilder: OpenAPIComponentsObjectBuilder, versionAsRootPrefix: Version?) {
+    init(componentsObjectBuilder: OpenAPIComponentsObjectBuilder, rootPath: EndpointPath?) {
         self.componentsObjectBuilder = componentsObjectBuilder
-        self.versionAsRootPrefix = versionAsRootPrefix
+        self.rootPath = rootPath
     }
     
     /// https://swagger.io/specification/#path-item-object
     mutating func addPathItem<H: Handler>(from endpoint: Endpoint<H>) {
         // Get OpenAPI-compliant path representation.
-        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: versionAsRootPrefix)
+        let absolutePath = endpoint.absoluteRESTPath(rootPrefix: rootPath)
         
         let path = absolutePath.build(with: OpenAPIPathBuilder.self)
 
@@ -67,7 +67,7 @@ private extension OpenAPIPathsObjectBuilder {
         let handlerContext = endpoint[Context.self]
 
         var defaultTag: String
-        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: versionAsRootPrefix)
+        let absolutePath = endpoint.absoluteRESTPath(rootPrefix: rootPath)
         
         // If parameter in path, get string component directly before first parameter component in path.
         if let index = absolutePath.firstIndex(where: { $0.isParameter() }), index > 0 {

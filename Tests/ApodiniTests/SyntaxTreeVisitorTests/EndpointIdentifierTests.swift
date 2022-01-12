@@ -29,7 +29,7 @@ final class HandlerIdentifierTests: ApodiniTests {
         init(endpoint: AnyEndpoint) {
             self.init(
                 id: endpoint[AnyHandlerIdentifier.self].rawValue,
-                path: endpoint.absoluteRESTPath(versionAsRootPrefix: nil).asPathString(),
+                path: endpoint.absoluteRESTPath(rootPrefix: nil).asPathString(),
                 description: endpoint.description
             )
         }

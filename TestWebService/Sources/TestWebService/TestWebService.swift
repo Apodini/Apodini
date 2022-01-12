@@ -39,7 +39,7 @@ struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
-        REST(versionAsRootPrefix: false) {
+        REST {
             OpenAPI(
                 outputFormat: .json,
                 outputEndpoint: openApiEndpoint,

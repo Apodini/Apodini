@@ -40,7 +40,7 @@ final class GuardTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                REST(versionAsRootPrefix: true)
+                REST(rootPath: .version)
             }
         }
         

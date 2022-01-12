@@ -11,7 +11,7 @@ import Foundation
 
 struct LinksFormatter: RelationshipFormatter {
     let configuration: HTTPConfiguration
-    let version: Version?
+    let rootPath: EndpointPath?
 
     func reduce(representation: String, of: RelationshipDestination, into: inout [String: String]) {
         into[of.name] = representation
@@ -22,13 +22,13 @@ struct LinksFormatter: RelationshipFormatter {
             return nil
         }
         
-        let versionPrefix: String
-        if let version = version {
-            versionPrefix = "/\(version.pathComponent)"
+        let _rootPath: String
+        if let rootPath = rootPath {
+            _rootPath = "/\(rootPath.description)"
         } else {
-            versionPrefix = ""
+            _rootPath = ""
         }
-        return configuration.uriPrefix + versionPrefix + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
+        return configuration.uriPrefix + _rootPath + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
     }
 }
 

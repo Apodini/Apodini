@@ -322,7 +322,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         WebService().register(builder)
         
-        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(versionAsRootPrefix: Version()).asPathString() }.sorted()
+        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(rootPrefix: Version().pathComponent).asPathString() }.sorted()
         
         let expectedEndpointPaths: [String] = [
             "/v1/api/user", "/v1/api/user", "/v1/api/post"

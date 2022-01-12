@@ -64,7 +64,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<HandlerParam>)
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: Version())
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: Version().pathComponent)
         pathsObjectBuilder.addPathItem(from: endpoint)
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
@@ -80,7 +80,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         webService.addEndpoint(&rendpoint, at: [$param, "first"])
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: nil)
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: nil)
         pathsObjectBuilder.addPathItem(from: endpoint)
         
         XCTAssertEqual(pathsObjectBuilder.pathsObject.count, 1)
@@ -99,7 +99,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         }
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: Version())
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: Version().pathComponent)
         
         
         let modelBuilder = SemanticModelBuilder(app)
@@ -137,7 +137,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         }
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: nil)
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: nil)
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -185,7 +185,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         }
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: nil)
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: nil)
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -255,7 +255,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         }
         
         let componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, versionAsRootPrefix: nil)
+        var pathsObjectBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsObjectBuilder, rootPath: .string("myprefix"))
         
         let modelBuilder = SemanticModelBuilder(app)
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
@@ -271,7 +271,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
         
         pathsObjectBuilder.addPathItem(from: endpoint)
         
-        let path = OpenAPI.Path(stringLiteral: "/test")
+        let path = OpenAPI.Path(stringLiteral: "/myprefix/test")
         let pathItem = OpenAPI.PathItem(get: OpenAPI.Operation(
             // As there is no custom tag in this case, `tags` is derived by rules (i.e., last appended string path compontent).
             tags: ["test"],

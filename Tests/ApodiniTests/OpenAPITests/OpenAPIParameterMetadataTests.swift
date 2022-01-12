@@ -30,7 +30,7 @@ final class OpenAPIParameterMetadataTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsBuilder, versionAsRootPrefix: Version())
+        var pathsBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsBuilder, rootPath: Version().pathComponent)
 
         let handler = TestHandlerQuery()
         handler.accept(visitor)

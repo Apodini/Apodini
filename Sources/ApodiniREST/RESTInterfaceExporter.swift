@@ -36,12 +36,17 @@ public final class REST: Configuration {
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     ///    - versionAsRootPrefix: Configures if the current web service version should be used as a prefix for all HTTP paths
-    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false, versionAsRootPrefix: Bool = false) {
+    public init(
+        encoder: AnyEncoder = defaultEncoder,
+        decoder: AnyDecoder = defaultDecoder,
+        caseInsensitiveRouting: Bool = false,
+        rootPath: REST.ExporterConfiguration.RootPath? = nil
+    ) {
         self.configuration = REST.ExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
             caseInsensitiveRouting: caseInsensitiveRouting,
-            versionAsRootPrefix: versionAsRootPrefix
+            rootPath: rootPath
         )
         self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
@@ -66,12 +71,14 @@ extension REST {
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     ///    - versionAsRootPrefix: Configures if the current web service version should be used as a prefix for all HTTP paths
     ///    - staticConfigurations: A result builder that allows passing dependent static Exporters like the OpenAPI Exporter
-    public convenience init(encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
-                            decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
-                            caseInsensitiveRouting: Bool = false,
-                            versionAsRootPrefix: Bool = false,
-                            @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }) {
-        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, versionAsRootPrefix: versionAsRootPrefix)
+    public convenience init(
+        encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
+        decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
+        caseInsensitiveRouting: Bool = false,
+        rootPath: REST.ExporterConfiguration.RootPath? = nil,
+        @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }
+    ) {
+        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, rootPath: rootPath)
         self.staticConfigurations = staticConfigurations()
     }
 }
@@ -93,7 +100,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         var pathBuilder = RESTPathBuilder()
         let relationshipEndpoint = endpoint[AnyRelationshipEndpointInstance.self].instance
 
-        let absolutePath = endpoint.absoluteRESTPath(versionAsRootPrefix: exporterConfiguration.versionAsRootPrefix ? app.version : nil)
+        let absolutePath = endpoint.absoluteRESTPath(rootPrefix: exporterConfiguration.rootPath?.endpointPath(withVersion: app.version))
         absolutePath.build(with: &pathBuilder)
         
         let operation = endpoint[Operation.self]
@@ -142,7 +149,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             // if the root path doesn't have a read endpoint we create a custom one, to deliver linking entry points.
             let relationships = relationshipModel.rootRelationships(for: .read)
             let handler = RESTDefaultRootHandler(app: app, exporterConfiguration: exporterConfiguration, relationships: relationships)
-            handler.register(on: app, version: exporterConfiguration.versionAsRootPrefix ? app.version : nil)
+            handler.register(on: app, rootPath: exporterConfiguration.rootPath?.endpointPath(withVersion: app.version))
             app.logger.info("Auto exported '\(HTTPMethod.GET.rawValue) /'")
             for relationship in relationships {
                 app.logger.info("  - links to: \(relationship.destinationPath.asPathString())")
@@ -157,10 +164,10 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
 extension AnyEndpoint {
     /// RESTInterfaceExporter exports `@Parameter(.http(.path))`, which are not listed on the
     /// path-elements on the `Component`-tree as additional path elements at the end of the path.
-    public func absoluteRESTPath(versionAsRootPrefix version: Version?) -> [EndpointPath] {
+    public func absoluteRESTPath(rootPrefix: EndpointPath?) -> [EndpointPath] {
         var path = self[EndpointPathComponentsHTTP.self].value
-        if let version = version {
-            path.insert(version.pathComponent, at: 1)
+        if let rootPrefix = rootPrefix {
+            path.insert(rootPrefix, at: 1)
         }
         return path
     }
