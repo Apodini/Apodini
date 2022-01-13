@@ -176,7 +176,7 @@ struct Exporter: InterfaceExporter {
     private func path(from knowledge: HTTPEndpointKnowledge) -> [HTTPPathComponent] {
         var path = knowledge.path
         if let rootPath = configuration.rootPath {
-            path.insert(.verbatim(rootPath.endpointPath(withVersion: app.version).description), at: 0)
+            path.insert(.constant(rootPath.endpointPath(withVersion: app.version).description), at: 0)
         }
         return path
     }

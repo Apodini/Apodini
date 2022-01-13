@@ -354,11 +354,11 @@ struct LKTestWebService: Apodini.WebService {
         }
         Group("rocket") {
             Rocket()
-                .endpointName("rocket")
+//                .endpointName("rocket")
         }
         Group("rocketBlob") {
             RocketBlob()
-                .endpointName("rocketBlob")
+//                .endpointName("rocketBlob")
         }
         Group("throw") {
             ThrowingHandler()
@@ -388,7 +388,7 @@ struct LKTestWebService: Apodini.WebService {
         //BlockBasedHandler<Int>
         AddBook()
             .operation(.create)
-            .endpointName("AddBook")
+//            .endpointName("AddBook")
         
         Group("music") {
             MusicLibraryWebService()
@@ -397,7 +397,7 @@ struct LKTestWebService: Apodini.WebService {
     
     var configuration: Configuration {
         HTTPConfiguration(
-            //hostname: .init(address: "localhost", port: 50001),
+            hostname: .init(address: "localhost", port: 50001),
             bindAddress: .interface("localhost", port: 50001),
             tlsConfigurationBuilder: TLSConfigurationBuilder(
                 certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",

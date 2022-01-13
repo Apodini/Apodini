@@ -25,7 +25,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     enum SchemaError: Swift.Error {
         case unableToConstructInputType(TypeInformation, underlying: Swift.Error?)
         case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
-        case noEndpointNameSpecified(AnyEndpoint)
+        //case noEndpointNameSpecified(AnyEndpoint)
         // Two or more handlers have defined the same key
         case duplicateEndpointNames(String)
         
@@ -117,9 +117,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     
     private func addQueryOrMutationEndpoint<H: Handler>(to handlers: inout [String: GraphQLField], endpoint: Endpoint<H>) throws {
         try assertSchemaMutable()
-        guard let endpointName = endpoint.getEndointName(format: .camelCase) else {
-            throw SchemaError.noEndpointNameSpecified(endpoint)
-        }
+//        guard let endpointName = endpoint.getEndointName(.noun, format: .camelCase) else {
+//            throw SchemaError.noEndpointNameSpecified(endpoint)
+//        }
+        let endpointName = endpoint.getEndointName(.noun, format: .camelCase)
         guard !handlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateEndpointNames(endpointName)
         }
@@ -150,7 +151,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 .evaluate(on: delegate)
             return responseFuture // TODO does this need to be wrapped in some kind of dedicated data structure?
                 .map { $0.content }
-                .inspect { print("result for \(endpoint.getEndointName(format: .verbatim) as Any): \($0)") }
+                .inspect { print("result for \(endpoint.getEndointName(.noun, format: .verbatim) as Any): \($0)") }
                 .map { $0 }
             
         }
@@ -302,8 +303,9 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                     )
                 )
             }
+            print("NAME", name.buildName())
             return .init(inputAndOutputType: try GraphQLEnumType(
-                name: name.name,
+                name: name.buildName(),
                 description: nil,
                 values: cases.mapIntoDict { enumCase -> (String, GraphQLEnumValue) in
                     (enumCase.name, GraphQLEnumValue(value: .string(enumCase.name)))
@@ -312,15 +314,16 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         case let .object(name, properties, context: _):
             // TODO we have to make sure that the name used here is one we can also get from a raw Any.Type object (though of course we could just call out to ATI again), since in the case of recursive/circular types, we need to be able to create a GraphQLTypeReference object (which works based on the name...)
             // ^^^ TODO is this the correct name? what about generics? there's also an `absoluteName()` function, maybe that's better...
+            print("NAME", name.buildName())
             return .init(
                 inputType: try GraphQLInputObjectType(
-                    name: "\(name.name)__Input",
+                    name: "\(name.buildName())__Input",
                     fields: try properties.mapIntoDict { property -> (String, InputObjectField) in
                         (property.name, InputObjectField(type: try toGraphQLInputType(property.type)))
                     }
                 ),
                 outputType: try GraphQLObjectType(
-                    name: name.name,
+                    name: name.buildName(),
                     description: nil, // TODO?
                     fields: try properties.mapIntoDict { property -> (String, GraphQLField) in
                         (property.name, GraphQLField(type: try toGraphQLOutputType(property.type)))
