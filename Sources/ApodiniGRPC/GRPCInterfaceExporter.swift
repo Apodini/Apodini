@@ -109,7 +109,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationalPattern.self]
-        let methodName = endpoint.getEndointName(.verb, format: .PascalCase)
+        let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
         let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) ?? config.serviceName

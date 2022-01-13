@@ -107,15 +107,15 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
                 Group("api") {
-                    Text("").gRPCMethodName("GetPosts")
-                    Text("").gRPCMethodName("AddPost")
-                    Text("").gRPCMethodName("DeletePost")
+                    Text("").endpointName("GetPosts")
+                    Text("").endpointName("AddPost")
+                    Text("").endpointName("DeletePost")
                 }.gRPCServiceName("API")
             }
         }
@@ -197,21 +197,21 @@ extension GRPCInterfaceExporterTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
-                EchoHandler<String>().gRPCMethodName("EchoString")
-                EchoHandler<Int>().gRPCMethodName("EchoInt")
-                EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
+                EchoHandler<String>().endpointName("EchoString")
+                EchoHandler<Int>().endpointName("EchoInt")
+                EchoHandler<[Double]>().endpointName("EchoDoubles")
                 Group("api") {
-                    Text("A").gRPCMethodName("GetPost")
-                    Text("B").gRPCMethodName("AddPost")
-                    Text("C").gRPCMethodName("DeletePost")
-                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
-                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-                    BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+                    Text("A").endpointName("GetPost")
+                    Text("B").endpointName("AddPost")
+                    Text("C").endpointName("DeletePost")
+                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
+                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
+                    BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
                 }.gRPCServiceName("API")
             }
         }
@@ -317,7 +317,7 @@ extension GRPCInterfaceExporterTests {
     func testServiceSideStreamingEndpoint() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
-                Rocket().gRPCMethodName("RocketCountdown")
+                Rocket().endpointName("RocketCountdown")
             }
         }
         
@@ -382,7 +382,7 @@ extension GRPCInterfaceExporterTests {
             var content: some Component {
                 ClientSideStreamingGreeter()
                     .pattern(.clientSideStream)
-                    .gRPCMethodName("Greet")
+                    .endpointName("Greet")
             }
         }
         
@@ -432,22 +432,19 @@ extension GRPCInterfaceExporterTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
-//                EchoHandler<String>().gRPCMethodName("EchoString")
-//                EchoHandler<Int>().gRPCMethodName("EchoInt")
-//                EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
                 Group("api") {
-                    Text("A").gRPCMethodName("GetPost")
-                    Text("B").gRPCMethodName("AddPost")
-                    Text("C").gRPCMethodName("DeletePost")
-                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
-                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-                    BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.gRPCMethodName("ListIDs2")
-                    BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+                    Text("A").endpointName("GetPost")
+                    Text("B").endpointName("AddPost")
+                    Text("C").endpointName("DeletePost")
+                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
+                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
+                    BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.endpointName("ListIDs2")
+                    BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
                 }.gRPCServiceName("API")
             }
         }

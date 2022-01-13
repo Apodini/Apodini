@@ -20,7 +20,11 @@ public class GraphQLConfig: Configuration { // Not called GraphQL bc that'd clas
     fileprivate let enableGraphiQL: Bool
     fileprivate let graphiQLEndpoint: [HTTPPathComponent]
     
-    public init(graphQLEndpoint: [HTTPPathComponent] = "/graphql", enableGraphiQL: Bool = false, graphiQLEndpoint: [HTTPPathComponent] = "/graphiql") {
+    public init(
+        graphQLEndpoint: [HTTPPathComponent] = "/graphql",
+        enableGraphiQL: Bool = false,
+        graphiQLEndpoint: [HTTPPathComponent] = "/graphiql"
+    ) {
         precondition(graphQLEndpoint.allSatisfy(\.isConstant), "GraphQL endpoint must be a constant path")
         precondition(graphiQLEndpoint.allSatisfy(\.isConstant), "GraphiQL endpoint must be a constant path")
         self.graphQLEndpoint = graphQLEndpoint
@@ -45,7 +49,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         self.app = app
         self.config = config
         self.logger = Logger(label: "\(app.logger.label).GraphQL")
-        self.schemaBuilder =  GraphQLSchemaBuilder()
+        self.schemaBuilder = GraphQLSchemaBuilder()
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -59,8 +63,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
             default:
                 fatalError("\(error)")
             }
-        }
-        catch {
+        } catch {
             fatalError("\(error)")
         }
     }
@@ -130,7 +133,7 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
     let name: String
     
     func decode(from input: Input) throws -> T {
-        guard let value = try input.dictionaryValue(converting: false /*TODO true?*/)[name] else {
+        guard let value = try input.dictionaryValue(converting: true)[name] else {
             throw Error(message: "Unable to find parameter named '\(name)' (T: \(T.self))")
         }
         // TODO now we need to somehow "decode" the expected type from the parameter...

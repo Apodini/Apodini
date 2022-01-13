@@ -328,19 +328,14 @@ struct AddBook: Handler {
 struct LKTestWebService: Apodini.WebService {
     var content: some Component {
         Text("Hello World!")
-//            .gRPCMethodName("root")
-//            .graphqlRootQueryFieldName("root")
             .endpointName("root")
         Group("greet") {
             Greeter()
-//                .gRPCMethodName("greet")
-//                .graphqlRootQueryFieldName("greet")
                 .endpointName("greet")
         }
         Group("greet2") {
             Greeter2()
                 .endpointName("greet2")
-//                .graphqlRootQueryFieldName("greet2")
         }
         Group("greet_cs") {
             StreamingGreeter_CS()

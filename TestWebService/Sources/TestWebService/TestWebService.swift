@@ -53,11 +53,6 @@ struct TestWebService: Apodini.WebService {
             )
         }
         
-        HTTPConfiguration(tlsConfigurationBuilder: .init(
-            certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
-            keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
-        ))
-        
         WebSocket()
         
         Migrator()

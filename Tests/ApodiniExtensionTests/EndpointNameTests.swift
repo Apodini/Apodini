@@ -51,11 +51,11 @@ class EndpointNameTests: XCTApodiniTest {
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<AddUser>)
         
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .PascalCase), "User")
+        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "User")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "user")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .verbatim), "AddUser")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "addUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .PascalCase), "AddUser")
+        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "AddUser")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "add_user")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .verbatim), "AddUser")
     }
@@ -69,11 +69,11 @@ class EndpointNameTests: XCTApodiniTest {
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GetUser>)
         
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .PascalCase), "User")
+        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "User")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "user")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .verbatim), "GetUser")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "getUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .PascalCase), "GetUser")
+        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "GetUser")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "get_user")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .verbatim), "GetUser")
     }
@@ -88,11 +88,11 @@ class EndpointNameTests: XCTApodiniTest {
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<Text>)
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "retryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .PascalCase), "RetryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "RetryFailedTransactions")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "retry_failed_transactions")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .verbatim), "RetryFailedTransactions")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "getRetryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .PascalCase), "GetRetryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "GetRetryFailedTransactions")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "get_retry_failed_transactions")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .verbatim), "RetryFailedTransactions")
     }
@@ -107,13 +107,12 @@ class EndpointNameTests: XCTApodiniTest {
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<Text>)
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .PascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
         XCTAssertEqual(endpoint.getEndointName(.noun, format: .verbatim), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .PascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
         XCTAssertEqual(endpoint.getEndointName(.verb, format: .verbatim), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        
     }
 }

@@ -661,12 +661,12 @@ public class ProtoSchema {
     }
     
     
-    private func combineIntoCompoundMessageType(
+    private func combineIntoCompoundMessageType( // swiftlint:disable:this cyclomatic_complexity
         typename: ProtoTypename,
         underlyingType: Any.Type?,
         elements: [(String, Any.Type)]
     ) throws -> ProtoType {
-        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection
+        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection cyclomatic_complexity
             guard let messageTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type else {
                 return nil
             }

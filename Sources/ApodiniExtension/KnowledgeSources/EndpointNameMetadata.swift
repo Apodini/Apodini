@@ -12,10 +12,12 @@ import Apodini
 
 
 extension HandlerMetadataNamespace {
+    /// Endpoint name
     public typealias EndpointName = EndpointNameMetadata
 }
 
 
+/// Endpoint name metadata input
 public enum EndpointNameMetadataInput {
     /// A string which should be used as the basis for generating a good endpoint name
     case name(String)
@@ -31,11 +33,13 @@ public struct EndpointNameMetadata: HandlerMetadataDefinition {
         public typealias Value = EndpointNameMetadataInput
     }
     public let value: EndpointNameMetadataInput
-
+    
+    /// Create a new endpoint name from the specified input
     public init(_ value: EndpointNameMetadataInput) {
         self.value = value
     }
     
+    /// Create a new endpoint name from the specified string
     public init(_ name: String) {
         self.init(.name(name))
     }
@@ -43,14 +47,17 @@ public struct EndpointNameMetadata: HandlerMetadataDefinition {
 
 
 extension Handler {
+    /// Define a custom endpoint name for this handler's resulting endpoint.
     public func endpointName(_ name: String) -> HandlerMetadataModifier<Self> {
         HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.name(name)))
     }
     
+    /// Define a custom endpoint name for this handler's resulting endpoint.
     public func endpointName(noun: String, verb: String) -> HandlerMetadataModifier<Self> {
         HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.noun(noun, verb: verb)))
     }
     
+    /// Define a custom endpoint name for this handler's resulting endpoint.
     public func endpointName(fixed name: String) -> HandlerMetadataModifier<Self> {
         HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.verbatimName(name)))
     }
@@ -58,13 +65,23 @@ extension Handler {
 
 
 extension Endpoint {
-    public enum EndpointNamePartOfSpeech { // TODO while this may be technically the correct name, it is also an extremely bad choice. Call it variant?
-        case noun, verb
+    /// Endpoint name generation variant.
+    public enum EndpointNamePartOfSpeech {
+        /// The endpoint name should be returned as a noun (best effort)
+        case noun
+        /// The endpoint name should be returned as a verb (best effort)
+        case verb
     }
+    
+    /// Formatting option for an endpoint name
     public enum EndpointNameFormat {
+        /// No formatting should be applied to the endpoint name.
         case verbatim
+        /// The endpoint name should be formatted using `camelCase`
         case camelCase
-        case PascalCase
+        /// The endpoint name should be formatted using `PascalCase`
+        case pascalCase
+        /// The endpoint name should be formatted using `snakeCase`
         case snakeCase
     }
     
@@ -73,7 +90,10 @@ extension Endpoint {
     /// - Note: This is a best-effort implementation, and there is no guarantee that the resulting name will make sense or even be unique within the web service.
     /// - parameter preferredOutputType: Whether the resulting name should be e.g. a noun or a verb
     /// - parameter format: How the resulting string should be formatted, e.g. using `camelCase`, `snake_case`, or others
-    public func getEndointName(_ preferredOutputType: EndpointNamePartOfSpeech, format outputFormat: EndpointNameFormat) -> String {
+    public func getEndointName( // swiftlint:disable:this cyclomatic_complexity
+        _ preferredOutputType: EndpointNamePartOfSpeech,
+        format outputFormat: EndpointNameFormat
+    ) -> String {
         let nameInput: EndpointNameMetadataInput = self[Context.self].get(valueFor: EndpointNameMetadata.Key.self) ?? .name("\(H.self)")
         if case .verbatimName(let name) = nameInput {
             return name
@@ -82,7 +102,7 @@ extension Endpoint {
             switch nameInput {
             case .name(let name):
                 return name
-            case .noun(let noun, let verb):
+            case let .noun(noun, verb):
                 switch preferredOutputType {
                 case .noun:
                     return noun
@@ -99,7 +119,7 @@ extension Endpoint {
                 return nameBase
             case .camelCase:
                 return nameComponents.camelCase()
-            case .PascalCase:
+            case .pascalCase:
                 return nameComponents.pascalCase()
             case .snakeCase:
                 return nameComponents.snakeCase()

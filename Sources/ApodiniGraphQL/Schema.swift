@@ -21,27 +21,21 @@ extension TypeInformation {
 }
 
 
-class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ the GraphQL package's equally-named type
+class GraphQLSchemaBuilder {
     enum SchemaError: Swift.Error {
         case unableToConstructInputType(TypeInformation, underlying: Swift.Error?)
         case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
-        //case noEndpointNameSpecified(AnyEndpoint)
         // Two or more handlers have defined the same key
         case duplicateEndpointNames(String)
-        
         case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationalPattern)
-        // Somewhere while handling a type, the schema encountered a `Swift.Never` type (which can't be represented in GraphQL)
-        // ^^ TODO can we somehow represent these anyway?
-        case unexpectedNeverType
         /// There must be at least one query handler (i.e. an unary handler w/ a `.read` operation type) in the web service
         case missingQueryHandler
-        
         case other(String)
     }
     
     
-    private enum GraphQLTypeUsageContext { // TODO drop the GraphQL prefix
-        case input, output, fieldInObject // TODO is the last one here still needed?
+    private enum TypeUsageContext {
+        case input, output
     }
     
     
@@ -59,28 +53,28 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
             self.output = type
         }
         
-//        var asOutputType: GraphQLOutputType { output }
-        //var asInputType: GraphQLInputType { input ?? (output as! GraphQLInputType) }
-        
-        func map(input inputTransform: (GraphQLInputType) -> GraphQLInputType, output outputTransform: (GraphQLOutputType) -> GraphQLOutputType) -> Self {
+        func map(
+            input inputTransform: (GraphQLInputType) -> GraphQLInputType,
+            output outputTransform: (GraphQLOutputType) -> GraphQLOutputType
+        ) -> Self {
             Self(
                 inputType: input.map(inputTransform),
                 outputType: outputTransform(output)
             )
         }
         
-        func type(for usageCtx: GraphQLTypeUsageContext) -> GraphQLType? {
+        func type(for usageCtx: TypeUsageContext) -> GraphQLType? {
             switch usageCtx {
             case .input:
                 return self.input
-            case .output, .fieldInObject:
+            case .output:
                 return self.output
             }
         }
     }
     
     
-    // key: field name on the root query thing // TODO improve and move away from putting everyting into the root query!!!
+    // key: field name on the root query thing
     private var queryHandlers: [String: GraphQLField] = [:]
     private var mutationHandlers: [String: GraphQLField] = [:]
     
@@ -117,9 +111,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     
     private func addQueryOrMutationEndpoint<H: Handler>(to handlers: inout [String: GraphQLField], endpoint: Endpoint<H>) throws {
         try assertSchemaMutable()
-//        guard let endpointName = endpoint.getEndointName(.noun, format: .camelCase) else {
-//            throw SchemaError.noEndpointNameSpecified(endpoint)
-//        }
         let endpointName = endpoint.getEndointName(.noun, format: .camelCase)
         guard !handlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateEndpointNames(endpointName)
@@ -136,24 +127,16 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     private func makeQueryOrMutationFieldResolver<H: Handler>(for endpoint: Endpoint<H>) -> GraphQLFieldResolve {
         let defaults = endpoint[DefaultValueStore.self]
         let delegateFactory = endpoint[DelegateFactory<H, GraphQLInterfaceExporter>.self]
-        return { source, args, context, eventLoopGroup, info in
-            print("source: \(source)")
-            print("args: \(args)")
-            print("context: \(context)")
-            print("eventLoopGroup: \(eventLoopGroup)")
-            print("info: \(info)")
+        return { _, args, _, eventLoopGroup, _ -> EventLoopFuture<Any?> in
             let delegate = delegateFactory.instance()
             let decodingStrategy = GraphQLEndpointDecodingStrategy().applied(to: endpoint).typeErased
             let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
-                .decodeRequest(from: args, with: DefaultRequestBasis(), with: eventLoopGroup.next()) // TODO request basis!!!
+                .decodeRequest(from: args, with: DefaultRequestBasis(), with: eventLoopGroup.next())
                 .insertDefaults(with: defaults)
                 .cache()
                 .evaluate(on: delegate)
-            return responseFuture // TODO does this need to be wrapped in some kind of dedicated data structure?
+            return responseFuture
                 .map { $0.content }
-                .inspect { print("result for \(endpoint.getEndointName(.noun, format: .verbatim) as Any): \($0)") }
-                .map { $0 }
-            
         }
     }
     
@@ -161,7 +144,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     private func addSubscriptionEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
         throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
     }
-    
     
     
     private func toGraphQLInputType(_ typeInfo: TypeInformation) throws -> GraphQLInputType {
@@ -176,6 +158,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         }
     }
     
+    
     private func toGraphQLOutputType(_ typeInfo: TypeInformation) throws -> GraphQLOutputType {
         do {
             return try toGraphQLType(typeInfo, for: .output).output
@@ -188,9 +171,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     private var currentTypeStack: Stack<TypeInformation> = []
     
     
-    
-    
-    private func toGraphQLType(_ typeInfo: TypeInformation, for usageCtx: GraphQLTypeUsageContext) throws -> TypesCacheEntry {
+    private func toGraphQLType(_ typeInfo: TypeInformation, for usageCtx: TypeUsageContext) throws -> TypesCacheEntry {
         if let cached = cachedTypeMappings[typeInfo] {
             return cached
         }
@@ -212,20 +193,15 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     }
     
     
-    
-    
-    private func _toGraphQLType(_ typeInfo: TypeInformation, for usageCtx: GraphQLTypeUsageContext) throws -> TypesCacheEntry {
+    private func _toGraphQLType(_ typeInfo: TypeInformation, for usageCtx: TypeUsageContext) throws -> TypesCacheEntry { // swiftlint:disable:this cyclomatic_complexity line_length
         precondition(!currentTypeStack.contains(typeInfo))
-        
         if let cached = cachedTypeMappings[typeInfo] {
             return cached
         }
-        
         currentTypeStack.push(typeInfo)
         defer {
             precondition(currentTypeStack.pop() == typeInfo)
         }
-        
         switch typeInfo {
         case .scalar(let primitiveType):
             switch primitiveType {
@@ -247,7 +223,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 return .init(inputAndOutputType: GraphQLString)
             case .url:
                 // We could also define our own URL scalar, though that might not work with all clients...
-                //return .init(inputAndOutputType: GraphQLString) // TODO this will absolutely break.
                 return .init(inputAndOutputType: try GraphQLScalarType(
                     name: "URL",
                     description: "Uniform Resource Locator",
@@ -285,11 +260,10 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
             fatalError("optional: \(wrappedValue)")
         case let .enum(name, rawValueType: _, cases, context: _):
             if typeInfo.isEqual(to: Never.self) {
-//                throw SchemaError.unexpectedNeverType
                 // The Never type can't really be represented in GraphQL.
                 // We essentially have 2 options:
                 // 1. Map this into a field w/ an empty return type (i.e. a type that has no fields, and thus can't be instantiatd. though the same thing doesnt work for enums...)
-                let desc = "The Never type exists to model a type which cannot be instantiated, and is used to indicate that a field does not return a result, but instead will result in a guaranteed error."
+                let desc = "The Never type exists to model a type which cannot be instantiated, and is used to indicate that a field does not return a result, but instead will result in a guaranteed error." // swiftlint:disable:this line_length
                 return .init(
                     inputType: try GraphQLInputObjectType(
                         name: "Never",
@@ -303,7 +277,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                     )
                 )
             }
-            print("NAME", name.buildName())
             return .init(inputAndOutputType: try GraphQLEnumType(
                 name: name.buildName(),
                 description: nil,
@@ -314,7 +287,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         case let .object(name, properties, context: _):
             // TODO we have to make sure that the name used here is one we can also get from a raw Any.Type object (though of course we could just call out to ATI again), since in the case of recursive/circular types, we need to be able to create a GraphQLTypeReference object (which works based on the name...)
             // ^^^ TODO is this the correct name? what about generics? there's also an `absoluteName()` function, maybe that's better...
-            print("NAME", name.buildName())
             return .init(
                 inputType: try GraphQLInputObjectType(
                     name: "\(name.buildName())__Input",
@@ -324,7 +296,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
                 ),
                 outputType: try GraphQLObjectType(
                     name: name.buildName(),
-                    description: nil, // TODO?
+                    description: nil,
                     fields: try properties.mapIntoDict { property -> (String, GraphQLField) in
                         (property.name, GraphQLField(type: try toGraphQLOutputType(property.type)))
                     }
@@ -344,7 +316,7 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         for parameter in endpoint.parameters {
             argsMap[parameter.name] = GraphQLArgument(
                 type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
-                description: "todo?",
+                description: nil,
                 defaultValue: try { () -> Map? in
                     if let paramDefaultValueBlock = parameter.typeErasedDefaultValue {
                         return try map(from: paramDefaultValueBlock())
@@ -360,7 +332,6 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
     }
     
     
-    
     @discardableResult
     func finalize() throws -> GraphQLSchema {
         if let finalizedSchema = finalizedSchema {
@@ -372,12 +343,12 @@ class GraphQLSchemaBuilder { // Can't call it GraphQLSchema bc that'd clash w/ t
         self.finalizedSchema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
-                description: "The query type contains all query-mapped handlers in a web service, i.e. all `Handler`s with a `.read` operation type and the unary communicational pattern.",
+                description: "The query type contains all query-mapped handlers in a web service, i.e. all `Handler`s with a `.read` operation type and the unary communicational pattern.", // swiftlint:disable:this line_length
                 fields: queryHandlers
             ),
             mutation: mutationHandlers.isEmpty ? nil : GraphQLObjectType(
                 name: "Mutation",
-                description: "todo",
+                description: nil,
                 fields: mutationHandlers
             )
         )

@@ -83,15 +83,13 @@ struct GraphQLQueryHTTPResponder: HTTPResponder {
             graphQLRequest = GraphQLRequest(query: query, variables: variables, operationName: operationName)
         case .POST:
             switch httpRequest.headers[.contentType]! {
-            case .json, .json(charset: nil): // TODO do we have to explicitly support all of these here? or would it make more sense to define the pattern matching/equality checks in a way that it only considers the type and subtype, but ignores stuff like the charset?
+            case .json, .json(charset: nil):
                 graphQLRequest = try wrappingError(
                     try httpRequest.bodyStorage.getFullBodyData(decodedAs: GraphQLRequest.self, using: JSONDecoder()),
                     errorPrefix: "Error decoding request body"
-                    )
+                )
             case .graphQL:
-                // According to https://graphql.org/learn/serving-over-http/ , in this case the body contains the query string
-                // TODO where do we get the other things from?
-                // have a look at the url query params anyway?
+                // According to https://graphql.org/learn/serving-over-http/ in this case the body contains the query string
                 graphQLRequest = GraphQLRequest(
                     query: httpRequest.bodyStorage.getFullBodyDataAsString()!,
                     variables: [:],
@@ -115,7 +113,6 @@ struct GraphQLQueryHTTPResponder: HTTPResponder {
         } catch {
             // We caught an error while evaluating the request, but it is not a GraphQLError.
             // This usually means that something else (e.g. somewhere in Apodini) failed.
-            // TODO do we really want to just leak this error?
             throw error
         }
     }

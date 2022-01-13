@@ -41,10 +41,10 @@ struct Album: Codable, Content, Hashable {
 struct AlbumQueryResponse: Decodable, Hashable {
     let title: String?
     let artist: String?
-    let genres: [Genre]?
-    let songs: [Song]?
+    let genres: [Genre]? // swiftlint:disable:this discouraged_optional_collection
+    let songs: [Song]? // swiftlint:disable:this discouraged_optional_collection
     
-    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) {
+    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) { // swiftlint:disable:this discouraged_optional_collection line_length
         self.title = title
         self.artist = artist
         self.genres = genres
@@ -162,7 +162,6 @@ struct TestWebService: WebService {
         AddAlbumHandler()
             .operation(.create)
             .endpointName("addAlbum")
-        
     }
 }
 
@@ -263,7 +262,7 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
     }
     
     
-    func _testAlbumsQuery(
+    func _testAlbumsQuery( // swiftlint:disable:this identifier_name
         parameters: [String: String],
         variables: [String: (type: String, value: Map)] = [:],
         expectedResponse: [AlbumQueryResponse]
@@ -282,14 +281,13 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
             variables: variables.mapValues(\.value),
             operationName: nil
         )
-        print(gqlRequest.query)
         try app.testable().test(
-            .POST, "/graphql",
+            .POST,
+            "/graphql",
             headers: HTTPHeaders { $0[.contentType] = .json },
             body: try JSONEncoder().encodeAsByteBuffer(gqlRequest, allocator: ByteBufferAllocator())
         ) { res in
             XCTAssertEqual(res.status, .ok)
-            print("RES", res.bodyStorage.getFullBodyDataAsString())
             struct Response: Decodable, Hashable {
                 let albums: [AlbumQueryResponse]
             }
@@ -373,7 +371,7 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
                 .init(addAlbum: Album(title: "...And I Return To Nothingness", artist: "Lorna Shore", genres: [.deathcore], songs: [
                     Song(title: "To The Hellfire"),
                     Song(title: "Of The Abyss"),
-                    Song(title: "...And I Return To Nothingness"),
+                    Song(title: "...And I Return To Nothingness")
                 ]))
             )
         }

@@ -162,7 +162,7 @@ extension String {
     
     
     /// Attempts to split the string into its individual words.
-    public func splitIntoWords(delimiters: [SplitIntoWordDelimiter]) -> [String] { // swiftlint:disable:this cyclomatic_complexity
+    public func splitIntoWords(delimiters: [SplitIntoWordDelimiter]) -> [String] {
         guard !self.isEmpty else {
             return []
         }
