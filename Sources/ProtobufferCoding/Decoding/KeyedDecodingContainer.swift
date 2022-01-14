@@ -292,6 +292,17 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                     } else {
                         throw ProtoDecodingError.unableToParseUUID(rawValue: rawValue)
                     }
+                } else if type == Foundation.Date.self {
+                    let timestamp = try decode(ProtoTimestamp.self, forKey: key, keyOffset: keyOffset)
+                    //return Date(timeIntervalSince1970: TimeInterval(timestamp.seconds) + (TimeInterval(timestamp.nanos) / 1e9))
+                    return Date(timeIntervalSince1970: timestamp.timeIntervalSince1970)
+                } else if type == Foundation.URL.self {
+                    let rawValue = try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                    if let url = URL(string: rawValue) {
+                        return url
+                    } else {
+                        throw ProtoDecodingError.unableToParseURL(rawValue: rawValue)
+                    }
                 } else {
                     return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
                 }

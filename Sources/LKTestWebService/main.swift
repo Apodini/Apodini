@@ -394,7 +394,7 @@ struct LKTestWebService: Apodini.WebService {
         HTTPConfiguration(
             hostname: .init(address: "localhost", port: 50001),
             bindAddress: .interface("localhost", port: 50001),
-            tlsConfigurationBuilder: TLSConfigurationBuilder(
+            tlsConfiguration: TLSConfigurationBuilder(
                 certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
                 keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
             )
@@ -409,7 +409,7 @@ struct LKTestWebService: Apodini.WebService {
 //        REST()
         GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
         
-        GraphQLConfig(
+        GraphQL(
             enableGraphiQL: true
         )
 //        GRPC()

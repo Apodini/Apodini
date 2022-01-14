@@ -133,7 +133,7 @@ private struct AnyCollectionVisitor: AnyCollectionVisitorBase {
 }
 
 
-// MARK: ObjectIdentifier Sequences
+// MARK: ObjectIdentifier/Any.Type Sequences
 
 extension Set where Element == ObjectIdentifier {
     /// Creates a new `Set` from the specified types
@@ -152,6 +152,14 @@ extension Sequence where Element == ObjectIdentifier {
     /// Checks whether the sequence contains the specified type
     public func contains(_ other: Any.Type) -> Bool {
         contains(ObjectIdentifier(other))
+    }
+}
+
+
+extension Sequence where Element == Any.Type {
+    /// Checks whether the sequence contains the specified type
+    public func contains(_ other: Any.Type) -> Bool {
+        contains { ObjectIdentifier($0) == ObjectIdentifier(other) }
     }
 }
 

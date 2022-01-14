@@ -17,6 +17,8 @@ import ApodiniObserveOpenTelemetry
 import ArgumentParser
 import Tracing
 import ApodiniGRPC
+import Foundation
+import ApodiniGraphQL
 
 
 @main
@@ -31,6 +33,7 @@ struct TestWebService: Apodini.WebService {
         Text("Hello World! 👋")
             .response(EmojiTransformer(emojis: "🎉"))
             .pattern(.requestResponse)
+            .endpointName("root")
 
         // Bigger Subsystems:
         AuctionComponent()
@@ -42,6 +45,15 @@ struct TestWebService: Apodini.WebService {
     }
     
     var configuration: Configuration {
+        HTTPConfiguration(
+            hostname: .init(address: "localhost", port: 8080),
+            bindAddress: .interface("localhost", port: 8080),
+            tlsConfiguration: .init(
+                certificatePath: Bundle.module.url(forResource: "localhost.cer", withExtension: "pem")!.path,
+                keyPath: Bundle.module.url(forResource: "localhost.key", withExtension: "pem")!.path
+            )
+        )
+        
         HTTP(rootPath: "http")
         
         REST {
@@ -58,6 +70,8 @@ struct TestWebService: Apodini.WebService {
         Migrator()
         
         GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
+        
+        GraphQL(enableGraphiQL: true)
         
         // Tracing configuration for an OpenTelemetry backend with default configuration options
         TracingConfiguration(

@@ -30,6 +30,7 @@ class GraphQLSchemaBuilder {
         case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationalPattern)
         /// There must be at least one query handler (i.e. an unary handler w/ a `.read` operation type) in the web service
         case missingQueryHandler
+        case unableToParseDateScalar(Any)
         case other(String)
     }
     
@@ -74,6 +75,15 @@ class GraphQLSchemaBuilder {
     }
     
     
+    /// The `DateFormatter` which should be used to encode and decode `Date` objects passed around in GraphQL
+    static let dateFormatter: DateFormatter = { () -> DateFormatter in
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        dateFormatter.timeZone = TimeZone.init(abbreviation: "UTC")!
+        return dateFormatter
+    }()
+    
+    
     // key: field name on the root query thing
     private var queryHandlers: [String: GraphQLField] = [:]
     private var mutationHandlers: [String: GraphQLField] = [:]
@@ -85,7 +95,9 @@ class GraphQLSchemaBuilder {
     var isMutable: Bool { finalizedSchema == nil }
     
     
-    init() {}
+    init() {
+        Map.encoder.dateEncodingStrategy = .formatted(Self.dateFormatter)
+    }
     
     
     private func assertSchemaMutable(_ caller: StaticString = #function) throws {
@@ -241,9 +253,9 @@ class GraphQLSchemaBuilder {
                 ))
             case .uuid:
                 // what about GraphQLID?
-                return .init(inputAndOutputType: GraphQLString) // custom scalar?
+                return .init(inputAndOutputType: GraphQLString)
             case .date:
-                return .init(inputAndOutputType: GraphQLFloat) // custom scalar?
+                return .init(inputAndOutputType: GraphQLDate)
             case .data:
                 // TODO does this also necessitate a custom type?
                 return .init(inputAndOutputType: GraphQLList(GraphQLInt))
@@ -318,8 +330,13 @@ class GraphQLSchemaBuilder {
                 type: try toGraphQLInputType(.init(type: parameter.originalPropertyType)),
                 description: nil,
                 defaultValue: try { () -> Map? in
-                    if let paramDefaultValueBlock = parameter.typeErasedDefaultValue {
-                        return try map(from: paramDefaultValueBlock())
+                    if let defaultValueBlock = parameter.typeErasedDefaultValue {
+                        let defaultValue = defaultValueBlock()
+                        if let date = defaultValue as? Date {
+                            return .string(Self.dateFormatter.string(from: date))
+                        } else {
+                            return try map(from: defaultValue)
+                        }
                     } else {
                         // The endpoint parameter does not specify a default value,
                         // meaning that the only adjustment we make is to default Optionals to `nil` if possible
@@ -355,3 +372,35 @@ class GraphQLSchemaBuilder {
         return finalizedSchema! // Force-unwrap is fine bc we just assigned the variable above
     }
 }
+
+
+// MARK: Custom Scalars
+
+let GraphQLDate = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
+    name: "Date",
+    description: "A custom scalar type representing Date objects, encoded as ISO8601-formatted strings (using `\(GraphQLSchemaBuilder.dateFormatter.dateFormat!)` as the format) in the \(GraphQLSchemaBuilder.dateFormatter.timeZone!.abbreviation()!) time zone.", // swiftlint:disable:this line_length
+    serialize: { (input: Any) -> Map in
+        guard let date = input as? Date else {
+            return try Map.init(any: input)
+        }
+        return .string(GraphQLSchemaBuilder.dateFormatter.string(from: date))
+    },
+    parseValue: { (input: Map) -> Map in
+        if let string = input.string {
+            return .string(string)
+        } else {
+            return .null
+        }
+    },
+    parseLiteral: { (value: Value) -> Map in
+        if let string = (value as? StringValue)?.value {
+            return .string(string)
+        } else if let intNode = (value as? IntValue)?.value, let intValue = Int(intNode) {
+            return .int(intValue)
+        } else if let floatNode = (value as? FloatValue)?.value, let floatValue = Double(floatNode) {
+            return .double(floatValue)
+        } else {
+            return .null
+        }
+    }
+)

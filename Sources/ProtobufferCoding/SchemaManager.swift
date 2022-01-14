@@ -891,14 +891,7 @@ public class ProtoSchema {
                 throw ProtoValidationError.arrayOfOptionalsNotAllowed(type)
             }
             if requireTopLevelCompatibleOutput {
-//                // We're asked to wrap an array into a message
-//                return cacheRetval(try combineIntoCompoundMessageType(
-//                    typename: singleParamHandlingContext!.wrappingMessageTypename,
-//                    underlyingType: nil,
-//                    elements: [
-//                        (singleParamHandlingContext!.paramName, repeatedTy)
-//                    ]
-//                ))
+                // We're asked to wrap an array into a message
                 return cacheRetval(try wrapSingleFieldInMessageType(type: type, fallbackTypename: makeUniqueMessageTypename()))
             } else {
                 // We're given an array, which cannot be a top-level type, and not told to turn it into a top-level type
@@ -906,9 +899,15 @@ public class ProtoSchema {
             }
         } else if type == EmptyMessage.self || type == Void.self {
             return cacheRetval(.message(name: protoTypename, underlyingType: EmptyMessage.self, nestedOneofTypes: [], fields: []))
-        } else if type == Foundation.UUID.self {
+        } else if [UUID.self, URL.self].contains(type) {
             return cacheRetval(try protoType(
                 for: String.self,
+                requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                singleParamHandlingContext: singleParamHandlingContext
+            ))
+        } else if type == Date.self {
+            return cacheRetval(try protoType(
+                for: ProtoTimestamp.self,
                 requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
                 singleParamHandlingContext: singleParamHandlingContext
             ))

@@ -176,7 +176,7 @@ struct WrappedGraphQLResponse<T: Decodable>: Decodable {
 class GraphQLInterfaceExporterTests: XCTApodiniTest {
     struct TestGraphQLExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            GraphQLConfig(graphQLEndpoint: "/graphql", enableGraphiQL: false)
+            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: false)
         }
     }
     

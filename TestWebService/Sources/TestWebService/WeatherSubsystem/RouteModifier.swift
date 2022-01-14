@@ -44,27 +44,24 @@ private struct TripWeatherBuildingHandler<H: Handler>: Handler {
     @Parameter var endLatitude: Double
     @Parameter var endLongitude: Double
     
-    
     func handle() async throws -> [RouteSegment<H.Response.Content>] {
         let route = try route(date, start: (startLatitude, startLongitude), end: (endLatitude, endLongitude))
-        
         var response = [RouteSegment<H.Response.Content>]()
-        
         for (date, location) in route {
             let handler = try delegate
                 .environment(\WeatherComponent.date, date)
                 .environment(\WeatherComponent.latitude, location.latitude)
                 .environment(\WeatherComponent.longitude, location.longitude)
                 .instance()
-            
             if let partialResponse = try await handler.handle().transformToResponse(on: connection.eventLoop).get().content {
-                response.append(RouteSegment(date: date,
-                                             latitude: location.latitude,
-                                             longitude: location.longitude,
-                                             information: partialResponse))
+                response.append(RouteSegment(
+                    date: date,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    information: partialResponse
+                ))
             }
         }
-        
         return response
     }
 }

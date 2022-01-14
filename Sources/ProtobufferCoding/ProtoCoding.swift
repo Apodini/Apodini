@@ -45,6 +45,9 @@ enum ProtoDecodingError: Swift.Error {
     /// The error thrown when the decoder is asked to decode a `Foundation.UUID` value from a field,
     /// but the field's data does not constitute a valid UUID string.
     case unableToParseUUID(rawValue: String)
+    /// The error thrown when the decoder is asked to decode a `Foundation.URL` value from a field,
+    /// but the field's data does not constitute a valid URL string.
+    case unableToParseURL(rawValue: String)
     case other(String)
 }
 
@@ -312,5 +315,32 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
         }
     default:
         return nil
+    }
+}
+
+
+/// A Swift wrapper around the `google.protobuf.Timestamp` type
+struct ProtoTimestamp: Codable, ProtoTypeInPackage, ProtoTypeWithCustomProtoName {
+    static let protoTypename: String = "Timestamp"
+    static let package = ProtobufPackageUnit(
+        packageName: "google.protobuf",
+        filename: "google/protobuf/timestamp.proto"
+    )
+    
+    let seconds: Int64
+    let nanos: Int32
+    
+    init(seconds: Int64, nanos: Int32) {
+        self.seconds = seconds
+        self.nanos = nanos
+    }
+    
+    init(timeIntervalSince1970 timeInterval: TimeInterval) {
+        self.seconds = Int64(timeInterval)
+        self.nanos = Int32((timeInterval - floor(timeInterval)) * 1e9)
+    }
+    
+    var timeIntervalSince1970: TimeInterval {
+        TimeInterval(seconds) + (TimeInterval(nanos) / 1e9)
     }
 }

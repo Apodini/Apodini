@@ -15,7 +15,7 @@ import Foundation
 import GraphQL
 
 
-public class GraphQLConfig: Configuration { // Not called GraphQL bc that'd clash w/ the module name TODO call it GraphQL anyway
+public class GraphQL: Configuration {
     fileprivate let graphQLEndpoint: [HTTPPathComponent]
     fileprivate let enableGraphiQL: Bool
     fileprivate let graphiQLEndpoint: [HTTPPathComponent]
@@ -41,11 +41,11 @@ public class GraphQLConfig: Configuration { // Not called GraphQL bc that'd clas
 
 class GraphQLInterfaceExporter: InterfaceExporter {
     private let app: Application
-    private let config: GraphQLConfig
+    private let config: GraphQL
     private let logger: Logger
     private let schemaBuilder: GraphQLSchemaBuilder
     
-    init(app: Application, config: GraphQLConfig) {
+    init(app: Application, config: GraphQL) {
         self.app = app
         self.config = config
         self.logger = Logger(label: "\(app.logger.label).GraphQL")
@@ -110,7 +110,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
 
 
 struct GraphQLEndpointDecodingStrategy: EndpointDecodingStrategy {
-    typealias Input = GraphQL.Map
+    typealias Input = Map
     
     func strategy<Element: Codable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, Input> {
         GraphQLEndpointParameterDecodingStrategy<Element>(name: parameter.name).typeErased
@@ -120,14 +120,14 @@ struct GraphQLEndpointDecodingStrategy: EndpointDecodingStrategy {
 
 private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDecodingStrategy {
     typealias Element = T
-    typealias Input = GraphQL.Map
+    typealias Input = Map
     
     struct Error: Swift.Error {
         let message: String
     }
     
     private struct Wrapped<T: Codable>: Codable {
-        let data: T
+        let value: T
     }
     
     let name: String
@@ -136,12 +136,15 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
         guard let value = try input.dictionaryValue(converting: true)[name] else {
             throw Error(message: "Unable to find parameter named '\(name)' (T: \(T.self))")
         }
-        // TODO now we need to somehow "decode" the expected type from the parameter...
         if value.isUndefined {
-            throw Error(message: "Is undefined")
+            throw Error(message: "Parameter value is `undefined`")
         }
-        // This will only work for objects, but not for fields that are like direct ints or strings...
-        let data = try JSONEncoder().encode(value) // TODO might need to use the Wrapped<T> thing here, since not all values (e.g. numbers/null/ets!) can be encoded into top-level JSON objects
-        return try JSONDecoder().decode(T.self, from: data)
+        // We need to wrap this in a dictionary to make sure that we're working with a top-level object.
+        // (This isn't strictly necessary, since these coding steps seem to be working fine for top-level strings,
+        // but it reduces the probability of something going wrong, because otherwuise we'd be emitting not-standard-conformant JSON)
+        let data = try JSONEncoder().encode(Map.dictionary(["value": value]))
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .formatted(GraphQLSchemaBuilder.dateFormatter)
+        return try decoder.decode(Wrapped<T>.self, from: data).value
     }
 }

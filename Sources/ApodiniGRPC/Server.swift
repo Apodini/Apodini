@@ -167,7 +167,7 @@ class GRPCService {
     func addMethod(_ method: GRPCMethod) {
         precondition(
             methodsByName.updateValue(method, forKey: method.name) == nil,
-            "gRPC method names must be unique within a service"
+            "gRPC method names must be unique within a service. Encountered multiple methods for name '\(method.name)'"
         )
         method.packageName = self.packageName
     }

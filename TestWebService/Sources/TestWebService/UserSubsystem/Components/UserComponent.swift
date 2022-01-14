@@ -22,6 +22,7 @@ struct UserComponent: Component {
                 .description("Returns `User` by id")
                 .relationship(to: greeterRelationship)
                 .identified(by: "getUserById")
+                .endpointName("user")
             Group {
                 "post"
                     .relationship(name: "posts")
@@ -30,6 +31,7 @@ struct UserComponent: Component {
                 PostHandler(userId: $userId, postId: $postId)
                     .identified(by: "getPost")
                     .guard(LogGuard())
+                    .endpointName("post")
             }
         }
         Group("authenticated") {
@@ -37,6 +39,7 @@ struct UserComponent: Component {
                 .identified(by: "getAuthenticatedUser")
                 .guard(LogGuard())
                 .description("Returns the currently authenticated `User`")
+                .endpointName("authentictedUser")
         }
     }
 }
