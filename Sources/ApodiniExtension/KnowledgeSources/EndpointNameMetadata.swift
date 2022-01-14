@@ -20,11 +20,13 @@ extension HandlerMetadataNamespace {
 /// Endpoint name metadata input
 public enum EndpointNameMetadataInput {
     /// A string which should be used as the basis for generating a good endpoint name
-    case name(String)
-    /// Hard-coded noun and verb variants. Custom formatting will still apply
-    case noun(String, verb: String)
-    /// Hardcoded name which should be used. No custom formatting will apply
-    case verbatimName(String)
+    /// - parameter verbatim: whether the passed endpoint name should be used as-is, or whether the name may be transformed to add/remove nouns or verbs.
+    case name(String, verbatim: Bool)
+    /// Hard-coded noun and verb variants. Custom formatting will still apply.
+    /// - parameter verbatim: whether the passed endpoint name should be used as-is, or whether the name may be transformed to add/remove nouns or verbs.
+    case noun(String, verb: String, verbatim: Bool)
+    /// Hardcoded name which should be used. No custom formatting will apply at all (i.e. neither noun/verb transformations, not case formatting)
+    case hardcodedName(String)
 }
 
 
@@ -40,26 +42,30 @@ public struct EndpointNameMetadata: HandlerMetadataDefinition {
     }
     
     /// Create a new endpoint name from the specified string
-    public init(_ name: String) {
-        self.init(.name(name))
+    public init(_ name: String, useVerbatim: Bool = false) {
+        self.init(.name(name, verbatim: useVerbatim))
     }
 }
 
 
 extension Handler {
     /// Define a custom endpoint name for this handler's resulting endpoint.
-    public func endpointName(_ name: String) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.name(name)))
+    /// - parameter useVerbatim: Whether or not the name should be used as-is, or whether transformations (e.g. adding'removing prefixes) are allowed. Defaults to `false` (i.e. allowing transformations).
+    public func endpointName(_ name: String, useVerbatim verbatim: Bool = false) -> HandlerMetadataModifier<Self> {
+        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.name(name, verbatim: verbatim)))
     }
     
     /// Define a custom endpoint name for this handler's resulting endpoint.
-    public func endpointName(noun: String, verb: String) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.noun(noun, verb: verb)))
+    /// - parameter noun: The string that should be used as the basis for this endpoint name's noun variant
+    /// - parameter verb: The string that should be used as the basis for this endpoint name's verb variant
+    /// - parameter useVerbatim: Whether or not the name should be used as-is, or whether transformations (e.g. adding'removing prefixes) are allowed. Defaults to `false` (i.e. allowing transformations).
+    public func endpointName(noun: String, verb: String, useVerbatim verbatim: Bool = false) -> HandlerMetadataModifier<Self> {
+        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.noun(noun, verb: verb, verbatim: verbatim)))
     }
     
     /// Define a custom endpoint name for this handler's resulting endpoint.
     public func endpointName(fixed name: String) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.verbatimName(name)))
+        HandlerMetadataModifier(modifies: self, with: EndpointNameMetadata(.hardcodedName(name)))
     }
 }
 
@@ -75,8 +81,6 @@ extension Endpoint {
     
     /// Formatting option for an endpoint name
     public enum EndpointNameFormat {
-        /// No formatting should be applied to the endpoint name.
-        case verbatim
         /// The endpoint name should be formatted using `camelCase`
         case camelCase
         /// The endpoint name should be formatted using `PascalCase`
@@ -94,29 +98,29 @@ extension Endpoint {
         _ preferredOutputType: EndpointNamePartOfSpeech,
         format outputFormat: EndpointNameFormat
     ) -> String {
-        let nameInput: EndpointNameMetadataInput = self[Context.self].get(valueFor: EndpointNameMetadata.Key.self) ?? .name("\(H.self)")
-        if case .verbatimName(let name) = nameInput {
+        let nameInput: EndpointNameMetadataInput = self[Context.self].get(valueFor: EndpointNameMetadata.Key.self) ?? .name("\(H.self)", verbatim: false)
+        if case .hardcodedName(let name) = nameInput {
             return name
         }
-        let nameBase: String = {
-            switch nameInput {
-            case .name(let name):
-                return name
-            case let .noun(noun, verb):
-                switch preferredOutputType {
-                case .noun:
-                    return noun
-                case .verb:
-                    return verb
-                }
-            case .verbatimName:
-                fatalError("Should be unreachable")
+        let nameBase: String
+        let allowTransformations: Bool
+        switch nameInput {
+        case let .name(name, verbatim):
+            nameBase = name
+            allowTransformations = !verbatim
+        case let .noun(noun, verb, verbatim):
+            switch preferredOutputType {
+            case .noun:
+                nameBase = noun
+            case .verb:
+                nameBase = verb
             }
-        }()
+            allowTransformations = !verbatim
+        case .hardcodedName:
+            fatalError("Should be unreachable")
+        }
         func format(_ nameComponents: [String]) -> String {
             switch outputFormat {
-            case .verbatim:
-                return nameBase
             case .camelCase:
                 return nameComponents.camelCase()
             case .pascalCase:
@@ -129,6 +133,9 @@ extension Endpoint {
         guard !nameComponents.isEmpty else {
             // If the name can't be split into its components, there isn't much we can do...
             return nameBase
+        }
+        if !allowTransformations {
+            return format(nameComponents)
         }
         let operation = self[Operation.self]
         switch preferredOutputType {

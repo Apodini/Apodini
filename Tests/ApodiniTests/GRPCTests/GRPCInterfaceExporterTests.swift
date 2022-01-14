@@ -111,9 +111,14 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
                         .endpointName("GetTeam")
                 }
                 Group("api") {
-                    Text("").endpointName("GetPosts")
-                    Text("").endpointName("AddPost")
-                    Text("").endpointName("DeletePost")
+                    Text("")
+                        .endpointName("GetPosts")
+                    Text("")
+                        .operation(.create)
+                        .endpointName("AddPost")
+                    Text("")
+                        .operation(.delete)
+                        .endpointName("DeletePost")
                 }.gRPCServiceName("API")
             }
         }
@@ -157,8 +162,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.TestWebService is a service:
             service TestWebService {
+              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
               rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc Root ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
             }
             """,
             """
@@ -200,13 +205,13 @@ extension GRPCInterfaceExporterTests {
                     Text("Alice and Bob")
                         .endpointName("GetTeam")
                 }
-                EchoHandler<String>().endpointName("EchoString")
-                EchoHandler<Int>().endpointName("EchoInt")
-                EchoHandler<[Double]>().endpointName("EchoDoubles")
+                EchoHandler<String>().endpointName("EchoString", useVerbatim: true)
+                EchoHandler<Int>().endpointName("EchoInt", useVerbatim: true)
+                EchoHandler<[Double]>().endpointName("EchoDoubles", useVerbatim: true)
                 Group("api") {
                     Text("A").endpointName("GetPost")
-                    Text("B").endpointName("AddPost")
-                    Text("C").endpointName("DeletePost")
+                    Text("B").operation(.create).endpointName("AddPost")
+                    Text("C").operation(.delete).endpointName("DeletePost")
                     BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
                     BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
                     BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
@@ -220,7 +225,7 @@ extension GRPCInterfaceExporterTests {
         visitor.finishParsing()
         try app.start()
         
-        let response1 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.Root", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
+        let response1 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.GetRoot", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
         XCTAssertEqual(response1.value, "Hello World")
         
         let response2 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.GetTeam", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
@@ -315,7 +320,7 @@ extension GRPCInterfaceExporterTests {
     func testServiceSideStreamingEndpoint() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
-                Rocket().endpointName("RocketCountdown")
+                Rocket().endpointName("RocketCountdown", useVerbatim: true)
             }
         }
         
@@ -380,7 +385,7 @@ extension GRPCInterfaceExporterTests {
             var content: some Component {
                 ClientSideStreamingGreeter()
                     .pattern(.clientSideStream)
-                    .endpointName("Greet")
+                    .endpointName("Greet", useVerbatim: true)
             }
         }
         
@@ -437,8 +442,8 @@ extension GRPCInterfaceExporterTests {
                 }
                 Group("api") {
                     Text("A").endpointName("GetPost")
-                    Text("B").endpointName("AddPost")
-                    Text("C").endpointName("DeletePost")
+                    Text("B").operation(.create).endpointName("AddPost")
+                    Text("C").operation(.delete).endpointName("DeletePost")
                     BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
                     BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
                     BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.endpointName("ListIDs2")
