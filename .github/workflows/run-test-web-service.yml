@@ -42,7 +42,7 @@ jobs:
           swift run -c ${{ matrix.configuration }} &
           sleep 15
           sh test.sh
-          kill -9 $(lsof -ti:80)
+          kill -9 $(lsof -ti:8080)
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
@@ -79,4 +79,4 @@ jobs:
           swift run -c ${{ matrix.configuration }} &
           sleep 15
           sh test.sh
-          kill -9 $(lsof -ti:80)
+          kill -9 $(lsof -ti:8080)
