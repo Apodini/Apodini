@@ -110,9 +110,9 @@ class GraphQLSchemaBuilder {
         let commPattern = endpoint[CommunicationalPattern.self]
         switch (operation, commPattern) {
         case (.read, .requestResponse):
-            try addQueryOrMutationEndpoint(to: &queryHandlers, endpoint: endpoint)
+            try addQueryOrMutationEndpoint(to: &queryHandlers, endpoint: endpoint, endpointKind: .query)
         case (.create, .requestResponse), (.update, .requestResponse), (.delete, .requestResponse):
-            try addQueryOrMutationEndpoint(to: &mutationHandlers, endpoint: endpoint)
+            try addQueryOrMutationEndpoint(to: &mutationHandlers, endpoint: endpoint, endpointKind: .mutation)
         case (.read, .serviceSideStream):
             try addSubscriptionEndpoint(endpoint)
         default:
@@ -121,9 +121,23 @@ class GraphQLSchemaBuilder {
     }
     
     
-    private func addQueryOrMutationEndpoint<H: Handler>(to handlers: inout [String: GraphQLField], endpoint: Endpoint<H>) throws {
+    private enum GraphQLEndpointKind {
+        case query, mutation
+    }
+    
+    private func addQueryOrMutationEndpoint<H: Handler>(
+        to handlers: inout [String: GraphQLField],
+        endpoint: Endpoint<H>,
+        endpointKind: GraphQLEndpointKind
+    ) throws {
         try assertSchemaMutable()
-        let endpointName = endpoint.getEndointName(.noun, format: .camelCase)
+        let endpointName: String
+        switch endpointKind {
+        case .query:
+            endpointName = endpoint.getEndointName(.noun, format: .camelCase)
+        case .mutation:
+            endpointName = endpoint.getEndointName(.verb, format: .camelCase)
+        }
         guard !handlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateEndpointNames(endpointName)
         }
