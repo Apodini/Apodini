@@ -17,7 +17,7 @@ services:
       context: ./
       dockerfile: ./TestWebService/Dockerfile
     expose:
-      - "80"
+      - "52001"
     labels:
       # The domain the service will respond to
       - "traefik.http.routers.backend.rule=Host(`localhost`)"
@@ -45,8 +45,8 @@ services:
       # 8080 on the container is mapped to 8080 on the server/VM/your Machine.
       # Port 8080 is where the api traefik dashboard is located
       - "8080:8080"
-      # Port 80 is where our test-web-service is running
-      - "80:80"
+      # Port 52001 is where our test-web-service is running
+      - "52001:52001"
     # Traefik needs the docker.sock to detect new docker container
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"

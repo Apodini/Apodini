@@ -46,8 +46,8 @@ struct TestWebService: Apodini.WebService {
     
     var configuration: Configuration {
         HTTPConfiguration(
-            hostname: .init(address: "localhost", port: 8080),
-            bindAddress: .interface("localhost", port: 8080),
+            hostname: .init(address: "localhost", port: 52001),
+            bindAddress: .interface("localhost", port: 52001),
             tlsConfiguration: .init(
                 certificatePath: Bundle.module.url(forResource: "localhost.cer", withExtension: "pem")!.path,
                 keyPath: Bundle.module.url(forResource: "localhost.key", withExtension: "pem")!.path
