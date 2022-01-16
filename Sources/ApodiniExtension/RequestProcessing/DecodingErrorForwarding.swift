@@ -15,18 +15,18 @@ import Apodini
 ///         handled properly afterwards.
 public struct DecodingErrorForwardingRequest: WithRequest {
     public let request: Request
-    let forward: (Error) -> Void
+    let forwardClosure: (Error) -> Void
 
-    init(request: Request, forward: @escaping (Error) -> Void) {
+    init(request: Request, forward forwardClosure: @escaping (Error) -> Void) {
         self.request = request
-        self.forward = forward
+        self.forwardClosure = forwardClosure
     }
 
-    public func retrieveParameter<Element>(_ parameter: Parameter<Element>) throws -> Element where Element: Decodable, Element: Encodable {
+    public func retrieveParameter<Element: Codable>(_ parameter: Parameter<Element>) throws -> Element {
         do {
             return try request.retrieveParameter(parameter)
         } catch {
-            forward(error)
+            forwardClosure(error)
             throw error
         }
     }
@@ -34,10 +34,7 @@ public struct DecodingErrorForwardingRequest: WithRequest {
 
 extension ErrorForwarder {
     func forwardDecodingErrors(_ request: Request) -> DecodingErrorForwardingRequest {
-        if let forward = forward {
-            return DecodingErrorForwardingRequest(request: request, forward: forward)
-        }
-        return DecodingErrorForwardingRequest(request: request, forward: { _ in })
+        return DecodingErrorForwardingRequest(request: request, forward: forwardClosure ?? { _ in })
     }
 }
 

@@ -19,16 +19,16 @@ public struct ErrorForwarderContextKey: OptionalContextKey {
 public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
     public typealias Key = ErrorForwarderContextKey
 
-    let forward: Key.Value?
+    let forwardClosure: Key.Value?
 
-    public init(from forward: Key.Value?) throws {
-        self.forward = forward
+    public init(from forwardClosure: Key.Value?) throws {
+        self.forwardClosure = forwardClosure
     }
 
     /// Forward an error using the forwarders forwarding closure, if it is non-nil.
     ///
     /// - Parameter error: The error to forward.
-    public func forwardError(_ error: Error) {
-        forward?(error)
+    public func forward(_ error: Error) {
+        forwardClosure?(error)
     }
 }

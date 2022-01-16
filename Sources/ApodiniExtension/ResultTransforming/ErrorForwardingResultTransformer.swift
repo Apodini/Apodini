@@ -24,7 +24,7 @@ public struct ErrorForwardingResultTransformer<R: ResultTransformer>: ResultTran
     }
 
     public func handle(error: ApodiniError) -> ErrorHandlingStrategy<R.Output, R.Failure> {
-        forwarder.forwardError(error)
+        forwarder.forward(error)
         return wrapped.handle(error: error)
     }
 }

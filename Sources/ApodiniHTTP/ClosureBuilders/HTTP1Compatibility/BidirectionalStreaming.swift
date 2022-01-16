@@ -71,7 +71,7 @@ extension Exporter {
                         return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
                     }
             } catch {
-                endpoint[ErrorForwarder.self].forwardError(error)
+                endpoint[ErrorForwarder.self].forward(error)
                 throw error
             }
         }

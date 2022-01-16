@@ -116,7 +116,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     }
             }
             .inspectFailure { error in
-                endpoint[ErrorForwarder.self].forwardError(error)
+                endpoint[ErrorForwarder.self].forward(error)
             }
     }
 }

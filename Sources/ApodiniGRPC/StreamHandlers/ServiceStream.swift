@@ -54,7 +54,7 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                 )
             }
             .inspectFailure { [weak self] error in
-                self?.errorForwarder.forwardError(error)
+                self?.errorForwarder.forward(error)
             }
     }
 }

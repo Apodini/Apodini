@@ -78,7 +78,7 @@ extension Exporter {
                             }
                         } catch {
                             // Error encoding the response data
-                            endpoint[ErrorForwarder.self].forwardError(error)
+                            endpoint[ErrorForwarder.self].forward(error)
                             logger.error("Error encoding part of response: \(error)")
                         }
                     }
