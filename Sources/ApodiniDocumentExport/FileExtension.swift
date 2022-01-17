@@ -7,6 +7,8 @@ public enum FileExtension: CustomStringConvertible {
     case json
     /// YAML
     case yaml
+    /// Swift
+    case swift
     /// Other
     case other(String)
     
@@ -15,6 +17,7 @@ public enum FileExtension: CustomStringConvertible {
         switch self {
         case .json: return "json"
         case .yaml: return "yaml"
+        case .swift: return "swift"
         case let .other(value): return value
         }
     }
