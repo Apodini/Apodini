@@ -89,7 +89,7 @@ struct TestWebService: Apodini.WebService {
         
         Migrator()
         
-        GRPC(packageName: "de.lukaskollmer", serviceName: "TestWebService")
+        GRPC(packageName: "org.apodini", serviceName: "TestWebService")
             .skip(if: !.isHTTPSEnabled)
         
         GraphQL(enableGraphiQL: true)
