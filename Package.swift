@@ -707,17 +707,6 @@ let package = Package(
             ]
         ),
         
-        .executableTarget(
-            name: "LKTestWebService",
-            dependencies: [
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniGraphQL"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "Apodini")
-            ]
-        ),
-
         .target(
             name: "XCTApodiniObserve",
             dependencies: [
