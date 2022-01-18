@@ -58,9 +58,6 @@ let package = Package(
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
-
-        // Lukas' playground
-        .executable(name: "LKTestWebService", targets: ["LKTestWebService"]),
         .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
     ],
     dependencies: [
