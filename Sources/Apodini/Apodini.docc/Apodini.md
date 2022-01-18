@@ -78,6 +78,7 @@ Here are some links to internal and external packages you might find helpful whe
 - <doc:PushNotifications>
 - <doc:Jobs>
 - <doc:Observe>
+- <doc:DocumentExport>
 
 ### Advanced
 
