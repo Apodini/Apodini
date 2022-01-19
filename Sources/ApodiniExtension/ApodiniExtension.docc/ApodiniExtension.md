@@ -168,3 +168,55 @@ This step is formalized using the ``ResultTransformer`` protocol. Your implement
 - ``ResultTransformer``
 - ``ErrorHandlingStrategy``
 
+### Forwarding Errors
+
+It is recommended that `InterfaceExporter`s forward all decoding, evaluation, and result transforming errors using the `Endpoint`s ``ErrorForwarder``. This enables other subsystems to receive these errors and capture them. For example, ApodiniObserve makes use of the forwarded errors to record them for traced `Handler`s.
+
+To support this task, `ApodiniExtension` provides two helpers that can be used in the processing pipeline of an `InterfaceExporter`:
+
+##### Decoding Errors
+To forward errors from the entire decoding pipeline (decoding, defaults, caching, etc.), use the ``DecodingErrorForwardingRequest``. `Request` provides a convenience method `forwardDecodingErrors(with:)` which should be added to the processing pipeline directly before the request evaluation step.
+
+##### Evaluation- and Result Transforming Errors
+To forward errors from request evaluation and result transforming steps, use the ``ErrorForwardingResultTransformer``. The result transformer wraps an existing result transformer and forwards errors to the passed ``ErrorForwarder``.
+
+##### Other Errors
+Errors that are thrown in the pipeline and are not covered by the previous methods can be forwarded manually by passing them to the ``ErrorForwarder/forward(_:)`` method.
+
+#### Example
+
+Here's an example from `ApodiniHTTP`'s interface exporter:
+
+```swift
+func buildRequestResponseClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
+        let strategy = singleInputDecodingStrategy(for: endpoint)
+        // wrap the HTTPResponseTransformer to forward errors
+        let transformer = ErrorForwardingResultTransformer(
+            wrapped: HTTPResponseTransformer<H>(configuration.encoder),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
+        let factory = endpoint[DelegateFactory<H, Exporter>.self]
+        return { (request: HTTPRequest) in
+            let delegate = factory.instance()
+            return strategy
+                .decodeRequest(from: request, with: request.eventLoop)
+                .insertDefaults(with: defaultValues)
+                .cache()
+                // forward decoding errors
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
+                .evaluate(on: delegate)
+                .transform(using: transformer)
+                .map { response in
+                    response.setContentLengthForCurrentBody()
+                    return response
+                }
+        }
+    }
+```
+
+- ``ErrorForwarder``
+- ``DecodingErrorForwardingRequest``
+- ``ErrorForwardingResultTransformer``
