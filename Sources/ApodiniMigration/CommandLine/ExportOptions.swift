@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ApodiniDocumentExport
+import ApodiniMigrator
 import ArgumentParser
 
 /// A typealias for ``OutputFormat``

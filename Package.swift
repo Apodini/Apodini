@@ -428,7 +428,6 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniDocumentExport"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
             ]
         ),
