@@ -106,7 +106,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(
-                pattern: #"notice de\.lukaskollmer\.ApodiniLambda\.AWSIntegration : Uploading lambda package to (.*)$"#,
+                pattern: #"notice apodini\.ApodiniLambda\.AWSIntegration : Uploading lambda package to (.*)$"#,
                 options: [.anchorsMatchLines]
             )
             for line in output {
@@ -185,7 +185,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         do { // Check that the invoke url is correct
             let regex = try NSRegularExpression(
-                pattern: #"notice de\.lukaskollmer\.ApodiniLambda\.AWSIntegration : Invoke URL: (.*)$"#,
+                pattern: #"notice apodini\.ApodiniLambda\.AWSIntegration : Invoke URL: (.*)$"#,
                 options: .anchorsMatchLines
             )
             for line in output {
