@@ -291,6 +291,64 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             .wait()
         _ = output
     }
+
+    func testDecodingErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+
+        let client = StatelessClient(on: app.eventLoopGroup.next())
+
+        let userId = "1234"
+
+        // without name parameter
+        struct InvalidUserHandlerInput: Encodable {
+            let userId: String
+        }
+
+        XCTAssertThrowsError(try client.resolve(one: InvalidUserHandlerInput(userId: userId), on: "user.:userId:").wait() as User)
+        let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+        XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .badInput)
+    }
+
+    func testEvaluationErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestWebSocketExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.start()
+
+        let client = StatelessClient(on: app.eventLoopGroup.next())
+
+        XCTAssertThrowsError(
+            try client.resolve(
+                true.asInputForThrowingHandler,
+                false.asInputForThrowingHandler,
+                on: "throwing.none"
+            ).wait() as [Bool])
+        let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+        XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .other)
+    }
 }
 
 // MARK: Handlers
