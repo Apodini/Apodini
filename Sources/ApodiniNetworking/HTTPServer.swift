@@ -449,7 +449,6 @@ extension Channel {
         responder: HTTPResponder
     ) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
-            //HTTP2ServerRequestDecoder(),
             HTTP2FramePayloadToHTTP1ServerCodec(),
             HTTPServerResponseEncoder(),
             HTTPServerRequestDecoder(hostname: hostname, isTLSEnabled: isTLSEnabled),
