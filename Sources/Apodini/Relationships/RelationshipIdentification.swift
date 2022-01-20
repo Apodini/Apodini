@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //    
 
-/// A type erasured version of an `RelationshipIdentification`.
+/// A type-erased version of an `RelationshipIdentification`.
 public struct AnyRelationshipIdentification {
     let resolver: AnyPathParameterResolver
 

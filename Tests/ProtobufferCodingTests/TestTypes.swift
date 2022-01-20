@@ -11,10 +11,6 @@ import ProtobufferCoding
 import Foundation
 
 
-//struct GenericSingleFieldMessage<T: Codable & Equatable>: Codable, Equatable {
-//    let value: T
-//}
-
 struct GenericSingleFieldMessage<T: Codable>: Codable {
     let value: T
 }

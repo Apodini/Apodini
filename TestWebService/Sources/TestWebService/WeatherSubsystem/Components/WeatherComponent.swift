@@ -20,16 +20,19 @@ struct WeatherComponent: Component, EnvironmentAccessible {
     
     var content: some Component {
         Group("weather") {
-            WeatherInformationComponent(date: $date,
-                                        location: Location(latitude: $latitude,
-                                                           longitude: $longitude))
+            WeatherInformationComponent(
+                date: $date,
+                location: Location(latitude: $latitude, longitude: $longitude),
+                endpointNameContext: "weather"
+            )
             Group("trip") {
                 // Munich to Cape Town: ?startLatitude=48.13799&startLongitude=11.57518&endLatitude=-33.92522&endLongitude=18.42408
                 // Munich to Frankfurt: ?startLatitude=48.13799&startLongitude=11.57518&endLatitude=50.11044&endLongitude=8.68183
-                WeatherInformationComponent(date: $injectedDate,
-                                            location: Location(latitude: $injectedLatitude,
-                                                               longitude: $injectedLongitude))
-                    .asRoute()
+                WeatherInformationComponent(
+                    date: $injectedDate,
+                    location: Location(latitude: $injectedLatitude, longitude: $injectedLongitude),
+                    endpointNameContext: "trip"
+                ).asRoute()
             }
         }
     }

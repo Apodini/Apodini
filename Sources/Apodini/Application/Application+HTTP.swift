@@ -52,9 +52,9 @@ public enum BindAddress: Equatable {
 
 /// Hostname
 public struct Hostname {
-    /// The hostname's address
+    /// The address part of the hostname
     public let address: String
-    /// The hostname's port
+    /// The port part of the hostname
     public let port: Int?
     
     /// Create a new `Hostname`

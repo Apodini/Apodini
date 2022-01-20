@@ -28,6 +28,7 @@ let package = Package(
         .library(name: "ApodiniHTTP", targets: ["ApodiniHTTP"]),
         .library(name: "ApodiniHTTPProtocol", targets: ["ApodiniHTTPProtocol"]),
         .library(name: "ApodiniGRPC", targets: ["ApodiniGRPC"]),
+        .library(name: "ApodiniGraphQL", targets: ["ApodiniGraphQL"]),
         .library(name: "ApodiniWebSocket", targets: ["ApodiniWebSocket"]),
         .library(name: "ProtobufferCoding", targets: ["ProtobufferCoding"]),
 
@@ -92,6 +93,7 @@ let package = Package(
         // Deploy
         .package(url: "https://github.com/soto-project/soto.git", from: "5.10.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.4.0"),
+        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", .upToNextMajor(from: "0.3.0")),
         
         // testing runtime crashes
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
@@ -116,7 +118,9 @@ let package = Package(
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
-        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", .upToNextMajor(from: "0.3.0"))
+
+        // GraphQL
+        .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -126,7 +130,8 @@ let package = Package(
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "NIO", package: "swift-nio")
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         ),
         
@@ -172,6 +177,7 @@ let package = Package(
                 .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
@@ -453,7 +459,6 @@ let package = Package(
             ]
         ),
         
-        
         .executableTarget(
             name: "ApodiniDeployTestWebService",
             dependencies: [
@@ -685,6 +690,23 @@ let package = Package(
             ]
         ),
 
+        .target(
+            name: "ApodiniGraphQL",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "GraphQL", package: "GraphQL")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        
         .target(
             name: "XCTApodiniObserve",
             dependencies: [

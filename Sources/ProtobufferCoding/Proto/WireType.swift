@@ -45,8 +45,10 @@ func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cy
         return ._64Bit
     } else if type as? ProtobufBytesMapped.Type != nil {
         return .lengthDelimited
-    } else if let repeatedTy = type as? ProtobufRepeated.Type {
-        return repeatedTy.isPacked ? .lengthDelimited : guessWireType(repeatedTy.elementType)
+    } else if let repeatedEncodableTy = type as? ProtobufRepeatedEncodable.Type {
+        return repeatedEncodableTy.isPacked ? .lengthDelimited : guessWireType(repeatedEncodableTy.elementType)
+    } else if let repeatedDecodableTy = type as? ProtobufRepeatedDecodable.Type {
+        return repeatedDecodableTy.isPacked ? .lengthDelimited : guessWireType(repeatedDecodableTy.elementType)
     } else if let typeInfo = try? Runtime.typeInfo(of: type) {
         // Try to determine the wire type based on the kind of type we're dealing with.
         // For example, all structs that didn't match any of the explicitly-checked-for types above can be assumed to be length-delimited

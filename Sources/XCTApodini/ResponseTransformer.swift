@@ -26,10 +26,10 @@ public extension ResponseTransformer {
     }
     
     
-    /// A type erasured version of a `ResponseTransformer`'s `transform(response: Self.ResponseTransformable) -> TransformedContent` method
-    /// - Parameter response: The input as a type erasured `Response<AnyEncodable>`
+    /// A type-erased version of a `ResponseTransformer`'s `transform(response: Self.ResponseTransformable) -> TransformedContent` method
+    /// - Parameter response: The input as a type-erased `Response<AnyEncodable>`
     /// - Parameter eventLoop: The `EventLoop` that should be used to retrieve the `Response` of the `ResponseTransformable`
-    /// - Returns: The output as a type erasured `EventLoopFuture<Response<AnyEncodable>>`
+    /// - Returns: The output as a type-erased `EventLoopFuture<Response<AnyEncodable>>`
     func transform(response: Response<AnyEncodable>, on eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
         guard let typedInputResponse = response.typed(Self.InputContent.self) else {
             fatalError("Could not cast the `Response<AnyEncodable>` passed to the `ResponseTransformer` to the expected \(Response<Self.Content>.self) type")
@@ -39,7 +39,7 @@ public extension ResponseTransformer {
             .map(transform(content:))
             .transformToResponse(on: eventLoop)
             .map { typedResponse in
-                typedResponse.typeErasured
+                typedResponse.typeErased
             }
     }
 }

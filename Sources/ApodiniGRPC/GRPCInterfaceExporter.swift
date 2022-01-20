@@ -109,7 +109,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationalPattern.self]
-        let methodName = getMethodName(for: endpoint)
+        let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
         let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) ?? config.serviceName
@@ -175,32 +175,6 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     // MARK: Internal Stuff
-    
-    private func getMethodName<H>(for endpoint: Endpoint<H>) -> String {
-        if let methodName = endpoint[Context.self].get(valueFor: GRPCMethodNameContextKey.self) {
-            return methodName
-        } else {
-            // No explicit method name was specified, so we construct a default one based on the information we have about this handler.
-            // The problem is that we don't exactly have a lot of information about the handler.
-            // Essentially, there's only a handful of things we can use to construct a handler name:
-            // - path of the handler
-            // - handler type name (problematic w/ nested/generic handler types)
-            // - operation type (this would allow us to prepend verbs like "get" or "create"
-            // - communication pattern type (req-res, client-side stream, server-side stream, bidirectional stream). this is probaly the least useful one
-            let methodName = endpoint.absolutePath.reduce(into: "") { partialResult, pathComponent in
-                switch pathComponent {
-                case .root:
-                    break
-                case .string(let value):
-                    partialResult.append(value.capitalisingFirstCharacter)
-                case .parameter(let parameter):
-                    break
-                }
-            }
-            return methodName
-        }
-    }
-    
     
     /// Registers some HTTP routes for accessing the proto reflection schema
     private func setupReflectionHTTPRoutes() {

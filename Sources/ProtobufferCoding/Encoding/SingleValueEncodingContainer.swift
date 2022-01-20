@@ -90,7 +90,7 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
             try encode(boolVal)
         } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
             try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
-        } else if value as? ProtobufRepeated != nil {
+        } else if value as? ProtobufRepeatedEncodable != nil {
             throw EncodingError.invalidValue(value, .init(
                 codingPath: codingPath,
                 debugDescription: "Cannot encode repeated value into \(Self.self)",

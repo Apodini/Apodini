@@ -29,7 +29,7 @@ public enum ShellCommand {
 public func runShellCommand(_ command: ShellCommand) -> String {
     let task = Process()
     let pipe = Pipe()
-
+    
     task.standardOutput = pipe
     task.standardError = pipe
     task.arguments = ["-c", command.method]
@@ -39,7 +39,6 @@ public func runShellCommand(_ command: ShellCommand) -> String {
     } catch {
         return ""
     }
-
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     return String(data: data, encoding: .utf8) ?? ""
 }

@@ -91,9 +91,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
         var configuration: Configuration {
             HTTPConfiguration(
                 bindAddress: .interface("localhost", port: 50051),
-                tlsConfigurationBuilder: .init(
-                    //certificatePath: "/Users/lukas/Documents/apodini certs/localhost.cer.pem",
-                    //keyPath: "/Users/lukas/Documents/apodini certs/localhost.key.pem"
+                tlsConfiguration: .init(
                     certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
                     keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
                 )
@@ -107,15 +105,20 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
                 Group("api") {
-                    Text("").gRPCMethodName("GetPosts")
-                    Text("").gRPCMethodName("AddPost")
-                    Text("").gRPCMethodName("DeletePost")
+                    Text("")
+                        .endpointName("GetPosts")
+                    Text("")
+                        .operation(.create)
+                        .endpointName("AddPost")
+                    Text("")
+                        .operation(.delete)
+                        .endpointName("DeletePost")
                 }.gRPCServiceName("API")
             }
         }
@@ -159,8 +162,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.TestWebService is a service:
             service TestWebService {
+              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
               rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc Root ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
             }
             """,
             """
@@ -197,21 +200,21 @@ extension GRPCInterfaceExporterTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
-                EchoHandler<String>().gRPCMethodName("EchoString")
-                EchoHandler<Int>().gRPCMethodName("EchoInt")
-                EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
+                EchoHandler<String>().endpointName("EchoString", useVerbatim: true)
+                EchoHandler<Int>().endpointName("EchoInt", useVerbatim: true)
+                EchoHandler<[Double]>().endpointName("EchoDoubles", useVerbatim: true)
                 Group("api") {
-                    Text("A").gRPCMethodName("GetPost")
-                    Text("B").gRPCMethodName("AddPost")
-                    Text("C").gRPCMethodName("DeletePost")
-                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
-                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-                    BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+                    Text("A").endpointName("GetPost")
+                    Text("B").operation(.create).endpointName("AddPost")
+                    Text("C").operation(.delete).endpointName("DeletePost")
+                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
+                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
+                    BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
                 }.gRPCServiceName("API")
             }
         }
@@ -222,7 +225,7 @@ extension GRPCInterfaceExporterTests {
         visitor.finishParsing()
         try app.start()
         
-        let response1 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.Root", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
+        let response1 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.GetRoot", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
         XCTAssertEqual(response1.value, "Hello World")
         
         let response2 = try makeTestRequestUnary(method: "de.lukaskollmer.TestWebService.GetTeam", EmptyMessage(), outputType: WrappedProtoValue<String>.self)
@@ -317,7 +320,7 @@ extension GRPCInterfaceExporterTests {
     func testServiceSideStreamingEndpoint() throws {
         struct WebService: Apodini.WebService {
             var content: some Component {
-                Rocket().gRPCMethodName("RocketCountdown")
+                Rocket().endpointName("RocketCountdown", useVerbatim: true)
             }
         }
         
@@ -382,7 +385,7 @@ extension GRPCInterfaceExporterTests {
             var content: some Component {
                 ClientSideStreamingGreeter()
                     .pattern(.clientSideStream)
-                    .gRPCMethodName("Greet")
+                    .endpointName("Greet", useVerbatim: true)
             }
         }
         
@@ -432,22 +435,19 @@ extension GRPCInterfaceExporterTests {
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
-                    .gRPCMethodName("Root")
+                    .endpointName("Root")
                 Group("team") {
                     Text("Alice and Bob")
-                        .gRPCMethodName("GetTeam")
+                        .endpointName("GetTeam")
                 }
-//                EchoHandler<String>().gRPCMethodName("EchoString")
-//                EchoHandler<Int>().gRPCMethodName("EchoInt")
-//                EchoHandler<[Double]>().gRPCMethodName("EchoDoubles")
                 Group("api") {
-                    Text("A").gRPCMethodName("GetPost")
-                    Text("B").gRPCMethodName("AddPost")
-                    Text("C").gRPCMethodName("DeletePost")
-                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.gRPCMethodName("ListPosts")
-                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.gRPCMethodName("ListIDs")
-                    BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.gRPCMethodName("ListIDs2")
-                    BlockBasedHandler<Int> { 1 }.gRPCMethodName("GetAnInt")
+                    Text("A").endpointName("GetPost")
+                    Text("B").operation(.create).endpointName("AddPost")
+                    Text("C").operation(.delete).endpointName("DeletePost")
+                    BlockBasedHandler<[String]> { ["", "a", "b", "c", "d"] }.endpointName("ListPosts")
+                    BlockBasedHandler<[Int]> { [0, 1, 2, 3, 4, -52] }.endpointName("ListIDs")
+                    BlockBasedHandler<[Int: String]> { [0: "0", 1: "1", 2: "2"] }.endpointName("ListIDs2")
+                    BlockBasedHandler<Int> { 1 }.endpointName("GetAnInt")
                 }.gRPCServiceName("API")
             }
         }
