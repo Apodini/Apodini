@@ -122,10 +122,6 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
     typealias Element = T
     typealias Input = Map
     
-    struct Error: Swift.Error {
-        let message: String
-    }
-    
     private struct Wrapped<T: Codable>: Codable {
         let value: T
     }
@@ -134,10 +130,10 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
     
     func decode(from input: Input) throws -> T {
         guard let value = try input.dictionaryValue(converting: true)[name] else {
-            throw Error(message: "Unable to find parameter named '\(name)' (T: \(T.self))")
+            throw ApodiniError(type: .badInput, reason: "Unable to find parameter named '\(name)' (T: \(T.self))")
         }
         if value.isUndefined {
-            throw Error(message: "Parameter value is `undefined`")
+            throw ApodiniError(type: .badInput, reason: "Parameter value is `undefined`")
         }
         // We need to wrap this in a dictionary to make sure that we're working with a top-level object.
         // (This isn't strictly necessary, since these coding steps seem to be working fine for top-level strings,

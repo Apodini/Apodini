@@ -25,14 +25,20 @@ import ApodiniGraphQL
 struct TestWebService: Apodini.WebService {
     private static let greeterRelationship = Relationship(name: "greeter")
     
-    @Argument(help: "Endpoint to expose OpenAPI specification")
-    var openApiEndpoint: String = "oas"
+    @Option(help: "Hostname")
+    var hostname: String = "localhost"
+    
+    @Option(help: "Bind address")
+    var bindAddress: String = "0.0.0.0"
+    
+    @Option(help: "Port")
+    var port: Int?
     
     @Option(help: "The TestWebService's HTTPS config. Omit to disable HTTPS, specify 'builtin' to use buitin self-signed certificates, or pass a path to a custom certificate and key.") // swiftlint:disable:this line_length
     var httpsConfig: HTTPSConfig = .none
     
-    @Option(help: "Port")
-    var port: Int?
+    @Option(help: "Endpoint to expose OpenAPI specification")
+    var openApiEndpoint: String = "oas"
     
     var content: some Component {
         // Hello World! 👋
@@ -54,13 +60,13 @@ struct TestWebService: Apodini.WebService {
         switch httpsConfig {
         case .none:
             HTTPConfiguration(
-                hostname: .init(address: "localhost", port: port),
-                bindAddress: .interface("0.0.0.0", port: port)
+                hostname: .init(address: hostname, port: port),
+                bindAddress: .interface(bindAddress, port: port)
             )
         case .builtinSelfSignedCertificate:
             HTTPConfiguration(
-                hostname: .init(address: "localhost", port: port),
-                bindAddress: .interface("0.0.0.0", port: port),
+                hostname: .init(address: hostname, port: port),
+                bindAddress: .interface(bindAddress, port: port),
                 tlsConfiguration: .init(
                     certificatePath: Bundle.module.url(forResource: "localhost.cer", withExtension: "pem")!.path,
                     keyPath: Bundle.module.url(forResource: "localhost.key", withExtension: "pem")!.path
@@ -68,8 +74,8 @@ struct TestWebService: Apodini.WebService {
             )
         case let .custom(certPath, keyPath):
             HTTPConfiguration(
-                hostname: .init(address: "localhost", port: port),
-                bindAddress: .interface("0.0.0.0", port: port),
+                hostname: .init(address: hostname, port: port),
+                bindAddress: .interface(bindAddress, port: port),
                 tlsConfiguration: .init(certificatePath: certPath, keyPath: keyPath)
             )
         }
