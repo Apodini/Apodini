@@ -32,7 +32,7 @@ class ApodiniNetworkingTests: XCTestCase {
             XCTAssertEqual(input.httpPathString, httpPathString)
             XCTAssertEqual(input.effectivePath, effectivePath)
         }
-        test([], httpPathString: "", effectivePath: "")
+        test([], httpPathString: "/", effectivePath: "/")
         test(
             [.constant("v1")],
             httpPathString: "/v1",

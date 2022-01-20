@@ -42,6 +42,27 @@ extension HTTPResponseStatus {
 }
 
 
+extension HTTPVersion {
+    /// Attempts to create a version object from a string
+    public init?(string: String) {
+        switch string {
+        case "2", "2.0", "HTTP/2", "HTTP/2.0":
+            self = .http2
+        case "1", "1.0", "HTTP/1", "HTTP/1.0":
+            self = .http1_0
+        case "1.1", "HTTP/1.1":
+            self = .http1_1
+        case "0.9", "HTTP/0.9":
+            self = .http0_9
+        case "3", "3.0", "HTTP/3", "HTTP/3.0":
+            self = .http3
+        default:
+            return nil
+        }
+    }
+}
+
+
 extension HTTPMethod {
     /// Creates a `HTTPMethod` based on an `Apodini.Operation`
     public init(_ operation: Apodini.Operation) {

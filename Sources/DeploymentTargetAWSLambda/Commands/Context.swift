@@ -15,7 +15,7 @@ import SotoCore
 enum Context {
     static let dockerBin = _findExecutable("docker")
     static let zipBin = _findExecutable("zip")
-    static let logger = Logger(label: "de.lukaskollmer.ApodiniLambda")
+    static let logger = Logger(label: "apodini.ApodiniLambda")
     
     @available(
         swift,

@@ -12,7 +12,7 @@ import OpenAPIKit
 
 
 /// Identifier of the lambda deployment provider.
-public let lambdaDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.AWSLambda")
+public let lambdaDeploymentProviderId = DeploymentProviderID("apodini.ApodiniDeploymentProvider.AWSLambda")
 
 
 // the DeployedSystem user info for lambda deployments

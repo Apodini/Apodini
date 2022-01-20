@@ -93,6 +93,7 @@ let package = Package(
         // Deploy
         .package(url: "https://github.com/soto-project/soto.git", from: "5.10.0"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer", from: "0.4.0"),
+        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", .upToNextMajor(from: "0.3.0")),
         
         // testing runtime crashes
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
@@ -609,8 +610,10 @@ let package = Package(
             dependencies: [
                 .target(name: "DeploymentTargetAWSLambdaCommon"),
                 .target(name: "ApodiniDeployRuntimeSupport"),
-                .target(name: "ApodiniOpenAPI")
-                //.product(name: "VaporAWSLambdaRuntime", package: "vapor-aws-lambda-runtime")
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniNetworking"),
+                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+                .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime")
             ]
         ),
         
