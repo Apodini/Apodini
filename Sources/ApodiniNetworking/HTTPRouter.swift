@@ -67,7 +67,10 @@ extension Array where Element == HTTPPathComponent {
     
     /// Constructs a string from the path components
     public var httpPathString: String {
-        self.reduce(into: "") { partialResult, pathComponent in
+        guard !isEmpty else {
+            return "/"
+        }
+        return self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
             case .verbatim(let value):
@@ -95,7 +98,10 @@ extension Array where Element == HTTPPathComponent {
     
     /// A string representing the "effective path" formed by this array of path components, in a form that allows comparing multiple paths for equality in terms of the HTTP server's routing behaviour
     public var effectivePath: String {
-        self.reduce(into: "") { partialResult, pathComponent in
+        guard !isEmpty else {
+            return "/"
+        }
+        return self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
             case .verbatim(let value):

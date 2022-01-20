@@ -43,7 +43,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
     private static let apodiniDeployApiGatewayNamePrefix = "ApodiniDeploy."
     
     private let fileManager = FileManager.default
-    private let logger = Logger(label: "de.lukaskollmer.ApodiniLambda.AWSIntegration")
+    private let logger = Logger(label: "apodini.ApodiniLambda.AWSIntegration")
     
     private let awsRegion: SotoCore.Region
     private let awsClient: AWSClient
@@ -316,7 +316,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 data: try apiGatewayImportDef.encodeToJSON(outputFormatting: [.prettyPrinted, .withoutEscapingSlashes]),
                 encoding: .utf8
             )!,
-            failOnWarnings: true // Too strict?
+            failOnWarnings: false
         )).wait()
         
         logger.notice("Updating API Gateway name")
@@ -431,7 +431,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             logger.notice("Creating new lambda function \(lambdaName)")
             let createFunctionRequest = Lambda.CreateFunctionRequest(
                 code: .init(s3Bucket: s3BucketName, s3Key: s3ObjectKey),
-                description: "Apodini-created lambda function",
+                description: "Apodini-created lambda function aws:states:opt-out",
                 environment: lambdaEnv,
                 functionName: lambdaName,
                 handler: "apodini.main", // doesn't actually matter
@@ -466,6 +466,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                         error.context?.message == "The role defined for the function cannot be assumed by Lambda.",
                         iteration < 7
                     else {
+                        logger.error("Error creating lambda function: \(error)")
                         throw error
                     }
                     sleep(UInt32(2 * iteration)) // linear wait time. not perfect but whatever

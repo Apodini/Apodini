@@ -41,7 +41,7 @@ private struct TestWebService: Apodini.WebService {
 /// A deployment provider which operates on an already-compiled executable, and
 /// launches child processes out-of-process (this is important for the deployment provider to work in xctests).
 private struct StaticDeploymentProvider: DeploymentProvider {
-    static let identifier = DeploymentProviderID("de.lukaskollmer.staticApodiniDeploymentProvider")
+    static let identifier = DeploymentProviderID("apodini.staticApodiniDeploymentProvider")
     
     let executableUrl: URL
     

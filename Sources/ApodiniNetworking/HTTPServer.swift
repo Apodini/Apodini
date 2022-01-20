@@ -76,6 +76,15 @@ public final class HTTPServer {
     
     private var channel: Channel?
     
+    /// Whether the HTTP server should bind to the specified address when its `start()` function is called.
+    /// This prroperty is set to `true` by default, and can be used to replace the server with a custom component
+    /// responsible for receiving and handling incoming (and outgoing) HTTP requests.
+    public var shouldBindOnStart = true {
+        willSet {
+            precondition(!isRunning, "shouldBindOnStart can only be mutated while the server is not running")
+        }
+    }
+    
     /// Whether or not the server currently is running.
     public var isRunning: Bool {
         channel != nil
@@ -222,7 +231,10 @@ public final class HTTPServer {
     /// Start the server.
     /// This will attempt to open a NIO channel, bind it to the specified address, and set it up to handle incoming HTTP and HTTP2 requests, depending on the configuration options.
     public func start() throws {
-        guard channel == nil else {
+        guard shouldBindOnStart else {
+            return
+        }
+        guard !isRunning else {
             throw ApodiniNetworkingError(message: "Cannot start already-running servers")
         }
         guard !(enableHTTP2 && tlsConfiguration == nil) else {
@@ -285,10 +297,10 @@ public final class HTTPServer {
     /// Shut down the server, if it is running
     public func shutdown() throws {
         if let channel = channel {
-            print("Will shut down NIO channel bound to \(addressString)")
+            logger.info("Will shut down NIO channel bound to \(addressString)")
             try channel.close(mode: .all).wait()
             self.channel = nil
-            print("Did shut down NIO channel bound to \(addressString)")
+            logger.info("Did shut down NIO channel bound to \(addressString)")
         }
     }
     
