@@ -46,4 +46,24 @@ class ApodiniUtilsTests: XCTestCase {
         XCTAssertEqual(bitset, 117)
         XCTAssertEqual(bitset.binaryString, "01110101")
     }
+    
+    
+    func testSequenceToDictionary() {
+        XCTAssertEqual([1, 2, 3, 4].mapIntoDict { ($0, $0) }, [
+            1: 1,
+            2: 2,
+            3: 3,
+            4: 4
+        ])
+        XCTAssertEqual([1, 2, 3, 4].mapIntoDict { (String($0), $0) }, [
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+        ])
+        XCTAssertEqual([1, 2, 3, 4].mapIntoDict { ($0 % 2, $0) }, [
+            1: 3,
+            0: 4
+        ])
+    }
 }

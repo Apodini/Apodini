@@ -19,12 +19,12 @@ class ApodiniNetworkingTests: XCTestCase {
         }
         test("", [])
         test("/", [])
-        test("/v1", [.verbatim("v1")])
-        test("/v1/greet", [.verbatim("v1"), .verbatim("greet")])
-        test("/v1/greet/", [.verbatim("v1"), .verbatim("greet")])
-        test("/v1/greet/:name", [.verbatim("v1"), .verbatim("greet"), .namedParameter("name")])
-        test("/v1/greet/*", [.verbatim("v1"), .verbatim("greet"), .wildcardSingle(nil)])
-        test("/v1/greet/**", [.verbatim("v1"), .verbatim("greet"), .wildcardMultiple(nil)])
+        test("/v1", [.constant("v1")])
+        test("/v1/greet", [.constant("v1"), .constant("greet")])
+        test("/v1/greet/", [.constant("v1"), .constant("greet")])
+        test("/v1/greet/:name", [.constant("v1"), .constant("greet"), .namedParameter("name")])
+        test("/v1/greet/*", [.constant("v1"), .constant("greet"), .wildcardSingle(nil)])
+        test("/v1/greet/**", [.constant("v1"), .constant("greet"), .wildcardMultiple(nil)])
     }
     
     func testHTTPPathComponentsFormatting() {
@@ -32,39 +32,39 @@ class ApodiniNetworkingTests: XCTestCase {
             XCTAssertEqual(input.httpPathString, httpPathString)
             XCTAssertEqual(input.effectivePath, effectivePath)
         }
-        test([], httpPathString: "", effectivePath: "")
+        test([], httpPathString: "/", effectivePath: "/")
         test(
-            [.verbatim("v1")],
+            [.constant("v1")],
             httpPathString: "/v1",
             effectivePath: "/v[v1]"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet")],
+            [.constant("v1"), .constant("greet")],
             httpPathString: "/v1/greet",
             effectivePath: "/v[v1]/v[greet]"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet"), .namedParameter("name")],
+            [.constant("v1"), .constant("greet"), .namedParameter("name")],
             httpPathString: "/v1/greet/:name",
             effectivePath: "/v[v1]/v[greet]/:"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet"), .wildcardSingle(nil)],
+            [.constant("v1"), .constant("greet"), .wildcardSingle(nil)],
             httpPathString: "/v1/greet/*",
             effectivePath: "/v[v1]/v[greet]/*"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet"), .wildcardSingle("wc")],
+            [.constant("v1"), .constant("greet"), .wildcardSingle("wc")],
             httpPathString: "/v1/greet/*[wc]",
             effectivePath: "/v[v1]/v[greet]/*[wc]"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet"), .wildcardMultiple(nil)],
+            [.constant("v1"), .constant("greet"), .wildcardMultiple(nil)],
             httpPathString: "/v1/greet/**",
             effectivePath: "/v[v1]/v[greet]/**"
         )
         test(
-            [.verbatim("v1"), .verbatim("greet"), .wildcardMultiple("wm")],
+            [.constant("v1"), .constant("greet"), .wildcardMultiple("wm")],
             httpPathString: "/v1/greet/**[wm]",
             effectivePath: "/v[v1]/v[greet]/**[wm]"
         )

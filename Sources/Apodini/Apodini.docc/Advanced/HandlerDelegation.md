@@ -118,7 +118,7 @@ The more interesting part is the `initializer`. It is called once for each endpo
 public protocol DelegatingHandlerInitializer: AnyDelegatingHandlerInitializer {
     associatedtype Response: ResponseTransformable
     
-    /// Build a paritally type-erasured `Handler`-instance that delegates to the given `delegate`.
+    /// Build a paritally type-erased `Handler`-instance that delegates to the given `delegate`.
     func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response>
 }
 ```

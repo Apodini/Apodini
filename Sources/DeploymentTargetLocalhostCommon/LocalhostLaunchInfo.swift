@@ -11,7 +11,7 @@ import ApodiniDeployBuildSupport
 import OpenAPIKit
 
 /// Identifier of the localhost deployment provider.
-public let localhostDeploymentProviderId = DeploymentProviderID("de.lukaskollmer.ApodiniDeploymentProvider.Localhost")
+public let localhostDeploymentProviderId = DeploymentProviderID("apodini.ApodiniDeploymentProvider.Localhost")
 
 
 public struct LocalhostLaunchInfo: Codable {

@@ -19,7 +19,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     /// towards parameter naming.
     private let allowLenientParameterNamespaces = true
     
-    var collectedEndpoints: [_AnyEndpoint] = []
+    private(set) var collectedEndpoints: [_AnyEndpoint] = []
 
     init(_ app: Application) {
         self.app = app

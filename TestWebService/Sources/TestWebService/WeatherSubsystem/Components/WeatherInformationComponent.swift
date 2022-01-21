@@ -11,15 +11,17 @@ import Foundation
 
 struct WeatherInformationComponent: Component {
     let date: Binding<Date>
-    
     let location: Location
+    let endpointNameContext: String
     
     var content: some Component {
         Group("temperature") {
             GetTemperature(date: date, location: location)
+                .endpointName("get\(endpointNameContext.capitalisingFirstCharacter)Temperature")
         }
         Group("danger") {
             GetDanger(date: date, location: location)
+                .endpointName("get\(endpointNameContext.capitalisingFirstCharacter)Danger")
         }
     }
 }

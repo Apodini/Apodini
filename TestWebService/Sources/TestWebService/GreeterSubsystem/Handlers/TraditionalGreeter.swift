@@ -29,8 +29,11 @@ struct TraditionalGreeter: Handler {
         defer { span.end() }
         logger.info("\(connection.state)")
         
-        if connection.state == .end {
-            return .end
+        switch connection.state {
+        case .end, .close:
+            return.end
+        default:
+            break
         }
 
         if let firstName = name {

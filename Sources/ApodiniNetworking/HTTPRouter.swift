@@ -13,7 +13,7 @@ import Foundation
 
 
 public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
-    case verbatim(String)
+    case constant(String)
     case namedParameter(String)
     case wildcardSingle(String?)
     case wildcardMultiple(String?)
@@ -40,7 +40,17 @@ public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
             precondition(!name.isEmpty, "Invalid wildcard name")
             self = .wildcardMultiple(name)
         } else {
-            self = .verbatim(String(string))
+            self = .constant(String(string))
+        }
+    }
+    
+    /// Whether this path component is a `constant(_)` path component
+    public var isConstant: Bool {
+        switch self {
+        case .constant:
+            return true
+        case .namedParameter, .wildcardSingle, .wildcardMultiple:
+            return false
         }
     }
 }
@@ -67,10 +77,13 @@ extension Array where Element == HTTPPathComponent {
     
     /// Constructs a string from the path components
     public var httpPathString: String {
-        self.reduce(into: "") { partialResult, pathComponent in
+        guard !isEmpty else {
+            return "/"
+        }
+        return self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
-            case .verbatim(let value):
+            case .constant(let value):
                 partialResult.append(value)
             case .namedParameter(let name):
                 partialResult.append(":\(name)")
@@ -95,10 +108,13 @@ extension Array where Element == HTTPPathComponent {
     
     /// A string representing the "effective path" formed by this array of path components, in a form that allows comparing multiple paths for equality in terms of the HTTP server's routing behaviour
     public var effectivePath: String {
-        self.reduce(into: "") { partialResult, pathComponent in
+        guard !isEmpty else {
+            return "/"
+        }
+        return self.reduce(into: "") { partialResult, pathComponent in
             partialResult.append("/")
             switch pathComponent {
-            case .verbatim(let value):
+            case .constant(let value):
                 partialResult.append("v[\(value)]")
             case .namedParameter:
                 partialResult.append(":")
