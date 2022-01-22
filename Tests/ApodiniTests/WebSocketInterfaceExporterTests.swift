@@ -338,14 +338,14 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
 
         try app.start()
 
-        let client = StatelessClient(on: app.eventLoopGroup.next())
+        let client = StatelessClient(on: app.eventLoopGroup.next(), ignoreErrors: true)
 
-        XCTAssertThrowsError(
-            try client.resolve(
-                true.asInputForThrowingHandler,
-                false.asInputForThrowingHandler,
-                on: "throwing.none"
-            ).wait() as [Bool])
+        let output: [Bool] = try client.resolve(
+            true.asInputForThrowingHandler,
+            false.asInputForThrowingHandler,
+            on: "throwing.none"
+        ).wait()
+        _ = output
         let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
         XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .other)
     }
