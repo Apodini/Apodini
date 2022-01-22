@@ -54,6 +54,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             .decodeRequest(from: request, with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
+            .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
             .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peek(_:) ?? { _ in nil }
@@ -115,6 +116,9 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                         response.setContentLengthForCurrentBody()
                         return response
                     }
+            }
+            .inspectFailure { error in
+                endpoint[ErrorForwarder.self].forward(error)
             }
     }
 }

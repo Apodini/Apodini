@@ -20,6 +20,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
     let delegateFactory: DelegateFactory<H, GRPCInterfaceExporter>
     let decodingStrategy: AnyDecodingStrategy<GRPCMessageIn>
     let defaults: DefaultValueStore
+    let errorForwarder: ErrorForwarder
     let delegate: Delegate<H>
     let endpointContext: GRPCEndpointContext
     
@@ -27,11 +28,13 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
         delegateFactory: DelegateFactory<H, GRPCInterfaceExporter>,
         strategy: AnyDecodingStrategy<GRPCMessageIn>,
         defaults: DefaultValueStore,
+        errorForwarder: ErrorForwarder,
         endpointContext: GRPCEndpointContext
     ) {
         self.delegateFactory = delegateFactory
         self.decodingStrategy = strategy
         self.defaults = defaults
+        self.errorForwarder = errorForwarder
         self.delegate = delegateFactory.instance()
         self.endpointContext = endpointContext
     }

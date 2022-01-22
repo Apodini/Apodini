@@ -89,6 +89,15 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
+    struct ThrowingHandler: Handler {
+        @Throws(.serverError) var error: ApodiniError
+        @Parameter var doThrow = true
+
+        func handle() throws -> Never {
+            throw error
+        }
+    }
+
     @PathParameter(identifying: User.self)
     var userId: User.ID
 
@@ -104,6 +113,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
         Group("authenticated") {
             AuthenticatedHandler()
+        }
+        Group("throwing") {
+            ThrowingHandler()
         }
     }
     
@@ -449,6 +461,49 @@ class RESTInterfaceExporterTests: ApodiniTests {
             XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
             XCTAssertEqual(response.bodyStorage.readableBytes, 0)
+        }
+    }
+
+    func testDecodingErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        try app.testable().test(.GET, "user/\(userId)") { response in
+            XCTAssertEqual(response.status, .internalServerError)
+            let apodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+            XCTAssertEqual(apodiniError.option(for: .errorType), .badInput)
+        }
+    }
+
+    func testEvaluationErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.testable().test(.GET, "throwing") { response in
+            XCTAssertEqual(response.status, .internalServerError)
+            let apodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+            XCTAssertEqual(apodiniError.option(for: .errorType), .serverError)
         }
     }
 }

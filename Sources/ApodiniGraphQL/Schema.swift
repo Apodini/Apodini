@@ -160,9 +160,13 @@ class GraphQLSchemaBuilder {
                 .decodeRequest(from: args, with: DefaultRequestBasis(), with: eventLoopGroup.next())
                 .insertDefaults(with: defaults)
                 .cache()
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
                 .evaluate(on: delegate)
             return responseFuture
                 .map { $0.content }
+                .inspectFailure {
+                    endpoint[ErrorForwarder.self].forward($0)
+                }
         }
     }
     

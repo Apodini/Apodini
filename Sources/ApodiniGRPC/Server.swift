@@ -225,6 +225,7 @@ class GRPCMethod {
                 delegateFactory: endpoint[DelegateFactory<H, GRPCInterfaceExporter>.self],
                 strategy: decodingStrategy,
                 defaults: defaults,
+                errorForwarder: endpoint[ErrorForwarder.self],
                 endpointContext: endpointContext
             )
         }
