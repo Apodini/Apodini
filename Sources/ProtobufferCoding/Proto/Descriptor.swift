@@ -409,6 +409,7 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
         case options = 4
         case clientStreaming = 5
         case serverStreaming = 6
+        case sourceCodeComments = 7 // TODO remove workaround once crash is fixed
     }
     
     
@@ -419,7 +420,7 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
         options: MethodOptions?,
         clientStreaming: Bool,
         serverStreaming: Bool,
-        sourceCodeComments: [String] = [] // TODO pass
+        sourceCodeComments: [String] = []
     ) {
         self.name = name
         self.inputType = inputType
@@ -438,6 +439,7 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
         return sourceCodeComments
             .map { "\(commentStyle) \($0)" }
             .joined(separator: "\n")
+            .appending("\n")
     }
 }
 
