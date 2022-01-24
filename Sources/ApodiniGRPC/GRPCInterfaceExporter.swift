@@ -147,7 +147,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 decodingStrategy: GRPCEndpointDecodingStrategy(endpointContext).applied(to: endpoint).typeErased,
                 schema: server.schema,
                 sourceCodeComments: [
-                    "APODINI-identifier: \(apodiniIdentifier)",
+                    "APODINI-identifier: \(apodiniIdentifier.rawValue)",
                     "APODINI-handlerName: \(handlerName)"
                 ]
             )
