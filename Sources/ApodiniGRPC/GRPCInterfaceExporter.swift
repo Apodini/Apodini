@@ -10,6 +10,7 @@ import Apodini
 import ApodiniExtension
 import ApodiniNetworking
 import ApodiniUtils
+import ApodiniMigrationCommon
 import Logging
 import Dispatch
 @_exported import ProtobufferCoding
@@ -50,6 +51,16 @@ public class GRPC: Configuration {
     public func configure(_ app: Application) {
         let exporter = GRPCInterfaceExporter(app: app, config: self)
         app.registerExporter(exporter: exporter)
+
+        app.apodiniMigration.register(
+            configuration: GRPCExporterConfiguration(
+                packageName: packageName,
+                serviceName: serviceName,
+                pathPrefix: pathPrefix,
+                reflectionEnabled: enableReflection
+            ),
+            for: .grpc
+        )
     }
 }
 
@@ -83,10 +94,10 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // Configure HTTP/2
         guard app.httpConfiguration.supportVersions.contains(.two),
               let tlsConfig = app.httpConfiguration.tlsConfiguration,
-              tlsConfig.applicationProtocols.contains("h2")
-        else {
-            fatalError("""
-                Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled.
+              tlsConfig.applicationProtocols.contains("h2") else {
+            fatalError(
+                """
+                Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled. \
                 You might need to move your web service's HTTPConfiguration up so that it comes before the GRPC configuration.
                 """
             )
@@ -110,6 +121,9 @@ class GRPCInterfaceExporter: InterfaceExporter {
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationalPattern.self]
         let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
+        let apodiniIdentifier = endpoint[AnyHandlerIdentifier.self]
+        let handlerName = endpoint[HandlerDescription.self]
+
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
         let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) ?? config.serviceName
@@ -118,6 +132,10 @@ class GRPCInterfaceExporter: InterfaceExporter {
         }
         
         let endpointContext = GRPCEndpointContext(communicationalPattern: endpoint[CommunicationalPattern.self])
+
+        // Apodini Migration support
+        app.apodiniMigration.register(identifier: GRPCServiceName(serviceName), for: endpoint)
+        app.apodiniMigration.register(identifier: GRPCMethodName(methodName), for: endpoint)
         
         server.addMethod(
             toServiceNamed: serviceName,
@@ -127,7 +145,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 endpoint: endpoint,
                 endpointContext: endpointContext,
                 decodingStrategy: GRPCEndpointDecodingStrategy(endpointContext).applied(to: endpoint).typeErased,
-                schema: server.schema
+                schema: server.schema,
+                sourceCodeComments: [
+                    "APODINI-identifier: \(apodiniIdentifier)",
+                    "APODINI-handlerName: \(handlerName)"
+                ]
             )
         )
         logger.notice("[gRPC] Added method \(defaultPackageName).\(serviceName).\(methodName)")
@@ -175,7 +197,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     // MARK: Internal Stuff
-    
+
     /// Registers some HTTP routes for accessing the proto reflection schema
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.

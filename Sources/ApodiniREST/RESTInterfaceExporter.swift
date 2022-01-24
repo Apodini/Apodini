@@ -11,6 +11,7 @@ import NIO
 import ApodiniUtils
 import ApodiniNetworking
 import ApodiniHTTPProtocol
+import ApodiniMigrationCommon
 import Foundation
 
 
@@ -58,7 +59,33 @@ public final class REST: Configuration {
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: restExporter)
-        
+
+        let encoderConfiguration: EncoderConfiguration
+        let decoderConfiguration: DecoderConfiguration
+
+        if let encoder = configuration.encoder as? JSONEncoder {
+            encoderConfiguration = EncoderConfiguration(derivedFrom: encoder)
+        } else {
+            encoderConfiguration = .default
+        }
+
+        if let decoder = configuration.decoder as? JSONDecoder {
+            decoderConfiguration = DecoderConfiguration(derivedFrom: decoder)
+        } else {
+            decoderConfiguration = .default
+        }
+
+        let rootPath = configuration.rootPath?.endpointPath(withVersion: app.version).description
+        app.apodiniMigration.register(
+            configuration: RESTExporterConfiguration(
+                encoderConfiguration: encoderConfiguration,
+                decoderConfiguration: decoderConfiguration,
+                caseInsensitiveRouting: configuration.caseInsensitiveRouting,
+                rootPath: rootPath
+            ),
+            for: .rest
+        )
+
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
     }

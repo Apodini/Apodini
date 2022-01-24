@@ -54,6 +54,7 @@ let package = Package(
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+        .library(name: "ApodiniMigrationCommon", targets: ["ApodiniMigrationCommon"]),
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
@@ -114,7 +115,7 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("feature/grpc-migrator")), // TODO release!
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
@@ -295,7 +296,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniNetworking")
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniMigrationCommon")
             ]
         ),
         
@@ -414,10 +416,19 @@ let package = Package(
         ),
         
         // ApodiniMigration
-        
+
+        .target(
+            name: "ApodiniMigrationCommon",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "ApodiniMigratorExporterSupport", package: "ApodiniMigrator")
+            ]
+        ),
+
         .target(
             name: "ApodiniMigration",
             dependencies: [
+                .target(name: "ApodiniMigrationCommon"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator")

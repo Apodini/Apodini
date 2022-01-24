@@ -118,7 +118,8 @@ class GRPCServer {
                             outputType: method.outputType.fullyQualifiedTypename,
                             options: nil,
                             clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
-                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
+                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream,
+                            sourceCodeComments: method.sourceCodeComments
                         )
                     },
                     // NOTE: we could use this to mark services as deprecated. might be interesting in combination with the migration stuff...
@@ -196,13 +197,15 @@ class GRPCMethod {
     let outputType: ProtoType
     /// Closure that makes a `GRPCStreamRPCHandler`
     private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
+    let sourceCodeComments: [String]
     
     init<H: Handler>(
         name: String,
         endpoint: Endpoint<H>,
         endpointContext: GRPCEndpointContext,
         decodingStrategy: AnyDecodingStrategy<GRPCMessageIn>,
-        schema: ProtoSchema
+        schema: ProtoSchema,
+        sourceCodeComments: [String] = []
     ) {
         self.name = name
         self.type = endpoint[CommunicationalPattern.self]
@@ -234,6 +237,8 @@ class GRPCMethod {
         endpointContext.endpointResponseType = messageTypes.output
         self.inputType = messageTypes.input
         self.outputType = messageTypes.output
+
+        self.sourceCodeComments = sourceCodeComments
     }
     
     
@@ -242,13 +247,15 @@ class GRPCMethod {
         type: CommunicationalPattern,
         inputType: ProtoType,
         outputType: ProtoType,
-        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler
+        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler,
+        sourceCodeComments: [String] = []
     ) {
         self.name = name
         self.type = type
         self.inputType = inputType
         self.outputType = outputType
         self.streamRPCHandlerMaker = streamRPCHandlerMaker
+        self.sourceCodeComments = sourceCodeComments
     }
     
     

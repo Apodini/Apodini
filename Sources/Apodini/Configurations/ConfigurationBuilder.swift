@@ -11,7 +11,7 @@
 public enum ConfigurationBuilder {
     /// A method that transforms multiple `Configuration`s
     ///
-    /// - Parameter configs: A variadic number of `ConfigurationsConvertible`
+    /// - Parameter configurations: A variadic number of `ConfigurationsConvertible`
     ///
     /// - Returns: An `AnyConfigurationCollection` which consists of `ConfigurationConvertible`s
     public static func buildBlock(_ configurations: Configuration...) -> [Configuration] {

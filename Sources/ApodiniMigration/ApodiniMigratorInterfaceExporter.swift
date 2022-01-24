@@ -11,6 +11,7 @@ import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
 import ApodiniNetworking
+import ApodiniMigrationCommon
 
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
@@ -112,7 +113,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             .init(code: 500, message: "Internal server error")
         ]
 
-        let migratorEndpoint = ApodiniMigratorCore.Endpoint(
+        var migratorEndpoint = ApodiniMigratorCore.Endpoint(
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
@@ -122,6 +123,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             response: response,
             errors: errors
         )
+
+        // in `finishedExporting` by calling `retrieveMigratorExporterConfigurations` we guarantee
+        // that we definitely have ALL endpoint identifiers and that no further ones will be added after us!
+        if let endpointIdentifiers = app.apodiniMigration.endpointIdentifiers[identifier] {
+            for endpointIdentifier in endpointIdentifiers {
+                migratorEndpoint.add(anyIdentifier: endpointIdentifier)
+            }
+        }
 
         endpoints.append(migratorEndpoint)
     }
@@ -143,9 +152,24 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
 
         var document = APIDocument(serviceInformation: serviceInformation)
 
-        // for now we assume existence of REST. Currently REST is the only supported anyways.
-        // we move to a dynamic approach once we fully support gRPC client generation.
-        document.add(exporter: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default))
+
+        let exporterConfigurations: [AnyExporterConfiguration]
+        do {
+            exporterConfigurations = try app.apodiniMigration.retrieveMigratorExporterConfigurations()
+        } catch {
+            guard case ApodiniMigrationContext.ConfigurationError.inconsistentState = error else {
+                fatalError("Unexpected error when retrieving exporter configurations: \(error)")
+            }
+            fatalError("""
+                       The set of Migrator `ExporterConfigurations` changed after the `MigratorConfiguration` was loaded. \
+                       Please ensure that all exporters in the WebService configuration blocks which support \
+                       ApodiniMigration are placed in front of the the `MigratorConfiguration` expression!
+                       """)
+        }
+
+        for configuration in exporterConfigurations {
+            document.add(anyExporter: configuration)
+        }
 
         for endpoint in endpoints {
             document.add(endpoint: endpoint)

@@ -129,8 +129,8 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
     ///    - mode: The `WebServiceExecutionMode` in which the web service is executed in. Defaults to `.run`, meaning the web service is ran normally and able to handle requests.
-    ///    - app: The instanciated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
-    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    ///    - app: The instantiated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
+    ///    - webService: The instantiated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instantiated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     public static func start(
@@ -165,7 +165,7 @@ extension WebService {
         metadata.collectMetadata(visitor)
         app.storage[VersionStorageKey.self] = visitor.currentNode.peekValue(for: APIVersionContextKey.self) ?? APIVersionContextKey.defaultValue
         
-        /// Configure application and instanciate exporters
+        /// Configure application and instantiate exporters
         self.configuration.configure(app)
         self.register(SemanticModelBuilder(app))
     }

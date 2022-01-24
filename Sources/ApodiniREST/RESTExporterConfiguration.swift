@@ -19,7 +19,7 @@ extension REST {
         public let encoder: AnyEncoder
         /// The to be used `AnyDecoder` for decoding requests to the `RESTInterfaceExporter`
         public let decoder: AnyDecoder
-        /// Indicates whether the HTTP route is interpreted case-sensitivly
+        /// Indicates whether the HTTP route is interpreted case-sensitively
         public let caseInsensitiveRouting: Bool
         /// Configures if the current web service version should be used as a prefix for all HTTP paths
         public let rootPath: RootPath?
@@ -29,7 +29,8 @@ extension REST {
         /// - Parameters:
         ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
         ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
-        ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
+        ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
+        ///    - rootPath: The ``RootPath`` under which the web service is registered.
         public init(encoder: AnyEncoder = REST.defaultEncoder,
                     decoder: AnyDecoder = REST.defaultDecoder,
                     caseInsensitiveRouting: Bool = false,
