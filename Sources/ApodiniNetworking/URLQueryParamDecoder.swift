@@ -80,8 +80,11 @@ struct URLQueryParameterValueDecoder {
     }
     
     func decode<T: Decodable>(_: T.Type, from rawValue: String) throws -> T {
+        if T.self == Date.self {
+            return try dateDecodingStrategy.decodeDate(from: rawValue) as! T
+        }
         let decoder = _Decoder(rawValue: rawValue, dateDecodingStrategy: self.dateDecodingStrategy)
-        return try decoder.singleValueContainer().decode(T.self)
+        return try T(from: decoder)
     }
 }
 
