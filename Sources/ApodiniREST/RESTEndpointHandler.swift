@@ -37,8 +37,8 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
         self.exporter = exporter
         
         self.strategy = ParameterTypeSpecific(
-            lightweight: LightweightStrategy(),
-            path: PathStrategy(useNameAsIdentifier: false),
+            lightweight: LightweightStrategy(dateDecodingStrategy: exporterConfiguration.urlParamDateDecodingStrategy),
+            path: PathStrategy(useNameAsIdentifier: false, dateDecodingStrategy: exporterConfiguration.urlParamDateDecodingStrategy),
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         

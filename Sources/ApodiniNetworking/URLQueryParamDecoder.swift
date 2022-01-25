@@ -10,69 +10,78 @@ import Foundation
 import AssociatedTypeRequirementsVisitor
 
 
-/// A rather crude, simple, and limited implementation of a URL query parameter value decoder
-struct URLQueryParameterValueDecoder {
-    enum DateDecodingStrategy {
-        struct DateDecodingError: Error, LocalizedError {
-            let rawInput: String
-            let decodingStrategyDesc: String
-            
-            init(rawInput: String, decodingStrategy: DateDecodingStrategy) {
-                self.rawInput = rawInput
-                self.decodingStrategyDesc = {
-                    switch decodingStrategy {
-                    case .iso8601: return "iso8601"
-                    case .secondsSince1970: return "secondsSince1970"
-                    case .secondsSinceReferenceDate: return "secondsSinceReferenceDate"
-                    case .custom: return "custom"
-                    }
-                }()
-            }
-            
-            var errorDescription: String? {
-                "Unable to decode date from raw input '\(rawInput)'. Used strategy: \(decodingStrategyDesc)"
-            }
+/// How a decoder should decode dates.
+public enum DateDecodingStrategy {
+    struct DateDecodingError: Error, LocalizedError {
+        let rawInput: String
+        let decodingStrategyDesc: String
+        
+        init(rawInput: String, decodingStrategy: DateDecodingStrategy) {
+            self.rawInput = rawInput
+            self.decodingStrategyDesc = {
+                switch decodingStrategy {
+                case .iso8601: return "iso8601"
+                case .secondsSince1970: return "secondsSince1970"
+                case .secondsSinceReferenceDate: return "secondsSinceReferenceDate"
+                case .custom: return "custom"
+                }
+            }()
         }
         
-        case iso8601
-        case secondsSince1970
-        case secondsSinceReferenceDate
-        case custom((String) throws -> Date)
-        
-        func decodeDate(from rawValue: String) throws -> Date {
-            switch self {
-            case .iso8601:
-                if let date = ISO8601DateFormatter().date(from: rawValue) {
-                    return date
-                } else {
-                    throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
-                }
-            case .secondsSince1970:
-                guard let numericValue = TimeInterval(rawValue) else {
-                    throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
-                }
-                return Date(timeIntervalSince1970: numericValue)
-            case .secondsSinceReferenceDate:
-                guard let numericValue = TimeInterval(rawValue) else {
-                    throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
-                }
-                return Date(timeIntervalSinceReferenceDate: numericValue)
-            case .custom(let decodingFn):
-                return try decodingFn(rawValue)
-            }
+        var errorDescription: String? {
+            "Unable to decode date from raw input '\(rawInput)'. Used strategy: \(decodingStrategyDesc)"
         }
     }
     
+    /// Decodes `Date` objects from an ISO8601 string
+    case iso8601
+    /// Decodes `Date` objects from a UNIX timestamp
+    case secondsSince1970
+    /// Decodes `Date` objects from a timestamp relative to Foundation's reference date of 00:00:00 UTC on 1 January 2001.
+    case secondsSinceReferenceDate
+    /// Decodes `Date` objects using a custom closure.
+    case custom((String) throws -> Date)
     
+    /// The "default" date decoding strategy, which interprets dates as UNIX timestamps.
+    /// This static variable exists to ensure that different methods and types can use a common uniform "default" date decoding strategy.
+    public static let `default` = Self.secondsSince1970
+    
+    func decodeDate(from rawValue: String) throws -> Date {
+        switch self {
+        case .iso8601:
+            if let date = ISO8601DateFormatter().date(from: rawValue) {
+                return date
+            } else {
+                throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
+            }
+        case .secondsSince1970:
+            guard let numericValue = TimeInterval(rawValue) else {
+                throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
+            }
+            return Date(timeIntervalSince1970: numericValue)
+        case .secondsSinceReferenceDate:
+            guard let numericValue = TimeInterval(rawValue) else {
+                throw DateDecodingError(rawInput: rawValue, decodingStrategy: self)
+            }
+            return Date(timeIntervalSinceReferenceDate: numericValue)
+        case .custom(let decodingFn):
+            return try decodingFn(rawValue)
+        }
+    }
+}
+
+
+/// A rather crude, simple, and limited implementation of a URL query parameter value decoder
+struct URLQueryParameterValueDecoder {
     let dateDecodingStrategy: DateDecodingStrategy
     
-    init(dateDecodingStrategy: DateDecodingStrategy = .secondsSince1970) {
+    init(dateDecodingStrategy: DateDecodingStrategy = .default) {
         self.dateDecodingStrategy = dateDecodingStrategy
     }
     
     func decode<T: Decodable>(_: T.Type, from rawValue: String) throws -> T {
         let decoder = _Decoder(rawValue: rawValue, dateDecodingStrategy: self.dateDecodingStrategy)
-        return try T(from: decoder)
+        return try decoder.singleValueContainer().decode(T.self)
     }
 }
 
@@ -83,7 +92,7 @@ private struct _Decoder: Decoder {
     let userInfo: [CodingUserInfoKey: Any] = [:]
     
     let rawValue: String
-    let dateDecodingStrategy: URLQueryParameterValueDecoder.DateDecodingStrategy
+    let dateDecodingStrategy: DateDecodingStrategy
     
     func container<Key: CodingKey>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         fatalError("Not supported")
@@ -101,9 +110,9 @@ private struct _Decoder: Decoder {
     private struct SingleValueContainer: SingleValueDecodingContainer {
         let rawValue: String
         var codingPath: [CodingKey]
-        let dateDecodingStrategy: URLQueryParameterValueDecoder.DateDecodingStrategy
+        let dateDecodingStrategy: DateDecodingStrategy
         
-        init(rawValue: String, codingPath: [CodingKey], dateDecodingStrategy: URLQueryParameterValueDecoder.DateDecodingStrategy) {
+        init(rawValue: String, codingPath: [CodingKey], dateDecodingStrategy: DateDecodingStrategy) {
             self.rawValue = rawValue
             self.codingPath = codingPath
             self.dateDecodingStrategy = dateDecodingStrategy

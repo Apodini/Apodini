@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniHTTPProtocol
+import ApodiniNetworking
 
 
 extension HTTP {
@@ -19,6 +20,8 @@ extension HTTP {
         public let encoder: AnyEncoder
         /// The `AnyDecoder` to be used for decoding requests
         public let decoder: AnyDecoder
+        /// How `Date` objects passed as query or path parameters should be decoded.
+        public let urlParamDateDecodingStrategy: DateDecodingStrategy
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
         /// Configures the root path for the HTTP endpoints
@@ -33,11 +36,13 @@ extension HTTP {
         public init(
             encoder: AnyEncoder = HTTP.defaultEncoder,
             decoder: AnyDecoder = HTTP.defaultDecoder,
+            urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
             caseInsensitiveRouting: Bool = false,
             rootPath: RootPath? = nil
         ) {
             self.encoder = encoder
             self.decoder = decoder
+            self.urlParamDateDecodingStrategy = urlParamDateDecodingStrategy
             self.caseInsensitiveRouting = caseInsensitiveRouting
             self.rootPath = rootPath
         }

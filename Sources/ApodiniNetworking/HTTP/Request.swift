@@ -173,11 +173,15 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     /// Read a query param value, decoded to the specified type.
     /// - Note: This function adopts Apodini's requirement that only types conforming to the `LosslessStringConvertible` protocol may be used as query parameters.
     ///         It may work with other types, but that's really just by accident.
-    public func getQueryParam<T: Decodable>(for key: String, as _: T.Type = T.self) throws -> T? {
+    public func getQueryParam<T: Decodable>(
+        for key: String,
+        as _: T.Type = T.self,
+        dateDecodingStrategy: DateDecodingStrategy = .default
+    ) throws -> T? {
         guard case Optional<String?>.some(.some(let rawValue)) = url.queryItems[key] else { // swiftlint:disable:this syntactic_sugar
             return nil
         }
-        return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
+        return try URLQueryParameterValueDecoder(dateDecodingStrategy: dateDecodingStrategy).decode(T.self, from: rawValue)
     }
     
     /// Returns the raw (i.e. stringly typed) value of the specified non-query parameter
@@ -187,7 +191,11 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     }
     
     /// Returns the value of the specified non-query parameter, decoded using the specified type
-    public func getParameter<T: Decodable>(_ name: String, as _: T.Type = T.self) throws -> T? {
+    public func getParameter<T: Decodable>(
+        _ name: String,
+        as _: T.Type = T.self,
+        dateDecodingStrategy: DateDecodingStrategy = .default
+    ) throws -> T? {
         guard let rawValue = getParameterRawValue(name) else {
             return nil
         }
@@ -196,7 +204,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
             return rawValue as! T?
         }
         do {
-            return try URLQueryParameterValueDecoder().decode(T.self, from: rawValue)
+            return try URLQueryParameterValueDecoder(dateDecodingStrategy: dateDecodingStrategy).decode(T.self, from: rawValue)
         } catch {
             throw ApodiniNetworkingError(message: "Error decoding parameter '\(name)'", underlying: error)
         }
