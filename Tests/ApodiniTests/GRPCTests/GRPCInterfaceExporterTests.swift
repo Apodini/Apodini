@@ -103,8 +103,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     func testReflection() throws {
         struct AddNumbers: Handler {
-            @Parameter var x: Int
-            @Parameter var y: Int
+            @Parameter var x: Int // swiftlint:disable:this identifier_name
+            @Parameter var y: Int // swiftlint:disable:this identifier_name
             
             func handle() -> Int {
                 x + y
@@ -197,7 +197,6 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             }
             """
         ]
-        print(describeServices.output)
         XCTAssert(responseParts.allSatisfy { describeServices.output.contains($0) })
         XCTAssertEqual(describeServices.output.components(separatedBy: " is a service:").count - 1, responseParts.count)
     }
