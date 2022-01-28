@@ -188,12 +188,9 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
         case .path:
-            //precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
-//            precondition(Self.isValidPathOrQueryParamType, "Invalid option .path for \(description): Parameter type \(T.self) must ")
             Self.assertIsValidLightweightParamType(forParameterMode: .path, description: description)
             parameterType = .path
         case .query:
-//            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .query for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
             Self.assertIsValidLightweightParamType(forParameterMode: .query, description: description)
             parameterType = .lightweight
         case .body:

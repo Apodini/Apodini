@@ -42,7 +42,7 @@ public enum DateDecodingStrategy {
     /// Decodes `Date` objects using a custom closure.
     case custom((String) throws -> Date)
     
-    /// The "default" date decoding strategy, which interprets dates as UNIX timestamps.
+    /// The "default" date decoding strategy, which interprets dates as UNIX timestamps
     /// This static variable exists to ensure that different methods and types can use a common uniform "default" date decoding strategy.
     public static let `default` = Self.secondsSince1970
     

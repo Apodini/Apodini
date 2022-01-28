@@ -19,7 +19,7 @@ extension REST {
         public let encoder: AnyEncoder
         /// The to be used `AnyDecoder` for decoding requests to the `RESTInterfaceExporter`
         public let decoder: AnyDecoder
-        /// How `Date` objects passed as query or path parameters should be decoded.
+        /// How `Date` objects passed as query or path parameters should be decoded
         public let urlParamDateDecodingStrategy: DateDecodingStrategy
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool

@@ -20,7 +20,7 @@ extension HTTP {
         public let encoder: AnyEncoder
         /// The `AnyDecoder` to be used for decoding requests
         public let decoder: AnyDecoder
-        /// How `Date` objects passed as query or path parameters should be decoded.
+        /// How `Date` objects passed as query or path parameters should be decoded
         public let urlParamDateDecodingStrategy: DateDecodingStrategy
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
