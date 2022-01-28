@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/slashmo/opentelemetry-swift.git",
         "state": {
           "branch": null,
-          "revision": "e4f825fc2c7475553075a3c93b5ddadb5d4f5ec9",
-          "version": "0.1.1"
+          "revision": "6d3cc7c896b4dd426494ea59a5b67c9425b593cc",
+          "version": null
         }
       },
       {
@@ -312,8 +312,8 @@
         "repositoryURL": "https://github.com/apple/swift-distributed-tracing.git",
         "state": {
           "branch": null,
-          "revision": "fce1f7c91ad5a733500ea1cdd7ccd7aed9130536",
-          "version": "0.1.4"
+          "revision": "d83d93f60a42570e80bafad095304d6ec2653dab",
+          "version": "0.2.2"
         }
       },
       {
@@ -321,17 +321,8 @@
         "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage.git",
         "state": {
           "branch": null,
-          "revision": "b68b3277985555995298426a35084b832dbc51ae",
-          "version": "0.1.1"
-        }
-      },
-      {
-        "package": "swift-distributed-tracing-baggage-core",
-        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage-core.git",
-        "state": {
-          "branch": null,
-          "revision": "9a2884a37f39e08ebd225627c400feae9c6ea8df",
-          "version": "0.1.1"
+          "revision": "72997ed11a1ccfa52249524b59e1b43f1c57f1ac",
+          "version": "0.2.2"
         }
       },
       {

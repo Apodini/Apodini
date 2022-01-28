@@ -113,8 +113,8 @@ let package = Package(
         // Use a forked repository of the https://github.com/apple/swift-metrics-extras repository that
         // is versioned and already contains test functionality
         .package(url: "https://github.com/Apodini/swift-metrics-extras.git", .upToNextMinor(from: "0.1.0")),
-        .package(url: "https://github.com/apple/swift-distributed-tracing.git", .upToNextMinor(from: "0.1.2")),
-        .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
+        .package(url: "https://github.com/apple/swift-distributed-tracing.git", .upToNextMinor(from: "0.2.2")),
+        .package(url: "https://github.com/slashmo/opentelemetry-swift.git", revision: "6d3cc7c896b4dd426494ea59a5b67c9425b593cc"),
         
         // Apodini Migrator
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.3.0")),
@@ -667,6 +667,7 @@ let package = Package(
             name: "ApodiniObserveOpenTelemetry",
             dependencies: [
                 .target(name: "ApodiniObserve"),
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
                 .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")

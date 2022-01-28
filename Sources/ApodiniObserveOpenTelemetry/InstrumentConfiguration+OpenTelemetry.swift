@@ -8,6 +8,7 @@
 
 import Apodini
 import ApodiniObserve
+import Logging
 import OpenTelemetry
 import OtlpGRPCSpanExporting
 import Tracing
