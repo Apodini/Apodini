@@ -162,8 +162,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.TestWebService is a service:
             service TestWebService {
-              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
+              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
             }
             """,
             """
@@ -175,9 +175,9 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.API is a service:
             service API {
-              rpc AddPost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc DeletePost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc GetPosts ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
+              rpc AddPost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc DeletePost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc GetPosts ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
             }
             """
         ]

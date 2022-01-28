@@ -320,6 +320,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     /// The error thrown if the schema encounters an `optional` type within a `oneof`, i.e. in Swift an enum w/ associated values
     /// where one of the values is an `Optional` type.
     case invalidOptionalInOneof(Any.Type)
+    /// The error thrown if the schema contains multiple protobuffer message types with the same type name.
+    case conflictingMessageTypeNames(ProtoType, ProtoType)
     /// Some other, unspecified error occurred while handling a type
     /// - parameter message: A String describing the error
     /// - parameter type: The type that caused this error, if applicable
@@ -357,6 +359,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.invalidOptionalInOneof(lhsTy), .invalidOptionalInOneof(rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.conflictingMessageTypeNames(lhsTy1, lhsTy2), .conflictingMessageTypeNames(rhsTy1, rhsTy2)):
+            return lhsTy1 == rhsTy1 && lhsTy2 == rhsTy2
         case let (.other(lhsMessage, lhsTy), .other(rhsMessage, rhsTy)):
             return lhsMessage == rhsMessage && lhsTy.map(ObjectIdentifier.init) == rhsTy.map(ObjectIdentifier.init)
         default:
@@ -481,8 +485,8 @@ public class ProtoSchema {
             return types
         } else {
             let types = EndpointProtoMessageTypes(
-                input: collectTypes(in: try parametersMessageType(for: endpoint, grpcMethodName: grpcMethodName)),
-                output: collectTypes(in: try responseMessageType(for: endpoint, grpcMethodName: grpcMethodName))
+                input: try collectTypes(in: parametersMessageType(for: endpoint, grpcMethodName: grpcMethodName)),
+                output: try collectTypes(in: responseMessageType(for: endpoint, grpcMethodName: grpcMethodName))
             )
             endpointMessageMappings[ObjectIdentifier(H.self)] = types
             return types
@@ -543,7 +547,7 @@ public class ProtoSchema {
     
     
     private func makeProtoMessageTypename(for type: Any.Type, suffix: String) -> String {
-        getProtoTypename(type).typename.appending("___\(suffix)")
+        getProtoTypename(type).typename.appending("\(suffix)")
     }
     
     
@@ -552,20 +556,15 @@ public class ProtoSchema {
         if let packageUnit = protoTypenameToPackageUnitMapping[typename] {
             return packageUnit
         } else {
-            let baseName = typename.typename
-            if baseName.hasSuffix("___\(Self.endpointInputSuffix)") || baseName.hasSuffix("___\(Self.endpointOutputSuffix)") {
-                // We're dealing with one of the auto-generated wrapper messages, which are always in the default package
-                precondition(self.defaultPackageName == typename.packageName)
-                return ProtobufPackageUnit(packageName: typename.packageName)
-            } else {
-                return nil
-            }
+            // We're probably dealing with one of the auto-generated wrapper messages, which are always in the default package
+            precondition(self.defaultPackageName == typename.packageName)
+            return ProtobufPackageUnit(packageName: typename.packageName)
         }
     }
     
     
     private func getProtoTypename(_ type: Any.Type) -> ProtoTypename {
-        // The issue here (and the reason why we can't just do `return "\(type)___\(suffix)"` is that the type might be generic,
+        // The issue here (and the reason why we can't just do `return "\(type)\(suffix)"` is that the type might be generic,
         // in which case it'd contain invalid characters that would result in it not being a valid proto typename.
         // We have to map such types into valid proto typenames, with the properties that they:
         //   1. Do no longer contain any invalid characters (e.g. the '<')
@@ -607,11 +606,14 @@ public class ProtoSchema {
     
     
     @discardableResult
-    private func collectTypes(in protoType: ProtoType) -> ProtoType {
+    private func collectTypes(in protoType: ProtoType) throws -> ProtoType {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let setMapping = { (dst: inout [ProtoTypename: ProtoType], name: ProtoTypename) in
             if let oldValue = dst[name] {
-                precondition(oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false))
+//                precondition(oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false))
+                guard oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false) else {
+                    throw ProtoValidationError.conflictingMessageTypeNames(oldValue, protoType)
+                }
                 switch (oldValue, protoType) {
                 case (.message, .refdMessageType):
                     // If we'd overwrite a "full" (i.e. non-ref) type with a ref, let's not do that
@@ -626,12 +628,12 @@ public class ProtoSchema {
         case .primitive:
             break
         case let .message(name, underlyingType: _, nestedOneofTypes: _, fields):
-            setMapping(&allMessageTypes, name)
+            try setMapping(&allMessageTypes, name)
             for field in fields {
-                collectTypes(in: field.type)
+                try collectTypes(in: field.type)
             }
         case .enumTy(let name, enumType: _, cases: _):
-            setMapping(&allEnumTypes, name)
+            try setMapping(&allEnumTypes, name)
         case .refdMessageType:
             break
         }
@@ -645,7 +647,7 @@ public class ProtoSchema {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         precondition(getProtoCodingKind(type) == .message)
         let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
-        collectTypes(in: result)
+        try collectTypes(in: result)
         return result
     }
     
@@ -656,7 +658,7 @@ public class ProtoSchema {
     public func informAboutType(_ type: Any.Type) throws -> ProtoType {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
-        collectTypes(in: result)
+        try collectTypes(in: result)
         return result
     }
     
