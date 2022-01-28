@@ -37,7 +37,7 @@ public enum DateDecodingStrategy {
     case iso8601
     /// Decodes `Date` objects from a UNIX timestamp
     case secondsSince1970
-    /// Decodes `Date` objects from a timestamp relative to Foundation's reference date of 00:00:00 UTC on 1 January 2001.
+    /// Decodes `Date` objects from a timestamp relative to Foundation's reference date of 00:00:00 UTC on 1 January 2001
     case secondsSinceReferenceDate
     /// Decodes `Date` objects using a custom closure.
     case custom((String) throws -> Date)
