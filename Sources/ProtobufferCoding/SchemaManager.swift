@@ -629,7 +629,6 @@ public class ProtoSchema {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let setMapping = { (dst: inout [ProtoTypename: ProtoType], name: ProtoTypename) in
             if let oldValue = dst[name] {
-//                precondition(oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false))
                 guard oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false) else {
                     throw ProtoValidationError.conflictingMessageTypeNames(oldValue, protoType)
                 }
