@@ -511,7 +511,7 @@ public class ProtoSchema {
                     paramName: param.name,
                     wrappingMessageTypename: .init(
                         packageName: defaultPackageName,
-                        typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointInputSuffix)
+                        typename: makeProtoMessageTypename(for: endpoint, context: .input)
                     )
                 )
             )
@@ -520,7 +520,7 @@ public class ProtoSchema {
             return try combineIntoCompoundMessageType(
                 typename: .init(
                     packageName: defaultPackageName,
-                    typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointInputSuffix)
+                    typename: makeProtoMessageTypename(for: endpoint, context: .input)
                 ),
                 underlyingType: nil,
                 elements: parameters.map { ($0.name, $0.originalPropertyType) }
@@ -538,7 +538,7 @@ public class ProtoSchema {
                 paramName: "value",
                 wrappingMessageTypename: .init(
                     packageName: defaultPackageName,
-                    typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointOutputSuffix)
+                    typename: makeProtoMessageTypename(for: endpoint, context: .response)
                 )
             )
         )
@@ -546,8 +546,27 @@ public class ProtoSchema {
     }
     
     
-    private func makeProtoMessageTypename(for type: Any.Type, suffix: String) -> String {
-        getProtoTypename(type).typename.appending("\(suffix)")
+    private enum ImplicitWrapperMessageTypenameContext {
+        case input
+        case response
+    }
+    
+    
+    private func makeProtoMessageTypename<H: Handler>(for endpoint: Endpoint<H>, context: ImplicitWrapperMessageTypenameContext) -> String {
+        switch context {
+        case .input:
+            if let name = endpoint[Context.self].get(valueFor: HandlerInputProtoMessageName.Key.self) {
+                return name
+            } else {
+                return getProtoTypename(H.self).typename.appending(Self.endpointInputSuffix)
+            }
+        case .response:
+            if let name = endpoint[Context.self].get(valueFor: HandlerResponseProtoMessageName.Key.self) {
+                return name
+            } else {
+                return getProtoTypename(H.self).typename.appending(Self.endpointOutputSuffix)
+            }
+        }
     }
     
     

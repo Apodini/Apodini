@@ -102,6 +102,19 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     
     func testReflection() throws {
+        struct AddNumbers: Handler {
+            @Parameter var x: Int
+            @Parameter var y: Int
+            
+            func handle() -> Int {
+                x + y
+            }
+            
+            var metadata: AnyHandlerMetadata {
+                HandlerInputProtoMessageName("AdditionInput")
+                HandlerResponseProtoMessageName("AdditionResult")
+            }
+        }
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -119,6 +132,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
                     Text("")
                         .operation(.delete)
                         .endpointName("DeletePost")
+                    AddNumbers()
+                        .endpointName(fixed: "AddNumbers")
                 }.gRPCServiceName("API")
             }
         }
@@ -175,12 +190,14 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.API is a service:
             service API {
+              rpc AddNumbers ( .de.lukaskollmer.AdditionInput ) returns ( .de.lukaskollmer.AdditionResult );
               rpc AddPost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
               rpc DeletePost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
               rpc GetPosts ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
             }
             """
         ]
+        print(describeServices.output)
         XCTAssert(responseParts.allSatisfy { describeServices.output.contains($0) })
         XCTAssertEqual(describeServices.output.components(separatedBy: " is a service:").count - 1, responseParts.count)
     }
