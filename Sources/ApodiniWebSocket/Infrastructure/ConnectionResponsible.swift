@@ -18,7 +18,7 @@ typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 
 class ConnectionResponsible: Identifiable {
-    unowned var websocket: WebSocketKit.WebSocket
+    weak var websocket: WebSocketKit.WebSocket?
     let logger: Logger
     let initiatingRequest: HTTPRequest
     private let onClose: (ID) -> Void
@@ -65,7 +65,7 @@ class ConnectionResponsible: Identifiable {
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket.send(data)
+            self.websocket!.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }
@@ -78,14 +78,14 @@ class ConnectionResponsible: Identifiable {
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket.send(data)
+            self.websocket!.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }
     }
     
     func close(_ code: WebSocketErrorCode) {
-        _ = websocket.close(code: code)
+        _ = websocket!.close(code: code)
     }
     
     func destruct(_ context: UUID) {
@@ -95,7 +95,7 @@ class ConnectionResponsible: Identifiable {
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket.send(data)
+            self.websocket!.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }

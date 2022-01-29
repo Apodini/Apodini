@@ -65,7 +65,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         context: UUID) {
         self.init(
             opener,
-            eventLoop: con.websocket.eventLoop,
+            eventLoop: con.websocket!.eventLoop,
             send: { message in
                 con.send(message, in: context)
             },
