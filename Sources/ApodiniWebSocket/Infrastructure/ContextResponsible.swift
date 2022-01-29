@@ -49,20 +49,15 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
         }
     }
     
-    var input: I
-    
-    let send: (O) -> Void
-    let sendError: (Error) -> Void
-    let destruct: () -> Void
-    let close: (WebSocketErrorCode) -> Void
-    
-    let inputReceiver: Subscribable
+    private var input: I
+    private let inputReceiver: Subscribable
     
     convenience init(
         _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, HTTPRequest) ->
             (default: I, output: AnyAsyncSequence<Message<O>>),
         con: ConnectionResponsible,
-        context: UUID) {
+        context: UUID
+    ) {
         self.init(
             opener,
             eventLoop: con.websocket!.eventLoop,
@@ -129,11 +124,6 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
                 close((error as? WSClosingError)?.code ?? .unexpectedServerError)
             }
         }
-        
-        self.send = send
-        self.sendError = sendError
-        self.destruct = destruct
-        self.close = close
     }
     
     func receive(_ parameters: [String: Any], _ data: Data) throws {

@@ -18,7 +18,8 @@ typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
 
 
 class ConnectionResponsible: Identifiable {
-    weak var websocket: WebSocketKit.WebSocket?
+    /// The `WebSocket` associated with this `ConnectionResponsible`. Non-nil while the connection is open, set to `nil` when the underlying channel is closed.
+    private(set) var websocket: WebSocketKit.WebSocket?
     let logger: Logger
     let initiatingRequest: HTTPRequest
     private let onClose: (ID) -> Void
@@ -37,65 +38,76 @@ class ConnectionResponsible: Identifiable {
         self.endpoints = endpoints
         self.logger = logger
         self.initiatingRequest = initiatingRequest
-        websocket.onText { websocket, message in
+        websocket.onText { [weak self] websocket, message in
             var context: UUID?
             do {
-                try self.processMessage(message: message, retrieving: &context)
+                try self!.processMessage(message: message, retrieving: &context)
             } catch {
                 do {
                     guard let data = String(data: try error.message(on: context).encodeToJSON(), encoding: .utf8) else {
                         throw SerializationError.expectedUTF8
                     }
-                    
                     websocket.send(data)
                 } catch {
-                    self.logger.error("Error: \(error)")
+                    self!.logger.error("Error: \(error)")
                 }
             }
         }
-        _ = websocket.onClose.map {
-            onClose(self.id)
+        _ = websocket.onClose.map { [id = self.id, weak self] () -> Void in
+            self?.websocket = nil
+            self?.endpoints.removeAll()
+            self?.contexts.removeAll()
+            return onClose(id)
         }
     }
     
     func send<D: Encodable>(_ message: D, in context: UUID) {
+        guard let websocket = websocket else {
+            fatalError("Attempted to write to already-closed web socket")
+        }
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(EncodableServiceMessage(context: context, content: message))
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket!.send(data)
+            websocket.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }
     }
     
     func send(_ error: Error, in context: UUID) {
+        guard let websocket = websocket else {
+            fatalError("Attempted to write to already-closed web socket")
+        }
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(error.message(on: context))
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket!.send(data)
+            websocket.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }
     }
     
     func close(_ code: WebSocketErrorCode) {
-        _ = websocket!.close(code: code)
+        _ = websocket?.close(code: code)
     }
     
     func destruct(_ context: UUID) {
+        guard let websocket = websocket else {
+            fatalError("Attempted to destruct already-closed web socket")
+        }
         let encoder = JSONEncoder()
         do {
             let jsonData = try encoder.encode(CloseContextMessage(context: context))
             guard let data = String(data: jsonData, encoding: .utf8) else {
                 throw SerializationError.expectedUTF8
             }
-            self.websocket!.send(data)
+            websocket.send(data)
         } catch {
             self.logger.error("Error: \(error)")
         }
