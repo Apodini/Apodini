@@ -77,6 +77,6 @@ jobs:
       run: |
           swift build -c ${{ matrix.configuration }}
           swift run -c ${{ matrix.configuration }} &
-          sleep 15
+          sleep 60
           sh test.sh
           kill -9 $(lsof -ti:80)
