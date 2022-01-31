@@ -18,7 +18,7 @@ struct HTTPPathMatcher {
     
     
     // Config
-    /// Whether or not to disable case sensitivity requirements when matching verbatim (i.e. non-parameter and non-wildcard) path components
+    /// Whether or not to disable case sensitivity requirements when matching constant (i.e. non-parameter and non-wildcard) path components
     private let allowsCaseInsensitiveMatching: Bool
     /// Whether or not the matcher should allow multi-component wildcards (e.g.: `**`) to also match zero path components
     private let allowsEmptyMultiWildcards: Bool
@@ -122,7 +122,7 @@ struct HTTPPathMatcher {
         }
         
         switch currentPathComponent {
-        case .verbatim(let value):
+        case .constant(let value):
             if currentUrlComponent.compare(value, options: allowsCaseInsensitiveMatching ? [.caseInsensitive] : []) != .orderedSame {
                 return .abort
             }

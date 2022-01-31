@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 import ApodiniExtension
+import ApodiniHTTPProtocol
 
 
 extension HTTP {
@@ -20,20 +21,25 @@ extension HTTP {
         public let decoder: AnyDecoder
         /// Indicates whether the HTTP route is interpreted case-sensitivly
         public let caseInsensitiveRouting: Bool
+        /// Configures the root path for the HTTP endpoints
+        public let rootPath: RootPath?
         
         /// Initializes the configuration of the ``HTTP`` exporter
         /// - Parameters:
         ///    - encoder: The to be used `AnyEncoder`, defaults to a `JSONEncoder`
         ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
         ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitivly
+        ///    - rootPath: Configures the root path for the HTTP endpoints
         public init(
             encoder: AnyEncoder = HTTP.defaultEncoder,
             decoder: AnyDecoder = HTTP.defaultDecoder,
-            caseInsensitiveRouting: Bool = false
+            caseInsensitiveRouting: Bool = false,
+            rootPath: RootPath? = nil
         ) {
             self.encoder = encoder
             self.decoder = decoder
             self.caseInsensitiveRouting = caseInsensitiveRouting
+            self.rootPath = rootPath
         }
     }
 }

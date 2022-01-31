@@ -131,3 +131,43 @@ private struct AnyCollectionVisitor: AnyCollectionVisitorBase {
         ()
     }
 }
+
+
+// MARK: ObjectIdentifier/Any.Type Sequences
+
+extension Set where Element == ObjectIdentifier {
+    /// Creates a new `Set` from the specified types
+    public init(_ types: Any.Type...) {
+        self.init(types)
+    }
+    
+    /// Creates a new `Set` from the specified types
+    public init<S>(_ other: S) where S: Sequence, S.Element == Any.Type {
+        self = Set(other.map { ObjectIdentifier($0) })
+    }
+}
+
+
+extension Sequence where Element == ObjectIdentifier {
+    /// Checks whether the sequence contains the specified type
+    public func contains(_ other: Any.Type) -> Bool {
+        contains(ObjectIdentifier(other))
+    }
+}
+
+
+extension Sequence where Element == Any.Type {
+    /// Checks whether the sequence contains the specified type
+    public func contains(_ other: Any.Type) -> Bool {
+        contains { ObjectIdentifier($0) == ObjectIdentifier(other) }
+    }
+}
+
+
+extension Dictionary where Key == ObjectIdentifier {
+    /// Accesses the element stored in the dictionary at the specified key.
+    public subscript(key: Any.Type) -> Value? {
+        get { self[ObjectIdentifier(key)] }
+        set { self[ObjectIdentifier(key)] = newValue }
+    }
+}

@@ -89,6 +89,15 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
     }
 
+    struct ThrowingHandler: Handler {
+        @Throws(.serverError) var error: ApodiniError
+        @Parameter var doThrow = true
+
+        func handle() throws -> Never {
+            throw error
+        }
+    }
+
     @PathParameter(identifying: User.self)
     var userId: User.ID
 
@@ -104,6 +113,9 @@ class RESTInterfaceExporterTests: ApodiniTests {
         }
         Group("authenticated") {
             AuthenticatedHandler()
+        }
+        Group("throwing") {
+            ThrowingHandler()
         }
     }
     
@@ -322,7 +334,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let builder = SemanticModelBuilder(app)
         WebService().register(builder)
         
-        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath.asPathString() }.sorted()
+        let endpointPaths = builder.collectedEndpoints.map { $0.absoluteRESTPath(rootPrefix: Version().pathComponent).asPathString() }.sorted()
         
         let expectedEndpointPaths: [String] = [
             "/v1/api/user", "/v1/api/user", "/v1/api/post"
@@ -411,12 +423,12 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.testable().test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], HTTPMediaType.json)
             XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
             let responseJSON = try XCTUnwrapRESTResponse(String.self, from: response)
-            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://localhost/v1"]))
+            XCTAssertEqual(responseJSON, WrappedRESTResponse<String>(data: "Paul", links: ["self": "http://localhost"]))
         }
     }
     
@@ -443,12 +455,55 @@ class RESTInterfaceExporterTests: ApodiniTests {
         
         TestWebService().start(app: app)
 
-        try app.testable().test(.GET, "/v1/") { response in
+        try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], .pdf)
             XCTAssertEqual(response.headers["Content-Type"].first, "application/pdf")
             XCTAssertEqual(response.headers["Test"], ["Test"])
             XCTAssertEqual(response.status, .created)
             XCTAssertEqual(response.bodyStorage.readableBytes, 0)
+        }
+    }
+
+    func testDecodingErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        let userId = "1234"
+        try app.testable().test(.GET, "user/\(userId)") { response in
+            XCTAssertEqual(response.status, .internalServerError)
+            let apodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+            XCTAssertEqual(apodiniError.option(for: .errorType), .badInput)
+        }
+    }
+
+    func testEvaluationErrorForwarding() throws {
+        var forwardedError: Error?
+        let errorForwardingExporter = ErrorForwardingInterfaceExporter {
+            forwardedError = $0
+        }
+        app.registerExporter(exporter: errorForwardingExporter)
+
+        let testCollection = TestRESTExporterCollection()
+        testCollection.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        testService.accept(visitor)
+        visitor.finishParsing()
+
+        try app.testable().test(.GET, "throwing") { response in
+            XCTAssertEqual(response.status, .internalServerError)
+            let apodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
+            XCTAssertEqual(apodiniError.option(for: .errorType), .serverError)
         }
     }
 }

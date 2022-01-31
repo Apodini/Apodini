@@ -19,52 +19,61 @@ extension Exporter {
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
-        let abortAnyError = AbortTransformer<H>()
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer<H>(),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         return { (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
-            guard let requestCount = try configuration.decoder.decode(
-                ArrayCount.self,
-                from: request.bodyStorage.getFullBodyData() ?? .init()
-            ).count else {
-                throw ApodiniError(
-                    type: .badInput,
-                    reason: "Expected array at top level of body.",
-                    description: "Input for client side steaming endpoints must be an array at top level.")
-            }
-            let delegate = factory.instance()
-            return Array(0..<requestCount)
-                .asAsyncSequence
-                .map { index in
-                    (request, (request, index))
+            do {
+                guard let requestCount = try configuration.decoder.decode(
+                    ArrayCount.self,
+                    from: request.bodyStorage.getFullBodyData() ?? .init()
+                ).count else {
+                    throw ApodiniError(
+                        type: .badInput,
+                        reason: "Expected array at top level of body.",
+                        description: "Input for client side steaming endpoints must be an array at top level.")
                 }
-                .decode(using: strategy, with: request.eventLoop)
-                .insertDefaults(with: defaultValues)
-                .validateParameterMutability()
-                .cache()
-                .subscribe(to: delegate)
-                .evaluate(on: delegate)
-                .transform(using: abortAnyError)
-                .cancelIf { $0.connectionEffect == .close }
-                .collect()
-                .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
-                    let status: Status? = responses.last?.status
-                    let information: InformationSet = responses.last?.information ?? []
-                    let content: [H.Response.Content] = responses.compactMap { response in
-                        response.content
+                let delegate = factory.instance()
+                return Array(0..<requestCount)
+                    .asAsyncSequence
+                    .map { index in
+                        (request, (request, index))
                     }
-                    let body = try configuration.encoder.encode(content)
-                    return HTTPResponse(
-                        version: request.version,
-                        status: HTTPResponseStatus(status ?? .ok),
-                        headers: HTTPHeaders(information),
-                        bodyStorage: .buffer(initialValue: body)
-                    )
-                }
-                .firstFuture(on: request.eventLoop)
-                .map { optionalResponse in
-                    precondition(optionalResponse != nil)
-                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
-                }
+                    .decode(using: strategy, with: request.eventLoop)
+                    .insertDefaults(with: defaultValues)
+                    .validateParameterMutability()
+                    .cache()
+                    .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
+                    .subscribe(to: delegate)
+                    .evaluate(on: delegate)
+                    .transform(using: abortAnyError)
+                    .cancelIf { $0.connectionEffect == .close }
+                    .collect()
+                    .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
+                        let status: Status? = responses.last?.status
+                        let information: InformationSet = responses.last?.information ?? []
+                        let content: [H.Response.Content] = responses.compactMap { response in
+                            response.content
+                        }
+                        let body = try configuration.encoder.encode(content)
+                        return HTTPResponse(
+                            version: request.version,
+                            status: HTTPResponseStatus(status ?? .ok),
+                            headers: HTTPHeaders(information),
+                            bodyStorage: .buffer(initialValue: body)
+                        )
+                    }
+                    .firstFuture(on: request.eventLoop)
+                    .map { optionalResponse in
+                        precondition(optionalResponse != nil)
+                        return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
+                    }
+            } catch {
+                endpoint[ErrorForwarder.self].forward(error)
+                throw error
+            }
         }
     }
 }

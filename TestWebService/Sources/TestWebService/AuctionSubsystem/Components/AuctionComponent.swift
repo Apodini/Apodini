@@ -13,6 +13,7 @@ struct AuctionComponent: Component {
         Group("auction") {
             Auction()
                 .identified(by: "placeBid")
+                .endpointName("placeBid")
                 .response(EmojiTransformer(emojis: "🤑", growth: 2))
         }
     }

@@ -107,7 +107,7 @@ extension Response {
 
 extension Response {
     /// Provides a type-erased version of the ``Response`` by wrapping the ``content`` into an `AnyEncodable`.
-    public var typeErasured: Response<AnyEncodable> {
+    public var typeErased: Response<AnyEncodable> {
         map { content in
             guard let anyEncodable = content as? AnyEncodable else {
                 return AnyEncodable(content)

@@ -23,12 +23,16 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)
         }
-        let abortAnyError = AbortTransformer()
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer(),
+            forwarder: errorForwarder
+        )
         let retFuture: EventLoopFuture<GRPCMessageOut> = [message]
             .asAsyncSequence
             .decode(using: decodingStrategy, with: context.eventLoop)
             .insertDefaults(with: defaults)
             .cache()
+            .forwardDecodingErrors(with: errorForwarder)
             .subscribe(to: delegate)
             .evaluate(on: delegate)
             .transform(using: abortAnyError)

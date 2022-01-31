@@ -188,7 +188,7 @@ private struct TestWebService: Apodini.WebService {
 class InvocableHandlerTests: XCTApodiniTest {
     func testSimpleRemoteHandlerInvocation() throws {
         TestWebService().start(app: app)
-        try app.testable().test(.GET, "/v1/f") { res in
+        try app.testable().test(.GET, "/f") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "F")
         }
@@ -198,7 +198,7 @@ class InvocableHandlerTests: XCTApodiniTest {
         TestWebService().start(app: app)
         try app.testable().test(
             .GET,
-            "/v1/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
+            "/greet?name=lukas&transformation=\(TestWebService.TextTransformer.Transformation.makeUppercase.rawValue)"
         ) { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "Hello LUKAS!")
@@ -207,7 +207,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     
     func testArrayBasedParameterPassingDefaultParameterValueHandling() throws {
         TestWebService().start(app: app)
-        try app.testable().test(.GET, "/v1/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
+        try app.testable().test(.GET, "/greet?name=LuKAs") { res in // default value for the TextTransformer.transformation parameter is .identity
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(String.self, from: res), "Hello LuKAs!")
         }
@@ -215,7 +215,7 @@ class InvocableHandlerTests: XCTApodiniTest {
     
     func testParametersStorageObjectBasedParameterPassing() throws {
         TestWebService().start(app: app)
-        try app.testable().test(.GET, "/v1/calc?operation=add&lhs=5&rhs=7") { res in
+        try app.testable().test(.GET, "/calc?operation=add&lhs=5&rhs=7") { res in
             XCTAssertEqual(res.status, .ok)
             try XCTAssertEqual(XCTUnwrapRESTResponseData(Int.self, from: res), 12)
         }

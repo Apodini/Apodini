@@ -20,6 +20,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     private let strategy: AnyDecodingStrategy<HTTPRequest>
+    private let rootPath: EndpointPath?
     let defaultStore: DefaultValueStore
     
     init(
@@ -41,6 +42,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).applied(to: endpoint)
         
+        self.rootPath = exporterConfiguration.rootPath?.endpointPath(withVersion: app.version)
         self.defaultStore = endpoint[DefaultValueStore.self]
         self.delegateFactory = endpoint[DelegateFactory<H, RESTInterfaceExporter>.self]
     }
@@ -52,10 +54,11 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
             .decodeRequest(from: request, with: request.eventLoop)
             .insertDefaults(with: defaultStore)
             .cache()
+            .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
             .evaluate(on: delegate)
             .map { (responseAndRequest: ResponseWithRequest<H.Response.Content>) in
                 let parameters: (UUID) -> Any? = responseAndRequest.unwrapped(to: CachingRequest.self)?.peek(_:) ?? { _ in nil }
-                return responseAndRequest.response.typeErasured.map { content in
+                return responseAndRequest.response.typeErased.map { content in
                     EnrichedContent(
                         for: relationshipEndpoint,
                         response: content,
@@ -89,7 +92,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                     return request.eventLoop.makeSucceededFuture(httpResponse)
                 }
                 
-                let formatter = LinksFormatter(configuration: self.app.httpConfiguration)
+                let formatter = LinksFormatter(configuration: self.app.httpConfiguration, rootPath: rootPath)
                 var links = enrichedContent.formatRelationships(into: [:], with: formatter, sortedBy: \.linksOperationPriority)
 
                 let readExisted = enrichedContent.formatSelfRelationship(into: &links, with: formatter, for: .read)
@@ -113,6 +116,9 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
                         response.setContentLengthForCurrentBody()
                         return response
                     }
+            }
+            .inspectFailure { error in
+                endpoint[ErrorForwarder.self].forward(error)
             }
     }
 }

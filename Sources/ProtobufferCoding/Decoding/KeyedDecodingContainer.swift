@@ -238,7 +238,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
             // Note: since oneofs can't be repeated, we can safely ignore a potentially specified offset here
             precondition(keyOffset == nil)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
-        } else if let protobufRepeatedTy = type as? ProtobufRepeated.Type {
+        } else if let protobufRepeatedTy = type as? ProtobufRepeatedDecodable.Type {
             let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
             let retval = try protobufRepeatedTy.init(
                 decodingFrom: decoder,
@@ -285,6 +285,24 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                     return try bytesMappedTy.init(rawBytes: adjustedValueBytes)
                 } else if type == String.self {
                     return try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                } else if type == Foundation.UUID.self {
+                    let rawValue = try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                    if let uuid = UUID(uuidString: rawValue) {
+                        return uuid
+                    } else {
+                        throw ProtoDecodingError.unableToParseUUID(rawValue: rawValue)
+                    }
+                } else if type == Foundation.Date.self {
+                    let timestamp = try decode(ProtoTimestamp.self, forKey: key, keyOffset: keyOffset)
+                    //return Date(timeIntervalSince1970: TimeInterval(timestamp.seconds) + (TimeInterval(timestamp.nanos) / 1e9))
+                    return Date(timeIntervalSince1970: timestamp.timeIntervalSince1970)
+                } else if type == Foundation.URL.self {
+                    let rawValue = try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
+                    if let url = URL(string: rawValue) {
+                        return url
+                    } else {
+                        throw ProtoDecodingError.unableToParseURL(rawValue: rawValue)
+                    }
                 } else {
                     return try type.init(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: adjustedValueBytes))
                 }

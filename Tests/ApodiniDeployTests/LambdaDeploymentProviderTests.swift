@@ -26,8 +26,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     
     
     func testLambdaDeploymentProvider() throws { // swiftlint:disable:this function_body_length cyclomatic_complexity
-        throw XCTSkip() // Remove this once the lambda DP is fixed
-        //try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
+        try XCTSkipUnless(Self.shouldRunDeploymentProviderTests)
         
         let awsAccessKeyId: String
         let awsSecretAccessKey: String
@@ -97,7 +96,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         print("Waiting a bit so that the deployed resources are available")
-        sleep(30)
+        sleep(15)
         print("Investigate the deployed resources")
         
         // It's important that the test continues until the end, since we need to (at least attempt to) clean up the AWS resources...
@@ -107,7 +106,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         let s3Url: String = try {
             let regex = try NSRegularExpression(
-                pattern: #"notice de\.lukaskollmer\.ApodiniLambda\.AWSIntegration : Uploading lambda package to (.*)$"#,
+                pattern: #"notice apodini\.ApodiniLambda\.AWSIntegration : Uploading lambda package to (.*)$"#,
                 options: [.anchorsMatchLines]
             )
             for line in output {
@@ -186,7 +185,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         do { // Check that the invoke url is correct
             let regex = try NSRegularExpression(
-                pattern: #"notice de\.lukaskollmer\.ApodiniLambda\.AWSIntegration : Invoke URL: (.*)$"#,
+                pattern: #"notice apodini\.ApodiniLambda\.AWSIntegration : Invoke URL: (.*)$"#,
                 options: .anchorsMatchLines
             )
             for line in output {
@@ -200,11 +199,11 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         print("Send requests to lambda functions")
         
-        do { // Send some test requests to the /v1/rand endpoint
+        do { // Send some test requests to the /rand endpoint
             let numRandTests = 25
-            let expectation = XCTestExpectation("Test /v1/aws_rand", expectedFulfillmentCount: numRandTests)
+            let expectation = XCTestExpectation("Test /aws_rand", expectedFulfillmentCount: numRandTests)
             for _ in 0..<numRandTests {
-                try sendTestRequest(to: "/v1/aws_rand?lowerBound=7&upperBound=520", invokeUrl: invokeUrl) { httpResponse, data in
+                try sendTestRequest(to: "/aws_rand?lowerBound=7&upperBound=520", invokeUrl: invokeUrl) { httpResponse, data in
                     XCTAssertEqual(200, httpResponse.statusCode)
                     let randomValue = try JSONDecoder().decode(WrappedRESTResponse<Int>.self, from: data).data
                     XCTAssert((7...520).contains(randomValue))
@@ -216,9 +215,9 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
         
         
         do {
-            // Send a test request to the /v1/greet endpoint
-            let expectation = XCTestExpectation("Test /v1/aws_greet")
-            try sendTestRequest(to: "/v1/aws_greet/Lukas?age=22", invokeUrl: invokeUrl) { httpResponse, data in
+            // Send a test request to the /greet endpoint
+            let expectation = XCTestExpectation("Test /aws_greet")
+            try sendTestRequest(to: "/aws_greet/Lukas?age=22", invokeUrl: invokeUrl) { httpResponse, data in
                 XCTAssertEqual(200, httpResponse.statusCode)
                 do {
                     let responseString = try JSONDecoder().decode(WrappedRESTResponse<String>.self, from: data).data
@@ -299,6 +298,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployTestCase {
     private func sendTestRequest(
         to path: String, invokeUrl: String, responseValidator: @escaping (HTTPURLResponse, Data) throws -> Void
     ) throws -> URLSessionDataTask {
+        let invokeUrl = invokeUrl.hasSuffix("/") ? String(invokeUrl.dropLast()) : invokeUrl
         let url = try XCTUnwrap(URL(string: "\(invokeUrl)\(path)"))
         print("Send Request to \(url)")
         return URLSession.shared.dataTask(with: url) { data, response, error in

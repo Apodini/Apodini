@@ -18,18 +18,25 @@ extension Exporter {
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
-        let abortAnyError = AbortTransformer<H>()
-        let transformer = HTTPResponseTransformer<H>(configuration.encoder)
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer<H>(),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
+        let transformer = ErrorForwardingResultTransformer(
+            wrapped: HTTPResponseTransformer<H>(configuration.encoder),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         return { (request: HTTPRequest) in
-            guard let requestCount = try! configuration.decoder.decode(
+            guard let requestCount = try? configuration.decoder.decode(
                 ArrayCount.self,
                 from: request.bodyStorage.getFullBodyData() ?? .init()
             ).count else {
                 throw ApodiniError(
                     type: .badInput,
                     reason: "Expected array at top level of body.",
-                    description: "Input for client side steaming endpoints must be an array at top level.")
+                    description: "Input for client side steaming endpoints must be an array at top level."
+                )
             }
             let delegate = factory.instance()
             return Array(0..<requestCount)
@@ -41,6 +48,7 @@ extension Exporter {
                 .insertDefaults(with: defaultValues)
                 .validateParameterMutability()
                 .cache()
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)

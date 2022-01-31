@@ -73,8 +73,8 @@ struct HelloWorld: WebService {
 
 HelloWorld.main()
 
-// http://localhost/v1 -> Hello, World!
-// http://localhost/v1?country=Italy -> Hello, Italy!
+// http://localhost -> Hello, World!
+// http://localhost?country=Italy -> Hello, Italy!
 ```
 
 Apodini knows enough about your service to automatically generate OpenAPI docs. Just add the respective exporter:
@@ -132,8 +132,8 @@ struct CountrySubsystem: Component {
     }
 }
 
-// http://localhost/v1 -> Hello, World!
-// http://localhost/v1/country/Italy -> Hello, Italy!
+// http://localhost -> Hello, World!
+// http://localhost/country/Italy -> Hello, Italy!
 ```
 Apodini allows the developer to specify CLI-arguments that are passed to the `WebService`. The arguments can for example be used in `Configuration`:
 

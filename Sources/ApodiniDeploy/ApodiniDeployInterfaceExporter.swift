@@ -150,7 +150,7 @@ class ApodiniDeployInterfaceExporter: LegacyInterfaceExporter {
         ))
         app.httpServer.registerRoute(
             .POST,
-            ["__apodini", "invoke", .verbatim(endpoint[AnyHandlerIdentifier.self].rawValue)],
+            ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
             responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint)
         )
     }

@@ -75,7 +75,7 @@ public protocol DelegatingHandlerInitializer: AnyDelegatingHandlerInitializer {
     /// - Note: On a non-`Handler` context, this type can be set to `Never`.
     associatedtype Response: ResponseTransformable
     
-    /// Build a partially type-erasured `Handler`-instance that delegates to the given `delegate`.
+    /// Build a partially type-erased `Handler`-instance that delegates to the given `delegate`.
     func instance<D: Handler>(for delegate: D) throws -> SomeHandler<Response>
 }
 

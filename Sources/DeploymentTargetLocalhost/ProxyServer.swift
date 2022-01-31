@@ -104,7 +104,7 @@ extension OpenAPI.Path {
             if component.hasPrefix("{") && component.hasSuffix("}") {
                 return .wildcardSingle(nil)
             } else {
-                return .verbatim(component)
+                return .constant(component)
             }
         }
     }

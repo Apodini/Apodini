@@ -16,12 +16,16 @@ import Foundation
 class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
     override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let responsesStream = GRPCMessageOut.Stream()
-        let abortAnyError = AbortTransformer()
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer(),
+            forwarder: errorForwarder
+        )
         return [message]
             .asAsyncSequence
             .decode(using: decodingStrategy, with: context.eventLoop)
             .insertDefaults(with: defaults)
             .cache()
+            .forwardDecodingErrors(with: errorForwarder)
             .subscribe(to: delegate)
             .evaluate(on: delegate)
             .transform(using: abortAnyError)
@@ -48,6 +52,9 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                     },
                     responsesStream
                 )
+            }
+            .inspectFailure { [weak self] error in
+                self?.errorForwarder.forward(error)
             }
     }
 }

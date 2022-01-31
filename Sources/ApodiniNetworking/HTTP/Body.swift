@@ -150,6 +150,11 @@ public enum BodyStorage {
         stream != nil
     }
     
+    /// Returns `true` iff the underlying storage is a buffer, otherwise `false`.
+    public var isBuffer: Bool {
+        stream == nil
+    }
+    
     /// Returns the underlying stream, if applicable
     public var stream: Stream? {
         switch self {
@@ -305,6 +310,27 @@ extension BodyStorage {
             lock.withLock {
                 block(&self.storage)
             }
+        }
+        
+        /// Collects the contents of the stream into a `ByteBuffer`.
+        /// - returns: An `EventLoopFuture` to a `ByteBuffer` containing the contents of the stream, which will fulfill when the stream is closed.
+        ///         If the stream is already closed, the future will succeed to an empty buffer.
+        /// - Note: This function registers an observer on the stream.
+        public func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
+            guard !self.isClosed else {
+                return eventLoop.makeSucceededFuture(ByteBuffer())
+            }
+            let promise = eventLoop.makePromise(of: ByteBuffer.self)
+            let collectedBytes = Box(ByteBuffer())
+            self.setObserver { stream, _ in
+                if let newData = stream.readNewData() {
+                    collectedBytes.value.writeImmutableBuffer(newData)
+                }
+                if stream.isClosed {
+                    promise.succeed(collectedBytes.value)
+                }
+            }
+            return promise.futureResult
         }
     }
 }

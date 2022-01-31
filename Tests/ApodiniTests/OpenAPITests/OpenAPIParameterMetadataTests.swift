@@ -30,7 +30,7 @@ final class OpenAPIParameterMetadataTests: ApodiniTests {
         let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
 
         let componentsBuilder = OpenAPIComponentsObjectBuilder()
-        var pathsBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsBuilder)
+        var pathsBuilder = OpenAPIPathsObjectBuilder(componentsObjectBuilder: componentsBuilder, rootPath: Version().pathComponent)
 
         let handler = TestHandlerQuery()
         handler.accept(visitor)
@@ -40,7 +40,7 @@ final class OpenAPIParameterMetadataTests: ApodiniTests {
 
         pathsBuilder.addPathItem(from: endpoint)
 
-        let document = try XCTUnwrap(pathsBuilder.pathsObject["/"]?.get)
+        let document = try XCTUnwrap(pathsBuilder.pathsObject["v1"]?.get)
         let parameter = try XCTUnwrap(document.parameters[safe: 0]?.b)
 
         XCTAssertEqual(parameter.name, "id")

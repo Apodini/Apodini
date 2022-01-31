@@ -19,7 +19,7 @@ struct RESTPathBuilder: PathBuilder {
     }
 
     mutating func append(_ string: String) {
-        pathComponents.append(.verbatim(string))
+        pathComponents.append(.constant(string))
         pathString.append(string)
     }
 

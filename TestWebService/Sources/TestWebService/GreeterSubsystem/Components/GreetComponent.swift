@@ -18,6 +18,7 @@ struct GreetComponent: Component {
                 .response(EmojiTransformer())
                 .destination(of: greeterRelationship)
                 .identified(by: "greetMe")
+                .endpointName("greetMe")
         }
     }
 }

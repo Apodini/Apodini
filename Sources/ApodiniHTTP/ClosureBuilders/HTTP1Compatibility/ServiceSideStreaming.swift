@@ -45,7 +45,10 @@ extension Exporter {
         encodeResponse: @escaping (H.Response.Content?) throws -> Data?
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = singleInputDecodingStrategy(for: endpoint)
-        let abortAnyError = AbortTransformer<H>()
+        let abortAnyError = ErrorForwardingResultTransformer(
+            wrapped: AbortTransformer<H>(),
+            forwarder: endpoint[ErrorForwarder.self]
+        )
         let factory = endpoint[DelegateFactory<H, Exporter>.self]
         
         return { (request: HTTPRequest) throws -> EventLoopFuture<HTTPResponse> in
@@ -56,6 +59,7 @@ extension Exporter {
                 .decode(using: strategy, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
                 .cache()
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
                 .subscribe(to: delegate)
                 .evaluate(on: delegate)
                 .transform(using: abortAnyError)
@@ -74,6 +78,7 @@ extension Exporter {
                             }
                         } catch {
                             // Error encoding the response data
+                            endpoint[ErrorForwarder.self].forward(error)
                             logger.error("Error encoding part of response: \(error)")
                         }
                     }

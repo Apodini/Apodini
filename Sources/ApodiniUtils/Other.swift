@@ -215,3 +215,57 @@ public struct Counter<T: FixedWidthInteger> {
         return nextValue
     }
 }
+
+
+/// Checks whether the program was compiled as a debug build
+public func isDebugBuild() -> Bool {
+    #if DEBUG
+    return true
+    #else
+    return false
+    #endif
+}
+
+/// Checks whether the program was compiled as a release build
+public func isReleaseBuild() -> Bool {
+    !isDebugBuild()
+}
+
+
+/// An operating system
+public enum OperatingSystem: Hashable {
+    case macOS
+    case linux
+    case windows
+    
+    /// The current host operating system
+    public static var current: OperatingSystem {
+        #if os(macOS)
+        return .macOS
+        #elseif os(Linux)
+        return .linux
+        #elseif os(Windows)
+        return .windows
+        #else
+        #error("Unsupported OS")
+        #endif
+    }
+}
+
+
+/// An architecture
+public enum Architecture: Hashable {
+    case arm64
+    case x86_64 // swiftlint:disable:this identifier_name
+    
+    /// The current host architecture
+    public static var current: Architecture {
+        #if arch(arm64)
+        return .arm64
+        #elseif arch(x86_64)
+        return .x86_64
+        #else
+        #error("Unsupported architecture")
+        #endif
+    }
+}
