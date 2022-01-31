@@ -112,10 +112,13 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.0")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("develop")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0"))
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
+        
+        // Apodini Document Export
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -180,7 +183,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
-                .product(name: "OrderedCollections", package: "swift-collections")
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
             ],
             resources: [
                 .process("Resources")
@@ -413,7 +417,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
-                .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
+                .product(name: "ApodiniMigrator", package: "ApodiniMigrator"),
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
             ]
         ),
 

@@ -15,6 +15,7 @@ import XCTApodini
 @_implementationOnly import PathKit
 @testable import ApodiniNetworking
 import XCTApodiniNetworking
+@testable import ApodiniDocumentExport
 
 
 struct ThrowingHandler: Handler {
