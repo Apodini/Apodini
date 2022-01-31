@@ -75,7 +75,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     private let migrationGuideConfig: MigrationGuideConfiguration?
     private let logger = Logger(label: "org.apodini.migrator")
 
-    private var endpoints: [ApodiniMigratorCore.Endpoint] = []
+    private var endpoints: [Apodini.AnyEndpoint] = []
     private var webService: WebServiceModel?
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
@@ -87,11 +87,57 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
+        endpoints.append(endpoint)
+    }
+
+    func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+        export(endpoint)
+    }
+
+    func finishedExporting(_ webService: WebServiceModel) {
+        self.webService = webService
+    }
+
+    func didBoot(_ application: Application) throws {
+        guard let webService = self.webService else {
+            fatalError("Encountered inconsistent state where `didBoot` was called before `finishedExporting`!")
+        }
+        self.webService = nil
+
+        let http = HTTPInformation(
+            protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
+            hostname: app.httpConfiguration.hostname.address,
+            port: app.httpConfiguration.hostname.port ??
+                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
+        )
+        let serviceInformation = ServiceInformation(
+            version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
+            http: http
+        )
+
+        var document = APIDocument(serviceInformation: serviceInformation)
+
+        for configuration in app.apodiniMigration.configuredExporters {
+            document.add(anyExporter: configuration)
+        }
+
+        for endpoint in endpoints.map(handleEndpoint) {
+            document.add(endpoint: endpoint)
+        }
+        endpoints.removeAll()
+
+        app.storage.set(MigratorDocumentStorageKey.self, to: document)
+
+        handleDocument(document: document)
+        handleMigrationGuide(document: document)
+    }
+
+    private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
         let communicationalPattern = endpoint[Apodini.CommunicationalPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
-        let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
+        let params = endpoint.parameters.migratorParameters(of: endpoint, with: logger)
 
         let endpointPath = endpoint[EndpointPathComponentsHTTP.self].value
         let absolutePath = endpointPath.build(with: MigratorPathStringBuilder.self)
@@ -135,49 +181,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
             }
         }
 
-        endpoints.append(migratorEndpoint)
-    }
-
-    func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
-        export(endpoint)
-    }
-
-    func finishedExporting(_ webService: WebServiceModel) {
-        self.webService = webService
-    }
-
-    func didBoot(_ application: Application) throws {
-        guard let webService = self.webService else {
-            fatalError("Encountered inconsistent state where `didBoot` was called before `finishedExporting`!")
-        }
-        self.webService = nil
-
-        let http = HTTPInformation(
-            protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
-            hostname: app.httpConfiguration.hostname.address,
-            port: app.httpConfiguration.hostname.port ??
-                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
-        )
-        let serviceInformation = ServiceInformation(
-            version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
-            http: http
-        )
-
-        var document = APIDocument(serviceInformation: serviceInformation)
-
-        for configuration in app.apodiniMigration.configuredExporters {
-            document.add(anyExporter: configuration)
-        }
-
-        for endpoint in endpoints {
-            document.add(endpoint: endpoint)
-        }
-        endpoints.removeAll()
-
-        app.storage.set(MigratorDocumentStorageKey.self, to: document)
-
-        handleDocument(document: document)
-        handleMigrationGuide(document: document)
+        return migratorEndpoint
     }
 
     private func handleDocument(document: APIDocument) {

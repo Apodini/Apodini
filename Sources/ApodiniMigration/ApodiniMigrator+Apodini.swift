@@ -13,14 +13,14 @@ import Apodini
 
 // MARK: - ApodiniMigratorCore.Parameter
 extension ApodiniMigratorCore.Parameter {
-    static func of<H: Handler>(_ type: H.Type, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
+    static func of(endpoint: AnyEndpoint, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
         do {
             typeInformation = try TypeInformation(type: parameter.propertyType)
         } catch {
             logger.error(
                 """
-                Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(H.self): \(error).
+                Error encountered while building the `TypeInformation` for \(parameter.propertyType) of parameter \(parameter.name) in handler \(endpoint): \(error).
                 Using \(Data.self) for the type of the parameter.
                 """
             )
@@ -44,8 +44,8 @@ extension ApodiniMigratorCore.Parameter {
 
 // MARK: - Array
 extension Array where Element == Apodini.AnyEndpointParameter {
-    func migratorParameters<H: Handler>(of handler: H.Type, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
-        map { .of(H.self, from: $0, with: logger) }
+    func migratorParameters(of endpoint: AnyEndpoint, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
+        map { .of(endpoint: endpoint, from: $0, with: logger) }
     }
 }
 
