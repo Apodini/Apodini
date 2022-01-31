@@ -49,6 +49,6 @@ extension MigratorParsableSubcommand {
     }
     
     func start(_ app: Application) throws {
-        try Service.start(mode: runWebService ? .run : .startup, app: app, webService: webService)
+        try Service.start(mode: runWebService ? .run : .boot, app: app, webService: webService)
     }
 }

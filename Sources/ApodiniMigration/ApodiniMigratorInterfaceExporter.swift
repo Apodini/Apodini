@@ -67,7 +67,7 @@ extension MigrationGuide: MigratorItem {
 }
 
 // MARK: - ApodiniMigratorInterfaceExporter
-final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
+final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandler {
     static var parameterNamespace: [ParameterNamespace] = .global
 
     private let app: Apodini.Application
@@ -76,11 +76,14 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private let logger = Logger(label: "org.apodini.migrator")
 
     private var endpoints: [ApodiniMigratorCore.Endpoint] = []
+    private var webService: WebServiceModel?
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
         self.documentConfig = app.storage.get(DocumentConfigStorageKey.self) ?? configuration.documentConfig
         self.migrationGuideConfig = app.storage.get(MigrationGuideConfigStorageKey.self) ?? configuration.migrationGuideConfig
+
+        app.lifecycle.use(self)
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
@@ -140,7 +143,17 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     }
 
     func finishedExporting(_ webService: WebServiceModel) {
+        self.webService = webService
+    }
+
+    func didBoot(_ application: Application) throws {
+        guard let webService = self.webService else {
+            fatalError("Encountered inconsistent state where `didBoot` was called before `finishedExporting`!")
+        }
+        self.webService = nil
+
         let http = HTTPInformation(
+            protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
             hostname: app.httpConfiguration.hostname.address,
             port: app.httpConfiguration.hostname.port ??
                 (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
@@ -152,22 +165,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
 
         var document = APIDocument(serviceInformation: serviceInformation)
 
-
-        let exporterConfigurations: [AnyExporterConfiguration]
-        do {
-            exporterConfigurations = try app.apodiniMigration.retrieveMigratorExporterConfigurations()
-        } catch {
-            guard case ApodiniMigrationContext.ConfigurationError.inconsistentState = error else {
-                fatalError("Unexpected error when retrieving exporter configurations: \(error)")
-            }
-            fatalError("""
-                       The set of Migrator `ExporterConfigurations` changed after the `MigratorConfiguration` was loaded. \
-                       Please ensure that all exporters in the WebService configuration blocks which support \
-                       ApodiniMigration are placed in front of the the `MigratorConfiguration` expression!
-                       """)
-        }
-
-        for configuration in exporterConfigurations {
+        for configuration in app.apodiniMigration.configuredExporters {
             document.add(anyExporter: configuration)
         }
 
@@ -177,11 +175,11 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
         endpoints.removeAll()
 
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
-        
+
         handleDocument(document: document)
         handleMigrationGuide(document: document)
     }
-    
+
     private func handleDocument(document: APIDocument) {
         guard let exportOptions = documentConfig?.exportOptions else {
             return logger.notice("No configuration provided to handle the document of the current version")

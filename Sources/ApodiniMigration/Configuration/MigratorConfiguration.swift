@@ -46,12 +46,6 @@ public struct MigratorConfiguration<Service: WebService>: Configuration {
     /// - Parameters:
     ///   - app: Application instance which is used to register the configuration in Apodini
     public func configure(_ app: Application) {
-        // save the current view on the exporter configuration!
-        // we use this to detect if there are exporters configured AFTER us.
-        // we require every supported exporter to be defined BEFORE us. Otherwise
-        // we don't have access to their exporter configuration or potential endpoint identifiers set by them.
-        app.apodiniMigration.commitMigratorExporterConfigurations()
-
         app.registerExporter(exporter: ApodiniMigratorInterfaceExporter(app, configuration: self))
     }
 
