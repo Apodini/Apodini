@@ -61,10 +61,14 @@ class ConnectionResponsible: Identifiable {
         }
     }
     
+    private func logInvalidOperationOnClosedWebSocketError(_ caller: StaticString = #function) {
+        logger.error("[\(Self.self)]: Attempted to perform '\(caller)' operation on already-closed web socket")
+    }
+    
     func send<D: Encodable>(_ message: D, in context: UUID) {
         guard let websocket = websocket else {
-            print(Thread.callStackSymbols)
-            fatalError("Attempted to write to already-closed web socket")
+            logInvalidOperationOnClosedWebSocketError()
+            return
         }
         let encoder = JSONEncoder()
         do {
@@ -80,8 +84,8 @@ class ConnectionResponsible: Identifiable {
     
     func send(_ error: Error, in context: UUID) {
         guard let websocket = websocket else {
-            print(Thread.callStackSymbols)
-            fatalError("Attempted to send on already-closed web socket")
+            logInvalidOperationOnClosedWebSocketError()
+            return
         }
         let encoder = JSONEncoder()
         do {
@@ -101,8 +105,8 @@ class ConnectionResponsible: Identifiable {
     
     func destruct(_ context: UUID) {
         guard let websocket = websocket else {
-            print(Thread.callStackSymbols)
-            fatalError("Attempted to destruct already-closed web socket")
+            logInvalidOperationOnClosedWebSocketError()
+            return
         }
         let encoder = JSONEncoder()
         do {
