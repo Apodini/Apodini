@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable file_length
+
 import PackageDescription
 
 let package = Package(
@@ -670,6 +672,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniMigrationCommon"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding"),
@@ -695,12 +698,6 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding"),
-
-                // workaround for some weird Xcode compilation error when compiling the test target.
-                // This happened only with Xcode, any other IDEs or executing `swift test` worked flawlessly.
-                // It complained about errors as such: `Undefined symbol: protocol conformance descriptor for ApodiniMigratorExporterSupport.GRPCMethodName : ApodiniMigratorExporterSupport.EndpointIdentifier in ApodiniMigratorExporterSupport
-                .target(name: "ApodiniMigrationCommon"),
-
                 .target(name: "ApodiniGRPC"),
                 .target(name: "XCTUtils"),
                 .product(name: "Algorithms", package: "swift-algorithms")
