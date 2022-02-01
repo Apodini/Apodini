@@ -102,7 +102,7 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.2")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.3")),
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
@@ -120,7 +120,7 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("feature/grpc-migrator")), // TODO release!
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.1")),
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.2")),
 
         // GraphQL
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2")

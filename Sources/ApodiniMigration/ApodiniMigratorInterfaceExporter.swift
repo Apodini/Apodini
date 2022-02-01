@@ -121,10 +121,18 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
             document.add(anyExporter: configuration)
         }
 
-        for endpoint in endpoints.map(handleEndpoint) {
-            document.add(endpoint: endpoint)
+        for endpoint in endpoints {
+            let migratorEndpoint = handleEndpoint(endpoint)
+            document.add(endpoint: migratorEndpoint)
         }
         endpoints.removeAll()
+
+        for model in document.models { // TODO does this work?
+            // exporters may add `TypeInformationIdentifier` to types and their children (properties or enum cases).
+            // Below method call handles this and augments the Context instances of the above `TypeInformation` instance
+            // with the information the other exporters provided us in the `ApodiniMigrationContext`.
+            augmentTypeWithExporterDefinedIdentifiers(type: model)
+        }
 
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
 
@@ -145,11 +153,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         let response: TypeInformation
         do {
             response = try TypeInformation(type: responseType)
-
-            // exporters may add `TypeInformationIdentifier` to types and their children (properties or enum cases).
-            // Below method call handles this and augments the Context instances of the above `TypeInformation` instance
-            // with the information the other exporters provided us in the `ApodiniMigrationContext`.
-            augmentTypeWithExporterDefinedIdentifiers(type: response)
         } catch {
             logger.error(
                 """

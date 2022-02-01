@@ -676,7 +676,7 @@ public class ProtoSchema {
         underlyingType: Any.Type?,
         elements: [(String, Any.Type)]
     ) throws -> ProtoType {
-        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection cyclomatic_complexity
+        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection
             guard let messageTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type else {
                 return nil
             }
@@ -1043,7 +1043,7 @@ extension ProtoSchema {
             case .primitive, .message, .refdMessageType:
                 throw ProtoValidationError.typeNotTopLevelCompatible(protoType)
             case let .enumTy(typename, enumType, cases):
-                self.protoNameToSwiftTypeMapping[typename] = String(describing: enumType)
+                self.protoNameToSwiftTypeMapping[typename] = String(reflecting: enumType)
 
                 let desc = EnumDescriptorProto(
                     name: typename.mangled, // We keep the full typename since we need that for the type containment checks...
@@ -1269,7 +1269,7 @@ extension ProtoSchema {
         case let .message(messageTypename, underlyingType, nestedOneofTypes, fields):
             let swiftTypeName: String?
             if let underlyingType = underlyingType {
-                swiftTypeName = String(describing: underlyingType)
+                swiftTypeName = String(reflecting: underlyingType)
             } else {
                 swiftTypeName = nil
             }

@@ -205,6 +205,10 @@ class GRPCInterfaceExporter: InterfaceExporter {
             for enumType in package.enumTypes {
                 handle(enum: enumType, parentName: packageName)
             }
+
+            for messageType in package.messageTypes {
+                handle(message: messageType, parentName: packageName)
+            }
         }
     }
 
@@ -225,23 +229,22 @@ class GRPCInterfaceExporter: InterfaceExporter {
     }
 
     private func handle(message: DescriptorProto, parentName: String) {
-        guard let swiftTypeName = message.swiftTypeName(with: server.schema, parentName: parentName) else {
-            print("Custom type \(message)") // TODO handle in configuration storage
-            return
-        }
-
         let fullName = "\(parentName).\(message.name)"
 
-        let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
-        app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
+        if let swiftTypeName = message.swiftTypeName(with: server.schema, parentName: parentName) {
+            let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
+            app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
 
-        for field in message.fields {
-            guard let fieldType = field.type else {
-                preconditionFailure("Expectation that field type is always set by the ProtoScheme broke! Raised for \(field)!")
+            for field in message.fields {
+                guard let fieldType = field.type else {
+                    preconditionFailure("Expectation that field type is always set by the ProtoScheme broke! Raised for \(field)!")
+                }
+
+                app.apodiniMigration.register(identifier: GRPCNumber(number: field.number), for: swiftType, children: field.name)
+                app.apodiniMigration.register(identifier: GRPCFieldType(type: fieldType.rawValue), for: swiftType, children: field.name)
             }
-
-            app.apodiniMigration.register(identifier: GRPCNumber(number: field.number), for: swiftType, children: field.name)
-            app.apodiniMigration.register(identifier: GRPCFieldType(type: fieldType.rawValue), for: swiftType, children: field.name)
+        } else {
+            print("Custom type \(message)") // TODO handle in configuration storage
         }
 
 

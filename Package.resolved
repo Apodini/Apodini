@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
         "state": {
           "branch": null,
-          "revision": "ba1d5e86f1d8fd89637d16a4b24740b6ad8cef81",
-          "version": "0.3.1"
+          "revision": "7f089211eb7a7f060b3f570bae9ea03fd05da073",
+          "version": "0.3.2"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
         "state": {
           "branch": null,
-          "revision": "7f0df17075a455dcf8b88b234dfaa295b0df7f27",
-          "version": "0.1.2"
+          "revision": "30b8886934e49d64130868ac0b89219c35fc5447",
+          "version": "0.1.3"
         }
       },
       {
@@ -278,6 +278,15 @@
           "branch": null,
           "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
           "version": "1.3.1"
+        }
+      },
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
