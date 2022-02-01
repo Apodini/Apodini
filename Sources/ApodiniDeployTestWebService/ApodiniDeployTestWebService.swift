@@ -13,6 +13,7 @@ import ApodiniDeploy
 import DeploymentTargetLocalhostRuntime
 import DeploymentTargetAWSLambdaRuntime
 import ApodiniREST
+import ApodiniGRPC
 import ApodiniOpenAPI
 
 
@@ -25,11 +26,6 @@ struct WebService: Apodini.WebService {
                 .operation(.create)
             AWS_RandomNumberGenerator(handlerId: .main)
         }.formDeploymentGroup(withId: "group_aws_rand")
-        Group("aws_rand2") {
-            TextHandler("")
-                .operation(.create)
-            AWS_RandomNumberGenerator(handlerId: .other)
-        }.formDeploymentGroup(withId: "group_aws_rand2")
         Group("aws_greet") {
             AWS_Greeter()
                 .metadata {
@@ -52,15 +48,14 @@ struct WebService: Apodini.WebService {
         REST {
             OpenAPI()
         }
-        ApodiniDeploy(
-            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self],
-            config: DeploymentConfig(
-                defaultGrouping: .separateNodes,
-                deploymentGroups: [
-                    .allHandlers(ofType: Text.self, groupId: "TextHandlersGroup")
-                ]
+        HTTPConfiguration(
+            bindAddress: .interface("localhost", port: 50051),
+            tlsConfiguration: .init(
+                certificatePath: Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")!.path,
+                keyPath: Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")!.path
             )
         )
+        GRPC(packageName: "HelloWorld", serviceName: "HelloService")
         SingleCommandConfiguration()
         MultipleCommandConfiguration()
     }

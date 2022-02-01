@@ -34,6 +34,9 @@ public class ApodiniMigrationContext {
     ///   (e.g. operation, path, grpc service name, ...).
     public private(set) var endpointIdentifiers: [AnyHandlerIdentifier: [AnyElementIdentifier]] = [:]
 
+    // TODO docs!
+    public private(set) var typeInformationIdentifiers: [SwiftTypeIdentifier: TypeInformationAddendum] = [:]
+
     init() {}
 
     /// This register a new `ExporterConfiguration` for a given `ApodiniExporterType`.
@@ -57,8 +60,27 @@ public class ApodiniMigrationContext {
     ) {
         let endpointIdentifier = endpoint[AnyHandlerIdentifier.self]
 
-        var identifiers = self.endpointIdentifiers[endpointIdentifier] ?? []
-        identifiers.append(AnyElementIdentifier(from: identifier))
-        self.endpointIdentifiers[endpointIdentifier] = identifiers
+        self.endpointIdentifiers[endpointIdentifier, default: []]
+            .append(AnyElementIdentifier(from: identifier))
+    }
+
+    public func register<Identifier: TypeInformationIdentifier>(identifier: Identifier, for type: SwiftTypeIdentifier, children: String? = nil) {
+        if let children = children {
+            self.typeInformationIdentifiers[type, default: TypeInformationAddendum()]
+                .childIdentifiers[children, default: []]
+                .append(AnyElementIdentifier(from: identifier))
+        } else {
+            self.typeInformationIdentifiers[type, default: TypeInformationAddendum()]
+                .identifiers
+                .append(AnyElementIdentifier(from: identifier))
+        }
+    }
+
+    public func retrieveTypeInformationAddendum(for name: SwiftTypeIdentifier) -> TypeInformationAddendum? {
+        guard let addendum = typeInformationIdentifiers[name]?.markingQueried() else {
+            return nil
+        }
+
+        return addendum
     }
 }

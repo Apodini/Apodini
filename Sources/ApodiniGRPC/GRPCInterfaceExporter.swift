@@ -180,6 +180,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // Makes the types managed by the schema ready for use by the reflection API
         try! server.schema.finalize()
         server.createFileDescriptors()
+
+        handleMigratorSchemaTypes()
         
         if config.enableReflection {
             setupReflectionHTTPRoutes()
@@ -192,6 +194,64 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 GRPCResponseEncoder(),
                 GRPCMessageHandler(server: self.server)
             ])
+        }
+    }
+
+    // TODO naming + moving!
+    private func handleMigratorSchemaTypes() {
+        for (unit, package) in server.schema.finalizedPackages {
+            let packageName = "[\(unit.packageName)]"
+
+            for enumType in package.enumTypes {
+                handle(enum: enumType, parentName: packageName)
+            }
+        }
+    }
+
+    private func handle(enum: EnumDescriptorProto, parentName: String) {
+        guard let swiftTypeName = `enum`.swiftTypeName(with: server.schema, parentName: parentName) else {
+            print("Custom type \(`enum`)") // TODO handle in configuration storage
+            return
+        }
+
+        let fullName = "\(parentName).\(`enum`.name)"
+
+        let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
+        app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
+
+        for enumValue in `enum`.values {
+            app.apodiniMigration.register(identifier: GRPCNumber(number: enumValue.number), for: swiftType, children: enumValue.name)
+        }
+    }
+
+    private func handle(message: DescriptorProto, parentName: String) {
+        guard let swiftTypeName = message.swiftTypeName(with: server.schema, parentName: parentName) else {
+            print("Custom type \(message)") // TODO handle in configuration storage
+            return
+        }
+
+        let fullName = "\(parentName).\(message.name)"
+
+        let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
+        app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
+
+        for field in message.fields {
+            guard let fieldType = field.type else {
+                preconditionFailure("Expectation that field type is always set by the ProtoScheme broke! Raised for \(field)!")
+            }
+
+            app.apodiniMigration.register(identifier: GRPCNumber(number: field.number), for: swiftType, children: field.name)
+            app.apodiniMigration.register(identifier: GRPCFieldType(type: fieldType.rawValue), for: swiftType, children: field.name)
+        }
+
+
+        // now handle any nested types recursively
+        for nestedEnum in message.enumTypes {
+            handle(enum: nestedEnum, parentName: fullName)
+        }
+
+        for nestedMessage in message.nestedTypes {
+            handle(message: nestedMessage, parentName: fullName)
         }
     }
     

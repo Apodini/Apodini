@@ -146,7 +146,10 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         do {
             response = try TypeInformation(type: responseType)
 
-            // TODO manipulate stuff!
+            // exporters may add `TypeInformationIdentifier` to types and their children (properties or enum cases).
+            // Below method call handles this and augments the Context instances of the above `TypeInformation` instance
+            // with the information the other exporters provided us in the `ApodiniMigrationContext`.
+            augmentTypeWithExporterDefinedIdentifiers(type: response)
         } catch {
             logger.error(
                 """
@@ -157,6 +160,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
             response = .scalar(.data)
         }
 
+        // at some point we need to handle parsing @Throws!
         let errors: [ErrorCode] = [
             .init(code: 401, message: "Unauthorized"),
             .init(code: 403, message: "Forbidden"),
@@ -184,6 +188,51 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         }
 
         return migratorEndpoint
+    }
+
+    // I think this exception is acceptable, handling everything at one place is better than splitting out in this case.
+    // swiftlint:disable:next cyclomatic_complexity
+    private func augmentTypeWithExporterDefinedIdentifiers(type: TypeInformation) {
+        switch type {
+        case let .enum(name, _, cases, context):
+            guard let addendum = app.apodiniMigration.retrieveTypeInformationAddendum(for: name) else {
+                break
+            }
+
+            context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: addendum.identifiers)
+
+            for (key, storage) in addendum.childIdentifiers {
+                guard let enumCase = cases.first(where: { $0.name == key }) else {
+                    fatalError("Another exporter added enum case identifiers for a case we can't identify: \(key) adding \(storage)")
+                }
+
+                enumCase.context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: storage)
+            }
+        case let .object(name, properties, context):
+            guard let addendum = app.apodiniMigration.retrieveTypeInformationAddendum(for: name) else {
+                break
+            }
+
+            context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: addendum.identifiers)
+
+            for (key, storage) in addendum.childIdentifiers {
+                guard let property = properties.first(where: { $0.name == key }) else {
+                    fatalError("Another exporter added property identifiers for a property we can't identify: \(key) adding \(storage)")
+                }
+
+                property.context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: storage)
+            }
+        case let .optional(wrappedValue):
+            return augmentTypeWithExporterDefinedIdentifiers(type: wrappedValue)
+        case let .repeated(element):
+            return augmentTypeWithExporterDefinedIdentifiers(type: element)
+        case let .dictionary(_, value):
+            return augmentTypeWithExporterDefinedIdentifiers(type: value)
+        case .scalar:
+            break // do nothing on a scalar
+        case .reference:
+            fatalError("Unexpected referenced \(type) which we can't follow!")
+        }
     }
 
     private func handleDocument(document: APIDocument) {

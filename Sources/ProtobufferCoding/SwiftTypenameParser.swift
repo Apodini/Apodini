@@ -113,7 +113,7 @@ class SwiftTypename: Hashable, CustomStringConvertible {
             mangledName.append("T\(genericArguments.count)")
             for arg in genericArguments {
                 // we have to enable strict mode here to make sure that the generic args list doesn't contain periods,
-                // since that'd mess up the proto parent type deyection/handling stuff
+                // since that'd mess up the proto parent type detection/handling stuff
                 let argMangled = arg.mangleForProto(strict: true)
                 mangledName.append("M\(argMangled.count)\(argMangled)")
             }
@@ -203,7 +203,7 @@ private struct TypenameParser {
                 switch currentToken {
                 case nil, .period, .comma, .angledBracketLeft, .angledBracketRight, .openingParen, .closingParen:
                     throw ParserError.invalidInput
-                case .identifier(_):
+                case .identifier:
                     continue
                 }
             }

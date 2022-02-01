@@ -480,10 +480,14 @@ let package = Package(
                 .target(name: "DeploymentTargetLocalhostRuntime"),
                 .target(name: "DeploymentTargetAWSLambdaRuntime"),
                 .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
                 .target(name: "ApodiniDeploy")
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         
