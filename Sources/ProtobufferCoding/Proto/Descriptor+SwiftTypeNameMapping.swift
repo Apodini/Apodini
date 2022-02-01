@@ -17,7 +17,7 @@ public protocol NamedProtoDescriptor {
 extension NamedProtoDescriptor {
     // TODO signature!
     public func swiftTypeName(with schema: ProtoSchema, parentName: String) -> String? {
-        let name = parentName + self.name
+        let name = "\(parentName).\(self.name)"
 
         guard let swiftTypeName = schema.protoNameToSwiftTypeMapping[ProtoTypename(mangled: name)] else {
             fatalError("Reached inconsistent state where swift type name mapping isn't present for create Descriptor: Looked for '\(name)' of \(self)")
