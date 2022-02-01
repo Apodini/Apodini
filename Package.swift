@@ -695,6 +695,12 @@ let package = Package(
             name: "ProtobufferCodingTests",
             dependencies: [
                 .target(name: "ProtobufferCoding"),
+
+                // workaround for some weird Xcode compilation error when compiling the test target.
+                // This happened only with Xcode, any other IDEs or executing `swift test` worked flawlessly.
+                // It complained about errors as such: `Undefined symbol: protocol conformance descriptor for ApodiniMigratorExporterSupport.GRPCMethodName : ApodiniMigratorExporterSupport.EndpointIdentifier in ApodiniMigratorExporterSupport
+                .target(name: "ApodiniMigrationCommon"),
+
                 .target(name: "ApodiniGRPC"),
                 .target(name: "XCTUtils"),
                 .product(name: "Algorithms", package: "swift-algorithms")

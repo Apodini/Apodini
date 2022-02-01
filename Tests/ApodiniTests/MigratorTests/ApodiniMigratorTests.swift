@@ -327,12 +327,18 @@ final class ApodiniMigratorTests: ApodiniTests {
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
             let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
-            XCTAssertEqual(document.serviceInformation.http.description, "1.2.3.4:56")
+            XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
         }
     }
     
     func testLibraryGeneration() throws {
         Self.sut = MigratorConfiguration(documentConfig: .export(.directory(testDirectory.string)))
+
+        // we inject a RESTExporterConfiguration here, as otherwise creating `RESTMigrator` would fail
+        // as being a RESTMigrator it requires to have a REST exporter configured.
+        app.apodiniMigration.register(
+            configuration: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default), for: .rest
+        )
         
         try start()
         
