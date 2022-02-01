@@ -25,7 +25,7 @@ public class GraphQL: Configuration {
         graphQLEndpoint: [HTTPPathComponent] = "/graphql",
         enableGraphiQL: Bool = false,
         graphiQLEndpoint: [HTTPPathComponent] = "/graphiql",
-        enableCustom64BitIntScalars: Bool = false
+        enableCustom64BitIntScalars: Bool = true
     ) {
         precondition(graphQLEndpoint.allSatisfy(\.isConstant), "GraphQL endpoint must be a constant path")
         precondition(graphiQLEndpoint.allSatisfy(\.isConstant), "GraphiQL endpoint must be a constant path")
