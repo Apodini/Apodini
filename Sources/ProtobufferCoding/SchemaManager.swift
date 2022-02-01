@@ -322,6 +322,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     case invalidOptionalInOneof(Any.Type)
     /// The error thrown if the schema contains multiple protobuffer message types with the same type name.
     case conflictingMessageTypeNames(ProtoType, ProtoType)
+    /// The error thrown by the schema when encountering one of the integer types not supported by protobuffer (i.e..`Int8`, `UInt8`, `Int16`, `UInt16`)
+    case unsupportedIntegerType(Any.Type)
     /// Some other, unspecified error occurred while handling a type
     /// - parameter message: A String describing the error
     /// - parameter type: The type that caused this error, if applicable
@@ -361,6 +363,8 @@ public enum ProtoValidationError: Swift.Error, Equatable {
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.conflictingMessageTypeNames(lhsTy1, lhsTy2), .conflictingMessageTypeNames(rhsTy1, rhsTy2)):
             return lhsTy1 == rhsTy1 && lhsTy2 == rhsTy2
+        case let (.unsupportedIntegerType(lhsTy), .unsupportedIntegerType(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.other(lhsMessage, lhsTy), .other(rhsMessage, rhsTy)):
             return lhsMessage == rhsMessage && lhsTy.map(ObjectIdentifier.init) == rhsTy.map(ObjectIdentifier.init)
         default:
@@ -686,7 +690,7 @@ public class ProtoSchema {
         underlyingType: Any.Type?,
         elements: [(String, Any.Type)]
     ) throws -> ProtoType {
-        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection cyclomatic_complexity
+        let underlyingTypeFieldNumbersMapping: [String: Int]? = { // swiftlint:disable:this discouraged_optional_collection
             guard let messageTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type else {
                 return nil
             }
@@ -699,7 +703,7 @@ public class ProtoSchema {
             let (idx, (fieldName, fieldType)) = arg0
             let newFields: [ProtoType.MessageField]
             if let assocEnumTy = fieldType as? AnyProtobufEnumWithAssociatedValues.Type {
-                let typeInfo = try! Runtime.typeInfo(of: assocEnumTy)
+                let typeInfo = try Runtime.typeInfo(of: assocEnumTy)
                 precondition(typeInfo.kind == .enum)
                 let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: assocEnumTy.getCodingKeysType().allCases.map {
                     // intentionally not using the getProtoFieldNumber thing here bc the AnyProtobufEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
@@ -931,6 +935,8 @@ public class ProtoSchema {
                 requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
                 singleParamHandlingContext: singleParamHandlingContext
             ))
+        } else if [Int8.self, UInt8.self, Int16.self, UInt16.self].contains(type) {
+            throw ProtoValidationError.unsupportedIntegerType(type)
         }
         
         let typeInfo: TypeInfo
