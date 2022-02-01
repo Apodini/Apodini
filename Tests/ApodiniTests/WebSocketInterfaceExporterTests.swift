@@ -353,7 +353,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             true.asInputForThrowingHandler,
             false.asInputForThrowingHandler,
             on: "throwing.none"
-        ).wait()
+        ).wait() // swiftlint:disable:this multiline_function_chains
         _ = output
         let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
         XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .other)

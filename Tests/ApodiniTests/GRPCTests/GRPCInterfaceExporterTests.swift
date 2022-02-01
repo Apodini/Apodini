@@ -203,7 +203,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
 }
 
 
-struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
+private struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
     @Parameter var value: Input
     func handle() async throws -> some ResponseTransformable {
         value

@@ -19,17 +19,20 @@ public class GraphQL: Configuration {
     fileprivate let graphQLEndpoint: [HTTPPathComponent]
     fileprivate let enableGraphiQL: Bool
     fileprivate let graphiQLEndpoint: [HTTPPathComponent]
+    fileprivate let enableCustom64BitIntScalars: Bool
     
     public init(
         graphQLEndpoint: [HTTPPathComponent] = "/graphql",
         enableGraphiQL: Bool = false,
-        graphiQLEndpoint: [HTTPPathComponent] = "/graphiql"
+        graphiQLEndpoint: [HTTPPathComponent] = "/graphiql",
+        enableCustom64BitIntScalars: Bool = false
     ) {
         precondition(graphQLEndpoint.allSatisfy(\.isConstant), "GraphQL endpoint must be a constant path")
         precondition(graphiQLEndpoint.allSatisfy(\.isConstant), "GraphiQL endpoint must be a constant path")
         self.graphQLEndpoint = graphQLEndpoint
         self.enableGraphiQL = enableGraphiQL
         self.graphiQLEndpoint = graphiQLEndpoint
+        self.enableCustom64BitIntScalars = enableCustom64BitIntScalars
     }
     
     public func configure(_ app: Application) {
@@ -49,7 +52,9 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         self.app = app
         self.config = config
         self.logger = Logger(label: "\(app.logger.label).GraphQL")
-        self.schemaBuilder = GraphQLSchemaBuilder()
+        self.schemaBuilder = GraphQLSchemaBuilder(
+            enableCustom64BitIntScalars: config.enableCustom64BitIntScalars
+        )
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
@@ -141,6 +146,7 @@ private struct GraphQLEndpointParameterDecodingStrategy<T: Codable>: ParameterDe
         let data = try JSONEncoder().encode(Map.dictionary(["value": value]))
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .formatted(GraphQLSchemaBuilder.dateFormatter)
+        decoder.dataDecodingStrategy = .base64
         return try decoder.decode(Wrapped<T>.self, from: data).value
     }
 }

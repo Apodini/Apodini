@@ -25,12 +25,16 @@ class GraphQLSchemaBuilder {
     enum SchemaError: Swift.Error {
         case unableToConstructInputType(TypeInformation, underlying: Swift.Error?)
         case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
-        // Two or more handlers have defined the same key
+        /// Two or more handlers have defined the same key
         case duplicateEndpointNames(String)
         case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationalPattern)
         /// There must be at least one query handler (i.e. an unary handler w/ a `.read` operation type) in the web service
         case missingQueryHandler
         case unableToParseDateScalar(Any)
+        /// The error thrown if the schema encounters an unsupported 64-bit integer type (GraphQL only supports 32-bit integers),
+        /// - Note: It is possible to enable support for 64-bit integers (implemented as a custom scalar type),
+        ///         by passing the relevant flag to the schema (and the Interface Exporter, if you're developing a web service).
+        case unsupported64BitIntegerType(TypeInformation)
         case other(String)
     }
     
@@ -92,11 +96,15 @@ class GraphQLSchemaBuilder {
     
     private(set) var finalizedSchema: GraphQLSchema?
     
+    private let enableCustom64BitIntScalars: Bool
+    
     var isMutable: Bool { finalizedSchema == nil }
     
     
-    init() {
+    init(enableCustom64BitIntScalars: Bool) {
+        self.enableCustom64BitIntScalars = enableCustom64BitIntScalars
         Map.encoder.dateEncodingStrategy = .formatted(Self.dateFormatter)
+        Map.encoder.dataEncodingStrategy = .base64
     }
     
     
@@ -247,36 +255,28 @@ class GraphQLSchemaBuilder {
                 return .init(inputAndOutputType: GraphQLInt)
             case .int8, .uint8, .int16, .uint16, .uint32:
                 return .init(inputAndOutputType: GraphQLInt)
-            case .int, .uint, .int64, .uint64:
-                return .init(inputAndOutputType: GraphQLInt)
+            case .int, .int64:
+                if enableCustom64BitIntScalars {
+                    return .init(inputAndOutputType: GraphQLInt64)
+                } else {
+                    throw SchemaError.unsupported64BitIntegerType(typeInfo)
+                }
+            case .uint, .uint64:
+                if enableCustom64BitIntScalars {
+                    return .init(inputAndOutputType: GraphQLUInt64)
+                } else {
+                    throw SchemaError.unsupported64BitIntegerType(typeInfo)
+                }
             case .string:
                 return .init(inputAndOutputType: GraphQLString)
             case .url:
-                // We could also define our own URL scalar, though that might not work with all clients...
-                return .init(inputAndOutputType: try GraphQLScalarType(
-                    name: "URL",
-                    description: "Uniform Resource Locator",
-                    serialize: { (input: Any) throws -> Map in
-                        print(type(of: input), input)
-                        fatalError("TODO")
-                    },
-                    parseValue: { (input: Map) throws -> Map in
-                        print(type(of: input), input)
-                        fatalError("TODO")
-                    },
-                    parseLiteral: { (input: Value) throws -> Map in
-                        print(type(of: input), input)
-                        fatalError("TODO")
-                    }
-                ))
+                return .init(inputAndOutputType: GraphQLURL)
             case .uuid:
-                // what about GraphQLID?
-                return .init(inputAndOutputType: GraphQLString)
+                return .init(inputAndOutputType: GraphQLID)
             case .date:
                 return .init(inputAndOutputType: GraphQLDate)
             case .data:
-                // TODO does this also necessitate a custom type?
-                return .init(inputAndOutputType: GraphQLList(GraphQLInt))
+                return .init(inputAndOutputType: GraphQLData)
             }
         case .repeated(let element):
             let type = try toGraphQLType(element, for: usageCtx)
@@ -284,10 +284,10 @@ class GraphQLSchemaBuilder {
                 inputType: GraphQLList(type.input!),
                 outputType: GraphQLList(type.output)
             )
-        case let .dictionary(key, value):
-            fatalError("dict: \(key) \(value)")
-        case .optional(let wrappedValue):
-            fatalError("optional: \(wrappedValue)")
+        case .dictionary:
+            throw SchemaError.other("Unsupported type: GraphQL does not support non-object-type dictionaries.")
+        case .optional:
+            throw SchemaError.other("Unexpected Optional Type: \(typeInfo)")
         case let .enum(name, rawValueType: _, cases, context: _):
             if typeInfo.isEqual(to: Never.self) {
                 // The Never type can't really be represented in GraphQL.
@@ -315,11 +315,9 @@ class GraphQLSchemaBuilder {
                 }
             ))
         case let .object(name, properties, context: _):
-            // TODO we have to make sure that the name used here is one we can also get from a raw Any.Type object (though of course we could just call out to ATI again), since in the case of recursive/circular types, we need to be able to create a GraphQLTypeReference object (which works based on the name...)
-            // ^^^ TODO is this the correct name? what about generics? there's also an `absoluteName()` function, maybe that's better...
             return .init(
                 inputType: try GraphQLInputObjectType(
-                    name: "\(name.buildName())__Input",
+                    name: "\(name.buildName())Input",
                     fields: try properties.mapIntoDict { property -> (String, InputObjectField) in
                         (property.name, InputObjectField(type: try toGraphQLInputType(property.type)))
                     }
@@ -332,8 +330,8 @@ class GraphQLSchemaBuilder {
                     }
                 )
             )
-        case .reference(let referenceKey):
-            fatalError("reference: \(referenceKey)")
+        case .reference:
+            throw SchemaError.other("Unhandled .reference type: \(typeInfo)")
         }
     }
     
@@ -399,7 +397,7 @@ let GraphQLDate = try! GraphQLScalarType( // swiftlint:disable:this identifier_n
     description: "A custom scalar type representing Date objects, encoded as ISO8601-formatted strings (using `\(GraphQLSchemaBuilder.dateFormatter.dateFormat!)` as the format) in the \(GraphQLSchemaBuilder.dateFormatter.timeZone!.abbreviation()!) time zone.", // swiftlint:disable:this line_length
     serialize: { (input: Any) -> Map in
         guard let date = input as? Date else {
-            return try Map.init(any: input)
+            return try Map(any: input)
         }
         return .string(GraphQLSchemaBuilder.dateFormatter.string(from: date))
     },
@@ -417,6 +415,92 @@ let GraphQLDate = try! GraphQLScalarType( // swiftlint:disable:this identifier_n
             return .int(intValue)
         } else if let floatNode = (value as? FloatValue)?.value, let floatValue = Double(floatNode) {
             return .double(floatValue)
+        } else {
+            return .null
+        }
+    }
+)
+
+let GraphQLInt64 = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
+    name: "Int64",
+    description: "A custom 64-bit signed integer scalar type",
+    serialize: { (input: Any) -> Map in
+        if let intValue = (input as? Int) ?? (input as? Int64).map(Int.init) {
+            return .number(Number(intValue))
+        } else {
+            return .null
+        }
+    },
+    parseValue: { (input: Map) -> Map in
+        input
+    },
+    parseLiteral: { (value: Value) -> Map in
+        if let stringValue = (value as? IntValue)?.value ?? (value as? StringValue)?.value, let intValue = Int64(stringValue) {
+            return .number(Number(intValue))
+        } else {
+            return nil
+        }
+    }
+)
+
+let GraphQLUInt64 = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
+    name: "UInt64",
+    description: "A custom 64-bit unsigned integer scalar type",
+    serialize: { (input: Any) -> Map in
+        if let intValue = (input as? UInt) ?? (input as? UInt64).map(UInt.init) {
+            return .number(Number(intValue))
+        } else {
+            return .null
+        }
+    },
+    parseValue: { (input: Map) -> Map in
+        input
+    },
+    parseLiteral: { (value: Value) -> Map in
+        if let stringValue = (value as? IntValue)?.value ?? (value as? StringValue)?.value, let intValue = UInt64(stringValue) {
+            return .number(Number(intValue))
+        } else {
+            return nil
+        }
+    }
+)
+
+let GraphQLURL = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
+    name: "URL",
+    description: "Uniform Resource Locator",
+    serialize: { (input: Any) throws -> Map in
+        guard let url = input as? URL else {
+            throw GraphQLError(message: "Unable to serialize URL from type '\(type(of: input))'. Expected a '\(URL.self)' object.")
+        }
+        return .string(url.absoluteURL.absoluteString)
+    },
+    parseValue: { (input: Map) throws -> Map in
+        input
+    },
+    parseLiteral: { (value: Value) throws -> Map in
+        if let stringValue = (value as? StringValue)?.value {
+            return .string(stringValue)
+        } else {
+            return .null
+        }
+    }
+)
+
+let GraphQLData = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
+    name: "Data",
+    description: "Base-64 encoded raw binary data type",
+    serialize: { (input: Any) throws -> Map in
+        guard let data = input as? Data else {
+            throw GraphQLError(message: "Unable to serialize Data from type '\(type(of: input))'. Expected a '\(Data.self)' object.")
+        }
+        return .string(data.base64EncodedString())
+    },
+    parseValue: { (input: Map) throws -> Map in
+        input
+    },
+    parseLiteral: { (value: Value) throws -> Map in
+        if let stringValue = (value as? StringValue)?.value {
+            return .string(stringValue)
         } else {
             return .null
         }
