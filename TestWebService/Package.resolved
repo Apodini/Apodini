@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "feature/grpc-migrator",
-          "revision": "fd524ddb1bfcb3e311274222be79dbe70d1f4dd9",
+          "revision": "980e82809b61409926e5e71b3e6ca4cfdae70267",
           "version": null
         }
       },
@@ -278,6 +278,15 @@
           "branch": null,
           "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
           "version": "1.3.1"
+        }
+      },
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/apple/swift-collections",
+        "state": {
+          "branch": null,
+          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
+          "version": "1.0.2"
         }
       },
       {
