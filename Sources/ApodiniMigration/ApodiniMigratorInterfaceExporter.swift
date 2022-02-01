@@ -145,6 +145,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         let response: TypeInformation
         do {
             response = try TypeInformation(type: responseType)
+
+            // TODO manipulate stuff!
         } catch {
             logger.error(
                 """

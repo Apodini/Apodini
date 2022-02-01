@@ -203,7 +203,7 @@ extension OpenAPIComponentsObjectBuilder {
 extension TypeInformation {
     func jsonSchemaName(isRoot: Bool = false) -> String {
         let constants = OpenAPISchemaConstants.self
-        var schemaName = typeName.absoluteName(constants.genericsPrefix, constants.genericsJoiner)
+        var schemaName = typeName.buildName(genericsStart: constants.genericsPrefix, genericsDelimiter: constants.genericsJoiner)
         
         // The schemaName is prefixed if the root type is .repeated, .dictionary or optional
         if isRoot {

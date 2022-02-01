@@ -8,7 +8,7 @@
 
 import _Concurrency
 import NIOWebSocket
-import WebSocketKit
+@_implementationOnly import WebSocketKit
 import ApodiniUtils
 import ApodiniExtension
 import Foundation

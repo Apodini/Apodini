@@ -65,14 +65,14 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
     private func applyMappingAction(_ action: Configuration.MappingAction, context: ChannelHandlerContext) {
         switch action {
         case .forwardToHTTP1Handler(let responder):
-            context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(
+            _ = context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(
                 hostname: hostname,
                 isTLSEnabled: isTLSEnabled,
                 responder: responder
             )
                 .flatMap { context.pipeline.removeHandler(self) }
         case .configureHTTP2Stream(let streamConfigurator):
-            streamConfigurator(context.channel)
+            _ = streamConfigurator(context.channel)
                 .hop(to: context.eventLoop)
                 .flatMap { context.pipeline.removeHandler(self) }
         }

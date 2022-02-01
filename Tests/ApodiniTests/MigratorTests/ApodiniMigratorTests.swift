@@ -91,14 +91,15 @@ final class ApodiniMigratorTests: ApodiniTests {
         try testDirectory.delete()
     }
     
-    private func start() {
+    private func start() throws {
         MigratorWebService().start(app: app)
+        try app.boot()
     }
     
     func testEmptyConfiguration() throws {
         Self.sut = .init()
         
-        start()
+        try start()
         
         XCTAssertEqual(Self.migratorConfig.command._commandName, "migrator")
         XCTAssertEqual(Self.migratorConfig.command.configuration.subcommands.count, 3)
@@ -125,7 +126,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let documentExport: DocumentExportOptions = .directory(testDirectory.string, format: .yaml)
         Self.sut = MigratorConfiguration(documentConfig: .export(documentExport))
         
-        start()
+        try start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
         let exportedDocument = try APIDocument.decode(from: testDirectory + "\(document.fileName).yaml")
@@ -138,7 +139,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         Self.sut = MigratorConfiguration(documentConfig: .export(.endpoint(path)))
         
-        start()
+        try start()
         
         try app.testable().test(.GET, path) { response in
             XCTAssertEqual(response.status, .ok)
@@ -158,7 +159,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .compare(.file(exportPath), export: .directory(testDirectory.string))
         )
         
-        start()
+        try start()
         
         let stored = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         
@@ -192,7 +193,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .compare(.resource(.module, fileName: "migrator_document", format: .json), export: migrationGuideExport)
         )
         
-        start()
+        try start()
         
         let storedMigrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         try app.testable().test(.GET, "guide") { response in
@@ -207,7 +208,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let resource: ResourceLocation = .resource(.module, fileName: "empty_migration_guide", format: .yaml)
         Self.sut = .init(migrationGuideConfig: .read(resource, export: .endpoint(endpointPath, format: .json)))
         
-        start()
+        try start()
         
         try app.testable().test(.GET, endpointPath) { response in
             XCTAssertEqual(response.status, .ok)
@@ -226,7 +227,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .read(resource, export: .endpoint("not-found"))
         )
         
-        start()
+        try start()
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         
@@ -279,8 +280,8 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
     
     func testMigratorReadCommand() throws {
-        let mg = MigrationGuide.empty(id: UUID())
-        print(mg.yaml)
+        let migrationGuide = MigrationGuide.empty(id: UUID())
+        print(migrationGuide.yaml)
 
         Self.sut = .init()
         let guidePath = try XCTUnwrap(ResourceLocation.resource(.module, fileName: "empty_migration_guide", format: .yaml).path)
@@ -321,6 +322,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         }
         
         TestWebService().start(app: app)
+        try app.boot()
         
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
@@ -332,7 +334,7 @@ final class ApodiniMigratorTests: ApodiniTests {
     func testLibraryGeneration() throws {
         Self.sut = MigratorConfiguration(documentConfig: .export(.directory(testDirectory.string)))
         
-        start()
+        try start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
 

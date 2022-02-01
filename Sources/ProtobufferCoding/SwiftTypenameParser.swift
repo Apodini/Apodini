@@ -177,7 +177,6 @@ private struct TypenameParser {
     
     private mutating func parseType() throws -> SwiftTypename { // swiftlint:disable:this cyclomatic_complexity
         var parentType: SwiftTypename?
-        var prevPosition = position
         loop: while currentToken != nil {
             switch currentToken! {
             case .identifier(let ident):
@@ -204,7 +203,7 @@ private struct TypenameParser {
                 switch currentToken {
                 case nil, .period, .comma, .angledBracketLeft, .angledBracketRight, .openingParen, .closingParen:
                     throw ParserError.invalidInput
-                case .identifier(let ident):
+                case .identifier(_):
                     continue
                 }
             }

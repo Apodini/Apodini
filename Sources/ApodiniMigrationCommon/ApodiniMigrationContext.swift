@@ -32,7 +32,7 @@ public class ApodiniMigrationContext {
     /// - `AnyHandlerIdentifier` is Apodini maintained to identify a single `Handler` at runtime
     /// - `EndpointIdentifier` is part of ApodiniMigration and defines any information which identifies an endpoint
     ///   (e.g. operation, path, grpc service name, ...).
-    public private(set) var endpointIdentifiers: [AnyHandlerIdentifier: [AnyEndpointIdentifier]] = [:]
+    public private(set) var endpointIdentifiers: [AnyHandlerIdentifier: [AnyElementIdentifier]] = [:]
 
     init() {}
 
@@ -58,7 +58,7 @@ public class ApodiniMigrationContext {
         let endpointIdentifier = endpoint[AnyHandlerIdentifier.self]
 
         var identifiers = self.endpointIdentifiers[endpointIdentifier] ?? []
-        identifiers.append(AnyEndpointIdentifier(from: identifier))
+        identifiers.append(AnyElementIdentifier(from: identifier))
         self.endpointIdentifiers[endpointIdentifier] = identifiers
     }
 }
