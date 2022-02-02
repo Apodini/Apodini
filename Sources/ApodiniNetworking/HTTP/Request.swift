@@ -67,7 +67,8 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     
     /// For incoming requests from external clients processed through the HTTP server's router, the route this request matched against.
     /// - Note: This property is `nil` for manually constructed requests
-    internal var route: HTTPRouter.Route?
+    /// - Note: This property is intentionally not a `HTTPRouter.Route`, since that would entail also storing the route's responder, which would introduce the possibility of retain cycles.
+    internal var matchedRoute: (method: HTTPMethod, path: [HTTPPathComponent])?
     
     private var parameters = ParametersStorage()
     
@@ -161,10 +162,10 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
                 ))
             }
         }
-        if let route = route {
+        if let matchedRoute = matchedRoute {
             metadata.append(LoggingMetadataInformation(
                 key: .init("route"),
-                rawValue: .string("\(route.method) \(route.path.httpPathString)")
+                rawValue: .string("\(matchedRoute.method) \(matchedRoute.path.httpPathString)")
             ))
         }
         return metadata
@@ -222,7 +223,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     }
     
     internal func populate(from route: HTTPRouter.Route, withParameters parameters: ParametersStorage) {
-        self.route = route
+        self.matchedRoute = (route.method, route.path)
         self.parameters = parameters
     }
     

@@ -149,8 +149,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 type: .bidirectionalStream,
                 inputType: reflectionInputType,
                 outputType: reflectionOutputType,
-                streamRPCHandlerMaker: { [unowned self] in
-                    ServerReflectionInfoRPCHandler(server: self.server)
+                streamRPCHandlerMaker: { [weak self] in
+                    guard let self = self else {
+                        fatalError("self is nil")
+                    }
+                    return ServerReflectionInfoRPCHandler(server: self.server)
                 }
             )
         )
