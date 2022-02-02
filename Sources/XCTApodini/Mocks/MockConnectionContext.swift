@@ -128,7 +128,7 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
     public var strategy: AnyEndpointDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
             lightweight: LightweightStrategy(),
-            path: PathStrategy(useNameAsIdentifier: false),
+            path: PathStrategy(useNameAsIdentifier: false, dateDecodingStrategy: .default),
             content: AllIdentityStrategy(exporterConfiguration.decoder).transformedToHTTPRequestBasedStrategy()
         ).typeErased
     }
