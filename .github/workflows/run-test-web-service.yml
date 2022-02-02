@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linux: [focal, amazonlinux2, centos8]
+        linux: [focal, amazonlinux2]
         configuration: [debug, release]
     defaults:
       run:
