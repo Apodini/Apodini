@@ -243,15 +243,18 @@ public final class HTTPServer {
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
             .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
-            .childChannelInitializer { [unowned self] (channel: Channel) -> EventLoopFuture<Void> in
-                logger.notice("Configuring NIO channel pipeline. TLS: \(tlsConfiguration != nil), HTTP/2: \(enableHTTP2)")
-                if let tlsConfig = tlsConfiguration {
+            .childChannelInitializer { [weak self] (channel: Channel) -> EventLoopFuture<Void> in
+                guard let self = self else {
+                    fatalError("Asked to configure NIO channel for already-deallocated HTTPServer")
+                }
+                self.logger.notice("Configuring NIO channel pipeline. TLS: \(self.tlsConfiguration != nil), HTTP/2: \(self.enableHTTP2)")
+                if let tlsConfig = self.tlsConfiguration {
                     precondition(tlsConfig.applicationProtocols.contains("h2"), "h2 not found in \(tlsConfig.applicationProtocols)")
                     let sslContext: NIOSSLContext
                     do {
                         sslContext = try NIOSSLContext(configuration: tlsConfig)
                     } catch {
-                        logger.error("Unable to configure TLS: \(error)")
+                        self.logger.error("Unable to configure TLS: \(error)")
                         return channel.close(mode: .all)
                     }
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
@@ -272,7 +275,7 @@ public final class HTTPServer {
                             channel.eventLoop.makeFailedFuture(error)
                         }
                 } else {
-                    if enableHTTP2 {
+                    if self.enableHTTP2 {
                         fatalError("Invalid configuration: Cannot enable HTTP/2 if TLS is disabled.")
                     } else {
                         return channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)

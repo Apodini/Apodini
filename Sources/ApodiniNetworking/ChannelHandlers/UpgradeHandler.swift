@@ -137,7 +137,9 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
                     }
                     .flatMap { () -> EventLoopFuture<Void> in
                         self.logger.notice("Calling upgrader.upgrade")
-                        return webSocketUpgrader.upgrade(context: context, upgradeRequest: head)
+                        let retval = webSocketUpgrader.upgrade(context: context, upgradeRequest: head)
+                        self.logger.notice("Called upgrader.upgrade. retval: \(retval)")
+                        return retval
                     }
                     .cascadeFailure(to: promise)
             }

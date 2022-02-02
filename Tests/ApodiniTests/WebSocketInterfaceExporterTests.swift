@@ -298,25 +298,25 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             forwardedError = $0
         }
         app.registerExporter(exporter: errorForwardingExporter)
-
+        
         let testCollection = TestWebSocketExporterCollection()
         testCollection.configuration.configure(app)
-
+        
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         testService.accept(visitor)
         visitor.finishParsing()
-
+        
         try app.start()
-
+        
         let client = StatelessClient(on: app.eventLoopGroup.next())
-
+        
         let userId = "1234"
-
+        
         // without name parameter
         struct InvalidUserHandlerInput: Encodable {
             let userId: String
         }
-
+        
         XCTAssertThrowsError(try client.resolve(one: InvalidUserHandlerInput(userId: userId), on: "user.:userId:").wait() as User)
         let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
         XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .badInput)
@@ -344,7 +344,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
             true.asInputForThrowingHandler,
             false.asInputForThrowingHandler,
             on: "throwing.none"
-        ).wait()
+        ).wait() // swiftlint:disable:this multiline_function_chains
         _ = output
         let forwardedApodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
         XCTAssertEqual(forwardedApodiniError.option(for: .errorType), .other)
