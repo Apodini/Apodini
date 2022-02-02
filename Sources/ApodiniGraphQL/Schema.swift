@@ -244,7 +244,7 @@ class GraphQLSchemaBuilder {
         case .scalar(let primitiveType):
             switch primitiveType {
             case .null:
-                fatalError()
+                throw SchemaError.other("Unexpected null type: \(typeInfo)")
             case .bool:
                 return .init(inputAndOutputType: GraphQLBoolean)
             case .float:
