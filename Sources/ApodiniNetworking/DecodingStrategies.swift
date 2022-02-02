@@ -13,19 +13,25 @@ import ApodiniExtension
 
 /// Decodes parameters from the `Request`'s query parameters on a name-basis.
 public struct LightweightStrategy: EndpointDecodingStrategy {
-    public init() {}
+    let dateDecodingStrategy: DateDecodingStrategy
+    
+    /// - parameter dateDecodingStrategy: How `Foundation.Date` objects should be decoded
+    public init(dateDecodingStrategy: DateDecodingStrategy = .default) {
+        self.dateDecodingStrategy = dateDecodingStrategy
+    }
     
     public func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, HTTPRequest> {
-        LightweightParameterStrategy<Element>(name: parameter.name).typeErased
+        LightweightParameterStrategy<Element>(name: parameter.name, dateDecodingStrategy: dateDecodingStrategy).typeErased
     }
 }
 
 
 private struct LightweightParameterStrategy<T: Decodable>: ParameterDecodingStrategy {
     let name: String
+    let dateDecodingStrategy: DateDecodingStrategy
     
     func decode(from request: HTTPRequest) throws -> T {
-        guard let query = try? request.getQueryParam(for: name, as: T.self) else {
+        guard let query = try? request.getQueryParam(for: name, as: T.self, dateDecodingStrategy: dateDecodingStrategy) else {
             // the query parameter doesn't exist
             throw DecodingError.keyNotFound(
                 name,
@@ -44,13 +50,15 @@ private struct LightweightParameterStrategy<T: Decodable>: ParameterDecodingStra
 /// Decodes parameters from the `Request`'s path parameters matching either on a name- or id-basis.
 public struct PathStrategy: EndpointDecodingStrategy {
     let useNameAsIdentifier: Bool
+    let dateDecodingStrategy: DateDecodingStrategy
     
-    public init(useNameAsIdentifier: Bool = true) {
+    public init(useNameAsIdentifier: Bool = true, dateDecodingStrategy: DateDecodingStrategy = .default) {
         self.useNameAsIdentifier = useNameAsIdentifier
+        self.dateDecodingStrategy = dateDecodingStrategy
     }
     
     public func strategy<Element: Decodable>(for parameter: EndpointParameter<Element>) -> AnyParameterDecodingStrategy<Element, HTTPRequest> {
-        PathParameterStrategy(parameter: parameter, useNameAsIdentifier: useNameAsIdentifier).typeErased
+        PathParameterStrategy(parameter: parameter, useNameAsIdentifier: useNameAsIdentifier, dateDecodingStrategy: dateDecodingStrategy).typeErased
     }
 }
 
@@ -58,6 +66,7 @@ public struct PathStrategy: EndpointDecodingStrategy {
 private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
     let parameter: EndpointParameter<E>
     let useNameAsIdentifier: Bool
+    let dateDecodingStrategy: DateDecodingStrategy
     
     func decode(from request: HTTPRequest) throws -> E {
         guard let stringParameter = request.getParameterRawValue(useNameAsIdentifier ? parameter.name : parameter.id.uuidString) else {
@@ -68,6 +77,10 @@ private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
                     debugDescription: "No path parameter with name \(parameter.name) present in request \(request.description)",
                     underlyingError: nil
                 )) // the path parameter didn't exist on that request
+        }
+        
+        if E.self == Date.self {
+            return try dateDecodingStrategy.decodeDate(from: stringParameter) as! E
         }
         
         guard let value = parameter.initLosslessStringConvertibleParameterValue(from: stringParameter) else {

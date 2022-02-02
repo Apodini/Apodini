@@ -102,6 +102,19 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     
     func testReflection() throws {
+        struct AddNumbers: Handler {
+            @Parameter var x: Int // swiftlint:disable:this identifier_name
+            @Parameter var y: Int // swiftlint:disable:this identifier_name
+            
+            func handle() -> Int {
+                x + y
+            }
+            
+            var metadata: AnyHandlerMetadata {
+                HandlerInputProtoMessageName("AdditionInput")
+                HandlerResponseProtoMessageName("AdditionResult")
+            }
+        }
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -119,6 +132,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
                     Text("")
                         .operation(.delete)
                         .endpointName("DeletePost")
+                    AddNumbers()
+                        .endpointName(fixed: "AddNumbers")
                 }.gRPCServiceName("API")
             }
         }
@@ -162,8 +177,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.TestWebService is a service:
             service TestWebService {
-              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
+              rpc GetRoot ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc GetTeam ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
             }
             """,
             """
@@ -175,9 +190,10 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
             """
             de.lukaskollmer.API is a service:
             service API {
-              rpc AddPost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc DeletePost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
-              rpc GetPosts ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.Text___Response );
+              rpc AddNumbers ( .de.lukaskollmer.AdditionInput ) returns ( .de.lukaskollmer.AdditionResult );
+              rpc AddPost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc DeletePost ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
+              rpc GetPosts ( .google.protobuf.Empty ) returns ( .de.lukaskollmer.TextResponse );
             }
             """
         ]
@@ -187,7 +203,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
 }
 
 
-struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
+private struct EchoHandler<Input: Codable & ResponseTransformable>: Handler {
     @Parameter var value: Input
     func handle() async throws -> some ResponseTransformable {
         value
@@ -432,6 +448,7 @@ extension GRPCInterfaceExporterTests {
     // because it also serves as a proof-of-concept of using `EmbeddedChannel`s for testing the gRPC IE,
     // rather than relying on grpcurl.
     func testResponseHeaders() throws {
+        print(#function, "start")
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -452,12 +469,17 @@ extension GRPCInterfaceExporterTests {
             }
         }
         
+        print(#function, "configure app")
         TestGRPCExporterCollection().configuration.configure(app)
+        print(#function, "create visitor")
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        print(#function, "accept visitor")
         WebService().accept(visitor)
+        print(#function, "-finishParsing")
         visitor.finishParsing()
         // Intentionally not starting the app here...
         
+        print(#function, "will fetch IE")
         let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
         
         let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
@@ -468,6 +490,7 @@ extension GRPCInterfaceExporterTests {
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
         // We also add some intercepting handlers, which allows us to a) check that the data send through the pipeline at certain stages
         // of the message handling process is what we'd expect, and b) detect the end of the connection.
+        print(#function, "create EmbeddedChannel")
         let channel = EmbeddedChannel(handlers: [
             OutboundSinkholeChannelHandler(),
             httpOutInterceptor,
@@ -475,6 +498,7 @@ extension GRPCInterfaceExporterTests {
             messageOutInterceptor,
             GRPCMessageHandler(server: grpcIE.server)
         ])
+        print(#function, "create clientHeaders")
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
@@ -482,18 +506,25 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
             $0[.contentType] = .gRPC(.proto)
         }
+        print(#function, "channel.writeInbound (1)")
         try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
+        print(#function, "channel.writeInbound (2)")
         try channel.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
             remoteAddress: nil,
             requestHeaders: clientHeaders,
             payload: ByteBuffer()
         )))
+        print(#function, "channel.writeInbound (3)")
         try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
         
+        print(#function, "wait for close expectation")
         wait(for: [channelCloseExpectation], timeout: 5)
+        print(#function, "channel.finish")
         XCTAssert(try channel.finish(acceptAlreadyClosed: true).isClean)
         
+        print(#function, "check 1")
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 2)
+        print(#function, "check 2")
         XCTAssertEqual(messageOutInterceptor.interceptedData[0].asSingleMessage, GRPCMessageOut.singleMessage(
             headers: HPACKHeaders {
                 $0[.contentType] = .gRPC(.proto)
@@ -501,6 +532,7 @@ extension GRPCInterfaceExporterTests {
             payload: ByteBuffer(bytes: [10, 13, 65, 108, 105, 99, 101, 32, 97, 110, 100, 32, 66, 111, 98]),
             closeStream: true
         ))
+        print(#function, "check 3")
         XCTAssertEqual(messageOutInterceptor.interceptedData[1], .closeStream(trailers: HPACKHeaders()))
     }
 }
