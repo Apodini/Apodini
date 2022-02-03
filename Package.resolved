@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "feature/grpc-migrator",
-          "revision": "980e82809b61409926e5e71b3e6ca4cfdae70267",
+          "revision": "d3ceb28d5df6530457d027f4b1748ed91d864454",
           "version": null
         }
       },
@@ -87,8 +87,8 @@
         "repositoryURL": "https://github.com/GraphQLSwift/GraphQL",
         "state": {
           "branch": null,
-          "revision": "588b7b4dc9dcb352ad185012003f84823108540d",
-          "version": "2.1.2"
+          "revision": "283cc4de56b994a00b2724328221b7a1bc846ddc",
+          "version": "2.2.1"
         }
       },
       {

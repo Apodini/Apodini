@@ -143,7 +143,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
         let handlerName = endpoint[HandlerDescription.self]
         let operation = endpoint[Apodini.Operation.self]
-        let communicationalPattern = endpoint[Apodini.CommunicationalPattern.self]
+        let communicationPattern = endpoint[Apodini.CommunicationalPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
         let params = endpoint.parameters.migratorParameters(of: endpoint, with: logger)
 
@@ -175,7 +175,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
             handlerName: handlerName,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
-            communicationalPattern: .init(communicationalPattern),
+            communicationPattern: .init(communicationPattern),
             absolutePath: absolutePath,
             parameters: params,
             response: response,

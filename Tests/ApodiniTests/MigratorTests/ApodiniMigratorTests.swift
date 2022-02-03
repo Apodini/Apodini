@@ -366,9 +366,9 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
 
     func testPatternMapping() {
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.requestResponse), .requestResponse)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.serviceSideStream), .serviceSideStream)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.clientSideStream), .clientSideStream)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.bidirectionalStream), .bidirectionalStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.requestResponse), .requestResponse)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.serviceSideStream), .serviceSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.clientSideStream), .clientSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.bidirectionalStream), .bidirectionalStream)
     }
 }
