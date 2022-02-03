@@ -77,6 +77,6 @@ jobs:
       run: |
           swift build -c ${{ matrix.configuration }}
           .build/${{ matrix.configuration }}/TestWebService &
-          sleep 60
+          sleep 10
           sh test.sh
           kill -9 $(lsof -ti:80)
