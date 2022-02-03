@@ -11,6 +11,7 @@ import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
 import ApodiniNetworking
+import ApodiniDocumentExport
 
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
