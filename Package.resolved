@@ -11,12 +11,21 @@
         }
       },
       {
+        "package": "ApodiniDocumentExport",
+        "repositoryURL": "https://github.com/Apodini/ApodiniDocumentExport.git",
+        "state": {
+          "branch": null,
+          "revision": "0a3fe4195f011057ad2cd5150c9091f2a17c2ec1",
+          "version": "0.1.1"
+        }
+      },
+      {
         "package": "ApodiniMigrator",
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "9863ba8296576753afbb453de091c7b0e40e3dc3",
-          "version": "0.2.1"
+          "revision": "8e9b051477718fb97ebd18cdc0f04a794b2d156b",
+          "version": "0.2.2"
         }
       },
       {

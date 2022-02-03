@@ -12,7 +12,7 @@ import Foundation
 extension FileManager {
     /// Initialises the file manager, creating the Apodini-specific temporary directory
     public func initialize() throws {
-        try createDirectory(at: apodiniDeployTmpDir, withIntermediateDirectories: true, attributes: [:])
+        try createDirectory(at: ApodiniDeployerTmpDir, withIntermediateDirectories: true, attributes: [:])
     }
     
     /// Check whether a directory exists at `url`
@@ -30,14 +30,14 @@ extension FileManager {
     }
     
     /// Url of the Apodini-specific temporary directory
-    public var apodiniDeployTmpDir: URL {
-        temporaryDirectory.appendingPathComponent("ApodiniDeploy", isDirectory: true)
+    public var ApodiniDeployerTmpDir: URL {
+        temporaryDirectory.appendingPathComponent("ApodiniDeployer", isDirectory: true)
     }
     
     
     /// Returns a temporary file url for the specified file extension
     public func getTemporaryFileUrl(fileExtension: String?) -> URL {
-        var tmpfile = apodiniDeployTmpDir
+        var tmpfile = ApodiniDeployerTmpDir
             .appendingPathComponent(UUID().uuidString)
         if let ext = fileExtension {
             tmpfile.appendPathExtension(ext)
@@ -64,7 +64,7 @@ extension FileManager {
         if let value = try self.attributesOfItem(atPath: url.absoluteURL.path)[.posixPermissions] as? NSNumber {
             return POSIXPermissions(rawValue: numericCast(value.uintValue))
         } else {
-            throw NSError(domain: "ApodiniDeploy", code: 0, userInfo: [
+            throw NSError(domain: "ApodiniDeployer", code: 0, userInfo: [
                 NSLocalizedDescriptionKey: "Unable to read permissions for file at '\(url.absoluteURL.path)'"
             ])
         }

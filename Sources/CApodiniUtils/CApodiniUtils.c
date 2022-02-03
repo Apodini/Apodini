@@ -14,7 +14,7 @@
 #include <limits.h>
 
 
-const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__ApodiniDeployCLI.ProcessIsChildProcessInvocationWrapper";
+const char *const ApodiniProcessIsChildInvocationWrapperCLIArgument = "__ApodiniDeployerCLI.ProcessIsChildProcessInvocationWrapper";
 
 
 // A ctor function which will get called when the shared library is loaded (ie before execution enters `main`, see below).
