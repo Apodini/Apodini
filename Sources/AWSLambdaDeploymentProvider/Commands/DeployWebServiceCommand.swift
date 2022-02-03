@@ -162,7 +162,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
                 let data = try Data(contentsOf: tmpDirUrl.appendingPathComponent("WebServiceStructure.json", isDirectory: false), options: [])
                 return try JSONDecoder().decode(LambdaDeployedSystem.self, from: data)
             } else {
-                return try retrieveDeployedSystem(usingDockerImage: dockerImageName)
+                return try retrieveDeployedSystem(usingDockerImage: dockerImageName, awsApiGatewayApiId: awsApiGatewayApiId)
             }
         }()
         Context.logger.notice("Successfully generated web service structure")
@@ -254,7 +254,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         try task.launchSyncAndAssertSuccess()
     }
     
-    private func retrieveDeployedSystem(usingDockerImage dockerImageName: String) throws -> LambdaDeployedSystem {
+    private func retrieveDeployedSystem(usingDockerImage dockerImageName: String, awsApiGatewayApiId: String) throws -> LambdaDeployedSystem {
         let filename = "WebServiceStructure.json"
         let filePath = ".build/\(tmpDirName)/\(filename)"
         try runInDocker(
