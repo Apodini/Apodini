@@ -197,13 +197,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(endpoint) in the \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {
             do {
                 let filePath = try migratorItem.write(at: directory, outputFormat: format, fileName: migratorItem.fileName)
-                logger.info("\(itemName) exported at \(filePath) in \(format.rawValue) format")
+                logger.info("\(itemName) exported at \(filePath)")
             } catch {
                 logger.error("\(itemName) export at \(directory) failed with error: \(error)")
             }
