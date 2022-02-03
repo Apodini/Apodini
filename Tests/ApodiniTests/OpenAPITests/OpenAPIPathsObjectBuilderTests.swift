@@ -235,7 +235,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             ],
             vendorExtensions: [
                 "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
-                "x-apodiniHandlerCommunicationalPattern": AnyCodable(endpoint[CommunicationalPattern.self].rawValue)
+                "x-apodiniHandlerCommunicationPattern": AnyCodable(endpoint[CommunicationPattern.self].rawValue)
             ]
         ))
         
@@ -305,7 +305,7 @@ final class OpenAPIPathsObjectBuilderTests: ApodiniTests {
             ],
             vendorExtensions: [
                 "x-apodiniHandlerId": AnyCodable(endpoint[AnyHandlerIdentifier.self].rawValue),
-                "x-apodiniHandlerCommunicationalPattern": AnyCodable(endpoint[CommunicationalPattern.self].rawValue)
+                "x-apodiniHandlerCommunicationPattern": AnyCodable(endpoint[CommunicationPattern.self].rawValue)
             ]
         ))
         

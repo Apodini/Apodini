@@ -11,12 +11,21 @@
         }
       },
       {
+        "package": "ApodiniDocumentExport",
+        "repositoryURL": "https://github.com/Apodini/ApodiniDocumentExport.git",
+        "state": {
+          "branch": null,
+          "revision": "0a3fe4195f011057ad2cd5150c9091f2a17c2ec1",
+          "version": "0.1.1"
+        }
+      },
+      {
         "package": "ApodiniMigrator",
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": null,
-          "revision": "9863ba8296576753afbb453de091c7b0e40e3dc3",
-          "version": "0.2.1"
+          "revision": "8e9b051477718fb97ebd18cdc0f04a794b2d156b",
+          "version": "0.2.2"
         }
       },
       {
@@ -24,8 +33,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
         "state": {
           "branch": null,
-          "revision": "b4e73a6f92bd0930c9f1f8a857504b85b943dd88",
-          "version": "0.3.0"
+          "revision": "7f089211eb7a7f060b3f570bae9ea03fd05da073",
+          "version": "0.3.2"
         }
       },
       {
@@ -87,8 +96,8 @@
         "repositoryURL": "https://github.com/GraphQLSwift/GraphQL",
         "state": {
           "branch": null,
-          "revision": "588b7b4dc9dcb352ad185012003f84823108540d",
-          "version": "2.1.2"
+          "revision": "151c2f18dd12bd7bb6ab301a212c1da2010415ea",
+          "version": "2.2.0"
         }
       },
       {
@@ -123,8 +132,8 @@
         "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
         "state": {
           "branch": null,
-          "revision": "06cac46a958fdf700054f12f682b5c8f27577c9f",
-          "version": "0.1.1"
+          "revision": "30b8886934e49d64130868ac0b89219c35fc5447",
+          "version": "0.1.3"
         }
       },
       {

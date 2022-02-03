@@ -188,8 +188,8 @@ class GRPCMethod {
     /// Name of the proto package to which the service this method is a part of belongs.
     /// - Note: This property is `nil` until the method is added to a service. Then it is set to the service's package.
     fileprivate(set) var packageName: String?
-    /// The method's communicational pattern, e.g. unary, client-side-streaming, etc
-    let type: CommunicationalPattern
+    /// The method's communication pattern, e.g. unary, client-side-streaming, etc
+    let type: CommunicationPattern
     /// The method's input proto type. This is guaranteed to be a top-level type.
     let inputType: ProtoType
     /// The method's output proto type. This is guaranteed to be a top-level type.
@@ -205,12 +205,12 @@ class GRPCMethod {
         schema: ProtoSchema
     ) {
         self.name = name
-        self.type = endpoint[CommunicationalPattern.self]
+        self.type = endpoint[CommunicationPattern.self]
         
         let defaults = endpoint[DefaultValueStore.self]
         self.streamRPCHandlerMaker = { () -> GRPCStreamRPCHandler in
             let rpcHandlerType: StreamRPCHandlerBase<H>.Type = {
-                switch endpoint[CommunicationalPattern.self] {
+                switch endpoint[CommunicationPattern.self] {
                 case .requestResponse:
                     return UnaryRPCHandler.self
                 case .clientSideStream:
@@ -239,7 +239,7 @@ class GRPCMethod {
     
     init(
         name: String,
-        type: CommunicationalPattern,
+        type: CommunicationPattern,
         inputType: ProtoType,
         outputType: ProtoType,
         streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler

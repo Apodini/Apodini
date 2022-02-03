@@ -102,7 +102,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
     
 // MARK: - Nested Commands Tests
     
-    // If we have nested subcommands in the configuration as we do e.g. in the deployment providers
+    // If we have nested subcommands in the configuration as we do e.g. in the Deployment Providers
     // and we pass all web service arguments, but dont pass the options for the `super` nested arguments, it should fail.
     // Provided arguments:
     // hostname : "localhost"
@@ -130,7 +130,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
         }
     }
     
-    // If we have nested subcommands in the configuration as we do e.g. in the deployment providers
+    // If we have nested subcommands in the configuration as we do e.g. in the Deployment Providers
     // and we pass all web service arguments, but dont pass the options for the `sub` nested arguments, it should fail.
     // Provided arguments:
     // hostname     : "localhost"
@@ -161,7 +161,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
         }
     }
     
-    // If we have nested subcommands in the configuration as we do e.g. in the deployment providers
+    // If we have nested subcommands in the configuration as we do e.g. in the Deployment Providers
     // and we pass all web service arguments and the arguments for the `nested super command`,
     // the super command of the nested should be initialized correctly.
     // Provided arguments:
@@ -182,7 +182,7 @@ class ParsableArgumentsTests: XCTApodiniTest {
         XCTAssertEqual(nestedSuperCommand.object, 50)
     }
     
-    // If we have nested subcommands in the configuration as we do e.g. in the deployment providers
+    // If we have nested subcommands in the configuration as we do e.g. in the Deployment Providers
     // and we pass all web service arguments and the arguments for both nested commands, sub nested command
     // of the nested should be initialized correctly.
     // Provided arguments:

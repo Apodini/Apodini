@@ -48,9 +48,9 @@ public struct LoggingMetadata: DynamicProperty {
             // Write exporter metadata
             builtMetadata["exporter"] = .dictionary(self.exporterMetadata)
         } else {
-            // Connection stays open since these communicational patterns allow for any amount of client messages
+            // Connection stays open since these communication patterns allow for any amount of client messages
             // Therfore the metadata chould have changed and we need to reevaluate it
-            switch self.observeMetadata.blackboardMetadata.communicationalPattern {
+            switch self.observeMetadata.blackboardMetadata.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Refresh connection metadata
                 builtMetadata["connection"] = .dictionary(self.connectionMetadata)
@@ -100,7 +100,7 @@ private extension LoggingMetadata {
                 String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType))
             ),
             "handlerReturnType": .string(String(describing: self.observeMetadata.blackboardMetadata.handleReturnType.type)),
-            "communicationalPattern": .string(self.observeMetadata.blackboardMetadata.communicationalPattern.rawValue)
+            "communicationPattern": .string(self.observeMetadata.blackboardMetadata.communicationPattern.rawValue)
         ]
     }
     

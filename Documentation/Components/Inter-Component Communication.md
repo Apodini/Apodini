@@ -62,17 +62,16 @@ struct Greeter: Handler {
     
     @Parameter var name: String
     
-    func handle() -> EventLoopFuture<String> {
-        RHI.invoke(
+    func handle() async throws -> String {
+        let number = try await RHI.invoke(
             RandomNumberGenerator.self,
             identifiedBy: .main,
             parameters: [
                 .init(\.$lowerBound, 0),
                 .init(\.$upperBound, name.length)
             ]
-        ).map { number in
-            "Hello, \(name)! Your lucky number is \(number)."
-        }
+        )
+        return "Hello, \(name)! Your lucky number is \(number)."
     }
 }
 ```
@@ -128,7 +127,7 @@ Based on this information, the invocation manager will:
 
 **Note:** Steps 2 through 4 might differ based on the deployed-to platform: whereas when running as a HTTP server on localhost we might simply send a HTTP request to the target (thus essentially emulating a client), on platforms like AWS Lambda it might be a better idea to use platform-provided APIs to directly invoke the target handler.
 
-The `invoke` function returns an `EventLoopFuture`, since the invocation might be dispatched locally or remotely. For locally dispatched interactions, the returned future will always be succeeded, and contain the value returned by the invoked components' handle function.
+The `invoke` function is an async function, since the invocation might be dispatched locally or remotely. For locally dispatched interactions, the returned future will always be succeeded, and contain the value returned by the invoked components' handle function.
 
 
 
@@ -140,14 +139,14 @@ The `invoke` function returns an `EventLoopFuture`, since the invocation might b
 func invoke<H: InvocableHandler>(
     _: H.Type,
     identifiedBy handlerId: H.HandlerIdentifier,
-    parameters: <<parameters type>>
-) -> EventLoopFuture<H.Response>
+    arguments: [CollectedArgument<H>] = []
+) async throws -> H.Response.Content
 ```
  
 
 ## Return values
 
-The remote-invocation API returns an `EventLoopFuture`.  
+The remote-invocation API features async `invoke` functions.  
 Since invocations may be dispatched either locally or remotely, there is no guarantee as to whether an invocation is realised synchronous or asynchronous.
 
 The returned object is the decoded response from the invoked handler. (This is the reason for the `where Response: Decodable` constraint on the `InvocableHandler` protocol.)
@@ -178,8 +177,8 @@ For handlers defining a parameter storage type, the remote-invocation API is as 
 func invoke<H: InvocableHandler>(
     _: H.Type,
     identifiedBy handlerId: H.HandlerIdentifier,
-    parameters: H.ParametersStorage
-) -> EventLoopFuture<H.Response>
+    arguments: H.ArgumentsStorage
+) async throws -> H.Response.Content
 ```
 
 The parameters storage type consists of two things:
@@ -233,10 +232,10 @@ If an `InvocableHandler` does not specify a `ParametersStorage` type, the remote
 
 ```swift
 func invoke<H: InvocableHandler>(
-    _ handlerType: H.Type,
+    _: H.Type,
     identifiedBy handlerId: H.HandlerIdentifier,
-    parameters: [CollectedParameter<H>] = []
-) -> EventLoopFuture<H.Response> where H.ParametersStorage == _EmptyParametersStorage<H>
+    arguments: [CollectedArgument<H>] = []
+) async throws -> H.Response.Content
 ```
 
 Where `CollectedParameter` is a struct storing:
@@ -362,32 +361,28 @@ struct Greeter: Handler {
         _name = name
     }
     
-    func handle() -> EventLoopFuture<String> {
-        RHI.invoke(
+    func handle() async throws -> String {
+        let randomNumber = try await RHI.invoke(
             RandomNumberGenerator.self,
             identifiedBy: .main,
             parameters: .init(lowerBound: 0, upperBound: 12)
-        ).flatMap { randomNumber -> EventLoopFuture<String> in
-            RHI.invoke(
-                RandomStringGenerator.self,
-                identifiedBy: .main,
-                parameters: [.init(\.$length, randomNumber)]
-            )
-        }.flatMap { randomString -> EventLoopFuture<UUID> in
-            RHI.invoke(
-                CreateUser.self,
-                identifiedBy: .main,
-                parameters: [.init(\.$user, User(name: name, email: "\(randomString)@gmail", age: 22))]
-            )
-        }.flatMap { userId -> EventLoopFuture<User?> in
-            RHI.invoke(
-                GetUser.self,
-                identifiedBy: .main,
-                parameters: [.init(\.$id, userId)]
-            )
-        }.map { user -> String in
-            "Hello, \(name). Your user account is \(user)"
-        }
+        )
+        let randomString = try await RHI.invoke(
+            RandomStringGenerator.self,
+            identifiedBy: .main,
+            parameters: [.init(\.$length, randomNumber)]
+        )
+        let userId = try await RHI.invoke(
+            CreateUser.self,
+            identifiedBy: .main,
+            parameters: [.init(\.$user, User(name: name, email: "\(randomString)@gmail", age: 22))]
+        )
+        let user = try await RHI.invoke(
+            GetUser.self,
+            identifiedBy: .main,
+            parameters: [.init(\.$id, userId)]
+        )
+        return "Hello, \(name). Your user account is \(user)"
     }
 }
 

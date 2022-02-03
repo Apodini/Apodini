@@ -1098,10 +1098,12 @@ extension ProtoSchema {
         // For types which are not top-level types, we move them into their parent type.
         do { // lmao all of this is so fucking inefficient
             var potentiallyNestedTypes = Stack(topLevelMessageTypeDescs
-                .filter { ty1 in topLevelMessageTypeDescs.contains { ty2 in
-                    ty1.typeDescriptor.name.count > ty2.typeDescriptor.name.count
-                    && ty1.typeDescriptor.name.hasPrefix(ty2.typeDescriptor.name)
-                }} // swiftlint:disable:this closure_end_indentation
+                .filter { ty1 in
+                    topLevelMessageTypeDescs.contains { ty2 in
+                        ty1.typeDescriptor.name.count > ty2.typeDescriptor.name.count
+                        && ty1.typeDescriptor.name.hasPrefix(ty2.typeDescriptor.name)
+                    }
+                }
                 .sorted { lhs, rhs in
                     let lhsNestingDepth = lhs.typeDescriptor.name.count { $0 == "." }
                     let rhsNestingDepth = rhs.typeDescriptor.name.count { $0 == "." }

@@ -134,7 +134,7 @@ struct Exporter: InterfaceExporter {
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         default:
-            logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
+            logger.warning("HTTP exporter can only handle 'CommunicationPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
             self.export(endpoint)
         }
     }

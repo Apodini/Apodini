@@ -25,9 +25,9 @@ The central interface for solving the first and second task is the ``InterfaceEx
 
 > Note: If your exporter's middleware also supports raw data, consider making a special implementation for ``InterfaceExporter/export(blob:)``!
 
-The most important things to consider about an endpoint are its location in the web service (defined e.g. by ``EndpointPathComponents``), its input- and output-type, and its ``CommunicationalPattern``. The latter has a huge influence on how your exporter's runtime-logic is structured as the ``CommunicationalPattern`` defines, how many messages in either direction this logic must be able to handle. All this knowledge should be part of your _semantic model_.
+The most important things to consider about an endpoint are its location in the web service (defined e.g. by ``EndpointPathComponents``), its input- and output-type, and its ``CommunicationPattern``. The latter has a huge influence on how your exporter's runtime-logic is structured as the ``CommunicationPattern`` defines, how many messages in either direction this logic must be able to handle. All this knowledge should be part of your _semantic model_.
 
-> Tip: See <doc:CommunicationPattern> for more detail on the background of ``CommunicationalPattern``. 
+> Tip: See <doc:CommunicationPattern> for more detail on the background of ``CommunicationPattern``. 
 
 
 Finally, as a general tip about building an ``InterfaceExporter``. Take inspiration from other implementations! In general, `ApodiniHTTP` is the cleanest implementation, best following the three-step guide outlined above. However, if the challenge in building your specific exporter lies on a specific topic (e.g. incorporation of relationship-information, bidirectional communication, ...), also take a look at the implementation of other exporters that have a focus on this topic. Furthermore, if you encounter any difficulties, do not hesitate to [create and issue](https://github.com/Apodini/Apodini/issues)! The Apodini team will be glad to help you. At the current state of the project, it may well be that smaller internal adaptions are needed to meet your requirements. Also, we are happy about all contributions, in the form of exporters, or internal improvements. Feel free to [create a PR](https://github.com/Apodini/Apodini/pulls) anytime! 
@@ -44,7 +44,7 @@ Finally, as a general tip about building an ``InterfaceExporter``. Take inspirat
 If your exporter should be able to actually evaluate ``Handler``s, use the tools provided in the `ApodiniExtension` target and make sure to consider these ``KnowledgeSource``s when building your _semantic model_!
 
 - ``EndpointPathComponents``
-- ``CommunicationalPattern``
+- ``CommunicationPattern``
 - ``ResponseType``
 - ``EndpointParameters``
 

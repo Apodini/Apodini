@@ -280,8 +280,8 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
     
     func testMigratorReadCommand() throws {
-        let mg = MigrationGuide.empty(id: UUID())
-        print(mg.yaml)
+        let migrationGuide = MigrationGuide.empty(id: UUID())
+        print(migrationGuide.yaml)
 
         Self.sut = .init()
         let guidePath = try XCTUnwrap(ResourceLocation.resource(.module, fileName: "empty_migration_guide", format: .yaml).path)
@@ -301,8 +301,8 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         XCTAssertEqual(commandType.configuration.commandName, "read")
         
-        let migrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
-        XCTAssertEqual(migrationGuide, try MigrationGuide.decode(from: Path(guidePath)))
+        let migrationGuideFromStorage = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
+        XCTAssertEqual(migrationGuideFromStorage, try MigrationGuide.decode(from: Path(guidePath)))
     }
     
     func testCustomHTTPConfig() throws {

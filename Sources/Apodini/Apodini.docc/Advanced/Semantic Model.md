@@ -95,8 +95,8 @@ extension Operation: OptionalContextKeyKnowledgeSource {
 ```
 ``ContextKeyKnowledgeSource`` allows for building a ``KnowledgeSource`` based on a (non-optional) `ContextKey`:
 ```swift
-extension CommunicationalPattern: ContextKeyKnowledgeSource {
-    public typealias Key = CommunicationalPatternContextKey
+extension CommunicationPattern: ContextKeyKnowledgeSource {
+    public typealias Key = CommunicationPatternContextKey
     
     public init(from value: Key.Value) throws {
         self = value
@@ -174,7 +174,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``AnyEndpointSource``
 - ``Blackboards``
 - `Context`
-- ``CommunicationalPattern``
+- ``CommunicationPattern``
 <!-- TODO: ``All`` -->
 <!-- TODO: external KS: 
 - `Logger` (`Logging`)
