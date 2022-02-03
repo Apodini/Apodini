@@ -83,7 +83,7 @@ class GraphQLSchemaBuilder {
     static let dateFormatter: DateFormatter = { () -> DateFormatter in
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        dateFormatter.timeZone = TimeZone.init(abbreviation: "UTC")!
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")!
         return dateFormatter
     }()
     
@@ -394,7 +394,7 @@ class GraphQLSchemaBuilder {
 
 let GraphQLDate = try! GraphQLScalarType( // swiftlint:disable:this identifier_name
     name: "Date",
-    description: "A custom scalar type representing Date objects, encoded as ISO8601-formatted strings (using `\(GraphQLSchemaBuilder.dateFormatter.dateFormat!)` as the format) in the \(GraphQLSchemaBuilder.dateFormatter.timeZone!.abbreviation()!) time zone.", // swiftlint:disable:this line_length
+    description: "A custom scalar type representing Date objects, encoded as ISO8601-formatted strings (using `\(GraphQLSchemaBuilder.dateFormatter.dateFormat!)` as the format) in the \(GraphQLSchemaBuilder.dateFormatter.timeZone!.abbreviation()!) time zone.",
     serialize: { (input: Any) -> Map in
         guard let date = input as? Date else {
             return try Map(any: input)

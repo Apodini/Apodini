@@ -17,11 +17,11 @@ public final class ErrorForwardingInterfaceExporter: InterfaceExporter {
         self.forwardClosure = forwardClosure
     }
 
-    public func export<H>(_ endpoint: Endpoint<H>) -> () where H: Handler {
+    public func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
         endpoint[ErrorForwarder.self] = try! ErrorForwarder(from: forwardClosure)
     }
 
-    public func export<H>(blob endpoint: Endpoint<H>) -> () where H: Handler, H.Response.Content == Blob {
+    public func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
         endpoint[ErrorForwarder.self] = try! ErrorForwarder(from: forwardClosure)
     }
 }

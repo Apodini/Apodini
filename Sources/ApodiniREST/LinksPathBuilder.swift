@@ -22,13 +22,13 @@ struct LinksFormatter: RelationshipFormatter {
             return nil
         }
         
-        let _rootPath: String
-        if let rootPath = rootPath {
-            _rootPath = "/\(rootPath.description)"
+        let relationshipRootPath: String
+        if let rootPath = self.rootPath {
+            relationshipRootPath = "/\(rootPath.description)"
         } else {
-            _rootPath = ""
+            relationshipRootPath = ""
         }
-        return configuration.uriPrefix + _rootPath + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
+        return configuration.uriPrefix + relationshipRootPath + destination.destinationPath.asPathString(parameterEncoding: .valueOrName)
     }
 }
 

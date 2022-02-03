@@ -15,6 +15,7 @@ import ApodiniOpenAPI
 
 
 extension WebService {
+    /// The Localhost Deployment Provider allows partitioning an Apodini web services in multiple subprocesses
     public typealias Localhost = LocalhostRuntime<Self>
 }
 

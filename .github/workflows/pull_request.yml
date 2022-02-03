@@ -33,4 +33,4 @@ jobs:
     uses: Apodini/.github/.github/workflows/reuse.yml@v1
   swiftlint:
     name: SwiftLint
-    uses: Apodini/.github/.github/workflows/swiftlint.yml@v1
+    uses: Apodini/.github/.github/workflows/swiftlint.yml@feature/fixswiftlint

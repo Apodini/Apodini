@@ -150,8 +150,8 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
         )
         
         let awsApiGatewayApiId: String
-        if let _awsApiGatewayApiId = self.awsApiGatewayApiId {
-            awsApiGatewayApiId = _awsApiGatewayApiId
+        if let unwrappedAWSApiGatewayApiId = self.awsApiGatewayApiId {
+            awsApiGatewayApiId = unwrappedAWSApiGatewayApiId
         } else {
             awsApiGatewayApiId = try awsIntegration.createApiGateway(protocolType: .http)
         }

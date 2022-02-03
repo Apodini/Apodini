@@ -16,6 +16,7 @@ import OpenAPIKit
 
 
 extension WebService {
+    /// The AWS Lambda Deployment Provider allows partitioning an Apodini web services into multiple AWS Lambda functions
     public typealias AWSLambda = LambdaRuntime<Self>
 }
 

@@ -12,7 +12,7 @@ import Foundation
 extension FileManager {
     /// Initialises the file manager, creating the Apodini-specific temporary directory
     public func initialize() throws {
-        try createDirectory(at: ApodiniDeployerTmpDir, withIntermediateDirectories: true, attributes: [:])
+        try createDirectory(at: apodiniDeployerTmpDir, withIntermediateDirectories: true, attributes: [:])
     }
     
     /// Check whether a directory exists at `url`
@@ -30,14 +30,14 @@ extension FileManager {
     }
     
     /// Url of the Apodini-specific temporary directory
-    public var ApodiniDeployerTmpDir: URL {
+    public var apodiniDeployerTmpDir: URL {
         temporaryDirectory.appendingPathComponent("ApodiniDeployer", isDirectory: true)
     }
     
     
     /// Returns a temporary file url for the specified file extension
     public func getTemporaryFileUrl(fileExtension: String?) -> URL {
-        var tmpfile = ApodiniDeployerTmpDir
+        var tmpfile = apodiniDeployerTmpDir
             .appendingPathComponent(UUID().uuidString)
         if let ext = fileExtension {
             tmpfile.appendPathExtension(ext)
