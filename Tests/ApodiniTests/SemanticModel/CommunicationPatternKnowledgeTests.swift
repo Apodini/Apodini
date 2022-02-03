@@ -12,7 +12,7 @@ import XCTest
 import ApodiniHTTPProtocol
 
 
-final class CommunicationalPatternKnowledgeTests: ApodiniTests {
+final class CommunicationPatternKnowledgeTests: ApodiniTests {
     struct Greeter: Handler {
         @Parameter(.http(.path)) var name: String
         
@@ -124,7 +124,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
     }
 
     
-    func testAutomaticCommunicationalPattern() throws {
+    func testAutomaticCommunicationPattern() throws {
         let context = Context()
         
         let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
@@ -136,7 +136,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: basicRR, context)
         
-        XCTAssertEqual(lbBasicRR[AutomaticCommunicationalPattern.self].value, .requestResponse)
+        XCTAssertEqual(lbBasicRR[AutomaticCommunicationPattern.self].value, .requestResponse)
         
         let blobRR = BlobGreeter()
         let lbBlobRR = LocalBlackboard<
@@ -144,7 +144,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: blobRR, context)
         
-        XCTAssertEqual(lbBlobRR[AutomaticCommunicationalPattern.self].value, .requestResponse)
+        XCTAssertEqual(lbBlobRR[AutomaticCommunicationPattern.self].value, .requestResponse)
         
         let serviceSide = Rocket()
         let lbServiceSide = LocalBlackboard<
@@ -152,7 +152,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: serviceSide, context)
         
-        XCTAssertEqual(lbServiceSide[AutomaticCommunicationalPattern.self].value, .serviceSideStream)
+        XCTAssertEqual(lbServiceSide[AutomaticCommunicationPattern.self].value, .serviceSideStream)
         
         let clientSide = ClientStreamingGreeter()
         let lbClientSide = LocalBlackboard<
@@ -160,7 +160,7 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: clientSide, context)
         
-        XCTAssertEqual(lbClientSide[AutomaticCommunicationalPattern.self].value, .clientSideStream)
+        XCTAssertEqual(lbClientSide[AutomaticCommunicationPattern.self].value, .clientSideStream)
         
         let bidirectional = BidirectionalStreamingGreeter()
         let lbBidirectional = LocalBlackboard<
@@ -168,6 +168,6 @@ final class CommunicationalPatternKnowledgeTests: ApodiniTests {
             GlobalBlackboard<LazyHashmapBlackboard>
         >(globalBlackboard, using: bidirectional, context)
         
-        XCTAssertEqual(lbBidirectional[AutomaticCommunicationalPattern.self].value, .bidirectionalStream)
+        XCTAssertEqual(lbBidirectional[AutomaticCommunicationPattern.self].value, .bidirectionalStream)
     }
 }

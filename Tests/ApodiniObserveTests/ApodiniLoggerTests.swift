@@ -386,7 +386,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -482,7 +482,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
@@ -579,7 +579,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("RequestResponse4"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             XCTAssertEqual(response.status, .ok)
             XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Philipp!")
@@ -755,7 +755,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("serviceSideStream"))      // Server-side stream
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("serviceSideStream"))      // Server-side stream
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -841,7 +841,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("Blob"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ServerSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("serviceSideStream"))      // Server-side stream
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("serviceSideStream"))      // Server-side stream
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -969,7 +969,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("clientSideStream"))
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -1086,7 +1086,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("ClientSideStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("clientSideStream"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("clientSideStream"))
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -1197,7 +1197,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("bidirectionalStream"))
             
             // Information metadata
             var informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -1314,7 +1314,7 @@ class ApodiniLoggerTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("BidirectionalStreaming"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("bidirectionalStream"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("bidirectionalStream"))
             
             // Information metadata
             informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)

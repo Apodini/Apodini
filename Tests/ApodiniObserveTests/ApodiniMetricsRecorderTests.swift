@@ -150,7 +150,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("endpoint_path", "/greeter/first"),
                 ("exporter", "Exporter"),
                 ("operation", "read"),
-                ("communicational_pattern", "requestResponse"),
+                ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
             ]
             
@@ -270,7 +270,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter1"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -303,7 +303,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("endpoint_path", "/greeter/second"),
                 ("exporter", "Exporter"),
                 ("operation", "read"),
-                ("communicational_pattern", "requestResponse"),
+                ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
             ]
             
@@ -410,7 +410,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -442,7 +442,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("endpoint_path", "/greeter/third"),
                 ("exporter", "Exporter"),
                 ("operation", "read"),
-                ("communicational_pattern", "requestResponse"),
+                ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
             ]
             
@@ -532,7 +532,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter1"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)
@@ -562,7 +562,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                 ("endpoint_path", "/greeter/forth"),
                 ("exporter", "Exporter"),
                 ("operation", "read"),
-                ("communicational_pattern", "requestResponse"),
+                ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
             ]
             
@@ -665,7 +665,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["handlerReturnType"]), .string("String"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["version"]), .string("unknown"))
             XCTAssertEqual(try XCTUnwrap(endpointMetadata["name"]), .string("Greeter2"))
-            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationalPattern"]), .string("requestResponse"))
+            XCTAssertEqual(try XCTUnwrap(endpointMetadata["communicationPattern"]), .string("requestResponse"))
             
             // Information metadata
             let informationMetadata = try XCTUnwrap(metadata["information"]?.metadataDictionary)

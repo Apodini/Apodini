@@ -12,7 +12,7 @@ import Foundation
 ///
 /// The pattern in a communication is defined by the quantity and order of messages
 /// that are sent from client to server and from server to client.
-public enum CommunicationalPattern: String {
+public enum CommunicationPattern: String {
     /// **One** client message followed by **one** service message
     case requestResponse
     /// **Any amount** of client messages followed by **one** service message
@@ -24,22 +24,22 @@ public enum CommunicationalPattern: String {
 }
 
 
-public struct CommunicationalPatternContextKey: OptionalContextKey {
-    public typealias Value = CommunicationalPattern
+public struct CommunicationPatternContextKey: OptionalContextKey {
+    public typealias Value = CommunicationPattern
 }
 
 extension HandlerMetadataNamespace {
     /// Name definition for the `ComponentDescriptionMetadata`
-    public typealias Pattern = CommunicationalPatternMetadata
+    public typealias Pattern = CommunicationPatternMetadata
 }
 
-/// The ``CommunicationalPatternMetadata`` can be used to explicitly declare a ``Handler``'s
-/// ``CommunicationalPattern``.
+/// The ``CommunicationPatternMetadata`` can be used to explicitly declare a ``Handler``'s
+/// ``CommunicationPattern``.
 ///
-/// The framework can automatically detect ``CommunicationalPattern/requestResponse`` if the
+/// The framework can automatically detect ``CommunicationPattern/requestResponse`` if the
 /// ``Handler/handle()-3440f``'s return type is no ``Response``. If that is not the case and you don't
 /// explicitly specify the ``HandlerMetadataNamespace/Pattern``, the ``Handler`` is assumed to use
-/// ``CommunicationalPattern/bidirectionalStream``.
+/// ``CommunicationPattern/bidirectionalStream``.
 ///
 /// - Note: This modifier has no influence on how the associated ``Handler`` is handled by the framework.
 /// Instead, it merely helps ``InterfaceExporter``s to find an appropriate representation in their respective
@@ -54,22 +54,22 @@ extension HandlerMetadataNamespace {
 ///     }
 /// }
 /// ```
-public struct CommunicationalPatternMetadata: HandlerMetadataDefinition {
-    public typealias Key = CommunicationalPatternContextKey
-    public let value: CommunicationalPattern
+public struct CommunicationPatternMetadata: HandlerMetadataDefinition {
+    public typealias Key = CommunicationPatternContextKey
+    public let value: CommunicationPattern
 
-    /// Creates a new ``CommunicationalPattern`` Metadata
+    /// Creates a new ``CommunicationPattern`` Metadata
     /// - Parameter pattern: The pattern for the ``Handler``.
-    public init(_ pattern: CommunicationalPattern) {
+    public init(_ pattern: CommunicationPattern) {
         self.value = pattern
     }
 }
 
 extension Handler {
-    /// A `pattern` Modifier can be used to specify the ``CommunicationalPatternMetadata`` via a ``HandlerModifier``.
-    /// - Parameter value: The communicational pattern of the associated ``Handler``.
-    /// - Returns: The modified `Handler` with the `CommunicationalPatternMetadata` added.
-    public func pattern(_ value: CommunicationalPattern) -> HandlerMetadataModifier<Self> {
-        HandlerMetadataModifier(modifies: self, with: CommunicationalPatternMetadata(value))
+    /// A `pattern` Modifier can be used to specify the ``CommunicationPatternMetadata`` via a ``HandlerModifier``.
+    /// - Parameter value: The communication pattern of the associated ``Handler``.
+    /// - Returns: The modified `Handler` with the `CommunicationPatternMetadata` added.
+    public func pattern(_ value: CommunicationPattern) -> HandlerMetadataModifier<Self> {
+        HandlerMetadataModifier(modifies: self, with: CommunicationPatternMetadata(value))
     }
 }

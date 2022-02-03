@@ -10,24 +10,24 @@ import Foundation
 import Apodini
 
 
-extension CommunicationalPattern: KnowledgeSource {
+extension CommunicationPattern: KnowledgeSource {
     public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self = blackboard[ExplicitCommunicationalPattern.self].value ?? blackboard[AutomaticCommunicationalPattern.self].value
+        self = blackboard[ExplicitCommunicationPattern.self].value ?? blackboard[AutomaticCommunicationPattern.self].value
     }
 }
 
-private struct ExplicitCommunicationalPattern: OptionalContextKeyKnowledgeSource {
-    typealias Key = CommunicationalPatternContextKey
+private struct ExplicitCommunicationPattern: OptionalContextKeyKnowledgeSource {
+    typealias Key = CommunicationPatternContextKey
     
-    let value: CommunicationalPattern?
+    let value: CommunicationPattern?
     
-    init(from value: CommunicationalPattern?) throws {
+    init(from value: CommunicationPattern?) throws {
         self.value = value
     }
 }
 
-struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
-    let value: CommunicationalPattern
+struct AutomaticCommunicationPattern: HandlerKnowledgeSource {
+    let value: CommunicationPattern
     
     init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
         guard H.Response.self is CustomizableResponse.Type else {
@@ -60,7 +60,7 @@ struct AutomaticCommunicationalPattern: HandlerKnowledgeSource {
 /// This protocol helps to detect if a `Handler.Response` type actually uses the
 /// `Apodini.Response` struct.
 ///
-/// This is important for detecting the `AutomaticCommunicationalPattern` correctly.
+/// This is important for detecting the `AutomaticCommunicationPattern` correctly.
 /// Only `Apodini.Response` and `EventLoopFuture`s that wrap an `Apodini.Response` (future)
 /// should conform to `CustomizableResponse`.
 private protocol CustomizableResponse { }

@@ -1,6 +1,6 @@
 # Communication Pattern
 
-Communicational patterns and their usage in different client-service protocols.
+Communication patterns and their usage in different client-service protocols.
 
 <!--
                   
@@ -58,7 +58,7 @@ Apodini seeks to solve this problem by **not committing to a specific pattern** 
 
 This implies two necessities for Apodini's API in order to stay protocol-agnostic by default:
 
-Firstly, Apodini's API must not explicitly mark an endpoint as an instance of one of our five communicational patterns. 
+Firstly, Apodini's API must not explicitly mark an endpoint as an instance of one of our five communication patterns. 
 
 Secondly, Apodini's API must be flexible enough so that the **decision, which pattern is used** to implement a specific endpoint, can be **made by each exporter on its own**.
 
@@ -68,7 +68,7 @@ In order to achieve this goal, Apodini utilizes a SwiftUI-like approach allowing
 
 The chapter <doc:Tooling> describes our vision on how Apodini's API for implementing an endpoint's logic will look like. This also includes information on how certain exporters might interact with different property wrappers.
 
-Chapter <doc:PatternImplementation> details how the tools presented in chapter 2. can be used to implement the communicational patterns listed in this document.
+Chapter <doc:PatternImplementation> details how the tools presented in chapter 2. can be used to implement the communication patterns listed in this document.
 
 For the implementation of the Unsolicited Message pattern for push notification services refer to <doc:PushNotifications>.
 

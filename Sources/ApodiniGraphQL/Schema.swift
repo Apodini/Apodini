@@ -27,7 +27,7 @@ class GraphQLSchemaBuilder {
         case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
         /// Two or more handlers have defined the same key
         case duplicateEndpointNames(String)
-        case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationalPattern)
+        case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationPattern)
         /// There must be at least one query handler (i.e. an unary handler w/ a `.read` operation type) in the web service
         case missingQueryHandler
         case unableToParseDateScalar(Any)
@@ -115,7 +115,7 @@ class GraphQLSchemaBuilder {
     
     func add<H: Handler>(_ endpoint: Endpoint<H>) throws {
         let operation = endpoint[Operation.self]
-        let commPattern = endpoint[CommunicationalPattern.self]
+        let commPattern = endpoint[CommunicationPattern.self]
         switch (operation, commPattern) {
         case (.read, .requestResponse):
             try addQueryOrMutationEndpoint(to: &queryHandlers, endpoint: endpoint, endpointKind: .query)
@@ -180,7 +180,7 @@ class GraphQLSchemaBuilder {
     
     
     private func addSubscriptionEndpoint<H: Handler>(_ endpoint: Endpoint<H>) throws {
-        throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationalPattern.self])
+        throw SchemaError.unsupportedOpCommPatternTuple(endpoint[Operation.self], endpoint[CommunicationPattern.self])
     }
     
     
@@ -376,7 +376,7 @@ class GraphQLSchemaBuilder {
         self.finalizedSchema = try GraphQLSchema(
             query: GraphQLObjectType(
                 name: "Query",
-                description: "The query type contains all query-mapped handlers in a web service, i.e. all `Handler`s with a `.read` operation type and the unary communicational pattern.", // swiftlint:disable:this line_length
+                description: "The query type contains all query-mapped handlers in a web service, i.e. all `Handler`s with a `.read` operation type and the unary communication pattern.", // swiftlint:disable:this line_length
                 fields: queryHandlers
             ),
             mutation: mutationHandlers.isEmpty ? nil : GraphQLObjectType(

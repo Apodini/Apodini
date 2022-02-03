@@ -51,8 +51,8 @@ class ProxyServer {
                     throw Error(message: "Unable to find node for handler id '\(handlerIdRawValue)'")
                 }
                 guard
-                    let handlerCommPatternRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerCommunicationalPattern"]?.value as? String,
-                    let handlerCommPattern = Apodini.CommunicationalPattern(rawValue: handlerCommPatternRawValue)
+                    let handlerCommPatternRawValue = endpoint.operation.vendorExtensions["x-apodiniHandlerCommunicationPattern"]?.value as? String,
+                    let handlerCommPattern = Apodini.CommunicationPattern(rawValue: handlerCommPatternRawValue)
                 else {
                     throw Error(message: "Unable to fetch handler service type from OpenAPI document")
                 }
@@ -114,7 +114,7 @@ extension OpenAPI.Path {
 private struct ProxyRequestResponder: HTTPResponder {
     let proxyServer: ProxyServer
     let targetNode: DeployedSystemNode
-    let endpointCommPattern: Apodini.CommunicationalPattern
+    let endpointCommPattern: Apodini.CommunicationPattern
     
     private var httpClient: HTTPClient { proxyServer.httpClient }
     private var logger: Logger { proxyServer.logger }
@@ -176,7 +176,7 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
     typealias Response = Void
     
     private var response: HTTPResponse?
-    private let endpointCommPattern: Apodini.CommunicationalPattern
+    private let endpointCommPattern: Apodini.CommunicationPattern
     private let httpResponsePromise: EventLoopPromise<HTTPResponse>
     private var logger: Logger
     var httpResponseFuture: EventLoopFuture<HTTPResponse> { httpResponsePromise.futureResult }
@@ -185,7 +185,7 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
         response?.headers[.contentLength]
     }
     
-    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationalPattern, logger: Logger) {
+    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationPattern, logger: Logger) {
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointCommPattern = endpointCommPattern
         self.logger = logger
