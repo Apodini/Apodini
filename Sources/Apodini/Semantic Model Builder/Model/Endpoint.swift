@@ -115,6 +115,6 @@ extension Endpoint: CustomDebugStringConvertible {
 
 extension Endpoint: CustomStringConvertible {
     public var description: String {
-        self[HandlerDescription.self]
+        self[HandlerDescription.self].rawValue
     }
 }

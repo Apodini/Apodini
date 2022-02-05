@@ -24,21 +24,21 @@ extension SwiftTypeIdentifier {
 }
 
 extension TypeInformationAddendum {
-    struct StorageView {
+    struct StorageView: TypeIdentifiersDescription {
         let identifiers: ElementIdentifierStorage
 
-        let childIdentifiers: [String: ElementIdentifierStorage]
+        let childrenIdentifiers: [String: ElementIdentifierStorage]
 
         fileprivate init(from addendum: TypeInformationAddendum) {
-            var storage = ElementIdentifierStorage(expecting: .typeInformation)
+            var storage = ElementIdentifierStorage()
             for identifier in addendum.identifiers {
                 storage.add(anyIdentifier: identifier)
             }
             self.identifiers = storage
 
-            self.childIdentifiers = addendum.childIdentifiers
+            self.childrenIdentifiers = addendum.childrenIdentifiers
                 .map { key, value -> (key: String, storage: ElementIdentifierStorage) in
-                    var storage = ElementIdentifierStorage(expecting: .typeInformation)
+                    var storage = ElementIdentifierStorage()
                     for identifier in value {
                         storage.add(anyIdentifier: identifier)
                     }

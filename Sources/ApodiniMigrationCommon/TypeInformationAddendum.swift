@@ -21,7 +21,7 @@ public struct SwiftTypeIdentifier: RawRepresentable, Hashable {
 public struct TypeInformationAddendum {
     public var identifiers: [AnyElementIdentifier]
 
-    public var childIdentifiers: [String: [AnyElementIdentifier]]
+    public var childrenIdentifiers: [String: [AnyElementIdentifier]]
 
     /// This flag indicates if this Addendum instances was considered when building the APIDocument.
     /// We use it to ensure that everything was captured.
@@ -29,7 +29,7 @@ public struct TypeInformationAddendum {
 
     init() {
         self.identifiers = []
-        self.childIdentifiers = [:]
+        self.childrenIdentifiers = [:]
         self.queried = false
     }
 

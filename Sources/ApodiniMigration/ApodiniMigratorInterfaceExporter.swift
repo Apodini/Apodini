@@ -127,11 +127,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         }
         endpoints.removeAll()
 
-        for model in document.models { // TODO does this work?
+        for model in document.models {
             // exporters may add `TypeInformationIdentifier` to types and their children (properties or enum cases).
             // Below method call handles this and augments the Context instances of the above `TypeInformation` instance
             // with the information the other exporters provided us in the `ApodiniMigrationContext`.
-            augmentTypeWithExporterDefinedIdentifiers(type: model)
+            model.augmentTypeWithIdentifiers { type in
+                app.apodiniMigration.retrieveTypeInformationAddendum(for: type.typeName)
+            }
         }
 
         app.storage.set(MigratorDocumentStorageKey.self, to: document)
@@ -141,7 +143,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     }
 
     private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
-        let handlerName = endpoint[HandlerDescription.self]
+        let handlerName = endpoint[HandlerReflectiveName.self]
         let operation = endpoint[Apodini.Operation.self]
         let communicationalPattern = endpoint[Apodini.CommunicationalPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
@@ -172,10 +174,10 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         ]
 
         var migratorEndpoint = ApodiniMigratorCore.Endpoint(
-            handlerName: handlerName,
+            handlerName: handlerName.rawValue,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
-            communicationalPattern: .init(communicationalPattern),
+            communicationPattern: .init(communicationalPattern),
             absolutePath: absolutePath,
             parameters: params,
             response: response,
@@ -191,51 +193,6 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         }
 
         return migratorEndpoint
-    }
-
-    // I think this exception is acceptable, handling everything at one place is better than splitting out in this case.
-    // swiftlint:disable:next cyclomatic_complexity
-    private func augmentTypeWithExporterDefinedIdentifiers(type: TypeInformation) {
-        switch type {
-        case let .enum(name, _, cases, context):
-            guard let addendum = app.apodiniMigration.retrieveTypeInformationAddendum(for: name) else {
-                break
-            }
-
-            context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: addendum.identifiers)
-
-            for (key, storage) in addendum.childIdentifiers {
-                guard let enumCase = cases.first(where: { $0.name == key }) else {
-                    fatalError("Another exporter added enum case identifiers for a case we can't identify: \(key) adding \(storage)")
-                }
-
-                enumCase.context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: storage)
-            }
-        case let .object(name, properties, context):
-            guard let addendum = app.apodiniMigration.retrieveTypeInformationAddendum(for: name) else {
-                break
-            }
-
-            context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: addendum.identifiers)
-
-            for (key, storage) in addendum.childIdentifiers {
-                guard let property = properties.first(where: { $0.name == key }) else {
-                    fatalError("Another exporter added property identifiers for a property we can't identify: \(key) adding \(storage)")
-                }
-
-                property.context.unsafeAdd(TypeInformationIdentifierContextKey.self, value: storage)
-            }
-        case let .optional(wrappedValue):
-            return augmentTypeWithExporterDefinedIdentifiers(type: wrappedValue)
-        case let .repeated(element):
-            return augmentTypeWithExporterDefinedIdentifiers(type: element)
-        case let .dictionary(_, value):
-            return augmentTypeWithExporterDefinedIdentifiers(type: value)
-        case .scalar:
-            break // do nothing on a scalar
-        case .reference:
-            fatalError("Unexpected referenced \(type) which we can't follow!")
-        }
     }
 
     private func handleDocument(document: APIDocument) {

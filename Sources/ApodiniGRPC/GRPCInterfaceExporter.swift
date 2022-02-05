@@ -122,7 +122,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         let commPattern = endpoint[CommunicationalPattern.self]
         let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
         let apodiniIdentifier = endpoint[AnyHandlerIdentifier.self]
-        let handlerName = endpoint[HandlerDescription.self]
+        let handlerName = endpoint[HandlerReflectiveName.self]
 
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         

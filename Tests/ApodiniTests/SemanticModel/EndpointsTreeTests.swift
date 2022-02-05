@@ -197,8 +197,8 @@ final class EndpointsTreeTests: ApodiniTests {
             XCTAssertEqual(service.identifier, .root)
             XCTAssertNil(service.parent)
             XCTAssertEqual(service.endpoints.count, 2)
-            XCTAssertEqual(service.endpoints[.create]?[HandlerDescription.self], "BasicTestHandler")
-            XCTAssertEqual(service.endpoints[.delete]?[HandlerDescription.self], "BasicTestHandler")
+            XCTAssertEqual(service.endpoints[.create]?[HandlerDescription.self].rawValue, "BasicTestHandler")
+            XCTAssertEqual(service.endpoints[.delete]?[HandlerDescription.self].rawValue, "BasicTestHandler")
             XCTAssertEqual(service.children.count, 1)
             
             XCTAssertEqual(service.children[0].identifier, .string("noendpointhere"))
@@ -217,8 +217,8 @@ final class EndpointsTreeTests: ApodiniTests {
             XCTAssertNotNil(service.children[0].children[0].children[0].parent)
             XCTAssertEqual(ObjectIdentifier(service.children[0].children[0].children[0].parent!), ObjectIdentifier(service.children[0].children[0]))
             XCTAssertEqual(service.children[0].children[0].children[0].endpoints.count, 2)
-            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.read]?[HandlerDescription.self], "TestHandler")
-            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.update]?[HandlerDescription.self], "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.read]?[HandlerDescription.self].rawValue, "TestHandler")
+            XCTAssertEqual(service.children[0].children[0].children[0].endpoints[.update]?[HandlerDescription.self].rawValue, "TestHandler")
             XCTAssertEqual(service.children[0].children[0].children[0].children.count, 0)
             
             exported = true

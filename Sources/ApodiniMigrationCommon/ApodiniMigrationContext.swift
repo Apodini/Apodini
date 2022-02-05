@@ -67,7 +67,7 @@ public class ApodiniMigrationContext {
     public func register<Identifier: TypeInformationIdentifier>(identifier: Identifier, for type: SwiftTypeIdentifier, children: String? = nil) {
         if let children = children {
             self.typeInformationIdentifiers[type, default: TypeInformationAddendum()]
-                .childIdentifiers[children, default: []]
+                .childrenIdentifiers[children, default: []]
                 .append(AnyElementIdentifier(from: identifier))
         } else {
             self.typeInformationIdentifiers[type, default: TypeInformationAddendum()]

@@ -61,7 +61,7 @@ extension ApodiniMigratorCore.Operation {
     }
 }
 
-extension ApodiniMigratorCore.CommunicationalPattern {
+extension ApodiniMigratorCore.CommunicationPattern {
     init(_ from: Apodini.CommunicationalPattern) {
         switch from {
         case .requestResponse:
