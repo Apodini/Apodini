@@ -332,7 +332,6 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
     
     func testLibraryGeneration() throws {
-        throw XCTSkip()
         Self.sut = MigratorConfiguration(documentConfig: .export(.directory(testDirectory.string)))
 
         // we inject a RESTExporterConfiguration here, as otherwise creating `RESTMigrator` would fail

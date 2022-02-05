@@ -4,18 +4,19 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
+
 import Foundation
 import NIO
 import Apodini
-import ApodiniDeployer
-import LocalhostDeploymentProviderRuntime
-import AWSLambdaDeploymentProviderRuntime
+import ApodiniDeploy
+import DeploymentTargetLocalhostRuntime
+import DeploymentTargetAWSLambdaRuntime
 import ApodiniREST
 import ApodiniOpenAPI
 
 
-/// Used to test the two Deployment Providers (localhost and Lambda).
+/// Used to test the two deployment providers (localhost and Lambda).
 @main
 struct WebService: Apodini.WebService {
     var content: some Component {
@@ -51,8 +52,8 @@ struct WebService: Apodini.WebService {
         REST {
             OpenAPI()
         }
-        ApodiniDeployer(
-            runtimes: [Localhost.self, AWSLambda.self],
+        ApodiniDeploy(
+            runtimes: [LocalhostRuntime<Self>.self, LambdaRuntime<Self>.self],
             config: DeploymentConfig(
                 defaultGrouping: .separateNodes,
                 deploymentGroups: [
