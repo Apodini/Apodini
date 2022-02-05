@@ -244,7 +244,7 @@ public enum ProtoType: Hashable {
     }
     
     
-    var typename: ProtoTypename? {
+    public var typename: ProtoTypename? {
         switch self {
         case .primitive:
             return nil

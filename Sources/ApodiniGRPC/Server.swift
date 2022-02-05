@@ -198,6 +198,9 @@ class GRPCMethod {
     /// Closure that makes a `GRPCStreamRPCHandler`
     private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
     let sourceCodeComments: [String]
+
+    /// The reflective type name of the Handler. Only present if the method was created for a `Handler`.
+    let handlerReflectiveName: HandlerReflectiveName?
     
     init<H: Handler>(
         name: String,
@@ -239,9 +242,10 @@ class GRPCMethod {
         self.outputType = messageTypes.output
 
         self.sourceCodeComments = sourceCodeComments
+
+        self.handlerReflectiveName = endpoint[HandlerReflectiveName.self]
     }
-    
-    
+
     init(
         name: String,
         type: CommunicationPattern,
@@ -256,6 +260,7 @@ class GRPCMethod {
         self.outputType = outputType
         self.streamRPCHandlerMaker = streamRPCHandlerMaker
         self.sourceCodeComments = sourceCodeComments
+        self.handlerReflectiveName = nil
     }
     
     
