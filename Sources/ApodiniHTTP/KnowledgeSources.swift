@@ -13,7 +13,7 @@ import ApodiniNetworking
 
 struct HTTPEndpointKnowledge: KnowledgeSource {
     let method: HTTPMethod
-    let pattern: CommunicationalPattern
+    let pattern: CommunicationPattern
     let path: [HTTPPathComponent]
     let defaultValues: DefaultValueStore
     
@@ -39,13 +39,13 @@ struct HTTPEndpointKnowledge: KnowledgeSource {
 
 struct ProtocolAgnosticEndpointKnowledge: KnowledgeSource {
     let operation: Apodini.Operation
-    let pattern: CommunicationalPattern
+    let pattern: CommunicationPattern
     let path: [EndpointPath]
     let defaultValues: DefaultValueStore
     
     init<B>(_ blackboard: B) throws where B: Blackboard {
         self.operation = blackboard[Apodini.Operation.self]
-        self.pattern = blackboard[CommunicationalPattern.self]
+        self.pattern = blackboard[CommunicationPattern.self]
         self.path = blackboard[EndpointPathComponentsHTTP.self].value
         self.defaultValues = blackboard[DefaultValueStore.self]
     }

@@ -8,6 +8,7 @@
 
 import Foundation
 import Apodini
+import ApodiniDocumentExport
 
 // MARK: - ResourceLocation
 /// Represents distinct cases of resource locations

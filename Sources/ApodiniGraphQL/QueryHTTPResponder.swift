@@ -69,7 +69,9 @@ struct GraphQLQueryHTTPResponder: HTTPResponder {
         
         switch httpRequest.method {
         case .GET:
-            guard let query = try wrappingError(try httpRequest.getQueryParam(for: "query", as: String.self), errorPrefix: "Error decoding query") else {
+            guard let query = try wrappingError(
+                try httpRequest.getQueryParam(for: "query", as: String.self), errorPrefix: "Error decoding query"
+            ) else {
                 throw GraphQLError(message: "missing query")
             }
             let variables = try wrappingError(

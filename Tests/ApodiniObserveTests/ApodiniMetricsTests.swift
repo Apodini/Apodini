@@ -125,7 +125,7 @@ public class ApodiniMetricsTests: XCTestCase {
                 ("endpoint_path", "/greeter"),
                 ("exporter", "Exporter"),
                 ("operation", "read"),
-                ("communicational_pattern", "requestResponse"),
+                ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
             ]
             

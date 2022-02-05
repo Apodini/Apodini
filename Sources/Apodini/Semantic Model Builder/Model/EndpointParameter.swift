@@ -188,15 +188,15 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         let httpOption = options.option(for: PropertyOptionKey.http)
         switch httpOption {
         case .path:
-            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .path for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            Self.assertIsValidLightweightParamType(forParameterMode: .path, description: description)
             parameterType = .path
         case .query:
-            precondition(Type.self is LosslessStringConvertible.Type, "Invalid explicit option .query for '\(description)'. Option is only available for wrapped properties conforming to \(LosslessStringConvertible.self).")
+            Self.assertIsValidLightweightParamType(forParameterMode: .query, description: description)
             parameterType = .lightweight
         case .body:
             parameterType = .content
         default:
-            parameterType = Type.self is LosslessStringConvertible.Type ? .lightweight : .content
+            parameterType = Self.isValidLightweightParamType ? .lightweight : .content
         }
     }
 
@@ -214,6 +214,16 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
 
     func exportParameter<I: InterfaceExporter>(on exporter: I) -> I.ParameterExportOutput {
         exporter.exportParameter(self)
+    }
+    
+    private static var isValidLightweightParamType: Bool {
+        Type.self is LosslessStringConvertible.Type || Type.self == Foundation.Date.self
+    }
+    
+    private static func assertIsValidLightweightParamType(forParameterMode parameterMode: HTTPParameterMode, description: String) {
+        if !isValidLightweightParamType {
+            fatalError("Invalid option .\(parameterMode) for \(description): Parameter type \(Type.self) must conform to \(LosslessStringConvertible.self), or be \(Foundation.Date.self).")
+        }
     }
 }
 

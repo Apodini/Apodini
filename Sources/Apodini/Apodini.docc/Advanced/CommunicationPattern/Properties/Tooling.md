@@ -27,7 +27,7 @@ If you provide a `Content` as your `handle()`'s return type, it is interpreted a
 
 ### Lifetime
 
-In general a `Handler` is kept alive until it was evaluated to `Response.final(E)` or `Response.end`. Some exporters may enforce further rules based on the communicational patterns that are used to represent the respective endpoint. Consider the following example: An HTTP 1 based exporter must export an endpoint that returns a `Response<E>`. As the request-response pattern is the only pattern HTTP 1 supports, the exporter downgrades the endpoint to the request-response pattern. In this scenario the exporter could destruct the `Handler` after the first `Action.send(Response)`, because it cannot send more messages anyways.
+In general a `Handler` is kept alive until it was evaluated to `Response.final(E)` or `Response.end`. Some exporters may enforce further rules based on the communication patterns that are used to represent the respective endpoint. Consider the following example: An HTTP 1 based exporter must export an endpoint that returns a `Response<E>`. As the request-response pattern is the only pattern HTTP 1 supports, the exporter downgrades the endpoint to the request-response pattern. In this scenario the exporter could destruct the `Handler` after the first `Action.send(Response)`, because it cannot send more messages anyways.
 
 ### Properties
 

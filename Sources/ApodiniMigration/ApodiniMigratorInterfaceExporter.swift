@@ -12,6 +12,7 @@ import ApodiniMigrator
 @_implementationOnly import Logging
 import ApodiniNetworking
 import ApodiniMigrationCommon
+import ApodiniDocumentExport
 
 
 /// Identifying storage key for `ApodiniMigrator` ``Document``
@@ -145,7 +146,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
         let handlerName = endpoint[HandlerReflectiveName.self]
         let operation = endpoint[Apodini.Operation.self]
-        let communicationPattern = endpoint[Apodini.CommunicationalPattern.self]
+        let communicationPattern = endpoint[Apodini.CommunicationPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
         let params = endpoint.parameters.migratorParameters(of: endpoint, with: logger)
 
@@ -233,13 +234,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
             app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
-            logger.info("\(itemName) served at \(endpoint) in \(format.rawValue) format")
+            logger.info("\(itemName) served at \(endpoint) in the \(format.rawValue) format")
         }
         
         if let directory = exportOptions.directory {
             do {
                 let filePath = try migratorItem.write(at: directory, outputFormat: format, fileName: migratorItem.fileName)
-                logger.info("\(itemName) exported at \(filePath) in \(format.rawValue) format")
+                logger.info("\(itemName) exported at \(filePath)")
             } catch {
                 logger.error("\(itemName) export at \(directory) failed with error: \(error)")
             }

@@ -41,12 +41,14 @@ public final class REST: Configuration {
     public init(
         encoder: AnyEncoder = defaultEncoder,
         decoder: AnyDecoder = defaultDecoder,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
         self.configuration = REST.ExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
+            urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
             caseInsensitiveRouting: caseInsensitiveRouting,
             rootPath: rootPath
         )
@@ -102,11 +104,18 @@ extension REST {
     public convenience init(
         encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
         decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
         @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }
     ) {
-        self.init(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, rootPath: rootPath)
+        self.init(
+            encoder: encoder,
+            decoder: decoder,
+            urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
+            caseInsensitiveRouting: caseInsensitiveRouting,
+            rootPath: rootPath
+        )
         self.staticConfigurations = staticConfigurations()
     }
 }

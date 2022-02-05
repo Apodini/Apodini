@@ -34,7 +34,7 @@ public struct DecodingErrorForwardingRequest: WithRequest {
 
 extension ErrorForwarder {
     func forwardDecodingErrors(_ request: Request) -> DecodingErrorForwardingRequest {
-        return DecodingErrorForwardingRequest(request: request, forward: forwardClosure ?? { _ in })
+        DecodingErrorForwardingRequest(request: request, forward: forwardClosure ?? { _ in })
     }
 }
 

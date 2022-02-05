@@ -197,7 +197,7 @@ The answer is: it might not and that is ok.
 
 Not every exporter will be able to represent your endpoint exactly as you imagined, just because your ``Handler`` requires functionality that isn't supported by the exporter's middleware. In that case the exporter should print a warning on startup. However, the exporter should always try to get as close as possible to the desired functionality. E.g. a HTTP exporter could establish a session with the client to create the illusion of a connection, or it could allow the client to multiplex a series of message into the body of a single request. Finally, if all that doesn't help, you just need to switch to a different exporter/middleware that actually fulfills your requirements.
 
-> Tip: Sometimes it can happen that the ``InterfaceExporter`` misinterprets how your ``Handler`` should be represented on the wire. If that happens, you can try to make it explicit using ``CommunicationalPattern``. Check out ``CommunicationalPatternMetadata`` for more information on how to do that.
+> Tip: Sometimes it can happen that the ``InterfaceExporter`` misinterprets how your ``Handler`` should be represented on the wire. If that happens, you can try to make it explicit using ``CommunicationPattern``. Check out ``CommunicationPatternMetadata`` for more information on how to do that.
 
 If you want to read more about the reasoning and details of this, head over to the advanced section: <doc:CommunicationPattern>.
 

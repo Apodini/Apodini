@@ -119,7 +119,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let commPattern = endpoint[CommunicationalPattern.self]
+        let commPattern = endpoint[CommunicationPattern.self]
         let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
         let apodiniIdentifier = endpoint[AnyHandlerIdentifier.self]
         let handlerName = endpoint[HandlerReflectiveName.self]
@@ -130,8 +130,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
         if server.service(named: serviceName, inPackage: defaultPackageName) == nil {
             server.createService(name: serviceName, associatedWithPackage: defaultPackageName)
         }
-        
-        let endpointContext = GRPCEndpointContext(communicationalPattern: endpoint[CommunicationalPattern.self])
+
+        let endpointContext = GRPCEndpointContext(communicationPattern: endpoint[CommunicationPattern.self])
 
         // Apodini Migration support
         app.apodiniMigration.register(identifier: GRPCServiceName(serviceName), for: endpoint)
@@ -171,8 +171,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 type: .bidirectionalStream,
                 inputType: reflectionInputType,
                 outputType: reflectionOutputType,
-                streamRPCHandlerMaker: { [unowned self] in
-                    ServerReflectionInfoRPCHandler(server: self.server)
+                streamRPCHandlerMaker: { [weak self] in
+                    guard let self = self else {
+                        fatalError("self is nil")
+                    }
+                    return ServerReflectionInfoRPCHandler(server: self.server)
                 }
             )
         )
@@ -365,12 +368,12 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
 /// The main use case of this is to share the mapping of an endpoint's input and output protobuffer
 /// message types with other parts of the interface exporter that need to access this information.
 class GRPCEndpointContext: Hashable {
-    let communicationalPattern: CommunicationalPattern
+    let communicationPattern: CommunicationPattern
     var endpointRequestType: ProtoType?
     var endpointResponseType: ProtoType?
     
-    init(communicationalPattern: CommunicationalPattern) {
-        self.communicationalPattern = communicationalPattern
+    init(communicationPattern: CommunicationPattern) {
+        self.communicationPattern = communicationPattern
     }
     
     func hash(into hasher: inout Hasher) {

@@ -323,6 +323,10 @@ public enum ProtoValidationError: Swift.Error, Equatable {
     /// The error thrown if the schema encounters an `optional` type within a `oneof`, i.e. in Swift an enum w/ associated values
     /// where one of the values is an `Optional` type.
     case invalidOptionalInOneof(Any.Type)
+    /// The error thrown if the schema contains multiple protobuffer message types with the same type name.
+    case conflictingMessageTypeNames(ProtoType, ProtoType)
+    /// The error thrown by the schema when encountering one of the integer types not supported by protobuffer (i.e..`Int8`, `UInt8`, `Int16`, `UInt16`)
+    case unsupportedIntegerType(Any.Type)
     /// Some other, unspecified error occurred while handling a type
     /// - parameter message: A String describing the error
     /// - parameter type: The type that caused this error, if applicable
@@ -359,6 +363,10 @@ public enum ProtoValidationError: Swift.Error, Equatable {
         case let (.invalidRepeatedInOneof(lhsTy), .invalidRepeatedInOneof(rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.invalidOptionalInOneof(lhsTy), .invalidOptionalInOneof(rhsTy)):
+            return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
+        case let (.conflictingMessageTypeNames(lhsTy1, lhsTy2), .conflictingMessageTypeNames(rhsTy1, rhsTy2)):
+            return lhsTy1 == rhsTy1 && lhsTy2 == rhsTy2
+        case let (.unsupportedIntegerType(lhsTy), .unsupportedIntegerType(rhsTy)):
             return ObjectIdentifier(lhsTy) == ObjectIdentifier(rhsTy)
         case let (.other(lhsMessage, lhsTy), .other(rhsMessage, rhsTy)):
             return lhsMessage == rhsMessage && lhsTy.map(ObjectIdentifier.init) == rhsTy.map(ObjectIdentifier.init)
@@ -489,8 +497,8 @@ public class ProtoSchema {
             return types
         } else {
             let types = EndpointProtoMessageTypes(
-                input: collectTypes(in: try parametersMessageType(for: endpoint, grpcMethodName: grpcMethodName)),
-                output: collectTypes(in: try responseMessageType(for: endpoint, grpcMethodName: grpcMethodName))
+                input: try collectTypes(in: parametersMessageType(for: endpoint, grpcMethodName: grpcMethodName)),
+                output: try collectTypes(in: responseMessageType(for: endpoint, grpcMethodName: grpcMethodName))
             )
             endpointMessageMappings[ObjectIdentifier(H.self)] = types
             return types
@@ -515,7 +523,7 @@ public class ProtoSchema {
                     paramName: param.name,
                     wrappingMessageTypename: .init(
                         packageName: defaultPackageName,
-                        typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointInputSuffix)
+                        typename: makeProtoMessageTypename(for: endpoint, context: .input)
                     )
                 )
             )
@@ -524,7 +532,7 @@ public class ProtoSchema {
             return try combineIntoCompoundMessageType(
                 typename: .init(
                     packageName: defaultPackageName,
-                    typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointInputSuffix)
+                    typename: makeProtoMessageTypename(for: endpoint, context: .input)
                 ),
                 underlyingType: nil,
                 elements: parameters.map { ($0.name, $0.originalPropertyType) }
@@ -542,7 +550,7 @@ public class ProtoSchema {
                 paramName: "value",
                 wrappingMessageTypename: .init(
                     packageName: defaultPackageName,
-                    typename: makeProtoMessageTypename(for: H.self, suffix: Self.endpointOutputSuffix)
+                    typename: makeProtoMessageTypename(for: endpoint, context: .response)
                 )
             )
         )
@@ -550,8 +558,27 @@ public class ProtoSchema {
     }
     
     
-    private func makeProtoMessageTypename(for type: Any.Type, suffix: String) -> String {
-        getProtoTypename(type).typename.appending("___\(suffix)")
+    private enum ImplicitWrapperMessageTypenameContext {
+        case input
+        case response
+    }
+    
+    
+    private func makeProtoMessageTypename<H: Handler>(for endpoint: Endpoint<H>, context: ImplicitWrapperMessageTypenameContext) -> String {
+        switch context {
+        case .input:
+            if let name = endpoint[Context.self].get(valueFor: HandlerInputProtoMessageName.Key.self) {
+                return name
+            } else {
+                return getProtoTypename(H.self).typename.appending(Self.endpointInputSuffix)
+            }
+        case .response:
+            if let name = endpoint[Context.self].get(valueFor: HandlerResponseProtoMessageName.Key.self) {
+                return name
+            } else {
+                return getProtoTypename(H.self).typename.appending(Self.endpointOutputSuffix)
+            }
+        }
     }
     
     
@@ -560,20 +587,15 @@ public class ProtoSchema {
         if let packageUnit = protoTypenameToPackageUnitMapping[typename] {
             return packageUnit
         } else {
-            let baseName = typename.typename
-            if baseName.hasSuffix("___\(Self.endpointInputSuffix)") || baseName.hasSuffix("___\(Self.endpointOutputSuffix)") {
-                // We're dealing with one of the auto-generated wrapper messages, which are always in the default package
-                precondition(self.defaultPackageName == typename.packageName)
-                return ProtobufPackageUnit(packageName: typename.packageName)
-            } else {
-                return nil
-            }
+            // We're probably dealing with one of the auto-generated wrapper messages, which are always in the default package
+            precondition(self.defaultPackageName == typename.packageName)
+            return ProtobufPackageUnit(packageName: typename.packageName)
         }
     }
     
     
     private func getProtoTypename(_ type: Any.Type) -> ProtoTypename {
-        // The issue here (and the reason why we can't just do `return "\(type)___\(suffix)"` is that the type might be generic,
+        // The issue here (and the reason why we can't just do `return "\(type)\(suffix)"` is that the type might be generic,
         // in which case it'd contain invalid characters that would result in it not being a valid proto typename.
         // We have to map such types into valid proto typenames, with the properties that they:
         //   1. Do no longer contain any invalid characters (e.g. the '<')
@@ -617,11 +639,13 @@ public class ProtoSchema {
     
     
     @discardableResult
-    private func collectTypes(in protoType: ProtoType) -> ProtoType {
+    private func collectTypes(in protoType: ProtoType) throws -> ProtoType {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let setMapping = { (dst: inout [ProtoTypename: ProtoType], name: ProtoTypename) in
             if let oldValue = dst[name] {
-                precondition(oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false))
+                guard oldValue.isEqual(to: protoType, onlyCheckSemanticEquivalence: false) else {
+                    throw ProtoValidationError.conflictingMessageTypeNames(oldValue, protoType)
+                }
                 switch (oldValue, protoType) {
                 case (.message, .refdMessageType):
                     // If we'd overwrite a "full" (i.e. non-ref) type with a ref, let's not do that
@@ -636,12 +660,12 @@ public class ProtoSchema {
         case .primitive:
             break
         case let .message(name, underlyingType: _, nestedOneofTypes: _, fields):
-            setMapping(&allMessageTypes, name)
+            try setMapping(&allMessageTypes, name)
             for field in fields {
-                collectTypes(in: field.type)
+                try collectTypes(in: field.type)
             }
         case .enumTy(let name, enumType: _, cases: _):
-            setMapping(&allEnumTypes, name)
+            try setMapping(&allEnumTypes, name)
         case .refdMessageType:
             break
         }
@@ -655,7 +679,7 @@ public class ProtoSchema {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         precondition(getProtoCodingKind(type) == .message)
         let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
-        collectTypes(in: result)
+        try collectTypes(in: result)
         return result
     }
     
@@ -666,7 +690,7 @@ public class ProtoSchema {
     public func informAboutType(_ type: Any.Type) throws -> ProtoType {
         precondition(!isFinalized, "Cannot add type to already finalized schema")
         let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
-        collectTypes(in: result)
+        try collectTypes(in: result)
         return result
     }
     
@@ -689,7 +713,7 @@ public class ProtoSchema {
             let (idx, (fieldName, fieldType)) = arg0
             let newFields: [ProtoType.MessageField]
             if let assocEnumTy = fieldType as? AnyProtobufEnumWithAssociatedValues.Type {
-                let typeInfo = try! Runtime.typeInfo(of: assocEnumTy)
+                let typeInfo = try Runtime.typeInfo(of: assocEnumTy)
                 precondition(typeInfo.kind == .enum)
                 let fieldNumbersByFieldName: [String: Int] = .init(uniqueKeysWithValues: assocEnumTy.getCodingKeysType().allCases.map {
                     // intentionally not using the getProtoFieldNumber thing here bc the AnyProtobufEnumWithAssociatedValues requires the user provide a custom mapping with nonnil field numbers
@@ -921,6 +945,8 @@ public class ProtoSchema {
                 requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
                 singleParamHandlingContext: singleParamHandlingContext
             ))
+        } else if [Int8.self, UInt8.self, Int16.self, UInt16.self].contains(type) {
+            throw ProtoValidationError.unsupportedIntegerType(type)
         }
         
         let typeInfo: TypeInfo
@@ -1084,10 +1110,12 @@ extension ProtoSchema {
         // For types which are not top-level types, we move them into their parent type.
         do { // lmao all of this is so fucking inefficient
             var potentiallyNestedTypes = Stack(topLevelMessageTypeDescs
-                .filter { ty1 in topLevelMessageTypeDescs.contains { ty2 in
-                    ty1.typeDescriptor.name.count > ty2.typeDescriptor.name.count
-                    && ty1.typeDescriptor.name.hasPrefix(ty2.typeDescriptor.name)
-                }} // swiftlint:disable:this closure_end_indentation
+                .filter { ty1 in
+                    topLevelMessageTypeDescs.contains { ty2 in
+                        ty1.typeDescriptor.name.count > ty2.typeDescriptor.name.count
+                        && ty1.typeDescriptor.name.hasPrefix(ty2.typeDescriptor.name)
+                    }
+                }
                 .sorted { lhs, rhs in
                     let lhsNestingDepth = lhs.typeDescriptor.name.count { $0 == "." }
                     let rhsNestingDepth = rhs.typeDescriptor.name.count { $0 == "." }

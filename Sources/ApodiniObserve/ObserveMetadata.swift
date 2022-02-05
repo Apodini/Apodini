@@ -39,7 +39,7 @@ public struct ObserveMetadata: DynamicProperty {
             self.builtBlackboardMetadata = blackboardMetadata
             self.builtExporterMetadata = exporterMetadata
         } else {
-            switch self.builtBlackboardMetadata?.communicationalPattern {
+            switch self.builtBlackboardMetadata?.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
                 self.builtBlackboardMetadata = blackboardMetadata
             default: break

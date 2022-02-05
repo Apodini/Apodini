@@ -19,6 +19,8 @@ extension REST {
         public let encoder: AnyEncoder
         /// The to be used `AnyDecoder` for decoding requests to the `RESTInterfaceExporter`
         public let decoder: AnyDecoder
+        /// How `Date` objects passed as query or path parameters should be decoded
+        public let urlParamDateDecodingStrategy: DateDecodingStrategy
         /// Indicates whether the HTTP route is interpreted case-sensitively
         public let caseInsensitiveRouting: Bool
         /// Configures if the current web service version should be used as a prefix for all HTTP paths
@@ -31,12 +33,16 @@ extension REST {
         ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
         ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
         ///    - rootPath: The ``RootPath`` under which the web service is registered.
-        public init(encoder: AnyEncoder = REST.defaultEncoder,
-                    decoder: AnyDecoder = REST.defaultDecoder,
-                    caseInsensitiveRouting: Bool = false,
-                    rootPath: RootPath? = nil) {
+        public init(
+            encoder: AnyEncoder = REST.defaultEncoder,
+            decoder: AnyDecoder = REST.defaultDecoder,
+            urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
+            caseInsensitiveRouting: Bool = false,
+            rootPath: RootPath? = nil
+        ) {
             self.encoder = encoder
             self.decoder = decoder
+            self.urlParamDateDecodingStrategy = urlParamDateDecodingStrategy
             self.caseInsensitiveRouting = caseInsensitiveRouting
             self.rootPath = rootPath
         }

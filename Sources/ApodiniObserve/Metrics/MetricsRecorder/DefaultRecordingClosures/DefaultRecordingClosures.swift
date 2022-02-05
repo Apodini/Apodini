@@ -51,7 +51,7 @@ public enum DefaultRecordingClosures {
             .dropLast())),
             ("exporter", "\(observeMetadata.exporterMetadata.exporterType)"),
             ("operation", observeMetadata.blackboardMetadata.operation.rawValue),
-            ("communicational_pattern", observeMetadata.blackboardMetadata.communicationalPattern.rawValue),
+            ("communication_pattern", observeMetadata.blackboardMetadata.communicationPattern.rawValue),
             ("response_type", "\(observeMetadata.blackboardMetadata.responseType.type)")
         ]
     }

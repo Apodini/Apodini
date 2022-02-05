@@ -146,8 +146,8 @@ public struct ApodiniLogger: DynamicProperty {
                 #endif
             }
         } else {
-            // Connection stays open since these communicational patterns allow for any amount of client messages
-            switch observeMetadata.blackboardMetadata.communicationalPattern {
+            // Connection stays open since these communication patterns allow for any amount of client messages
+            switch observeMetadata.blackboardMetadata.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Refresh metadata
                 loggingMetadata

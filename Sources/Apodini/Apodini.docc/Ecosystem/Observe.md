@@ -157,7 +157,7 @@ The structure of the context information is as follows:
     - endpointPath
     - version
     - handlerReturnType
-    - communicationalPattern
+    - communicationPattern
 - exporter
     - type
     - parameterNamespace
@@ -317,7 +317,7 @@ Furthermore, every `ApodiniMetric` type is automatically enriched by context inf
 - endpoint_path
 - exporter
 - operation
-- communicational_pattern
+- communication_pattern
 - service_type
 - response_type
 

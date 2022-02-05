@@ -7,6 +7,7 @@
 //
 
 
+import Foundation
 import XCTest
 @testable import ApodiniNetworking
 
@@ -67,6 +68,46 @@ class ApodiniNetworkingTests: XCTestCase {
             [.constant("v1"), .constant("greet"), .wildcardMultiple("wm")],
             httpPathString: "/v1/greet/**[wm]",
             effectivePath: "/v[v1]/v[greet]/**[wm]"
+        )
+    }
+    
+    
+    func testQueryParamDecoding() throws {
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(String.self, from: "abcdef"), "abcdef")
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Int.self, from: "1234"), 1234)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Int.self, from: "-1234"), -1234)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Double.self, from: "1234"), 1234)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Double.self, from: "1234.5678"), 1234.5678)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Double.self, from: "-1234.5678"), -1234.5678)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Float.self, from: "1234"), 1234)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Float.self, from: "1234.5678"), 1234.5678)
+        XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Float.self, from: "-1234.5678"), -1234.5678)
+        XCTAssertThrowsError(try URLQueryParameterValueDecoder().decode(Int.self, from: "abcdef"))
+        for trueBoolInput in ["true", "True", "TRUE", "yes", "Yes", "YES", "1"] {
+            XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Bool.self, from: trueBoolInput), true)
+        }
+        for falseBoolInput in ["false", "False", "FALSE", "no", "No", "NO", "0"] {
+            XCTAssertEqual(try URLQueryParameterValueDecoder().decode(Bool.self, from: falseBoolInput), false)
+        }
+        for invalidBoolInput in ["2", "3", "4", "a", "b", "c"] { // obviously not an exhaustive list...
+            XCTAssertThrowsError(try URLQueryParameterValueDecoder().decode(Bool.self, from: invalidBoolInput))
+        }
+    }
+    
+    
+    func testQueryParamDateDecoding() throws {
+        func imp(_ strategy: DateDecodingStrategy, input: String) throws -> Date {
+            try URLQueryParameterValueDecoder(dateDecodingStrategy: strategy).decode(Date.self, from: input)
+        }
+        for _ in 0...1000 {
+            let date = Date()
+            XCTAssertEqual(try imp(.secondsSinceReferenceDate, input: "\(date.timeIntervalSinceReferenceDate)"), date)
+            XCTAssertEqual(try imp(.secondsSince1970, input: "\(date.timeIntervalSince1970)").timeIntervalSince1970, date.timeIntervalSince1970)
+            XCTAssertEqual(try imp(.default, input: "\(date.timeIntervalSince1970)").timeIntervalSince1970, date.timeIntervalSince1970)
+        }
+        XCTAssertEqual(
+            try imp(.iso8601, input: "2022-01-25T15:24:25Z"),
+            Calendar.current.date(from: .init(timeZone: .init(identifier: "UTC")!, year: 2022, month: 01, day: 25, hour: 15, minute: 24, second: 25))!
         )
     }
 }

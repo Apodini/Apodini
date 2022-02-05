@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Foundation
 @testable import Apodini
 @testable import ApodiniGraphQL
 import ApodiniNetworking
@@ -44,7 +45,7 @@ struct AlbumQueryResponse: Decodable, Hashable {
     let genres: [Genre]? // swiftlint:disable:this discouraged_optional_collection
     let songs: [Song]? // swiftlint:disable:this discouraged_optional_collection
     
-    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) { // swiftlint:disable:this discouraged_optional_collection line_length
+    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) { // swiftlint:disable:this discouraged_optional_collection
         self.title = title
         self.artist = artist
         self.genres = genres
@@ -57,7 +58,7 @@ struct Song: Codable, Content, Hashable {
 }
 
 
-enum MusicLibrary {
+private enum MusicLibrary {
     static var albums: [Album] = []
     
     static let initialAlbums: [Album] = [
@@ -96,7 +97,7 @@ enum MusicLibrary {
 }
 
 
-struct FindBandsHandler: Handler {
+private struct FindBandsHandler: Handler {
     @Parameter var genre: Genre
     
     func handle() async throws -> Set<String> {
@@ -107,7 +108,7 @@ struct FindBandsHandler: Handler {
 }
 
 
-struct FetchAlbumsHandler: Handler {
+private struct FetchAlbumsHandler: Handler {
     @Parameter var artist: String?
     @Parameter var genre: Genre?
     @Parameter var title: String?
@@ -135,7 +136,7 @@ struct FetchAlbumsHandler: Handler {
 }
 
 
-struct AddAlbumHandler: Handler {
+private struct AddAlbumHandler: Handler {
     @Parameter var title: String
     @Parameter var artist: String
     @Parameter var genres: [Genre]
@@ -149,7 +150,65 @@ struct AddAlbumHandler: Handler {
 }
 
 
-struct TestWebService: WebService {
+struct EchoHandlerResult<T: Codable & Equatable>: Codable, Apodini.Content, Equatable {
+    let string: String
+    let listOfStrings: [String]
+    let listOfInts: [Int]
+    let bool: Bool
+    let url: URL
+    let uuid: UUID
+    let uint32: UInt32
+    let uint64: UInt64
+    let int32: Int32
+    let int64: Int64
+    let float: Float
+    let double: Double
+    let date: Date
+    let data: Data
+    let custom: T
+}
+
+
+private struct EchoHandler<T: Codable & Equatable>: Handler {
+    @Parameter var string: String
+    @Parameter var listOfStrings: [String]
+    @Parameter var listOfInts: [Int]
+    @Parameter var bool: Bool
+    @Parameter var url: URL
+    @Parameter var uuid: UUID
+    @Parameter var uint32: UInt32
+    @Parameter var uint64: UInt64
+    @Parameter var int32: Int32
+    @Parameter var int64: Int64
+    @Parameter var float: Float
+    @Parameter var double: Double
+    @Parameter var date: Date
+    @Parameter var data: Data
+    @Parameter var custom: T
+    
+    func handle() -> EchoHandlerResult<T> {
+        EchoHandlerResult(
+            string: string,
+            listOfStrings: listOfStrings,
+            listOfInts: listOfInts,
+            bool: bool,
+            url: url,
+            uuid: uuid,
+            uint32: uint32,
+            uint64: uint64,
+            int32: int32,
+            int64: int64,
+            float: float,
+            double: double,
+            date: date,
+            data: data,
+            custom: custom
+        )
+    }
+}
+
+
+private struct TestWebService: WebService {
     var content: some Component {
         Text("Hello, there")
             .endpointName("root")
@@ -162,6 +221,8 @@ struct TestWebService: WebService {
         AddAlbumHandler()
             .operation(.create)
             .endpointName("addAlbum")
+        EchoHandler<Album>()
+            .endpointName("echo")
     }
 }
 
@@ -176,7 +237,7 @@ struct WrappedGraphQLResponse<T: Decodable>: Decodable {
 class GraphQLInterfaceExporterTests: XCTApodiniTest {
     struct TestGraphQLExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: false)
+            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: false, enableCustom64BitIntScalars: true)
         }
     }
     
@@ -262,7 +323,82 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
     }
     
     
-    func _testAlbumsQuery( // swiftlint:disable:this identifier_name
+    func testCustomScalarTypes() throws {
+        let input = """
+            query {
+                echo(
+                    string: "Hello, World!",
+                    listOfStrings: ["Hello", "World"],
+                    listOfInts: [-2, -1, 0, 1, 2],
+                    bool: true,
+                    url: "https://in.tum.de",
+                    uuid: "3B68EBD7-057D-4477-8C6D-C03FDC541D2F",
+                    uint32: 4294967292,
+                    uint64: 427792345092,
+                    int32: -2147483648,
+                    int64: -3254582894236989,
+                    float: -3.2145698142,
+                    double: 3.14159265359,
+                    date: "2022-02-01T19:17:58Z",
+                    data: "SGVsbG8sIFdvcmxkCg==",
+                    custom: { title: "Mirror Reaper", artist: "Bell Witch", genres: [doomMetal, funeralDoom], songs: [{ title: "Mirror Reaper" }] }
+                ) {
+                    string,
+                    listOfStrings,
+                    listOfInts,
+                    bool,
+                    url,
+                    uuid,
+                    uint32,
+                    uint64,
+                    int32,
+                    int64,
+                    float,
+                    double,
+                    date,
+                    data,
+                    custom { title, artist, genres, songs { title } }
+                }
+            }
+            """
+        try app.testable().test(
+            .POST,
+            "/graphql",
+            headers: HTTPHeaders { $0[.contentType] = .graphQL },
+            body: ByteBuffer(string: input)
+        ) { res in
+            XCTAssertEqual(res.status, .ok)
+            struct Response: Codable, Equatable {
+                let echo: EchoHandlerResult<Album>
+            }
+            let decoder = JSONDecoder()
+            decoder.dataDecodingStrategy = .base64
+            decoder.dateDecodingStrategy = .iso8601
+            let response = try res.bodyStorage.getFullBodyData(decodedAs: WrappedGraphQLResponse<Response>.self, using: decoder).data.echo
+            XCTAssertEqual(response, .init(
+                string: "Hello, World!",
+                listOfStrings: ["Hello", "World"],
+                listOfInts: [-2, -1, 0, 1, 2],
+                bool: true,
+                url: URL(string: "https://in.tum.de")!,
+                uuid: UUID(uuidString: "3B68EBD7-057D-4477-8C6D-C03FDC541D2F")!,
+                uint32: 4294967292,
+                uint64: 427792345092,
+                int32: -2147483648,
+                int64: -3254582894236989,
+                float: -3.2145698142,
+                double: 3.14159265359,
+                date: ISO8601DateFormatter().date(from: "2022-02-01T19:17:58Z")!,
+                data: Data(base64Encoded: "SGVsbG8sIFdvcmxkCg==")!,
+                custom: .init(title: "Mirror Reaper", artist: "Bell Witch", genres: [.doomMetal, .funeralDoom], songs: [
+                    .init(title: "Mirror Reaper")
+                ])
+            ))
+        }
+    }
+    
+    
+    private func _testAlbumsQuery(
         parameters: [String: String],
         variables: [String: (type: String, value: Map)] = [:],
         expectedResponse: [AlbumQueryResponse]

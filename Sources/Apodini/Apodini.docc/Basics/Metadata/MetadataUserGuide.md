@@ -252,7 +252,7 @@ struct ExampleHandler: Handler {
 - ``Apodini/HandlerDescriptionMetadata``
 - ``Apodini/WebServiceDescriptionMetadata``
 - ``Apodini/OperationHandlerMetadata``
-- ``Apodini/CommunicationalPatternMetadata``
+- ``Apodini/CommunicationPatternMetadata``
 - ``Apodini/WebServiceVersionMetadata``
 - ``Apodini/DelegateMetadata``
 - ``Apodini/GuardMetadata``

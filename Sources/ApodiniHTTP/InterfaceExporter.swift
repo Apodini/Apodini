@@ -36,8 +36,20 @@ public final class HTTP: Configuration {
     ///    - decoder: The to be used `AnyDecoder`, defaults to a `JSONDecoder`
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     ///    - rootPath: Configures the root path for the HTTP endpoints
-    public init(encoder: AnyEncoder = defaultEncoder, decoder: AnyDecoder = defaultDecoder, caseInsensitiveRouting: Bool = false, rootPath: RootPath? = nil) {
-        self.configuration = ExporterConfiguration(encoder: encoder, decoder: decoder, caseInsensitiveRouting: caseInsensitiveRouting, rootPath: rootPath)
+    public init(
+        encoder: AnyEncoder = defaultEncoder,
+        decoder: AnyDecoder = defaultDecoder,
+        urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
+        caseInsensitiveRouting: Bool = false,
+        rootPath: RootPath? = nil
+    ) {
+        self.configuration = ExporterConfiguration(
+            encoder: encoder,
+            decoder: decoder,
+            urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
+            caseInsensitiveRouting: caseInsensitiveRouting,
+            rootPath: rootPath
+        )
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -122,7 +134,7 @@ struct Exporter: InterfaceExporter {
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         default:
-            logger.warning("HTTP exporter can only handle 'CommunicationalPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
+            logger.warning("HTTP exporter can only handle 'CommunicationPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
             self.export(endpoint)
         }
     }
@@ -145,8 +157,8 @@ struct Exporter: InterfaceExporter {
     
     func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
-            lightweight: LightweightStrategy(),
-            path: PathStrategy(),
+            lightweight: LightweightStrategy(dateDecodingStrategy: configuration.urlParamDateDecodingStrategy),
+            path: PathStrategy(dateDecodingStrategy: configuration.urlParamDateDecodingStrategy),
             content: NumberOfContentParameterAwareStrategy
                 .oneIdentityOrAllNamedContentStrategy(configuration.decoder, for: endpoint)
                 .transformedToHTTPRequestBasedStrategy()
@@ -161,7 +173,7 @@ struct Exporter: InterfaceExporter {
                 .transformed { request, index in
                     (request.bodyStorage.getFullBodyData() ?? Data(), index)
                 },
-            path: PathStrategy().transformed { request, _ in request },
+            path: PathStrategy(dateDecodingStrategy: configuration.urlParamDateDecodingStrategy).transformed { request, _ in request },
             content: AllNamedAtIndexWithContentPattern(decoder: configuration.decoder)
                 .transformed { request, index in
                     (request.bodyStorage.getFullBodyData() ?? Data(), index)

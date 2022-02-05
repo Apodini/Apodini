@@ -156,7 +156,7 @@ final class VaporWSRouter: Router {
                 let responsible = ConnectionResponsible(
                     webSocket,
                     initiatingRequest: initiatingRequest,
-                    onClose: { id in
+                    onClose: { [unowned self] id in
                         self.connectionsMutex.lock()
                         self.connections[id] = nil
                         self.connectionsMutex.unlock()

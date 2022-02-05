@@ -83,5 +83,5 @@ Refer to Service-Side Stream.
 
 ### Implementation Details
 
-Each exporter that supports `@ObservedObject`s must subscribe to them, no matter what communicational patterns it supports. Even for a request-response pattern the initial request providing `@Parameter`s could result in an `Action.nothing` being returned. In that case the required non-`.nothing` `Action` will result from an event that comes from one of the `@ObservedObject`s.
+Each exporter that supports `@ObservedObject`s must subscribe to them, no matter what communication patterns it supports. Even for a request-response pattern the initial request providing `@Parameter`s could result in an `Action.nothing` being returned. In that case the required non-`.nothing` `Action` will result from an event that comes from one of the `@ObservedObject`s.
 

@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        linux: [focal, amazonlinux2, centos8]
+        linux: [focal, amazonlinux2]
         configuration: [debug, release]
     defaults:
       run:
@@ -76,7 +76,7 @@ jobs:
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}
-          swift run -c ${{ matrix.configuration }} &
-          sleep 15
+          .build/${{ matrix.configuration }}/TestWebService &
+          sleep 10
           sh test.sh
           kill -9 $(lsof -ti:80)

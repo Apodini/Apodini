@@ -76,7 +76,7 @@ Handlers can use the ``Parameter`` property wrapper to access request-related da
 
 Since `Handler` inherits from the `Component` protocol, a handler may also implement a the `content` property to provide further components. By default, i.e. if the `content` property is not implemented, handlers do not provide any further content.
 
-A handler can, based on the properties it defines, make use of one of several [communicational patterns](https://github.com/Apodini/Apodini/tree/develop/Documentation/Communicational%20Patterns).
+A handler can, based on the properties it defines, make use of one of several [communication patterns](https://github.com/Apodini/Apodini/tree/develop/Documentation/Communicational%20Patterns).
 
 
 

@@ -15,6 +15,7 @@ import XCTApodini
 @_implementationOnly import PathKit
 @testable import ApodiniNetworking
 import XCTApodiniNetworking
+@testable import ApodiniDocumentExport
 
 
 struct ThrowingHandler: Handler {
@@ -300,7 +301,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         try command.run(app: app)
         
         XCTAssertEqual(commandType.configuration.commandName, "read")
-        
+
         let storedMigrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         XCTAssertEqual(storedMigrationGuide, try MigrationGuide.decode(from: Path(guidePath)))
     }

@@ -41,13 +41,13 @@ let package = Package(
         .library(name: "ApodiniAuthorizationJWT", targets: ["ApodiniAuthorizationJWT"]),
 
         // Deploy
-        .library(name: "ApodiniDeploy", targets: ["ApodiniDeploy"]),
-        .library(name: "ApodiniDeployBuildSupport", targets: ["ApodiniDeployBuildSupport"]),
-        .library(name: "ApodiniDeployRuntimeSupport", targets: ["ApodiniDeployRuntimeSupport"]),
-        .executable(name: "DeploymentTargetLocalhost", targets: ["DeploymentTargetLocalhost"]),
-        .executable(name: "DeploymentTargetAWSLambda", targets: ["DeploymentTargetAWSLambda"]),
-        .library(name: "DeploymentTargetLocalhostRuntime", targets: ["DeploymentTargetLocalhostRuntime"]),
-        .library(name: "DeploymentTargetAWSLambdaRuntime", targets: ["DeploymentTargetAWSLambdaRuntime"]),
+        .library(name: "ApodiniDeployer", targets: ["ApodiniDeployer"]),
+        .library(name: "ApodiniDeployerBuildSupport", targets: ["ApodiniDeployerBuildSupport"]),
+        .library(name: "ApodiniDeployerRuntimeSupport", targets: ["ApodiniDeployerRuntimeSupport"]),
+        .executable(name: "LocalhostDeploymentProvider", targets: ["LocalhostDeploymentProvider"]),
+        .executable(name: "AWSLambdaDeploymentProvider", targets: ["AWSLambdaDeploymentProvider"]),
+        .library(name: "LocalhostDeploymentProviderRuntime", targets: ["LocalhostDeploymentProviderRuntime"]),
+        .library(name: "AWSLambdaDeploymentProviderRuntime", targets: ["AWSLambdaDeploymentProviderRuntime"]),
         
         // Observe
         .library(name: "ApodiniObserve", targets: ["ApodiniObserve"]),
@@ -83,7 +83,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/websocket-kit.git", from: "2.2.0"),
         // Swift logging API
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.0"),
-        // CLI-Argument parsing in the WebService and ApodiniDeploy
+        // CLI-Argument parsing in the WebService and ApodiniDeployer
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.4.4")),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
@@ -123,7 +123,10 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.2")),
 
         // GraphQL
-        .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2")
+        .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
+        
+        // Apodini Document Export
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -190,7 +193,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBasicScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
-                .product(name: "OrderedCollections", package: "swift-collections")
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
             ],
             resources: [
                 .process("Resources")
@@ -433,7 +437,8 @@ let package = Package(
                 .target(name: "ApodiniMigrationCommon"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
-                .product(name: "ApodiniMigrator", package: "ApodiniMigrator")
+                .product(name: "ApodiniMigrator", package: "ApodiniMigrator"),
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
             ]
         ),
 
@@ -473,21 +478,18 @@ let package = Package(
         ),
         
         .executableTarget(
-            name: "ApodiniDeployTestWebService",
+            name: "ApodiniDeployerTestWebService",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "DeploymentTargetLocalhostRuntime"),
-                .target(name: "DeploymentTargetAWSLambdaRuntime"),
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "LocalhostDeploymentProviderRuntime"),
+                .target(name: "AWSLambdaDeploymentProviderRuntime"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeploy")
-            ],
-            resources: [
-                .process("Resources")
+                .target(name: "ApodiniDeployer")
             ]
         ),
         
@@ -521,19 +523,19 @@ let package = Package(
         //
         
         .target(
-            name: "ApodiniDeploy",
+            name: "ApodiniDeployer",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniDeployBuildSupport"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
         
         .target(
-            name: "ApodiniDeployBuildSupport",
+            name: "ApodiniDeployerBuildSupport",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
@@ -542,9 +544,9 @@ let package = Package(
             ]
         ),
         .target(
-            name: "ApodiniDeployRuntimeSupport",
+            name: "ApodiniDeployerRuntimeSupport",
             dependencies: [
-                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniDeployerBuildSupport"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
@@ -552,29 +554,29 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "ApodiniDeployTests",
+            name: "ApodiniDeployerTests",
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "XCTApodini"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniDeployTestWebService"),
+                .target(name: "ApodiniDeployerTestWebService"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "XCTUtils"),
                 .product(name: "SotoS3", package: "soto"),
                 .product(name: "SotoLambda", package: "soto"),
                 .product(name: "SotoApiGatewayV2", package: "soto"),
                 .product(name: "SotoIAM", package: "soto"),
-                .target(name: "DeploymentTargetLocalhost"),
-                .target(name: "DeploymentTargetAWSLambda")
+                .target(name: "LocalhostDeploymentProvider"),
+                .target(name: "AWSLambdaDeploymentProvider")
             ]
         ),
         .executableTarget(
-            name: "DeploymentTargetLocalhost",
+            name: "LocalhostDeploymentProvider",
             dependencies: [
-                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "ApodiniDeployerBuildSupport"),
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "DeploymentTargetLocalhostCommon"),
+                .target(name: "LocalhostDeploymentProviderCommon"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
@@ -582,25 +584,25 @@ let package = Package(
             ]
         ),
         .target(
-            name: "DeploymentTargetLocalhostCommon",
+            name: "LocalhostDeploymentProviderCommon",
             dependencies: [
-                .target(name: "ApodiniDeployBuildSupport")
+                .target(name: "ApodiniDeployerBuildSupport")
             ]
         ),
         .target(
-            name: "DeploymentTargetLocalhostRuntime",
+            name: "LocalhostDeploymentProviderRuntime",
             dependencies: [
-                .target(name: "DeploymentTargetLocalhostCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "LocalhostDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
                 .target(name: "ApodiniOpenAPI")
             ]
         ),
 
         .executableTarget(
-            name: "DeploymentTargetAWSLambda",
+            name: "AWSLambdaDeploymentProvider",
             dependencies: [
-                .target(name: "DeploymentTargetAWSLambdaCommon"),
-                .target(name: "ApodiniDeployBuildSupport"),
+                .target(name: "AWSLambdaDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerBuildSupport"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
@@ -617,16 +619,16 @@ let package = Package(
             ]
         ),
         .target(
-            name: "DeploymentTargetAWSLambdaCommon",
+            name: "AWSLambdaDeploymentProviderCommon",
             dependencies: [
-                .target(name: "ApodiniDeployBuildSupport")
+                .target(name: "ApodiniDeployerBuildSupport")
             ]
         ),
         .target(
-            name: "DeploymentTargetAWSLambdaRuntime",
+            name: "AWSLambdaDeploymentProviderRuntime",
             dependencies: [
-                .target(name: "DeploymentTargetAWSLambdaCommon"),
-                .target(name: "ApodiniDeployRuntimeSupport"),
+                .target(name: "AWSLambdaDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),

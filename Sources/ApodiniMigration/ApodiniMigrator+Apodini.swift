@@ -62,7 +62,7 @@ extension ApodiniMigratorCore.Operation {
 }
 
 extension ApodiniMigratorCore.CommunicationPattern {
-    init(_ from: Apodini.CommunicationalPattern) {
+    init(_ from: Apodini.CommunicationPattern) {
         switch from {
         case .requestResponse:
             self = .requestResponse

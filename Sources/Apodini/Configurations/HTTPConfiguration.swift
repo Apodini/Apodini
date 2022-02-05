@@ -46,7 +46,11 @@ public final class HTTPConfiguration: Configuration {
     ///   - hostname: The `Hostname` that is used for populate information in exporters, the default value is `localhost:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
     ///   - bindAddress: The `BindAddress` that is used for bind the web service to a network interface, the default value is `0.0.0.0:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
     ///   - tlsConfiguration: Information about the key and certificate needed to enable HTTPS.
-    public init(hostname: Hostname? = nil, bindAddress: BindAddress? = nil, tlsConfiguration tlsConfigurationBuilder: TLSConfigurationBuilder? = nil) {
+    public init(
+        hostname: Hostname? = nil,
+        bindAddress: BindAddress? = nil,
+        tlsConfiguration tlsConfigurationBuilder: TLSConfigurationBuilder? = nil
+    ) {
         var defaultPort = Defaults.httpPort
         
         if let tlsConfigBuilder = tlsConfigurationBuilder {
