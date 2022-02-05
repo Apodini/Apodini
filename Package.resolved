@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "feature/grpc-migrator",
-          "revision": "d31f4fe04504ad9df7085d5b93c985ad0fdd633e",
+          "revision": "73a449d2c76a100b05cacccd7099668ea92ac93e",
           "version": null
         }
       },
