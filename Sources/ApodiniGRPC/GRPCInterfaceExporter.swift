@@ -337,7 +337,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 fatalError("Encountered synthesized message type which wasn't recorded: \(type)!")
             }
 
-            var identifiers = TypeInformationIdentifiers(identifiers: .init(), childrenIdentifiers: [:])
+            var identifiers = TypeInformationIdentifiers()
             identifiers.identifiers.add(identifier: GRPCName(name.mangled))
 
             for field in proto.fields {
@@ -357,7 +357,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 fatalError("Encountered synthesized message type which wasn't recorded: \(type)!")
             }
 
-            var identifiers = TypeInformationIdentifiers(identifiers: .init(), childrenIdentifiers: [:])
+            var identifiers = TypeInformationIdentifiers()
             identifiers.identifiers.add(identifier: GRPCName(name.mangled))
 
             for enumValue in proto.values {
