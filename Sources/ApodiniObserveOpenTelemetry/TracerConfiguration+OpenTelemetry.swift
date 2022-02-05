@@ -13,11 +13,11 @@ import OpenTelemetry
 import OtlpGRPCSpanExporting
 import Tracing
 
-/// Extension that allows for easier setup of the ``InstrumentConfiguration`` for an OpenTelemetry backend.
-extension InstrumentConfiguration {
-    /// Default OpenTelemetry `Instrument`, exporting spans to an OpenTelemetry collector via gRPC in the OpenTelemetry protocol (OTLP).
+/// Extension that allows for easier setup of the ``TracerConfiguration`` for an OpenTelemetry backend.
+extension TracerConfiguration {
+    /// Default OpenTelemetry `Tracer`, exporting spans to an OpenTelemetry collector via gRPC in the OpenTelemetry protocol (OTLP).
     /// - Parameter serviceName: The name of the `WebService` being traced.
-    public static func defaultOpenTelemetry(serviceName: String) -> InstrumentConfiguration {
+    public static func defaultOpenTelemetry(serviceName: String) -> TracerConfiguration {
         openTelemetryWithConfig(
             serviceName: serviceName,
             processor: { group in
@@ -27,7 +27,7 @@ extension InstrumentConfiguration {
         )
     }
 
-    /// OpenTelementry `Instrument` with configuration options.
+    /// OpenTelementry `Tracer` with configuration options.
     /// - Parameters:
     ///   - serviceName: The name of the `WebService` being traced.
     ///   - resourceDetection: Configures how resource attribution may be detected, defaults to `.automatic`.
@@ -44,8 +44,8 @@ extension InstrumentConfiguration {
         processor: @escaping (_ group: EventLoopGroup) -> OTelSpanProcessor,
         propagator: OTelPropagator = OTel.W3CPropagator(),
         logger: Logger = Logger(label: "org.apodini.observe.OpenTelemetry")
-    ) -> InstrumentConfiguration {
-        InstrumentConfiguration { group in
+    ) -> TracerConfiguration {
+        TracerConfiguration { group in
             let otel = OTel(
                 serviceName: serviceName,
                 eventLoopGroup: group,

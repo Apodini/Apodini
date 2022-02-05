@@ -16,10 +16,10 @@ extension TracingConfiguration {
     /// The configuration uses the injected `InstrumentationSystem.bootstrapInteral` method to
     /// enable bootstrapping multiple times per process.
     ///
-    /// - Parameter instrumentConfiguration: ``InstrumentConfiguration``s that sepcify the to be used tracing backends.
-    public static func testable(_ instrumentConfiguration: InstrumentConfiguration...) -> TracingConfiguration {
+    /// - Parameter tracerConfigurations: ``TracerConfiguration``s that sepcify the to be used tracing backends.
+    public static func testable(_ tracerConfigurations: TracerConfiguration...) -> TracingConfiguration {
         TracingConfiguration(
-            instrumentConfiguration,
+            tracerConfigurations,
             instrumentationSystemBootstrap: { InstrumentationSystem.bootstrapInternal($0) }
         )
     }
