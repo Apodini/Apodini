@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
         "state": {
           "branch": null,
-          "revision": "7f089211eb7a7f060b3f570bae9ea03fd05da073",
-          "version": "0.3.2"
+          "revision": "ab8fd4fc28c446df09e3b451789d03d53dc82cf9",
+          "version": "0.3.4"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/GraphQLSwift/GraphQL",
         "state": {
           "branch": null,
-          "revision": "151c2f18dd12bd7bb6ab301a212c1da2010415ea",
-          "version": "2.2.0"
+          "revision": "283cc4de56b994a00b2724328221b7a1bc846ddc",
+          "version": "2.2.1"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
         "state": {
           "branch": null,
-          "revision": "30b8886934e49d64130868ac0b89219c35fc5447",
-          "version": "0.1.3"
+          "revision": "94f5befff6d45f1dc5579fd1b842ec0a2addc229",
+          "version": "0.1.4"
         }
       },
       {
