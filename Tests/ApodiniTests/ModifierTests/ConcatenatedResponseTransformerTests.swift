@@ -62,7 +62,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -105,7 +105,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -138,7 +138,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)

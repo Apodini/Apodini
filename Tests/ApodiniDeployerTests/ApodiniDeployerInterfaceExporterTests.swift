@@ -64,7 +64,7 @@ class ApodiniDeployerInterfaceExporterTests: XCTApodiniTest {
                 try setUpWithError()
             }
             
-            TestWebService().start(app: app)
+            try TestWebService().start(app: app)
             
             let apodiniDeployerIE = try XCTUnwrap(app.storage.get(ApodiniDeployerInterfaceExporter.StorageKey.self))
             let actual = apodiniDeployerIE.collectedEndpoints

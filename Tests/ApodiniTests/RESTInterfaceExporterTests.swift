@@ -421,7 +421,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
 
         try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], HTTPMediaType.json)
@@ -453,7 +453,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
 
         try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.headers[.contentType], .pdf)

@@ -42,11 +42,12 @@ public struct ProtoTypename: Hashable {
         self.typename = typename
     }
     public init(mangled string: String) {
-        precondition(string.hasPrefix("["), "Encountered mangled type name without package prefix: '\(string)'")
-        let packageEndIdx = string.firstIndex(of: "]")!
+        guard let packageEndIndex = string.firstIndex(of: "]") else {
+            preconditionFailure("Encountered mangled type name without package prefix: '\(string)'")
+        }
         self.init(
-            packageName: String(string[string.index(after: string.startIndex)..<packageEndIdx]),
-            typename: String(string[string.index(after: string.index(after: packageEndIdx))...])
+            packageName: String(string[string.index(after: string.startIndex)..<packageEndIndex]),
+            typename: String(string[string.index(after: string.index(after: packageEndIndex))...])
         )
         precondition(string == self.mangled, "Encountered mangled name inconsistency: input '\(string)' vs output '\(self.mangled)'")
     }

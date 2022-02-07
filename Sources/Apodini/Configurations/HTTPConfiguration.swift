@@ -41,11 +41,11 @@ public final class HTTPConfiguration: Configuration {
     }
     
     
-    /// initalize HTTPConfiguration
+    /// initialize HTTPConfiguration
     /// - Parameters:
     ///   - hostname: The `Hostname` that is used for populate information in exporters, the default value is `localhost:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
     ///   - bindAddress: The `BindAddress` that is used for bind the web service to a network interface, the default value is `0.0.0.0:80` if there is no TLS configuration passed in the `HTTPConfiguration`, port 443 otherwise.
-    ///   - tlsConfiguration: Information about the key and certificate needed to enable HTTPS.
+    ///   - tlsConfigurationBuilder: Information about the key and certificate needed to enable HTTPS.
     public init(
         hostname: Hostname? = nil,
         bindAddress: BindAddress? = nil,
@@ -68,9 +68,9 @@ public final class HTTPConfiguration: Configuration {
         case let .interface(address, nil):
             self.bindAddress = .interface(address, port: defaultPort)
         case .interface:
-            self.bindAddress = bindAddress!
+            self.bindAddress = bindAddress! // swiftlint:disable:this force_unwrapping
         case .unixDomainSocket:
-            self.bindAddress = bindAddress!
+            self.bindAddress = bindAddress! // swiftlint:disable:this force_unwrapping
         default:
             self.bindAddress = .interface(Defaults.bindAddress, port: defaultPort)
         }

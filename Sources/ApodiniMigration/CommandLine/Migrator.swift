@@ -49,7 +49,6 @@ extension MigratorParsableSubcommand {
     }
     
     func start(_ app: Application) throws {
-        // TODO when doing .boot instead of start the http server will start!!!
-        try Service.start(mode: runWebService ? .run : .boot, app: app, webService: webService)
+        try Service.start(mode: runWebService ? .run : .startup, app: app, webService: webService)
     }
 }

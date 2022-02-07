@@ -143,7 +143,7 @@ extension WebService {
         Apodini.inject(app: app, to: &webServiceCopy)
         Apodini.activate(&webServiceCopy)
         
-        webServiceCopy.start(app: app)
+        try webServiceCopy.start(app: app)
         
         switch mode {
         case .startup:
@@ -160,7 +160,7 @@ extension WebService {
     
     
     /// Start up a web service using the specified application. Does not boot or run the web service. Intended primarily for testing purposes.
-    func start(app: Application) {
+    func start(app: Application) throws {
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         metadata.collectMetadata(visitor)
         app.storage[VersionStorageKey.self] = visitor.currentNode.peekValue(for: APIVersionContextKey.self) ?? APIVersionContextKey.defaultValue
@@ -168,6 +168,8 @@ extension WebService {
         /// Configure application and instantiate exporters
         self.configuration.configure(app)
         self.register(SemanticModelBuilder(app))
+
+        try app.signalStartup()
     }
 }
 

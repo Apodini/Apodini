@@ -99,7 +99,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         self.webService = webService
     }
 
-    func didBoot(_ application: Application) throws {
+    func didStartup(_ application: Application) throws {
         guard let webService = self.webService else {
             fatalError("Encountered inconsistent state where `didBoot` was called before `finishedExporting`!")
         }

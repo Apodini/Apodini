@@ -53,7 +53,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .internalServerError)
@@ -72,7 +72,7 @@ class ThrowingErrorTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .internalServerError)
@@ -91,8 +91,8 @@ class ThrowingErrorTests: ApodiniTests {
                 REST()
             }
         }
-        
-        WebService().start(app: app)
+
+        try WebService().start(app: app)
         
         try app.testable().test(.GET, "/") { response in
             XCTAssertEqual(response.status, .internalServerError)

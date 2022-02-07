@@ -93,8 +93,7 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
     
     private func start() throws {
-        MigratorWebService().start(app: app)
-        try app.boot()
+        try MigratorWebService().start(app: app)
     }
     
     func testEmptyConfiguration() throws {
@@ -322,8 +321,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
-        try app.boot()
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)

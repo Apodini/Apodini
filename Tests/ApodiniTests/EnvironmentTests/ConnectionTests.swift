@@ -95,7 +95,7 @@ final class ConnectionTests: ApodiniTests {
             }
         }
 
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
 
         try app.testable([.actualRequests]).test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
