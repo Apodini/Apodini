@@ -81,10 +81,8 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
                   return endpointName
               }
 
-        let endIndex = rawEndpointName.firstIndex(of: ">").map(rawEndpointName.index(before:))
-            ?? rawEndpointName.endIndex
-
-        return String(rawEndpointName[...endIndex])
+        let endIndex = rawEndpointName.firstIndex(of: ">") ?? rawEndpointName.endIndex
+        return String(rawEndpointName[..<endIndex])
     }
 }
 
