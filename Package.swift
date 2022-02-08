@@ -117,7 +117,7 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("feature/grpc-migrator")), // TODO release!
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .branch("feature/grpc-migrator")),
 
         // TypeInformation
         .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.2")),

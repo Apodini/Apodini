@@ -206,7 +206,6 @@ public final class Application {
         guard !self.isBooted else {
             return
         }
-        try signalStartup()
 
         self.isBooted = true
         try self.lifecycle.handlers.forEach { try $0.didBoot(self) }
