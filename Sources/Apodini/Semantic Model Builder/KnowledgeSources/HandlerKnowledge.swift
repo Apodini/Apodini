@@ -10,11 +10,36 @@ import Foundation
 import TypeInformationMetadata
 
 /// `HandlerDescription` describes a `Handler`'s type-name.
-public typealias HandlerDescription = String
+public struct HandlerDescription: HandlerKnowledgeSource, RawRepresentable, CustomStringConvertible {
+    public let rawValue: String
 
-extension HandlerDescription: HandlerKnowledgeSource {
+    public var description: String {
+        rawValue
+    }
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
     public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
-        self = String(describing: H.self)
+        self.init(rawValue: String(describing: H.self))
+    }
+}
+
+/// `HandlerDescription` describes the full type-name of a `Handler`.
+public struct HandlerReflectiveName: HandlerKnowledgeSource, RawRepresentable, CustomStringConvertible {
+    public let rawValue: String
+
+    public var description: String {
+        rawValue
+    }
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+        self.init(rawValue: String(reflecting: H.self))
     }
 }
 

@@ -21,6 +21,8 @@ import Dispatch
 
 /// Delegate methods related to application lifecycle
 public protocol LifecycleHandler {
+    /// WebService finished startup.
+    func didStartup(_ application: Application) throws
     /// server did boot
     func didBoot(_ application: Application) throws
     /// server is shutting down
@@ -34,10 +36,12 @@ public protocol LifecycleHandler {
 
 
 extension LifecycleHandler {
+    /// WebService finished startup.
+    public func didStartup(_ application: Application) throws {}
     /// server did boot
-    public func didBoot(_ application: Application) throws { }
+    public func didBoot(_ application: Application) throws {}
     /// server is shutting down
-    public func shutdown(_ application: Application) throws { }
+    public func shutdown(_ application: Application) throws {}
     /// Allows interested parties to apply changes to the web service's endpoints.
     public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
         [endpoint]
@@ -167,6 +171,13 @@ public final class Application {
         }
     }
 
+    /// Signal that the web service started up.
+    public func signalStartup() throws {
+        for handler in lifecycle.handlers {
+            try handler.didStartup(self)
+        }
+    }
+
     /// Run the application
     public func start() throws {
         try self.boot()
@@ -195,6 +206,7 @@ public final class Application {
         guard !self.isBooted else {
             return
         }
+
         self.isBooted = true
         try self.lifecycle.handlers.forEach { try $0.didBoot(self) }
     }

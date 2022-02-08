@@ -53,14 +53,11 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
     }
 
     func testWebServiceMetadata() throws {
-        let modelBuilder = SemanticModelBuilder(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
-
         var service = ExampleWebService()
         Apodini.inject(app: app, to: &service)
         Apodini.activate(&service)
 
-        service.start(app: app)
+        try service.start(app: app)
 
         let openAPIExporter = app.interfaceExporters[1]
         openAPIExporter.accept(self)

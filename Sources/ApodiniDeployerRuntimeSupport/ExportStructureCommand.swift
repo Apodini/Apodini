@@ -36,7 +36,7 @@ public struct ExportStructureCommand: ParsableCommand {
     )
     
     public func run() throws {
-        ExportStructureCommand.helpMessage(columns: nil)
+        print(ExportStructureCommand.helpMessage(columns: nil))
         ExportStructureCommand.exit(withError:
             ApodiniDeployerRuntimeSupportError(message: "Calling this command directly is not supported.")
         )
@@ -71,7 +71,7 @@ public struct StartupCommand: ParsableCommand {
     public init() {}
     
     public func run() throws {
-        StartupCommand.helpMessage(columns: nil)
+        print(StartupCommand.helpMessage(columns: nil))
         StartupCommand.exit(withError:
             ApodiniDeployerRuntimeSupportError(message: "Calling this command directly is not supported.")
         )
@@ -85,7 +85,7 @@ public struct StartupCommand: ParsableCommand {
 
 extension WebService {
     /// An instance start function that can be used by the deployment related start and export structure commands,
-    /// since they all have access to an instanciated object of the `WebService`. Leave it here until a general revamp of the start function.
+    /// since they all have access to an instantiated object of the `WebService`. Leave it here until a general revamp of the start function.
     public func start(mode: WebServiceExecutionMode, app: Application) throws {
         try Self.start(mode: mode, app: app, webService: self)
     }

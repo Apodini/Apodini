@@ -44,7 +44,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         
         try app.testable().test(.GET, "/v2/") { res in
@@ -80,7 +80,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -129,7 +129,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         
         try app.testable().test(.GET, "/") { res in
@@ -158,7 +158,7 @@ final class GuardTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -190,8 +190,8 @@ final class GuardTests: ApodiniTests {
                 REST()
             }
         }
-        
-        TestWebService().start(app: app)
+
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)
@@ -228,8 +228,8 @@ final class GuardTests: ApodiniTests {
                 REST()
             }
         }
-        
-        TestWebService().start(app: app)
+
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "/") { res in
             XCTAssertEqual(res.status, .ok)

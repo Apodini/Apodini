@@ -11,6 +11,7 @@ import Apodini
 import ApodiniMigrator
 @_implementationOnly import Logging
 import ApodiniNetworking
+import ApodiniMigrationCommon
 import ApodiniDocumentExport
 
 
@@ -67,7 +68,7 @@ extension MigrationGuide: MigratorItem {
 }
 
 // MARK: - ApodiniMigratorInterfaceExporter
-final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
+final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandler {
     static var parameterNamespace: [ParameterNamespace] = .global
 
     private let app: Apodini.Application
@@ -75,20 +76,90 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
     private let migrationGuideConfig: MigrationGuideConfiguration?
     private let logger = Logger(label: "org.apodini.migrator")
 
-    private var endpoints: [ApodiniMigratorCore.Endpoint] = []
+    private var endpoints: [Apodini.AnyEndpoint] = []
+    private var webService: WebServiceModel?
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
         self.app = app
         self.documentConfig = app.storage.get(DocumentConfigStorageKey.self) ?? configuration.documentConfig
         self.migrationGuideConfig = app.storage.get(MigrationGuideConfigStorageKey.self) ?? configuration.migrationGuideConfig
+
+        app.lifecycle.use(self)
     }
 
     func export<H>(_ endpoint: Apodini.Endpoint<H>) where H: Handler {
-        let handlerName = endpoint[HandlerDescription.self]
+        endpoints.append(endpoint)
+    }
+
+    func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
+        export(endpoint)
+    }
+
+    func finishedExporting(_ webService: WebServiceModel) {
+        self.webService = webService
+    }
+
+    func didStartup(_ application: Application) throws {
+        guard let webService = self.webService else {
+            fatalError("Encountered inconsistent state where `didStartup` was called before `finishedExporting`!")
+        }
+        self.webService = nil
+
+        let httpAddress: String
+        let httpPort: Int?
+        if case let .interface(address, port) = app.httpConfiguration.bindAddress {
+            httpAddress = address
+            httpPort = port
+        } else {
+            httpAddress = app.httpConfiguration.hostname.address
+            httpPort = app.httpConfiguration.hostname.port
+        }
+
+        let http = HTTPInformation(
+            protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
+            hostname: httpAddress,
+            port: httpPort
+                ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
+        )
+
+        let serviceInformation = ServiceInformation(
+            version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
+            http: http
+        )
+
+        var document = APIDocument(serviceInformation: serviceInformation)
+
+        for configuration in app.apodiniMigration.configuredExporters {
+            document.add(anyExporter: configuration)
+        }
+
+        for endpoint in endpoints {
+            let migratorEndpoint = handleEndpoint(endpoint)
+            document.add(endpoint: migratorEndpoint)
+        }
+        endpoints.removeAll()
+
+        for model in document.models {
+            // exporters may add `TypeInformationIdentifier` to types and their children (properties or enum cases).
+            // Below method call handles this and augments the Context instances of the above `TypeInformation` instance
+            // with the information the other exporters provided us in the `ApodiniMigrationContext`.
+            model.augmentTypeWithIdentifiers { type in
+                app.apodiniMigration.retrieveTypeInformationAddendum(for: type.typeName)
+            }
+        }
+
+        app.storage.set(MigratorDocumentStorageKey.self, to: document)
+
+        handleDocument(document: document)
+        handleMigrationGuide(document: document)
+    }
+
+    private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
+        let handlerName = endpoint[HandlerReflectiveName.self]
         let operation = endpoint[Apodini.Operation.self]
         let communicationPattern = endpoint[Apodini.CommunicationPattern.self]
         let identifier = endpoint[AnyHandlerIdentifier.self]
-        let params = endpoint.parameters.migratorParameters(of: H.self, with: logger)
+        let params = endpoint.parameters.migratorParameters(of: endpoint, with: logger)
 
         let endpointPath = endpoint[EndpointPathComponentsHTTP.self].value
         let absolutePath = endpointPath.build(with: MigratorPathStringBuilder.self)
@@ -106,6 +177,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             response = .scalar(.data)
         }
 
+        // at some point we need to handle parsing @Throws!
         let errors: [ErrorCode] = [
             .init(code: 401, message: "Unauthorized"),
             .init(code: 403, message: "Forbidden"),
@@ -113,52 +185,28 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter {
             .init(code: 500, message: "Internal server error")
         ]
 
-        let migratorEndpoint = ApodiniMigratorCore.Endpoint(
-            handlerName: handlerName,
+        var migratorEndpoint = ApodiniMigratorCore.Endpoint(
+            handlerName: handlerName.rawValue,
             deltaIdentifier: identifier.rawValue,
             operation: .init(operation),
-            communicationalPattern: CommunicationalPattern(communicationPattern),
+            communicationPattern: .init(communicationPattern),
             absolutePath: absolutePath,
             parameters: params,
             response: response,
             errors: errors
         )
 
-        endpoints.append(migratorEndpoint)
-    }
-
-    func export<H>(blob endpoint: Apodini.Endpoint<H>) where H: Handler, H.Response.Content == Blob {
-        export(endpoint)
-    }
-
-    func finishedExporting(_ webService: WebServiceModel) {
-        let http = HTTPInformation(
-            hostname: app.httpConfiguration.hostname.address,
-            port: app.httpConfiguration.hostname.port ??
-                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
-        )
-        let serviceInformation = ServiceInformation(
-            version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
-            http: http
-        )
-
-        var document = APIDocument(serviceInformation: serviceInformation)
-
-        // for now we assume existence of REST. Currently REST is the only supported anyways.
-        // we move to a dynamic approach once we fully support gRPC client generation.
-        document.add(exporter: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default))
-
-        for endpoint in endpoints {
-            document.add(endpoint: endpoint)
+        // in `finishedExporting` by calling `retrieveMigratorExporterConfigurations` we guarantee
+        // that we definitely have ALL endpoint identifiers and that no further ones will be added after us!
+        if let endpointIdentifiers = app.apodiniMigration.endpointIdentifiers[identifier] {
+            for endpointIdentifier in endpointIdentifiers {
+                migratorEndpoint.add(anyIdentifier: endpointIdentifier)
+            }
         }
-        endpoints.removeAll()
 
-        app.storage.set(MigratorDocumentStorageKey.self, to: document)
-        
-        handleDocument(document: document)
-        handleMigrationGuide(document: document)
+        return migratorEndpoint
     }
-    
+
     private func handleDocument(document: APIDocument) {
         guard let exportOptions = documentConfig?.exportOptions else {
             return logger.notice("No configuration provided to handle the document of the current version")

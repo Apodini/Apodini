@@ -26,12 +26,15 @@ extension EnumDescriptorProto: __ProtoTypeDescriptorProtocol {}
 public struct ProtoTypename: Hashable {
     public let packageName: String
     public let typename: String
+
     public var mangled: String {
         "[\(packageName)].\(typename)"
     }
+
     public var fullyQualified: String {
         ".\(packageName).\(typename)"
     }
+
     public init(packageName: String, typename: String) {
         precondition(!packageName.hasPrefix("."))
         precondition(!typename.hasPrefix("."))
@@ -39,13 +42,14 @@ public struct ProtoTypename: Hashable {
         self.typename = typename
     }
     public init(mangled string: String) {
-        precondition(string.hasPrefix("["))
-        let packageEndIdx = string.firstIndex(of: "]")!
+        guard let packageEndIndex = string.firstIndex(of: "]") else {
+            preconditionFailure("Encountered mangled type name without package prefix: '\(string)'")
+        }
         self.init(
-            packageName: String(string[string.index(after: string.startIndex)..<packageEndIdx]),
-            typename: String(string[string.index(after: string.index(after: packageEndIdx))...])
+            packageName: String(string[string.index(after: string.startIndex)..<packageEndIndex]),
+            typename: String(string[string.index(after: string.index(after: packageEndIndex))...])
         )
-        precondition(mangled == self.mangled)
+        precondition(string == self.mangled, "Encountered mangled name inconsistency: input '\(string)' vs output '\(self.mangled)'")
     }
 }
 
@@ -241,7 +245,7 @@ public enum ProtoType: Hashable {
     }
     
     
-    var typename: ProtoTypename? {
+    public var typename: ProtoTypename? {
         switch self {
         case .primitive:
             return nil
@@ -420,7 +424,7 @@ public class ProtoSchema {
     /// Whether the schema has been finalized.
     /// Once the schema is finalized, no further types can be added, and the schema's processed contents can be accessed through the respective functions.
     public private(set) var isFinalized = false
-    
+
     private(set) var allMessageTypes: [ProtoTypename: ProtoType] = [:]
     private(set) var allEnumTypes: [ProtoTypename: ProtoType] = [:]
     
@@ -457,7 +461,11 @@ public class ProtoSchema {
     
     /// All packages known to the schema.
     public private(set) var finalizedPackages: [ProtobufPackageUnit: FinalizedPackage] = [:]
-    
+
+    /// This property maps ``ProtoTypename/mangled`` to ``String(reflecting: <SwiftType>.self)``.
+    /// This allows us to get an identifier for the Swift Type a message or enum descriptor was built from.
+    /// The mapping contains nil if the respective proto type was synthesized (e.g. input or output wrappers).
+    public private(set) var protoNameToSwiftTypeMapping: [ProtoTypename: String?] = [:]
         
     /// Create a new Proto Schema.
     /// - parameter defaultPackageName: Proto package name that will be used for all types that don't specify an explicit package name via the `ProtoTypeInPackage` protocol.
@@ -598,6 +606,7 @@ public class ProtoSchema {
         func cacheRetval(_ typename: ProtoTypename) -> ProtoTypename {
             let packageIdentifier = (type as? ProtoTypeInPackage.Type)?.package ?? .init(packageName: defaultPackageName)
             let inlineInParentPackageName = ProtobufPackageUnit.inlineInParentTypePackage.packageName
+
             if let oldValue = protoTypenameToPackageUnitMapping.updateValue(packageIdentifier, forKey: typename) {
                 switch (oldValue.packageName == inlineInParentPackageName, packageIdentifier.packageName == inlineInParentPackageName) {
                 case (true, true), (false, false):
@@ -621,7 +630,8 @@ public class ProtoSchema {
         if let protoTypename = (type as? ProtoTypeWithCustomProtoName.Type)?.protoTypename {
             swiftTypename.baseName = protoTypename
         }
-        return cacheRetval(.init(
+
+        return cacheRetval(ProtoTypename(
             packageName: (type as? ProtoTypeInPackage.Type)?.package.packageName ?? defaultPackageName,
             typename: swiftTypename.mangleForProto(strict: false)
         ))
@@ -1029,7 +1039,7 @@ extension ProtoSchema {
     }
     
     private func processTypes() throws { // swiftlint:disable:this cyclomatic_complexity
-        precondition(isFinalized, "Cannot process types of non-finalized schema")
+        precondition(isFinalized, "Cannot process types of finalized schema")
         
         self.fqtnByPackageMapping = { () -> [ProtobufPackageUnit: Set<String>] in
             var retval: [ProtobufPackageUnit: Set<String>] = [:]
@@ -1059,6 +1069,8 @@ extension ProtoSchema {
             case .primitive, .message, .refdMessageType:
                 throw ProtoValidationError.typeNotTopLevelCompatible(protoType)
             case let .enumTy(typename, enumType, cases):
+                self.protoNameToSwiftTypeMapping[typename] = String(reflecting: enumType)
+
                 let desc = EnumDescriptorProto(
                     name: typename.mangled, // We keep the full typename since we need that for the type containment checks...
                     values: cases.map { enumCase -> EnumValueDescriptorProto in
@@ -1186,7 +1198,7 @@ extension ProtoSchema {
                     }
                 )
             }
-        
+
         self.finalizedTopLevelMessageTypesByPackage = try Dictionary(
             grouping: topLevelMessageTypeDescs,
             by: { getPackageUnit(forProtoTypename: ProtoTypename(mangled: $0.typeDescriptor.name))! }
@@ -1229,7 +1241,7 @@ extension ProtoSchema {
     
     /// Fetches the type descriptors of all top-level message and enum types in te specified proto package.
     /// - Note: This function may only be called after finalizing the schema
-    /// - Throws: If the resulting package would be invalid, e.g. because it containes both proto2 and proto3 types.
+    /// - Throws: If the resulting package would be invalid, e.g. because it contains both proto2 and proto3 types.
     private func topLevelTypeDescriptors(
         forPackage packageUnit: ProtobufPackageUnit
     ) throws -> (messages: PackageTypeDescriptors<DescriptorProto>, enums: PackageTypeDescriptors<EnumDescriptorProto>) {
@@ -1283,6 +1295,14 @@ extension ProtoSchema {
             // Shouldn't be a problem since this function only gets called for top-level types. riiiight?
             fatalError("'\(#function)' unexpectedly called with \(protoType)")
         case let .message(messageTypename, underlyingType, nestedOneofTypes, fields):
+            let swiftTypeName: String?
+            if let underlyingType = underlyingType {
+                swiftTypeName = String(reflecting: underlyingType)
+            } else {
+                swiftTypeName = nil
+            }
+            self.protoNameToSwiftTypeMapping[messageTypename] = swiftTypeName
+
             let fieldNumbersMapping: [String: Int]
             if let protoCodableWithCodingKeysTy = underlyingType as? AnyProtobufTypeWithCustomFieldMapping.Type {
                 let codingKeys = protoCodableWithCodingKeysTy.getCodingKeysType().allCases

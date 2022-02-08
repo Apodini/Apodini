@@ -169,7 +169,7 @@ extension RelationshipEndpoint: CustomDebugStringConvertible {
 
 extension RelationshipEndpoint: CustomStringConvertible {
     public var description: String {
-        self[HandlerDescription.self]
+        self[HandlerDescription.self].rawValue
     }
 }
 

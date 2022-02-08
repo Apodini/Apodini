@@ -7,9 +7,9 @@
 //              
 
 import ApodiniUtils
-@_implementationOnly import NIOWebSocket
+import NIOWebSocket
 import Foundation
-import Logging
+@_implementationOnly import Logging
 @_implementationOnly import WebSocketKit
 import ApodiniNetworking
 

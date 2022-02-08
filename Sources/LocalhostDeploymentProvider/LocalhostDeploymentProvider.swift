@@ -114,7 +114,7 @@ struct LocalhostDeploymentProvider: DeploymentProvider {
                 launchInCurrentProcessGroup: true
             )
             observers.append(task.observeOutput { stdioType, data, task in
-                print("[ChildIO] \(stdioType), \(String(data: data, encoding: .utf8)), task: \(task)")
+                print("[ChildIO] \(stdioType), \(String(data: data, encoding: .utf8) ?? "ERROR"), task: \(task)")
             })
             func taskTerminationHandler(_ terminationInfo: ChildProcess.TerminationInfo) {
                 switch (terminationInfo.reason, terminationInfo.exitCode) {

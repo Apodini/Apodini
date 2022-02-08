@@ -118,7 +118,7 @@ final class OpenAPISecurityMetadataTests: ApodiniTests, InterfaceExporterVisitor
         Apodini.inject(app: app, to: &service)
         Apodini.activate(&service)
 
-        service.start(app: app)
+        try service.start(app: app)
 
         let openAPIExporter = app.interfaceExporters[1]
         openAPIExporter.accept(self)

@@ -151,7 +151,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         
         try app.testable().test(.GET, "/") { res in

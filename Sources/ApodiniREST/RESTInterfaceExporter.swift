@@ -11,6 +11,7 @@ import NIO
 import ApodiniUtils
 import ApodiniNetworking
 import ApodiniHTTPProtocol
+import ApodiniMigrationCommon
 import Foundation
 
 
@@ -40,7 +41,7 @@ public final class REST: Configuration {
     public init(
         encoder: AnyEncoder = defaultEncoder,
         decoder: AnyDecoder = defaultDecoder,
-        urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
@@ -60,7 +61,33 @@ public final class REST: Configuration {
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: restExporter)
-        
+
+        let encoderConfiguration: EncoderConfiguration
+        let decoderConfiguration: DecoderConfiguration
+
+        if let encoder = configuration.encoder as? JSONEncoder {
+            encoderConfiguration = EncoderConfiguration(derivedFrom: encoder)
+        } else {
+            encoderConfiguration = .default
+        }
+
+        if let decoder = configuration.decoder as? JSONDecoder {
+            decoderConfiguration = DecoderConfiguration(derivedFrom: decoder)
+        } else {
+            decoderConfiguration = .default
+        }
+
+        let rootPath = configuration.rootPath?.endpointPath(withVersion: app.version).description
+        app.apodiniMigration.register(
+            configuration: RESTExporterConfiguration(
+                encoderConfiguration: encoderConfiguration,
+                decoderConfiguration: decoderConfiguration,
+                caseInsensitiveRouting: configuration.caseInsensitiveRouting,
+                rootPath: rootPath
+            ),
+            for: .rest
+        )
+
         /// Configure attached related static configurations
         self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
     }
@@ -77,7 +104,7 @@ extension REST {
     public convenience init(
         encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
         decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
-        urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
         @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }

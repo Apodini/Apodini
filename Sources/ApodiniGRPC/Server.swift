@@ -118,7 +118,8 @@ class GRPCServer {
                             outputType: method.outputType.fullyQualifiedTypename,
                             options: nil,
                             clientStreaming: method.type == .clientSideStream || method.type == .bidirectionalStream,
-                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream
+                            serverStreaming: method.type == .serviceSideStream || method.type == .bidirectionalStream,
+                            sourceCodeComments: method.sourceCodeComments
                         )
                     },
                     // NOTE: we could use this to mark services as deprecated. might be interesting in combination with the migration stuff...
@@ -196,13 +197,18 @@ class GRPCMethod {
     let outputType: ProtoType
     /// Closure that makes a `GRPCStreamRPCHandler`
     private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
+    let sourceCodeComments: [String]
+
+    /// The reflective type name of the Handler. Only present if the method was created for a `Handler`.
+    let handlerReflectiveName: HandlerReflectiveName?
     
     init<H: Handler>(
         name: String,
         endpoint: Endpoint<H>,
         endpointContext: GRPCEndpointContext,
         decodingStrategy: AnyDecodingStrategy<GRPCMessageIn>,
-        schema: ProtoSchema
+        schema: ProtoSchema,
+        sourceCodeComments: [String] = []
     ) {
         self.name = name
         self.type = endpoint[CommunicationPattern.self]
@@ -234,21 +240,27 @@ class GRPCMethod {
         endpointContext.endpointResponseType = messageTypes.output
         self.inputType = messageTypes.input
         self.outputType = messageTypes.output
+
+        self.sourceCodeComments = sourceCodeComments
+
+        self.handlerReflectiveName = endpoint[HandlerReflectiveName.self]
     }
-    
-    
+
     init(
         name: String,
         type: CommunicationPattern,
         inputType: ProtoType,
         outputType: ProtoType,
-        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler
+        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler,
+        sourceCodeComments: [String] = []
     ) {
         self.name = name
         self.type = type
         self.inputType = inputType
         self.outputType = outputType
         self.streamRPCHandlerMaker = streamRPCHandlerMaker
+        self.sourceCodeComments = sourceCodeComments
+        self.handlerReflectiveName = nil
     }
     
     

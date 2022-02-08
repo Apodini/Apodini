@@ -10,6 +10,7 @@ import Apodini
 import ApodiniExtension
 import ApodiniNetworking
 import ApodiniUtils
+import ApodiniMigrationCommon
 import Logging
 import Dispatch
 @_exported import ProtobufferCoding
@@ -60,7 +61,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
     static let serverReflectionMethodName = "ServerReflectionInfo"
     
     private let app: Application
-    private let config: GRPC // would love to have a "GRPCConfig" typename or smth like that here, but that'd make the public API ugly and weird... :/
+    private let config: GRPC
+    private var migratorConfiguration: GRPCExporterConfiguration
     
     // The proto/gRPC package into which all of the web service's stuff goes,
     private let defaultPackageName: String
@@ -83,14 +85,21 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // Configure HTTP/2
         guard app.httpConfiguration.supportVersions.contains(.two),
               let tlsConfig = app.httpConfiguration.tlsConfiguration,
-              tlsConfig.applicationProtocols.contains("h2")
-        else {
-            fatalError("""
-                Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled.
+              tlsConfig.applicationProtocols.contains("h2") else {
+            fatalError(
+                """
+                Invalid HTTP configuration: the gRPC interface exporter requires both HTTP/2 and TLS be enabled. \
                 You might need to move your web service's HTTPConfiguration up so that it comes before the GRPC configuration.
                 """
             )
         }
+
+        self.migratorConfiguration = GRPCExporterConfiguration(
+            packageName: config.packageName,
+            serviceName: config.serviceName,
+            pathPrefix: config.pathPrefix,
+            reflectionEnabled: config.enableReflection
+        )
         
         // Create the default service (we only support one atm, but this implementation could also support multiple services
         server.createService(name: config.serviceName, associatedWithPackage: defaultPackageName)
@@ -110,14 +119,21 @@ class GRPCInterfaceExporter: InterfaceExporter {
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationPattern.self]
         let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
+        let apodiniIdentifier = endpoint[AnyHandlerIdentifier.self]
+        let handlerName = endpoint[HandlerReflectiveName.self]
+
         logger.notice("-[\(Self.self) \(#function)] registering method w/ commPattern: \(commPattern), endpoint: \(endpoint), methodName: \(methodName)")
         
         let serviceName = endpoint[Context.self].get(valueFor: GRPCServiceNameContextKey.self) ?? config.serviceName
         if server.service(named: serviceName, inPackage: defaultPackageName) == nil {
             server.createService(name: serviceName, associatedWithPackage: defaultPackageName)
         }
-        
+
         let endpointContext = GRPCEndpointContext(communicationPattern: endpoint[CommunicationPattern.self])
+
+        // Apodini Migration support
+        app.apodiniMigration.register(identifier: GRPCServiceName(serviceName), for: endpoint)
+        app.apodiniMigration.register(identifier: GRPCMethodName(methodName), for: endpoint)
         
         server.addMethod(
             toServiceNamed: serviceName,
@@ -127,7 +143,11 @@ class GRPCInterfaceExporter: InterfaceExporter {
                 endpoint: endpoint,
                 endpointContext: endpointContext,
                 decodingStrategy: GRPCEndpointDecodingStrategy(endpointContext).applied(to: endpoint).typeErased,
-                schema: server.schema
+                schema: server.schema,
+                sourceCodeComments: [
+                    "APODINI-identifier: \(apodiniIdentifier.rawValue)",
+                    "APODINI-handlerName: \(handlerName)"
+                ]
             )
         )
         logger.notice("[gRPC] Added method \(defaultPackageName).\(serviceName).\(methodName)")
@@ -161,6 +181,8 @@ class GRPCInterfaceExporter: InterfaceExporter {
         // Makes the types managed by the schema ready for use by the reflection API
         try! server.schema.finalize()
         server.createFileDescriptors()
+
+        handleApodiniMigratorSupport()
         
         if config.enableReflection {
             setupReflectionHTTPRoutes()
@@ -175,10 +197,182 @@ class GRPCInterfaceExporter: InterfaceExporter {
             ])
         }
     }
-    
+
+    private func handleApodiniMigratorSupport() {
+        var synthesizedEnumTypes: [ProtoTypename: EnumDescriptorProto] = [:]
+        var synthesizedMessageTypes: [ProtoTypename: DescriptorProto] = [:]
+
+        for (unit, package) in server.schema.finalizedPackages {
+            let packageName = "[\(unit.packageName)]"
+
+            for enumType in package.enumTypes {
+                migratorSupport(enum: enumType, parentName: packageName, synthesized: &synthesizedEnumTypes)
+            }
+
+            for messageType in package.messageTypes {
+                migratorSupport(
+                    message: messageType,
+                    parentName: packageName,
+                    synthesizedMessages: &synthesizedMessageTypes,
+                    synthesizedEnums: &synthesizedEnumTypes
+                )
+            }
+        }
+
+        for service in server.services {
+            for method in service.methods {
+                guard let reflectiveName = method.handlerReflectiveName else {
+                    continue // method was not created from a Handler.
+                }
+
+                let types = EndpointSynthesizedTypes(
+                    inputIdentifiers: synthesizedTypeIdentifiers(
+                        type: method.inputType,
+                        for: method,
+                        synthesizedEnumTypes: synthesizedEnumTypes,
+                        synthesizedMessageTypes: synthesizedMessageTypes
+                    ),
+                    outputIdentifiers: synthesizedTypeIdentifiers(
+                        type: method.outputType,
+                        for: method,
+                        synthesizedEnumTypes: synthesizedEnumTypes,
+                        synthesizedMessageTypes: synthesizedMessageTypes
+                    )
+                )
+
+                if types.inputIdentifiers != nil || types.outputIdentifiers != nil {
+                    migratorConfiguration.identifiersOfSynthesizedTypes[reflectiveName.rawValue] = types
+                }
+            }
+        }
+
+        app.apodiniMigration.register(
+            configuration: self.migratorConfiguration,
+            for: .grpc
+        )
+    }
+
+    private func migratorSupport(
+        enum: EnumDescriptorProto,
+        parentName: String,
+        synthesized: inout [ProtoTypename: EnumDescriptorProto]
+    ) {
+        let fullName = "\(parentName).\(`enum`.name)"
+
+        guard let swiftTypeName = `enum`.swiftTypeName(with: server.schema, parentName: parentName) else {
+            synthesized[ProtoTypename(mangled: fullName)] = `enum`
+            return
+        }
+
+        let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
+        app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
+
+        for enumValue in `enum`.values {
+            app.apodiniMigration.register(identifier: GRPCNumber(number: enumValue.number), for: swiftType, children: enumValue.name)
+        }
+    }
+
+    private func migratorSupport(
+        message: DescriptorProto,
+        parentName: String,
+        synthesizedMessages: inout [ProtoTypename: DescriptorProto],
+        synthesizedEnums: inout [ProtoTypename: EnumDescriptorProto]
+    ) {
+        let fullName = "\(parentName).\(message.name)"
+
+        if let swiftTypeName = message.swiftTypeName(with: server.schema, parentName: parentName) {
+            let swiftType = SwiftTypeIdentifier(rawValue: swiftTypeName)
+            app.apodiniMigration.register(identifier: GRPCName(fullName), for: swiftType)
+
+            for field in message.fields {
+                guard let fieldType = field.type else {
+                    preconditionFailure("Expectation that field type is always set by the ProtoScheme broke! Raised for \(field)!")
+                }
+
+                app.apodiniMigration.register(identifier: GRPCNumber(number: field.number), for: swiftType, children: field.name)
+                app.apodiniMigration.register(identifier: GRPCFieldType(type: fieldType.rawValue), for: swiftType, children: field.name)
+            }
+        } else {
+            synthesizedMessages[ProtoTypename(mangled: fullName)] = message
+        }
+
+
+        // now handle any nested types recursively
+        for nestedEnum in message.enumTypes {
+            migratorSupport(enum: nestedEnum, parentName: fullName, synthesized: &synthesizedEnums)
+        }
+
+        for nestedMessage in message.nestedTypes {
+            migratorSupport(
+                message: nestedMessage,
+                parentName: fullName,
+                synthesizedMessages: &synthesizedMessages,
+                synthesizedEnums: &synthesizedEnums
+            )
+        }
+    }
+
+    // swiftlint:disable:next cyclomatic_complexity
+    func synthesizedTypeIdentifiers(
+        type: ProtoType,
+        for method: GRPCMethod,
+        synthesizedEnumTypes: [ProtoTypename: EnumDescriptorProto],
+        synthesizedMessageTypes: [ProtoTypename: DescriptorProto]
+    ) -> TypeInformationIdentifiers? {
+        guard let typeName = type.typename else {
+            return nil // its a primitive type
+        }
+
+        guard let swiftTypeMapping: String? = server.schema.protoNameToSwiftTypeMapping[typeName] else {
+            fatalError("Couldn't find entry in swift type mapping for type input type \(method.inputType)!")
+        }
+
+        guard swiftTypeMapping == nil else {
+            return nil // swift type mapping is non-nil. Its not a synthesized type => we have the identifiers already
+        }
+
+        switch type {
+        case let .message(name, _, _, _), let .refdMessageType(name):
+            guard let proto = synthesizedMessageTypes[name] else {
+                fatalError("Encountered synthesized message type which wasn't recorded: \(type)!")
+            }
+
+            var identifiers = TypeInformationIdentifiers()
+            identifiers.identifiers.add(identifier: GRPCName(name.mangled))
+
+            for field in proto.fields {
+                guard let fieldType = field.type else {
+                    preconditionFailure("Expectation that field type is always set by the ProtoScheme broke! Raised for \(field)!")
+                }
+
+                identifiers.childrenIdentifiers[field.name, default: .init()]
+                    .add(identifier: GRPCNumber(number: field.number))
+                identifiers.childrenIdentifiers[field.name]! // swiftlint:disable:this force_unwrapping
+                    .add(identifier: GRPCFieldType(type: fieldType.rawValue))
+            }
+
+            return identifiers
+        case let .enumTy(name, _, _):
+            guard let proto = synthesizedEnumTypes[name] else {
+                fatalError("Encountered synthesized message type which wasn't recorded: \(type)!")
+            }
+
+            var identifiers = TypeInformationIdentifiers()
+            identifiers.identifiers.add(identifier: GRPCName(name.mangled))
+
+            for enumValue in proto.values {
+                identifiers.childrenIdentifiers[enumValue.name, default: .init()]
+                    .add(identifier: GRPCNumber(number: enumValue.number))
+            }
+
+            return identifiers
+        case .primitive:
+            preconditionFailure("Encountered primitive type. Some assumption broke!")
+        }
+    }
     
     // MARK: Internal Stuff
-    
+
     /// Registers some HTTP routes for accessing the proto reflection schema
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.

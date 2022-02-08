@@ -131,7 +131,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 if let future = connectionCtx.handleStreamClose() {
                     return future.flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
                         switch result {
-                        case .failure(let error):
+                        case .failure:
                             return context.write(self.wrapOutboundOut(.closeStream(trailers: HPACKHeaders())))
                                 .flatMapAlways { _ in context.close() }
                         case .success(let messageOut):

@@ -8,6 +8,8 @@
 // SPDX-License-Identifier: MIT
 //
 
+// swiftlint:disable file_length
+
 import PackageDescription
 
 let package = Package(
@@ -54,6 +56,7 @@ let package = Package(
         
         // Migrator
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
+        .library(name: "ApodiniMigrationCommon", targets: ["ApodiniMigrationCommon"]),
 
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
@@ -99,7 +102,7 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.1")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.3")),
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
@@ -114,10 +117,10 @@ let package = Package(
         .package(url: "https://github.com/slashmo/opentelemetry-swift.git", .upToNextMinor(from: "0.1.1")),
         
         // Apodini Migrator
-        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.2.2")),
+        .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.3.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.2")),
 
         // GraphQL
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
@@ -299,7 +302,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniNetworking")
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniMigrationCommon")
             ]
         ),
         
@@ -418,10 +422,19 @@ let package = Package(
         ),
         
         // ApodiniMigration
-        
+
+        .target(
+            name: "ApodiniMigrationCommon",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "ApodiniMigratorExporterSupport", package: "ApodiniMigrator")
+            ]
+        ),
+
         .target(
             name: "ApodiniMigration",
             dependencies: [
+                .target(name: "ApodiniMigrationCommon"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator"),
@@ -472,6 +485,7 @@ let package = Package(
                 .target(name: "LocalhostDeploymentProviderRuntime"),
                 .target(name: "AWSLambdaDeploymentProviderRuntime"),
                 .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
                 .target(name: "ApodiniOpenAPI"),
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
@@ -664,6 +678,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniMigrationCommon"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding"),

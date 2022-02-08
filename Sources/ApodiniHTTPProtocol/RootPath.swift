@@ -23,7 +23,7 @@ public enum RootPath: ExpressibleByStringLiteral {
     
     
     /// Creates an `EndpointPath` based on the `RootPath`.
-    /// - Parameter withVersion: The version used to create the EndpointPath
+    /// - Parameter version: The version used to create the EndpointPath
     public func endpointPath(withVersion version: Version) -> EndpointPath {
         switch self {
         case let .path(path):

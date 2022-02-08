@@ -399,7 +399,8 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
     public let clientStreaming: Bool
     /// Identifies if server streams multiple server messages
     public let serverStreaming: Bool
-    
+
+    public var sourceCodeComments: [String] = []
     
     public enum CodingKeys: Int, ProtobufMessageCodingKeys {
         case name = 1
@@ -408,16 +409,37 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
         case options = 4
         case clientStreaming = 5
         case serverStreaming = 6
+        case sourceCodeComments = 7
     }
     
     
-    public init(name: String, inputType: String, outputType: String, options: MethodOptions?, clientStreaming: Bool, serverStreaming: Bool) {
+    public init(
+        name: String,
+        inputType: String,
+        outputType: String,
+        options: MethodOptions?,
+        clientStreaming: Bool,
+        serverStreaming: Bool,
+        sourceCodeComments: [String] = []
+    ) {
         self.name = name
         self.inputType = inputType
         self.outputType = outputType
         self.options = options
         self.clientStreaming = clientStreaming
         self.serverStreaming = serverStreaming
+        self.sourceCodeComments = sourceCodeComments
+    }
+
+    public func formatCommentSection(commentStyle: String = "//") -> String? {
+        guard !sourceCodeComments.isEmpty else {
+            return nil
+        }
+
+        return sourceCodeComments
+            .map { "\(commentStyle) \($0)" }
+            .joined(separator: "\n")
+            .appending("\n")
     }
 }
 

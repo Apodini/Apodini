@@ -4,7 +4,7 @@
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
 import Foundation
 import NIO
@@ -47,7 +47,7 @@ struct WebService: Apodini.WebService {
         Text("the only constant")
             .operation(.delete)
     }
-    
+
     var configuration: Configuration {
         REST {
             OpenAPI()

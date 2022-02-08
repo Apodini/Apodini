@@ -304,6 +304,9 @@ struct ProtoPrinter {
     
     
     private mutating func print(_ descriptor: MethodDescriptorProto) {
+        if let comments = descriptor.formatCommentSection() {
+            write(comments)
+        }
         write("rpc ")
         write(descriptor.name)
         write("(")

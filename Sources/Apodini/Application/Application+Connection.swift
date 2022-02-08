@@ -45,10 +45,10 @@ public enum ConnectionState: String, Hashable {
     ///         In such cases (i.e. a stream being closed w/out there being an accompanying final request), the handler is invoked
     ///         once again, with this connection state.
     ///         It is guaranteed that a handler will be invoked with only the `end` state or with only the `close` state.
-    ///         A hander will never be called for both of these states.
+    ///         A handler will never be called for both of these states.
     case close
     
-    /// The `ConnectionState` equality comparison functionl. Not recommended. Use a switch statement instead.
+    /// The `ConnectionState` equality comparison function. Not recommended. Use a switch statement instead.
     /// - Note: The reason this exists is in order to deprecate it. Ideally, this enum would not conform to `Equatable`, and we'd require all
     ///         comparisons be done using switch statements, but that is impossible since enums (regardless of whether or not they have raw values),
     ///         will always get a compiler-synthesized `Equatable` implementation.

@@ -92,14 +92,14 @@ final class ApodiniMigratorTests: ApodiniTests {
         try testDirectory.delete()
     }
     
-    private func start() {
-        MigratorWebService().start(app: app)
+    private func start() throws {
+        try MigratorWebService().start(app: app)
     }
     
     func testEmptyConfiguration() throws {
         Self.sut = .init()
         
-        start()
+        try start()
         
         XCTAssertEqual(Self.migratorConfig.command._commandName, "migrator")
         XCTAssertEqual(Self.migratorConfig.command.configuration.subcommands.count, 3)
@@ -114,7 +114,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         XCTAssertEqual(multiplyEndpoint.response, .scalar(.int))
         XCTAssertEqual(multiplyEndpoint.path, .init("/{rhs}"))
         XCTAssertEqual(multiplyEndpoint.operation, .read)
-        XCTAssertEqual(multiplyEndpoint.deltaIdentifier.rawValue, multiplyEndpoint.handlerName.rawValue)
+        XCTAssertEqual("ApodiniTests.\(multiplyEndpoint.deltaIdentifier.rawValue)", multiplyEndpoint.handlerName.rawValue)
         
         let blob = try XCTUnwrap(document.endpoints.first { $0.deltaIdentifier == "blob" })
         XCTAssertEqual(blob.response, .scalar(.data))
@@ -126,7 +126,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let documentExport: DocumentExportOptions = .directory(testDirectory.string, format: .yaml)
         Self.sut = MigratorConfiguration(documentConfig: .export(documentExport))
         
-        start()
+        try start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
         let exportedDocument = try APIDocument.decode(from: testDirectory + "\(document.fileName).yaml")
@@ -139,7 +139,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         
         Self.sut = MigratorConfiguration(documentConfig: .export(.endpoint(path)))
         
-        start()
+        try start()
         
         try app.testable().test(.GET, path) { response in
             XCTAssertEqual(response.status, .ok)
@@ -159,7 +159,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .compare(.file(exportPath), export: .directory(testDirectory.string))
         )
         
-        start()
+        try start()
         
         let stored = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         
@@ -193,7 +193,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .compare(.resource(.module, fileName: "migrator_document", format: .json), export: migrationGuideExport)
         )
         
-        start()
+        try start()
         
         let storedMigrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
         try app.testable().test(.GET, "guide") { response in
@@ -208,7 +208,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         let resource: ResourceLocation = .resource(.module, fileName: "empty_migration_guide", format: .yaml)
         Self.sut = .init(migrationGuideConfig: .read(resource, export: .endpoint(endpointPath, format: .json)))
         
-        start()
+        try start()
         
         try app.testable().test(.GET, endpointPath) { response in
             XCTAssertEqual(response.status, .ok)
@@ -227,7 +227,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             migrationGuideConfig: .read(resource, export: .endpoint("not-found"))
         )
         
-        start()
+        try start()
         
         XCTAssert(app.storage.get(MigrationGuideStorageKey.self) == nil)
         
@@ -280,8 +280,8 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
     
     func testMigratorReadCommand() throws {
-        let migrationGuide = MigrationGuide.empty(id: UUID())
-        print(migrationGuide.yaml)
+        let emptyMigrationGuide = MigrationGuide.empty(id: UUID())
+        print(emptyMigrationGuide.yaml)
 
         Self.sut = .init()
         let guidePath = try XCTUnwrap(ResourceLocation.resource(.module, fileName: "empty_migration_guide", format: .yaml).path)
@@ -300,9 +300,9 @@ final class ApodiniMigratorTests: ApodiniTests {
         try command.run(app: app)
         
         XCTAssertEqual(commandType.configuration.commandName, "read")
-        
-        let migrationGuideFromStorage = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
-        XCTAssertEqual(migrationGuideFromStorage, try MigrationGuide.decode(from: Path(guidePath)))
+
+        let storedMigrationGuide = try XCTUnwrap(app.storage.get(MigrationGuideStorageKey.self))
+        XCTAssertEqual(storedMigrationGuide, try MigrationGuide.decode(from: Path(guidePath)))
     }
     
     func testCustomHTTPConfig() throws {
@@ -321,19 +321,51 @@ final class ApodiniMigratorTests: ApodiniTests {
             }
         }
         
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
             let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
-            XCTAssertEqual(document.serviceInformation.http.description, "1.2.3.4:56")
+            XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
+        }
+    }
+
+    func testBindVsHostname() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("Hello World")
+            }
+
+            var configuration: Configuration {
+                Migrator(documentConfig: .export(.endpoint("api-spec")))
+                HTTPConfiguration(hostname: Hostname(address: "1.2.2.4", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
+            }
+
+            var metadata: Metadata {
+                Version(prefix: "78", major: 9)
+            }
+        }
+
+        try TestWebService().start(app: app)
+
+        try app.testable().test(.GET, "api-spec") { response in
+            XCTAssertEqual(response.status, .ok)
+            let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
+            XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
         }
     }
     
     func testLibraryGeneration() throws {
+        try skipIfRunningInXcode()
         Self.sut = MigratorConfiguration(documentConfig: .export(.directory(testDirectory.string)))
+
+        // we inject a RESTExporterConfiguration here, as otherwise creating `RESTMigrator` would fail
+        // as being a RESTMigrator it requires to have a REST exporter configured.
+        app.apodiniMigration.register(
+            configuration: RESTExporterConfiguration(encoderConfiguration: .default, decoderConfiguration: .default), for: .rest
+        )
         
-        start()
+        try start()
         
         let document = try XCTUnwrap(app.storage.get(MigratorDocumentStorageKey.self))
 
@@ -359,9 +391,9 @@ final class ApodiniMigratorTests: ApodiniTests {
     }
 
     func testPatternMapping() {
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.requestResponse), .requestResponse)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.serviceSideStream), .serviceSideStream)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.clientSideStream), .clientSideStream)
-        XCTAssertEqual(ApodiniMigratorCore.CommunicationalPattern(.bidirectionalStream), .bidirectionalStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.requestResponse), .requestResponse)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.serviceSideStream), .serviceSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.clientSideStream), .clientSideStream)
+        XCTAssertEqual(ApodiniMigratorCore.CommunicationPattern(.bidirectionalStream), .bidirectionalStream)
     }
 }

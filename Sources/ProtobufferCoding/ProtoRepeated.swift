@@ -52,7 +52,6 @@ extension ProtobufRepeatedEncodable {
         }
         if Self.isPacked {
             let dstBufferRef = encoder.dstBufferRef
-            let oldWriterIdx = dstBufferRef.value.writerIndex
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
             let elementsBuffer = try { () -> ByteBuffer in
                 let elementsBuffer = Box(ByteBuffer())

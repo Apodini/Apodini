@@ -118,7 +118,7 @@ class StructureExporterTests: ApodiniDeployerTestCase {
         let app = Application()
 
         app.storage.set(DeploymentStructureExporterStorageKey.self, to: TestExportCommand())
-        TestWebService().start(app: app)
+        try TestWebService().start(app: app)
         // Test if file exists
         XCTAssertTrue(FileManager.default.fileExists(atPath: Self.modelFileUrl.path), "Modelfile not found")
         

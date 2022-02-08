@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 import ArgumentParser
+import ApodiniMigrationCommon
 
 // MARK: - WebService
 public extension WebService {

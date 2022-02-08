@@ -129,8 +129,8 @@ extension WebService {
     /// This function is executed to start up an Apodini `WebService`
     /// - Parameters:
     ///    - mode: The `WebServiceExecutionMode` in which the web service is executed in. Defaults to `.run`, meaning the web service is ran normally and able to handle requests.
-    ///    - app: The instanciated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
-    ///    - webService: The instanciated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instanciated by the Swift ArgumentParser, automatically create a default instance
+    ///    - app: The instantiated `Application` that will be used to boot and start up the web service. Passes a default plain application, if nothing is specified.
+    ///    - webService: The instantiated `WebService` by the Swift ArgumentParser containing CLI arguments.  If `WebService` isn't already instantiated by the Swift ArgumentParser, automatically create a default instance
     /// - Returns: The application on which the `WebService` is operating on
     @discardableResult
     public static func start(
@@ -143,7 +143,7 @@ extension WebService {
         Apodini.inject(app: app, to: &webServiceCopy)
         Apodini.activate(&webServiceCopy)
         
-        webServiceCopy.start(app: app)
+        try webServiceCopy.start(app: app)
         
         switch mode {
         case .startup:
@@ -160,14 +160,16 @@ extension WebService {
     
     
     /// Start up a web service using the specified application. Does not boot or run the web service. Intended primarily for testing purposes.
-    func start(app: Application) {
+    func start(app: Application) throws {
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         metadata.collectMetadata(visitor)
         app.storage[VersionStorageKey.self] = visitor.currentNode.peekValue(for: APIVersionContextKey.self) ?? APIVersionContextKey.defaultValue
         
-        /// Configure application and instanciate exporters
+        /// Configure application and instantiate exporters
         self.configuration.configure(app)
         self.register(SemanticModelBuilder(app))
+
+        try app.signalStartup()
     }
 }
 

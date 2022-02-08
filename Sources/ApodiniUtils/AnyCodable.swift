@@ -32,7 +32,7 @@ extension AnyEncodable {
 }
 
 
-/// Something that can encde `Encodable` objects to `Data`
+/// Something that can encode `Encodable` objects to `Data`
 public protocol AnyEncoder {
     /// Encode some `Encodable` object to `Data`
     func encode<E: Encodable>(_ value: E) throws -> Data
