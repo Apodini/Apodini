@@ -17,24 +17,26 @@ import XCTest
 @testable import Instrumentation
 
 final class ApodiniTracingTests: XCTestCase {
-    func testTracingConfiguration_withSimpleInstrument() {
+    func testTracingConfiguration_withSimpleInstrument() throws {
         // Arrange
         let app = Application()
 
         let configuration = TracingConfiguration.testable(
-            TracerConfiguration(NoOpTracer())
+            InstrumentConfiguration(NoOpTracer())
         )
 
         // Act
         configuration.configure(app)
 
         // Assert
-        // Make sure the InstrumentationSystem is bootstrapped with a single NoOpTracer
-        XCTAssertTrue(InstrumentationSystem.instrument is NoOpTracer)
+        // Make sure the InstrumentationSystem is bootstrapped with a MultiplexInstrument
+        // with a NoOpTracer
+        let multiplexInstrument = try XCTUnwrap(InstrumentationSystem.instrument as? MultiplexInstrument)
+        XCTAssertNotNil(multiplexInstrument.firstInstrument(where: { $0 is NoOpTracer }))
 
         // Assert that the app's lifecycle doesn't include any InstrumentConfiguration.Lifecycle
-        let tracerLifecycleHandlers = app.lifecycle.handlers.filter { $0 is TracerConfiguration.Lifecycle }
-        XCTAssertTrue(tracerLifecycleHandlers.isEmpty)
+        let instrumentLifecycleHandlers = app.lifecycle.handlers.filter { $0 is InstrumentConfiguration.Lifecycle }
+        XCTAssertTrue(instrumentLifecycleHandlers.isEmpty)
 
         // Act
         app.shutdown()
@@ -43,44 +45,14 @@ final class ApodiniTracingTests: XCTestCase {
         XCTAssertApodiniApplicationNotRunning()
     }
 
-    func testTracingConfiguration_withInstrumentConfiguration() {
+    func testTracingConfiguration_withInstrumentConfiguration() throws {
         // Arrange
         let app = Application()
 
-        var tracerShutdownCallCount = 0
+        var instrumentShutdownCallCount = 0
         let configuration = TracingConfiguration.testable(
-            TracerConfiguration { _ in
-                (NoOpTracer(), { tracerShutdownCallCount += 1 })
-            }
-        )
-
-        // Act
-        configuration.configure(app)
-
-        // Assert
-        // Make sure the InstrumentationSystem is bootstrapped with a single NoOpTracer
-        XCTAssertTrue(InstrumentationSystem.instrument is NoOpTracer)
-
-        // Assert that the app's lifecycle doesn't include any InstrumentConfiguration.Lifecycle
-        let tracerLifecycleHandlers = app.lifecycle.handlers.filter { $0 is TracerConfiguration.Lifecycle }
-        XCTAssertEqual(tracerLifecycleHandlers.count, 1)
-
-        // Act
-        app.shutdown()
-
-        // Assert
-        XCTAssertEqual(tracerShutdownCallCount, 1)
-        XCTAssertApodiniApplicationNotRunning()
-    }
-
-    func testTracingConfiguration_withMultipleInstruments() throws {
-        // Arrange
-        let app = Application()
-
-        let configuration = TracingConfiguration.testable(
-            TracerConfiguration(NoOpTracer()),
-            TracerConfiguration { _ in
-                (MockTracer(), nil)
+            InstrumentConfiguration { _ in
+                (NoOpTracer(), { instrumentShutdownCallCount += 1 })
             }
         )
 
@@ -89,19 +61,19 @@ final class ApodiniTracingTests: XCTestCase {
 
         // Assert
         // Make sure the InstrumentationSystem is bootstrapped with a MultiplexInstrument
-        // with a NoOpTracer and a MockTracer
+        // with a NoOpTracer
         let multiplexInstrument = try XCTUnwrap(InstrumentationSystem.instrument as? MultiplexInstrument)
         XCTAssertNotNil(multiplexInstrument.firstInstrument(where: { $0 is NoOpTracer }))
-        XCTAssertNotNil(multiplexInstrument.firstInstrument(where: { $0 is MockTracer }))
 
         // Assert that the app's lifecycle doesn't include any InstrumentConfiguration.Lifecycle
-        let tracerLifecycleHandlers = app.lifecycle.handlers.filter { $0 is TracerConfiguration.Lifecycle }
-        XCTAssertTrue(tracerLifecycleHandlers.isEmpty)
+        let instrumentLifecycleHandlers = app.lifecycle.handlers.filter { $0 is InstrumentConfiguration.Lifecycle }
+        XCTAssertEqual(instrumentLifecycleHandlers.count, 1)
 
         // Act
         app.shutdown()
 
         // Assert
+        XCTAssertEqual(instrumentShutdownCallCount, 1)
         XCTAssertApodiniApplicationNotRunning()
     }
 
@@ -128,7 +100,7 @@ final class ApodiniTracingTests: XCTestCase {
         var configuration: Configuration {
             HTTP()
             TracingConfiguration.testable(
-                TracerConfiguration(MockTracer())
+                InstrumentConfiguration(MockTracer())
             )
         }
         configuration.configure(app)
