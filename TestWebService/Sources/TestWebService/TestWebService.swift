@@ -68,8 +68,8 @@ struct TestWebService: Apodini.WebService {
                 hostname: .init(address: hostname, port: port),
                 bindAddress: .interface(bindAddress, port: port),
                 tlsConfiguration: .init(
-                    certificatePath: Bundle.module.url(forResource: "localhost.cer", withExtension: "pem")!.path,
-                    keyPath: Bundle.module.url(forResource: "localhost.key", withExtension: "pem")!.path
+                    certificatePath: Bundle.module.path(forResource: "localhost.cer", ofType: "pem")!,
+                    keyPath: Bundle.module.path(forResource: "localhost.key", ofType: "pem")!
                 )
             )
         case let .custom(certPath, keyPath):

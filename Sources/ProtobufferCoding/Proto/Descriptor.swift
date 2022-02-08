@@ -409,7 +409,7 @@ public struct MethodDescriptorProto: Codable, Hashable, ProtobufMessageWithCusto
         case options = 4
         case clientStreaming = 5
         case serverStreaming = 6
-        case sourceCodeComments = 7 // TODO remove workaround once crash is fixed
+        case sourceCodeComments = 7
     }
     
     
