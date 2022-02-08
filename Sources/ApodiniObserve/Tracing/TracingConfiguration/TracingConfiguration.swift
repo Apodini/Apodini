@@ -68,6 +68,12 @@ public final class TracingConfiguration: Configuration {
         constructedInstruments
             .compactMap { $0.instrumentShutdown.map(InstrumentConfiguration.Lifecycle.init(instrumentShutdown:)) }
             .forEach { app.lifecycle.use($0) }
+
+        // Add ObserveMetadataExporter
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            let metadataExporter = ObserveMetadataExporter(app, self)
+            app.registerExporter(exporter: metadataExporter)
+        }
         
         // Write configuration to the storage
         app.storage.set(TracingStorageKey.self, to: TracingStorageValue(tracer: app.tracer, configuration: self))
