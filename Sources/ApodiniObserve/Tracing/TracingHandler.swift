@@ -7,18 +7,71 @@
 //
 
 import Apodini
+import Tracing
 
 struct TracingHandler<H: Handler>: Handler {
     /// The delegated `Handler`
     let delegate: Delegate<H>
+
+    @Environment(\.connection)
+    var connection
+
+    @ObserveMetadata
+    var observeMetadata // TODO: Maybe only get the blackboard metadata to reduce performance impact
+
+    @Environment(\.instrument)
+    var instrument
+
+    @Environment(\.tracer)
+    var tracer
 
     init(_ handler: H) {
         self.delegate = Delegate(handler, .required)
     }
 
     func handle() async throws -> H.Response {
-        // TODO: wrap the delegates handle() in a span
-        try await delegate.instance().handle()
+        // Extract context from HTTP headers
+        // e.g. OTel's W3CPropagator handles extracting W3C context propagation headers
+        var baggage = Baggage.topLevel
+        instrument.extract(connection.information, into: &baggage, using: HTTPInformationExtractor())
+
+        let span = tracer.startSpan(getOperationName(), baggage: baggage, ofKind: .server)
+        defer { span.end() }
+
+        setEndpointMetadata(to: span)
+
+        do {
+            return try await delegate
+                .environmentObject(span.baggage)
+                .instance()
+                .handle()
+
+            // TODO: Can we get the response status here somehow
+
+            // TODO: Inject baggage into headers
+//            instrument.inject(span.baggage, into: &<#T##Carrier#>, using: HTTPInformationExtractor())
+        } catch {
+            span.recordError(error)
+            throw error // rethrow for InterfaceExporter handling
+        }
+    }
+
+    private func getOperationName() -> String {
+        "\(observeMetadata.blackboardMetadata.operation.description) \(observeMetadata.blackboardMetadata.endpointName)"
+    }
+
+    private func setEndpointMetadata(to span: Span) {
+        span.attributes.apodini.endpointName = observeMetadata.blackboardMetadata.endpointName
+        span.attributes.apodini.endpointOperation = observeMetadata.blackboardMetadata.operation.description
+        span.attributes.apodini.endpointPath = String(
+            observeMetadata.blackboardMetadata.endpointPathComponents.value
+                .reduce(into: "") { path, endpointPath in
+                    path.append(contentsOf: endpointPath.description + "/")
+                }
+                .dropLast()
+        )
+        span.attributes.apodini.endpointCommunicationalPattern = observeMetadata.blackboardMetadata.communicationalPattern.rawValue
+        span.attributes.apodini.endpointVersion = observeMetadata.blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"
     }
 }
 
