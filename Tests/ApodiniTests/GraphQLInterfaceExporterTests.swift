@@ -44,8 +44,9 @@ struct AlbumQueryResponse: Decodable, Hashable {
     let artist: String?
     let genres: [Genre]? // swiftlint:disable:this discouraged_optional_collection
     let songs: [Song]? // swiftlint:disable:this discouraged_optional_collection
-    
-    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) { // swiftlint:disable:this discouraged_optional_collection
+
+    // swiftlint:disable:next discouraged_optional_collection
+    init(title: String? = nil, artist: String? = nil, genres: [Genre]? = nil, songs: [Song]? = nil) {
         self.title = title
         self.artist = artist
         self.genres = genres

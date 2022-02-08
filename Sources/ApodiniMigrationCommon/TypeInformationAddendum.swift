@@ -16,16 +16,17 @@ public struct SwiftTypeIdentifier: RawRepresentable, Hashable {
     }
 }
 
-// TODO docs!
-
+/// The `TypeInformationAddendum` holds identifiers which are to be added to the respective `TypeInformation`.
 public struct TypeInformationAddendum {
+    /// The `TypeInformationIdentifier`s which are added to the root type.
     public var identifiers: [AnyElementIdentifier]
 
+    /// The `TypeInformationIdentifier`s which are added to the chidlren of the respective type.
     public var childrenIdentifiers: [String: [AnyElementIdentifier]]
 
     /// This flag indicates if this Addendum instances was considered when building the APIDocument.
-    /// We use it to ensure that everything was captured.
-    public var queried: Bool // TODO actually check this state and debug output stuff?
+    /// We use it to check if everything was captured.
+    public var queried: Bool
 
     init() {
         self.identifiers = []

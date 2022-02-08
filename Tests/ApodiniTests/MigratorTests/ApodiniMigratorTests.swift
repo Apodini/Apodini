@@ -329,6 +329,31 @@ final class ApodiniMigratorTests: ApodiniTests {
             XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
         }
     }
+
+    func testBindVsHostname() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("Hello World")
+            }
+
+            var configuration: Configuration {
+                Migrator(documentConfig: .export(.endpoint("api-spec")))
+                HTTPConfiguration(hostname: Hostname(address: "1.2.2.4", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
+            }
+
+            var metadata: Metadata {
+                Version(prefix: "78", major: 9)
+            }
+        }
+
+        try TestWebService().start(app: app)
+
+        try app.testable().test(.GET, "api-spec") { response in
+            XCTAssertEqual(response.status, .ok)
+            let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
+            XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
+        }
+    }
     
     func testLibraryGeneration() throws {
         try skipIfRunningInXcode()

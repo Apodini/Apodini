@@ -8,14 +8,18 @@
 
 import Foundation
 
-// TODO fileNaming + docs!
-
+/// Describes some sort of proto descriptor which is able to represent a named type (e.g. message or enum)
 public protocol NamedProtoDescriptor {
+    /// The name of the descriptor.
     var name: String { get }
 }
 
 extension NamedProtoDescriptor {
-    // TODO signature!
+    /// Retrieves the reflective swift type name from the type name mapping.
+    /// - Parameters:
+    ///   - schema: The schema on which the descriptor is located on.
+    ///   - parentName: The name of all parent types. Those are used to build the full name of the descriptor.
+    /// - Returns: Returns the type name of the associated swift type. Nil if the descriptor is synthesized.
     public func swiftTypeName(with schema: ProtoSchema, parentName: String) -> String? {
         let name = "\(parentName).\(self.name)"
 

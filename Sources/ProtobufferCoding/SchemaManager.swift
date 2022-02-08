@@ -466,7 +466,6 @@ public class ProtoSchema {
     /// This allows us to get an identifier for the Swift Type a message or enum descriptor was built from.
     /// The mapping contains nil if the respective proto type was synthesized (e.g. input or output wrappers).
     public private(set) var protoNameToSwiftTypeMapping: [ProtoTypename: String?] = [:]
-    // TODO above for type safety?
         
     /// Create a new Proto Schema.
     /// - parameter defaultPackageName: Proto package name that will be used for all types that don't specify an explicit package name via the `ProtoTypeInPackage` protocol.
@@ -1442,7 +1441,7 @@ extension ProtoSchema {
                     }
                     topLevelEnumTypes.subtract(nestedEnumTypes)
                     return nestedEnumTypes.map { enumTypeDesc, _ -> EnumDescriptorProto in
-                        EnumDescriptorProto( // TODO nested!
+                        EnumDescriptorProto(
                             name: String(enumTypeDesc.name.split(separator: ".").last!),
                             values: enumTypeDesc.values,
                             options: enumTypeDesc.options,

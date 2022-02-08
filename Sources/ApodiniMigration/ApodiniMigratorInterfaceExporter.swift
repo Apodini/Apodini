@@ -101,16 +101,27 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
 
     func didStartup(_ application: Application) throws {
         guard let webService = self.webService else {
-            fatalError("Encountered inconsistent state where `didBoot` was called before `finishedExporting`!")
+            fatalError("Encountered inconsistent state where `didStartup` was called before `finishedExporting`!")
         }
         self.webService = nil
 
+        let httpAddress: String
+        let httpPort: Int?
+        if case let .interface(address, port) = app.httpConfiguration.bindAddress {
+            httpAddress = address
+            httpPort = port
+        } else {
+            httpAddress = app.httpConfiguration.hostname.address
+            httpPort = app.httpConfiguration.hostname.port
+        }
+
         let http = HTTPInformation(
             protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
-            hostname: app.httpConfiguration.hostname.address,
-            port: app.httpConfiguration.hostname.port ??
-                (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
+            hostname: httpAddress,
+            port: httpPort
+                ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
         )
+
         let serviceInformation = ServiceInformation(
             version: .init(with: webService.context.get(valueFor: APIVersionContextKey.self)),
             http: http

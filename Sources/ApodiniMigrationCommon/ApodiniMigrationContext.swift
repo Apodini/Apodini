@@ -34,7 +34,8 @@ public class ApodiniMigrationContext {
     ///   (e.g. operation, path, grpc service name, ...).
     public private(set) var endpointIdentifiers: [AnyHandlerIdentifier: [AnyElementIdentifier]] = [:]
 
-    // TODO docs!
+    /// Holds any exporter-specific `TypeInformationIdentifier`s for any models (enums or messages).
+    /// Identified by the ``SwiftTypeIdentifier`` (equals `String(reflecting: YourType.self)`).
     public private(set) var typeInformationIdentifiers: [SwiftTypeIdentifier: TypeInformationAddendum] = [:]
 
     init() {}
@@ -49,7 +50,7 @@ public class ApodiniMigrationContext {
         self.exporterConfigurations[type] = AnyExporterConfiguration(configuration)
     }
 
-    /// This method records a `EndpointIdentifier` for a given `Endpoint`.
+    /// This method records an `EndpointIdentifier` for a given `Endpoint`.
     /// The provided information is added to the `APIDocument` and is considered in the `MigrationGuide`.
     /// - Parameters:
     ///   - identifier: The `EndpointIdentifier` which is to be added.
@@ -64,6 +65,13 @@ public class ApodiniMigrationContext {
             .append(AnyElementIdentifier(from: identifier))
     }
 
+    /// This method records a `TypeInformationIdentifier` for a TypeInformation or for one of its children.
+    /// The provided information is added to the `APIDocument` and is considered in the `MigrationGuide`.
+    /// - Parameters:
+    ///   - identifier: The `TypeInformationIdentifier` which is to be added.
+    ///   - type: The `TypeInformation`, uniquely identified by its reflective swift type name.
+    ///   - children: If the identifier should not be added to the type itself but to one of its children (enum case or object property)
+    ///     supply this children identifier (enum case name or property name) for the targeted type child.
     public func register<Identifier: TypeInformationIdentifier>(identifier: Identifier, for type: SwiftTypeIdentifier, children: String? = nil) {
         if let children = children {
             self.typeInformationIdentifiers[type, default: TypeInformationAddendum()]
@@ -76,6 +84,9 @@ public class ApodiniMigrationContext {
         }
     }
 
+    /// Retrieves the added `TypeInformationIdentifier`s for a given `TypeInformation` instance.
+    /// - Parameter name: The reflective swift type name of the targeted `TypeInformation`
+    /// - Returns: Returns the `TypeInformationAddendum` if there is one.
     public func retrieveTypeInformationAddendum(for name: SwiftTypeIdentifier) -> TypeInformationAddendum? {
         guard let addendum = typeInformationIdentifiers[name]?.markingQueried() else {
             return nil
