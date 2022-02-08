@@ -22,7 +22,9 @@ public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelega
 
     public var value: Bool
 
-    public let initializer: DelegatingHandlerContextKey.Value = [.init(TracingHandlerInitializer())]
+    public var initializer: DelegatingHandlerContextKey.Value {
+        return value ? [.init(TracingHandlerInitializer())] : []
+    }
 
     public init(isEnabled: Bool) {
         self.value = isEnabled
@@ -31,6 +33,6 @@ public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelega
 
 extension Component {
     public func trace(isEnabled: Bool = true) -> ComponentMetadataModifier<Self> {
-        self.metadata(TracingMetadata(isEnabled: true))
+        self.metadata(TracingMetadata(isEnabled: isEnabled))
     }
 }
