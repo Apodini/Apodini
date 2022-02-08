@@ -10,11 +10,23 @@ import Apodini
 import Tracing
 
 extension Application {
+    /// Returns the `Instrument` configured in `Configuration`.
+    ///
+    /// - Returns: An `Instrument` if the system was configured. Else, crashes the application.
+    public var instrument: Instrument {
+        guard let instrument = storage[TracingConfiguration.TracingStorageKey.self]?.instrument else {
+            fatalError("Tracing wasn't configured correctly")
+        }
+        return instrument
+    }
+
     /// Returns the `Tracer` configured in `Configuration`.
     ///
-    /// - Returns: A `Tracer` if the system was configured, and `NoOpTracer` otherwise.
-    /// - Note: The returned `Tracer` currently is the plain object returned from the bootstrapped `InstrumentationSystem`. It is not automatically scoped to the current `Handler` yet.
+    /// - Returns: A `Tracer` if the system was configured. Else, crashes the application.
     public var tracer: Tracer {
-        InstrumentationSystem.tracer
+        guard let tracer = storage[TracingConfiguration.TracingStorageKey.self]?.tracer else {
+            fatalError("Tracing wasn't configured correctly")
+        }
+        return tracer
     }
 }
