@@ -170,7 +170,11 @@ class GRPCRequestDecoder: ChannelInboundHandler {
             // Note: The difference between the branches below (which all close the channel in response to receiving an unexpected frame)
             // and the branch above (which closes the channel in response to receiving a RST_STREAM frame) is that above we close because
             // we actually want to end the connection, whereas below we close because we received an invalid frame.
-        case .priority, .settings, .pushPromise, .goAway, .windowUpdate, .alternativeService, .origin:
+        case .windowUpdate:
+            // clients like grpc-swift will send `windowUpdate`s which the spec doesn't officially mandate to support.
+            // Ignoring them is a viable workaround
+            break
+        case .priority, .settings, .pushPromise, .goAway, .alternativeService, .origin:
             logger.error("Received unexpected frame: \(input). Closing stream in response.")
             self.state = .closed
             context.fireChannelRead(wrapInboundOut(.closeStream(reason: .invalidState)))

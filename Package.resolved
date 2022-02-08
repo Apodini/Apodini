@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
         "state": {
           "branch": "feature/grpc-migrator",
-          "revision": "73a449d2c76a100b05cacccd7099668ea92ac93e",
+          "revision": "ea178b6c9f08bc6c6bdb3337571d495c8812173b",
           "version": null
         }
       },
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
         "state": {
           "branch": null,
-          "revision": "7f089211eb7a7f060b3f570bae9ea03fd05da073",
-          "version": "0.3.2"
+          "revision": "8d7353330fb07e7b956ddccf891829a57b58942b",
+          "version": "0.3.5"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
         "state": {
           "branch": null,
-          "revision": "30b8886934e49d64130868ac0b89219c35fc5447",
-          "version": "0.1.3"
+          "revision": "f655813f1953af8d3aaac432dad35f394e7bdf75",
+          "version": "0.1.6"
         }
       },
       {
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/mattpolzin/OpenAPIKit.git",
         "state": {
           "branch": null,
-          "revision": "4986552e76c331a99770428bd2be77ad76068c08",
-          "version": "2.4.0"
+          "revision": "328d11996ccc43205bd861535021d8c22168a08a",
+          "version": "2.5.0"
         }
       },
       {
@@ -287,15 +287,6 @@
           "branch": null,
           "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
           "version": "1.3.1"
-        }
-      },
-      {
-        "package": "swift-collections",
-        "repositoryURL": "https://github.com/apple/swift-collections",
-        "state": {
-          "branch": null,
-          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
-          "version": "1.0.2"
         }
       },
       {
