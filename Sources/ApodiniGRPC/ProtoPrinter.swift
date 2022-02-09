@@ -176,8 +176,12 @@ struct ProtoPrinter {
         case .LABEL_REPEATED:
             write("repeated ")
         case .LABEL_REQUIRED:
-            precondition(self.fileDescriptor!.syntax == "proto2")
+            precondition(self.fileDescriptor?.syntax == ProtoSyntax.proto2.rawValue)
             write("required ")
+        }
+        
+        if self.fileDescriptor?.syntax == ProtoSyntax.proto3.rawValue && descriptor.proto3Optional {
+            write("optional ")
         }
         
         switch descriptor.type {
