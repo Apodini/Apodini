@@ -42,14 +42,11 @@ struct TracingHandler<H: Handler>: Handler {
 
         do {
             return try await delegate
-                .environmentObject(span.baggage)
+                .environmentObject(span)
                 .instance()
                 .handle()
 
             // TODO: Can we get the response status here somehow
-
-            // TODO: Inject baggage into headers
-//            instrument.inject(span.baggage, into: &<#T##Carrier#>, using: HTTPInformationExtractor())
         } catch {
             span.recordError(error)
             throw error // rethrow for InterfaceExporter handling
