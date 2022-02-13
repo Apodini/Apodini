@@ -10,6 +10,7 @@ import Apodini
 import Tracing
 
 struct TracingHandler<H: Handler>: Handler {
+/// A `Handler` used to automatically trace other `Handler`s.
     /// The delegated `Handler`
     let delegate: Delegate<H>
 
@@ -85,7 +86,9 @@ struct TracingHandler<H: Handler>: Handler {
         span.setStatus(.init(code: .error, message: error.standardMessage))
 
         // We only use expensive loggingMetadata in case of a "server error"
-        guard error.apodiniError.shouldCollectErrorMetadata else { return }
+        guard error.apodiniError.shouldCollectErrorMetadata else {
+            return
+        }
 
         for metadataKey in ["request", "information"] {
             guard let metadataValue = loggingMetadata[metadataKey] else { continue }

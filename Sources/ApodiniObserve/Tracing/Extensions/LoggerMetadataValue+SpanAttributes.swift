@@ -10,6 +10,7 @@ import Logging
 import Tracing
 
 extension Logger.MetadataValue {
+    /// Transform this `MetadataValue` to `Tracing`.`SpanAttributes`, namespaced under the specified key.
     func spanAttributes(key: String) -> SpanAttributes {
         switch self {
         case let .string(value):

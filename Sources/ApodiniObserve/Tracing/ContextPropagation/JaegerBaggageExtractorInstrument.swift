@@ -9,20 +9,28 @@
 import InstrumentationBaggage
 import Instrumentation
 
+/// An `Instrument` with the sole purpose of extracting and injecting the `jaeger-baggage` header from/to the carrier.
+///
+/// - Note: This should ideally be [a `Propagator` when it becomes available](https://github.com/apple/swift-distributed-tracing/issues/44).
 public struct JaegerBaggageExtractorInstrument: Instrument {
     static let headerKey = "jaeger-baggage"
 
     public init() {}
 
-    public func extract<Carrier, Extract>(_ carrier: Carrier, into baggage: inout Baggage, using extractor: Extract) where Carrier == Extract.Carrier, Extract: Extractor {
-        guard let header = extractor.extract(key: Self.headerKey, from: carrier) else { return }
+    public func extract<Carrier, Extract>(_ carrier: Carrier, into baggage: inout Baggage, using extractor: Extract)
+        where Extract: Extractor, Extract.Carrier == Carrier {
+        guard let header = extractor.extract(key: Self.headerKey, from: carrier) else {
+            return
+        }
 
         baggage[JaegerBaggageKey.self] = JaegerBaggage(
             values: header
                 .split(separator: ",")
                 .compactMap { entry -> (String, String)? in
                     let pair = entry.split(separator: "=")
-                    guard pair.count == 2 else { return nil }
+                    guard pair.count == 2 else {
+                        return nil
+                    }
                     return (
                         String(pair[0].trimmingLeadingAndTrailingWhitespace()),
                         String(pair[1].trimmingLeadingAndTrailingWhitespace())
@@ -32,8 +40,11 @@ public struct JaegerBaggageExtractorInstrument: Instrument {
         )
     }
 
-    public func inject<Carrier, Inject>(_ baggage: Baggage, into carrier: inout Carrier, using injector: Inject) where Carrier == Inject.Carrier, Inject: Injector {
-        guard let jaegerBaggage = baggage[JaegerBaggageKey.self] else { return }
+    public func inject<Carrier, Inject>(_ baggage: Baggage, into carrier: inout Carrier, using injector: Inject)
+        where Inject: Injector, Inject.Carrier == Carrier {
+        guard let jaegerBaggage = baggage[JaegerBaggageKey.self] else {
+            return
+        }
 
         let headerValue = jaegerBaggage.values
             .map { "\($0.0)=\($0.1)" }

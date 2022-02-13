@@ -9,12 +9,14 @@
 import Tracing
 
 extension SpanAttributes {
+    /// `SpanAttribute`s for the Apodini namespace.
     public var apodini: ApodiniSpanAttributes {
         get { .init(attributes: self) }
         set { self = newValue.attributes }
     }
 }
 
+/// A container of `SpanAttribute`s for the Apodini namespace.
 public struct ApodiniSpanAttributes: SpanAttributeNamespace {
     public var attributes: SpanAttributes
 

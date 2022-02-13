@@ -8,22 +8,34 @@
 
 import Apodini
 
-// TODO: Maybe non-optional with default of true
+///
 public struct TracingContextKey: OptionalContextKey {
     public typealias Value = Bool
 }
 
 extension ComponentMetadataNamespace {
+    /// Typealias for `TracingMetadata`.
     public typealias Tracing = TracingMetadata
 }
 
+/// The `TracingMetadata` can be used to enable or disable tracing for a component.
+///
+/// The Metadata is available under the `ComponentMetadataNamespace` and can be used as follows:
+/// ```swift
+/// struct ExampleComponent: Component {
+///     // ...
+///     var metadata: Metadata {
+///         Tracing(isEnabled: true)
+///     }
+/// }
+/// ```
 public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelegatingHandler {
     public typealias Key = TracingContextKey
 
     public var value: Bool
 
     public var initializer: DelegatingHandlerContextKey.Value {
-        return value ? [.init(TracingHandlerInitializer())] : []
+        value ? [.init(TracingHandlerInitializer())] : []
     }
 
     public init(isEnabled: Bool) {
@@ -32,6 +44,9 @@ public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelega
 }
 
 extension Component {
+    /// A `trace` modifier can be used to enable or disable tracing for a `Component` using `TracingMetadata`.
+    /// - Parameter isEnabled: Boolean indicating of tracing should be enabled or disabled.
+    /// - Returns: The modified `Component` with `TracingMetadata` attached.
     public func trace(isEnabled: Bool = true) -> ComponentMetadataModifier<Self> {
         self.metadata(TracingMetadata(isEnabled: isEnabled))
     }
