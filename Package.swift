@@ -129,16 +129,6 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
     ],
     targets: [
-        .executableTarget(
-            name: "ExampleWebService",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniObserve"),
-                .target(name: "ApodiniObserveOpenTelemetry")
-            ]
-        ),
-
         .target(name: "CApodiniUtils"),
         .target(
             name: "ApodiniUtils",
