@@ -42,6 +42,8 @@ public struct MockTracer: Tracer {
         public let time: DispatchWallTime
         public let isRecording = false
 
+        public var attributes: SpanAttributes = [:]
+
         public init(
             operationName: String,
             baggage: Baggage,
@@ -54,19 +56,49 @@ public struct MockTracer: Tracer {
             self.time = time
         }
 
-        public func setStatus(_ status: SpanStatus) {}
+        public private(set) var setStatusCallCount = 0
+        public var setStatusHandler: ((SpanStatus) -> Void)?
+        public func setStatus(_ status: SpanStatus) {
+            setStatusCallCount += 1
+            if let setStatusHandler = setStatusHandler {
+                setStatusHandler(status)
+            }
+        }
 
-        public func addLink(_ link: SpanLink) {}
+        public private(set) var addLinkCallCount = 0
+        public var addLinkHandler: ((SpanLink) -> Void)?
+        public func addLink(_ link: SpanLink) {
+            addLinkCallCount += 1
+            if let addLinkHandler = addLinkHandler {
+                addLinkHandler(link)
+            }
+        }
 
-        public func addEvent(_ event: SpanEvent) {}
+        public private(set) var addEventCallCount = 0
+        public var addEventHandler: ((SpanEvent) -> Void)?
+        public func addEvent(_ event: SpanEvent) {
+            addEventCallCount += 1
+            if let addEventHandler = addEventHandler {
+                addEventHandler(event)
+            }
+        }
 
-        public func recordError(_ error: Error) {}
-
-        public var attributes: SpanAttributes = [:]
+        public private(set) var recordErrorCallCount = 0
+        public var recordErrorHandler: ((Error) -> Void)?
+        public func recordError(_ error: Error) {
+            recordErrorCallCount += 1
+            if let recordErrorHandler = recordErrorHandler {
+                recordErrorHandler(error)
+            }
+        }
 
         public var endCallCount = 0
+        public var endHandler: ((DispatchWallTime) -> Void)?
         public func end(at time: DispatchWallTime) {
             endCallCount += 1
+            if let endHandler = endHandler {
+                endHandler(time)
+            }
         }
     }
 }
