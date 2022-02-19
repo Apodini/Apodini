@@ -13,6 +13,7 @@ import XCTest
 
 @testable import ApodiniObserve
 
+// swiftlint:disable implicitly_unwrapped_optional
 final class JaegerBaggageExtractorInstrumentTests: XCTestCase {
     private var instrument: JaegerBaggageExtractorInstrument!
     private var carrier: MockCarrier!

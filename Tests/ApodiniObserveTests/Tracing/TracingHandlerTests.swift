@@ -16,10 +16,9 @@ import XCTest
 @testable import ApodiniObserve
 
 // swiftlint:disable closure_body_length
+// swiftlint:disable implicitly_unwrapped_optional
 final class TracingHandlerTests: XCTestCase {
-    // swiftlint:disable implicitly_unwrapped_optional
     private static var app: Application!
-    // swiftlint:disable implicitly_unwrapped_optional
     private static var tracer: MockTracer!
 
     override class func setUp() {
