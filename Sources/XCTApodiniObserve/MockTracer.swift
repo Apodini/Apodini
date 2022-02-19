@@ -6,34 +6,58 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if DEBUG || RELEASE_TESTING
 import Foundation
 import Tracing
 
-public struct MockTracer: Tracer {
+public class MockTracer: Tracer {
+    public var spans: [MockSpan] = []
+
     public init() {}
 
+    public func reset() {
+        spans = []
+        startSpanHandler = nil
+        forceFlushCallCount = 0
+        extractCallCount = 0
+        injectCallCount = 0
+    }
+
+    public var startSpanHandler: ((MockSpan) -> Void)?
     public func startSpan(_ operationName: String, baggage: Baggage, ofKind kind: SpanKind, at time: DispatchWallTime) -> Span {
-        MockSpan(
+        let span = MockSpan(
             operationName: operationName,
             baggage: baggage,
             kind: kind,
             time: time
         )
+        startSpanHandler?(span)
+        spans.append(span)
+        return span
     }
 
-    public func forceFlush() {}
+    public var forceFlushCallCount = 0
+    public func forceFlush() {
+        forceFlushCallCount += 1
+    }
 
+    public var extractCallCount = 0
     public func extract<Carrier, Extract>(
         _ carrier: Carrier,
         into baggage: inout Baggage,
         using extractor: Extract
-    ) where Carrier == Extract.Carrier, Extract: Extractor {}
+    ) where Carrier == Extract.Carrier, Extract: Extractor {
+        extractCallCount += 1
+    }
 
+    public var injectCallCount = 0
     public func inject<Carrier, Inject>(
         _ baggage: Baggage,
         into carrier: inout Carrier,
         using injector: Inject
-    ) where Carrier == Inject.Carrier, Inject: Injector {}
+    ) where Carrier == Inject.Carrier, Inject: Injector {
+        injectCallCount += 1
+    }
 
     public final class MockSpan: Span {
         public let operationName: String
@@ -102,3 +126,4 @@ public struct MockTracer: Tracer {
         }
     }
 }
+#endif
