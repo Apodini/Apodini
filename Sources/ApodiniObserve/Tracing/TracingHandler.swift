@@ -75,7 +75,7 @@ struct TracingHandler<H: Handler>: Handler {
                 }
                 .dropLast()
         )
-        span.attributes.apodini.endpointCommunicationalPattern = blackboardMetadata.communicationalPattern.rawValue
+        span.attributes.apodini.endpointCommunicationalPattern = blackboardMetadata.communicationPattern.rawValue
         span.attributes.apodini.endpointVersion = blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"
     }
 
