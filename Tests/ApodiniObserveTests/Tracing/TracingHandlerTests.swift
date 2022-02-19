@@ -15,8 +15,11 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniObserve
 
+// swiftlint:disable closure_body_length
 final class TracingHandlerTests: XCTestCase {
+    // swiftlint:disable implicitly_unwrapped_optional
     private static var app: Application!
+    // swiftlint:disable implicitly_unwrapped_optional
     private static var tracer: MockTracer!
 
     override class func setUp() {
@@ -105,6 +108,8 @@ final class TracingHandlerTests: XCTestCase {
             XCTAssertEqual(span.setStatusCallCount, 0)
 
             XCTAssertEqual(span.endCallCount, 1)
+
+            XCTAssertEqual(response.status, .ok)
         }
     }
 
@@ -141,6 +146,8 @@ final class TracingHandlerTests: XCTestCase {
 
             XCTAssertEqual(span.attributes.count, 5) // no extra attributes recorded
             XCTAssertEqual(span.endCallCount, 1)
+
+            XCTAssertEqual(response.status, .internalServerError)
         }
     }
 
@@ -214,6 +221,8 @@ final class TracingHandlerTests: XCTestCase {
             )
 
             XCTAssertEqual(span.endCallCount, 1)
+
+            XCTAssertEqual(response.status, .internalServerError)
         }
     }
 }

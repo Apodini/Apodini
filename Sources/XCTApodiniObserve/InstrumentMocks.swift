@@ -9,6 +9,7 @@
 #if DEBUG || RELEASE_TESTING
 import Instrumentation
 
+/// String: String dictionary used as a carrier for the mock extractor and injector.
 public typealias MockCarrier = [String: String]
 
 public struct MockCarrierExtractor: Extractor {

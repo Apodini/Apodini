@@ -96,7 +96,6 @@ struct TracingHandler<H: Handler>: Handler {
             span.attributes.merge(metadataValue.spanAttributes(key: "apodini.\(metadataKey)"))
         }
     }
-    }
 }
 
 struct TracingHandlerInitializer: DelegatingHandlerInitializer {
