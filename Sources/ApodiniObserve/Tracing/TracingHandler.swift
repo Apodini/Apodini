@@ -53,7 +53,8 @@ struct TracingHandler<H: Handler>: Handler {
                 .instance()
                 .handle()
 
-            // TODO: Can we get the response status here somehow
+            // it would be great to get the response status here
+            // to set it as a Span attribute
         } catch {
             setErrorMetadata(to: span, for: error)
             throw error // rethrow for InterfaceExporter handling
