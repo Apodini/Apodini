@@ -42,9 +42,9 @@ public struct JaegerBaggageExtractorInstrument: Instrument {
 
     public func inject<Carrier, Inject>(_ baggage: Baggage, into carrier: inout Carrier, using injector: Inject)
         where Inject: Injector, Inject.Carrier == Carrier {
-        guard let jaegerBaggage = baggage[JaegerBaggageKey.self] else {
-            return
-        }
+        guard let jaegerBaggage = baggage[JaegerBaggageKey.self],
+              !jaegerBaggage.values.isEmpty
+        else { return }
 
         let headerValue = jaegerBaggage.values
             .map { "\($0.0)=\($0.1)" }
