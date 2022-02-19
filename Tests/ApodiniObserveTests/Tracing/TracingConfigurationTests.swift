@@ -16,7 +16,7 @@ import XCTest
 @testable import ApodiniObserve
 @testable import Instrumentation
 
-final class ApodiniTracingTests: XCTestCase {
+final class TracingConfigurationTests: XCTestCase {
     func testTracingConfiguration_withSimpleInstrument() throws {
         // Arrange
         let app = Application()
