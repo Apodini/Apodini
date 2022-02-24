@@ -599,3 +599,37 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
             .joined(separator: ", ")
     }
 }
+
+public extension AnyHTTPHeaderName {
+    /// The `Access-Control-Allow-Origin` header field
+    static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
+}
+
+
+public enum AccessControlAllowOriginHeaderValue: HTTPHeaderFieldValueCodable {
+    case wildcard
+    case origin(String)
+    case null
+    
+    public init?(httpHeaderFieldValue value: String) {
+        switch value {
+        case "*":
+            self = .wildcard
+        case "null":
+            self = .null
+        default:
+            self = .origin(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .wildcard:
+            return "*"
+        case .origin(let origin):
+            return origin
+        case .null:
+            return "null"
+        }
+    }
+}
