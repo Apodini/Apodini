@@ -16,7 +16,7 @@ import protocol NIO.EventLoop
 /// application logic via some middleware/protocol. Other exporters just publish a specification-document
 /// of the same web service. Finally, ``InterfaceExporter`` can also - to some extent - manipulate
 /// how the web service is perceived by other ``InterfaceExporter``s.
-public protocol InterfaceExporter {
+public protocol InterfaceExporter: AnyObject {
     /// Defines the return type of the `export` method. The return type is currently unused.
     associatedtype EndpointExportOutput = Void
     /// Defines the return type of the `exportParameter` method. For more details see `exportParameter(...)`

@@ -12,7 +12,7 @@ import ApodiniExtension
 import ApodiniNetworking
 
 
-extension Exporter {
+extension HTTPInterfaceExporter {
     func buildRequestResponseClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
@@ -22,7 +22,7 @@ extension Exporter {
             wrapped: HTTPResponseTransformer<H>(configuration.encoder),
             forwarder: endpoint[ErrorForwarder.self]
         )
-        let factory = endpoint[DelegateFactory<H, Exporter>.self]
+        let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
         return { (request: HTTPRequest) in
             let delegate = factory.instance()
             return strategy
@@ -48,7 +48,7 @@ extension Exporter {
             wrapped: HTTPBlobResponseTransformer(),
             forwarder: endpoint[ErrorForwarder.self]
         )
-        let factory = endpoint[DelegateFactory<H, Exporter>.self]
+        let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
         return { (request: HTTPRequest) in
             let delegate = factory.instance()
             return strategy

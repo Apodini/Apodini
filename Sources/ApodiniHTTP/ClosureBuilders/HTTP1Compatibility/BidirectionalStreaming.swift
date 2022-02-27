@@ -13,7 +13,7 @@ import ApodiniHTTPProtocol
 import ApodiniNetworking
 
 
-extension Exporter {
+extension HTTPInterfaceExporter {
     func buildBidirectionalStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
@@ -23,8 +23,8 @@ extension Exporter {
             wrapped: AbortTransformer<H>(),
             forwarder: endpoint[ErrorForwarder.self]
         )
-        let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
+        let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
+        return { [unowned self] (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
             do {
                 guard let requestCount = try configuration.decoder.decode(
                     ArrayCount.self,

@@ -377,7 +377,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
         /// - NOTE this might not necessarily be the most desirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
-        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)
             })
@@ -386,7 +386,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             return response
         }
         
-        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "files"]) { req -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "files"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)
             })
@@ -399,7 +399,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             case json, proto
         }
         
-        app.httpServer.registerRoute(
+        try! app.httpServer.registerRoute(
             .GET,
             ["__apodini", "grpc", "schema", .namedParameter("format"), "file", .wildcardMultiple("filename")]
         ) { req -> HTTPResponseConvertible in

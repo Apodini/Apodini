@@ -12,7 +12,7 @@ import ApodiniExtension
 import ApodiniNetworking
 
 
-extension Exporter {
+extension HTTPInterfaceExporter {
     func buildClientSideStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
@@ -26,8 +26,8 @@ extension Exporter {
             wrapped: HTTPResponseTransformer<H>(configuration.encoder),
             forwarder: endpoint[ErrorForwarder.self]
         )
-        let factory = endpoint[DelegateFactory<H, Exporter>.self]
-        return { (request: HTTPRequest) in
+        let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
+        return { [unowned self] (request: HTTPRequest) in
             guard let requestCount = try? configuration.decoder.decode(
                 ArrayCount.self,
                 from: request.bodyStorage.getFullBodyData() ?? .init()

@@ -54,7 +54,7 @@ public final class HTTP: Configuration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instantiate exporter
-        let exporter = Exporter(app, self.configuration)
+        let exporter = HTTPInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
@@ -64,7 +64,7 @@ public final class HTTP: Configuration {
 
 // MARK: Exporter
 
-struct Exporter: InterfaceExporter {
+class HTTPInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let configuration: HTTP.ExporterConfiguration
     let logger: Logger
@@ -87,30 +87,34 @@ struct Exporter: InterfaceExporter {
         switch knowledge.pattern {
         case .requestResponse:
             logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .requestResponse,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
             logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .serviceSideStream,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .clientSideStream:
             logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .clientSideStream,
                 handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .bidirectionalStream:
             logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .bidirectionalStream,
                 handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         }
@@ -122,13 +126,13 @@ struct Exporter: InterfaceExporter {
         
         switch knowledge.pattern {
         case .requestResponse:
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)

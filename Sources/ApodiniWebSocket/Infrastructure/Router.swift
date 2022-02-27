@@ -150,7 +150,7 @@ final class VaporWSRouter: Router {
     
     
     private func registerRouteToVapor() {
-        app.httpServer.registerRoute(.GET, self.path) { request -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, self.path) { request -> HTTPResponse in
             request.makeWebSocketUpgradeResponse { initiatingRequest, webSocket in
                 self.connectionsMutex.lock()
                 let responsible = ConnectionResponsible(

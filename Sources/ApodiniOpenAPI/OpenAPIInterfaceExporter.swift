@@ -108,11 +108,11 @@ final class OpenAPIInterfaceExporter: InterfaceExporter {
     private func serveSpecification() {
         if let output = try? self.documentBuilder.document.output(configuration: self.exporterConfiguration) {
             // Register OpenAPI specification endpoint.
-            app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { _ in
+            try! app.httpServer.registerRoute(.GET, exporterConfiguration.outputEndpoint.httpPathComponents) { _ in
                 output
             }
             // Register swagger-UI endpoint.
-            app.httpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.httpPathComponents) { request -> HTTPResponse in
+            try! app.httpServer.registerRoute(.GET, exporterConfiguration.swaggerUiEndpoint.httpPathComponents) { request -> HTTPResponse in
                 guard let htmlFile = Bundle.module.path(forResource: "swagger-ui", ofType: "html"),
                       var html = try? String(contentsOfFile: htmlFile)
                 else {

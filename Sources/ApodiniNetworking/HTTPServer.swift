@@ -35,17 +35,19 @@ struct ApodiniNetworkingError: Swift.Error {
 }
 
 
+
 private class ErrorHandler: ChannelInboundHandler {
     typealias InboundIn = Never
+    typealias InboundOut = Never
     
-    let msg: String
+    let name: String
     
-    init(msg: String) {
-        self.msg = msg
+    init(name: String) {
+        self.name = name
     }
     
     func errorCaught(context: ChannelHandlerContext, error: Error) {
-        print("\(Self.self)[msg: \(msg)][pid: \(ProcessInfo.processInfo.processIdentifier)] received error: \(error)")
+        print("\(Self.self)[name: \(name)] received error: \(error). Closing channel in response.")
         context.close(promise: nil)
     }
 }
@@ -73,6 +75,7 @@ public final class HTTPServer {
     private let router: HTTPRouter
     
     private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
+//    private var cachedRoutingResults: [Weak<HTTPRequest>, ]
     
     private var channel: Channel?
     
@@ -258,17 +261,22 @@ public final class HTTPServer {
                         return channel.close(mode: .all)
                     }
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
-                    return channel.pipeline.addHandler(tlsHandler)
+                    return channel.pipeline.addHandlers([
+                        tlsHandler,
+                        ErrorHandler(name: "Basic channel configurator") // TODO basic as in generic as in low-level as in not the other one
+                    ])
                         .flatMap { () -> EventLoopFuture<Void> in
                             channel.configureHTTP2SecureUpgrade { channel in
-                                channel.addApodiniNetworkingHTTP2Handlers(
+                                print("h2ChannelConfigurator callback")
+                                return channel.addApodiniNetworkingHTTP2Handlers(
                                     hostname: self.hostname,
                                     isTLSEnabled: self.isTLSEnabled,
                                     inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
                                     httpResponder: self
                                 )
                             } http1ChannelConfigurator: { channel in
-                                channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
+                                print("http1ChannelConfigurator callback")
+                                return channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
                             }
                         }
                         .flatMapError { error in
@@ -326,89 +334,47 @@ public final class HTTPServer {
 }
 
 
-/// A `HTTPResponder` is a type that can respond to HTTP requests.
-public protocol HTTPResponder {
-    /// Handle a request received by the server.
-    /// - Note: The responder is responsible for converting errors thrown when handling a request,
-    ///         ideally by turning them into `HTTPResponse`s with an appropriate status code.
-    func respond(to request: HTTPRequest) -> HTTPResponseConvertible
-}
-
-
-public struct DefaultHTTPResponder: HTTPResponder {
-    private let imp: (HTTPRequest) -> HTTPResponseConvertible
-    
-    public init(_ imp: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
-        self.imp = imp
-    }
-    
-    public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
-        imp(request)
-    }
-}
-
-
-/// A type on which HTTP routes can be registered
-public protocol HTTPRoutesBuilder {
-    /// Registers a new route on the HTTP server
-    /// - parameter method: The route's HTTP method
-    /// - parameter path: The route's path, expressed as a collection of path components
-    /// - parameter handler: A closure which will be called to handle requests reaching this route.
-    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) -> HTTPResponseConvertible)
-    /// Registers a new route on the HTTP server
-    /// - parameter method: The route's HTTP method
-    /// - parameter path: The route's path, expressed as a collection of path components
-    /// - parameter responder: The responder object responsible for responding to requests reaching this route
-    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder)
-}
-
-
-public extension HTTPRoutesBuilder {
-    /// Registers a new route on the HTTP server
-    /// - parameter method: The route's HTTP method
-    /// - parameter path: The route's path, expressed as a collection of path components
-    /// - parameter handler: A closure which will be called to handle requests reaching this route.
-    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) throws -> HTTPResponseConvertible) {
-        self.registerRoute(method, path) { request -> HTTPResponseConvertible in
-            do {
-                return try handler(request)
-            } catch {
-                return request.eventLoop.makeFailedFuture(error) as EventLoopFuture<HTTPResponse>
-            }
-        }
-    }
-    
-    /// Registers a new route on the HTTP server
-    /// - parameter method: The route's HTTP method
-    /// - parameter path: The route's path, expressed as a collection of path components
-    /// - parameter responder: The responder object responsible for responding to requests reaching this route
-    func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], responder: HTTPResponder) {
-        self.registerRoute(method, path) { request -> HTTPResponseConvertible in
-            responder.respond(to: request)
-        }
-    }
-}
-
-
 extension HTTPServer: HTTPRoutesBuilder {
-    public func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent], handler: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
-        router.add(HTTPRouter.Route(
+    public func registerRoute(
+        _ method: HTTPMethod,
+        _ path: [HTTPPathComponent],
+        _ expectedCommunicationPattern: CommunicationPattern? = nil,
+        handler: @escaping (HTTPRequest) -> HTTPResponseConvertible
+    ) throws {
+        try router.add(HTTPRouter.Route(
             method: method,
             path: path,
+            expectedCommunicationPattern: expectedCommunicationPattern,
             responder: DefaultHTTPResponder(handler)
         ))
     }
+//    public func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent],  handler: @escaping (HTTPRequest) -> HTTPResponseConvertible) throws {
+//        try router.add(HTTPRouter.Route(
+//            method: method,
+//            path: path,
+//            responder: DefaultHTTPResponder(handler)
+//        ))
+//    }
 }
 
 
 extension HTTPServer: HTTPResponder {
     public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
-        if let route = router.getRoute(for: request) {
+        if let route = router.getRoute(for: request, populateRequest: true) {
             return route.responder
                 .respond(to: request)
                 .makeHTTPResponse(for: request)
         } else {
             return HTTPResponse(version: request.version, status: .notFound, headers: [:])
+        }
+    }
+    
+    public func expectedCommunicationPattern(for request: HTTPRequest) -> CommunicationPattern? {
+        // TODO (populate the request?) and cache the routing result. This is after the header has been received, so it wouldn't change much again...
+        if let route = router.getRoute(for: request, populateRequest: false) {
+            return route.expectedCommunicationPattern
+        } else {
+            return nil
         }
     }
 }
@@ -441,7 +407,7 @@ extension Channel {
                     )
                 )
             },
-            ErrorHandler(msg: "http2.channel.error")
+            ErrorHandler(name: "HTTP2ChannelErrorHandler")
         ])
     }
     
@@ -454,9 +420,9 @@ extension Channel {
         pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
             HTTPServerResponseEncoder(),
-            HTTPServerRequestDecoder(hostname: hostname, isTLSEnabled: isTLSEnabled),
+            HTTPServerRequestDecoder(responder: responder, hostname: hostname, isTLSEnabled: isTLSEnabled),
             HTTPServerRequestHandler(responder: responder),
-            ErrorHandler(msg: "http2.stream.error")
+            ErrorHandler(name: "HTTP1ChannelErrorHandler")
         ])
     }
     
@@ -472,7 +438,7 @@ extension Channel {
             httpResponseEncoder,
             ByteToMessageHandler(HTTPRequestDecoder(leftOverBytesStrategy: .forwardBytes)),
             HTTPServerResponseEncoder(),
-            HTTPServerRequestDecoder(hostname: hostname, isTLSEnabled: isTLSEnabled)
+            HTTPServerRequestDecoder(responder: responder, hostname: hostname, isTLSEnabled: isTLSEnabled)
         ]
         let httpRequestHandler = HTTPServerRequestHandler(responder: responder)
         let upgrader = HTTPUpgradeHandler(
@@ -480,7 +446,7 @@ extension Channel {
         )
         httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [RemovableChannelHandler])
         return pipeline.addHandlers(httpHandlers).flatMap {
-            self.pipeline.addHandler(ErrorHandler(msg: "HTTP1Pipeline"))
+            self.pipeline.addHandler(ErrorHandler(name: "HTTP1Pipeline"))
         }
     }
 }

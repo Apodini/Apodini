@@ -242,7 +242,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         let itemName = I.itemName
         if var endpoint = exportOptions.endpoint {
             endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
-            app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
+            try! app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(endpoint) in the \(format.rawValue) format")

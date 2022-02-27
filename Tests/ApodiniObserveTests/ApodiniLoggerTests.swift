@@ -336,7 +336,7 @@ class ApodiniLoggerTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array([
                 .string("[lightweight]"), .string("[content]"), .string("[path]")
             ]))
@@ -437,7 +437,7 @@ class ApodiniLoggerTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -694,7 +694,7 @@ class ApodiniLoggerTests: XCTestCase {
             var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -781,7 +781,7 @@ class ApodiniLoggerTests: XCTestCase {
             exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -912,7 +912,7 @@ class ApodiniLoggerTests: XCTestCase {
             var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -1029,7 +1029,7 @@ class ApodiniLoggerTests: XCTestCase {
             exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -1065,7 +1065,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(3, connectionMetadata.count)
             XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("close"))      // End connection state
             XCTAssertNotNil(connectionMetadata["eventLoop"])
             
             // Logger UUID metadata
@@ -1140,7 +1140,7 @@ class ApodiniLoggerTests: XCTestCase {
             var exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -1257,7 +1257,7 @@ class ApodiniLoggerTests: XCTestCase {
             exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -1293,7 +1293,7 @@ class ApodiniLoggerTests: XCTestCase {
             
             XCTAssertEqual(3, connectionMetadata.count)
             XCTAssertEqual(try XCTUnwrap(connectionMetadata["remoteAddress"]), .string("unknown"))
-            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("end"))      // End connection state
+            XCTAssertEqual(try XCTUnwrap(connectionMetadata["state"]), .string("close"))      // End connection state
             XCTAssertNotNil(connectionMetadata["eventLoop"])
             
             // Logger UUID metadata

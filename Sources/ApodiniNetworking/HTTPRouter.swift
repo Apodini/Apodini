@@ -10,6 +10,7 @@ import NIO
 import NIOHTTP1
 import Logging
 import Foundation
+import enum Apodini.CommunicationPattern
 
 
 public enum HTTPPathComponent: Equatable, ExpressibleByStringLiteral {
@@ -144,7 +145,16 @@ final class HTTPRouter {
     struct Route { // Note that routes are explicitly immutable
         let method: HTTPMethod
         let path: [HTTPPathComponent]
+        let expectedCommunicationPattern: Apodini.CommunicationPattern?
         let responder: HTTPResponder
+    }
+    
+    enum RouteRegistrationError: Swift.Error {
+        /// The error thrown when a route cannot be added because another route with a conflicting path already exists.
+        /// - parameter method: The HTTP method of this route
+        /// - parameter conflictingPath: The path of the other route with which the new route conflicts
+        /// - parameter newPath: The path of the new route, i.e. the one which couldn't be added
+        case conflictingRouteAtSameEffectivePath(HTTPMethod, conflictingPath: [HTTPPathComponent], newPath: [HTTPPathComponent])
     }
     
     private(set) var routes: [HTTPMethod: [Route]] = [:]
@@ -162,32 +172,33 @@ final class HTTPRouter {
     }
     
     
-    func add(_ route: Route) {
+    func add(_ route: Route) throws {
         if routes[route.method] == nil {
             routes[route.method] = []
         }
-        if case let effectivePath = route.path.effectivePath, routes[route.method]!.contains(where: { $0.path.effectivePath == effectivePath }) {
-            logger.error("Cannot register multiple routes at same effective path '\(effectivePath)'")
-            fatalError("Invalid operation")
+        if case let effectivePath = route.path.effectivePath,
+           let conflictingRoute = routes[route.method]!.first(where: { $0.path.effectivePath == effectivePath })
+        {
+            throw RouteRegistrationError.conflictingRouteAtSameEffectivePath(route.method, conflictingPath: conflictingRoute.path, newPath: route.path)
         }
         routes[route.method]!.append(route)
         logger.notice("[Router] added \(route.method.rawValue) route at '\(route.path.httpPathString)'")
     }
     
     
-    func getRoute(for request: HTTPRequest) -> Route? {
-        if let route = getRoute(for: request, overridingMethod: nil) {
+    func getRoute(for request: HTTPRequest, populateRequest: Bool) -> Route? {
+        if let route = getRoute(for: request, overridingMethod: nil, populateRequest: populateRequest) {
             return route
         } else if request.method == .HEAD {
             // Attempt to forward HEAD requests to GET routes if no HEAD route is available
-            return getRoute(for: request, overridingMethod: .GET)
+            return getRoute(for: request, overridingMethod: .GET, populateRequest: populateRequest)
         } else {
             return nil
         }
     }
     
     
-    private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?) -> Route? {
+    private func getRoute(for request: HTTPRequest, overridingMethod: HTTPMethod?, populateRequest: Bool) -> Route? {
         guard let candidates = routes[request.method] else {
             logger.warning("Unable to find route for \(request) [0]")
             return nil
@@ -200,7 +211,9 @@ final class HTTPRouter {
                 allowsCaseInsensitiveMatching: isCaseInsensitiveRoutingEnabled,
                 allowsEmptyMultiWildcards: false // NOTE do we want to expose this via a property on the router??
             ) {
-                request.populate(from: route, withParameters: parameters)
+                if populateRequest {
+                    request.populate(from: route, withParameters: parameters)
+                }
                 return route
             }
         }
