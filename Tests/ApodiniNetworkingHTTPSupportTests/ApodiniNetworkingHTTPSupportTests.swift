@@ -23,10 +23,33 @@ class ApodiniNetworkingHTTPSupportTests: XCTestCase {
                 version: req.version,
                 status: .ok,
                 headers: HTTPHeaders {
+                    $0[.accessControlAllowOrigin] = .origin("test")
+                }
+            )
+        }
+        
+        XCTAssertEqual(AccessControlAllowOriginHeaderValue(httpHeaderFieldValue: "test"), .origin("test"))
+        
+        try app.testable().test(.GET, "test") { response in
+            XCTAssertEqual(response.headers, HTTPHeaders(dictionaryLiteral: ("Access-Control-Allow-Origin", "test")))
+        }
+    }
+    
+    func testAccessControlAllowOriginWildcardHTTPResponseHeader() throws {
+        
+        let app = Application()
+        
+        app.httpServer.registerRoute(.GET, "test") { req in
+            HTTPResponse(
+                version: req.version,
+                status: .ok,
+                headers: HTTPHeaders {
                     $0[.accessControlAllowOrigin] = .wildcard
                 }
             )
         }
+        
+        XCTAssertEqual(AccessControlAllowOriginHeaderValue(httpHeaderFieldValue: "*"), .wildcard)
         
         try app.testable().test(.GET, "test") { response in
             XCTAssertEqual(response.headers, HTTPHeaders(dictionaryLiteral: ("Access-Control-Allow-Origin", "*")))
