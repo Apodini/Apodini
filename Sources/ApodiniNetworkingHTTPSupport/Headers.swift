@@ -259,6 +259,8 @@ public extension AnyHTTPHeaderName {
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
     /// The `ETag` HTTP header field
     static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
+    /// The `Access-Control-Allow-Origin` header field
+    static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
 }
 
 
@@ -599,12 +601,6 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
             .joined(separator: ", ")
     }
 }
-
-public extension AnyHTTPHeaderName {
-    /// The `Access-Control-Allow-Origin` header field
-    static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
-}
-
 
 public enum AccessControlAllowOriginHeaderValue: HTTPHeaderFieldValueCodable {
     case wildcard
