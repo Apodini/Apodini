@@ -11,7 +11,7 @@ import ApodiniUtils
 import ApodiniExtension
 import ApodiniLoggingSupport
 import NIOWebSocket
-import WebSocketKit
+@_implementationOnly import WebSocketKit
 import Foundation
 import ApodiniNetworking
 
