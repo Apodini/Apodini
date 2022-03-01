@@ -18,6 +18,34 @@ extension HTTPInterfaceExporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
+        let encoder = configuration.encoder
+        return _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { responses, _ in
+            ByteBuffer(data: try encoder.encode(responses))
+        }
+    }
+    
+    func buildBidirectionalStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
+        _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { (responses: [Blob], headers: inout HTTPHeaders) in
+            if let mediaType = responses.first?.type {
+                headers[.contentType] = mediaType
+            }
+            var data = ByteBuffer()
+            for response in responses {
+                data.writeImmutableBuffer(response.byteBuffer)
+            }
+            return data
+        }
+    }
+    
+    
+    private func _buildBidirectionalStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore,
+        encodeResponse: @escaping ([H.Response.Content], _ httpResponseHeaders: inout HTTPHeaders) throws -> ByteBuffer
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer<H>(),
@@ -57,11 +85,12 @@ extension HTTPInterfaceExporter {
                         let content: [H.Response.Content] = responses.compactMap { response in
                             response.content
                         }
-                        let body = try configuration.encoder.encode(content)
+                        var httpHeaders = HTTPHeaders(information)
+                        let body = try encodeResponse(content, &httpHeaders)
                         return HTTPResponse(
                             version: request.version,
                             status: HTTPResponseStatus(status ?? .ok),
-                            headers: HTTPHeaders(information),
+                            headers: httpHeaders,
                             bodyStorage: .buffer(initialValue: body)
                         )
                     }

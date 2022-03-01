@@ -17,13 +17,36 @@ extension HTTPInterfaceExporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
+        _buildClientSideStreamingClosure(
+            for: endpoint,
+            using: defaultValues,
+            resultTransformer: HTTPResponseTransformer<H>(configuration.encoder)
+        )
+    }
+    
+    func buildClientSideStreamingClosure<H: Handler>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
+        _buildClientSideStreamingClosure(
+            for: endpoint,
+            using: defaultValues,
+            resultTransformer: HTTPBlobResponseTransformer()
+        )
+    }
+    
+    private func _buildClientSideStreamingClosure<H: Handler, RT: ResultTransformer>(
+        for endpoint: Endpoint<H>,
+        using defaultValues: DefaultValueStore,
+        resultTransformer: RT
+    ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where RT.Input == Apodini.Response<H.Response.Content>, RT.Output == HTTPResponse {
         let strategy = multiInputDecodingStrategy(for: endpoint)
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer<H>(),
             forwarder: endpoint[ErrorForwarder.self]
         )
         let transformer = ErrorForwardingResultTransformer(
-            wrapped: HTTPResponseTransformer<H>(configuration.encoder),
+            wrapped: resultTransformer,
             forwarder: endpoint[ErrorForwarder.self]
         )
         let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]

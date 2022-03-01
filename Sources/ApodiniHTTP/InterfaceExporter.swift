@@ -129,17 +129,30 @@ class HTTPInterfaceExporter: InterfaceExporter {
             try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .requestResponse,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
+            )
+        case .clientSideStream:
+            try! app.httpServer.registerRoute(
+                knowledge.method,
+                path,
+                .clientSideStream,
+                handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
             try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .serviceSideStream,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
-        default:
-            logger.warning("HTTP exporter can only handle 'CommunicationPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
-            self.export(endpoint)
+        case .bidirectionalStream:
+            try! app.httpServer.registerRoute(
+                knowledge.method,
+                path,
+                .bidirectionalStream,
+                handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         }
     }
     
