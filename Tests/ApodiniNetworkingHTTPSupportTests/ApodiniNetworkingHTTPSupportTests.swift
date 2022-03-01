@@ -13,9 +13,7 @@ import ApodiniNetworking
 import ApodiniNetworkingHTTPSupport
 
 class ApodiniNetworkingHTTPSupportTests: XCTestCase {
-    
     func testAccessControlAllowOriginHTTPResponseHeader() throws {
-        
         let app = Application()
         
         app.httpServer.registerRoute(.GET, "test") { req in
@@ -36,7 +34,6 @@ class ApodiniNetworkingHTTPSupportTests: XCTestCase {
     }
     
     func testAccessControlAllowOriginWildcardHTTPResponseHeader() throws {
-        
         let app = Application()
         
         app.httpServer.registerRoute(.GET, "test") { req in
