@@ -48,9 +48,10 @@ protocol Router {
     /// new client connects. Closing the connection may be requested by the client (a completion is sent
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
+        on identifier: String,
         _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
-            (default: I, output: AnyAsyncSequence<Message<O>>),
-        on identifier: String)
+            (default: I, output: AnyAsyncSequence<Message<O>>)
+    )
 }
 
 /// A `Router` that is based on Vapor's WebSocket API. It only exposes one HTTP endpoint that runs
@@ -131,8 +132,8 @@ final class VaporWSRouter: Router {
     /// the connection is `unexpectedServerError`. A `WSClosingError` can be used to specifiy a
     /// different code.
     func register<I: Input, O: Encodable>(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) -> (default: I, output: AnyAsyncSequence<Message<O>>),
-        on identifier: String
+        on identifier: String,
+        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) -> (default: I, output: AnyAsyncSequence<Message<O>>)
     ) {
         if self.endpoints[identifier] != nil {
             self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.httpPathString) was registered more than once.")
