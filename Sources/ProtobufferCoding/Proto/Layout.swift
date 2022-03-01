@@ -90,6 +90,10 @@ struct ProtobufFieldsMapping: Hashable {
         storage.flatMap(\.value)
     }
     
+    var count: Int {
+        storage.reduce(into: 0) { $0 += $1.value.count }
+    }
+    
     func debugPrintFieldsInfo() {
         for (fieldTag, fields) in storage.sorted(by: \.key) {
             for field in fields {

@@ -693,6 +693,7 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Runtime", package: "Runtime"),

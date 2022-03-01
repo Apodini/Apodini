@@ -10,6 +10,7 @@ import NIO
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
+import Apodini
 
 
 public enum ProtoSyntax: String {
@@ -271,6 +272,12 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
         return .message
+    } else if type == Blob.self {
+        return getProtoCodingKind(ApodiniBlob.self)
+    } else if type == URL.self || type == UUID.self {
+        return getProtoCodingKind(String.self)
+    } else if type == Date.self {
+        return getProtoCodingKind(ProtoTimestamp.self)
     }
     
     if let optionalTy = type as? AnyOptional.Type {

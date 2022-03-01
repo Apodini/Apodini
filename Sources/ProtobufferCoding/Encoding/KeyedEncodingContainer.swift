@@ -9,6 +9,7 @@
 // swiftlint:disable syntactic_sugar
 
 import NIO
+import Apodini
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
@@ -229,16 +230,13 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             try encode(uuidValue.uuidString, forKey: key)
         } else if let dateValue = value as? Foundation.Date {
             precondition(type(of: value) == Date.self)
-//            let unixEpochOffset = dateValue.timeIntervalSince1970
-//            let timestamp = ProtoTimestamp(
-//                seconds: Int64(unixEpochOffset),
-//                nanos: Int32((unixEpochOffset - floor(unixEpochOffset)) * 1e9)
-//            )
             let timestamp = ProtoTimestamp(timeIntervalSince1970: dateValue.timeIntervalSince1970)
             try encode(timestamp, forKey: key)
         } else if let urlValue = value as? Foundation.URL {
             precondition(type(of: value) == URL.self)
             try encode(urlValue.absoluteURL.resolvingSymlinksInPath().absoluteString, forKey: key)
+        } else if let blob = value as? Apodini.Blob {
+            try encode(ApodiniBlob(blob: blob), forKey: key)
         } else if let array = value as? Array<UInt8>, type(of: value) == Array<UInt8>.self {
             // ^^^ We need the additional type(of:) check bc Swift will happily convert
             // empty arrays of type X to empty arrays of type Y :/

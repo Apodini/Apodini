@@ -25,8 +25,27 @@ public struct ProtobufferDecoder {
     public func decode<T: Decodable>(_: T.Type, from buffer: ByteBuffer) throws -> T {
         // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
         try validateTypeIsProtoCompatible(T.self)
-        let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
-        return try T(from: decoder)
+        // Similar to how the Encoder works, we have to wrap the bytes in a message, to ensure that the decoding goes through the KeyedDecodingContainer,
+        // which will apply type transformations and other special handling.
+        // Technically this is only necessary for siruations where a type with special handling (e.g.: Date, URL, UUID, etc) is used as a top-level type
+        // (which is rather rare), but since there is no good way of checking this we just have all types go through this.
+        var wrappingBuffer = ByteBufferAllocator().buffer(capacity: buffer.readableBytes + 4)
+        guard let wireType = guessWireType(T.self) else {
+            let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
+            return try T(from: decoder)
+        }
+        wrappingBuffer.writeInteger((1 << 3) | wireType.rawValue, as: UInt8.self)
+        switch wireType {
+        case ._32Bit, ._64Bit, .varInt:
+            break
+        case .lengthDelimited:
+            wrappingBuffer.writeProtoVarInt(buffer.readableBytes)
+        case .startGroup, .endGroup:
+            break
+        }
+        wrappingBuffer.writeImmutableBuffer(buffer)
+        let decoder = _ProtobufferDecoder(codingPath: [], buffer: wrappingBuffer)
+        return try CodableBox<T>(from: decoder).value
     }
     
     /// Decodes a value from the specified buffer, at the specified field

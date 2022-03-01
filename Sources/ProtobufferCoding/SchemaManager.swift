@@ -910,6 +910,12 @@ public class ProtoSchema {
                 requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
                 singleParamHandlingContext: singleParamHandlingContext
             ))
+        } else if type == Blob.self {
+            return cacheRetval(try protoType(
+                for: ApodiniBlob.self,
+                requireTopLevelCompatibleOutput: requireTopLevelCompatibleOutput,
+                singleParamHandlingContext: singleParamHandlingContext
+            ))
         } else if type == Array<UInt8>.self || type == Data.self {
             precondition((type as? ProtobufBytesMapped.Type) != nil)
             if !requireTopLevelCompatibleOutput {

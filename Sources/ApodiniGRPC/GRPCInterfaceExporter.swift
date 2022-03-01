@@ -155,7 +155,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(blob endpoint: Endpoint<H>) where H.Response.Content == Blob {
-        logger.warning("Skipping endpoint \(endpoint). The gRPC interface exporter does not support Blob handlers")
+        export(endpoint)
     }
     
     
@@ -464,6 +464,9 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
             if underlyingType == T.self {
                 return try ProtobufferDecoder().decode(T.self, from: input.payload)
             }
+            if !endpointContext.endpointInputIsWrapped {
+                return try ProtobufferDecoder().decode(T.self, from: input.payload)
+            }
             guard let field = fields.first(where: { $0.name == name }) else {
                 throw DecodingError(message: "Unable to find field named '\(name)' in proto message type.")
             }
@@ -480,6 +483,10 @@ class GRPCEndpointContext: Hashable {
     let communicationPattern: CommunicationPattern
     var endpointRequestType: ProtoType?
     var endpointResponseType: ProtoType?
+    /// Whether the inputs of the endpoint are wrapped in a synthesised message type.
+    /// This is the case if an endpoint has multiple `@Parameter`s, which need to be wrapped since gRPC methods can only have one input parameter.
+    /// By default all endpoints will have a custom synthesised wrapper message type, but in some cases this will be skipped (e.g. if an endpoint has only one parameter)
+    var endpointInputIsWrapped: Bool = true
     
     init(communicationPattern: CommunicationPattern) {
         self.communicationPattern = communicationPattern
