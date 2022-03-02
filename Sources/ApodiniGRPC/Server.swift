@@ -238,7 +238,6 @@ class GRPCMethod {
         let messageTypes = try! schema.informAboutEndpoint(endpoint, grpcMethodName: name)
         endpointContext.endpointRequestType = messageTypes.input
         endpointContext.endpointResponseType = messageTypes.output
-        endpointContext.endpointInputIsWrapped = endpoint.parameters.count > 1
         self.inputType = messageTypes.input
         self.outputType = messageTypes.output
 

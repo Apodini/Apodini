@@ -486,7 +486,16 @@ class GRPCEndpointContext: Hashable {
     /// Whether the inputs of the endpoint are wrapped in a synthesised message type.
     /// This is the case if an endpoint has multiple `@Parameter`s, which need to be wrapped since gRPC methods can only have one input parameter.
     /// By default all endpoints will have a custom synthesised wrapper message type, but in some cases this will be skipped (e.g. if an endpoint has only one parameter)
-    var endpointInputIsWrapped: Bool = true
+    var endpointInputIsWrapped: Bool {
+        switch endpointRequestType {
+        case .message(name: _, underlyingType: .none, nestedOneofTypes: _, fields: _):
+            return true
+        case .message(name: _, underlyingType: .some, nestedOneofTypes: _, fields: _):
+            return false
+        case nil, .primitive, .enumTy, .refdMessageType:
+            return true
+        }
+    }
     
     init(communicationPattern: CommunicationPattern) {
         self.communicationPattern = communicationPattern
