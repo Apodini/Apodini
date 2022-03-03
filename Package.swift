@@ -225,6 +225,15 @@ let package = Package(
                 .target(name: "ApodiniUtils")
             ]
         ),
+        
+        .testTarget(
+            name: "ApodiniNetworkingHTTPSupportTests",
+            dependencies: [
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniNetworkingHTTPSupport")
+            ]
+        ),
 
         .target(
             name: "ApodiniDatabase",

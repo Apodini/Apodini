@@ -259,6 +259,8 @@ public extension AnyHTTPHeaderName {
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
     /// The `ETag` HTTP header field
     static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
+    /// The `Access-Control-Allow-Origin` header field
+    static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
 }
 
 
@@ -597,5 +599,33 @@ extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValue
     public func encodeToHTTPHeaderFieldValue() -> String {
         self.map { $0.encodeToHTTPHeaderFieldValue() }
             .joined(separator: ", ")
+    }
+}
+
+public enum AccessControlAllowOriginHeaderValue: HTTPHeaderFieldValueCodable {
+    case wildcard
+    case origin(String)
+    case null
+    
+    public init?(httpHeaderFieldValue value: String) {
+        switch value {
+        case "*":
+            self = .wildcard
+        case "null":
+            self = .null
+        default:
+            self = .origin(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .wildcard:
+            return "*"
+        case .origin(let origin):
+            return origin
+        case .null:
+            return "null"
+        }
     }
 }
