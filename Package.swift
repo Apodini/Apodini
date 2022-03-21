@@ -58,6 +58,9 @@ let package = Package(
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
         .library(name: "ApodiniMigrationCommon", targets: ["ApodiniMigrationCommon"]),
 
+        // Audit
+        .library(name: "ApodiniAudit", targets: ["ApodiniAudit"]),
+        
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
@@ -759,6 +762,17 @@ let package = Package(
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
+            ]
+        ),
+        
+        //
+        // MARK: Audit
+        //
+        
+        .target(
+            name: "ApodiniAudit",
+            dependencies: [
+                .target(name: "Apodini")
             ]
         )
     ]
