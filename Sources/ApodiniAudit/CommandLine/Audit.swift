@@ -12,12 +12,14 @@ import ArgumentParser
 
 // MARK: - Audit
 
+// Taken from `Migrator`
+
 struct Audit<Service: WebService>: ParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "audit",
             abstract: "Root subcommand of `ApodiniAudit`",
-            discussion: "Audits the web service with regards to HTTP and REST best practiaces",
+            discussion: "Audits the web service with regards to HTTP and REST best practices",
             version: "0.1.0",
             subcommands: [
                 `default`,
@@ -27,6 +29,26 @@ struct Audit<Service: WebService>: ParsableCommand {
     }
     
     private static var `default`: ParsableCommand.Type {
-        AuditRun.self
+        AuditRun<Service>.self
+    }
+}
+
+// MARK: - AuditParsableSubcommand
+protocol AuditParsableSubcommand: ParsableCommand {
+    associatedtype Service: WebService
+    
+    var webService: Service { get }
+    
+    func run(app: Application) throws
+}
+
+extension AuditParsableSubcommand {
+    func run() throws {
+        try run(app: Application())
+    }
+    
+    func start(_ app: Application) throws {
+        // Only builds the semantic model to run the InterfaceExporters, does not run the web service
+        try Service.start(mode: .startup, app: app, webService: webService)
     }
 }

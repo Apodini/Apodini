@@ -11,7 +11,7 @@ import Apodini
 import ArgumentParser
 
 // MARK: - AuditRun
-struct AuditRun: ParsableCommand {
+struct AuditRun<Service: WebService>: AuditParsableSubcommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "run",
@@ -21,7 +21,10 @@ struct AuditRun: ParsableCommand {
         )
     }
     
+    @OptionGroup
+    var webService: Service
+    
     func run(app: Application) throws {
-        print("Hi")
+        try start(app)
     }
 }
