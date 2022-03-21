@@ -382,3 +382,20 @@ extension Dictionary {
         return retval
     }
 }
+
+
+
+// MARK: Comparable
+
+extension Comparable {
+    /// Performs a three-way comparison between `self` and `other`, with the receiver acting as the comparison's left operand and `other` acting as its right operand.
+    public func compareThreeWay(_ other: Self) -> ComparisonResult {
+        if self < other {
+            return .orderedAscending
+        } else if self == other {
+            return .orderedSame
+        } else {
+            return .orderedDescending
+        }
+    }
+}

@@ -23,10 +23,18 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     }
     
     private enum State {
+        /// The channel handler is ready to handle a new request.
         case ready
+        /// The channel handler has received a HEADER frame, and is currently waiting for the request's body
         case awaitingBody(HTTPRequest)
+        /// The channel handler is collecting the contents of a non-streaming request body.
+        /// This is the case if the request's expected communication pattern is non-streaming and the specified `Content-Length` is larger than the so-far received data.
+        case collectingNonStreamBody(HTTPRequest, expectedContentLength: Int)
+        /// The channel handler is reading the contents of a streaming request,
         case readingBodyStream(HTTPRequest)
+        /// The channel handler has finished reading the request body, and is now waiting for the request's end.
         case awaitingEnd(HTTPRequest)
+        /// The channel handler has encountered an error, and is now closed.
         case closed
     }
     
@@ -88,6 +96,9 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
                     requestVersion: req.version,
                     errorMessage: "'Transfer-Encoding: chunked' not supported. Use HTTP/2 instead."
                 )
+            } else if let contentLength = req.headers[.contentLength], contentLength > bodyBuffer.readableBytes {
+                req.bodyStorage = .buffer(bodyBuffer)
+                state = .collectingNonStreamBody(req, expectedContentLength: contentLength)
             } else if let expectedCommPattern = responder.expectedCommunicationPattern(for: req), expectedCommPattern.isStream {
                 req.bodyStorage = .stream()
                 state = .readingBodyStream(req)
@@ -95,6 +106,7 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             } else {
                 // Either there is no Content-Length header, or it has a size that doesn't match the body we were sent
                 logger.error("Potentially unhandled incoming HTTP request")
+                logger.error("headers: \(req.headers)")
                 logger.error("reqBody: \(bodyBuffer)")
                 handleError(context: context, requestVersion: req.version, errorMessage: nil)
             }
@@ -103,18 +115,38 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             context.fireChannelRead(wrapInboundOut(req))
             state = .ready
         
-        case (.awaitingEnd(let req), .head):
+        case let (.collectingNonStreamBody(req, _), .head):
             handleError(
                 context: context,
                 requestVersion: req.version,
-                errorMessage: "Received unexpected head when waiting for end"
+                errorMessage: "Received unexpected head while collecting body"
+            )
+        
+        case let (.collectingNonStreamBody(req, expectedContentLength), .body(bodyBuffer)):
+            req.bodyStorage.write(bodyBuffer)
+            switch req.bodyStorage.readableBytes.compareThreeWay(expectedContentLength) {
+            case .orderedAscending:
+                // There's still more data to come.
+                break
+            case .orderedDescending:
+                logger.error("Received more request body data than expected (Content-Length header: \(expectedContentLength), received: \(req.bodyStorage.readableBytes))")
+                fallthrough
+            case .orderedSame:
+                state = .awaitingEnd(req)
+            }
+        
+        case let (.collectingNonStreamBody(req, _), .end):
+            handleError(
+                context: context,
+                requestVersion: req.version,
+                errorMessage: "Received unexpected end while collecting body"
             )
         
         case let (.readingBodyStream(req), .head):
             handleError(
                 context: context,
                 requestVersion: req.version,
-                errorMessage: "Received unexpected head when reading body stream"
+                errorMessage: "Received unexpected head while reading body stream"
             )
         
         case let (.readingBodyStream(req), .body(bodyBuffer)):
@@ -123,6 +155,13 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
         case let (.readingBodyStream(req), .end):
             req.bodyStorage.stream!.close()
             state = .ready
+        
+        case (.awaitingEnd(let req), .head):
+            handleError(
+                context: context,
+                requestVersion: req.version,
+                errorMessage: "Received unexpected head when waiting for end"
+            )
         
         case (.awaitingEnd(let req), .body):
             handleError(context: context, requestVersion: req.version, errorMessage: nil)
