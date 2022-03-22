@@ -315,7 +315,8 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniMigrationCommon")
+                .target(name: "ApodiniMigrationCommon"),
+                .target(name: "ApodiniAudit")
             ]
         ),
         

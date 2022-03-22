@@ -12,6 +12,7 @@ import ApodiniUtils
 import ApodiniNetworking
 import ApodiniHTTPProtocol
 import ApodiniMigrationCommon
+import ApodiniAudit
 import Foundation
 
 
@@ -172,6 +173,8 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
                 app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
             }
         }
+        
+        Audit.audit(endpoint)
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {

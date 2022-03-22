@@ -14,7 +14,7 @@ import ArgumentParser
 
 // Taken from `Migrator`
 
-struct Audit<Service: WebService>: ParsableCommand {
+struct AuditCommand<Service: WebService>: ParsableCommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(
             commandName: "audit",
@@ -29,7 +29,7 @@ struct Audit<Service: WebService>: ParsableCommand {
     }
     
     private static var `default`: ParsableCommand.Type {
-        AuditRun<Service>.self
+        AuditRunCommand<Service>.self
     }
 }
 
