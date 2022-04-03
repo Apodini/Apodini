@@ -9,12 +9,21 @@ import Foundation
 import Apodini
 
 struct AppropriateLengthForURLPathSegments: BestPractice {
-    func check<H: Handler>(_ app: Application, _ endpoint: Endpoint<H>) {
+    static var category = BestPracticeCategory.urlPath
+    
+    static let minimumLength = 3
+    static let maximumLength = 30
+    
+    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
         // Go through all the path segments
         for segment in endpoint.absolutePath {
             if case .string(let identifier) = segment {
-                app.logger.info("\(identifier)")
+                if identifier.count < minimumLength || identifier.count > maximumLength {
+                    return AuditReport(message: "The path segment \"\(identifier)\" is too short or too long", auditResult: .fail)
+                }
             }
         }
+        
+        return AuditReport(message: "The path segments have appropriate lengths", auditResult: .success)
     }
 }

@@ -1,0 +1,28 @@
+//
+//  File.swift
+//  
+//
+//  Created by Simon Bohnen on 3/21/22.
+//
+
+import Foundation
+import Apodini
+
+public class Auditor {
+    static var audits: [Audit] = []
+    
+    public static func audit<H: Handler>(_ app: Application, _ endpoint: Endpoint<H>) {
+        // Audit the given endpoint.
+        // Iterate over all best practices. Using reflection?
+        // figure out which ones are silenced for the current endpoint
+        for bestPracticeType in bestPractices {
+            audits.append(bestPracticeType.audit(app, endpoint))
+        }
+    }
+}
+
+extension Auditor {
+    static let bestPractices: [BestPractice.Type] = [
+        AppropriateLengthForURLPathSegments.self
+    ]
+}
