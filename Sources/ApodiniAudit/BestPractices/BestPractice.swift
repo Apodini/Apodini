@@ -9,5 +9,5 @@ import Foundation
 import Apodini
 
 protocol BestPractice {
-    func check<H: Handler>(_ endpoint: Endpoint<H>)
+    func check<H: Handler>(_ app: Application, _ endpoint: Endpoint<H>)
 }

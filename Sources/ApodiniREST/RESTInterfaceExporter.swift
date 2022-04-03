@@ -174,7 +174,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             }
         }
         
-        Audit.audit(endpoint)
+        Audit.audit(app, endpoint)
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
