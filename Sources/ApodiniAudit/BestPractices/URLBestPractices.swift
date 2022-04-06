@@ -9,22 +9,47 @@
 import Foundation
 import Apodini
 
-struct AppropriateLengthForURLPathSegments: BestPractice {
+protocol URLSegmentBestPractice: BestPractice {
+    static var successMessage: String { get }
+    
+    static func checkSegment(segment: String) -> String?
+}
+
+extension URLSegmentBestPractice {
+    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
+        for segment in endpoint.absolutePath {
+            if case .string(let identifier) = segment,
+                let failMessage = checkSegment(segment: identifier) {
+                return AuditReport(message: failMessage, auditResult: .fail)
+            }
+        }
+        return AuditReport(message: successMessage, auditResult: .success)
+    }
+}
+
+struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
     static var category = BestPracticeCategory.urlPath
+    static var successMessage = "The path segments have appropriate lengths"
     
     static let minimumLength = 3
     static let maximumLength = 30
     
-    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
-        // Go through all the path segments
-        for segment in endpoint.absolutePath {
-            if case .string(let identifier) = segment {
-                if identifier.count < minimumLength || identifier.count > maximumLength {
-                    return AuditReport(message: "The path segment \"\(identifier)\" is too short or too long", auditResult: .fail)
-                }
-            }
+    static func checkSegment(segment: String) -> String? {
+        if segment.count < minimumLength || segment.count > maximumLength {
+            return "The path segment \"\(segment)\" is too short or too long"
         }
-        
-        return AuditReport(message: "The path segments have appropriate lengths", auditResult: .success)
+        return nil
+    }
+}
+
+struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
+    static var category = BestPracticeCategory.urlPath
+    static var successMessage = "The path segments do not contain any underscores"
+    
+    static func checkSegment(segment: String) -> String? {
+        if segment.contains("_") {
+            return "The path segment \(segment) contains one or more underscores"
+        }
+        return nil
     }
 }

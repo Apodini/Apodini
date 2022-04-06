@@ -174,6 +174,8 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             }
         }
         
+        // TODO Use this to only run audit when wanted
+        // app.logger.info("\(app.storage[AuditStorageKey.self])")
         Auditor.audit(app, endpoint)
     }
     
