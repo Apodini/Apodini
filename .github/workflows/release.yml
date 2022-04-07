@@ -16,7 +16,7 @@ on:
 jobs:
   docs:
     name: Generate Docs
-    uses: Apodini/.github/.github/workflows/docs.yml@main
+    uses: Apodini/.github/.github/workflows/docs.yml@feature/docc
     with:
       targetname: Apodini
   docker-build-and-push:
