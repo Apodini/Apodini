@@ -19,7 +19,7 @@ on:
 jobs:
   macos:
     name: macOS ${{ matrix.configuration }}
-    runs-on: macos-11
+    runs-on: macos-12
     strategy:
       fail-fast: false
       matrix:
