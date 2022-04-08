@@ -64,6 +64,7 @@ let package = Package(
         .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0"),
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`
@@ -223,6 +224,15 @@ let package = Package(
                 .target(name: "XCTUtils"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNetworkingHTTPSupportTests",
+            dependencies: [
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniNetworkingHTTPSupport")
             ]
         ),
 
