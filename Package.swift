@@ -775,6 +775,16 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini")
             ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniAuditTests",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniAudit"),
+                .target(name: "XCTApodini"),
+                .product(name: "Logging", package: "swift-log")
+            ]
         )
     ]
 )

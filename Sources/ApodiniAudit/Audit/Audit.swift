@@ -16,7 +16,7 @@ struct Audit {
     var bestPracticeType: BestPractice.Type
 }
 
-struct AuditReport {
+public struct AuditReport {
     var message: String
     var auditResult: AuditResult
 }

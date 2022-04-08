@@ -9,7 +9,7 @@
 import Foundation
 import Apodini
 
-protocol BestPractice {
+public protocol BestPractice {
     static var category: BestPracticeCategory { get }
     
     static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport
@@ -22,7 +22,7 @@ extension BestPractice {
     }
 }
 
-enum BestPracticeCategory {
+public enum BestPracticeCategory {
     // TODO complete list from Masse
     case urlPath, statusCode
 }
