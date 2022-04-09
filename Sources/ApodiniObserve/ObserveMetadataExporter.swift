@@ -80,8 +80,9 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
               let rawEndpointName = splitted.split(separator: ",").first else {
                   return endpointName
               }
-        
-        return String(rawEndpointName)
+
+        let endIndex = rawEndpointName.firstIndex(of: ">") ?? rawEndpointName.endIndex
+        return String(rawEndpointName[..<endIndex])
     }
 }
 

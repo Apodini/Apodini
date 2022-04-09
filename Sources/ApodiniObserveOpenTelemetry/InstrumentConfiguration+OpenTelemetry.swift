@@ -8,6 +8,7 @@
 
 import Apodini
 import ApodiniObserve
+import Logging
 import OpenTelemetry
 import OtlpGRPCSpanExporting
 import Tracing
@@ -16,11 +17,19 @@ import Tracing
 extension InstrumentConfiguration {
     /// Default OpenTelemetry `Instrument`, exporting spans to an OpenTelemetry collector via gRPC in the OpenTelemetry protocol (OTLP).
     /// - Parameter serviceName: The name of the `WebService` being traced.
-    public static func defaultOpenTelemetry(serviceName: String) -> InstrumentConfiguration {
+    public static func defaultOpenTelemetry(
+        serviceName: String,
+        otlpHost: String? = nil,
+        otlpPort: UInt? = nil
+    ) -> InstrumentConfiguration {
         openTelemetryWithConfig(
             serviceName: serviceName,
             processor: { group in
-                let exporter = OtlpGRPCSpanExporter(config: .init(eventLoopGroup: group))
+                let exporter = OtlpGRPCSpanExporter(config: .init(
+                    eventLoopGroup: group,
+                    host: otlpHost,
+                    port: otlpPort
+                ))
                 return OTel.SimpleSpanProcessor(exportingTo: exporter)
             }
         )

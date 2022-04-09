@@ -367,8 +367,8 @@ In order to use Apodini's tracing capabilities in combination with an appropriat
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Apodini/Apodini.git, from: "<version>"),
-    .package(url: "https://github.com/slashmo/opentelemetry-swift.git", from: "0.1.1")
+    .package(url: "https://github.com/Apodini/Apodini.git", from: "<version>"),
+    .package(url: "https://github.com/slashmo/opentelemetry-swift.git", from: "0.2.0")
 ],
 targets: [
     .executableTarget(
@@ -485,14 +485,19 @@ struct ExampleWebService: WebService {
 
 ### Instrument
 
-Currently Apodini doesn't offer any automatic tracing of ``Handler``s, but only exposes the `InstrumentationSystem.tracer` through the ``Application``. After configuring the tracing system, ``Handler``s can be traced as follows:
+After configuration, the bootstrapped `Instrument`s / `Tracer`s are exposed through Apodini's ``Environment`` property wrapper. They can be used to instrument ``Handler``s as follows, though it is recommended to use the [Continuous Observability](#continuous-observability) capabilities of ApododiniObserve instead. The API documentation of the `Instrument` and `Tracer` types can be found on the [GitHub page of swift-distributed-tracing](https://github.com/apple/swift-distributed-tracing).
 
 ```swift
-struct Greeter: Handler {    
-    @Environment(\.tracer) var tracer: Tracer
+struct Greeter: Handler {  
+    @Environment(\.instrument) var instrument
+    @Environment(\.tracer) var tracer
+    @Environment(\.connection) var connection
 
     func handle() -> String {
-        let span = tracer.startSpan(operationName: "Greeter.handle()", context: context)
+        var baggage = Baggage.topLevel
+        instrument.extract(connection.information, into: &baggage, using: HTTPInformationExtractor())
+
+        let span = tracer.startSpan(operationName: "Greeter.handle()", baggage: baggage, ofKind: .server)
         defer { span.end() }
 
         return "Hello World!"
@@ -500,13 +505,13 @@ struct Greeter: Handler {
 }
 ```
 
-Refer to the [swift-distributed-tracing instrumentation documentation](https://github.com/apple/swift-distributed-tracing#instrumenting-your-code) for more complex examples.
-
 ## Continuous Observability
 
-Until now, the documentation has introduced features of ApodiniObserve that enable developers to manually instrument ``Handler``’s in order to collect observability data. However, as mentioned in the introduction, `ApodiniObserve` also offers functionalities to completly automate the instrumentation process in an `Apodini` ``WebService``. This means that developers only have to specify once what telemetry data should be collected for what parts of the ``WebService``, `ApodiniObserve` will then automatically instrument these ``Handler``'s without further interactions by the developers. `ApodiniObserve` offers a range of default observability data that can be configured to be collected and also offers the developer the ability to define own observability data that should be colleced for the entire or parts of the ``WebService``.
+Until now, the documentation has introduced features of ApodiniObserve that enable developers to manually instrument ``Handler``’s in order to collect observability data. However, as mentioned in the introduction, `ApodiniObserve` also offers functionalities to completly automate the instrumentation process in an `Apodini` ``WebService``. This means that developers only have to specify once what telemetry data should be collected for what parts of the ``WebService``, `ApodiniObserve` will then automatically instrument these ``Handler``s without further interactions by the developers. `ApodiniObserve` offers a range of default observability data that can be configured to be collected and also offers the developer the ability to define own observability data that should be colleced for the entire or parts of the ``WebService``.
 
-The entire automated instrumentation process is realized via a `RecordingHandler`, which can be thought of as a wrapper around a ``Handler``. Instead of the ``Handler`` itself, the `RecordingHandler` is executed, which collects telemetry information before and after the execution of the ``Handler``. Furthermore, in case of an exception, the `RecordingHandler` also is able to collect observability data.
+### Logging & Metrics
+
+The entire Logging & Metrics automated instrumentation process is realized via a `RecordingHandler`, which can be thought of as a wrapper around a ``Handler``. Instead of the ``Handler`` itself, the `RecordingHandler` is executed, which collects telemetry information before and after the execution of the ``Handler``. Furthermore, in case of an exception, the `RecordingHandler` also is able to collect observability data.
 Before the incoming ``Request`` is processed by the evaluation of the ``Handler``, so-called `RecordingClosures` are executed. For example, they start the timer of a response time metric or create a log entry informing the developer about each incoming ``Request``. Then, the application logic in the ``Handler`` is executed. Depending on the outcome of this evaluation, the "normal" `RecordingClosures` or the exception `RecordingClosures` are executed. These are able to share information with the `RecordingClosures` executed before the ``Handler`` evaluation, for example, to stop and persist a response time metric. Additionally, as it is sometimes important for the instrumentation decision to access context information about the ``Handler``’s evaluation, metadata is passed to the `RecordingClosures`.
 The functionality is visualized in the figure below.
 
@@ -549,7 +554,46 @@ struct ExampleRecorder: Recorder {
     var after: [AfterRecordingClosure] = []
     var afterException: [AfterExceptionRecordingClosure] = []
 }
+```
 
+### Tracing
+
+Automated tracing of `Handler`s is realized, similarly to Logging & Metrics, using Apodini's ``Delegate`` mechanism. Any `Handler` can be wrapped inside a `TracingHandler` which handles interaction with swift-distributed-tracing's `InstrumentationSystem`. The handler traces the delegate handler as follows:
+
+1. Extract `Baggage` from the handler's connection
+2. Start a `Span` using the `Baggage`
+3. Set span attributes from ApodiniObserve's `ObserveMetadata`
+4. Handle the request using the delegate, injecting the `Span` as an ``EnvironmentObject``
+    - If a ``ErrorType.serverError``, ``ErrorType.notAvailable``, or ``ErrorType.other`` error occured during request handling, the span's status, error and additional attributes are set from the `LoggingMetadata`
+    - If a any other error occured during request handling, only the span's status and error attributes are set.
+5. End the `Span`
+
+The automated tracing can be configured on a per-``Component`` level using the ``TracingMetadata`` (typealias `Tracing` in the ``ComponentMetadataNamespace``). Additionally, the `.trace(isEnabled:)` modifier can be used. The following example shows how tracing can be enabled on a component and how the injected `Span` can be passed on to facilitate distributed tracing.
+
+```swift
+import Apodini
+import ApodiniObserve
+import Tracing
+
+struct ExampleWebService: WebService {
+    // ...configuration
+
+    var content: some Component {
+        Group("greeter") {
+            Greeter()
+        }.trace()
+    }
+}
+
+struct Greeter: Handler {
+    @Environment(\.databaseService) var databaseService
+    @EnvironmentObject var span: Span
+
+    func handle() async throws -> String {
+        let name = databaseService.getName(baggage: span.baggage)
+        return "Hello, \(name)!"
+    }
+}
 ```
 
 ## Topics

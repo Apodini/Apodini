@@ -21,18 +21,17 @@ public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
     }
     
     public func transform(input: Apodini.Response<H.Response.Content>) throws -> HTTPResponse {
-        let body: ByteBuffer
-        if let content = input.content {
-            body = .init(data: try encoder.encode(content))
-        } else {
-            body = .init()
-        }
         let response = HTTPResponse(
             version: .http1_1, // placeholder, actual value will be set below
             status: input.responseStatus,
-            headers: HTTPHeaders(input.information),
-            bodyStorage: .buffer(body)
+            headers: HTTPHeaders(input.information)
         )
+        var body = ByteBuffer()
+        if let content = input.content {
+            try encoder.encode(content, to: &body, headers: &response.headers)
+        }
+        response.bodyStorage = .buffer(body)
+
         if let httpVersion = input.information[HTTPRequest.InformationEntryHTTPVersion.Key.shared] {
             response.version = httpVersion
         } else {
