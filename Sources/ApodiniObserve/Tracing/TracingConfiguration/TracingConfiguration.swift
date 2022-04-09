@@ -18,12 +18,19 @@ public final class TracingConfiguration: Configuration {
 
     /// The value key for Tracing-related information.
     public struct TracingStorageValue {
+        /// The application `Instrument`.
+        public let instrument: Instrument
         /// The application `Tracer`.
         public let tracer: Tracer
         /// The configuration used by `Instrument` instances.
         public let configuration: TracingConfiguration
 
-        init(tracer: Tracer, configuration: TracingConfiguration) {
+        init(
+            instrument: Instrument,
+            tracer: Tracer,
+            configuration: TracingConfiguration
+        ) {
+            self.instrument = instrument
             self.tracer = tracer
             self.configuration = configuration
         }
@@ -68,8 +75,21 @@ public final class TracingConfiguration: Configuration {
         constructedInstruments
             .compactMap { $0.instrumentShutdown.map(InstrumentConfiguration.Lifecycle.init(instrumentShutdown:)) }
             .forEach { app.lifecycle.use($0) }
+
+        // Add ObserveMetadataExporter
+        if !app.checkRegisteredExporter(exporterType: ObserveMetadataExporter.self) {
+            let metadataExporter = ObserveMetadataExporter(app, self)
+            app.registerExporter(exporter: metadataExporter)
+        }
         
         // Write configuration to the storage
-        app.storage.set(TracingStorageKey.self, to: TracingStorageValue(tracer: app.tracer, configuration: self))
+        app.storage.set(
+            TracingStorageKey.self,
+            to: TracingStorageValue(
+                instrument: InstrumentationSystem.instrument,
+                tracer: InstrumentationSystem.tracer,
+                configuration: self
+            )
+        )
     }
 }
