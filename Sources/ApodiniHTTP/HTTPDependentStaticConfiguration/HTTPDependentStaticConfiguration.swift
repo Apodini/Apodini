@@ -9,27 +9,27 @@
 import Apodini
 
 /// `HTTPDependentStaticConfiguration`s are used to register static services dependent on the `HTTPInterfaceExporter`
-public protocol RESTDependentStaticConfiguration {
+public protocol HTTPDependentStaticConfiguration {
     /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
-    ///    - parentConfiguration: The `RESTExporterConfiguration` of the parent of the dependent exporter
-    func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration)
+    ///    - parentConfiguration: The `HTTPExporterConfiguration` of the parent of the dependent exporter
+    func configure(_ app: Application, parentConfiguration: HTTP.ExporterConfiguration)
 }
 
-/// The default configuration is an `EmptyRESTDependentStaticConfiguration`
-public struct EmptyRESTDependentStaticConfiguration: RESTDependentStaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) { }
+/// The default configuration is an `EmptyHTTPDependentStaticConfiguration`
+public struct EmptyHTTPDependentStaticConfiguration: HTTPDependentStaticConfiguration {
+    public func configure(_ app: Application, parentConfiguration: HTTP.ExporterConfiguration) { }
     
     public init() { }
 }
 
-extension Array where Element == RESTDependentStaticConfiguration {
+extension Array where Element == HTTPDependentStaticConfiguration {
     /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
     ///    - parentConfiguration: The `Configuration` of the parent of the dependent static exporters
-    func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) {
+    func configure(_ app: Application, parentConfiguration: HTTP.ExporterConfiguration) {
         forEach {
             $0.configure(app, parentConfiguration: parentConfiguration)
         }

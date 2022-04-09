@@ -17,6 +17,7 @@ import ApodiniNetworking
 /// Public Apodini Interface Exporter for basic HTTP
 public final class HTTP: Configuration {
     let configuration: ExporterConfiguration
+    var staticConfigurations: [HTTPDependentStaticConfiguration]
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -50,6 +51,8 @@ public final class HTTP: Configuration {
             caseInsensitiveRouting: caseInsensitiveRouting,
             rootPath: rootPath
         )
+        
+        staticConfigurations = []
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -58,6 +61,35 @@ public final class HTTP: Configuration {
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
+        
+        staticConfigurations.configure(app, parentConfiguration: self.configuration)
+    }
+}
+
+extension HTTP {
+    /// Initializes the configuration of the `HTTPInterfaceExporter` with (default) JSON Coders and possibly associated configurations, e.g. OpenAPI or APIAuditor
+    /// - Parameters:
+    ///    - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
+    ///    - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
+    ///    - rootPath: Configures the root path for the HTTP endpoints
+    ///    - staticConfigurations: A result builder that allows passing dependent static Exporters like the OpenAPI Exporter
+    public convenience init(
+        encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
+        decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
+        caseInsensitiveRouting: Bool = false,
+        rootPath: RootPath? = nil,
+        @HTTPDependentStaticConfigurationBuilder staticConfigurations: () -> [HTTPDependentStaticConfiguration] = { [] }
+    ) {
+        self.init(
+            encoder: encoder,
+            decoder: decoder,
+            urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
+            caseInsensitiveRouting: caseInsensitiveRouting,
+            rootPath: rootPath
+        )
+        self.staticConfigurations = staticConfigurations()
     }
 }
 

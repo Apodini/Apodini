@@ -315,8 +315,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniMigrationCommon"),
-                .target(name: "ApodiniAudit")
+                .target(name: "ApodiniMigrationCommon")
             ]
         ),
         
@@ -773,7 +772,9 @@ let package = Package(
         .target(
             name: "ApodiniAudit",
             dependencies: [
-                .target(name: "Apodini")
+                .target(name: "Apodini"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP")
             ]
         ),
         

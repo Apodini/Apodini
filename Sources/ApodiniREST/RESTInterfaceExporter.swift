@@ -12,7 +12,6 @@ import ApodiniUtils
 import ApodiniNetworking
 import ApodiniHTTPProtocol
 import ApodiniMigrationCommon
-import ApodiniAudit
 import Foundation
 
 
@@ -176,7 +175,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
         
         // TODO Use this to only run audit when wanted
         // app.logger.info("\(app.storage[AuditStorageKey.self])")
-        Auditor.audit(app, endpoint)
+        // Auditor.audit(app, endpoint)
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
