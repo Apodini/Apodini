@@ -8,15 +8,13 @@
 import Foundation
 import ArgumentParser
 
-public protocol ConfigurationWithDependents {
+public protocol ConfigurationWithDependents: Configuration {
     var staticConfigurations: [DependentStaticConfiguration] { get }
-    
-    var command: ParsableCommand.Type { get }
 }
 
 extension ConfigurationWithDependents {
-    var command: ParsableCommand {
-        staticConfigurations.reduce(EmptyCommand()) { (_, staticConfiguration: DependentStaticConfiguration) in
+    public var command: ParsableCommand.Type {
+        staticConfigurations.reduce(EmptyCommand.self) { (_, staticConfiguration: DependentStaticConfiguration) in
             staticConfiguration.command
         }
     }

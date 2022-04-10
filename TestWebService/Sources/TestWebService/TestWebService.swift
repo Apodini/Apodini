@@ -19,6 +19,7 @@ import Tracing
 import ApodiniGRPC
 import Foundation
 import ApodiniGraphQL
+import ApodiniAudit
 
 
 @main
@@ -89,6 +90,7 @@ struct TestWebService: Apodini.WebService {
                 swaggerUiEndpoint: openApiEndpoint + "-ui",
                 title: "The great TestWebService - presented by Apodini"
             )
+            APIAuditor()
         }
         
         WebSocket()
