@@ -1,8 +1,9 @@
 //
-//  File.swift
-//  
+// This source file is part of the Apodini open source project
 //
-//  Created by Simon Bohnen on 4/8/22.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
@@ -29,7 +30,7 @@ public final class APIAuditorConfiguration<Service: WebService>: RESTDependentSt
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
-        
+        getSynsets()
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {
