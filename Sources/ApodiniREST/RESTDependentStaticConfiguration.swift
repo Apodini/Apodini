@@ -8,20 +8,12 @@
 
 import Apodini
 
-/// `RESTDependentStaticConfiguration`s are used to register static services dependent on the `RESTInterfaceExporter`
-public protocol RESTDependentStaticConfiguration {
+public protocol RESTDependentStaticConfiguration: DependentStaticConfiguration {
     /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
-    ///    - parentConfiguration: The `RESTExporterConfiguration` of the parent of the dependent exporter
+    ///    - parentConfiguration: The `ExporterConfiguration` of the parent of the dependent exporter
     func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration)
-}
-
-/// The default configuration is an `EmptyRESTDependentStaticConfiguration`
-public struct EmptyRESTDependentStaticConfiguration: RESTDependentStaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: REST.ExporterConfiguration) { }
-    
-    public init() { }
 }
 
 extension Array where Element == RESTDependentStaticConfiguration {

@@ -16,9 +16,9 @@ import Foundation
 
 
 /// Public Apodini Interface Exporter for REST
-public final class REST: Configuration {
+public final class REST: Configuration, ConfigurationWithDependents {
+    public var staticConfigurations =  [DependentStaticConfiguration]()
     let configuration: REST.ExporterConfiguration
-    var staticConfigurations: [RESTDependentStaticConfiguration]
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -52,7 +52,6 @@ public final class REST: Configuration {
             caseInsensitiveRouting: caseInsensitiveRouting,
             rootPath: rootPath
         )
-        self.staticConfigurations = [EmptyRESTDependentStaticConfiguration()]
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -89,7 +88,11 @@ public final class REST: Configuration {
         )
 
         /// Configure attached related static configurations
-        self.staticConfigurations.configure(app, parentConfiguration: self.configuration)
+        self.staticConfigurations.forEach {
+            if let restDependentStaticConfiguration = $0 as? RESTDependentStaticConfiguration {
+                restDependentStaticConfiguration.configure(app, parentConfiguration: self.configuration)
+            }
+        }
     }
 }
 
@@ -107,7 +110,7 @@ extension REST {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @RESTDependentStaticConfigurationBuilder staticConfigurations: () -> [RESTDependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder staticConfigurations: () -> [DependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,

@@ -8,20 +8,12 @@
 
 import Apodini
 
-/// `HTTPDependentStaticConfiguration`s are used to register static services dependent on the `HTTPInterfaceExporter`
-public protocol HTTPDependentStaticConfiguration {
+public protocol HTTPDependentStaticConfiguration: DependentStaticConfiguration {
     /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
-    ///    - parentConfiguration: The `HTTPExporterConfiguration` of the parent of the dependent exporter
+    ///    - parentConfiguration: The `ExporterConfiguration` of the parent of the dependent exporter
     func configure(_ app: Application, parentConfiguration: HTTP.ExporterConfiguration)
-}
-
-/// The default configuration is an `EmptyHTTPDependentStaticConfiguration`
-public struct EmptyHTTPDependentStaticConfiguration: HTTPDependentStaticConfiguration {
-    public func configure(_ app: Application, parentConfiguration: HTTP.ExporterConfiguration) { }
-    
-    public init() { }
 }
 
 extension Array where Element == HTTPDependentStaticConfiguration {

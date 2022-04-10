@@ -36,7 +36,8 @@ let package = Package(
                 .product(name: "ApodiniWebSocket", package: "Apodini"),
                 .product(name: "ApodiniMigration", package: "Apodini"),
                 .product(name: "ApodiniObserve", package: "Apodini"),
-                .product(name: "ApodiniObserveOpenTelemetry", package: "Apodini")
+                .product(name: "ApodiniObserveOpenTelemetry", package: "Apodini"),
+                .product(name: "ApodiniAudit", package: "Apodini")
             ],
             resources: [
                 .process("Resources")
