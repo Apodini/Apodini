@@ -17,9 +17,15 @@ public extension WebService {
     typealias APIAuditor = APIAuditorConfiguration<Self>
 }
 
+private var firstRun = true
+
 public final class APIAuditorConfiguration<Service: WebService>: RESTDependentStaticConfiguration, HTTPDependentStaticConfiguration {
     public var command: ParsableCommand.Type {
-        AuditCommand<Service>.self
+        if firstRun {
+            firstRun = false
+            return AuditCommand<Service>.self
+        }
+        return EmptyCommand.self
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
