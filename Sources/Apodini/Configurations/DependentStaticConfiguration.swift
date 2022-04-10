@@ -10,13 +10,11 @@ import ArgumentParser
 
 /// `DependentStaticConfiguration`s are used to register static services dependent on the `InterfaceExporter`
 public protocol DependentStaticConfiguration {
-    var command: ParsableCommand.Type { get }
+    var command: ParsableCommand.Type? { get }
 }
 
 extension DependentStaticConfiguration {
-    public var command: ParsableCommand.Type {
-        EmptyCommand.self
-    }
+    public var command: ParsableCommand.Type? { nil }
 }
 
 public struct EmptyDependentStaticConfiguration: DependentStaticConfiguration { }

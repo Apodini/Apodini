@@ -20,7 +20,7 @@ public extension WebService {
 private var firstRun = true
 
 public final class APIAuditorConfiguration<Service: WebService>: RESTDependentStaticConfiguration, HTTPDependentStaticConfiguration {
-    public var command: ParsableCommand.Type {
+    public var command: ParsableCommand.Type? {
         if firstRun {
             firstRun = false
             return AuditCommand<Service>.self

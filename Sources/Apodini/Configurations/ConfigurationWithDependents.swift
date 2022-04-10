@@ -14,8 +14,10 @@ public protocol ConfigurationWithDependents: Configuration {
 
 extension ConfigurationWithDependents {
     public var command: ParsableCommand.Type {
-        staticConfigurations.reduce(EmptyCommand.self) { (_, staticConfiguration: DependentStaticConfiguration) in
-            staticConfiguration.command
+        let cmd = staticConfigurations.reduce(EmptyCommand.self) { (oldCommand: ParsableCommand.Type, staticConfiguration: DependentStaticConfiguration) in
+            staticConfiguration.command ?? oldCommand
         }
+        print(cmd)
+        return cmd
     }
 }
