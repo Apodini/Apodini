@@ -81,10 +81,12 @@ struct TestWebService: Apodini.WebService {
             )
         }
         
-        HTTP(rootPath: "http")
+        HTTP(rootPath: "http") {
+            HTTPAuditor()
+        }
         
         REST {
-            APIAuditor()
+            RESTAuditor()
             OpenAPI(
                 outputFormat: .json,
                 outputEndpoint: openApiEndpoint,
