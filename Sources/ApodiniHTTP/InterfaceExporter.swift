@@ -16,8 +16,10 @@ import ApodiniNetworking
 
 /// Public Apodini Interface Exporter for basic HTTP
 public final class HTTP: Configuration, ConfigurationWithDependents {
+    public typealias InternalConfiguration = ExporterConfiguration
+    
     let configuration: ExporterConfiguration
-    public var staticConfigurations = [DependentStaticConfiguration]()
+    public var staticConfigurations = [AnyDependentStaticConfiguration]()
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -62,11 +64,7 @@ public final class HTTP: Configuration, ConfigurationWithDependents {
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
         
-        self.staticConfigurations.forEach {
-            if let httpDependentStaticConfiguration = $0 as? HTTPDependentStaticConfiguration {
-                httpDependentStaticConfiguration.configure(app, parentConfiguration: self.configuration)
-            }
-        }
+        self.staticConfigurations.configureAny(app, parentConfiguration: self.configuration)
     }
 }
 
@@ -84,7 +82,7 @@ extension HTTP {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @DependentStaticConfigurationBuilder staticConfigurations: () -> [DependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder<HTTP> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,

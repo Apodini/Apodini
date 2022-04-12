@@ -10,12 +10,14 @@ import Foundation
 import ArgumentParser
 
 public protocol ConfigurationWithDependents: Configuration {
-    var staticConfigurations: [DependentStaticConfiguration] { get }
+    associatedtype InternalConfiguration
+    
+    var staticConfigurations: [AnyDependentStaticConfiguration] { get }
 }
 
 extension ConfigurationWithDependents {
     public var command: ParsableCommand.Type {
-        staticConfigurations.reduce(EmptyCommand.self) { (oldCommand: ParsableCommand.Type, staticConfiguration: DependentStaticConfiguration) in
+        staticConfigurations.reduce(EmptyCommand.self) { (oldCommand: ParsableCommand.Type, staticConfiguration: AnyDependentStaticConfiguration) in
             staticConfiguration.command ?? oldCommand
         }
     }

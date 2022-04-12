@@ -15,22 +15,38 @@ import ArgumentParser
 // MARK: - WebService
 public extension WebService {
     /// A typealias for ``APIAuditorConfiguration``
-    typealias APIAuditor = APIAuditorConfiguration<Self>
+    typealias RESTAuditor = RESTAuditorConfiguration
+    typealias HTTPAuditor = HTTPAuditorConfiguration
 }
 
-private var firstRun = true
+private var auditCommand: ParsableCommand.Type? = EmptyCommand.self // TODO AuditCommand.self
+private func getAuditCommand() -> ParsableCommand.Type? {
+    guard let command = auditCommand else {
+        return nil
+    }
+    auditCommand = nil
+    return command
+}
 
-public final class APIAuditorConfiguration<Service: WebService>: RESTDependentStaticConfiguration, HTTPDependentStaticConfiguration {
+public final class RESTAuditorConfiguration: DependentStaticConfiguration {
+    public typealias ParentConfiguration = REST
+    
     public var command: ParsableCommand.Type? {
-        if firstRun {
-            firstRun = false
-            return AuditCommand<Service>.self
-        }
-        return EmptyCommand.self
+        getAuditCommand()
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
-        getSynsets()
+        //getSynsets()
+    }
+    
+    public init() { }
+}
+
+public final class HTTPAuditorConfiguration: DependentStaticConfiguration {
+    public typealias ParentConfiguration = HTTP
+    
+    public var command: ParsableCommand.Type? {
+        getAuditCommand()
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {
