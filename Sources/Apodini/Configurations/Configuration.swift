@@ -79,7 +79,9 @@ extension Array: Configuration where Element == Configuration {
     }
     // swiftlint:disable identifier_name
     public var _commands: [ParsableCommand.Type] {
-        compactMap { $0.command }
+        flatMap {
+            $0._commands
+        }
     }
 }
 

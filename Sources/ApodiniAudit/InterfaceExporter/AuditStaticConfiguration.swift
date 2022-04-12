@@ -15,24 +15,25 @@ import ArgumentParser
 // MARK: - WebService
 public extension WebService {
     /// A typealias for ``APIAuditorConfiguration``
-    typealias RESTAuditor = RESTAuditorConfiguration
-    typealias HTTPAuditor = HTTPAuditorConfiguration
+    typealias RESTAuditor = RESTAuditorConfiguration<Self>
+    typealias HTTPAuditor = HTTPAuditorConfiguration<Self>
 }
 
-private var auditCommand: ParsableCommand.Type? = EmptyCommand.self // TODO AuditCommand.self
-private func getAuditCommand() -> ParsableCommand.Type? {
-    guard let command = auditCommand else {
-        return nil
+// TODO test that _commands works
+private var firstRun = true
+private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
+    if firstRun {
+        firstRun = false
+        return auditCommand
     }
-    auditCommand = nil
-    return command
+    return nil
 }
 
-public final class RESTAuditorConfiguration: DependentStaticConfiguration {
+public final class RESTAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
     public typealias ParentConfiguration = REST
     
     public var command: ParsableCommand.Type? {
-        getAuditCommand()
+        getAuditCommand(AuditCommand<Service>.self)
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
@@ -42,11 +43,11 @@ public final class RESTAuditorConfiguration: DependentStaticConfiguration {
     public init() { }
 }
 
-public final class HTTPAuditorConfiguration: DependentStaticConfiguration {
+public final class HTTPAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
     public typealias ParentConfiguration = HTTP
     
     public var command: ParsableCommand.Type? {
-        getAuditCommand()
+        getAuditCommand(AuditCommand<Service>.self)
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {

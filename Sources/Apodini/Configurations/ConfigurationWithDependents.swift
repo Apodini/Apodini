@@ -16,9 +16,9 @@ public protocol ConfigurationWithDependents: Configuration {
 }
 
 extension ConfigurationWithDependents {
-    public var command: ParsableCommand.Type {
-        staticConfigurations.reduce(EmptyCommand.self) { (oldCommand: ParsableCommand.Type, staticConfiguration: AnyDependentStaticConfiguration) in
-            staticConfiguration.command ?? oldCommand
+    public var _commands: [ParsableCommand.Type] {
+        staticConfigurations.compactMap { (staticConfiguration: AnyDependentStaticConfiguration) in
+            staticConfiguration.command
         }
     }
 }

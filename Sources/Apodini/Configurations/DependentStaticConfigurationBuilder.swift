@@ -41,4 +41,8 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration: Configurati
     public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration] where T.ParentConfiguration == ParentConfiguration {
         [expression]
     }
+    
+    public static func buildOptional(_ component: [AnyDependentStaticConfiguration]?) -> [AnyDependentStaticConfiguration] {
+        component ?? []
+    }
 }
