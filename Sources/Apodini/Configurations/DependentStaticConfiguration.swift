@@ -8,13 +8,20 @@
 
 import ArgumentParser
 
+/// A type-erased `DependentStaticConfiguration`
 public protocol AnyDependentStaticConfiguration {
+    /// A subcommand that this DependentStaticConfiguration exports
     var command: ParsableCommand.Type? { get }
     
+    /// Configures this configuration
+    /// - Parameters:
+    ///    - app: The `Application` which is used to register the configuration in Apodini
+    ///    - parentConfiguration: The `Configuration` of the parent of this dependent static configuration
     func configureAny(_ app: Application, parentConfiguration: Any)
 }
 
 extension AnyDependentStaticConfiguration {
+    /// By default, no command is provided
     public var command: ParsableCommand.Type? { nil }
 }
 
@@ -32,12 +39,16 @@ extension Array where Element == AnyDependentStaticConfiguration {
 
 /// `DependentStaticConfiguration`s are used to register static services dependent on the `InterfaceExporter`
 public protocol DependentStaticConfiguration: AnyDependentStaticConfiguration {
-    associatedtype ParentConfiguration: ConfigurationWithDependents
+    associatedtype ParentConfiguration: DependableConfiguration
     
     func configure(_ app: Application, parentConfiguration: ParentConfiguration.InternalConfiguration)
 }
 
 extension DependentStaticConfiguration {
+    /// Configures this configuration if the `parentConfiguration` conforms to `InternalConfiguration`
+    /// - Parameters:
+    ///    - app: The `Application` which is used to register the configuration in Apodini
+    ///    - parentConfiguration: The `Configuration` of the parent of the dependent static exporters
     public func configureAny(_ app: Application, parentConfiguration: Any) {
         guard let typedConfiguration = parentConfiguration as? ParentConfiguration.InternalConfiguration else {
             return
@@ -47,8 +58,8 @@ extension DependentStaticConfiguration {
     }
 }
 
-struct EmptyDependentStaticConfiguration<PConfiguration: ConfigurationWithDependents>: DependentStaticConfiguration {
-    public typealias ParentConfiguration = PConfiguration
+struct EmptyDependentStaticConfiguration<PConfiguration: DependableConfiguration>: DependentStaticConfiguration {
+    typealias ParentConfiguration = PConfiguration
     
-    public func configure(_ app: Application, parentConfiguration: PConfiguration.InternalConfiguration) { }
+    func configure(_ app: Application, parentConfiguration: PConfiguration.InternalConfiguration) { }
 }

@@ -15,7 +15,7 @@ import ApodiniNetworking
 // MARK: HTTP Declaration
 
 /// Public Apodini Interface Exporter for basic HTTP
-public final class HTTP: Configuration, ConfigurationWithDependents {
+public final class HTTP: DependableConfiguration {
     public typealias InternalConfiguration = ExporterConfiguration
     
     let configuration: ExporterConfiguration

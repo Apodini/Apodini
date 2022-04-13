@@ -16,7 +16,7 @@ import Foundation
 
 
 /// Public Apodini Interface Exporter for REST
-public final class REST: Configuration, ConfigurationWithDependents {
+public final class REST: DependableConfiguration {
     public typealias InternalConfiguration = REST.ExporterConfiguration
     
     public var staticConfigurations: [AnyDependentStaticConfiguration] = []

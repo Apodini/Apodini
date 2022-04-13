@@ -9,13 +9,14 @@
 import Foundation
 import ArgumentParser
 
-public protocol ConfigurationWithDependents: Configuration {
+public protocol DependableConfiguration: Configuration {
     associatedtype InternalConfiguration
     
     var staticConfigurations: [AnyDependentStaticConfiguration] { get }
 }
 
-extension ConfigurationWithDependents {
+extension DependableConfiguration {
+    /// Collects all the commands from the `DependentStaticConfiguration`s and exports them for this `DependableConfiguration`
     // swiftlint:disable identifier_name
     public var _commands: [ParsableCommand.Type] {
         staticConfigurations.compactMap { (staticConfiguration: AnyDependentStaticConfiguration) in
