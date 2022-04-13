@@ -9,6 +9,9 @@
 /// A function builder used to aggregate multiple `DependentStaticConfiguration`s
 @resultBuilder
 public enum DependentStaticConfigurationBuilder<ParentConfiguration: ConfigurationWithDependents> {
+    public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration] where T.ParentConfiguration == ParentConfiguration {
+        [expression]
+    }
     
     /// A method that transforms multiple `DependentStaticConfiguration`s
     ///
@@ -36,10 +39,6 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration: Configurati
     /// - Returns: The `DependentStaticConfiguration` within the else statement
     public static func buildEither(second: [AnyDependentStaticConfiguration]) -> [AnyDependentStaticConfiguration] {
         second
-    }
-    
-    public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration] where T.ParentConfiguration == ParentConfiguration {
-        [expression]
     }
     
     public static func buildOptional(_ component: [AnyDependentStaticConfiguration]?) -> [AnyDependentStaticConfiguration] {

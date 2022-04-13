@@ -10,8 +10,8 @@ import Foundation
 import Apodini
 
 public protocol BestPractice {
-    static var scope: BestPracticeScope { get }
-    static var category: BestPracticeCategory { get }
+    static var scope: BestPracticeScopes { get }
+    static var category: BestPracticeCategories { get }
     
     static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport
 }
@@ -23,11 +23,27 @@ extension BestPractice {
     }
 }
 
-public enum BestPracticeCategory {
+public struct BestPracticeCategories: OptionSet {
     // TODO complete list from Masse
-    case urlPath, statusCode
+    public let rawValue: Int
+    
+    static let urlPath      = BestPracticeCategories(rawValue: 1 << 0)
+    static let statusCode   = BestPracticeCategories(rawValue: 1 << 1)
+    
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
 }
 
-public enum BestPracticeScope {
-    case all, restOnly
+public struct BestPracticeScopes: OptionSet {
+    public let rawValue: Int
+    
+    static let http = BestPracticeScopes(rawValue: 1 << 0)
+    static let rest = BestPracticeScopes(rawValue: 1 << 1)
+    
+    static let all: BestPracticeScopes = [.http, .rest]
+    
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
 }

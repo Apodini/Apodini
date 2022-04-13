@@ -35,7 +35,7 @@ private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
     }
     registeredInterfaceExporter = true
     
-    let exporter = AuditInterfaceExporter(app)
+    let exporter = AuditInterfaceExporter(app, mode: mode)
 
     app.registerExporter(exporter: exporter)
 }

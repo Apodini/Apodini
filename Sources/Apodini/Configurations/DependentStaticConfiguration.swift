@@ -47,7 +47,7 @@ extension DependentStaticConfiguration {
     }
 }
 
-public struct EmptyDependentStaticConfiguration<PConfiguration: ConfigurationWithDependents>: DependentStaticConfiguration {
+struct EmptyDependentStaticConfiguration<PConfiguration: ConfigurationWithDependents>: DependentStaticConfiguration {
     public typealias ParentConfiguration = PConfiguration
     
     public func configure(_ app: Application, parentConfiguration: PConfiguration.InternalConfiguration) { }

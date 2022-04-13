@@ -16,8 +16,6 @@ protocol URLSegmentBestPractice: BestPractice {
 }
 
 extension URLSegmentBestPractice {
-    var scope: BestPracticeScope = .all
-    
     static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
         for segment in endpoint.absolutePath {
             if case .string(let identifier) = segment,
@@ -30,7 +28,8 @@ extension URLSegmentBestPractice {
 }
 
 struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
-    static var category = BestPracticeCategory.urlPath
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
     static var successMessage = "The path segments have appropriate lengths"
     
     static let minimumLength = 3
@@ -45,7 +44,8 @@ struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
 }
 
 struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
-    static var category = BestPracticeCategory.urlPath
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
     static var successMessage = "The path segments do not contain any underscores"
     
     static func checkSegment(segment: String) -> String? {

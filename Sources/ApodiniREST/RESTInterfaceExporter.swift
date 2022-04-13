@@ -173,10 +173,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
                 app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
             }
         }
-        
-        // TODO Use this to only run audit when wanted
-        // app.logger.info("\(app.storage[AuditStorageKey.self])")
-        // Auditor.audit(app, endpoint)
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
