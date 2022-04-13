@@ -16,6 +16,7 @@ public protocol ConfigurationWithDependents: Configuration {
 }
 
 extension ConfigurationWithDependents {
+    // swiftlint:disable identifier_name
     public var _commands: [ParsableCommand.Type] {
         staticConfigurations.compactMap { (staticConfiguration: AnyDependentStaticConfiguration) in
             staticConfiguration.command

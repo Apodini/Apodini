@@ -29,10 +29,8 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
-        for audit in audits {
-            if audit.report.auditResult == .fail {
-                app.logger.info("[Audit] \(audit.report.message)")
-            }
+        for audit in audits where audit.report.auditResult == .fail {
+            app.logger.info("[Audit] \(audit.report.message)")
         }
     }
     
