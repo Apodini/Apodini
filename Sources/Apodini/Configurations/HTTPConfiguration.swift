@@ -74,6 +74,11 @@ public final class HTTPConfiguration: Configuration {
         default:
             self.bindAddress = .interface(Defaults.bindAddress, port: defaultPort)
         }
+        
+        // We use the port from the bindAddress as the default port for the hostname, taking precedence over the default HTTP port.
+        if case let .interface(_, port) = self.bindAddress {
+            defaultPort = port ?? defaultPort
+        }
 
         if let hostname = hostname {
             switch (hostname.address, hostname.port) {
