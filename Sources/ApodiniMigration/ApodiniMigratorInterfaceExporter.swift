@@ -105,21 +105,13 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         }
         self.webService = nil
 
-        let httpAddress: String
-        let httpPort: Int?
-        if case let .interface(address, port) = app.httpConfiguration.bindAddress {
-            httpAddress = address
-            httpPort = port
-        } else {
-            httpAddress = app.httpConfiguration.hostname.address
-            httpPort = app.httpConfiguration.hostname.port
-        }
+        let httpAddress = app.httpConfiguration.hostname.address
+        let httpPort = app.httpConfiguration.hostname.port ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
 
         let http = HTTPInformation(
             protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
             hostname: httpAddress,
             port: httpPort
-                ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
         )
 
         let serviceInformation = ServiceInformation(
