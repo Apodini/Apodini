@@ -12,10 +12,14 @@ import Apodini
 final class AuditInterfaceExporter: InterfaceExporter {
     var audits: [Audit] = []
     var app: Application
+    var mode: AuditMode
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         // TODO figure out which ones are silenced for the current endpoint
         for bestPracticeType in Self.bestPractices {
+            guard self.mode == .rest || bestPracticeType.scope == .all else {
+                continue
+            }
             audits.append(bestPracticeType.audit(app, endpoint))
         }
     }
@@ -32,8 +36,9 @@ final class AuditInterfaceExporter: InterfaceExporter {
         }
     }
     
-    init(_ app: Application) {
+    init(_ app: Application, mode: AuditMode) {
         self.app = app
+        self.mode = mode
     }
 }
 
@@ -42,4 +47,8 @@ extension AuditInterfaceExporter {
         AppropriateLengthForURLPathSegments.self,
         NoUnderscoresInURLPathSegments.self
     ]
+}
+
+public enum AuditMode {
+    case http, rest
 }

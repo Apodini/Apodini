@@ -16,6 +16,8 @@ protocol URLSegmentBestPractice: BestPractice {
 }
 
 extension URLSegmentBestPractice {
+    var scope: BestPracticeScope = .all
+    
     static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
         for segment in endpoint.absolutePath {
             if case .string(let identifier) = segment,

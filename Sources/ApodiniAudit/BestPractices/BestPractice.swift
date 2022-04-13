@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 
 public protocol BestPractice {
+    static var scope: BestPracticeScope { get }
     static var category: BestPracticeCategory { get }
     
     static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport
@@ -25,4 +26,8 @@ extension BestPractice {
 public enum BestPracticeCategory {
     // TODO complete list from Masse
     case urlPath, statusCode
+}
+
+public enum BestPracticeScope {
+    case all, restOnly
 }

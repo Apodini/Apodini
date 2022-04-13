@@ -29,7 +29,7 @@ private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCo
 }
 
 private var registeredInterfaceExporter = false
-private func registerInterfaceExporter(_ app: Application) {
+private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
     if registeredInterfaceExporter {
         return
     }
@@ -48,8 +48,7 @@ public final class RESTAuditorConfiguration<Service: WebService>: DependentStati
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
-        //getSynsets()
-        registerInterfaceExporter(app)
+        registerInterfaceExporter(app, mode: .rest)
     }
     
     public init() { }
@@ -63,7 +62,7 @@ public final class HTTPAuditorConfiguration<Service: WebService>: DependentStati
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {
-        
+        registerInterfaceExporter(app, mode: .http)
     }
     
     public init() { }
