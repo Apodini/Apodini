@@ -12,13 +12,16 @@ import ApodiniUtils
 import ApodiniNetworking
 import ApodiniHTTPProtocol
 import ApodiniMigrationCommon
+import ApodiniHTTP
 import Foundation
 
 
 /// Public Apodini Interface Exporter for REST
-public final class REST: Configuration, ConfigurationWithDependents {
-    public var staticConfigurations =  [DependentStaticConfiguration]()
-    let configuration: REST.ExporterConfiguration
+public final class REST: DependableConfiguration {
+    public typealias InternalConfiguration = HTTPExporterConfiguration
+    
+    public var staticConfigurations: [AnyDependentStaticConfiguration] = []
+    let configuration: HTTPExporterConfiguration
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -45,7 +48,7 @@ public final class REST: Configuration, ConfigurationWithDependents {
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
-        self.configuration = REST.ExporterConfiguration(
+        self.configuration = HTTPExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
@@ -88,11 +91,7 @@ public final class REST: Configuration, ConfigurationWithDependents {
         )
 
         /// Configure attached related static configurations
-        self.staticConfigurations.forEach {
-            if let restDependentStaticConfiguration = $0 as? RESTDependentStaticConfiguration {
-                restDependentStaticConfiguration.configure(app, parentConfiguration: self.configuration)
-            }
-        }
+        self.staticConfigurations.configureAny(app, parentConfiguration: self.configuration)
     }
 }
 
@@ -110,7 +109,7 @@ extension REST {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @DependentStaticConfigurationBuilder staticConfigurations: () -> [DependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder<REST> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,
@@ -128,10 +127,10 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
     static let parameterNamespace: [ParameterNamespace] = .individual
     
     let app: Apodini.Application
-    let exporterConfiguration: REST.ExporterConfiguration
+    let exporterConfiguration: HTTPExporterConfiguration
     
     /// Initialize `RESTInterfaceExporter` from `Application`
-    init(_ app: Apodini.Application, _ exporterConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration()) {
+    init(_ app: Apodini.Application, _ exporterConfiguration: HTTPExporterConfiguration = HTTPExporterConfiguration()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
     }
@@ -175,10 +174,6 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
                 app.logger.info("  - links to: \(destination.destinationPath.asPathString())")
             }
         }
-        
-        // TODO Use this to only run audit when wanted
-        // app.logger.info("\(app.storage[AuditStorageKey.self])")
-        // Auditor.audit(app, endpoint)
     }
     
     func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {

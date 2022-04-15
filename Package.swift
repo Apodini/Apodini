@@ -303,6 +303,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniOpenAPISecurity"),
                 .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP"),
                 .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
@@ -318,6 +319,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniMigrationCommon")
             ]

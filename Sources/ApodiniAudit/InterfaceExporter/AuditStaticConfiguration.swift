@@ -1,8 +1,9 @@
 //
-//  File.swift
-//  
+// This source file is part of the Apodini open source project
 //
-//  Created by Simon Bohnen on 4/8/22.
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
 //
 
 import Foundation
@@ -13,27 +14,55 @@ import ArgumentParser
 
 // MARK: - WebService
 public extension WebService {
-    /// A typealias for ``APIAuditorConfiguration``
-    typealias APIAuditor = APIAuditorConfiguration<Self>
+    typealias RESTAuditor = RESTAuditorConfiguration<Self>
+    typealias HTTPAuditor = HTTPAuditorConfiguration<Self>
 }
 
-private var firstRun = true
+// TODO write test that _commands works
+private var registeredCommand = false
+private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
+    if !registeredCommand {
+        registeredCommand = true
+        return auditCommand
+    }
+    return nil
+}
 
-public final class APIAuditorConfiguration<Service: WebService>: RESTDependentStaticConfiguration, HTTPDependentStaticConfiguration {
+private var registeredInterfaceExporter = false
+private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
+    if registeredInterfaceExporter {
+        return
+    }
+    registeredInterfaceExporter = true
+    
+    let exporter = AuditInterfaceExporter(app, mode: mode)
+
+    app.registerExporter(exporter: exporter)
+}
+
+public final class RESTAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
+    public typealias ParentConfiguration = REST
+    
     public var command: ParsableCommand.Type? {
-        if firstRun {
-            firstRun = false
-            return AuditCommand<Service>.self
-        }
-        return EmptyCommand.self
+        getAuditCommand(AuditCommand<Service>.self)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
-        
+    public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
+        registerInterfaceExporter(app, mode: .rest)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {
-        
+    public init() { }
+}
+
+public final class HTTPAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
+    public typealias ParentConfiguration = HTTP
+    
+    public var command: ParsableCommand.Type? {
+        getAuditCommand(AuditCommand<Service>.self)
+    }
+    
+    public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
+        registerInterfaceExporter(app, mode: .http)
     }
     
     public init() { }

@@ -330,7 +330,7 @@ final class ApodiniMigratorTests: ApodiniTests {
         }
     }
 
-    func testBindVsHostname() throws {
+    func testBindDefaultPort() throws {
         struct TestWebService: WebService {
             var content: some Component {
                 Text("Hello World")
@@ -338,7 +338,7 @@ final class ApodiniMigratorTests: ApodiniTests {
 
             var configuration: Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
-                HTTPConfiguration(hostname: Hostname(address: "1.2.2.4", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
+                HTTPConfiguration(hostname: Hostname(address: "myaddress"), bindAddress: .interface("1.2.3.4", port: 56))
             }
 
             var metadata: Metadata {
@@ -351,7 +351,32 @@ final class ApodiniMigratorTests: ApodiniTests {
         try app.testable().test(.GET, "api-spec") { response in
             XCTAssertEqual(response.status, .ok)
             let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
-            XCTAssertEqual(document.serviceInformation.http.description, "http://1.2.3.4:56")
+            XCTAssertEqual(document.serviceInformation.http.description, "http://myaddress:56")
+        }
+    }
+    
+    func testBindVsHostname() throws {
+        struct TestWebService: WebService {
+            var content: some Component {
+                Text("Hello World")
+            }
+
+            var configuration: Configuration {
+                Migrator(documentConfig: .export(.endpoint("api-spec")))
+                HTTPConfiguration(hostname: Hostname(address: "localhost2", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
+            }
+
+            var metadata: Metadata {
+                Version(prefix: "78", major: 9)
+            }
+        }
+
+        try TestWebService().start(app: app)
+
+        try app.testable().test(.GET, "api-spec") { response in
+            XCTAssertEqual(response.status, .ok)
+            let document = try response.bodyStorage.getFullBodyData(decodedAs: APIDocument.self, using: JSONDecoder())
+            XCTAssertEqual(document.serviceInformation.http.description, "http://localhost2:57")
         }
     }
     

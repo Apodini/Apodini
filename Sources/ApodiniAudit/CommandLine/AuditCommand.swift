@@ -22,7 +22,7 @@ struct AuditCommand<Service: WebService>: ParsableCommand {
             discussion: "Audits the web service with regards to HTTP and REST best practices",
             version: "0.1.0",
             subcommands: [
-                `default`,
+                `default`
             ],
             defaultSubcommand: `default`
         )

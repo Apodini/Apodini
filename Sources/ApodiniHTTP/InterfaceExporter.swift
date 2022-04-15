@@ -15,9 +15,11 @@ import ApodiniNetworking
 // MARK: HTTP Declaration
 
 /// Public Apodini Interface Exporter for basic HTTP
-public final class HTTP: Configuration, ConfigurationWithDependents {
-    let configuration: ExporterConfiguration
-    public var staticConfigurations = [DependentStaticConfiguration]()
+public final class HTTP: DependableConfiguration {
+    public typealias InternalConfiguration = HTTPExporterConfiguration
+    
+    let configuration: HTTPExporterConfiguration
+    public var staticConfigurations = [AnyDependentStaticConfiguration]()
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -44,7 +46,7 @@ public final class HTTP: Configuration, ConfigurationWithDependents {
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
-        self.configuration = ExporterConfiguration(
+        self.configuration = HTTPExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
@@ -62,11 +64,7 @@ public final class HTTP: Configuration, ConfigurationWithDependents {
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
         
-        self.staticConfigurations.forEach {
-            if let httpDependentStaticConfiguration = $0 as? HTTPDependentStaticConfiguration {
-                httpDependentStaticConfiguration.configure(app, parentConfiguration: self.configuration)
-            }
-        }
+        self.staticConfigurations.configureAny(app, parentConfiguration: self.configuration)
     }
 }
 
@@ -84,7 +82,7 @@ extension HTTP {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @DependentStaticConfigurationBuilder staticConfigurations: () -> [DependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder<HTTP> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,
@@ -102,10 +100,10 @@ extension HTTP {
 
 struct Exporter: InterfaceExporter {
     let app: Apodini.Application
-    let configuration: HTTP.ExporterConfiguration
+    let configuration: HTTPExporterConfiguration
     let logger: Logger
     
-    init(_ app: Apodini.Application, _ configuration: HTTP.ExporterConfiguration) {
+    init(_ app: Apodini.Application, _ configuration: HTTPExporterConfiguration) {
         self.app = app
         self.configuration = configuration
         self.logger = app.logger

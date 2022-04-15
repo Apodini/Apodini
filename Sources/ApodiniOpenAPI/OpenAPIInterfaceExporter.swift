@@ -11,10 +11,13 @@ import Apodini
 import ApodiniREST
 import OpenAPIKit
 import ApodiniNetworking
+import ApodiniHTTP
 
 
 /// Public Apodini Interface Exporter for OpenAPI
-public final class OpenAPI: RESTDependentStaticConfiguration {
+public final class OpenAPI: DependentStaticConfiguration {
+    public typealias ParentConfiguration = REST
+    
     var configuration: OpenAPI.ExporterConfiguration
     
     public init(
@@ -36,7 +39,7 @@ public final class OpenAPI: RESTDependentStaticConfiguration {
     }
     
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
         /// Set configuration of parent
         self.configuration.parentConfiguration = parentConfiguration
         
