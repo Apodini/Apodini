@@ -10,11 +10,12 @@ import Foundation
 import Apodini
 import ApodiniExtension
 import ApodiniNetworking
+import ApodiniHTTP
 
 
 struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let app: Apodini.Application
-    let exporterConfiguration: REST.ExporterConfiguration
+    let exporterConfiguration: HTTPExporterConfiguration
     let endpoint: Endpoint<H>
     let relationshipEndpoint: AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
@@ -25,7 +26,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     
     init(
         with app: Apodini.Application,
-        withExporterConfiguration exporterConfiguration: REST.ExporterConfiguration,
+        withExporterConfiguration exporterConfiguration: HTTPExporterConfiguration,
         for endpoint: Endpoint<H>,
         _ relationshipEndpoint: AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter

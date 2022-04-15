@@ -16,9 +16,9 @@ import ApodiniNetworking
 
 /// Public Apodini Interface Exporter for basic HTTP
 public final class HTTP: DependableConfiguration {
-    public typealias InternalConfiguration = ExporterConfiguration
+    public typealias InternalConfiguration = HTTPExporterConfiguration
     
-    let configuration: ExporterConfiguration
+    let configuration: HTTPExporterConfiguration
     public var staticConfigurations = [AnyDependentStaticConfiguration]()
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
@@ -46,7 +46,7 @@ public final class HTTP: DependableConfiguration {
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
-        self.configuration = ExporterConfiguration(
+        self.configuration = HTTPExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
@@ -100,10 +100,10 @@ extension HTTP {
 
 struct Exporter: InterfaceExporter {
     let app: Apodini.Application
-    let configuration: HTTP.ExporterConfiguration
+    let configuration: HTTPExporterConfiguration
     let logger: Logger
     
-    init(_ app: Apodini.Application, _ configuration: HTTP.ExporterConfiguration) {
+    init(_ app: Apodini.Application, _ configuration: HTTPExporterConfiguration) {
         self.app = app
         self.configuration = configuration
         self.logger = app.logger

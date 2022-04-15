@@ -8,12 +8,13 @@
 
 import Apodini
 import ApodiniNetworking
+import ApodiniHTTP
 
 /// A RoutesHandler which is automatically registered to the root path
 /// if there is no Endpoint registered under the root, in order to serve entry point links.
 struct RESTDefaultRootHandler {
     let app: Apodini.Application
-    let exporterConfiguration: REST.ExporterConfiguration
+    let exporterConfiguration: HTTPExporterConfiguration
     let relationships: Set<RelationshipDestination>
     
     /// Registers a GET handler on root path

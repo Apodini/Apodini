@@ -47,7 +47,7 @@ public final class RESTAuditorConfiguration<Service: WebService>: DependentStati
         getAuditCommand(AuditCommand<Service>.self)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: REST.ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
         registerInterfaceExporter(app, mode: .rest)
     }
     
@@ -61,7 +61,7 @@ public final class HTTPAuditorConfiguration<Service: WebService>: DependentStati
         getAuditCommand(AuditCommand<Service>.self)
     }
     
-    public func configure(_ app: Apodini.Application, parentConfiguration: HTTP.ExporterConfiguration) {
+    public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
         registerInterfaceExporter(app, mode: .http)
     }
     

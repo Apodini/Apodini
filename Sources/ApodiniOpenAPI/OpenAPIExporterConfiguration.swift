@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ApodiniREST
 import OpenAPIKit
+import ApodiniHTTP
 
 
 extension ApodiniOpenAPI.OpenAPI {
@@ -36,10 +37,10 @@ extension ApodiniOpenAPI.OpenAPI {
         let swaggerUiEndpoint: String
         
         /// Configuration of parent exporter
-        var parentConfiguration: REST.ExporterConfiguration
+        var parentConfiguration: HTTPExporterConfiguration
         
         init(
-            parentConfiguration: REST.ExporterConfiguration = REST.ExporterConfiguration(),
+            parentConfiguration: HTTPExporterConfiguration = HTTPExporterConfiguration(),
             outputFormat: OutputFormat = ConfigurationDefaults.outputFormat,
             outputEndpoint: String = ConfigurationDefaults.outputEndpoint,
             swaggerUiEndpoint: String = ConfigurationDefaults.swaggerUiEndpoint,
