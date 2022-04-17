@@ -41,7 +41,7 @@ private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
 }
 
 public final class RESTAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
-    public typealias ParentConfiguration = REST
+    public typealias InteralParentConfiguration = HTTPExporterConfiguration
     
     public var command: ParsableCommand.Type? {
         getAuditCommand(AuditCommand<Service>.self)

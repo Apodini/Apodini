@@ -109,7 +109,7 @@ extension REST {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @DependentStaticConfigurationBuilder<REST> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder<HTTPExporterConfiguration> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,

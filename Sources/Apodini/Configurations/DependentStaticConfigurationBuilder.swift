@@ -8,15 +8,15 @@
 
 /// A function builder used to aggregate multiple `DependentStaticConfiguration`s
 @resultBuilder
-public enum DependentStaticConfigurationBuilder<ParentConfiguration: DependableConfiguration> {
-    /// A method that transforms a `DependentStaticConfiguration` with the required `ParentConfiguration`
+public enum DependentStaticConfigurationBuilder<InternalParentConfiguration> {
+    /// A method that transforms a `DependentStaticConfiguration` with the required `InteralParentConfiguration`
     /// into an array of a single `AnyDependentStaticConfiguration`.
     ///
     /// - Parameter expression: The `DependentStaticConfiguration`
     ///
     /// - Returns: An array of `AnyDependentStaticConfiguration`s
     public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration]
-        where T.ParentConfiguration == ParentConfiguration {
+        where T.InternalParentConfiguration == InternalParentConfiguration {
         [expression]
     }
     

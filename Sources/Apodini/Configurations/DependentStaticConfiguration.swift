@@ -39,27 +39,21 @@ extension Array where Element == AnyDependentStaticConfiguration {
 
 /// `DependentStaticConfiguration`s are used to register static services dependent on the `InterfaceExporter`
 public protocol DependentStaticConfiguration: AnyDependentStaticConfiguration {
-    associatedtype ParentConfiguration: DependableConfiguration
+    associatedtype InternalParentConfiguration
     
-    func configure(_ app: Application, parentConfiguration: ParentConfiguration.InternalConfiguration)
+    func configure(_ app: Application, parentConfiguration: InternalParentConfiguration)
 }
 
 extension DependentStaticConfiguration {
-    /// Configures this configuration if the `parentConfiguration` conforms to `InternalConfiguration`
+    /// Configures this configuration if the `parentConfiguration` conforms to `InternalParentConfiguration`
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini
     ///    - parentConfiguration: The `Configuration` of the parent of the dependent static exporters
     public func configureAny(_ app: Application, parentConfiguration: Any) {
-        guard let typedConfiguration = parentConfiguration as? ParentConfiguration.InternalConfiguration else {
+        guard let typedConfiguration = parentConfiguration as? InternalParentConfiguration else {
             return
         }
         
         self.configure(app, parentConfiguration: typedConfiguration)
     }
-}
-
-struct EmptyDependentStaticConfiguration<PConfiguration: DependableConfiguration>: DependentStaticConfiguration {
-    typealias ParentConfiguration = PConfiguration
-    
-    func configure(_ app: Application, parentConfiguration: PConfiguration.InternalConfiguration) { }
 }

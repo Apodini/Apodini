@@ -16,7 +16,7 @@ import ApodiniHTTP
 
 /// Public Apodini Interface Exporter for OpenAPI
 public final class OpenAPI: DependentStaticConfiguration {
-    public typealias ParentConfiguration = REST
+    public typealias InteralParentConfiguration = HTTPExporterConfiguration
     
     var configuration: OpenAPI.ExporterConfiguration
     
