@@ -36,6 +36,7 @@ class OpenAPIComponentsObjectBuilder {
     /// For responses, a wrapper object is created as it is returned by the REST API.
     /// Therefore `ResponseContainer`'s CodingKeys are reused.
     /// The resulting JSONSchema is stored in the componentsObject.
+    // TODO we need to pass into here whether the parent exporter uses a wrapper or not
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
         let (schema, title) = try buildSchemaWithTitle(for: type)
         let schemaName = "\(title)Response"

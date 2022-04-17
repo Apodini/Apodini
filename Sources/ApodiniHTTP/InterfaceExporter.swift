@@ -51,7 +51,8 @@ public final class HTTP: DependableConfiguration {
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
             caseInsensitiveRouting: caseInsensitiveRouting,
-            rootPath: rootPath
+            rootPath: rootPath,
+            useResponseContainer: false
         )
         
         staticConfigurations = []

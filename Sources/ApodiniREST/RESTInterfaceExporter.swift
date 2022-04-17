@@ -53,7 +53,8 @@ public final class REST: DependableConfiguration {
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
             caseInsensitiveRouting: caseInsensitiveRouting,
-            rootPath: rootPath
+            rootPath: rootPath,
+            useResponseContainer: true
         )
     }
     
