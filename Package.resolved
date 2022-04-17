@@ -164,15 +164,6 @@
         }
       },
       {
-        "package": "PythonKit",
-        "repositoryURL": "https://github.com/pvieito/PythonKit.git",
-        "state": {
-          "branch": "master",
-          "revision": "8de2a3f1f8c1388e9fca84f192f96821d9ccd43d",
-          "version": null
-        }
-      },
-      {
         "package": "RichJSONParser",
         "repositoryURL": "https://github.com/omochi/RichJSONParser.git",
         "state": {
