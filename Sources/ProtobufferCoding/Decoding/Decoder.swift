@@ -70,7 +70,7 @@ public struct ProtobufferDecoder {
         }
         let decoder = _ProtobufferDecoder(codingPath: [], buffer: buffer)
         let keyedDecoder = try decoder.container(keyedBy: FixedCodingKey.self)
-        return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber))
+        return try keyedDecoder.decode(T.self, forKey: .init(intValue: fieldInfo.fieldNumber, stringValue: fieldInfo.name))
     }
 }
 

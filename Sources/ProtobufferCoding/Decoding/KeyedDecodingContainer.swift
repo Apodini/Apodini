@@ -203,7 +203,11 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
     func getFieldInfoAndBytes(forKey key: Key, atOffset keyOffset: Int?) throws -> (fieldInfo: ProtobufFieldInfo, fieldBytes: ByteBuffer) {
         let fieldNumber = key.getProtoFieldNumber()
         guard fieldNumber > 0 else {
-            fatalError("Invalid field number: \(fieldNumber)")
+            throw DecodingError.keyNotFound(key, .init(
+                codingPath: self.codingPath.appending(key),
+                debugDescription: "CodingKey \(key) has an invalid proto field number \(fieldNumber), must be > 0.",
+                underlyingError: nil
+            ))
         }
         let fieldInfo: ProtobufFieldInfo?
         if let keyOffset = keyOffset {
@@ -212,7 +216,11 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
             fieldInfo = fields.getLast(forFieldNumber: fieldNumber)
         }
         guard let fieldInfo = fieldInfo else {
-            fatalError("Unable to get field info")
+            throw DecodingError.keyNotFound(key, .init(
+                codingPath: self.codingPath.appending(key),
+                debugDescription: "Unable to find corresponding proto message field",
+                underlyingError: nil
+            ))
         }
         return (fieldInfo, buffer.getSlice(at: fieldInfo.keyOffset, length: fieldInfo.fieldLength)!)
     }
