@@ -24,7 +24,7 @@ extension BestPractice {
 }
 
 public struct BestPracticeCategories: OptionSet {
-    // TODO complete list from Masse
+    // FUTURE complete list from Masse
     public let rawValue: Int
     
     static let urlPath      = BestPracticeCategories(rawValue: 1 << 0)

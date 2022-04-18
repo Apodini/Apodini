@@ -15,7 +15,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
     var mode: AuditMode
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        // TODO figure out which ones are silenced for the current endpoint
+        // FUTURE figure out which ones are silenced for the current endpoint
         for bestPracticeType in Self.bestPractices {
             guard self.mode == .rest || bestPracticeType.scope == .all else {
                 continue

@@ -24,7 +24,6 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         getAuditCommand(AuditCommand<Service>.self)
     }
     
-    // TODO add rest flag to HTTPExporterConfiguration
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
         registerInterfaceExporter(app, mode: .rest)
     }
@@ -32,7 +31,7 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     public init() { }
 }
 
-// TODO write test that _commands works
+// FUTURE write test that _commands works
 private var registeredCommand = false
 private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
     if !registeredCommand {

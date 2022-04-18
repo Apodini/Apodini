@@ -23,6 +23,11 @@ enum OpenAPISchemaConstants {
 /// See: https://swagger.io/specification/#components-object
 class OpenAPIComponentsObjectBuilder {
     private(set) var componentsObject: OpenAPIKit.OpenAPI.Components = .init()
+    let configuration: OpenAPI.ExporterConfiguration
+    
+    init(configuration: OpenAPI.ExporterConfiguration = OpenAPI.ExporterConfiguration()) {
+        self.configuration = configuration
+    }
     
     /// Use this function to build a schema for an arbitrary type.
     /// Types built with function are automatically stored into the componentsObject
@@ -40,12 +45,20 @@ class OpenAPIComponentsObjectBuilder {
     func buildResponse(for type: Encodable.Type) throws -> JSONSchema {
         let (schema, title) = try buildSchemaWithTitle(for: type)
         let schemaName = "\(title)Response"
-        let schemaObject: JSONSchema = .object(
-            title: schemaName,
-            properties: [
-                ResponseContainer.CodingKeys.data.rawValue: schema,
-                ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
-            ])
+        let schemaObject: JSONSchema
+        
+        if configuration.parentConfiguration.useResponseContainer {
+            // We need to wrap the schema in a ResponseContainer
+            schemaObject = .object(
+                title: schemaName,
+                properties: [
+                    ResponseContainer.CodingKeys.data.rawValue: schema,
+                    ResponseContainer.CodingKeys.links.rawValue: try buildSchema(for: ResponseContainer.Links.self)
+                ])
+        } else {
+            schemaObject = schema.with(title: schemaName)
+        }
+        
         if !schemaExists(for: schemaName) {
             saveSchema(name: schemaName, schema: schemaObject)
         }
