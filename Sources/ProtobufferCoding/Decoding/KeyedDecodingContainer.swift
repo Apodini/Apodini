@@ -71,6 +71,14 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         fields.contains(fieldNumber: key.getProtoFieldNumber())
     }
     
+    func contains(_ key: Key, atOffset offset: Int?) -> Bool {
+        if let offset = offset {
+            return fields.allFields.contains { $0.tag == key.getProtoFieldNumber() && $0.keyOffset == offset }
+        } else {
+            return contains(key)
+        }
+    }
+    
     func decodeNil(forKey key: Key) throws -> Bool {
         // There's differences between proto2 and proto3 which mean that this _might_ be required at some point in the future...
         fatalError("Explicit nil decoding not (yet?) supported")
@@ -270,6 +278,17 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         } else if keyOffset == nil && type == Float.self {
             return try decode(Float.self, forKey: key)
         } else {
+            if let enumTy = type as? AnyProtobufEnum.Type, !contains(key, atOffset: keyOffset) {
+                // Decoding an enum which is not present in the message, so we need to replace it with the default value
+                switch getProtoSyntax(enumTy) {
+                case .proto2:
+                    // For proto2 enum types, the first value is used as the default (https://developers.google.com/protocol-buffers/docs/proto#enum)
+                    return enumTy.allCases.first!
+                    // For proto3 enum types, the value which is mapped to 0 is used as the default (https://developers.google.com/protocol-buffers/docs/proto3#enum)
+                case .proto3:
+                    return enumTy.init(rawValue: 0)!
+                }
+            }
             let (fieldInfo, valueBytes) = try getFieldInfoAndValueBytes(forKey: key, atOffset: keyOffset)
             switch guessWireType(type)! {
             case .lengthDelimited:

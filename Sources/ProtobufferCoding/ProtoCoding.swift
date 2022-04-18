@@ -18,6 +18,17 @@ public enum ProtoSyntax: String {
     case proto3
 }
 
+
+/// Returns the `ProtoSyntax` version to be used for the type `type`
+func getProtoSyntax(_ type: Any.Type) -> ProtoSyntax {
+    if type as? Proto2Codable.Type != nil {
+        return .proto2
+    } else {
+        return .proto3
+    }
+}
+
+
 private var cachedCodingKeysEnumCases: [ObjectIdentifier: [Runtime.Case]] = [:]
 
 extension CodingKey {

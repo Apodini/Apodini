@@ -1009,7 +1009,7 @@ public class ProtoSchema {
                 precondition($0.0.name == String(String(reflecting: $0.1).split(separator: ".").last!))
                 return .init(name: $0.0.name, value: $0.1.rawValue)
             }
-            if (type as? Proto2Codable.Type == nil) && !enumCases.contains(where: { $0.value == 0 }) {
+            if getProtoSyntax(type) == .proto3 && !enumCases.contains(where: { $0.value == 0 }) {
                 throw ProtoValidationError.proto3EnumMissingCaseWithZeroValue(enumTy)
             }
             if !requireTopLevelCompatibleOutput {
@@ -1101,8 +1101,8 @@ extension ProtoSchema {
                     }(),
                     reservedNames: enumType.reservedFields.allReservedNames()
                 )
-                precondition(enumType is Proto2Codable.Type == (enumType as? Proto2Codable.Type != nil))
-                return (desc, (enumType as? Proto2Codable.Type != nil) ? .proto2 : .proto3)
+                precondition(Set([enumType is Proto2Codable.Type, enumType as? Proto2Codable.Type != nil, getProtoSyntax(enumType) == .proto2]).count == 1)
+                return (desc, getProtoSyntax(enumType))
             }
         }
         
@@ -1320,7 +1320,9 @@ extension ProtoSchema {
                 fieldNumbersMapping = .init(uniqueKeysWithValues: fields.map { ($0.name, $0.fieldNumber) })
             }
             var referencedTypes = Set<String>()
-            let messageProtoSyntax: ProtoSyntax = (underlyingType as? Proto2Codable.Type != nil) ? .proto2 : .proto3
+            let messageProtoSyntax_old: ProtoSyntax = (underlyingType as? Proto2Codable.Type != nil) ? .proto2 : .proto3
+            let messageProtoSyntax = underlyingType.map(getProtoSyntax) ?? .proto3
+            precondition(messageProtoSyntax == messageProtoSyntax_old)
             let desc = DescriptorProto(
                 // Same as with enums, we intentionally keep the full name so that the type containment handling works correctly.
                 name: messageTypename.mangled,
@@ -1331,7 +1333,7 @@ extension ProtoSchema {
                         label: { () -> FieldDescriptorProto.Label? in
                             if field.isRepeated {
                                 return .LABEL_REPEATED
-                            } else if underlyingType as? Proto2Codable.Type != nil {
+                            } else if messageProtoSyntax == .proto2 {
                                 // the field belongs to a proto2 type
                                 if field.isOptional {
                                     return .LABEL_OPTIONAL
@@ -1421,7 +1423,7 @@ extension ProtoSchema {
                         //
                         // Proto2 optional fields do not set this flag, because they already indicate
                         // optional with `LABEL_OPTIONAL`.
-                        proto3Optional: (underlyingType as? Proto2Codable.Type == nil) && field.isOptional
+                        proto3Optional: (messageProtoSyntax == .proto3) && field.isOptional
                     )
                 },
                 extensions: [],
