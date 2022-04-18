@@ -20,8 +20,6 @@ jobs:
     uses: Apodini/.github/.github/workflows/build-and-test.yml@v1
     with:
       packagename: Apodini
-      testdocc: false
-      supportsmacos11: false
       aptgetdependencies: libsqlite3-dev
       yumdependencies: sqlite-devel
       installgrpcurl: true
