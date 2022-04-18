@@ -26,6 +26,7 @@ public protocol HTTPResponder {
 
 
 extension HTTPResponder {
+    /// :nodoc:
     public func expectedCommunicationPattern(for request: HTTPRequest) -> Apodini.CommunicationPattern? {
         nil
     }

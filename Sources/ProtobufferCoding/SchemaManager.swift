@@ -1101,7 +1101,6 @@ extension ProtoSchema {
                     }(),
                     reservedNames: enumType.reservedFields.allReservedNames()
                 )
-                precondition(Set([enumType is Proto2Codable.Type, enumType as? Proto2Codable.Type != nil, getProtoSyntax(enumType) == .proto2]).count == 1)
                 return (desc, getProtoSyntax(enumType))
             }
         }
@@ -1320,9 +1319,7 @@ extension ProtoSchema {
                 fieldNumbersMapping = .init(uniqueKeysWithValues: fields.map { ($0.name, $0.fieldNumber) })
             }
             var referencedTypes = Set<String>()
-            let messageProtoSyntax_old: ProtoSyntax = (underlyingType as? Proto2Codable.Type != nil) ? .proto2 : .proto3
             let messageProtoSyntax = underlyingType.map(getProtoSyntax) ?? .proto3
-            precondition(messageProtoSyntax == messageProtoSyntax_old)
             let desc = DescriptorProto(
                 // Same as with enums, we intentionally keep the full name so that the type containment handling works correctly.
                 name: messageTypename.mangled,

@@ -11,8 +11,12 @@ import Apodini
 import ApodiniNetworkingHTTPSupport
 
 
+/// The Protocol Buffers package used for Apodini-specific supporting helper types.
 public let apodiniSupportProtoPackage = ProtobufPackageUnit(packageName: "ApodiniSupport", filename: "apodini/ApodiniSupport.proto")
 
+/// A Protocol Buffers-compatible struct for encoding and decoding `Apodini.Blob` objects.
+/// - Note: This type is used internally within ProtobufferCoding, and should not be used by external clients.
+///         Simply pass `Apodini.Blob` objects, or decode `Apodini.Blob.self` via the `ProtobufferDecoder`, and the types will automatically be handled correctly.
 public struct ApodiniBlob: Codable, ProtobufMessage, ProtoTypeInPackage {
     public static let package = apodiniSupportProtoPackage
     public let data: Data
@@ -36,4 +40,3 @@ public struct ApodiniBlob: Codable, ProtobufMessage, ProtoTypeInPackage {
 extension HTTPMediaType: ProtoTypeInPackage {
     public static let package = apodiniSupportProtoPackage
 }
-

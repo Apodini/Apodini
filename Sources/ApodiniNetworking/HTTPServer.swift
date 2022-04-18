@@ -35,8 +35,7 @@ struct ApodiniNetworkingError: Swift.Error {
 }
 
 
-
-private class ErrorHandler: ChannelInboundHandler {
+private class ErrorHandler: ChannelInboundHandler, RemovableChannelHandler {
     typealias InboundIn = Never
     typealias InboundOut = Never
     
@@ -261,22 +260,17 @@ public final class HTTPServer {
                         return channel.close(mode: .all)
                     }
                     let tlsHandler = NIOSSLServerHandler(context: sslContext)
-                    return channel.pipeline.addHandlers([
-                        tlsHandler,
-                        ErrorHandler(name: "Basic channel configurator") // TODO basic as in generic as in low-level as in not the other one
-                    ])
+                    return channel.pipeline.addHandler(tlsHandler)
                         .flatMap { () -> EventLoopFuture<Void> in
                             channel.configureHTTP2SecureUpgrade { channel in
-                                print("h2ChannelConfigurator callback")
-                                return channel.addApodiniNetworkingHTTP2Handlers(
+                                channel.addApodiniNetworkingHTTP2Handlers(
                                     hostname: self.hostname,
                                     isTLSEnabled: self.isTLSEnabled,
                                     inboundStreamConfigMappings: self.customHTTP2StreamConfigurationMappings,
                                     httpResponder: self
                                 )
                             } http1ChannelConfigurator: { channel in
-                                print("http1ChannelConfigurator callback")
-                                return channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
+                                channel.addApodiniNetworkingHTTP1Handlers(hostname: self.hostname, isTLSEnabled: self.isTLSEnabled, responder: self)
                             }
                         }
                         .flatMapError { error in
@@ -348,13 +342,6 @@ extension HTTPServer: HTTPRoutesBuilder {
             responder: DefaultHTTPResponder(handler)
         ))
     }
-//    public func registerRoute(_ method: HTTPMethod, _ path: [HTTPPathComponent],  handler: @escaping (HTTPRequest) -> HTTPResponseConvertible) throws {
-//        try router.add(HTTPRouter.Route(
-//            method: method,
-//            path: path,
-//            responder: DefaultHTTPResponder(handler)
-//        ))
-//    }
 }
 
 
@@ -370,7 +357,8 @@ extension HTTPServer: HTTPResponder {
     }
     
     public func expectedCommunicationPattern(for request: HTTPRequest) -> CommunicationPattern? {
-        // TODO (populate the request?) and cache the routing result. This is after the header has been received, so it wouldn't change much again...
+        // NOTE we could use this to (populate the request?) and cache the routing result.
+        // This is after the header has been received, so it wouldn't change much again...
         if let route = router.getRoute(for: request, populateRequest: false) {
             return route.expectedCommunicationPattern
         } else {
@@ -445,8 +433,7 @@ extension Channel {
             handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
         )
         httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [RemovableChannelHandler])
-        return pipeline.addHandlers(httpHandlers).flatMap {
-            self.pipeline.addHandler(ErrorHandler(name: "HTTP1Pipeline"))
-        }
+        httpHandlers.append(ErrorHandler(name: "HTTP1PipelineErrorHandler"))
+        return pipeline.addHandlers(httpHandlers)
     }
 }

@@ -177,9 +177,12 @@ final class HTTPRouter {
             routes[route.method] = []
         }
         if case let effectivePath = route.path.effectivePath,
-           let conflictingRoute = routes[route.method]!.first(where: { $0.path.effectivePath == effectivePath })
-        {
-            throw RouteRegistrationError.conflictingRouteAtSameEffectivePath(route.method, conflictingPath: conflictingRoute.path, newPath: route.path)
+           let conflictingRoute = routes[route.method]!.first(where: { $0.path.effectivePath == effectivePath }) {
+            throw RouteRegistrationError.conflictingRouteAtSameEffectivePath(
+                route.method,
+                conflictingPath: conflictingRoute.path,
+                newPath: route.path
+            )
         }
         routes[route.method]!.append(route)
         logger.notice("[Router] added \(route.method.rawValue) route at '\(route.path.httpPathString)'")

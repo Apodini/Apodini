@@ -84,12 +84,12 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         let apiId = try apiGateway.createApi(ApiGatewayV2.CreateApiRequest(
             name: "apodini-tmp-api", // doesnt matter will be replaced when importing the openapi spec
             protocolType: protocolType
-        )).wait().apiId!
+        )).wait().apiId! // swiftlint:disable:this multiline_function_chains
         _ = try apiGateway.createStage(ApiGatewayV2.CreateStageRequest(
             apiId: apiId,
             autoDeploy: true,
             stageName: "$default"
-        )).wait()
+        )).wait() // swiftlint:disable:this multiline_function_chains
         return apiId
     }
     
@@ -236,7 +236,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                     principal: "apigateway.amazonaws.com",
                     sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/\(pattern)",
                     statementId: UUID().uuidString.lowercased()
-                )).wait()
+                )).wait() // swiftlint:disable:this multiline_function_chains
             }
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/*/*")
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/$default")
@@ -317,14 +317,14 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 encoding: .utf8
             )!,
             failOnWarnings: false
-        )).wait()
+        )).wait() // swiftlint:disable:this multiline_function_chains
         
         logger.notice("Updating API Gateway name")
         _ = try apiGateway.updateApi(ApiGatewayV2.UpdateApiRequest(
             apiId: apiGatewayApiId,
             description: Self.ApodiniDeployerApiGatewayDescription,
             name: Self.ApodiniDeployerApiGatewayNamePrefix.appending(apiGatewayApiId)
-        )).wait()
+        )).wait() // swiftlint:disable:this multiline_function_chains
         
         let numLambdas = deploymentStructure.nodes.count
         logger.notice("Deployed \(numLambdas) lambda\(numLambdas == 1 ? "" : "s") to api gateway w/ id '\(apiGatewayApiId)'")
@@ -363,7 +363,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                     policyArn: arn,
                     roleName: role.roleName
                 )
-            ).wait()
+            ).wait() // swiftlint:disable:this multiline_function_chains
         }
         
         try attachRolePolicy(arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
@@ -415,7 +415,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 functionName: function.functionArn!,
                 memorySize: memorySize,
                 timeout: timeoutInSec
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             return try lambda
                 .updateFunctionCode(Lambda.UpdateFunctionCodeRequest(
                     functionName: function.functionName!,
@@ -536,7 +536,7 @@ extension AWSIntegration {
             logger.notice("Deleting lambda function with arn '\(lambda.functionArn!)'")
             try self.lambda.deleteFunction(Lambda.DeleteFunctionRequest(
                 functionName: lambda.functionName!
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
         }
         
         for role in relevantIAMRoles {
@@ -548,7 +548,7 @@ extension AWSIntegration {
             logger.notice("Deleting API Gateway w/ id '\(apiGatewayId)'")
             try apiGateway.deleteApi(ApiGatewayV2.DeleteApiRequest(
                 apiId: apiGatewayId
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
         } else {
             // We're told to keep the API Gateway around, so instead of deleting it we're just gonna gut it.
             // Note that we're intentionally not deleting the entire stage.
@@ -560,7 +560,7 @@ extension AWSIntegration {
                 try apiGateway.deleteRoute(ApiGatewayV2.DeleteRouteRequest(
                     apiId: apiGatewayId,
                     routeId: route.routeId!
-                )).wait()
+                )).wait() // swiftlint:disable:this multiline_function_chains
             }
         }
     }
@@ -600,7 +600,7 @@ extension AWSIntegration {
         repeat {
             let response = try lambda.listFunctions(Lambda.ListFunctionsRequest(
                 marker: nextMarker
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.functions ?? [])
             nextMarker = response.nextMarker
         } while nextMarker != nil
@@ -617,7 +617,7 @@ extension AWSIntegration {
                 apiId: apiId,
                 maxResults: nil,
                 nextToken: marker
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             marker = response.nextToken
             retval.append(contentsOf: response.items ?? [])
         } while marker != nil
@@ -634,7 +634,7 @@ extension AWSIntegration {
                 marker: nextMarker,
                 maxItems: nil,
                 pathPrefix: Self.apodiniIamRolePath
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.roles)
             nextMarker = response.marker
         } while nextMarker != nil
@@ -649,7 +649,7 @@ extension AWSIntegration {
             let response = try iam.listAttachedRolePolicies(IAM.ListAttachedRolePoliciesRequest(
                 marker: marker,
                 roleName: role.roleName
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.attachedPolicies ?? [])
             marker = response.marker
         } while marker != nil
@@ -665,7 +665,7 @@ extension AWSIntegration {
             try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
                 policyArn: attachedPolicy.policyArn!,
                 roleName: role.roleName
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
         }
         try iam.deleteRole(.init(roleName: role.roleName)).wait()
     }
