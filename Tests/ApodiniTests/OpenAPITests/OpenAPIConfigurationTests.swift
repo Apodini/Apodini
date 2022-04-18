@@ -10,6 +10,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
+@testable import ApodiniHTTP
 
 final class OpenAPIConfigurationTests: ApodiniTests {
     func testBuildDocumentWithConfiguration() throws {
