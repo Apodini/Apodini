@@ -16,8 +16,8 @@ public protocol DependableConfiguration: Configuration {
 }
 
 extension DependableConfiguration {
-    /// Collects all the commands from the `DependentStaticConfiguration`s and exports them for this `DependableConfiguration`
     // swiftlint:disable identifier_name
+    /// Collects all the commands from the `DependentStaticConfiguration`s and exports them for this `DependableConfiguration`
     public var _commands: [ParsableCommand.Type] {
         staticConfigurations.compactMap { (staticConfiguration: AnyDependentStaticConfiguration) in
             staticConfiguration.command

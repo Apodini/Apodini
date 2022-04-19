@@ -10,7 +10,9 @@ import Foundation
 import OpenAPIKit
 
 extension JSONSchema {
-    public func with(title: String) -> JSONSchema {
+    // swiftlint:disable:next cyclomatic_complexity
+    // swiftlint:disable pattern_matching_keywords
+    func with(title: String) -> JSONSchema {
         switch self {
         case .boolean(let context):
             return .boolean(context.with(title: title))
@@ -38,12 +40,13 @@ extension JSONSchema {
             return self
         }
     }
+    // swiftlint:enable all
 }
 
 extension JSONSchema.CoreContext {
     /// Return this context with the given title
     public func with(title: String) -> JSONSchema.CoreContext<Format> {
-        return .init(
+        .init(
             format: format,
             required: required,
             nullable: nullable,
