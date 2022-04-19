@@ -53,8 +53,8 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter component: The `AnyDependentStaticConfiguration` within if statement
     ///
     /// - Returns: The `AnyDependentStaticConfiguration` within the if statement if the condition is true, an empty array otherwise
-    // swiftlint:disable:next discouraged_optional_collection
     public static func buildOptional(_ component: [AnyDependentStaticConfiguration]?) -> [AnyDependentStaticConfiguration] {
+        // swiftlint:disable:previous discouraged_optional_collection
         component ?? []
     }
 }
