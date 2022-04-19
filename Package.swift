@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.6
 
 //
 // This source file is part of the Apodini open source project
@@ -71,7 +71,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`
-        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
+        .package(url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
