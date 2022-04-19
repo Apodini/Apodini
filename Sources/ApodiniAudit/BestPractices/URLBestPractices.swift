@@ -9,6 +9,38 @@
 import Foundation
 import Apodini
 
+struct ContextualisedResourceNames: BestPractice {
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
+    
+    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
+        let pathSegments = endpoint.absolutePath
+        let firstStringSegment = pathSegments.first { path in
+            if case .string( _) = path {
+                return true
+            }
+            return false
+        }
+        guard let firstStringSegment = firstStringSegment,
+              case .string(let firstString) = firstStringSegment,
+              let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
+            return AuditReport(message: "Nothing to check for endpoint \(endpoint)", auditResult: .success)
+        }
+
+        var latestString = firstString
+        for segmentIndex in firstStringIndex + 1..<pathSegments.count {
+            if case .string(let nextString) = pathSegments[segmentIndex] {
+                if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
+                    return AuditReport(message: "\"\(latestString)\" and \"\(nextString)\" are not related!", auditResult: .fail)
+                }
+                print("\"\(latestString)\" and \"\(nextString)\" are related!")
+                latestString = nextString
+            }
+        }
+        return AuditReport(message: "All segments are related!", auditResult: .success)
+    }
+}
+
 protocol URLSegmentBestPractice: BestPractice {
     static var successMessage: String { get }
     

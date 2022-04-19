@@ -9,12 +9,20 @@
 import Foundation
 import PythonKit
 
-func getSynsets() {
-    let nltk = Python.import("nltk")
-    nltk.demo()
-    let corpus = Python.import("nltk.corpus")
-    //corpus.demo()
-    let wn = corpus.wordnet
-    //print(wn)
-    print(wn.synsets("dog"))
+struct NLTKInterface {
+    static let shared = NLTKInterface()
+    
+    private let wordnet: PythonObject
+    
+    private init() {
+        let corpus = Python.import("nltk.corpus")
+        self.wordnet = corpus.wordnet
+    }
+    
+    func synsetIntersectionEmpty(_ str1: String, _ str2: String) -> Bool {
+        let synsets1 = Set(wordnet.synsets(str1))
+        let synsets2 = Set(wordnet.synsets(str2))
+        
+        return synsets1.intersection(synsets2).isEmpty
+    }
 }

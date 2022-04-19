@@ -16,6 +16,8 @@ struct Audit {
     var bestPracticeType: BestPractice.Type
 }
 
+
+// TODO there should be a way to return multiple messages for one audit
 public struct AuditReport {
     var message: String
     var auditResult: AuditResult

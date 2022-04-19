@@ -29,7 +29,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
-        for audit in audits where audit.report.auditResult == .fail {
+        for audit in audits { // where audit.report.auditResult == .fail {
             app.logger.info("[Audit] \(audit.report.message)")
         }
     }
@@ -43,7 +43,8 @@ final class AuditInterfaceExporter: InterfaceExporter {
 extension AuditInterfaceExporter {
     static let bestPractices: [BestPractice.Type] = [
         AppropriateLengthForURLPathSegments.self,
-        NoUnderscoresInURLPathSegments.self
+        NoUnderscoresInURLPathSegments.self,
+        ContextualisedResourceNames.self
     ]
 }
 
