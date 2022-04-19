@@ -130,7 +130,10 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
         
         // Apodini Document Export
-        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
+        
+        // Apodini Audit
+        .package(url: "https://github.com/pvieito/PythonKit.git", .branch("master"))
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -779,7 +782,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP")
+                .target(name: "ApodiniHTTP"),
+                .product(name: "PythonKit", package: "PythonKit")
             ]
         ),
         
