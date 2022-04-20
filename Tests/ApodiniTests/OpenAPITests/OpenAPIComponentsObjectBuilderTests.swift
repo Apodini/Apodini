@@ -110,7 +110,8 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     
     /// Create response schema and add it to components.
     func testBuildSchemaForResponses() throws {
-        let exporterConfiguration = ApodiniOpenAPI.OpenAPI.ExporterConfiguration(parentConfiguration: HTTPExporterConfiguration(useResponseContainer: true))
+        let parentConfiguration = HTTPExporterConfiguration(useResponseContainer: true)
+        let exporterConfiguration = ApodiniOpenAPI.OpenAPI.ExporterConfiguration(parentConfiguration: parentConfiguration)
         let componentsBuilder = OpenAPIComponentsObjectBuilder(configuration: exporterConfiguration)
         XCTAssertNoThrow(try componentsBuilder.buildResponse(for: SomeStruct.self))
         let responseSchemaName = "\(SomeStruct.self)Response"

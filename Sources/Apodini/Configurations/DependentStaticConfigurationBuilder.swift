@@ -8,7 +8,7 @@
 
 /// A function builder used to aggregate multiple `DependentStaticConfiguration`s
 @resultBuilder
-public enum DependentStaticConfigurationBuilder<InternalParentConfiguration> {
+public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// A method that transforms a `DependentStaticConfiguration` with the required `InteralParentConfiguration`
     /// into an array of a single `AnyDependentStaticConfiguration`.
     ///
@@ -16,7 +16,7 @@ public enum DependentStaticConfigurationBuilder<InternalParentConfiguration> {
     ///
     /// - Returns: An array of `AnyDependentStaticConfiguration`s
     public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration]
-        where T.InternalParentConfiguration == InternalParentConfiguration {
+        where T.InternalParentConfiguration == ParentConfiguration {
         [expression]
     }
     
@@ -53,8 +53,8 @@ public enum DependentStaticConfigurationBuilder<InternalParentConfiguration> {
     /// - Parameter component: The `AnyDependentStaticConfiguration` within if statement
     ///
     /// - Returns: The `AnyDependentStaticConfiguration` within the if statement if the condition is true, an empty array otherwise
-    // swiftlint:disable discouraged_optional_collection
     public static func buildOptional(_ component: [AnyDependentStaticConfiguration]?) -> [AnyDependentStaticConfiguration] {
+        // swiftlint:disable:previous discouraged_optional_collection
         component ?? []
     }
 }

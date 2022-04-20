@@ -56,7 +56,8 @@ final class OpenAPIDocumentBuilderTests: ApodiniTests {
                 properties: [
                     ResponseContainer.CodingKeys.data.rawValue: .reference(.component(named: "\(SomeTestStruct.self)")),
                     ResponseContainer.CodingKeys.links.rawValue: .object(additionalProperties: .init(.string))
-            ]),
+                ]
+            ),
             app: app)
     }
 }
@@ -86,7 +87,11 @@ private func runEndpointTest(httpConfiguration: HTTPExporterConfiguration, respo
 }
 
 // swiftlint:disable:next function_body_length
-private func manuallyCreateDocument(_ responseSchema: JSONSchema, _ endpoint: AnyEndpoint, _ exporterConfiguration: ApodiniOpenAPI.OpenAPI.ExporterConfiguration) -> OpenAPIKit.OpenAPI.Document {
+private func manuallyCreateDocument(
+    _ responseSchema: JSONSchema,
+    _ endpoint: AnyEndpoint,
+    _ exporterConfiguration: ApodiniOpenAPI.OpenAPI.ExporterConfiguration
+) -> OpenAPIKit.OpenAPI.Document {
     OpenAPI.Document(
         info: OpenAPI.Document.Info(title: exporterConfiguration.title ?? "", version: exporterConfiguration.version ?? ""),
         servers: exporterConfiguration.serverUrls.map {
