@@ -22,13 +22,14 @@ struct AuditCommand<Service: WebService>: ParsableCommand {
             discussion: "Audits the web service with regards to HTTP and REST best practices",
             version: "0.1.0",
             subcommands: [
-                `default`
+                runCommand,
+                AuditSetupNLTKCommand<Service>.self
             ],
-            defaultSubcommand: `default`
+            defaultSubcommand: runCommand
         )
     }
     
-    private static var `default`: ParsableCommand.Type {
+    private static var runCommand: ParsableCommand.Type {
         AuditRunCommand<Service>.self
     }
 }
