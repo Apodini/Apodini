@@ -74,7 +74,6 @@ public final class HTTPServer {
     private let router: HTTPRouter
     
     private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
-//    private var cachedRoutingResults: [Weak<HTTPRequest>, ]
     
     private var channel: Channel?
     
