@@ -56,7 +56,7 @@ class ProxyServer {
                 else {
                     throw Error(message: "Unable to fetch handler service type from OpenAPI document")
                 }
-                httpServer.registerRoute(
+                try! httpServer.registerRoute(
                     HTTPMethod(rawValue: endpoint.method.rawValue),
                     path.toHTTPPathComponentPath(),
                     responder: ProxyRequestResponder(

@@ -12,6 +12,13 @@ import Foundation
 @_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
+internal struct CodableBox<T> {
+    let value: T
+}
+extension CodableBox: Encodable where T: Encodable {}
+extension CodableBox: Decodable where T: Decodable {}
+
+
 /// The `ProtobufferEncoder` encodes `Encodable` values into protocol buffers
 public struct ProtobufferEncoder {
     /// Create a new encoder
@@ -25,7 +32,7 @@ public struct ProtobufferEncoder {
     }
     
     /// Encodes a value into the specified buffer
-    public func encode<T: Encodable>(_ value: T, into buffer: inout ByteBuffer) throws {
+    public func encode<T: Encodable>(_ value: T, into outBuffer: inout ByteBuffer) throws {
         // We (currently) don't care about the actual result of the schema, but we want to ensure that the type structure is valid
         try validateTypeIsProtoCompatible(T.self)
         let dstBufferRef = Box(ByteBuffer())
@@ -35,11 +42,29 @@ public struct ProtobufferEncoder {
             dstBufferRef: dstBufferRef,
             context: EncoderContext()
         )
-        if getProtoCodingKind(type(of: value)) == .message {
+        let isMessage = getProtoCodingKind(type(of: value)) == .message
+        if isMessage {
             encoder.context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3) // no need to pop here
         }
-        try value.encode(to: encoder)
-        buffer.writeImmutableBuffer(dstBufferRef.value)
+        // NOTE: We have to go through this wrapper type here, in order to give the KeyedEncodingContainer's `encode` function the opportunity
+        // to apply type transformations and do some other special handling for specific types.
+        // Going through the wrapper type means that the actual value being encoded will go through the KeyedEncodingContainer's encode function,
+        // which would not be the case if we called `value.encode(to:)` directly.
+        // (The alternative would be to implement everything twice.)
+        try CodableBox(value: value).encode(to: encoder)
+        let fields = try ProtobufMessageLayoutDecoder.getFields(in: dstBufferRef.value)
+        guard fields.count == 1, let field = fields.getAll(forFieldNumber: 1).first else {
+            throw ProtoEncodingError.other("Unable to find encoded-to field in encoding buffer")
+        }
+        let offset: Int
+        switch field.valueInfo {
+        case .varInt, ._32Bit, ._64Bit:
+            offset = field.valueOffset
+        case .lengthDelimited(dataLength: _, let dataOffset):
+            offset = field.valueOffset + (isMessage ? dataOffset : 0)
+        }
+        dstBufferRef.value.moveReaderIndex(forwardBy: offset)
+        outBuffer.writeImmutableBuffer(dstBufferRef.value)
     }
     
     /// Encodes a value, at the specified field

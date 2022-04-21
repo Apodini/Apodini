@@ -11,7 +11,7 @@ public struct AnyComponent: Component, SyntaxTreeVisitable {
     
     private let _accept: (SyntaxTreeVisitor) -> Void
     
-    init<C: Component>(_ component: C) {
+    public init<C: Component>(_ component: C) {
         _accept = component.accept
     }
     
@@ -27,7 +27,7 @@ public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
     private let _accept: (SyntaxTreeVisitor) -> Void
     private let _handleraccept: (HandlerVisitor) throws -> Void
     
-    init<H: Handler>(_ handler: H) {
+    public init<H: Handler>(_ handler: H) {
         _accept = handler.accept
         _handleraccept = handler.accept
     }

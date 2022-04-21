@@ -158,7 +158,7 @@ extension Endpoint {
     private static func wellKnownEndpointNameVerbPrefixes(for operation: Apodini.Operation) -> Set<String> {
         switch operation {
         case .create:
-            return ["create", "make", "new", "add"]
+            return ["create", "make", "new", "add", "save"]
         case .read:
             return ["get", "list", "fetch", "query", "read"]
         case .update:

@@ -11,6 +11,7 @@ import Foundation
 
 public protocol AnyProtobufEnum: __ProtoTypeWithReservedFields {
     static var allCases: [Self] { get }
+    init?(rawValue: Int32)
     var rawValue: Int32 { get }
 }
 

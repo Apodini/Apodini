@@ -148,7 +148,7 @@ class ApodiniDeployerInterfaceExporter: LegacyInterfaceExporter {
             endpoint: endpoint,
             deploymentOptions: endpoint[Context.self].get(valueFor: DeploymentOptionsContextKey.self) ?? .init()
         ))
-        app.httpServer.registerRoute(
+        try! app.httpServer.registerRoute(
             .POST,
             ["__apodini", "invoke", .constant(endpoint[AnyHandlerIdentifier.self].rawValue)],
             responder: InternalInvocationResponder(internalInterfaceExporter: self, endpoint: endpoint)

@@ -148,7 +148,7 @@ final class RESTInterfaceExporter: InterfaceExporter, TruthAnchor {
             relationshipEndpoint,
             on: self
         )
-        app.httpServer.registerRoute(
+        try! app.httpServer.registerRoute(
             HTTPMethod(operation),
             pathBuilder.pathComponents,
             responder: endpointHandler
