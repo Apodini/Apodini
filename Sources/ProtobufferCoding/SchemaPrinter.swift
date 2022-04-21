@@ -10,6 +10,7 @@ import Foundation
 
 
 extension ProtoPrinter {
+    /// Produces a String representation of a Protocol Buffers package file
     public static func print(_ descriptor: FileDescriptorProto) -> String {
         var printer = ProtoPrinter(indentWidth: 2)
         printer.print(descriptor)
@@ -40,6 +41,7 @@ extension EnumDescriptorProto: ProtoDescriptorWithReservedRangesAndNames {}
 
 // MARK: ProtoPrinter implementation
 
+/// The `ProtoPrinter` can be used to produce String representations of Protocol Buffers schemas.
 public struct ProtoPrinter {
     private var text: String = ""
     private var indentLevel: UInt = 0
