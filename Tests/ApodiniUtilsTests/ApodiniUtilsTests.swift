@@ -66,4 +66,11 @@ class ApodiniUtilsTests: XCTestCase {
             0: 4
         ])
     }
+    
+    
+    func testThreeWayComparable() {
+        XCTAssertEqual(0.compareThreeWay(0), .orderedSame)
+        XCTAssertEqual(0.compareThreeWay(1), .orderedAscending)
+        XCTAssertEqual(1.compareThreeWay(0), .orderedDescending)
+    }
 }

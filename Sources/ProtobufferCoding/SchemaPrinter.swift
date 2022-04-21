@@ -7,11 +7,10 @@
 //
 
 import Foundation
-import ProtobufferCoding
 
 
 extension ProtoPrinter {
-    static func print(_ descriptor: FileDescriptorProto) -> String {
+    public static func print(_ descriptor: FileDescriptorProto) -> String {
         var printer = ProtoPrinter(indentWidth: 2)
         printer.print(descriptor)
         return printer.finalise()
@@ -41,7 +40,7 @@ extension EnumDescriptorProto: ProtoDescriptorWithReservedRangesAndNames {}
 
 // MARK: ProtoPrinter implementation
 
-struct ProtoPrinter {
+public struct ProtoPrinter {
     private var text: String = ""
     private var indentLevel: UInt = 0
     private let indentWidth: UInt8
