@@ -196,7 +196,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                             )
                             fflush(stdout)
                         }
-                    ).wait()
+                    ).wait() // swiftlint:disable:this multiline_function_chains
                     print("\u{1b}[2KS3 upload done.")
                 } catch {
                     print("") // print a newline after the last progress line (which did not terminate w/ a newline)
@@ -236,7 +236,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                     principal: "apigateway.amazonaws.com",
                     sourceArn: "arn:aws:execute-api:\(awsRegion.rawValue):\(accountId):\(apiGatewayApiId)/\(pattern)",
                     statementId: UUID().uuidString.lowercased()
-                )).wait() // swiftlint:disable:this multiline_function_chains
+                )).wait()
             }
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/*/*")
             try grantLambdaPermissions(appiGatewayRessourcePattern: "*/$default")
