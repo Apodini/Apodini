@@ -282,7 +282,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployerTestCase {
                 try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
                     policyArn: arn,
                     roleName: iamExecutionRoleName
-                )).wait() // swiftlint:disable:this multiline_function_chains
+                )).wait()
             }
             
             try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")
