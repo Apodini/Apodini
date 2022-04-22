@@ -9,6 +9,7 @@
 // swiftlint:disable syntactic_sugar
 
 import NIO
+import Apodini
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
@@ -108,8 +109,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         dstBufferRef.value.writeProtoDouble(value)
     }
     
-    mutating func encodeVarInt<T: FixedWidthInteger>(_ value: T, forKey key: Key) throws {
-        guard shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value == T.zero) else {
+    mutating func encodeVarInt<T: FixedWidthInteger>(_ value: T, forKey key: Key, alwaysEncodeZeroValues: Bool = false) throws {
+        guard alwaysEncodeZeroValues || shouldEncodeNonnilValue(forKey: key, isDefaultZeroValue: value == T.zero) else {
             return
         }
         dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .varInt)
@@ -171,6 +172,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         
         if getProtoCodingKind(type(of: value)) == .message {
             context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3)
+            precondition((value is Proto2Codable) == (getProtoSyntax(type(of: value)) == .proto2))
         }
         defer {
             if getProtoCodingKind(type(of: value)) == .message {
@@ -193,7 +195,20 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
         } else if let enumVal = value as? AnyProtobufEnum {
-            try encode(enumVal.rawValue, forKey: key)
+            let enumTy = type(of: enumVal)
+            switch getProtoSyntax(enumTy) {
+            case .proto2:
+                if enumVal.rawValue == enumTy.allCases.first!.rawValue && !context.isMarkedAsRequiredOutput(codingPath.appending(key)) {
+                    // We'd encode the default value, which can be omitted
+                    return
+                }
+            case .proto3:
+                if enumVal.rawValue == 0 && !context.isMarkedAsRequiredOutput(codingPath.appending(key)) {
+                    // We'd encode the default value, which can be omitted
+                    return
+                }
+            }
+            try encodeVarInt(enumVal.rawValue, forKey: key, alwaysEncodeZeroValues: true)
         } else if let string = value as? String {
             try encode(string, forKey: key)
         } else if let bool = value as? Bool {
@@ -229,16 +244,13 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             try encode(uuidValue.uuidString, forKey: key)
         } else if let dateValue = value as? Foundation.Date {
             precondition(type(of: value) == Date.self)
-//            let unixEpochOffset = dateValue.timeIntervalSince1970
-//            let timestamp = ProtoTimestamp(
-//                seconds: Int64(unixEpochOffset),
-//                nanos: Int32((unixEpochOffset - floor(unixEpochOffset)) * 1e9)
-//            )
             let timestamp = ProtoTimestamp(timeIntervalSince1970: dateValue.timeIntervalSince1970)
             try encode(timestamp, forKey: key)
         } else if let urlValue = value as? Foundation.URL {
             precondition(type(of: value) == URL.self)
             try encode(urlValue.absoluteURL.resolvingSymlinksInPath().absoluteString, forKey: key)
+        } else if let blob = value as? Apodini.Blob {
+            try encode(ApodiniBlob(blob: blob), forKey: key)
         } else if let array = value as? Array<UInt8>, type(of: value) == Array<UInt8>.self {
             // ^^^ We need the additional type(of:) check bc Swift will happily convert
             // empty arrays of type X to empty arrays of type Y :/

@@ -60,7 +60,7 @@ public final class HTTP: DependableConfiguration {
     
     public func configure(_ app: Apodini.Application) {
         /// Instantiate exporter
-        let exporter = Exporter(app, self.configuration)
+        let exporter = HTTPInterfaceExporter(app, self.configuration)
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
@@ -99,7 +99,7 @@ extension HTTP {
 
 // MARK: Exporter
 
-struct Exporter: InterfaceExporter {
+class HTTPInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
     let configuration: HTTPExporterConfiguration
     let logger: Logger
@@ -122,30 +122,34 @@ struct Exporter: InterfaceExporter {
         switch knowledge.pattern {
         case .requestResponse:
             logger.info("Exporting Request-Response Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .requestResponse,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .serviceSideStream:
             logger.info("Exporting Service-Side-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .serviceSideStream,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .clientSideStream:
             logger.info("Exporting Client-Side-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .clientSideStream,
                 handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         case .bidirectionalStream:
             logger.info("Exporting Bidirectional-Streaming Pattern on \(knowledge.method): \(path)")
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .bidirectionalStream,
                 handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
         }
@@ -157,20 +161,33 @@ struct Exporter: InterfaceExporter {
         
         switch knowledge.pattern {
         case .requestResponse:
-            app.httpServer.registerRoute(
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .requestResponse,
                 handler: buildRequestResponseClosure(for: endpoint, using: knowledge.defaultValues)
             )
-        case .serviceSideStream:
-            app.httpServer.registerRoute(
+        case .clientSideStream:
+            try! app.httpServer.registerRoute(
                 knowledge.method,
                 path,
+                .clientSideStream,
+                handler: buildClientSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
+        case .serviceSideStream:
+            try! app.httpServer.registerRoute(
+                knowledge.method,
+                path,
+                .serviceSideStream,
                 handler: buildServiceSideStreamingClosure(for: endpoint, using: knowledge.defaultValues)
             )
-        default:
-            logger.warning("HTTP exporter can only handle 'CommunicationPattern.requestResponse' for content type 'Blob'. Endpoint at \(knowledge.method) \(path) is exported with degraded functionality.")
-            self.export(endpoint)
+        case .bidirectionalStream:
+            try! app.httpServer.registerRoute(
+                knowledge.method,
+                path,
+                .bidirectionalStream,
+                handler: buildBidirectionalStreamingClosure(for: endpoint, using: knowledge.defaultValues)
+            )
         }
     }
     

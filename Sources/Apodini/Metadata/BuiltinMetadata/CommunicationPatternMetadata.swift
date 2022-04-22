@@ -12,7 +12,7 @@ import Foundation
 ///
 /// The pattern in a communication is defined by the quantity and order of messages
 /// that are sent from client to server and from server to client.
-public enum CommunicationPattern: String {
+public enum CommunicationPattern: String, CaseIterable {
     /// **One** client message followed by **one** service message
     case requestResponse
     /// **Any amount** of client messages followed by **one** service message
@@ -21,6 +21,16 @@ public enum CommunicationPattern: String {
     case serviceSideStream
     /// **Any amount** of client messages and **any amount** of service messages in an **undefined order**
     case bidirectionalStream
+    
+    /// Whether the communication pattern is stream-based
+    public var isStream: Bool {
+        switch self {
+        case .requestResponse:
+            return false
+        case .clientSideStream, .serviceSideStream, .bidirectionalStream:
+            return true
+        }
+    }
 }
 
 

@@ -123,7 +123,7 @@ public class ApodiniMetricsTests: XCTestCase {
             let expectedDimensions = [
                 ("endpoint", "Greeter"),
                 ("endpoint_path", "/greeter"),
-                ("exporter", "Exporter"),
+                ("exporter", "HTTPInterfaceExporter"),
                 ("operation", "read"),
                 ("communication_pattern", "requestResponse"),
                 ("response_type", "String")

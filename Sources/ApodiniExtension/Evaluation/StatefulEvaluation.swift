@@ -72,12 +72,8 @@ public extension AsyncSequence where Element == Event {
             switch event {
             case .end:
                 connectionState = .end
-                if let request = latestRequest {
-                    return .request(request)
-                } else {
-                    return .end
-                }
-            default:
+                return .end
+            case .request, .trigger:
                 return event
             }
         }
@@ -100,7 +96,15 @@ public extension AsyncSequence where Element == Event {
                     return .failure(error)
                 }
             case .end:
-                return nil
+                if let latestRequest = latestRequest {
+                    do {
+                        return .success(try await handler.evaluate(using: latestRequest, with: .close))
+                    } catch {
+                        return .failure(error)
+                    }
+                } else {
+                    return nil
+                }
             }
         }
         .typeErased

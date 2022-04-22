@@ -19,7 +19,7 @@ struct RESTDefaultRootHandler {
     
     /// Registers a GET handler on root path
     func register(on app: Apodini.Application, rootPath: EndpointPath?) {
-        app.httpServer.registerRoute(.GET, []) { request in
+        try! app.httpServer.registerRoute(.GET, []) { request in
             ResponseContainer(
                 Empty.self,
                 links: relationships.formatRelationships(

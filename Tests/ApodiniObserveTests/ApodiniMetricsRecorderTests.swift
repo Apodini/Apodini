@@ -17,6 +17,7 @@ import ApodiniHTTP
 @testable import Apodini
 @testable import SwiftLogTesting
 @testable import MetricsTestUtils
+import XCTUtils
 
 // swiftlint:disable closure_body_length
 class ApodiniMetricsRecorderTests: XCTestCase {
@@ -135,7 +136,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
     
     func testApodiniMetricsRecorder1() throws {
         // Automatically recorded log
-        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.Exporter")
+        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.HTTPInterfaceExporter")
         container.reset()
         
         try Self.app.testable().test(.GET, "/greeter/first/Philipp") { response in
@@ -148,7 +149,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let expectedDimensions = [
                 ("endpoint", "Greeter1"),
                 ("endpoint_path", "/greeter/first"),
-                ("exporter", "Exporter"),
+                ("exporter", "HTTPInterfaceExporter"),
                 ("operation", "read"),
                 ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
@@ -202,10 +203,10 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             }
             
             XCTAssertEqual(1, container.messages.count)
-            let logMessage = container.messages[0]
+            let logMessage = try XCTUnwrap(container.messages.first)
             
             // Assert log message, level etc.
-            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter1 via Exporter")
+            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter1 via HTTPInterfaceExporter")
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file.components(separatedBy: "/").last, "RecordingHandler.swift")
             XCTAssertEqual(logMessage.function, "handle()")
@@ -219,7 +220,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -288,7 +289,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
     
     func testApodiniMetricsRecorder2() throws {
         // Automatically recorded log
-        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.Exporter")
+        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.HTTPInterfaceExporter")
         container.reset()
         
         try Self.app.testable().test(.GET, "/greeter/second/Philipp") { response in
@@ -301,7 +302,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let expectedDimensions = [
                 ("endpoint", "Greeter2"),
                 ("endpoint_path", "/greeter/second"),
-                ("exporter", "Exporter"),
+                ("exporter", "HTTPInterfaceExporter"),
                 ("operation", "read"),
                 ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
@@ -342,10 +343,10 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             }
             
             XCTAssertEqual(1, container.messages.count)
-            let logMessage = container.messages[0]
+            let logMessage = try XCTUnwrap(container.messages.first)
             
             // Assert log message, level etc.
-            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter2 via Exporter")
+            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter2 via HTTPInterfaceExporter")
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file.components(separatedBy: "/").last, "RecordingHandler.swift")
             XCTAssertEqual(logMessage.function, "handle()")
@@ -359,7 +360,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -427,7 +428,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
     
     func testApodiniMetricsRecorder3() throws {
         // Automatically recorded log
-        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.Exporter")
+        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter1.HTTPInterfaceExporter")
         container.reset()
         
         try Self.app.testable().test(.GET, "/greeter/third/Philipp") { response in
@@ -440,7 +441,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let expectedDimensions = [
                 ("endpoint", "Greeter1"),
                 ("endpoint_path", "/greeter/third"),
-                ("exporter", "Exporter"),
+                ("exporter", "HTTPInterfaceExporter"),
                 ("operation", "read"),
                 ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
@@ -464,10 +465,10 @@ class ApodiniMetricsRecorderTests: XCTestCase {
                                                                                   ))
             
             XCTAssertEqual(1, container.messages.count)
-            let logMessage = container.messages[0]
+            let logMessage = try XCTUnwrap(container.messages.first)
             
             // Assert log message, level etc.
-            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter1 via Exporter")
+            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter1 via HTTPInterfaceExporter")
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file.components(separatedBy: "/").last, "RecordingHandler.swift")
             XCTAssertEqual(logMessage.function, "handle()")
@@ -481,7 +482,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
@@ -547,7 +548,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
     
     func testApodiniMetricsRecorder4() throws {
         // Automatically recorded log
-        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.Exporter")
+        let container = TestLogMessages.container(forLabel: "org.apodini.observe.Greeter2.HTTPInterfaceExporter")
         container.reset()
         
         try Self.app.testable().test(.GET, "/greeter/forth/Philipp") { response in
@@ -560,7 +561,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let expectedDimensions = [
                 ("endpoint", "Greeter2"),
                 ("endpoint_path", "/greeter/forth"),
-                ("exporter", "Exporter"),
+                ("exporter", "HTTPInterfaceExporter"),
                 ("operation", "read"),
                 ("communication_pattern", "requestResponse"),
                 ("response_type", "String")
@@ -597,10 +598,10 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             }
             
             XCTAssertEqual(1, container.messages.count)
-            let logMessage = container.messages[0]
+            let logMessage = try XCTUnwrap(container.messages.first)
             
             // Assert log message, level etc.
-            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter2 via Exporter")
+            XCTAssertEqual(logMessage.message, "Incoming request for endpoint Greeter2 via HTTPInterfaceExporter")
             XCTAssertEqual(logMessage.level, .info)
             XCTAssertEqual(logMessage.file.components(separatedBy: "/").last, "RecordingHandler.swift")
             XCTAssertEqual(logMessage.function, "handle()")
@@ -614,7 +615,7 @@ class ApodiniMetricsRecorderTests: XCTestCase {
             let exporterMetadata = try XCTUnwrap(metadata["exporter"]?.metadataDictionary)
             
             XCTAssertEqual(2, exporterMetadata.count)
-            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("Exporter"))
+            XCTAssertEqual(try XCTUnwrap(exporterMetadata["type"]), .string("HTTPInterfaceExporter"))
             XCTAssertEqual(try XCTUnwrap(exporterMetadata["parameterNamespace"]), .array(
                 [
                     .string("[lightweight]"),
