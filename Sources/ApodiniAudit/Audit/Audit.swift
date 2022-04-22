@@ -26,3 +26,5 @@ enum AuditResult {
     case success
     case fail
 }
+
+extension AuditReport: Hashable { }

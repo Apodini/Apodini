@@ -10,6 +10,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
+import ApodiniHTTP
 @_implementationOnly import Yams
 import OpenAPIKit
 import XCTApodiniNetworking
@@ -68,7 +69,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
             }
 
             var configuration: Configuration {
-                REST(encoder: JSONEncoder(), decoder: JSONDecoder()) {
+                HTTP(encoder: JSONEncoder(), decoder: JSONDecoder()) {
                     OpenAPI(outputFormat: .yaml,
                             outputEndpoint: "/oas",
                             swaggerUiEndpoint: "/oas-ui")

@@ -23,7 +23,7 @@ extension Application {
         
         func checkRegisteredExporter<T: InterfaceExporter>(exporterType: T.Type) -> Bool {
             self.interfaceExporters.contains { interfaceExporter in
-                type(of: interfaceExporter) == exporterType
+                type(of: interfaceExporter.typeErasedInterfaceExporter) == exporterType
             }
         }
     }

@@ -26,7 +26,9 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        SharedAPIAuditorConfiguration.registerInterfaceExporter(app, parentConfiguration)
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+        
+        app.registerExporter(exporter: auditInterfaceExporter)
     }
     
     public init() { }
@@ -41,17 +43,5 @@ private enum SharedAPIAuditorConfiguration {
             return auditCommand
         }
         return nil
-    }
-
-    fileprivate static var registeredInterfaceExporter = false
-    fileprivate static func registerInterfaceExporter(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration) {
-        if registeredInterfaceExporter {
-            return
-        }
-        registeredInterfaceExporter = true
-        
-        let exporter = AuditInterfaceExporter(app, parentConfiguration)
-
-        app.registerExporter(exporter: exporter)
     }
 }
