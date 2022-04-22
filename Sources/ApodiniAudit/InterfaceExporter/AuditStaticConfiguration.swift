@@ -21,34 +21,36 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     public typealias InteralParentConfiguration = HTTPExporterConfiguration
     
     public var command: ParsableCommand.Type? {
-        getAuditCommand(AuditCommand<Service>.self)
+        SharedAPIAuditorConfiguration.getAuditCommand(AuditCommand<Service>.self)
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        registerInterfaceExporter(app, mode: .rest)
+        SharedAPIAuditorConfiguration.registerInterfaceExporter(app, parentConfiguration)
     }
     
     public init() { }
 }
 
-// FUTURE write test that _commands works
-private var registeredCommand = false
-private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
-    if !registeredCommand {
-        registeredCommand = true
-        return auditCommand
+private final class SharedAPIAuditorConfiguration {
+    // FUTURE write test that _commands works
+    fileprivate static var registeredCommand = false
+    fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
+        if !registeredCommand {
+            registeredCommand = true
+            return auditCommand
+        }
+        return nil
     }
-    return nil
-}
 
-private var registeredInterfaceExporter = false
-private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
-    if registeredInterfaceExporter {
-        return
+    fileprivate static var registeredInterfaceExporter = false
+    fileprivate static func registerInterfaceExporter(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration) {
+        if registeredInterfaceExporter {
+            return
+        }
+        registeredInterfaceExporter = true
+        
+        let exporter = AuditInterfaceExporter(app, parentConfiguration)
+
+        app.registerExporter(exporter: exporter)
     }
-    registeredInterfaceExporter = true
-    
-    let exporter = AuditInterfaceExporter(app, mode: mode)
-
-    app.registerExporter(exporter: exporter)
 }
