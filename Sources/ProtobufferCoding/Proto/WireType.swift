@@ -43,6 +43,10 @@ func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cy
         return ._32Bit
     } else if type == Double.self {
         return ._64Bit
+    } else if type == Date.self {
+        return guessWireType(ProtoTimestamp.self)
+    } else if type == UUID.self || type == URL.self {
+        return guessWireType(String.self)
     } else if type as? ProtobufBytesMapped.Type != nil {
         return .lengthDelimited
     } else if let repeatedEncodableTy = type as? ProtobufRepeatedEncodable.Type {

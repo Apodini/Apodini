@@ -106,7 +106,8 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         self.webService = nil
 
         let httpAddress = app.httpConfiguration.hostname.address
-        let httpPort = app.httpConfiguration.hostname.port ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
+        let httpPort = app.httpConfiguration.hostname.port
+            ?? (app.httpConfiguration.tlsConfiguration == nil ? HTTPConfiguration.Defaults.httpPort : HTTPConfiguration.Defaults.httpsPort)
 
         let http = HTTPInformation(
             protocol: app.httpConfiguration.tlsConfiguration != nil ? .https : .http,
@@ -234,7 +235,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         let itemName = I.itemName
         if var endpoint = exportOptions.endpoint {
             endpoint = endpoint.hasPrefix("/") ? endpoint : "/\(endpoint)"
-            app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
+            try! app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { _ -> String in
                 format.string(of: migratorItem)
             }
             logger.info("\(itemName) served at \(endpoint) in the \(format.rawValue) format")

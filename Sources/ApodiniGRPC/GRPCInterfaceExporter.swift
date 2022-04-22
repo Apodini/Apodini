@@ -155,7 +155,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     
     func export<H: Handler>(blob endpoint: Endpoint<H>) where H.Response.Content == Blob {
-        logger.warning("Skipping endpoint \(endpoint). The gRPC interface exporter does not support Blob handlers")
+        export(endpoint)
     }
     
     
@@ -377,7 +377,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     private func setupReflectionHTTPRoutes() {
         /// Make a JSON version of the whole gRPC schema available as a regular HTTP GET endpoint.
         /// - NOTE this might not necessarily be the most desirable thing, since it might expose internal data. But then again the OpenAPI interface exporter works the exact same way...
-        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "json", "full"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)
             })
@@ -386,7 +386,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             return response
         }
         
-        app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "files"]) { req -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, ["__apodini", "grpc", "schema", "files"]) { req -> HTTPResponse in
             let response = HTTPResponse(version: req.version, status: .ok, headers: HTTPHeaders {
                 $0[.contentType] = .json(charset: .utf8)
             })
@@ -399,7 +399,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
             case json, proto
         }
         
-        app.httpServer.registerRoute(
+        try! app.httpServer.registerRoute(
             .GET,
             ["__apodini", "grpc", "schema", .namedParameter("format"), "file", .wildcardMultiple("filename")]
         ) { req -> HTTPResponseConvertible in
@@ -464,6 +464,9 @@ private struct GRPCEndpointParameterDecodingStrategy<T: Codable>: ParameterDecod
             if underlyingType == T.self {
                 return try ProtobufferDecoder().decode(T.self, from: input.payload)
             }
+            if !endpointContext.endpointInputIsWrapped {
+                return try ProtobufferDecoder().decode(T.self, from: input.payload)
+            }
             guard let field = fields.first(where: { $0.name == name }) else {
                 throw DecodingError(message: "Unable to find field named '\(name)' in proto message type.")
             }
@@ -480,6 +483,19 @@ class GRPCEndpointContext: Hashable {
     let communicationPattern: CommunicationPattern
     var endpointRequestType: ProtoType?
     var endpointResponseType: ProtoType?
+    /// Whether the inputs of the endpoint are wrapped in a synthesised message type.
+    /// This is the case if an endpoint has multiple `@Parameter`s, which need to be wrapped since gRPC methods can only have one input parameter.
+    /// By default all endpoints will have a custom synthesised wrapper message type, but in some cases this will be skipped (e.g. if an endpoint has only one parameter)
+    var endpointInputIsWrapped: Bool {
+        switch endpointRequestType {
+        case .message(name: _, underlyingType: .none, nestedOneofTypes: _, fields: _):
+            return true
+        case .message(name: _, underlyingType: .some, nestedOneofTypes: _, fields: _):
+            return false
+        case nil, .primitive, .enumTy, .refdMessageType:
+            return true
+        }
+    }
     
     init(communicationPattern: CommunicationPattern) {
         self.communicationPattern = communicationPattern

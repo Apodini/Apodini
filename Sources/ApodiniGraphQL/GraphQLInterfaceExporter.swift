@@ -84,8 +84,8 @@ class GraphQLInterfaceExporter: InterfaceExporter {
         } catch {
             fatalError("Error finalizing GraphQL schema: \(error)")
         }
-        app.httpServer.registerRoute(.GET, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
-        app.httpServer.registerRoute(.POST, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
+        try! app.httpServer.registerRoute(.GET, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
+        try! app.httpServer.registerRoute(.POST, config.graphQLEndpoint, responder: GraphQLQueryHTTPResponder(schema: schema))
         if config.enableGraphiQL {
             registerGraphiQLEndpoint()
         }
@@ -93,7 +93,7 @@ class GraphQLInterfaceExporter: InterfaceExporter {
     
     private func registerGraphiQLEndpoint() {
         let graphqlEndpointUrl = app.httpConfiguration.uriPrefix + config.graphQLEndpoint.httpPathString
-        app.httpServer.registerRoute(.GET, config.graphiQLEndpoint) { req -> HTTPResponse in
+        try! app.httpServer.registerRoute(.GET, config.graphiQLEndpoint) { req -> HTTPResponse in
             guard let url = Bundle.module.url(forResource: "graphiql", withExtension: "html") else {
                 throw HTTPAbortError(status: .internalServerError)
             }

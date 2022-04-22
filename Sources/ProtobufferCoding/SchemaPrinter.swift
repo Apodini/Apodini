@@ -7,11 +7,11 @@
 //
 
 import Foundation
-import ProtobufferCoding
 
 
 extension ProtoPrinter {
-    static func print(_ descriptor: FileDescriptorProto) -> String {
+    /// Produces a String representation of a Protocol Buffers package file
+    public static func print(_ descriptor: FileDescriptorProto) -> String {
         var printer = ProtoPrinter(indentWidth: 2)
         printer.print(descriptor)
         return printer.finalise()
@@ -41,7 +41,8 @@ extension EnumDescriptorProto: ProtoDescriptorWithReservedRangesAndNames {}
 
 // MARK: ProtoPrinter implementation
 
-struct ProtoPrinter {
+/// The `ProtoPrinter` can be used to produce String representations of Protocol Buffers schemas.
+public struct ProtoPrinter {
     private var text: String = ""
     private var indentLevel: UInt = 0
     private let indentWidth: UInt8
@@ -176,8 +177,12 @@ struct ProtoPrinter {
         case .LABEL_REPEATED:
             write("repeated ")
         case .LABEL_REQUIRED:
-            precondition(self.fileDescriptor!.syntax == "proto2")
+            precondition(self.fileDescriptor?.syntax == ProtoSyntax.proto2.rawValue)
             write("required ")
+        }
+        
+        if self.fileDescriptor?.syntax == ProtoSyntax.proto3.rawValue && descriptor.proto3Optional {
+            write("optional ")
         }
         
         switch descriptor.type {

@@ -6,28 +6,38 @@
 // SPDX-License-Identifier: MIT
 //              
 
-import Apodini
-import ApodiniUtils
-import ApodiniExtension
-import ApodiniLoggingSupport
-import NIOWebSocket
-import WebSocketKit
 import Foundation
+import Apodini
+import ApodiniExtension
 import ApodiniNetworking
+import ApodiniLoggingSupport
+import ApodiniUtils
+import NIOWebSocket
+@_implementationOnly import WebSocketKit
+
 
 // MARK: Exporter
 
 public final class WebSocket: Configuration {
-    let configuration: WebSocket.ExporterConfiguration
+    /// The source the WebSocket interface exporter should use when generating endpoint names for endpoints
+    public enum EndpointNameSource {
+        /// An endpoint's name should be based on its path within the web service
+        case path
+        /// An endpoint's name should be based on its `EndpointName` metadata
+        case endpointNameMetadata
+    }
     
-    public init(path: String = "apodini/websocket") {
-        self.configuration = WebSocket.ExporterConfiguration(path: path)
+    let path: String
+    let endpointNameSource: EndpointNameSource
+    
+    public init(path: String = "apodini/websocket", endpointNameSource: EndpointNameSource = .path) {
+        self.path = path
+        self.endpointNameSource = endpointNameSource
     }
     
     public func configure(_ app: Apodini.Application) {
         /// Instantiate exporter
-        let webSocketExporter = WebSocketInterfaceExporter(app, self.configuration)
-        
+        let webSocketExporter = WebSocketInterfaceExporter(app, self)
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: webSocketExporter)
     }
@@ -38,11 +48,11 @@ public final class WebSocket: Configuration {
 /// The Apodini service listens on /apodini/websocket for clients that want to communicate via the WebSocket Interface Exporter.
 final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     private let app: Apodini.Application
-    private let exporterConfiguration: WebSocket.ExporterConfiguration
+    private let exporterConfiguration: WebSocket
     private let router: VaporWSRouter
 
     /// Initialize a `WebSocketInterfaceExporter` from an `Application`
-    init(_ app: Apodini.Application, _ exporterConfiguration: WebSocket.ExporterConfiguration = .init()) {
+    init(_ app: Apodini.Application, _ exporterConfiguration: WebSocket = .init()) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
         self.router = VaporWSRouter(app, logger: app.logger, at: self.exporterConfiguration.path)
@@ -63,10 +73,17 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             forwarder: endpoint[ErrorForwarder.self]
         )
         let factory = endpoint[DelegateFactory<H, WebSocketInterfaceExporter>.self]
-        self.router.register({(clientInput: AnyAsyncSequence<SomeInput>, eventLoop: EventLoop, request: HTTPRequest) -> (
-                    defaultInput: SomeInput,
-                    output: AnyAsyncSequence<Message<H.Response.Content>>
-                ) in
+        let endpointIdentifier: String
+        switch exporterConfiguration.endpointNameSource {
+        case .path:
+            endpointIdentifier = endpoint.absolutePath.build(with: WebSocketPathBuilder.self)
+        case .endpointNameMetadata:
+            endpointIdentifier = endpoint.getEndointName(.verb, format: .camelCase)
+        }
+        self.router.register(on: endpointIdentifier) { (clientInput: AnyAsyncSequence<SomeInput>, eventLoop, request: HTTPRequest) -> (
+            defaultInput: SomeInput,
+            output: AnyAsyncSequence<Message<H.Response.Content>>
+        ) in
             // We need a new `Delegate` for each connection
             let delegate = factory.instance()
             let output = clientInput
@@ -90,9 +107,8 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
             .evaluate(on: delegate)
             .transform(using: transformer)
             .typeErased
-
             return (defaultInput: emptyInput, output: output)
-        }, on: endpoint.absolutePath.build(with: WebSocketPathBuilder.self))
+        }
     }
 
     func retrieveParameter<Type>(

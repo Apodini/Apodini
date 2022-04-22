@@ -55,8 +55,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
         case .primitive, .enumTy, .refdMessageType:
             fatalError("Encountered invalid proto type: gRPC method return type must be a message. Got: \(endpointContext.endpointResponseType!)")
         case let .message(name: _, underlyingType, nestedOneofTypes: _, fields):
-            if let underlyingType = underlyingType {
-                precondition(underlyingType == type(of: responseContent))
+            if underlyingType != nil {
                 // If there is an underlying type, we're handling a response message that is already a message type, so we simply encode that directly into the message payload
                 return try ProtobufferEncoder().encode(responseContent)
             } else {

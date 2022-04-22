@@ -223,7 +223,7 @@ class GraphQLSchemaBuilder {
         case .optional(let wrappedValue):
             result = try _toGraphQLType(wrappedValue, for: usageCtx).map(
                 input: { (($0 as? GraphQLNonNull)?.ofType as? GraphQLInputType) ?? $0 },
-                output: { ($0 as? GraphQLNonNull)?.ofType as! GraphQLOutputType }
+                output: { ($0 as? GraphQLNonNull).map { $0.ofType as! GraphQLOutputType } ?? $0 }
             )
         }
         precondition(cachedTypeMappings.updateValue(result, forKey: typeInfo) == nil)

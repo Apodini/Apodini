@@ -10,12 +10,24 @@ import NIO
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
+import Apodini
 
 
 public enum ProtoSyntax: String {
     case proto2
     case proto3
 }
+
+
+/// Returns the `ProtoSyntax` version to be used for the type `type`
+func getProtoSyntax(_ type: Any.Type) -> ProtoSyntax {
+    if type as? Proto2Codable.Type != nil {
+        return .proto2
+    } else {
+        return .proto3
+    }
+}
+
 
 private var cachedCodingKeysEnumCases: [ObjectIdentifier: [Runtime.Case]] = [:]
 
@@ -271,6 +283,12 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
         return .message
+    } else if type == Blob.self {
+        return getProtoCodingKind(ApodiniBlob.self)
+    } else if type == URL.self || type == UUID.self {
+        return getProtoCodingKind(String.self)
+    } else if type == Date.self {
+        return getProtoCodingKind(ProtoTimestamp.self)
     }
     
     if let optionalTy = type as? AnyOptional.Type {

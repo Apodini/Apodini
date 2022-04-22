@@ -78,7 +78,7 @@ public class MetricsConfiguration: Configuration {
                 let endpoint = metricPullHandlerConfiguration.endpoint.hasPrefix("/")
                                 ? metricPullHandlerConfiguration.endpoint
                                 : "/\(metricPullHandlerConfiguration.endpoint)"
-                app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
+                try! app.httpServer.registerRoute(.GET, endpoint.httpPathComponents) { req -> EventLoopFuture<String> in
                     metricPullHandlerConfiguration.collect(req.eventLoop.makePromise(of: String.self))
                 }
                 

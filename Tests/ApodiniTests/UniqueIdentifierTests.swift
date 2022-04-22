@@ -30,7 +30,7 @@ final class UniqueIdentifierTests: ApodiniTests {
             }
         }
         
-        struct IdentifierAccessingExporter: InterfaceExporter {
+        class IdentifierAccessingExporter: InterfaceExporter {
             init(_ app: Application) { }
             
             func export<H>(_ endpoint: Endpoint<H>) where H: Handler {

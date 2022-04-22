@@ -33,6 +33,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
     private enum State: Equatable {
         case ready
         case pendingWebSocketUpgrade(HTTPRequest)
+        case removingChannelHandler
     }
     
     
@@ -55,6 +56,11 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
             // We've already initiated the upgrade process, but are receiving more data. Cache that until the upgrade is complete.
             self.bufferedData.append(data)
             return
+        case .removingChannelHandler:
+            // In the process of removing the handler, but we've received some more data.
+            // All buffered data will be written to the channel when the handler has been removed.
+            bufferedData.append(data)
+            return
         case .ready:
             break
         }
@@ -65,9 +71,9 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
         let request = unwrapInboundIn(data)
         
         guard request.headers[.connection].contains(.upgrade) else {
-            logger.notice("Received non-upgrade request while in ready state")
-            // NOTE it might be a good idea to use this as an opportunity to remove ourselves from the pipeline?
-            context.fireChannelRead(data)
+            state = .removingChannelHandler
+            bufferedData.append(data)
+            _ = context.pipeline.removeHandler(self)
             return
         }
         
@@ -143,12 +149,14 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
                     }
                     .cascadeFailure(to: promise)
             }
+        case .removingChannelHandler:
+            logger.error("Received outbound data while in \(state) state.")
+            context.write(data, promise: promise)
         }
     }
     
     
     func handlerRemoved(context: ChannelHandlerContext) {
-        logger.notice("\(#function)")
         if !bufferedData.isEmpty {
             for data in bufferedData {
                 context.fireChannelRead(data)

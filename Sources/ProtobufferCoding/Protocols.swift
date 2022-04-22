@@ -9,6 +9,8 @@
 import Foundation
 import NIO
 import ApodiniUtils
+import ApodiniNetworkingHTTPSupport
+import Apodini
 
 
 /// Conforming to this protocol indicates that a (message) type does not get encoded into a nested field,
