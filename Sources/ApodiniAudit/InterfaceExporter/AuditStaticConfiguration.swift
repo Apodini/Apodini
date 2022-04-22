@@ -14,6 +14,7 @@ import ArgumentParser
 
 // MARK: - WebService
 public extension WebService {
+    /// A typealias for ``APIAuditorConfiguration``
     typealias APIAuditor = APIAuditorConfiguration<Self>
 }
 
@@ -31,7 +32,7 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     public init() { }
 }
 
-private final class SharedAPIAuditorConfiguration {
+private enum SharedAPIAuditorConfiguration {
     // FUTURE write test that _commands works
     fileprivate static var registeredCommand = false
     fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {

@@ -16,6 +16,7 @@ struct Audit {
     var bestPracticeType: BestPractice.Type
 }
 
+/// A report for a single audit, including a message and a result.
 public struct AuditReport {
     var message: String
     var auditResult: AuditResult
