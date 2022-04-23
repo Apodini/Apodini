@@ -13,6 +13,27 @@ import XCTest
 
 
 final class ApodiniAuditTests: ApodiniTests {
+    struct TestWebService: WebService {
+        var content: some Component {
+            Group("seg1", "looooooooooooooooooooooooooooooooooongSeg2") {
+                SomeComp()
+            }
+        }
+
+        var configuration: Configuration {
+            REST {
+                if 1 == 1 {
+                    APIAuditor()
+                }
+                if Int.random(in: 1...2) == 1 {
+                    APIAuditor()
+                } else {
+                    APIAuditor()
+                }
+            }
+        }
+    }
+    
     struct SomeComp: Handler {
         func handle() -> String {
             "Test"
@@ -20,20 +41,6 @@ final class ApodiniAuditTests: ApodiniTests {
     }
 
     func testBasicAuditing() throws {
-        struct TestWebService: WebService {
-            var content: some Component {
-                Group("seg1", "looooooooooooooooooooooooooooooooooongSeg2") {
-                    SomeComp()
-                }
-            }
-
-            var configuration: Configuration {
-                REST {
-                    APIAuditor()
-                }
-            }
-        }
-
         let commandType = AuditRunCommand<TestWebService>.self
         var command = commandType.init()
         command.webService = .init()
@@ -62,5 +69,14 @@ final class ApodiniAuditTests: ApodiniTests {
         ]
         
         XCTAssertEqualIgnoringOrder(auditReports, expectedAuditReports)
+    }
+    
+    func testRegisterCommandOnce() throws {
+        let webService = TestWebService()
+        
+        try TestWebService.start(mode: .boot, app: app, webService: webService)
+        let commands = webService.configuration._commands
+        
+        XCTAssertEqual(commands.count, 1)
     }
 }

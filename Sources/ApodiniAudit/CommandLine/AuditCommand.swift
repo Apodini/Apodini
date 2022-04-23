@@ -43,10 +43,6 @@ protocol AuditParsableSubcommand: ParsableCommand {
 }
 
 extension AuditParsableSubcommand {
-    func run() throws {
-        try run(app: Application())
-    }
-    
     func start(_ app: Application) throws {
         // Only builds the semantic model to run the InterfaceExporters, does not run the web service
         try Service.start(mode: .startup, app: app, webService: webService)
