@@ -11,6 +11,7 @@ import XCTApodini
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniNetworking
+@testable import ApodiniHTTP
 
 
 final class BlobTests: ApodiniTests {
@@ -77,7 +78,7 @@ final class BlobTests: ApodiniTests {
         let exporter = RESTInterfaceExporter(app)
         let endpointHandler = RESTEndpointHandler(
             with: app,
-            withExporterConfiguration: REST.ExporterConfiguration(),
+            withExporterConfiguration: HTTPExporterConfiguration(),
             for: endpoint,
             rendpoint,
             on: exporter

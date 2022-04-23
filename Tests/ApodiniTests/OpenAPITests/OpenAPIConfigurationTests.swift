@@ -10,6 +10,7 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniOpenAPI
 @testable import ApodiniREST
+@testable import ApodiniHTTP
 
 final class OpenAPIConfigurationTests: ApodiniTests {
     func testBuildDocumentWithConfiguration() throws {
@@ -17,7 +18,7 @@ final class OpenAPIConfigurationTests: ApodiniTests {
         let configuredOutputEndpoint = "oas"
         let configuredSwaggerUiEndpoint = "oas-ui"
         let configuredTitle = "The great TestWebService - presented by Apodini"
-        let configuredParentRESTConfiguration = REST.ExporterConfiguration(encoder: JSONEncoder(), decoder: JSONDecoder())
+        let configuredParentRESTConfiguration = HTTPExporterConfiguration(encoder: JSONEncoder(), decoder: JSONDecoder())
 
         let openAPIConfiguration = OpenAPI.ExporterConfiguration(
             parentConfiguration: configuredParentRESTConfiguration,

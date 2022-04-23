@@ -15,8 +15,11 @@ import ApodiniNetworking
 // MARK: HTTP Declaration
 
 /// Public Apodini Interface Exporter for basic HTTP
-public final class HTTP: Configuration {
-    let configuration: ExporterConfiguration
+public final class HTTP: DependableConfiguration {
+    public typealias InternalConfiguration = HTTPExporterConfiguration
+    
+    let configuration: HTTPExporterConfiguration
+    public var staticConfigurations = [AnyDependentStaticConfiguration]()
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
     public static var defaultEncoder: AnyEncoder {
@@ -43,13 +46,16 @@ public final class HTTP: Configuration {
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
     ) {
-        self.configuration = ExporterConfiguration(
+        self.configuration = HTTPExporterConfiguration(
             encoder: encoder,
             decoder: decoder,
             urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
             caseInsensitiveRouting: caseInsensitiveRouting,
-            rootPath: rootPath
+            rootPath: rootPath,
+            useResponseContainer: false
         )
+        
+        staticConfigurations = []
     }
     
     public func configure(_ app: Apodini.Application) {
@@ -58,6 +64,35 @@ public final class HTTP: Configuration {
         
         /// Insert exporter into `InterfaceExporterStorage`
         app.registerExporter(exporter: exporter)
+        
+        self.staticConfigurations.configureAny(app, parentConfiguration: self.configuration)
+    }
+}
+
+extension HTTP {
+    /// Initializes the configuration of the `HTTPInterfaceExporter` with (default) JSON Coders and possibly associated configurations, e.g. OpenAPI or APIAuditor
+    /// - Parameters:
+    ///    - encoder: The to be used `JSONEncoder`, defaults to a `JSONEncoder`
+    ///    - decoder: The to be used `JSONDecoder`, defaults to a `JSONDecoder`
+    ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
+    ///    - rootPath: Configures the root path for the HTTP endpoints
+    ///    - staticConfigurations: A result builder that allows passing dependent static Exporters like the OpenAPI Exporter
+    public convenience init(
+        encoder: JSONEncoder = defaultEncoder as! JSONEncoder,
+        decoder: JSONDecoder = defaultDecoder as! JSONDecoder,
+        urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
+        caseInsensitiveRouting: Bool = false,
+        rootPath: RootPath? = nil,
+        @DependentStaticConfigurationBuilder<HTTPExporterConfiguration> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
+    ) {
+        self.init(
+            encoder: encoder,
+            decoder: decoder,
+            urlParamDateDecodingStrategy: urlParamDateDecodingStrategy,
+            caseInsensitiveRouting: caseInsensitiveRouting,
+            rootPath: rootPath
+        )
+        self.staticConfigurations = staticConfigurations()
     }
 }
 
@@ -66,10 +101,10 @@ public final class HTTP: Configuration {
 
 class HTTPInterfaceExporter: InterfaceExporter {
     let app: Apodini.Application
-    let configuration: HTTP.ExporterConfiguration
+    let configuration: HTTPExporterConfiguration
     let logger: Logger
     
-    init(_ app: Apodini.Application, _ configuration: HTTP.ExporterConfiguration) {
+    init(_ app: Apodini.Application, _ configuration: HTTPExporterConfiguration) {
         self.app = app
         self.configuration = configuration
         self.logger = app.logger

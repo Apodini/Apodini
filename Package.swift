@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.6
 
 //
 // This source file is part of the Apodini open source project
@@ -58,6 +58,9 @@ let package = Package(
         .library(name: "ApodiniMigration", targets: ["ApodiniMigration"]),
         .library(name: "ApodiniMigrationCommon", targets: ["ApodiniMigrationCommon"]),
 
+        // Audit
+        .library(name: "ApodiniAudit", targets: ["ApodiniAudit"]),
+        
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
@@ -68,7 +71,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.16.0"),
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`
-        .package(name: "apnswift", url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
+        .package(url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
         // Use to navigate around some of the existentials limitations of the Swift Compiler
         // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
         .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
@@ -189,6 +192,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
+                .target(name: "ApodiniAudit"),
                 .product(name: "RESTMigrator", package: "ApodiniMigrator"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
@@ -297,6 +301,7 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniOpenAPISecurity"),
                 .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP"),
                 .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
                 .product(name: "OpenAPIKit", package: "OpenAPIKit"),
                 .product(name: "Yams", package: "Yams")
@@ -312,6 +317,7 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniMigrationCommon")
             ]
@@ -763,6 +769,19 @@ let package = Package(
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
+            ]
+        ),
+        
+        //
+        // MARK: Audit
+        //
+        
+        .target(
+            name: "ApodiniAudit",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP")
             ]
         )
     ]

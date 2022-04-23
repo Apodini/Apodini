@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.6
 
 //
 // This source file is part of the Apodini open source project
@@ -36,7 +36,8 @@ let package = Package(
                 .product(name: "ApodiniWebSocket", package: "Apodini"),
                 .product(name: "ApodiniMigration", package: "Apodini"),
                 .product(name: "ApodiniObserve", package: "Apodini"),
-                .product(name: "ApodiniObserveOpenTelemetry", package: "Apodini")
+                .product(name: "ApodiniObserveOpenTelemetry", package: "Apodini"),
+                .product(name: "ApodiniAudit", package: "Apodini")
             ],
             resources: [
                 .process("Resources")

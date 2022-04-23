@@ -23,7 +23,7 @@ struct OpenAPIDocumentBuilder {
     
     init(configuration: OpenAPI.ExporterConfiguration, rootPath: EndpointPath?) {
         self.configuration = configuration
-        self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder()
+        self.componentsObjectBuilder = OpenAPIComponentsObjectBuilder(configuration: self.configuration)
         self.pathsObjectBuilder = OpenAPIPathsObjectBuilder(
             componentsObjectBuilder: self.componentsObjectBuilder,
             rootPath: rootPath

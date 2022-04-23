@@ -19,6 +19,7 @@ import Tracing
 import ApodiniGRPC
 import Foundation
 import ApodiniGraphQL
+import ApodiniAudit
 
 
 @main
@@ -80,9 +81,12 @@ struct TestWebService: Apodini.WebService {
             )
         }
         
-        HTTP(rootPath: "http")
+        HTTP(rootPath: "http") {
+            APIAuditor()
+        }
         
         REST {
+            APIAuditor()
             OpenAPI(
                 outputFormat: .json,
                 outputEndpoint: openApiEndpoint,

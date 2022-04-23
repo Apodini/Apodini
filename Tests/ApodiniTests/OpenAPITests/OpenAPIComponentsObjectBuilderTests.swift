@@ -12,6 +12,7 @@ import OpenAPIKit
 @testable import ApodiniOpenAPI
 import ApodiniTypeInformation
 import ApodiniREST
+import ApodiniHTTP
 
 
 enum Test: String, Codable, CaseIterable {
@@ -109,7 +110,9 @@ final class OpenAPIComponentsObjectBuilderTests: XCTestCase {
     
     /// Create response schema and add it to components.
     func testBuildSchemaForResponses() throws {
-        let componentsBuilder = OpenAPIComponentsObjectBuilder()
+        let parentConfiguration = HTTPExporterConfiguration(useResponseContainer: true)
+        let exporterConfiguration = ApodiniOpenAPI.OpenAPI.ExporterConfiguration(parentConfiguration: parentConfiguration)
+        let componentsBuilder = OpenAPIComponentsObjectBuilder(configuration: exporterConfiguration)
         XCTAssertNoThrow(try componentsBuilder.buildResponse(for: SomeStruct.self))
         let responseSchemaName = "\(SomeStruct.self)Response"
         let ref = try componentsBuilder.componentsObject.reference(named: responseSchemaName, ofType: JSONSchema.self)
