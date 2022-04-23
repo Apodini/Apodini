@@ -22,6 +22,7 @@ final class ApodiniAuditTests: ApodiniTests {
 
         var configuration: Configuration {
             REST {
+                // swiftlint:disable:next all
                 if 1 == 1 {
                     APIAuditor()
                 }
