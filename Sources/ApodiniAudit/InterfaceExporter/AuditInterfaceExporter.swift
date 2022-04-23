@@ -51,6 +51,7 @@ extension AuditInterfaceExporter {
     static let bestPractices: [BestPractice.Type] = [
         AppropriateLengthForURLPathSegments.self,
         NoUnderscoresInURLPathSegments.self,
+        NoCRUDVerbsInURLPathSegments.self,
         ContextualisedResourceNames.self
     ]
 }

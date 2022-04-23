@@ -87,3 +87,17 @@ struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
         return nil
     }
 }
+
+struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .urlPath
+    static var successMessage = "The path segments do not contain any CRUD verbs"
+    static var crudVerbs = ["get", "post", "remove", "delete", "put"]
+    
+    static func checkSegment(segment: String) -> String? {
+        if crudVerbs.contains { segment.lowercased().contains($0) } {
+            return "The path segment \(segment) contains one or more CRUD verbs!"
+        }
+        return nil
+    }
+}

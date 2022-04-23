@@ -15,7 +15,7 @@ import XCTest
 final class ApodiniAuditTests: ApodiniTests {
     struct TestWebService: WebService {
         var content: some Component {
-            Group("seg1", "looooooooooooooooooooooooooooooooooongSeg2") {
+            Group("crudGet", "looooooooooooooooooooooooooooooooooongSeg2") {
                 SomeComp()
             }
         }
@@ -55,7 +55,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
         
-        XCTAssertEqual(auditInterfaceExporter.audits.count, 2)
+        XCTAssertEqual(auditInterfaceExporter.audits.count, 4)
         let auditReports = auditInterfaceExporter.audits.map { $0.report }
         
         let expectedAuditReports = [
@@ -65,6 +65,14 @@ final class ApodiniAuditTests: ApodiniTests {
             ),
             AuditReport(
                 message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "The path segment crudGet contains one or more CRUD verbs!",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "\"crudGet\" and \"looooooooooooooooooooooooooooooooooongSeg2\" are not related!",
                 auditResult: .fail
             )
         ]
