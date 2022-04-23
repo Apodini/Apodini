@@ -14,6 +14,7 @@ import ArgumentParser
 
 // MARK: - WebService
 public extension WebService {
+    /// A typealias for ``APIAuditorConfiguration``
     typealias APIAuditor = APIAuditorConfiguration<Self>
 }
 
@@ -21,34 +22,26 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     public typealias InteralParentConfiguration = HTTPExporterConfiguration
     
     public var command: ParsableCommand.Type? {
-        getAuditCommand(AuditCommand<Service>.self)
+        SharedAPIAuditorConfiguration.getAuditCommand(AuditCommand<Service>.self)
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        registerInterfaceExporter(app, mode: .rest)
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+        
+        app.registerExporter(exporter: auditInterfaceExporter)
     }
     
     public init() { }
 }
 
-// FUTURE write test that _commands works
-private var registeredCommand = false
-private func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
-    if !registeredCommand {
-        registeredCommand = true
-        return auditCommand
+private enum SharedAPIAuditorConfiguration {
+    // FUTURE write test that _commands works
+    fileprivate static var registeredCommand = false
+    fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
+        if !registeredCommand {
+            registeredCommand = true
+            return auditCommand
+        }
+        return nil
     }
-    return nil
-}
-
-private var registeredInterfaceExporter = false
-private func registerInterfaceExporter(_ app: Application, mode: AuditMode) {
-    if registeredInterfaceExporter {
-        return
-    }
-    registeredInterfaceExporter = true
-    
-    let exporter = AuditInterfaceExporter(app, mode: mode)
-
-    app.registerExporter(exporter: exporter)
 }

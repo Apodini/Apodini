@@ -8,16 +8,22 @@
 
 import Foundation
 import Apodini
+import ApodiniHTTP
 
 final class AuditInterfaceExporter: InterfaceExporter {
     var audits: [Audit] = []
+    
     var app: Application
-    var mode: AuditMode
+    var parentConfiguration: HTTPExporterConfiguration
+    
+    var applyRESTBestPractices: Bool {
+        parentConfiguration.exportAsREST
+    }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         // FUTURE figure out which ones are silenced for the current endpoint
         for bestPracticeType in Self.bestPractices {
-            guard self.mode == .rest || bestPracticeType.scope == .all else {
+            guard applyRESTBestPractices || bestPracticeType.scope == .all else {
                 continue
             }
             audits.append(bestPracticeType.audit(app, endpoint))
@@ -29,14 +35,15 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
-        for audit in audits { // where audit.report.auditResult == .fail {
+        // where audit.report.auditResult == .fail {
+        for audit in audits {
             app.logger.info("[Audit] \(audit.report.message)")
         }
     }
     
-    init(_ app: Application, mode: AuditMode) {
+    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration) {
         self.app = app
-        self.mode = mode
+        self.parentConfiguration = parentConfiguration
     }
 }
 
@@ -46,8 +53,4 @@ extension AuditInterfaceExporter {
         NoUnderscoresInURLPathSegments.self,
         ContextualisedResourceNames.self
     ]
-}
-
-public enum AuditMode {
-    case http, rest
 }

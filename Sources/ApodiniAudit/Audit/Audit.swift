@@ -16,8 +16,9 @@ struct Audit {
     var bestPracticeType: BestPractice.Type
 }
 
-
 // TODO there should be a way to return multiple messages for one audit
+/// A report for a single audit, including a message and a result.
+>>>>>>> simonbohnen/audit
 public struct AuditReport {
     var message: String
     var auditResult: AuditResult
@@ -27,3 +28,5 @@ enum AuditResult {
     case success
     case fail
 }
+
+extension AuditReport: Hashable { }

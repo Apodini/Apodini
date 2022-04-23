@@ -26,8 +26,9 @@ public struct HTTPExporterConfiguration {
     public let caseInsensitiveRouting: Bool
     /// Configures if the current web service version should be used as a prefix for all HTTP paths
     public let rootPath: RootPath?
-    /// Indicates whether a response container should be used to wrap responses. Usually done for the RESTExporter.
-    public let useResponseContainer: Bool
+    /// Indicates whether exported routes should conform to REST.
+    /// Mainly used to determine whether a response container should be used to wrap responses.
+    public let exportAsREST: Bool
     
     
     /// Initializes the `HTTPExporterConfiguration` of the `InterfaceExporter`
@@ -50,6 +51,6 @@ public struct HTTPExporterConfiguration {
         self.urlParamDateDecodingStrategy = urlParamDateDecodingStrategy
         self.caseInsensitiveRouting = caseInsensitiveRouting
         self.rootPath = rootPath
-        self.useResponseContainer = useResponseContainer
+        self.exportAsREST = useResponseContainer
     }
 }

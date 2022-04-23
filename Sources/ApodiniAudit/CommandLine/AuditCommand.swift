@@ -44,17 +44,8 @@ protocol AuditParsableSubcommand: ParsableCommand {
 }
 
 extension AuditParsableSubcommand {
-    func run() throws {
-        try run(app: Application())
-    }
-    
     func start(_ app: Application) throws {
-        app.storage[AuditStorageKey.self] = true
         // Only builds the semantic model to run the InterfaceExporters, does not run the web service
         try Service.start(mode: .startup, app: app, webService: webService)
     }
-}
-
-struct AuditStorageKey: StorageKey {
-    typealias Value = Bool
 }

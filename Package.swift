@@ -195,6 +195,7 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniMigration"),
+                .target(name: "ApodiniAudit"),
                 .product(name: "RESTMigrator", package: "ApodiniMigrator"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationBasicScheme"),
@@ -785,16 +786,6 @@ let package = Package(
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .product(name: "PythonKit", package: "PythonKit")
-            ]
-        ),
-        
-        .testTarget(
-            name: "ApodiniAuditTests",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniAudit"),
-                .target(name: "XCTApodini"),
-                .product(name: "Logging", package: "swift-log")
             ]
         )
     ]

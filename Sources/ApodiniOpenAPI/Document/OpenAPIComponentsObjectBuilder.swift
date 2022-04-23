@@ -38,7 +38,7 @@ class OpenAPIComponentsObjectBuilder {
         return schema
     }
     
-    /// If the parent exporter uses `ResponseContainer`s, a wrapper object is created
+    /// If the parent exporter uses REST, a wrapper object is created
     /// using the `ResponseContainer`'s `CodingKeys`.
     /// If it doesn't, the schema is created directly from `type`.
     /// The resulting `JSONSchema` is stored in the `componentsObject`.
@@ -47,7 +47,7 @@ class OpenAPIComponentsObjectBuilder {
         let schemaName = "\(title)Response"
         let schemaObject: JSONSchema
         
-        if configuration.parentConfiguration.useResponseContainer {
+        if configuration.parentConfiguration.exportAsREST {
             // We need to wrap the schema in a ResponseContainer
             schemaObject = .object(
                 title: schemaName,
