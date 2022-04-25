@@ -28,6 +28,11 @@ jobs:
     - name: Update Swift Packages Test Web Service
       run: swift package update
       working-directory: ./TestWebService
+    - name: Test Git Setup
+      run: |
+        ls -la
+        git status
+        git remote
     - uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
