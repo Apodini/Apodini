@@ -29,7 +29,9 @@ jobs:
       run: swift package update
       working-directory: ./TestWebService
     - name: Test Git Setup
-      run: git status
+      run: |
+          git config --global --add safe.directory /__w/Apodini/Apodini
+          git status
     - uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
