@@ -29,10 +29,7 @@ jobs:
       run: swift package update
       working-directory: ./TestWebService
     - name: Test Git Setup
-      run: |
-        ls -la
-        git status
-        git remote
+      run: git status
     - uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
