@@ -30,7 +30,7 @@ jobs:
       working-directory: ./TestWebService
     - name: Test Git Setup
       run: |
-          git config --global --add safe.directory /__w/Apodini/Apodini
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git status
     - uses: peter-evans/create-pull-request@v4
       with:
