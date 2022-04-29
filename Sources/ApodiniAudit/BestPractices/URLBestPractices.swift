@@ -9,12 +9,13 @@
 import Foundation
 import Apodini
 
-struct ContextualisedResourceNames: BestPractice {
+struct ContextualisedResourceNames: _BestPractice {
+    
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
-    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
-        let pathSegments = endpoint.absolutePath
+    static func performAudit(_ app: Application, _ audit: Audit) {
+        let pathSegments = audit.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
             if case .string( _) = path {
                 return true
@@ -24,38 +25,37 @@ struct ContextualisedResourceNames: BestPractice {
         guard let firstStringSegment = firstStringSegment,
               case .string(let firstString) = firstStringSegment,
               let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
-            return AuditReport(message: "Nothing to check for endpoint \(endpoint)", auditResult: .success)
+            audit.report("Nothing to check for endpoint \(audit.endpoint)", .success)
+            return
         }
 
         var latestString = firstString
         for segmentIndex in firstStringIndex + 1..<pathSegments.count {
             if case .string(let nextString) = pathSegments[segmentIndex] {
                 if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
-                    return AuditReport(message: "\"\(latestString)\" and \"\(nextString)\" are not related!", auditResult: .fail)
+                    audit.report("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
                 }
                 print("\"\(latestString)\" and \"\(nextString)\" are related!")
                 latestString = nextString
             }
         }
-        return AuditReport(message: "All segments are related!", auditResult: .success)
     }
 }
 
-protocol URLSegmentBestPractice: BestPractice {
+protocol URLSegmentBestPractice: _BestPractice {
     static var successMessage: String { get }
     
     static func checkSegment(segment: String) -> String?
 }
 
 extension URLSegmentBestPractice {
-    static func check(_ app: Application, _ endpoint: AnyEndpoint) -> AuditReport {
-        for segment in endpoint.absolutePath {
+    static func performAudit(_ app: Application, _ audit: Audit) {
+        for segment in audit.endpoint.absolutePath {
             if case .string(let identifier) = segment,
                 let failMessage = checkSegment(segment: identifier) {
-                return AuditReport(message: failMessage, auditResult: .fail)
+                audit.report(failMessage, .fail)
             }
         }
-        return AuditReport(message: successMessage, auditResult: .success)
     }
 }
 
@@ -92,12 +92,30 @@ struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .urlPath
     static var successMessage = "The path segments do not contain any CRUD verbs"
-    static var crudVerbs = ["get", "post", "remove", "delete", "put"]
+    private static var crudVerbs = ["get", "post", "remove", "delete", "put"]
     
     static func checkSegment(segment: String) -> String? {
-        if crudVerbs.contains { segment.lowercased().contains($0) } {
+        let containsCRUDVerb = crudVerbs.contains { segment.lowercased().contains($0) }
+        if containsCRUDVerb {
             return "The path segment \(segment) contains one or more CRUD verbs!"
         }
         return nil
     }
+}
+
+struct LowercaseURLPathSegments: URLSegmentBestPractice {
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .urlPath
+    static var successMessage = "The path segments do not contain any uppercase letters"
+    
+    static func checkSegment(segment: String) -> String? {
+        if segment.lowercased() != segment {
+            return "The path segment \(segment) contains one or more uppercase letters!"
+        }
+        return nil
+    }
+}
+
+struct NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
+    
 }

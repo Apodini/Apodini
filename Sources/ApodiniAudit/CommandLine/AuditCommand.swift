@@ -45,7 +45,13 @@ protocol AuditParsableSubcommand: ParsableCommand {
 
 extension AuditParsableSubcommand {
     func start(_ app: Application) throws {
+        // Indicate to the ``APIAuditorConfiguration`` that the web service is being started to audit the endpoints
+        app.storage[AuditStorageKey] = true
         // Only builds the semantic model to run the InterfaceExporters, does not run the web service
         try Service.start(mode: .startup, app: app, webService: webService)
     }
+}
+
+struct AuditStorageKey: StorageKey {
+    typealias Value = Bool
 }

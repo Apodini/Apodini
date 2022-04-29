@@ -26,9 +26,11 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
     }
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
-        
-        app.registerExporter(exporter: auditInterfaceExporter)
+        // Only register exporter if the webservice has been run through the audit CLI
+        if app.storage[AuditStorageKey.self] != nil {
+            let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+            app.registerExporter(exporter: auditInterfaceExporter)
+        }
     }
     
     public init() { }

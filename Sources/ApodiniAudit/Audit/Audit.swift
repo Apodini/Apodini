@@ -9,15 +9,24 @@
 import Foundation
 import Apodini
 
-/// An `Audit` stores the report of an audit of a best practice for an endpoint.
-struct Audit {
-    var report: AuditReport
+/// An `Audit` stores the reports of an audit of a best practice for an endpoint.
+/// There can be multiple reports, e.g. one for every URL segment of the endpoint.
+class Audit {
+    var reports: [AuditReport] = []
     var endpoint: AnyEndpoint
     var bestPracticeType: BestPractice.Type
+    
+    func report(_ message: String, _ result: AuditResult) {
+        reports.append(AuditReport(message: message, auditResult: result))
+    }
+    
+    init(_ endpoint: AnyEndpoint, _ bestPracticeType: BestPractice.Type) {
+        self.endpoint = endpoint
+        self.bestPracticeType = bestPracticeType
+    }
 }
 
-// TODO there should be a way to return multiple messages for one audit
-/// A report for a single audit, including a message and a result.
+/// A report for an audit, including a message and a result.
 public struct AuditReport {
     var message: String
     var auditResult: AuditResult

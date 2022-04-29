@@ -26,7 +26,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
             guard applyRESTBestPractices || bestPracticeType.scope == .all else {
                 continue
             }
-            audits.append(bestPracticeType.audit(app, endpoint))
+            audits.append(bestPracticeType.generateAudit(app, endpoint))
         }
     }
     
@@ -37,7 +37,9 @@ final class AuditInterfaceExporter: InterfaceExporter {
     func finishedExporting(_ webService: WebServiceModel) {
         // where audit.report.auditResult == .fail {
         for audit in audits {
-            app.logger.info("[Audit] \(audit.report.message)")
+            for report in audit.reports {
+                app.logger.info("[Audit] \(report.message)")
+            }
         }
     }
     
@@ -48,7 +50,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
 }
 
 extension AuditInterfaceExporter {
-    static let bestPractices: [BestPractice.Type] = [
+    static let bestPractices: [_BestPractice.Type] = [
         AppropriateLengthForURLPathSegments.self,
         NoUnderscoresInURLPathSegments.self,
         NoCRUDVerbsInURLPathSegments.self,

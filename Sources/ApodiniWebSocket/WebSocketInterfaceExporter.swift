@@ -78,7 +78,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         case .path:
             endpointIdentifier = endpoint.absolutePath.build(with: WebSocketPathBuilder.self)
         case .endpointNameMetadata:
-            endpointIdentifier = endpoint.getEndointName(.verb, format: .camelCase)
+            endpointIdentifier = endpoint.getEndpointName(.verb, format: .camelCase)
         }
         self.router.register(on: endpointIdentifier) { (clientInput: AnyAsyncSequence<SomeInput>, eventLoop, request: HTTPRequest) -> (
             defaultInput: SomeInput,
