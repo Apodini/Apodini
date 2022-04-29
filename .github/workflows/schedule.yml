@@ -20,7 +20,7 @@ jobs:
       image: swift:focal
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Check Swift version
       run: swift --version
     - name: Update Swift Packages
@@ -28,7 +28,9 @@ jobs:
     - name: Update Swift Packages Test Web Service
       run: swift package update
       working-directory: ./TestWebService
-    - uses: peter-evans/create-pull-request@v3
+    - name: Add Safe Directory
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+    - uses: peter-evans/create-pull-request@v4
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         commit-message: Update dependencies

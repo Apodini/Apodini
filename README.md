@@ -11,10 +11,9 @@ SPDX-License-Identifier: MIT
 # Apodini
 [![DOI](https://zenodo.org/badge/274515276.svg)](https://zenodo.org/badge/latestdoi/274515276)
 [![codecov](https://codecov.io/gh/apodini/apodini/branch/develop/graph/badge.svg?token=QOAYN4SWRN)](https://codecov.io/gh/apodini/apodini)
-[![jazzy](https://raw.githubusercontent.com/Apodini/Apodini/gh-pages/badge.svg)](https://apodini.github.io/Apodini/)
-![Build and Test](https://github.com/Apodini/Apodini/workflows/Build%20and%20Test/badge.svg)
+[![Build and Test](https://github.com/Apodini/Apodini/actions/workflows/push.yml/badge.svg)](https://github.com/Apodini/Apodini/actions/workflows/push.yml)
 
-Apodini is a declarative, composable framework to build web services using Swift. It is part of a research project at the [TUM Research Group for Applied Software Engineering](https://ase.in.tum.de/schmiedmayer).
+Apodini is a declarative, composable framework to build evolvable web services. It is part of a research project at the [TUM Research Group for Applied Software Engineering](https://ase.in.tum.de/schmiedmayer).
 
 ## Getting Started
 
@@ -157,9 +156,7 @@ For further information on how to specify CLI-arguments see [https://github.com/
 
 ## Documentation
 
-The framework is in early alpha phase. You can inspect the current development manifestos describing the framework in the [documentation folder](Documentation/)
-
-You can find a generated technical documentation for the different Swift types at [https://apodini.github.io/Apodini](https://apodini.github.io/Apodini)
+The framework is a research project to enable the development of evolvable web services. You can find technical documentation of the functionality in the [Apodini DocC documentation](https://github.com/Apodini/Apodini/tree/develop/Sources/Apodini/Apodini.docc)
 
 ## Contributing
 Contributions to this project are welcome. Please make sure to read the [contribution guidelines](https://github.com/Apodini/.github/blob/main/CONTRIBUTING.md) first.
