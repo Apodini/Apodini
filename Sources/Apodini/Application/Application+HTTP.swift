@@ -105,7 +105,7 @@ public struct TLSConfigurationBuilder {
         }
     }
     
-    /// Creates a `TLSConfigurationBuilder` with an apready existing TLS configuration
+    /// Creates a `TLSConfigurationBuilder` with an already-existing TLS configuration
     public init(_ tlsConfiguration: TLSConfiguration) {
         self.tlsConfiguration = tlsConfiguration
     }
