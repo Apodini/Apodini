@@ -133,18 +133,7 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
     ],
     targets: [
-        .target(name: "CApodiniUtils"),
-        .target(
-            name: "ApodiniUtils",
-            dependencies: [
-                .target(name: "CApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "Algorithms", package: "swift-algorithms")
-            ]
-        ),
-        
+        // MARK: Primary targets
         .target(
             name: "Apodini",
             dependencies: [
@@ -170,225 +159,14 @@ let package = Package(
         ),
         
         .target(
-            name: "ApodiniExtension",
+            name: "ApodiniAudit",
             dependencies: [
-                .target(name: "ApodiniUtils"),
                 .target(name: "Apodini"),
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "Logging", package: "swift-log")
-            ]
-        ),
-
-        .testTarget(
-            name: "ApodiniTests",
-            dependencies: [
-                .product(name: "Yams", package: "Yams"),
-                .target(name: "XCTApodini"),
-                .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniGraphQL"),
-                .target(name: "ApodiniOpenAPI"),
-                .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniAuthorization"),
-                .target(name: "ApodiniMigration"),
-                .target(name: "ApodiniAudit"),
-                .product(name: "RESTMigrator", package: "ApodiniMigrator"),
-                .target(name: "ApodiniAuthorizationBearerScheme"),
-                .target(name: "ApodiniAuthorizationBasicScheme"),
-                .target(name: "ApodiniAuthorizationJWT"),
-                .product(name: "SotoTestUtils", package: "soto-core"),
-                .product(name: "OrderedCollections", package: "swift-collections"),
-                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
-            ],
-            resources: [
-                .process("Resources")
-            ]
-        ),
-
-        .testTarget(
-            name: "NegativeCompileTestsRunner",
-            dependencies: [
-                .target(name: "XCTUtils"),
-                .target(name: "ApodiniUtils")
+                .target(name: "ApodiniHTTP")
             ]
         ),
         
-        .testTarget(
-            name: "ApodiniNegativeCompileTests",
-            dependencies: [
-                .target(name: "Apodini")
-            ],
-            exclude: ["Cases"]
-        ),
-
-        .testTarget(
-            name: "ApodiniNetworkingTests",
-            dependencies: [
-                .target(name: "XCTUtils"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniUtils")
-            ]
-        ),
-        
-        .testTarget(
-            name: "ApodiniNetworkingHTTPSupportTests",
-            dependencies: [
-                .target(name: "XCTApodiniNetworking"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniNetworkingHTTPSupport")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniDatabase",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniNetworking"),
-                .product(name: "FluentKit", package: "fluent-kit")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniJobs",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "SwifCron", package: "SwifCron")
-            ]
-        ),
-
-        .testTarget(
-            name: "ApodiniJobsTests",
-            dependencies: [
-                .target(name: "ApodiniJobs"),
-                .target(name: "XCTApodini")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniNotifications",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniDatabase"),
-                .product(name: "APNSwift", package: "apnswift")
-            ]
-        ),
-
-        .testTarget(
-            name: "ApodiniNotificationsTests",
-            dependencies: [
-                .target(name: "ApodiniNotifications"),
-                .target(name: "XCTApodini")
-            ],
-            resources: [
-                .process("Resources")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniOpenAPISecurity",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "OrderedCollections", package: "swift-collections")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniOpenAPI",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniOpenAPISecurity"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP"),
-                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "Yams", package: "Yams")
-            ],
-            resources: [
-                .process("Resources")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniREST",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniMigrationCommon")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniHTTP",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniNetworking")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniHTTPProtocol",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "NIOHTTP1", package: "swift-nio")
-            ]
-        ),
-        
-        
-        .target(
-            name: "ApodiniNetworking",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniHTTPProtocol"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ApodiniNetworkingHTTPSupport"),
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "NIOHTTP1", package: "swift-nio"),
-                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
-                .product(name: "NIOSSL", package: "swift-nio-ssl"),
-                .product(name: "NIOWebSocket", package: "swift-nio"),
-                .product(name: "NIOFoundationCompat", package: "swift-nio"),
-                .product(name: "WebSocketKit", package: "websocket-kit"),
-                .product(name: "Logging", package: "swift-log")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniNetworkingHTTPSupport",
-            dependencies: [
-                .target(name: "ApodiniUtils"),
-                .product(name: "NIOHTTP1", package: "swift-nio"),
-                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
-                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniWebSocket",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniLoggingSupport"),
-                .product(name: "NIOWebSocket", package: "swift-nio"),
-                .product(name: "WebSocketKit", package: "websocket-kit"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "Runtime", package: "Runtime")
-            ]
-        ),
-
-        // MARK: Apodini Authorization
-
         .target(
             name: "ApodiniAuthorization",
             dependencies: [
@@ -424,29 +202,142 @@ let package = Package(
                 .product(name: "JWTKit", package: "jwt-kit")
             ]
         ),
-
-        .testTarget(
-            name: "ApodiniAuthorizationTests",
+        
+        .target(
+            name: "ApodiniDatabase",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniAuthorization"),
-                .target(name: "ApodiniAuthorizationBasicScheme"),
-                .target(name: "ApodiniAuthorizationBearerScheme"),
-                .target(name: "ApodiniAuthorizationJWT"),
-                .target(name: "XCTApodini")
+                .target(name: "ApodiniNetworking"),
+                .product(name: "FluentKit", package: "fluent-kit")
             ]
         ),
         
-        // ApodiniMigration
-
         .target(
-            name: "ApodiniMigrationCommon",
+            name: "ApodiniDeployer",
             dependencies: [
                 .target(name: "Apodini"),
-                .product(name: "ApodiniMigratorExporterSupport", package: "ApodiniMigrator")
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniDeployerBuildSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniDeployerRuntimeSupport",
+            dependencies: [
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .executableTarget(
+            name: "ApodiniDeployerTestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "LocalhostDeploymentProviderRuntime"),
+                .target(name: "AWSLambdaDeploymentProviderRuntime"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniNotifications"),
+                .target(name: "ApodiniDeployer")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniExtension",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .target(name: "Apodini"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniGraphQL",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "GraphQL", package: "GraphQL")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniGRPC",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniMigrationCommon"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniHTTP",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniNetworking")
             ]
         ),
 
+        .target(
+            name: "ApodiniHTTPProtocol",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniJobs",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "SwifCron", package: "SwifCron")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniLoggingSupport",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
         .target(
             name: "ApodiniMigration",
             dependencies: [
@@ -457,9 +348,229 @@ let package = Package(
                 .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
             ]
         ),
-
-        // XCTApodini
-
+        
+        .target(
+            name: "ApodiniMigrationCommon",
+            dependencies: [
+                .target(name: "Apodini"),
+                .product(name: "ApodiniMigratorExporterSupport", package: "ApodiniMigrator")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNetworking",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "NIOSSL", package: "swift-nio-ssl"),
+                .product(name: "NIOWebSocket", package: "swift-nio"),
+                .product(name: "NIOFoundationCompat", package: "swift-nio"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNetworkingHTTPSupport",
+            dependencies: [
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIOHTTP1", package: "swift-nio"),
+                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniNotifications",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniDatabase"),
+                .product(name: "APNSwift", package: "apnswift")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserve",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniLoggingSupport"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworking"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
+                .product(name: "Tracing", package: "swift-distributed-tracing")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniObserveOpenTelemetry",
+            dependencies: [
+                .target(name: "ApodiniObserve"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Tracing", package: "swift-distributed-tracing"),
+                .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
+                .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniOpenAPI",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniOpenAPISecurity"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniHTTP"),
+                .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "Yams", package: "Yams")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniOpenAPISecurity",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "OrderedCollections", package: "swift-collections")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniREST",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniHTTPProtocol"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniMigrationCommon")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniUtils",
+            dependencies: [
+                .target(name: "CApodiniUtils"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Algorithms", package: "swift-algorithms")
+            ]
+        ),
+        
+        .target(
+            name: "ApodiniWebSocket",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniLoggingSupport"),
+                .product(name: "NIOWebSocket", package: "swift-nio"),
+                .product(name: "WebSocketKit", package: "websocket-kit"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
+                .product(name: "Runtime", package: "Runtime")
+            ]
+        ),
+        
+        .executableTarget(
+            name: "AWSLambdaDeploymentProvider",
+            dependencies: [
+                .target(name: "AWSLambdaDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "SotoS3", package: "soto"),
+                .product(name: "SotoLambda", package: "soto"),
+                .product(name: "SotoApiGatewayV2", package: "soto"),
+                .product(name: "SotoIAM", package: "soto"),
+                .product(name: "SotoSTS", package: "soto"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        
+        .target(
+            name: "AWSLambdaDeploymentProviderCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployerBuildSupport")
+            ]
+        ),
+        
+        .target(
+            name: "AWSLambdaDeploymentProviderRuntime",
+            dependencies: [
+                .target(name: "AWSLambdaDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniNetworking"),
+                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+                .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime")
+            ]
+        ),
+        
+        .target(name: "CApodiniUtils"),
+        
+        .executableTarget(
+            name: "LocalhostDeploymentProvider",
+            dependencies: [
+                .target(name: "ApodiniDeployerBuildSupport"),
+                .target(name: "ApodiniUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "LocalhostDeploymentProviderCommon"),
+                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]
+        ),
+        
+        .target(
+            name: "LocalhostDeploymentProviderCommon",
+            dependencies: [
+                .target(name: "ApodiniDeployerBuildSupport")
+            ]
+        ),
+        
+        .target(
+            name: "LocalhostDeploymentProviderRuntime",
+            dependencies: [
+                .target(name: "LocalhostDeploymentProviderCommon"),
+                .target(name: "ApodiniDeployerRuntimeSupport"),
+                .target(name: "ApodiniOpenAPI")
+            ]
+        ),
+        
+        .target(
+            name: "ProtobufferCoding",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniExtension"),
+                .target(name: "ApodiniNetworkingHTTPSupport"),
+                .target(name: "ApodiniUtils"),
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "Runtime", package: "Runtime"),
+                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+            ]
+        ),
+        
         .target(
             name: "XCTApodini",
             dependencies: [
@@ -485,7 +596,18 @@ let package = Package(
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
             ]
         ),
-
+        
+        .target(
+            name: "XCTApodiniObserve",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniObserve"),
+                .product(name: "CoreMetrics", package: "swift-metrics"),
+                .product(name: "Instrumentation", package: "swift-distributed-tracing"),
+                .product(name: "Tracing", package: "swift-distributed-tracing")
+            ]
+        ),
+        
         .target(
             name: "XCTUtils",
             dependencies: [
@@ -493,82 +615,22 @@ let package = Package(
             ]
         ),
         
-        .executableTarget(
-            name: "ApodiniDeployerTestWebService",
+        
+        
+        // MARK: Test targets
+        
+        .testTarget(
+            name: "ApodiniAuthorizationTests",
             dependencies: [
                 .target(name: "Apodini"),
-                .target(name: "ApodiniDeployerBuildSupport"),
-                .target(name: "LocalhostDeploymentProviderRuntime"),
-                .target(name: "AWSLambdaDeploymentProviderRuntime"),
-                .target(name: "ApodiniREST"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "ApodiniOpenAPI"),
-                .target(name: "ApodiniWebSocket"),
-                .target(name: "ApodiniNotifications"),
-                .target(name: "ApodiniDeployer")
-            ]
-        ),
-        
-        .testTarget(
-            name: "ApodiniHTTPTests",
-            dependencies: [
-                .target(name: "XCTApodini"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "XCTApodiniNetworking")
-            ]
-        ),
-        
-        .testTarget(
-            name: "ApodiniExtensionTests",
-            dependencies: [
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
                 .target(name: "XCTApodini")
             ]
         ),
         
-        
-        .testTarget(
-            name: "ApodiniUtilsTests",
-            dependencies: [
-                .target(name: "ApodiniUtils")
-            ]
-        ),
-        
-        //
-        // MARK: Deploy
-        //
-        
-        .target(
-            name: "ApodiniDeployer",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniDeployerBuildSupport"),
-                .target(name: "ApodiniDeployerRuntimeSupport"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniDeployerBuildSupport",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Runtime", package: "Runtime")
-            ]
-        ),
-        .target(
-            name: "ApodiniDeployerRuntimeSupport",
-            dependencies: [
-                .target(name: "ApodiniDeployerBuildSupport"),
-                .target(name: "Apodini"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
-            ]
-        ),
         .testTarget(
             name: "ApodiniDeployerTests",
             dependencies: [
@@ -586,174 +648,67 @@ let package = Package(
                 .target(name: "AWSLambdaDeploymentProvider")
             ]
         ),
-        .executableTarget(
-            name: "LocalhostDeploymentProvider",
-            dependencies: [
-                .target(name: "ApodiniDeployerBuildSupport"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "LocalhostDeploymentProviderCommon"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
-            ]
-        ),
-        .target(
-            name: "LocalhostDeploymentProviderCommon",
-            dependencies: [
-                .target(name: "ApodiniDeployerBuildSupport")
-            ]
-        ),
-        .target(
-            name: "LocalhostDeploymentProviderRuntime",
-            dependencies: [
-                .target(name: "LocalhostDeploymentProviderCommon"),
-                .target(name: "ApodiniDeployerRuntimeSupport"),
-                .target(name: "ApodiniOpenAPI")
-            ]
-        ),
-
-        .executableTarget(
-            name: "AWSLambdaDeploymentProvider",
-            dependencies: [
-                .target(name: "AWSLambdaDeploymentProviderCommon"),
-                .target(name: "ApodiniDeployerBuildSupport"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "SotoS3", package: "soto"),
-                .product(name: "SotoLambda", package: "soto"),
-                .product(name: "SotoApiGatewayV2", package: "soto"),
-                .product(name: "SotoIAM", package: "soto"),
-                .product(name: "SotoSTS", package: "soto"),
-                .product(name: "OpenAPIKit", package: "OpenAPIKit"),
-                .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer")
-            ],
-            resources: [
-                .process("Resources")
-            ]
-        ),
-        .target(
-            name: "AWSLambdaDeploymentProviderCommon",
-            dependencies: [
-                .target(name: "ApodiniDeployerBuildSupport")
-            ]
-        ),
-        .target(
-            name: "AWSLambdaDeploymentProviderRuntime",
-            dependencies: [
-                .target(name: "AWSLambdaDeploymentProviderCommon"),
-                .target(name: "ApodiniDeployerRuntimeSupport"),
-                .target(name: "ApodiniOpenAPI"),
-                .target(name: "ApodiniNetworking"),
-                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
-                .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime")
-            ]
-        ),
         
-        //
-        // MARK: Observe
-        //
-        
-        .target(
-            name: "ApodiniObserve",
+        .testTarget(
+            name: "ApodiniExtensionTests",
             dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniHTTP"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ApodiniUtils"),
-                .target(name: "ApodiniNetworking"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Metrics", package: "swift-metrics"),
-                .product(name: "SystemMetrics", package: "swift-metrics-extras"),
-                .product(name: "Tracing", package: "swift-distributed-tracing")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniLoggingSupport",
-            dependencies: [
-                .target(name: "Apodini"),
-                .product(name: "Logging", package: "swift-log")
-            ]
-        ),
-        
-        .target(
-            name: "ApodiniObserveOpenTelemetry",
-            dependencies: [
-                .target(name: "ApodiniObserve"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
-                .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniGRPC",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniMigrationCommon"),
-                .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
-            ]
-        ),
-        
-        .target(
-            name: "ProtobufferCoding",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
-                .target(name: "ApodiniNetworkingHTTPSupport"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "NIO", package: "swift-nio"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .target(name: "XCTApodini")
             ]
         ),
         
         .testTarget(
-            name: "ProtobufferCodingTests",
+            name: "ApodiniHTTPTests",
             dependencies: [
-                .target(name: "ProtobufferCoding"),
-                .target(name: "ApodiniGRPC"),
-                .target(name: "XCTUtils"),
-                .product(name: "Algorithms", package: "swift-algorithms")
-            ]
-        ),
-
-        .target(
-            name: "ApodiniGraphQL",
-            dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniExtension"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "ApodiniLoggingSupport"),
-                .target(name: "ApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
-                .product(name: "GraphQL", package: "GraphQL")
-            ],
-            resources: [
-                .process("Resources")
+                .target(name: "XCTApodiniNetworking")
             ]
         ),
         
-        .target(
-            name: "XCTApodiniObserve",
+        .testTarget(
+            name: "ApodiniJobsTests",
             dependencies: [
-                .target(name: "Apodini"),
-                .target(name: "ApodiniObserve"),
-                .product(name: "CoreMetrics", package: "swift-metrics"),
-                .product(name: "Instrumentation", package: "swift-distributed-tracing"),
-                .product(name: "Tracing", package: "swift-distributed-tracing")
+                .target(name: "ApodiniJobs"),
+                .target(name: "XCTApodini")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNegativeCompileTests",
+            dependencies: [
+                .target(name: "Apodini")
+            ],
+            exclude: ["Cases"]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNetworkingHTTPSupportTests",
+            dependencies: [
+                .target(name: "XCTApodini"),
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniNetworkingHTTPSupport")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNetworkingTests",
+            dependencies: [
+                .target(name: "XCTUtils"),
+                .target(name: "ApodiniNetworking"),
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniNotificationsTests",
+            dependencies: [
+                .target(name: "ApodiniNotifications"),
+                .target(name: "XCTApodini")
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         
@@ -772,16 +727,55 @@ let package = Package(
             ]
         ),
         
-        //
-        // MARK: Audit
-        //
-        
-        .target(
-            name: "ApodiniAudit",
+        .testTarget(
+            name: "ApodiniTests",
             dependencies: [
-                .target(name: "Apodini"),
+                .product(name: "Yams", package: "Yams"),
+                .target(name: "XCTApodini"),
+                .target(name: "ApodiniDatabase"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP")
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniAuthorization"),
+                .target(name: "ApodiniMigration"),
+                .target(name: "ApodiniAudit"),
+                .product(name: "RESTMigrator", package: "ApodiniMigrator"),
+                .target(name: "ApodiniAuthorizationBearerScheme"),
+                .target(name: "ApodiniAuthorizationBasicScheme"),
+                .target(name: "ApodiniAuthorizationJWT"),
+                .product(name: "SotoTestUtils", package: "soto-core"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ApodiniUtilsTests",
+            dependencies: [
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "NegativeCompileTestsRunner",
+            dependencies: [
+                .target(name: "XCTUtils"),
+                .target(name: "ApodiniUtils")
+            ]
+        ),
+        
+        .testTarget(
+            name: "ProtobufferCodingTests",
+            dependencies: [
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "XCTUtils"),
+                .product(name: "Algorithms", package: "swift-algorithms")
             ]
         )
     ]
