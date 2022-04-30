@@ -91,6 +91,15 @@ extension String {
         }
         return self
     }
+    
+    /// Whether the string contains any of the specified characters
+    public func contains(anyOf characters: Set<Character>) -> Bool {
+        self.allSatisfy { !characters.contains($0) }
+    }
+    
+    public func containsOnly(charsFrom characterSet: Set<Character>) -> Bool {
+        self.allSatisfy { characterSet.contains($0) }
+    }
 }
 
 

@@ -163,7 +163,7 @@ extension __ANNIOHTTPHeadersType {
     /// Access a multi-value typed header field
     /// - Returns: When reading: `nil` if the field is not present
     /// - Throws: When reading: if the field is present, but there was an error decoding its value. When writing: if there was an error encoding the new value
-    /// /// - Note: Using this subscript to set HTTP2 header values will default the HPACKIndexable property to .indexable. If you don't want this, use the `add` or `replaceOrAdd` functions
+    /// - Note: Using this subscript to set HTTP2 header values will default the HPACKIndexable property to .indexable. If you don't want this, use the `add` or `replaceOrAdd` functions
     public subscript<T: HTTPHeaderFieldValueCodable>(name: HTTPHeaderName<[T]>) -> [T] {
         get {
             switch name {
@@ -179,8 +179,9 @@ extension __ANNIOHTTPHeadersType {
             }
         }
         set {
+            // We're overwriting an array of header fields, so we have to remove all previous entries for this name
+            remove(name)
             guard !newValue.isEmpty else {
-                remove(name: name.rawValue)
                 return
             }
             switch name {
@@ -405,6 +406,18 @@ public enum ContentEncodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable 
 
 
 public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
+    private static let allowedCookieNameChars: Set<Character> = {
+        Set.ascii
+            .subtracting(.asciiControlCharacters)
+            .subtracting([" ", "\t", "(", ")", "<", ">", "@", ",", ";", ":", "\\", "\"", "/", "[", "]", "?", "=", "{", "}"])
+    }()
+    
+    private static let allowedCookieValueChars: Set<Character> = {
+        Set.ascii
+            .subtracting(.asciiControlCharacters)
+            .subtracting(["\"", ",", ";", "\\", " ", "\t"])
+    }()
+    
     public enum SameSite: String {
         case strict = "Strict"
         case lax = "Lax"
@@ -418,8 +431,8 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     public let maxAge: Int?
     public let domain: String?
     public let path: String?
-    public let secure: Bool? // swiftlint:disable:this discouraged_optional_boolean
-    public let httpOnly: Bool? // swiftlint:disable:this discouraged_optional_boolean
+    public let secure: Bool
+    public let httpOnly: Bool
     public let sameSite: SameSite?
     
     /// Create a new `SetCookieHeaderValue` object from the specified values.
@@ -427,13 +440,13 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     public init(
         cookieName: String,
         cookieValue: String,
-        expires: Date?,
-        maxAge: Int?,
-        domain: String?,
-        path: String?,
-        secure: Bool?, // swiftlint:disable:this discouraged_optional_boolean
-        httpOnly: Bool?, // swiftlint:disable:this discouraged_optional_boolean
-        sameSite: SameSite?
+        expires: Date? = nil,
+        maxAge: Int? = nil,
+        domain: String? = nil,
+        path: String? = nil,
+        secure: Bool = false,
+        httpOnly: Bool = false,
+        sameSite: SameSite? = nil
     ) {
         self.cookieName = cookieName
         self.cookieValue = cookieValue
@@ -448,7 +461,52 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     
     
     public init?(httpHeaderFieldValue value: String) {
-        fatalError("Not yet implemented")
+        let components = value.split(separator: ";")
+        guard components.count > 0 else {
+            return nil
+        }
+        
+        let name: String
+        let value: String
+        do {
+            let fstComponentSplit = components[0].split(separator: "=")
+            guard fstComponentSplit.count == 2 else {
+                return nil
+            }
+            name = String(fstComponentSplit[0])
+            guard name.containsOnly(charsFrom: Self.allowedCookieNameChars) else {
+                return nil
+            }
+            value = String(fstComponentSplit[1])
+            guard value.containsOnly(charsFrom: Self.allowedCookieValueChars) else {
+                return nil
+            }
+        }
+        
+        let remainingAttributes: [String: String] = components[1...].mapIntoDict { (value: Substring) -> (String, String) in
+            if let equalsSepIdx = value.firstIndex(of: "=") {
+                let split = value.split(separator: "=")
+                return (
+                    String(split[0].trimmingLeadingAndTrailingWhitespace()),
+                    String(split[1].trimmingLeadingAndTrailingWhitespace())
+                )
+            } else {
+                // If the component does not specify a value, we simply record its presence
+                return (String(value.trimmingLeadingAndTrailingWhitespace()), "")
+            }
+        }
+        
+        self.init(
+            cookieName: name,
+            cookieValue: value,
+            expires: remainingAttributes["Expires"].flatMap { .init(httpHeaderFieldValue: $0) },
+            maxAge: remainingAttributes["Max-Age"].flatMap { .init(httpHeaderFieldValue: $0) },
+            domain: remainingAttributes["Domain"].flatMap { .init(httpHeaderFieldValue: $0) },
+            path: remainingAttributes["Path"].flatMap { .init(httpHeaderFieldValue: $0) },
+            secure: remainingAttributes.keys.contains("Secure"),
+            httpOnly: remainingAttributes.keys.contains("HttpOnly"),
+            sameSite: remainingAttributes["SameSite"].flatMap { SameSite(rawValue: $0) }
+        )
     }
     
     
@@ -458,7 +516,7 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
             retval.append("; Expires=\(expires.encodeToHTTPHeaderFieldValue())")
         }
         if let maxAge = maxAge {
-            retval.append("; MaxAge=\(maxAge.encodeToHTTPHeaderFieldValue())")
+            retval.append("; Max-Age=\(maxAge.encodeToHTTPHeaderFieldValue())")
         }
         if let domain = domain {
             retval.append("; Domain=\(domain.encodeToHTTPHeaderFieldValue())")
@@ -466,10 +524,10 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
         if let path = path {
             retval.append("; Path=\(path.encodeToHTTPHeaderFieldValue())")
         }
-        if let secure = secure, secure {
+        if secure {
             retval.append("; Secure")
         }
-        if let httpOnly = httpOnly, httpOnly {
+        if httpOnly {
             retval.append("; HttpOnly")
         }
         if let sameSite = sameSite {

@@ -70,7 +70,7 @@ public final class HTTPServer {
     }
     
     
-    private let config: Config
+    private var config: Config
     private let router: HTTPRouter
     
     private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
@@ -162,8 +162,19 @@ public final class HTTPServer {
         }
     }
     
-    private var addressString: String {
+    var addressString: String {
         address.addressString(isTLSEnabled: isTLSEnabled)
+    }
+    
+    
+    /// The port to which the server is, or will be, bound. Nil if the server binds to a unix domain socket.
+    var port: Int? {
+        switch address {
+        case .interface(_, let port):
+            return port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
+        case .unixDomainSocket(_):
+            return nil
+        }
     }
     
     
@@ -323,6 +334,41 @@ public final class HTTPServer {
             triggeringContentTypes: contentTypes,
             action: .configureHTTP2Stream(configurationHandler)
         ))
+    }
+    
+    
+    /// Attempts to update the bind address of this HTTPServer. If the server is backed by an `Apodini.Application`, this method also attempts to update the Application's HTTP configuration.
+    /// You can pass nil for any of the parameters to keep using the current value.
+    /// - Note: This method is only intended to be used for testing HTTP request handling, and may not work as expected in other scenarios.
+    /// - Note: You can only call this method while the server is not running
+    func updateHTTPConfiguration(
+        bindAddress newBindAddress: BindAddress? = nil,
+        hostname newHostname: Hostname? = nil,
+        tlsConfiguration newTLSConfiguration: TLSConfiguration? = nil
+    ) {
+        guard newBindAddress != nil || newHostname != nil || newTLSConfiguration != nil else {
+            return
+        }
+        precondition(!isRunning)
+        switch config {
+        case .app(let app):
+            let httpConfig = HTTPConfiguration(
+                hostname: newHostname ?? app.httpConfiguration.hostname,
+                bindAddress: newBindAddress ?? app.httpConfiguration.bindAddress,
+                tlsConfiguration: (newTLSConfiguration ?? app.httpConfiguration.tlsConfiguration).map(TLSConfigurationBuilder.init)
+            )
+            httpConfig.configure(app)
+        case .custom(let oldConfigStorage):
+            self.config = .custom(ConfigStorage(
+                eventLoopGroupProvider: oldConfigStorage.eventLoopGroupProvider,
+                eventLoopGroup: oldConfigStorage.eventLoopGroup,
+                tlsConfiguration: newTLSConfiguration ?? oldConfigStorage.tlsConfiguration,
+                enableHTTP2: oldConfigStorage.enableHTTP2,
+                address: newBindAddress ?? oldConfigStorage.address,
+                hostname: newHostname ?? oldConfigStorage.hostname,
+                logger: oldConfigStorage.logger
+            ))
+        }
     }
 }
 
