@@ -37,9 +37,9 @@ public enum XCTApodiniNetworkingHTTPRequestHandlingTesterExpectedResponseBodySto
 }
 
 
-
 /// A type which can be sent test HTTP requests
 public protocol XCTApodiniNetworkingRequestResponseTestable {
+    /// Returns a proxy for testing the handling of HTTP requests
     func testable(_ methods: Set<XCTApodiniHTTPResponderTestingMethod>) -> XCTApodiniNetworkingHTTPRequestHandlingTester
 }
 
@@ -103,7 +103,6 @@ extension XCTApodiniNetworkingHTTPRequestHandlingTester {
 }
 
 
-
 // MARK: Tester conformances
 
 extension HTTPServer: XCTApodiniNetworkingRequestResponseTestable {
@@ -121,7 +120,9 @@ extension HTTPServer: XCTApodiniNetworkingRequestResponseTestable {
 
 
 extension Apodini.Application: XCTApodiniNetworkingRequestResponseTestable {
-    public func testable(_ methods: Set<XCTApodiniHTTPResponderTestingMethod> = [.internalDispatch]) -> XCTApodiniNetworkingHTTPRequestHandlingTester {
+    public func testable(
+        _ methods: Set<XCTApodiniHTTPResponderTestingMethod> = [.internalDispatch]
+    ) -> XCTApodiniNetworkingHTTPRequestHandlingTester {
         httpServer.testable(methods)
     }
 }

@@ -462,7 +462,7 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     
     public init?(httpHeaderFieldValue value: String) {
         let components = value.split(separator: ";")
-        guard components.count > 0 else {
+        guard !components.isEmpty else {
             return nil
         }
         

@@ -21,11 +21,6 @@ struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
     let interface: String?
     let port: Int?
     
-//    init(httpServer: Apodini.Application, interface: String?, port: Int?) {
-//        self.app = app
-//        self.interface = interface
-//        self.port = port
-//    }
     
     func performTest(
         _ request: XCTHTTPRequest,
@@ -35,14 +30,9 @@ struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
     ) throws {
         precondition(!httpServer.isRunning)
         let address: (interface: String, port: Int?)
-        //switch app.httpConfiguration.bindAddress {
         switch httpServer.address {
         case let .interface(currentAppHostname, port: currentAppPort):
             address = (interface ?? currentAppHostname, port ?? currentAppPort)
-            //app.httpConfiguration.address = .hostname(address.hostname, port: address.port)
-//            HTTPConfiguration(hostname: nil, bindAddress: .interface(address.interface, port: address.port))
-//                .configure(app)
-//            httpServer.address
         case .unixDomainSocket:
             fatalError("Expected a hostname-based http config")
         }
@@ -85,7 +75,6 @@ struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
         try responseEnd(httpResponse)
     }
 }
-
 
 
 private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDelegate { // swiftlint:disable:this type_name

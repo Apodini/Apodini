@@ -172,7 +172,7 @@ public final class HTTPServer {
         switch address {
         case .interface(_, let port):
             return port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-        case .unixDomainSocket(_):
+        case .unixDomainSocket:
             return nil
         }
     }
