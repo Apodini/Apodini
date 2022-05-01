@@ -73,4 +73,18 @@ class ApodiniUtilsTests: XCTestCase {
         XCTAssertEqual(0.compareThreeWay(1), .orderedAscending)
         XCTAssertEqual(1.compareThreeWay(0), .orderedDescending)
     }
+    
+    
+    
+    func testOtherUtilities() throws {
+        errno = EPERM
+        do {
+            try throwIfPosixError(errno)
+        } catch {
+            //let error = try XCTUnwrap(error as NSError)
+            XCTAssertEqual(error as NSError, NSError(domain: NSPOSIXErrorDomain, code: Int(EPERM), userInfo: [
+                NSLocalizedDescriptionKey: "Operation not permitted"
+            ]))
+        }
+    }
 }

@@ -60,18 +60,16 @@ extension FileManager {
 
 extension FileManager {
     /// Read file permissions
-    public func posixPermissions(ofItemAt url: URL) throws -> POSIXPermissions {
+    public func permissions(ofItemAt url: URL) throws -> POSIXPermissions {
         if let value = try self.attributesOfItem(atPath: url.absoluteURL.path)[.posixPermissions] as? NSNumber {
             return POSIXPermissions(rawValue: numericCast(value.uintValue))
         } else {
-            throw NSError(domain: "ApodiniDeployer", code: 0, userInfo: [
-                NSLocalizedDescriptionKey: "Unable to read permissions for file at '\(url.absoluteURL.path)'"
-            ])
+            throw ApodiniUtilsError(message: "Unable to read permissions for file at '\(url.absoluteURL.path)'")
         }
     }
     
     /// Write file permissions
-    public func setPosixPermissions(_ permissions: POSIXPermissions, forItemAt url: URL) throws {
+    public func setPermissions(_ permissions: POSIXPermissions, forItemAt url: URL) throws {
         try url.withUnsafeFileSystemRepresentation { ptr in
             guard let ptr = ptr else {
                 throw ApodiniUtilsError(message: "Unable to set file permissins: can't get file path")

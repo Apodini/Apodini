@@ -87,7 +87,13 @@ class ApodiniNetworkingHTTPSupportTests: XCTApodiniTest {
         XCTAssertEqual(headers[customFieldHeaderName], [.init(name: "Lukas"), .init(name: "Paul"), .init(name: "Bernd")])
         
         headers[customFieldHeaderName].append(contentsOf: [.init(name: "Nadine"), .init(name: "Valentin")])
-        XCTAssertEqual(headers[customFieldHeaderName], [.init(name: "Lukas"), .init(name: "Paul"), .init(name: "Bernd"), .init(name: "Nadine"), .init(name: "Valentin")])
+        XCTAssertEqual(headers[customFieldHeaderName], [
+            .init(name: "Lukas"),
+            .init(name: "Paul"),
+            .init(name: "Bernd"),
+            .init(name: "Nadine"),
+            .init(name: "Valentin")
+        ])
     }
     
     
@@ -141,7 +147,7 @@ class ApodiniNetworkingHTTPSupportTests: XCTApodiniTest {
         headers[.setCookie] = [cookieDef]
         XCTAssertEqualIgnoringOrder(headers[.setCookie], [cookieDef])
         XCTAssertEqual(headers, [
-            "Set-Cookie": "My-Other-Cookie=CookieValue; Expires=Mon, 01 Jan 4001 00:00:00 GMT; Max-Age=120; Domain=in.tum.de; Path=/alice1; Secure; SameSite=Strict"
+            "Set-Cookie": "My-Other-Cookie=CookieValue; Expires=Mon, 01 Jan 4001 00:00:00 GMT; Max-Age=120; Domain=in.tum.de; Path=/alice1; Secure; SameSite=Strict" // swiftlint:disable:this line_length
         ])
     }
 }

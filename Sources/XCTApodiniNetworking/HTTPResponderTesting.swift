@@ -106,7 +106,9 @@ extension XCTApodiniNetworkingHTTPRequestHandlingTester {
 // MARK: Tester conformances
 
 extension HTTPServer: XCTApodiniNetworkingRequestResponseTestable {
-    public func testable(_ methods: Set<XCTApodiniHTTPResponderTestingMethod> = [.internalDispatch]) -> XCTApodiniNetworkingHTTPRequestHandlingTester {
+    public func testable(
+        _ methods: Set<XCTApodiniHTTPResponderTestingMethod> = [.internalDispatch]
+    ) -> XCTApodiniNetworkingHTTPRequestHandlingTester {
         MultiplexingTester(testers: methods.map { method in
             switch method {
             case .internalDispatch:

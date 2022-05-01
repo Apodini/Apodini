@@ -8,6 +8,7 @@
 
 
 import Foundation
+import NIOHTTP1
 
 
 public extension AnyHTTPHeaderName {
@@ -71,20 +72,10 @@ extension Date: HTTPHeaderFieldValueCodable {
 
 extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValueCodable {
     public init?(httpHeaderFieldValue value: String) {
-        fatalError()
-        self.init()
-        for component in value.split(separator: ",") {
-            guard let headerValue = Element(httpHeaderFieldValue: String(component.trimmingLeadingWhitespace())) else {
-                return nil
-            }
-            self.append(headerValue)
-        }
+        fatalError("Decode \(Self.self) through the \(HTTPHeaders.self) API, rather than this initializer.")
     }
     
     public func encodeToHTTPHeaderFieldValue() -> String {
-        fatalError()
-        return self
-            .map { $0.encodeToHTTPHeaderFieldValue() }
-            .joined(separator: ", ")
+        fatalError("Encode \(Self.self) through the \(HTTPHeaders.self) API, rather than this method.")
     }
 }
