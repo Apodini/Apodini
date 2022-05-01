@@ -22,7 +22,7 @@ public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     
     public init?(httpHeaderFieldValue value: String) {
         if value.hasPrefix("W/") {
-            self = .weak(value)
+            self = .weak(String(value.dropFirst(2)))
         } else {
             self = .strong(value)
         }
@@ -30,7 +30,9 @@ public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
     
     public func encodeToHTTPHeaderFieldValue() -> String {
         switch self {
-        case .weak(let value), .strong(let value):
+        case .weak(let value):
+            return "W/\(value)"
+        case .strong(let value):
             return value
         }
     }

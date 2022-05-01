@@ -94,7 +94,7 @@ extension String {
     
     /// Whether the string contains any of the specified characters
     public func contains(anyOf characters: Set<Character>) -> Bool {
-        self.allSatisfy { !characters.contains($0) }
+        self.contains { characters.contains($0) }
     }
     
     /// Whether all chatacters in the string are also contained in the character set
@@ -248,7 +248,16 @@ extension Array where Element == String {
 
 extension Set where Element == Character {
     /// The set of  all `Character`s which are US-ASCII characters
-    public static let ascii = Set<Character>((0...127).map { Character(Unicode.Scalar($0)) })
+    public static let ascii = Set<Character>(asciiRange: 0...127)
+    
     /// The set of all `Character`s which are US-ASCII control characters
-    public static let asciiControlCharacters = Set<Character>((0...31).map { Character(Unicode.Scalar($0)) })
+    public static let asciiControlCharacters = Set(asciiRange: 0...31).union([Character(Unicode.Scalar(0x7f))])
+    
+    /// The set of all `Character`s which are US-ASCII numerals
+    public static let asciiNumerals = Set(asciiRange: 48...57)
+    
+    /// Creates a character set for the specified ascii range
+    public init(asciiRange: ClosedRange<UInt8>) {
+        self = asciiRange.mapIntoSet { Character(Unicode.Scalar($0)) }
+    }
 }

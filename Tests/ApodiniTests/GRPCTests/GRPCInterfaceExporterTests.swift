@@ -502,7 +502,7 @@ extension GRPCInterfaceExporterTests {
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
-            $0[.schemePseudoHeader] = "https"
+            $0[.schemePseudoHeader] = .https
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
             $0[.contentType] = .gRPC(.proto)
         }

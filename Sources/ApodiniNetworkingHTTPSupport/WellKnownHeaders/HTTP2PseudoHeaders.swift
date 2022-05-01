@@ -21,7 +21,7 @@ public extension AnyHTTPHeaderName {
     /// The HTTP/2 `:authority` pseudo header field
     static let authorityPseudoHeader = HTTPHeaderName<String>(":authority")
     /// The HTTP/2 `:scheme` pseudo header field
-    static let schemePseudoHeader = HTTPHeaderName<String>(":scheme")
+    static let schemePseudoHeader = HTTPHeaderName<HTTPSchemePseudoHeaderValue>(":scheme")
 }
 
 
@@ -52,5 +52,34 @@ extension HTTPResponseStatus: HTTPHeaderFieldValueCodable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(code)
         hasher.combine(reasonPhrase)
+    }
+}
+
+
+public enum HTTPSchemePseudoHeaderValue: HTTPHeaderFieldValueCodable {
+    case http
+    case https
+    case other(String)
+    
+    public init?(httpHeaderFieldValue value: String) {
+        switch value.lowercased() {
+        case "http":
+            self = .http
+        case "https":
+            self = .https
+        default:
+            self = .other(value)
+        }
+    }
+    
+    public func encodeToHTTPHeaderFieldValue() -> String {
+        switch self {
+        case .http:
+            return "http"
+        case .https:
+            return "https"
+        case .other(let value):
+            return value
+        }
     }
 }

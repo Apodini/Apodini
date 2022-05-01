@@ -32,6 +32,11 @@ extension Set {
         lhs.insert(rhs)
     }
     
+    /// Returns a copy of the set, with the additional element inserted
+    public static func + (lhs: Self, rhs: Element) -> Self {
+        lhs.union([rhs])
+    }
+    
     /// Insert a sequence of elements into the set
     public static func += <S> (lhs: inout Self, rhs: S) where S: Sequence, S.Element == Element {
         lhs.formUnion(rhs)

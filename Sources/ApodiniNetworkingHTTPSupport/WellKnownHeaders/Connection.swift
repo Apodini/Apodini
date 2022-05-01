@@ -22,6 +22,10 @@ public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
     case upgrade
     case other(String)
     
+    public static func other(_ headerName: AnyHTTPHeaderName) -> Self {
+        Self.init(httpHeaderFieldValue: headerName.rawValue)!
+    }
+    
     public init?(httpHeaderFieldValue value: String) {
         switch value.lowercased() {
         case "close":

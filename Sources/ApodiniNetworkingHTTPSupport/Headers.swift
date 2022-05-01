@@ -97,8 +97,13 @@ extension __ANNIOHTTPHeadersType {
         self.init([])
     }
     
+    /// Initialises a headers struct from the specified key-value pairs
+    public init<S: Sequence>(_ elements: S) where S.Element == (String, String) {
+        self.init(Array(elements))
+    }
+    
     /// Initialises a new headers struct with the specified entries
-    public init(_ elements: [(String, String, HPACKIndexing)]) { // swiftlint:disable:this large_tuple
+    public init<S: Sequence>(_ elements: S) where S.Element == (String, String, HPACKIndexing) { // swiftlint:disable:this large_tuple
         self.init()
         for (name, value, indexing) in elements {
             add(name: name, value: value, indexing: indexing)

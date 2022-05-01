@@ -75,7 +75,6 @@ class ApodiniUtilsTests: XCTestCase {
     }
     
     
-    
     func testOtherUtilities() throws {
         errno = EPERM
         do {
@@ -86,5 +85,14 @@ class ApodiniUtilsTests: XCTestCase {
                 NSLocalizedDescriptionKey: "Operation not permitted"
             ]))
         }
+    }
+    
+    
+    func testCharacterSetUtilities() {
+        XCTAssertTrue("Lukas".containsOnly(charsFrom: .ascii))
+        XCTAssertFalse("Ärgernis".containsOnly(charsFrom: .ascii))
+        XCTAssertTrue(Set.asciiControlCharacters.contains("\n"))
+        XCTAssertTrue("Hello\nWorld".contains(anyOf: .asciiControlCharacters))
+        XCTAssertEqual(Set<Character>("abc").union("def"), Set<Character>("abcdef"))
     }
 }
