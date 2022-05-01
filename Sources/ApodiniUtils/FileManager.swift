@@ -10,9 +10,24 @@ import Foundation
 
 
 extension FileManager {
-    /// Initialises the file manager, creating the Apodini-specific temporary directory
+    private static let didInitialize = ThreadSafeVariable<Bool>(false)
+    
+    /// Initialises the file manager if necessary, creating the Apodini-specific temporary directory
+    private func initializeIfNecessary() throws {
+        guard !Self.didInitialize.read({ $0 }) else {
+            return
+        }
+        try Self.didInitialize.write { didInitialize in
+            guard !didInitialize else {
+                return
+            }
+            try createDirectory(at: apodiniTmpDir, withIntermediateDirectories: true, attributes: [:])
+        }
+    }
+    
+    /// Initialises the file manager, if necessary
     public func initialize() throws {
-        try createDirectory(at: apodiniDeployerTmpDir, withIntermediateDirectories: true, attributes: [:])
+        try initializeIfNecessary()
     }
     
     /// Check whether a directory exists at `url`
@@ -24,20 +39,23 @@ extension FileManager {
     
     /// Update the current working directory
     public func setWorkingDirectory(to newDir: URL) throws {
+        try initializeIfNecessary()
         guard changeCurrentDirectoryPath(newDir.path) else {
             throw ApodiniUtilsError(message: "Unable to change working directory from \(self.currentDirectoryPath) to \(newDir.path)")
         }
     }
     
-    /// Url of the Apodini-specific temporary directory
-    public var apodiniDeployerTmpDir: URL {
-        temporaryDirectory.appendingPathComponent("ApodiniDeployer", isDirectory: true)
+    /// URL of the Apodini-specific temporary directory
+    public var apodiniTmpDir: URL {
+        try! initializeIfNecessary()
+        return temporaryDirectory.appendingPathComponent("Apodini", isDirectory: true)
     }
     
     
     /// Returns a temporary file url for the specified file extension
     public func getTemporaryFileUrl(fileExtension: String?) -> URL {
-        var tmpfile = apodiniDeployerTmpDir
+        try! initializeIfNecessary()
+        var tmpfile = apodiniTmpDir
             .appendingPathComponent(UUID().uuidString)
         if let ext = fileExtension {
             tmpfile.appendPathExtension(ext)
@@ -48,6 +66,7 @@ extension FileManager {
     
     /// Copy an item at `srcUrl` to `dstUrl`, overwriting an existing item if specified
     public func copyItem(at srcUrl: URL, to dstUrl: URL, overwriteExisting: Bool) throws {
+        try initializeIfNecessary()
         if overwriteExisting && fileExists(atPath: dstUrl.path) {
             try removeItem(at: dstUrl)
         }
