@@ -54,6 +54,9 @@ extension AuditInterfaceExporter {
         AppropriateLengthForURLPathSegments.self,
         NoUnderscoresInURLPathSegments.self,
         NoCRUDVerbsInURLPathSegments.self,
-        ContextualisedResourceNames.self
+        LowercaseURLPathSegments.self,
+        NoFileExtensionsInURLPathSegments.self,
+        ContextualisedResourceNames.self,
+        GetHasComplexReturnType.self
     ]
 }

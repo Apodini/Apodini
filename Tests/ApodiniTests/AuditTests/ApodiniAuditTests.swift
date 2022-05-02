@@ -15,7 +15,7 @@ import XCTest
 final class ApodiniAuditTests: ApodiniTests {
     struct TestWebService: WebService {
         var content: some Component {
-            Group("crudGet", "looooooooooooooooooooooooooooooooooongSeg2") {
+            Group("crudGet", "looooooooooooooooooooooooooooooooooongSeg2", "withextension.html/") {
                 SomeComp()
             }
         }
@@ -55,14 +55,13 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
         
-        XCTAssertEqual(auditInterfaceExporter.audits.count, 4)
-        let auditReports = auditInterfaceExporter.audits.map { $0.report }
+        let auditReports = auditInterfaceExporter.audits.flatMap { $0.reports }
         
         let expectedAuditReports = [
-            AuditReport(
-                message: "The path segments do not contain any underscores",
-                auditResult: .success
-            ),
+//            AuditReport(
+//                message: "The path segments do not contain any underscores",
+//                auditResult: .success
+//            ),
             AuditReport(
                 message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
                 auditResult: .fail
@@ -73,6 +72,22 @@ final class ApodiniAuditTests: ApodiniTests {
             ),
             AuditReport(
                 message: "\"crudGet\" and \"looooooooooooooooooooooooooooooooooongSeg2\" are not related!",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "\"looooooooooooooooooooooooooooooooooongSeg2\" and \"withextension.html\" are not related!",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "The path segment crudGet contains one or more uppercase letters!",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
+                auditResult: .fail
+            ),
+            AuditReport(
+                message: "The path segment withextension.html has a file extension.",
                 auditResult: .fail
             )
         ]

@@ -11,8 +11,7 @@ import Apodini
 
 /// A best practice that can be checked for an Endpoint.
 /// Implementations of this protocol are listed in `AuditInterfaceExporter.bestPractices`.
-public protocol BestPractice {
-}
+public protocol BestPractice { }
 
 internal protocol _BestPractice: BestPractice {
     /// The scope of this best practice (http or rest)
@@ -28,6 +27,9 @@ extension _BestPractice {
     static func generateAudit(_ app: Application, _ endpoint: AnyEndpoint) -> Audit {
         let audit = Audit(endpoint, Self.self)
         performAudit(app, audit)
+        if audit.reports.isEmpty {
+            // TODO generate success message
+        }
         return audit
     }
 }
@@ -38,6 +40,7 @@ public struct BestPracticeCategories: OptionSet {
     
     static let urlPath      = BestPracticeCategories(rawValue: 1 << 0)
     static let statusCode   = BestPracticeCategories(rawValue: 1 << 1)
+    static let method       = BestPracticeCategories(rawValue: 1 << 2)
     
     public init(rawValue: Int) {
         self.rawValue = rawValue
