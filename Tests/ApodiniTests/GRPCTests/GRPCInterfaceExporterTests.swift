@@ -691,8 +691,8 @@ extension GRPCInterfaceExporterTests {
         var headers = HPACKHeaders()
         status.encode(into: &headers)
         XCTAssertEqualIgnoringOrder(headers.mapToXCTHeaderEntries(), [
-            .init(name: "grpc-status", value: "12", indexing: .indexable),
-            .init(name: "grpc-message", value: "Not yet implemented. (Trigger encoded char: %25)", indexing: .indexable),
+            .init(name: "grpc-status", value: "12"),
+            .init(name: "grpc-message", value: "Not yet implemented. (Trigger encoded char: %25)"),
         ])
     }
 }
