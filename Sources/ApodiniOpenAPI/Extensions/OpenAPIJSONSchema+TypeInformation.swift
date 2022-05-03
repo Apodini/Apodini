@@ -45,7 +45,7 @@ extension JSONSchema {
         switch primitiveType {
         // Null is a custom object of ApodiniTypeInformation that encodes nil
         case .null:
-            return .string(defaultValue: AnyCodable(Null()))
+            return .string(defaultValue: AnyCodable(NSNull()))
         case .bool:
             return .boolean
         case .int:
