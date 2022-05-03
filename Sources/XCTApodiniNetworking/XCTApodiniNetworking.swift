@@ -18,20 +18,18 @@
 public struct XCTHTTPHeaderEntry: Hashable {
     public let name: String
     public let value: String
-    public let indexing: HPACKIndexing?
     
-    public init(name: String, value: String, indexing: HPACKIndexing? = nil) {
+    public init(name: String, value: String) {
         self.name = name
         self.value = value
-        self.indexing = indexing
     }
 }
 
 
 extension __ANNIOHTTPHeadersType {
     public func mapToXCTHeaderEntries() -> [XCTHTTPHeaderEntry] {
-        self.entries.map {
-            XCTHTTPHeaderEntry(name: $0, value: $1, indexing: $2)
+        self.entries.map { (name, value, _) in
+            XCTHTTPHeaderEntry(name: name, value: value)
         }
     }
 }
