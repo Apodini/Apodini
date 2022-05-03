@@ -80,7 +80,6 @@ class ApodiniUtilsTests: XCTestCase {
         do {
             try throwIfPosixError(errno)
         } catch {
-            //let error = try XCTUnwrap(error as NSError)
             XCTAssertEqual(error as NSError, NSError(domain: NSPOSIXErrorDomain, code: Int(EPERM), userInfo: [
                 NSLocalizedDescriptionKey: "Operation not permitted"
             ]))
@@ -94,5 +93,11 @@ class ApodiniUtilsTests: XCTestCase {
         XCTAssertTrue(Set.asciiControlCharacters.contains("\n"))
         XCTAssertTrue("Hello\nWorld".contains(anyOf: .asciiControlCharacters))
         XCTAssertEqual(Set<Character>("abc").union("def"), Set<Character>("abcdef"))
+        
+        XCTAssertEqual(" hello, world".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual(" hello, world ".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("hello, world ".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("hello, world".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("///abc/def/g".trimmingCharacters(from: ["/"]), "abc/def/g")
     }
 }

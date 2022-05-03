@@ -58,25 +58,6 @@ public protocol AnyDecoder {
 extension JSONDecoder: AnyDecoder {}
 
 
-// MARK: Null
-
-/// A `Codable`-conformant equivalent of `NSNull`
-public struct Null: Codable {
-    public init() {}
-    
-    public init(from decoder: Decoder) throws {
-        guard try decoder.singleValueContainer().decodeNil() else {
-            throw ApodiniUtilsError(message: "Expected nil value")
-        }
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encodeNil()
-    }
-}
-
-
 // MARK: Other
 
 extension Encodable {

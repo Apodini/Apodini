@@ -16,6 +16,7 @@ import XCTApodini
 import XCTApodiniNetworking
 import ApodiniUtils
 import NIO
+import NIOHPACK
 import XCTUtils
 
 
@@ -75,7 +76,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-        try skipIfRunningInXcode()
+//        try skipIfRunningInXcode()
         // ^^ For reasons I cannot understand, the gRPC tests will work fine when run from the terminal,
         // but always hang (waiting for the grpcurl child process, which itself is waiting for something else)
         // when run in Xcode. This probably is caused by the attached debugger.
@@ -448,7 +449,6 @@ extension GRPCInterfaceExporterTests {
     // because it also serves as a proof-of-concept of using `EmbeddedChannel`s for testing the gRPC IE,
     // rather than relying on grpcurl.
     func testResponseHeaders() throws {
-        print(#function, "start")
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -469,17 +469,12 @@ extension GRPCInterfaceExporterTests {
             }
         }
         
-        print(#function, "configure app")
         TestGRPCExporterCollection().configuration.configure(app)
-        print(#function, "create visitor")
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        print(#function, "accept visitor")
         WebService().accept(visitor)
-        print(#function, "-finishParsing")
         visitor.finishParsing()
         // Intentionally not starting the app here...
         
-        print(#function, "will fetch IE")
         let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
         
         let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
@@ -490,7 +485,6 @@ extension GRPCInterfaceExporterTests {
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
         // We also add some intercepting handlers, which allows us to a) check that the data send through the pipeline at certain stages
         // of the message handling process is what we'd expect, and b) detect the end of the connection.
-        print(#function, "create EmbeddedChannel")
         let channel = EmbeddedChannel(handlers: [
             OutboundSinkholeChannelHandler(),
             httpOutInterceptor,
@@ -498,7 +492,6 @@ extension GRPCInterfaceExporterTests {
             messageOutInterceptor,
             GRPCMessageHandler(server: grpcIE.server)
         ])
-        print(#function, "create clientHeaders")
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
@@ -506,25 +499,18 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
             $0[.contentType] = .gRPC(.proto)
         }
-        print(#function, "channel.writeInbound (1)")
         try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
-        print(#function, "channel.writeInbound (2)")
         try channel.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
             remoteAddress: nil,
             requestHeaders: clientHeaders,
             payload: ByteBuffer()
         )))
-        print(#function, "channel.writeInbound (3)")
         try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
         
-        print(#function, "wait for close expectation")
         wait(for: [channelCloseExpectation], timeout: 5)
-        print(#function, "channel.finish")
         XCTAssert(try channel.finish(acceptAlreadyClosed: true).isClean)
         
-        print(#function, "check 1")
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 2)
-        print(#function, "check 2")
         XCTAssertEqual(messageOutInterceptor.interceptedData[0].asSingleMessage, GRPCMessageOut.singleMessage(
             headers: HPACKHeaders {
                 $0[.contentType] = .gRPC(.proto)
@@ -532,8 +518,182 @@ extension GRPCInterfaceExporterTests {
             payload: ByteBuffer(bytes: [10, 13, 65, 108, 105, 99, 101, 32, 97, 110, 100, 32, 66, 111, 98]),
             closeStream: true
         ))
-        print(#function, "check 3")
         XCTAssertEqual(messageOutInterceptor.interceptedData[1], .closeStream(trailers: HPACKHeaders()))
+    }
+}
+
+
+struct BidirectionalStreamTestHandler: Handler {
+    @Environment(\.connection) var connection
+    @Parameter var input: Int
+    @State var collectedNumbers: [Int] = []
+    
+    func handle() -> Apodini.Response<Int> {
+        switch connection.state {
+        case .open:
+            collectedNumbers.append(input)
+            if input.isMultiple(of: 2) {
+                return .nothing
+            } else {
+                return .send(input + 1)
+            }
+        case .end:
+            collectedNumbers.append(input)
+            fallthrough
+        case .close:
+            let result = collectedNumbers.reduce(0, +)
+            return .final(result)
+        }
+    }
+}
+
+extension GRPCInterfaceExporterTests {
+    func testBidirectionalStream() throws {
+        struct WebService: Apodini.WebService {
+            var content: some Component {
+                BidirectionalStreamTestHandler()
+                    .endpointName(fixed: "AcceptNumber")
+                    .pattern(.bidirectionalStream)
+            }
+        }
+        
+        struct HandlerMessageWrapper: Codable {
+            let value: Int
+        }
+        
+        TestGRPCExporterCollection().configuration.configure(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        WebService().accept(visitor)
+        visitor.finishParsing()
+        // Intentionally not starting the app here...
+        
+        let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
+        
+        let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
+        let messageOutInterceptor = OutboundInterceptingChannelHandler<GRPCMessageHandler.OutboundOut>()
+        let httpOutInterceptor = OutboundInterceptingChannelHandler<HTTP2Frame.FramePayload>(closeExpectation: channelCloseExpectation)
+        
+        // We create an embedded channel which receives already-decoded input (skipping the HTTP2 frame -> grpc handler input step here),
+        // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
+        // We also add some intercepting handlers, which allows us to a) check that the data send through the pipeline at certain stages
+        // of the message handling process is what we'd expect, and b) detect the end of the connection.
+        let channel = EmbeddedChannel(handlers: [
+            OutboundSinkholeChannelHandler(),
+            httpOutInterceptor,
+            GRPCResponseEncoder(),
+            messageOutInterceptor,
+            GRPCMessageHandler(server: grpcIE.server)
+        ])
+        // The HTTP/2 headers with which the client initiated the connection
+        let clientHeaders = HPACKHeaders {
+            $0[.methodPseudoHeader] = .POST
+            $0[.schemePseudoHeader] = .https
+            $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/AcceptNumber"
+            $0[.contentType] = .gRPC(.proto)
+        }
+        
+        try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
+        
+        enum TestStepInput {
+            case message(value: Int, includeHeaders: Bool = false)
+            case closeStream
+        }
+        
+        enum TestStepExpectedResponse {
+            case nothingAndKeepOpen
+            case message(value: Int, closeStream: Bool = false)
+            case nothingAndClose
+        }
+        
+        
+        func testStepImp_V2(input: TestStepInput, expectedResponse: TestStepExpectedResponse) throws {
+            let expectation = XCTestExpectation("checkResponse")
+            messageOutInterceptor.setNextInterceptedDataHandler { (messageOut: GRPCMessageHandler.OutboundOut) in
+                do {
+                    defer {
+                        expectation.fulfill()
+                    }
+                    switch (messageOut, expectedResponse) {
+                    case (GRPCMessageHandler.OutboundOut.error(let status, _), _):
+                        XCTFail("Unexpected gRPC error: \(status)")
+                    case (.closeStream, .nothingAndKeepOpen):
+                        XCTFail("Unexpectedly closed stream")
+                    case (.closeStream, .nothingAndClose):
+                        XCTFail("unexpected state") // this state on its own would be fine, but we don't expect it to occur as a result of this test case
+                    case let (.closeStream, .message(value: _, closeStream)):
+                        XCTAssertTrue(closeStream)
+                    case (GRPCMessageHandler.OutboundOut.message(GRPCMessageOut.nothing, _), .nothingAndKeepOpen):
+                        return // everything is fine...
+                    case let (.message(.singleMessage(headers: _, payload, closeStream), _), .message(expectedValue, expectedCloseStream)):
+                        let actualValue = try ProtobufferDecoder().decode(HandlerMessageWrapper.self, from: payload).value
+                        XCTAssertEqual(actualValue, expectedValue)
+                        XCTAssertEqual(closeStream, expectedCloseStream)
+                    case (.message, .nothingAndKeepOpen), (.message, .nothingAndClose), (.message(GRPCMessageOut.stream, _), _), (.message(.nothing, _), .message):
+                        XCTFail("Invalid state: \(messageOut) and \(expectedResponse)")
+                    }
+                } catch {
+                    XCTFail("Unexpectedly encountered an error: \(error)")
+                }
+            }
+            switch input {
+            case let .message(value, includeHeaders):
+                try channel.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
+                    remoteAddress: nil,
+                    requestHeaders: includeHeaders ? clientHeaders : [:],
+                    payload: try ProtobufferEncoder().encode(HandlerMessageWrapper(value: value))
+                )))
+            case .closeStream:
+                try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
+            }
+            self.wait(for: [expectation], timeout: 2)
+            
+        }
+        
+        try testStepImp_V2(
+            input: .message(value: 1, includeHeaders: true),
+            expectedResponse: .message(value: 2, closeStream: false)
+        )
+        try testStepImp_V2(
+            input: .message(value: 2, includeHeaders: true),
+            expectedResponse: .nothingAndKeepOpen
+        )
+        try testStepImp_V2(
+            input: .message(value: 3, includeHeaders: true),
+            expectedResponse: .message(value: 4, closeStream: false)
+        )
+        try testStepImp_V2(
+            input: .message(value: 4, includeHeaders: true),
+            expectedResponse: .nothingAndKeepOpen
+        )
+        try testStepImp_V2(
+            input: .message(value: 5, includeHeaders: true),
+            expectedResponse: .message(value: 6, closeStream: false)
+        )
+        try testStepImp_V2(
+            input: .message(value: 6, includeHeaders: true),
+            expectedResponse: .nothingAndKeepOpen
+        )
+        try testStepImp_V2(
+            input: .message(value: 7, includeHeaders: true),
+            expectedResponse: .message(value: 8, closeStream: false)
+        )
+        try testStepImp_V2(
+            input: .closeStream,
+            expectedResponse: .message(value: 28, closeStream: true)
+        )
+        wait(for: [channelCloseExpectation], timeout: 8)
+        XCTAssertEqual(messageOutInterceptor.interceptedData.count, 8)
+    }
+    
+    
+    func testStatusEncoding() {
+        let status = GRPCStatus(code: .unimplemented, message: "Not yet implemented. (Trigger encoded char: %)")
+        var headers = HPACKHeaders()
+        status.encode(into: &headers)
+        XCTAssertEqualIgnoringOrder(headers.mapToXCTHeaderEntries(), [
+            .init(name: "grpc-status", value: "12", indexing: .indexable),
+            .init(name: "grpc-message", value: "Not yet implemented. (Trigger encoded char: %25)", indexing: .indexable),
+        ])
     }
 }
 

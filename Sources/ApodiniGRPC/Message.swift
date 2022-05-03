@@ -20,21 +20,7 @@ struct GRPCMessageIn: ApodiniExtension.RequestBasis, CustomStringConvertible, Cu
     /// The payload of this message
     let payload: ByteBuffer
     
-    var targetServiceName: String {
-        String(requestHeaders[.pathPseudoHeader]!.split(separator: "/")[0])
-    }
-    
-    var targetMethodName: String {
-        String(requestHeaders[.pathPseudoHeader]!.split(separator: "/")[1])
-    }
-    
-    var serviceAndMethodName: (service: String, method: String) {
-        let splitPath = requestHeaders[.pathPseudoHeader]!.split(separator: "/")
-        return (String(splitPath[0]), String(splitPath[1]))
-    }
-    
     var description: String {
-        ///"\(Self.self)(headers: \()"
         var retval = "\(Self.self)("
         retval.append("headers: ")
         retval.append("\(requestHeaders.map { "\($0.name)=\($0.value)" })")

@@ -8,6 +8,7 @@
 
 import Foundation
 import OpenAPIKit
+import ApodiniUtils
 import ApodiniTypeInformation
 
 extension JSONSchema {
@@ -44,7 +45,7 @@ extension JSONSchema {
         switch primitiveType {
         // Null is a custom object of ApodiniTypeInformation that encodes nil
         case .null:
-            return .string(defaultValue: AnyCodable(NSNull()))
+            return .string(defaultValue: AnyCodable(Null()))
         case .bool:
             return .boolean
         case .int:

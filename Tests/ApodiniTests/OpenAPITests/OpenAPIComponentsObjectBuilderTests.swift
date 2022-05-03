@@ -13,6 +13,7 @@ import OpenAPIKit
 import ApodiniTypeInformation
 import ApodiniREST
 import ApodiniHTTP
+import ApodiniUtils
 
 
 enum Test: String, Codable, CaseIterable {

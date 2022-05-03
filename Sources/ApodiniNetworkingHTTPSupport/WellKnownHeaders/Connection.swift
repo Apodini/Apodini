@@ -23,7 +23,7 @@ public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
     case other(String)
     
     public static func other(_ headerName: AnyHTTPHeaderName) -> Self {
-        Self.init(httpHeaderFieldValue: headerName.rawValue)!
+        Self(httpHeaderFieldValue: headerName.rawValue)!
     }
     
     public init?(httpHeaderFieldValue value: String) {

@@ -123,7 +123,9 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         // Upload function code to S3
         //
         
-        let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        let s3ObjectKey_ = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(from: ["/"]))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        precondition(s3ObjectKey == s3ObjectKey_)
         var launchInfoFileUrl: URL
         
         do {

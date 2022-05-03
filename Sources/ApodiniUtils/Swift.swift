@@ -350,31 +350,6 @@ extension Array {
 }
 
 
-// MARK: Result
-
-extension Result {
-    /// Whether the result is a success
-    public var isSuccess: Bool {
-        switch self {
-        case .success:
-            return true
-        case .failure:
-            return false
-        }
-    }
-    
-    /// Whether the result is a failure
-    public var isFailure: Bool {
-        switch self {
-        case .failure:
-            return true
-        case .success:
-            return false
-        }
-    }
-}
-
-
 // MARK: Dictionary
 
 extension Dictionary {

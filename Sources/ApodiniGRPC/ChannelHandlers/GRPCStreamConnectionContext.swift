@@ -14,7 +14,7 @@ import NIOHPACK
 /// Type that can handle events on a gRPC connection.
 protocol GRPCStreamRPCHandler: AnyObject {
     /// The function that will be invoked when the stream is first opened
-    func handleStreamOpen(context: GRPCStreamConnectionContext)
+    func handleStreamOpen(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
     /// Invoked when the RPC connection receives an incoming client message.
     /// - returns: An EventLoopFuture that will eventually fulfill to a gRPC resonse message.
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
@@ -25,7 +25,9 @@ protocol GRPCStreamRPCHandler: AnyObject {
 }
 
 extension GRPCStreamRPCHandler {
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
+    func handleStreamOpen(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        nil
+    }
     func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         nil
     }
@@ -57,7 +59,7 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
         self.grpcMethodName = grpcMethodName
     }
     
-    func handleStreamOpen() {
+    func handleStreamOpen() -> EventLoopFuture<GRPCMessageOut>? {
         rpcHandler.handleStreamOpen(context: self)
     }
     

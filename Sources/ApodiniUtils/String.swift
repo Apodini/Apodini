@@ -11,6 +11,19 @@ import Algorithms
 
 
 extension String {
+    /// For trim operationg on a string, the place where the operation should take place
+    public struct TrimLocation: OptionSet {
+        public let rawValue: UInt8
+        
+        public init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+        
+        public static let leading = TrimLocation(rawValue: 1 << 1)
+        public static let trailing = TrimLocation(rawValue: 1 << 2)
+    }
+    
+    
     /// Returns the string, with the specified suffix appended if necessary
     public func withSuffix(_ suffix: String) -> String {
         guard !hasSuffix(suffix) else {
@@ -100,6 +113,26 @@ extension String {
     /// Whether all chatacters in the string are also contained in the character set
     public func containsOnly(charsFrom characterSet: Set<Character>) -> Bool {
         self.allSatisfy { characterSet.contains($0) }
+    }
+    
+    
+    public func trimmingCharacters(from characterSet: Set<Character>, at locations: TrimLocation = [.leading, .trailing]) -> String {
+        guard !locations.isEmpty else {
+            return self
+        }
+//        let newStartIdx = !locations.contains(.leading) ? self.startIndex : self.firstIndex(where: { !characterSet.contains($0) })
+//        let newEndIdx = !locations.contains(.trailing) ? self.endIndex : self.lastIndex(where: { characterSet.contains($0) })
+//        return String(self[newStartIdx]
+        var result = self[...]
+        if locations.contains(.leading) {
+            //result = result.drop(while: { characterSet.contains($0) })
+            result = result.trimmingPrefix(while: { characterSet.contains($0) })
+        }
+        if locations.contains(.trailing) {
+            //result = result.trimming(while: <#T##(Character) throws -> Bool#>)
+            result = result.trimmingSuffix(while: { characterSet.contains($0) })
+        }
+        return String(result)
     }
 }
 
@@ -244,7 +277,7 @@ extension Array where Element == String {
 }
 
 
-// MARK: CharacterSet
+// MARK: Set<Character>
 
 extension Set where Element == Character {
     /// The set of  all `Character`s which are US-ASCII characters

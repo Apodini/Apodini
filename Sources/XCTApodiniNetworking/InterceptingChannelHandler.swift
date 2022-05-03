@@ -9,6 +9,7 @@
 import Foundation
 import NIO
 import XCTest
+import ApodiniUtils
 
 
 #if DEBUG || RELEASE_TESTING
@@ -20,6 +21,10 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     
     private let closeExpectation: XCTestExpectation?
     public private(set) var interceptedData: [T] = []
+    private(set) var nextInterceptedDataHandler: ((T) -> Void)?
+    
+//    /// The expectation which should be fulfilled the next time data is written to the channel.
+//    public var nextWriteExpectation: XCTestExpectation?
     
     /// - parameter closeExpectation: An XCTestExpectation which will be fulfilled when the channel is closed.
     public init(closeExpectation: XCTestExpectation? = nil) {
@@ -29,11 +34,18 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     public func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
         interceptedData.append(unwrapOutboundIn(data))
         context.write(data, promise: promise)
+        nextInterceptedDataHandler?(unwrapOutboundIn(data))
+        nextInterceptedDataHandler = nil
     }
     
     public func close(context: ChannelHandlerContext, mode: CloseMode, promise: EventLoopPromise<Void>?) {
         context.close(mode: mode, promise: promise)
         closeExpectation?.fulfill()
+    }
+    
+    
+    public func setNextInterceptedDataHandler(_ handler: @escaping (T) -> Void) {
+        self.nextInterceptedDataHandler = handler
     }
 }
 

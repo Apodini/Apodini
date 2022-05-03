@@ -47,7 +47,7 @@ extension FileManager {
     
     /// URL of the Apodini-specific temporary directory
     public var apodiniTmpDir: URL {
-        return temporaryDirectory.appendingPathComponent("Apodini", isDirectory: true)
+        temporaryDirectory.appendingPathComponent("Apodini", isDirectory: true)
     }
     
     

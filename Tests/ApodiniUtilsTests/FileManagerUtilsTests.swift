@@ -12,15 +12,11 @@ import ApodiniUtils
 
 
 class FileManagerUtilsTests: XCTestCase {
-    private let FM = FileManager.default
+    private let FM = FileManager.default // swiftlint:disable:this identifier_name
     
     func testFilePermissionsParsing() {
         XCTAssertEqual(POSIXPermissions("r---w---x"), .init(owner: .read, group: .write, world: .execute))
-        //XCTAssertEqual(POSIXPermissions(owner: .write, group: [], world: <#T##POSIXPermissions.PermissionValues#>), <#T##expression2: Equatable##Equatable#>)
-        XCTAssertEqual(
-            POSIXPermissions(owner: [.read, .write, .execute], group: [.read, .write, .execute], world: [.read, .write, .execute]).stringRepresentation,
-            "rwxrwxrwx"
-        )
+        XCTAssertEqual(POSIXPermissions(owner: .rwx, group: .rwx, world: .rwx).stringRepresentation, "rwxrwxrwx")
         XCTAssertEqual(POSIXPermissions(rawValue: 0o240).stringRepresentation, "-w-r-----")
         XCTAssertEqual(POSIXPermissions(owner: [], group: [], world: []).rawValue, 0o000)
         XCTAssertEqual(POSIXPermissions(owner: .rwx, group: .rwx, world: .rwx).rawValue, 0o777)
