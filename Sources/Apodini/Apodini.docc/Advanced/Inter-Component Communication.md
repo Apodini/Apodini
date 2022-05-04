@@ -1,3 +1,7 @@
+# Inter-Component Communication
+
+Web services deployed with Apodini Deployer can be distributed across different nodes. Inter-component communication enables the communication between components between these nodes.
+
 <!--
                   
 This source file is part of the Apodini open source project
@@ -7,13 +11,6 @@ SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project auth
 SPDX-License-Identifier: MIT
              
 -->
-
-![document type: vision](https://apodini.github.io/resources/markdown-labels/document_type_vision.svg)
-
-# Inter-Component Communication
-
-
-
 
 ## Summary
 

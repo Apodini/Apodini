@@ -45,11 +45,11 @@ struct RelationshipDestinations: ContextKeyKnowledgeSource {
 public struct AnyRelationshipEndpointInstance: KnowledgeSource {
     public let instance: AnyRelationshipEndpoint
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        _ = blackboard[RelationshipModelKnowledgeSource.self]
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        _ = sharedRepository[RelationshipModelKnowledgeSource.self]
         // we cannot use the `EndpointInjector`'s `endpoint` directly, as this is an incomplete version. Instead we use the version stored
         // on the model
-        self.instance = blackboard[RelationshipModelKnowledgeSource.EndpointInjector.self].endpoint.reference.resolve()
+        self.instance = sharedRepository[RelationshipModelKnowledgeSource.EndpointInjector.self].endpoint.reference.resolve()
     }
 }
 
@@ -58,18 +58,18 @@ public struct RelationshipModelKnowledgeSource: KnowledgeSource {
     
     public let model: RelationshipWebServiceModel
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        let allBlackboards = blackboard[Blackboards.self][for: GlobalRelationshipAnchor.self]
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        let allSharedRepositorys = sharedRepository[SharedRepositorys.self][for: GlobalRelationshipAnchor.self]
         
-        for localBlackboard in allBlackboards {
-            _ = localBlackboard[EndpointInjector.self]
+        for localSharedRepository in allSharedRepositorys {
+            _ = localSharedRepository[EndpointInjector.self]
         }
         
-        let webService = blackboard[WebServiceModelSource.self].model
+        let webService = sharedRepository[WebServiceModelSource.self].model
         webService.finish()
         
-        let relationshipBuilder = blackboard[RelationshipBuilderSource.self].builder
-        let typeIndexBuilder = blackboard[TypeIndexBuilderSource.self].builder
+        let relationshipBuilder = sharedRepository[RelationshipBuilderSource.self].builder
+        let typeIndexBuilder = sharedRepository[TypeIndexBuilderSource.self].builder
         
         // the order of how relationships are built below strongly reflect our strategy
         // on how conflicting definitions shadow each other
@@ -82,7 +82,7 @@ public struct RelationshipModelKnowledgeSource: KnowledgeSource {
         // we can construct the final relationship model.
         relationshipBuilder.buildAll()
 
-        blackboard[Logger.self].info("\(webService.debugDescription)")
+        sharedRepository[Logger.self].info("\(webService.debugDescription)")
         
         self.model = webService
     }
@@ -94,8 +94,8 @@ extension RelationshipModelKnowledgeSource {
         
         var builder: RelationshipBuilder
         
-        init<B>(_ blackboard: B) throws where B: Blackboard {
-            self.builder = RelationshipBuilder(logger: blackboard[Logger.self])
+        init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+            self.builder = RelationshipBuilder(logger: sharedRepository[Logger.self])
         }
     }
     
@@ -104,8 +104,8 @@ extension RelationshipModelKnowledgeSource {
         
         var builder: TypeIndexBuilder
         
-        init<B>(_ blackboard: B) throws where B: Blackboard {
-            self.builder = TypeIndexBuilder(logger: blackboard[Logger.self])
+        init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+            self.builder = TypeIndexBuilder(logger: sharedRepository[Logger.self])
         }
     }
     
@@ -114,8 +114,8 @@ extension RelationshipModelKnowledgeSource {
         
         var model: RelationshipWebServiceModel
         
-        init<B>(_ blackboard: B) throws where B: Blackboard {
-            self.model = RelationshipWebServiceModel(blackboard)
+        init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+            self.model = RelationshipWebServiceModel(sharedRepository)
         }
     }
     
@@ -123,28 +123,28 @@ extension RelationshipModelKnowledgeSource {
     struct EndpointInjector: HandlerKnowledgeSource {
             let endpoint: _AnyRelationshipEndpoint
         
-        init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
-            var endpoint = RelationshipEndpoint(handler: handler, blackboard: blackboard)
-            let path = blackboard[PathComponents.self].value
+        init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
+            var endpoint = RelationshipEndpoint(handler: handler, sharedRepository: sharedRepository)
+            let path = sharedRepository[PathComponents.self].value
             
-            blackboard[WebServiceModelSource.self].model.addEndpoint(&endpoint, at: path)
+            sharedRepository[WebServiceModelSource.self].model.addEndpoint(&endpoint, at: path)
             
             // The `ReferenceModule` and `EndpointPathModule` cannot be implemented using one of the standard
             // `KnowledgeSource` protocols as they depend on the `RelationshipWebServiceModel`. This should change
-            // once the latter was ported to the standard Blackboard-Pattern.
+            // once the latter was ported to the standard SharedRepository-Pattern.
             endpoint[ReferenceModule.self].inject(reference: endpoint.reference)
             endpoint[EndpointPathModule.self].inject(absolutePath: endpoint.absolutePath)
 
-            let contentContext = blackboard[HandleReturnTypeRootContext.self]
+            let contentContext = sharedRepository[HandleReturnTypeRootContext.self]
 
             let contentCandidates = contentContext.get(valueFor: RelationshipSourceCandidateContextKey.self)
-            let endpointCandidates = blackboard[EndpointPartialRelationshipSourceCandidates.self].list
+            let endpointCandidates = sharedRepository[EndpointPartialRelationshipSourceCandidates.self].list
             
-            blackboard[RelationshipBuilderSource.self].builder.collect(
+            sharedRepository[RelationshipBuilderSource.self].builder.collect(
                 endpoint: endpoint,
                 candidates: contentCandidates + endpointCandidates,
-                sources: blackboard[RelationshipSources.self].list,
-                destinations: blackboard[RelationshipDestinations.self].list)
+                sources: sharedRepository[RelationshipSources.self].list,
+                destinations: sharedRepository[RelationshipDestinations.self].list)
 
             let content = endpoint[HandleReturnType.self].type
             let reference = endpoint[ReferenceModule.self].reference
@@ -152,7 +152,7 @@ extension RelationshipModelKnowledgeSource {
             let pathParameters = endpoint[EndpointPathModule.self].absolutePath.listPathParameters()
             let operation = endpoint[Operation.self]
             
-            blackboard[TypeIndexBuilderSource.self].builder.indexContentType(
+            sharedRepository[TypeIndexBuilderSource.self].builder.indexContentType(
                 content: content,
                 reference: reference,
                 markedDefault: markedDefault,

@@ -21,7 +21,7 @@ public struct HandlerDescription: HandlerKnowledgeSource, RawRepresentable, Cust
         self.rawValue = rawValue
     }
 
-    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.init(rawValue: String(describing: H.self))
     }
 }
@@ -38,7 +38,7 @@ public struct HandlerReflectiveName: HandlerKnowledgeSource, RawRepresentable, C
         self.rawValue = rawValue
     }
 
-    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.init(rawValue: String(reflecting: H.self))
     }
 }
@@ -46,7 +46,7 @@ public struct HandlerReflectiveName: HandlerKnowledgeSource, RawRepresentable, C
 public struct HandleReturnType: HandlerKnowledgeSource {
     public let type: Encodable.Type
     
-    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.type = H.Response.Content.self
     }
 }
@@ -83,11 +83,11 @@ extension Operation: OptionalContextKeyKnowledgeSource {
     }
 }
 
-/// A collection of ``AnyEndpointParameter`` that can be directly obtained from a local ``Blackboard``.
+/// A collection of ``AnyEndpointParameter`` that can be directly obtained from a local ``SharedRepository``.
 public typealias EndpointParameters = [AnyEndpointParameter]
 
 extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
-    public init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self = handler.buildParametersModel()
     }
 }

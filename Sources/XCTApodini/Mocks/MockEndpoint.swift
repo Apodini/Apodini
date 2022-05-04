@@ -36,21 +36,25 @@ public extension Handler {
             handler = handler.inject(app: application)
         }
         
-        var blackboard: Blackboard
+        var sharedRepository: SharedRepository
         if let application = app {
-            blackboard = LocalBlackboard<LazyHashmapBlackboard, GlobalBlackboard<LazyHashmapBlackboard>>(
-                GlobalBlackboard<LazyHashmapBlackboard>(application),
+            sharedRepository = LocalSharedRepository<LazyHashmapSharedRepository, GlobalSharedRepository<LazyHashmapSharedRepository>>(
+                GlobalSharedRepository<LazyHashmapSharedRepository>(application),
                 using: handler,
                 context)
         } else {
-            blackboard = LocalBlackboard<LazyHashmapBlackboard, LazyHashmapBlackboard>(LazyHashmapBlackboard(), using: handler, context)
+            sharedRepository = LocalSharedRepository<LazyHashmapSharedRepository, LazyHashmapSharedRepository>(
+                LazyHashmapSharedRepository(),
+                using: handler,
+                context
+            )
         }
 
         return (Endpoint(
-            blackboard: blackboard
+            sharedRepository: sharedRepository
         ), RelationshipEndpoint(
             handler: handler,
-            blackboard: blackboard
+            sharedRepository: sharedRepository
         ))
     }
 }

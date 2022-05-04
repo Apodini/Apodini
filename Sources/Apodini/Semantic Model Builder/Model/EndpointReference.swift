@@ -73,7 +73,7 @@ class ReferenceModule: KnowledgeSource {
     
     private var _reference: EndpointReference?
     
-    required init<B>(_ blackboard: B) throws where B: Blackboard { }
+    required init<B>(_ sharedRepository: B) throws where B: SharedRepository { }
     
     func inject(reference: EndpointReference) {
         self._reference = reference

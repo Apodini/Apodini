@@ -78,6 +78,7 @@ Here are some links to internal and external packages you might find helpful whe
 - <doc:PushNotifications>
 - <doc:Jobs>
 - <doc:Observe>
+- <doc:OpenAPI>
 
 ### Advanced
 
@@ -90,6 +91,8 @@ Here you can find more advanced resources. You might even find internal document
 - <doc:ExporterConfiguration>
 - <doc:RetrieveRelationship>
 - <doc:DSLComponents>
+- <doc:Semantic-Model>
+- <doc:Inter-Component-Communication>
 
 ### About
 

@@ -15,7 +15,7 @@ public struct ErrorForwarderContextKey: OptionalContextKey {
 /// This value stores an optional closure that can be used to receive
 /// forwarded `Error`s that occur during the `Endpoint` evaluation.
 ///
-/// - Note: An instance can be obtained from any local `Blackboard`, e.g. an `Endpoint`.
+/// - Note: An instance can be obtained from any local `SharedRepository`, e.g. an `Endpoint`.
 public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
     public typealias Key = ErrorForwarderContextKey
 

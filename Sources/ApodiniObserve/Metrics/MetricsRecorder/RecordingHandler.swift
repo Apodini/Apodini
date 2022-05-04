@@ -62,7 +62,7 @@ internal struct RecordingHandler<D, R>: Handler where D: Handler, R: MetricsReco
         
         logger.info(
             """
-            Incoming request for endpoint \(observeMetadata.blackboardMetadata.endpointName) \
+            Incoming request for endpoint \(observeMetadata.sharedRepositoryMetadata.endpointName) \
             via \(String(describing: observeMetadata.exporterMetadata.exporterType))
             """
         )

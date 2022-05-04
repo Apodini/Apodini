@@ -1,3 +1,8 @@
+# OpenAPI Interface Exporter
+
+This document provides a short introduction to using the `OpenAPIInterfaceExporter`, a static exporter for Apodini.
+It can be used to expose an OpenAPI specification (version 3.0.3) for an exported RESTful API, as done by the `RESTInterfaceExporter`.
+
 <!--
                   
 This source file is part of the Apodini open source project
@@ -7,13 +12,6 @@ SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project auth
 SPDX-License-Identifier: MIT
              
 -->
-
-![document type: documentation](https://apodini.github.io/resources/markdown-labels/document_type_documentation.svg)
-
-# OpenAPI Interface Exporter
-
-This document provides a short introduction to using the [`OpenAPIInterfaceExporter`](https://github.com/Apodini/Apodini/blob/develop/Sources/ApodiniOpenAPI/OpenAPIInterfaceExporter.swift), a static exporter for Apodini.
-It can be used to expose an OpenAPI specification (version 3.0.3) for an exported RESTful API, as done by the `RESTInterfaceExporter`.
 
 The following explanatory code snippets are taken from a [sample project](https://github.com/lschlesinger/the-game) created to demonstrate the use of the `OpenAPIInterfaceExporter` within the Apodini framework.
 

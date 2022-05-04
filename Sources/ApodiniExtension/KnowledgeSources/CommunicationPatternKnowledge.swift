@@ -11,8 +11,8 @@ import Apodini
 
 
 extension CommunicationPattern: KnowledgeSource {
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self = blackboard[ExplicitCommunicationPattern.self].value ?? blackboard[AutomaticCommunicationPattern.self].value
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self = sharedRepository[ExplicitCommunicationPattern.self].value ?? sharedRepository[AutomaticCommunicationPattern.self].value
     }
 }
 
@@ -29,15 +29,15 @@ private struct ExplicitCommunicationPattern: OptionalContextKeyKnowledgeSource {
 struct AutomaticCommunicationPattern: HandlerKnowledgeSource {
     let value: CommunicationPattern
     
-    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         guard H.Response.self is CustomizableResponse.Type else {
             self.value = .requestResponse
             return
         }
         
-        let isObserving = !blackboard[All<AnyObservedObject>.self].elements.isEmpty
-        let hasState = !blackboard[All<AnyState>.self].elements.isEmpty
-        let expectsInputStream = !blackboard[All<ConnectionEnvironment>.self].elements.isEmpty
+        let isObserving = !sharedRepository[All<AnyObservedObject>.self].elements.isEmpty
+        let hasState = !sharedRepository[All<AnyState>.self].elements.isEmpty
+        let expectsInputStream = !sharedRepository[All<ConnectionEnvironment>.self].elements.isEmpty
         
         
         if expectsInputStream {

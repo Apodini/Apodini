@@ -9,7 +9,7 @@
 import Foundation
 
 
-public protocol AnyRelationshipEndpoint: CustomStringConvertible, Blackboard, ParameterCollection {
+public protocol AnyRelationshipEndpoint: CustomStringConvertible, SharedRepository, ParameterCollection {
     var absolutePath: [EndpointPath] { get }
 
     var inheritsRelationship: Bool { get }
@@ -53,7 +53,7 @@ protocol _AnyRelationshipEndpoint: AnyRelationshipEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
-    private let blackboard: Blackboard
+    private let sharedRepository: SharedRepository
 
     var inserted = false
     
@@ -95,23 +95,23 @@ public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
 
     init(
         handler: H,
-        blackboard: Blackboard
+        sharedRepository: SharedRepository
     ) {
         self.handler = handler
-        self.blackboard = blackboard
+        self.sharedRepository = sharedRepository
     }
 
     public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
         get {
-            self.blackboard[type]
+            self.sharedRepository[type]
         }
         nonmutating set {
-            self.blackboard[type] = newValue
+            self.sharedRepository[type] = newValue
         }
     }
 
     public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
-        try self.blackboard.request(type)
+        try self.sharedRepository.request(type)
     }
 
     mutating func inserted(at treeNode: EndpointsTreeNode) {

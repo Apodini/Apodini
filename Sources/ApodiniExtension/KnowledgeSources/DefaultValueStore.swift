@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 
 extension DefaultValueStore: KnowledgeSource {
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.init(blackboard[EndpointParameters.self])
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.init(sharedRepository[EndpointParameters.self])
     }
 }

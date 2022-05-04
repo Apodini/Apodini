@@ -8,23 +8,23 @@
 
 import Foundation
 
-public struct WebServiceModel: Blackboard {
-    private let blackboard: Blackboard
+public struct WebServiceModel: SharedRepository {
+    private let sharedRepository: SharedRepository
     
-    internal init(blackboard: Blackboard) {
-        self.blackboard = blackboard
+    internal init(sharedRepository: SharedRepository) {
+        self.sharedRepository = sharedRepository
     }
     
     public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
         get {
-            blackboard[type]
+            sharedRepository[type]
         }
         nonmutating set {
-            blackboard[type] = newValue
+            sharedRepository[type] = newValue
         }
     }
     
     public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
-        try blackboard.request(type)
+        try sharedRepository.request(type)
     }
 }

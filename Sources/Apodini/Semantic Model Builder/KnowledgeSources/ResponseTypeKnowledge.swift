@@ -11,7 +11,7 @@ import Foundation
 public struct ResponseType: KnowledgeSource {
     public let type: Encodable.Type
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.type = blackboard[HandleReturnType.self].type
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.type = sharedRepository[HandleReturnType.self].type
     }
 }

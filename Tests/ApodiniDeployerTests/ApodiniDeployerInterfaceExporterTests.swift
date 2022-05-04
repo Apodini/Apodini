@@ -72,7 +72,7 @@ class ApodiniDeployerInterfaceExporterTests: XCTApodiniTest {
             let expected: [CollectedEndpointInfo] = [
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint<Text>(blackboard: MockBlackboard(
+                    endpoint: Endpoint<Text>(sharedRepository: MockSharedRepository(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler1Id))),
                     deploymentOptions: .init()
@@ -81,27 +81,27 @@ class ApodiniDeployerInterfaceExporterTests: XCTApodiniTest {
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint<Text>(blackboard: MockBlackboard(
+                    endpoint: Endpoint<Text>(sharedRepository: MockSharedRepository(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler2Id)))
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint<Text>(blackboard: MockBlackboard(
+                    endpoint: Endpoint<Text>(sharedRepository: MockSharedRepository(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler3Id))),
                     deploymentOptions: .init(.mb(70), for: .memorySize)
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint<Text>(blackboard: MockBlackboard(
+                    endpoint: Endpoint<Text>(sharedRepository: MockSharedRepository(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler4Id))),
                     deploymentOptions: .init(.mb(150), for: .memorySize)
                 ),
                 CollectedEndpointInfo(
                     handlerType: HandlerTypeIdentifier(Text.self),
-                    endpoint: Endpoint<Text>(blackboard: MockBlackboard(
+                    endpoint: Endpoint<Text>(sharedRepository: MockSharedRepository(
                         (EndpointSource<Text>.self, EndpointSource(handler: Text(""), context: Context())),
                         (AnyHandlerIdentifier.self, TestWebService.handler5Id))),
                     deploymentOptions: .init(.mb(180), for: .memorySize)

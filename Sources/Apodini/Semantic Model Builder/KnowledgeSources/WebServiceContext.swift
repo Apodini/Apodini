@@ -16,8 +16,8 @@ public struct WebServiceContext: KnowledgeSource {
         self.context = context
     }
 
-    public init<B: Blackboard>(_ blackboard: B) throws {
-        self.init(blackboard[Application.self].webServiceContext)
+    public init<B: SharedRepository>(_ sharedRepository: B) throws {
+        self.init(sharedRepository[Application.self].webServiceContext)
     }
 }
 

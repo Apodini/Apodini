@@ -44,15 +44,18 @@ public enum DefaultRecordingClosures {
     /// Builds the default `dimensions` (context information) for all Metric types
     public static let defaultDimensions: (ObserveMetadata.Value) -> [(String, String)] = { observeMetadata in
         [
-            ("endpoint", observeMetadata.blackboardMetadata.endpointName),
-            ("endpoint_path", String(observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
-                partialResult.append(contentsOf: endpointPath.description + "/")
-            })
-            .dropLast())),
+            ("endpoint", observeMetadata.sharedRepositoryMetadata.endpointName),
+            ("endpoint_path", String(
+                    observeMetadata.sharedRepositoryMetadata.endpointPathComponents.value.reduce(into: "", { partialResult, endpointPath in
+                        partialResult.append(contentsOf: endpointPath.description + "/")
+                    })
+                    .dropLast()
+                )
+            ),
             ("exporter", "\(observeMetadata.exporterMetadata.exporterType)"),
-            ("operation", observeMetadata.blackboardMetadata.operation.rawValue),
-            ("communication_pattern", observeMetadata.blackboardMetadata.communicationPattern.rawValue),
-            ("response_type", "\(observeMetadata.blackboardMetadata.responseType.type)")
+            ("operation", observeMetadata.sharedRepositoryMetadata.operation.rawValue),
+            ("communication_pattern", observeMetadata.sharedRepositoryMetadata.communicationPattern.rawValue),
+            ("response_type", "\(observeMetadata.sharedRepositoryMetadata.responseType.type)")
         ]
     }
 }

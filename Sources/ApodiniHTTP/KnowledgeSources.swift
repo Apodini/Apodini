@@ -17,8 +17,8 @@ struct HTTPEndpointKnowledge: KnowledgeSource {
     let path: [HTTPPathComponent]
     let defaultValues: DefaultValueStore
     
-    init<B>(_ blackboard: B) throws where B: Blackboard {
-        let knowledge = blackboard[ProtocolAgnosticEndpointKnowledge.self]
+    init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        let knowledge = sharedRepository[ProtocolAgnosticEndpointKnowledge.self]
         
         self.method = HTTPMethod(knowledge.operation)
         self.pattern = knowledge.pattern
@@ -43,10 +43,10 @@ struct ProtocolAgnosticEndpointKnowledge: KnowledgeSource {
     let path: [EndpointPath]
     let defaultValues: DefaultValueStore
     
-    init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.operation = blackboard[Apodini.Operation.self]
-        self.pattern = blackboard[CommunicationPattern.self]
-        self.path = blackboard[EndpointPathComponentsHTTP.self].value
-        self.defaultValues = blackboard[DefaultValueStore.self]
+    init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.operation = sharedRepository[Apodini.Operation.self]
+        self.pattern = sharedRepository[CommunicationPattern.self]
+        self.path = sharedRepository[EndpointPathComponentsHTTP.self].value
+        self.defaultValues = sharedRepository[DefaultValueStore.self]
     }
 }
