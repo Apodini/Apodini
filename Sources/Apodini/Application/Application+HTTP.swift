@@ -86,7 +86,7 @@ public struct BindAddress: Hashable, BindAddressProtocol {
 }
 
 
-@available(*, unavailable, renamed: "BindAddress")
+@available(*, deprecated, renamed: "BindAddress")
 public typealias Hostname = BindAddress
 
 
