@@ -62,13 +62,13 @@ struct TestWebService: Apodini.WebService {
         case .none:
             HTTPConfiguration(
                 hostname: .init(address: hostname, port: port),
-                bindAddress: .interface(bindAddress, port: port)
+                bindAddress: .init(address: bindAddress, port: port)
             )
         case .builtinSelfSignedCertificate:
             HTTPConfiguration(
                 hostname: .init(address: hostname, port: port),
-                bindAddress: .interface(bindAddress, port: port),
-                tlsConfiguration: .init(
+                bindAddress: .init(address: bindAddress, port: port),
+                tlsConfiguration: try! .makeServerConfiguration(
                     certificatePath: Bundle.module.path(forResource: "localhost.cer", ofType: "pem")!,
                     keyPath: Bundle.module.path(forResource: "localhost.key", ofType: "pem")!
                 )
@@ -76,8 +76,8 @@ struct TestWebService: Apodini.WebService {
         case let .custom(certPath, keyPath):
             HTTPConfiguration(
                 hostname: .init(address: hostname, port: port),
-                bindAddress: .interface(bindAddress, port: port),
-                tlsConfiguration: .init(certificatePath: certPath, keyPath: keyPath)
+                bindAddress: .init(address: bindAddress, port: port),
+                tlsConfiguration: try! .makeServerConfiguration(certificatePath: certPath, keyPath: keyPath)
             )
         }
         
