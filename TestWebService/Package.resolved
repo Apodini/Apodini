@@ -1,448 +1,446 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "apnswift",
-        "repositoryURL": "https://github.com/kylebrowning/APNSwift.git",
-        "state": {
-          "branch": null,
-          "revision": "b53fd38f5611c6b935427febb43d91b15be26c0d",
-          "version": "3.2.0"
-        }
-      },
-      {
-        "package": "ApodiniDocumentExport",
-        "repositoryURL": "https://github.com/Apodini/ApodiniDocumentExport.git",
-        "state": {
-          "branch": null,
-          "revision": "0a3fe4195f011057ad2cd5150c9091f2a17c2ec1",
-          "version": "0.1.1"
-        }
-      },
-      {
-        "package": "ApodiniMigrator",
-        "repositoryURL": "https://github.com/Apodini/ApodiniMigrator.git",
-        "state": {
-          "branch": null,
-          "revision": "10671191ddd8a19a61ac6cae06060d259dbfe9ce",
-          "version": "0.3.0"
-        }
-      },
-      {
-        "package": "ApodiniTypeInformation",
-        "repositoryURL": "https://github.com/Apodini/ApodiniTypeInformation.git",
-        "state": {
-          "branch": null,
-          "revision": "40247bedd5153b7641e95a11bd826b16a15fd12e",
-          "version": "0.3.6"
-        }
-      },
-      {
-        "package": "AssociatedTypeRequirementsKit",
-        "repositoryURL": "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
-        "state": {
-          "branch": null,
-          "revision": "2e4c49c21ffb2135f1c99fbfcf2119c9d24f5e8c",
-          "version": "0.3.2"
-        }
-      },
-      {
-        "package": "async-http-client",
-        "repositoryURL": "https://github.com/swift-server/async-http-client.git",
-        "state": {
-          "branch": null,
-          "revision": "7a4dfe026f6ee0f8ad741b58df74c60af296365d",
-          "version": "1.9.0"
-        }
-      },
-      {
-        "package": "async-kit",
-        "repositoryURL": "https://github.com/vapor/async-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "e2f741640364c1d271405da637029ea6a33f754e",
-          "version": "1.11.1"
-        }
-      },
-      {
-        "package": "FineJSON",
-        "repositoryURL": "https://github.com/omochi/FineJSON.git",
-        "state": {
-          "branch": null,
-          "revision": "05101709243cb66d80c92e645210a3b80cf4e17f",
-          "version": "1.14.0"
-        }
-      },
-      {
-        "package": "fluent-kit",
-        "repositoryURL": "https://github.com/vapor/fluent-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "63c13b1fcc5266d35df676a8e75bbb602497f12b",
-          "version": "1.23.4"
-        }
-      },
-      {
-        "package": "fluent-sqlite-driver",
-        "repositoryURL": "https://github.com/vapor/fluent-sqlite-driver.git",
-        "state": {
-          "branch": null,
-          "revision": "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
-          "version": "4.1.0"
-        }
-      },
-      {
-        "package": "GraphQL",
-        "repositoryURL": "https://github.com/GraphQLSwift/GraphQL",
-        "state": {
-          "branch": null,
-          "revision": "283cc4de56b994a00b2724328221b7a1bc846ddc",
-          "version": "2.2.1"
-        }
-      },
-      {
-        "package": "grpc-swift",
-        "repositoryURL": "https://github.com/grpc/grpc-swift.git",
-        "state": {
-          "branch": null,
-          "revision": "593fe0fe931f7e838969243cd137be48e8055b1d",
-          "version": "1.7.3"
-        }
-      },
-      {
-        "package": "jmespath.swift",
-        "repositoryURL": "https://github.com/adam-fowler/jmespath.swift.git",
-        "state": {
-          "branch": null,
-          "revision": "4513d319c4aaa6c3b2ac18e1e6566a803515ad91",
-          "version": "1.0.2"
-        }
-      },
-      {
-        "package": "jwt-kit",
-        "repositoryURL": "https://github.com/vapor/jwt-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "5f9c44d4c196cc06c3fc601f279169f121d6f62d",
-          "version": "4.4.0"
-        }
-      },
-      {
-        "package": "MetadataSystem",
-        "repositoryURL": "https://github.com/Apodini/MetadataSystem.git",
-        "state": {
-          "branch": null,
-          "revision": "f655813f1953af8d3aaac432dad35f394e7bdf75",
-          "version": "0.1.6"
-        }
-      },
-      {
-        "package": "OpenAPIKit",
-        "repositoryURL": "https://github.com/mattpolzin/OpenAPIKit.git",
-        "state": {
-          "branch": null,
-          "revision": "328d11996ccc43205bd861535021d8c22168a08a",
-          "version": "2.5.0"
-        }
-      },
-      {
-        "package": "opentelemetry-swift",
-        "repositoryURL": "https://github.com/slashmo/opentelemetry-swift.git",
-        "state": {
-          "branch": null,
-          "revision": "6d3cc7c896b4dd426494ea59a5b67c9425b593cc",
-          "version": "0.2.0"
-        }
-      },
-      {
-        "package": "PathKit",
-        "repositoryURL": "https://github.com/kylef/PathKit.git",
-        "state": {
-          "branch": null,
-          "revision": "3bfd2737b700b9a36565a8c94f4ad2b050a5e574",
-          "version": "1.0.1"
-        }
-      },
-      {
-        "package": "RichJSONParser",
-        "repositoryURL": "https://github.com/omochi/RichJSONParser.git",
-        "state": {
-          "branch": null,
-          "revision": "263e2ecfe88d0500fa99e4cbc8c948529d335534",
-          "version": "3.0.0"
-        }
-      },
-      {
-        "package": "Runtime",
-        "repositoryURL": "https://github.com/wickwirew/Runtime.git",
-        "state": {
-          "branch": null,
-          "revision": "dad03135d7701a4e7b3a4051e75d6b37bd8e178e",
-          "version": "2.2.4"
-        }
-      },
-      {
-        "package": "soto",
-        "repositoryURL": "https://github.com/soto-project/soto.git",
-        "state": {
-          "branch": null,
-          "revision": "b98994beabdced18cbedbe50e947e6f2c8e0d602",
-          "version": "5.12.1"
-        }
-      },
-      {
-        "package": "soto-core",
-        "repositoryURL": "https://github.com/soto-project/soto-core.git",
-        "state": {
-          "branch": null,
-          "revision": "3079d17f2576cff5f2a3f68865629af455c673d1",
-          "version": "5.9.3"
-        }
-      },
-      {
-        "package": "soto-s3-file-transfer",
-        "repositoryURL": "https://github.com/soto-project/soto-s3-file-transfer",
-        "state": {
-          "branch": null,
-          "revision": "74899d6e9b95cfb9543993ece6aa56796cf6ba80",
-          "version": "0.4.2"
-        }
-      },
-      {
-        "package": "Spectre",
-        "repositoryURL": "https://github.com/kylef/Spectre.git",
-        "state": {
-          "branch": null,
-          "revision": "26cc5e9ae0947092c7139ef7ba612e34646086c7",
-          "version": "0.10.1"
-        }
-      },
-      {
-        "package": "sql-kit",
-        "repositoryURL": "https://github.com/vapor/sql-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "afc74d888649f2b2a2f8cc7963be5eb179409610",
-          "version": "3.17.0"
-        }
-      },
-      {
-        "package": "sqlite-kit",
-        "repositoryURL": "https://github.com/vapor/sqlite-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "0b3b12b032991de3ab5999b428a652ec29139746",
-          "version": "4.1.0"
-        }
-      },
-      {
-        "package": "sqlite-nio",
-        "repositoryURL": "https://github.com/vapor/sqlite-nio.git",
-        "state": {
-          "branch": null,
-          "revision": "6481dd0b01112d082dd7eb362782126e81964138",
-          "version": "1.1.0"
-        }
-      },
-      {
-        "package": "SwifCron",
-        "repositoryURL": "https://github.com/MihaelIsaev/SwifCron.git",
-        "state": {
-          "branch": null,
-          "revision": "effe20321342705e66894d86720c5882e2f4095e",
-          "version": "1.3.1"
-        }
-      },
-      {
-        "package": "swift-algorithms",
-        "repositoryURL": "https://github.com/apple/swift-algorithms",
-        "state": {
-          "branch": null,
-          "revision": "b14b7f4c528c942f121c8b860b9410b2bf57825e",
-          "version": "1.0.0"
-        }
-      },
-      {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
-        "state": {
-          "branch": null,
-          "revision": "83b23d940471b313427da226196661856f6ba3e0",
-          "version": "0.4.4"
-        }
-      },
-      {
-        "package": "swift-aws-lambda-runtime",
-        "repositoryURL": "https://github.com/swift-server/swift-aws-lambda-runtime.git",
-        "state": {
-          "branch": null,
-          "revision": "699ada1724459582303c15aae64fa12ca4d33809",
-          "version": "0.5.2"
-        }
-      },
-      {
-        "package": "swift-backtrace",
-        "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
-        "state": {
-          "branch": null,
-          "revision": "d3e04a9d4b3833363fb6192065b763310b156d54",
-          "version": "1.3.1"
-        }
-      },
-      {
-        "package": "swift-collections",
-        "repositoryURL": "https://github.com/apple/swift-collections",
-        "state": {
-          "branch": null,
-          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
-          "version": "1.0.2"
-        }
-      },
-      {
-        "package": "swift-crypto",
-        "repositoryURL": "https://github.com/apple/swift-crypto.git",
-        "state": {
-          "branch": null,
-          "revision": "067254c79435de759aeef4a6a03e43d087d61312",
-          "version": "2.0.5"
-        }
-      },
-      {
-        "package": "swift-distributed-tracing",
-        "repositoryURL": "https://github.com/apple/swift-distributed-tracing.git",
-        "state": {
-          "branch": null,
-          "revision": "7a89c904d80fd2dc7c6071806f38d5d0b2d5a1b5",
-          "version": "0.2.0"
-        }
-      },
-      {
-        "package": "swift-distributed-tracing-baggage",
-        "repositoryURL": "https://github.com/apple/swift-distributed-tracing-baggage.git",
-        "state": {
-          "branch": null,
-          "revision": "c8457ce61adc6a3b9e6223ca147f5196f99e22cc",
-          "version": "0.2.3"
-        }
-      },
-      {
-        "package": "swift-log",
-        "repositoryURL": "https://github.com/apple/swift-log.git",
-        "state": {
-          "branch": null,
-          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
-          "version": "1.4.2"
-        }
-      },
-      {
-        "package": "swift-metrics",
-        "repositoryURL": "https://github.com/apple/swift-metrics.git",
-        "state": {
-          "branch": null,
-          "revision": "3edd2f57afc4e68e23c3e4956bc8b65ca6b5b2ff",
-          "version": "2.2.0"
-        }
-      },
-      {
-        "package": "swift-metrics-extras",
-        "repositoryURL": "https://github.com/Apodini/swift-metrics-extras.git",
-        "state": {
-          "branch": null,
-          "revision": "a5f54d453519af7f1d6c83d03e045463bb9e659e",
-          "version": "0.1.0"
-        }
-      },
-      {
-        "package": "swift-nio",
-        "repositoryURL": "https://github.com/apple/swift-nio.git",
-        "state": {
-          "branch": null,
-          "revision": "d6e3762e0a5f7ede652559f53623baf11006e17c",
-          "version": "2.39.0"
-        }
-      },
-      {
-        "package": "swift-nio-extras",
-        "repositoryURL": "https://github.com/apple/swift-nio-extras.git",
-        "state": {
-          "branch": null,
-          "revision": "f73ca5ee9c6806800243f1ac415fcf82de9a4c91",
-          "version": "1.10.2"
-        }
-      },
-      {
-        "package": "swift-nio-http2",
-        "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
-        "state": {
-          "branch": null,
-          "revision": "50c25c132b140e62b45e90b5a76f13ded02c8a46",
-          "version": "1.20.1"
-        }
-      },
-      {
-        "package": "swift-nio-ssl",
-        "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
-        "state": {
-          "branch": null,
-          "revision": "b5260a31c2a72a89fa684f5efb3054d8725a2316",
-          "version": "2.18.0"
-        }
-      },
-      {
-        "package": "swift-nio-transport-services",
-        "repositoryURL": "https://github.com/apple/swift-nio-transport-services.git",
-        "state": {
-          "branch": null,
-          "revision": "8ab824b140d0ebcd87e9149266ddc353e3705a3e",
-          "version": "1.11.4"
-        }
-      },
-      {
-        "package": "swift-numerics",
-        "repositoryURL": "https://github.com/apple/swift-numerics",
-        "state": {
-          "branch": null,
-          "revision": "0a5bc04095a675662cf24757cc0640aa2204253b",
-          "version": "1.0.2"
-        }
-      },
-      {
-        "package": "SwiftProtobuf",
-        "repositoryURL": "https://github.com/apple/swift-protobuf.git",
-        "state": {
-          "branch": null,
-          "revision": "e1499bc69b9040b29184f7f2996f7bab467c1639",
-          "version": "1.19.0"
-        }
-      },
-      {
-        "package": "websocket-kit",
-        "repositoryURL": "https://github.com/vapor/websocket-kit.git",
-        "state": {
-          "branch": null,
-          "revision": "e32033ad3c68ebec1b761bc961be7bd56bad02f8",
-          "version": "2.3.1"
-        }
-      },
-      {
-        "package": "XCTAssertCrash",
-        "repositoryURL": "https://github.com/norio-nomura/XCTAssertCrash.git",
-        "state": {
-          "branch": null,
-          "revision": "880c5241254da53f32caf77248ee3d25cb2a9630",
-          "version": "0.2.0"
-        }
-      },
-      {
-        "package": "Yams",
-        "repositoryURL": "https://github.com/jpsim/Yams.git",
-        "state": {
-          "branch": null,
-          "revision": "9ff1cc9327586db4e0c8f46f064b6a82ec1566fa",
-          "version": "4.0.6"
-        }
+  "pins" : [
+    {
+      "identity" : "apnswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kylebrowning/APNSwift.git",
+      "state" : {
+        "revision" : "b53fd38f5611c6b935427febb43d91b15be26c0d",
+        "version" : "3.2.0"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "apodinidocumentexport",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Apodini/ApodiniDocumentExport.git",
+      "state" : {
+        "revision" : "0a3fe4195f011057ad2cd5150c9091f2a17c2ec1",
+        "version" : "0.1.1"
+      }
+    },
+    {
+      "identity" : "apodinimigrator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Apodini/ApodiniMigrator.git",
+      "state" : {
+        "revision" : "10671191ddd8a19a61ac6cae06060d259dbfe9ce",
+        "version" : "0.3.0"
+      }
+    },
+    {
+      "identity" : "apodinitypeinformation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Apodini/ApodiniTypeInformation.git",
+      "state" : {
+        "revision" : "40247bedd5153b7641e95a11bd826b16a15fd12e",
+        "version" : "0.3.6"
+      }
+    },
+    {
+      "identity" : "associatedtyperequirementskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
+      "state" : {
+        "revision" : "2e4c49c21ffb2135f1c99fbfcf2119c9d24f5e8c",
+        "version" : "0.3.2"
+      }
+    },
+    {
+      "identity" : "async-http-client",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server/async-http-client.git",
+      "state" : {
+        "revision" : "24425989dadab6d6e4167174791a23d4e2a6d0c3",
+        "version" : "1.10.0"
+      }
+    },
+    {
+      "identity" : "async-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/async-kit.git",
+      "state" : {
+        "revision" : "e2f741640364c1d271405da637029ea6a33f754e",
+        "version" : "1.11.1"
+      }
+    },
+    {
+      "identity" : "finejson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/omochi/FineJSON.git",
+      "state" : {
+        "revision" : "05101709243cb66d80c92e645210a3b80cf4e17f",
+        "version" : "1.14.0"
+      }
+    },
+    {
+      "identity" : "fluent-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/fluent-kit.git",
+      "state" : {
+        "revision" : "6fc2804a4d8b3f8a66f2d4bb3e3789aac3abd53d",
+        "version" : "1.23.5"
+      }
+    },
+    {
+      "identity" : "fluent-sqlite-driver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/fluent-sqlite-driver.git",
+      "state" : {
+        "revision" : "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
+        "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "graphql",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/GraphQLSwift/GraphQL",
+      "state" : {
+        "revision" : "283cc4de56b994a00b2724328221b7a1bc846ddc",
+        "version" : "2.2.1"
+      }
+    },
+    {
+      "identity" : "grpc-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/grpc/grpc-swift.git",
+      "state" : {
+        "revision" : "593fe0fe931f7e838969243cd137be48e8055b1d",
+        "version" : "1.7.3"
+      }
+    },
+    {
+      "identity" : "jmespath.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/adam-fowler/jmespath.swift.git",
+      "state" : {
+        "revision" : "4513d319c4aaa6c3b2ac18e1e6566a803515ad91",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "jwt-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/jwt-kit.git",
+      "state" : {
+        "revision" : "5f9c44d4c196cc06c3fc601f279169f121d6f62d",
+        "version" : "4.4.0"
+      }
+    },
+    {
+      "identity" : "metadatasystem",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Apodini/MetadataSystem.git",
+      "state" : {
+        "revision" : "f655813f1953af8d3aaac432dad35f394e7bdf75",
+        "version" : "0.1.6"
+      }
+    },
+    {
+      "identity" : "openapikit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattpolzin/OpenAPIKit.git",
+      "state" : {
+        "revision" : "328d11996ccc43205bd861535021d8c22168a08a",
+        "version" : "2.5.0"
+      }
+    },
+    {
+      "identity" : "opentelemetry-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/slashmo/opentelemetry-swift.git",
+      "state" : {
+        "revision" : "6d3cc7c896b4dd426494ea59a5b67c9425b593cc",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "pathkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kylef/PathKit.git",
+      "state" : {
+        "revision" : "3bfd2737b700b9a36565a8c94f4ad2b050a5e574",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "richjsonparser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/omochi/RichJSONParser.git",
+      "state" : {
+        "revision" : "263e2ecfe88d0500fa99e4cbc8c948529d335534",
+        "version" : "3.0.0"
+      }
+    },
+    {
+      "identity" : "runtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wickwirew/Runtime.git",
+      "state" : {
+        "revision" : "dad03135d7701a4e7b3a4051e75d6b37bd8e178e",
+        "version" : "2.2.4"
+      }
+    },
+    {
+      "identity" : "soto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/soto-project/soto.git",
+      "state" : {
+        "revision" : "b98994beabdced18cbedbe50e947e6f2c8e0d602",
+        "version" : "5.12.1"
+      }
+    },
+    {
+      "identity" : "soto-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/soto-project/soto-core.git",
+      "state" : {
+        "revision" : "3079d17f2576cff5f2a3f68865629af455c673d1",
+        "version" : "5.9.3"
+      }
+    },
+    {
+      "identity" : "soto-s3-file-transfer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/soto-project/soto-s3-file-transfer",
+      "state" : {
+        "revision" : "74899d6e9b95cfb9543993ece6aa56796cf6ba80",
+        "version" : "0.4.2"
+      }
+    },
+    {
+      "identity" : "spectre",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kylef/Spectre.git",
+      "state" : {
+        "revision" : "26cc5e9ae0947092c7139ef7ba612e34646086c7",
+        "version" : "0.10.1"
+      }
+    },
+    {
+      "identity" : "sql-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/sql-kit.git",
+      "state" : {
+        "revision" : "89b0a0a5f110e77272fb5a775064a31bfc1f155c",
+        "version" : "3.18.0"
+      }
+    },
+    {
+      "identity" : "sqlite-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/sqlite-kit.git",
+      "state" : {
+        "revision" : "0b3b12b032991de3ab5999b428a652ec29139746",
+        "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "sqlite-nio",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/sqlite-nio.git",
+      "state" : {
+        "revision" : "6481dd0b01112d082dd7eb362782126e81964138",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swifcron",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MihaelIsaev/SwifCron.git",
+      "state" : {
+        "revision" : "effe20321342705e66894d86720c5882e2f4095e",
+        "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "swift-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-algorithms",
+      "state" : {
+        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "83b23d940471b313427da226196661856f6ba3e0",
+        "version" : "0.4.4"
+      }
+    },
+    {
+      "identity" : "swift-aws-lambda-runtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server/swift-aws-lambda-runtime.git",
+      "state" : {
+        "revision" : "699ada1724459582303c15aae64fa12ca4d33809",
+        "version" : "0.5.2"
+      }
+    },
+    {
+      "identity" : "swift-backtrace",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server/swift-backtrace.git",
+      "state" : {
+        "revision" : "d3e04a9d4b3833363fb6192065b763310b156d54",
+        "version" : "1.3.1"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "revision" : "48254824bb4248676bf7ce56014ff57b142b77eb",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-crypto.git",
+      "state" : {
+        "revision" : "d9825fa541df64b1a7b182178d61b9a82730d01f",
+        "version" : "2.1.0"
+      }
+    },
+    {
+      "identity" : "swift-distributed-tracing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-distributed-tracing.git",
+      "state" : {
+        "revision" : "7a89c904d80fd2dc7c6071806f38d5d0b2d5a1b5",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "swift-distributed-tracing-baggage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-distributed-tracing-baggage.git",
+      "state" : {
+        "revision" : "c8457ce61adc6a3b9e6223ca147f5196f99e22cc",
+        "version" : "0.2.3"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+        "version" : "1.4.2"
+      }
+    },
+    {
+      "identity" : "swift-metrics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-metrics.git",
+      "state" : {
+        "revision" : "3edd2f57afc4e68e23c3e4956bc8b65ca6b5b2ff",
+        "version" : "2.2.0"
+      }
+    },
+    {
+      "identity" : "swift-metrics-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Apodini/swift-metrics-extras.git",
+      "state" : {
+        "revision" : "a5f54d453519af7f1d6c83d03e045463bb9e659e",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "swift-nio",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio.git",
+      "state" : {
+        "revision" : "124119f0bb12384cef35aa041d7c3a686108722d",
+        "version" : "2.40.0"
+      }
+    },
+    {
+      "identity" : "swift-nio-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-extras.git",
+      "state" : {
+        "revision" : "8eea84ec6144167354387ef9244b0939f5852dc8",
+        "version" : "1.11.0"
+      }
+    },
+    {
+      "identity" : "swift-nio-http2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-http2.git",
+      "state" : {
+        "revision" : "72bcaf607b40d7c51044f65b0f5ed8581a911832",
+        "version" : "1.21.0"
+      }
+    },
+    {
+      "identity" : "swift-nio-ssl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-ssl.git",
+      "state" : {
+        "revision" : "1750873bce84b4129b5303655cce2c3d35b9ed3a",
+        "version" : "2.19.0"
+      }
+    },
+    {
+      "identity" : "swift-nio-transport-services",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-transport-services.git",
+      "state" : {
+        "revision" : "1a4692acb88156e3da1b0c6732a8a38b2a744166",
+        "version" : "1.12.0"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-protobuf",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-protobuf.git",
+      "state" : {
+        "revision" : "e1499bc69b9040b29184f7f2996f7bab467c1639",
+        "version" : "1.19.0"
+      }
+    },
+    {
+      "identity" : "websocket-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vapor/websocket-kit.git",
+      "state" : {
+        "revision" : "e32033ad3c68ebec1b761bc961be7bd56bad02f8",
+        "version" : "2.3.1"
+      }
+    },
+    {
+      "identity" : "xctassertcrash",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/norio-nomura/XCTAssertCrash.git",
+      "state" : {
+        "revision" : "880c5241254da53f32caf77248ee3d25cb2a9630",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams.git",
+      "state" : {
+        "revision" : "9ff1cc9327586db4e0c8f46f064b6a82ec1566fa",
+        "version" : "4.0.6"
+      }
+    }
+  ],
+  "version" : 2
 }
