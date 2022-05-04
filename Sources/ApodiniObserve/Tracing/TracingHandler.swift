@@ -76,7 +76,9 @@ struct TracingHandler<H: Handler>: Handler {
                 .dropLast()
         )
         span.attributes.apodini.endpointCommunicationalPattern = sharedRepositoryMetadata.communicationPattern.rawValue
-        span.attributes.apodini.endpointVersion = sharedRepositoryMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"
+        span.attributes.apodini.endpointVersion = sharedRepositoryMetadata.context.get(
+            valueFor: APIVersionContextKey.self
+        )?.debugDescription ?? "unknown"
     }
 
     private func setErrorMetadata(to span: Span, for error: Error) {

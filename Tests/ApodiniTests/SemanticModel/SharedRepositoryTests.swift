@@ -67,6 +67,8 @@ final class SharedRepositoryTests: ApodiniTests {
         XCTAssertEqual(localSharedRepository[RandomKnowledge<Exporter1>.self].random, localSharedRepository[RandomKnowledge<Exporter1>.self].random)
         XCTAssertEqual(localSharedRepository[RandomKnowledge<Exporter2>.self].random, localSharedRepository[RandomKnowledge<Exporter2>.self].random)
         // access to different `TruthAnchor`s is not shared
-        XCTAssertNotEqual(localSharedRepository[RandomKnowledge<Exporter1>.self].random, localSharedRepository[RandomKnowledge<Exporter2>.self].random)
+        XCTAssertNotEqual(
+            localSharedRepository[RandomKnowledge<Exporter1>.self].random, localSharedRepository[RandomKnowledge<Exporter2>.self].random
+        )
     }
 }

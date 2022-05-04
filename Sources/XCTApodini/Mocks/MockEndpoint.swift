@@ -43,7 +43,11 @@ public extension Handler {
                 using: handler,
                 context)
         } else {
-            sharedRepository = LocalSharedRepository<LazyHashmapSharedRepository, LazyHashmapSharedRepository>(LazyHashmapSharedRepository(), using: handler, context)
+            sharedRepository = LocalSharedRepository<LazyHashmapSharedRepository, LazyHashmapSharedRepository>(
+                LazyHashmapSharedRepository(),
+                using: handler,
+                context
+            )
         }
 
         return (Endpoint(
