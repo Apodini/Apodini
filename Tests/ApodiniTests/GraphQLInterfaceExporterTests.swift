@@ -224,6 +224,8 @@ private struct TestWebService: WebService {
             .endpointName("addAlbum")
         EchoHandler<Album>()
             .endpointName("echo")
+        EchoHandler<Never>()
+            .endpointName("echoNever")
     }
 }
 
