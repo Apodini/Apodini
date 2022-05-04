@@ -46,7 +46,7 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
     
     public func configure(_ app: Apodini.Application) throws {
         app.storage[HTTPConfigurationStorageKey.self] = HTTPConfiguration(
-            bindAddress: .interface(HTTPConfiguration.Defaults.bindAddress, port: currentNodeCustomLaunchInfo.port)
+            bindAddress: .init(address: HTTPConfiguration.Defaults.bindAddress, port: currentNodeCustomLaunchInfo.port)
         )
     }
     

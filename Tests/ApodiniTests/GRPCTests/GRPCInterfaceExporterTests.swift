@@ -76,7 +76,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     override func setUpWithError() throws {
         try super.setUpWithError()
-//        try skipIfRunningInXcode()
+        try skipIfRunningInXcode()
         // ^^ For reasons I cannot understand, the gRPC tests will work fine when run from the terminal,
         // but always hang (waiting for the grpcurl child process, which itself is waiting for something else)
         // when run in Xcode. This probably is caused by the attached debugger.
@@ -91,8 +91,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     struct TestGRPCExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
             HTTPConfiguration(
-                bindAddress: .interface("localhost", port: 50051),
-                tlsConfiguration: .init(
+                bindAddress: .init(address: "localhost", port: 50051),
+                tlsConfiguration: try! .makeServerConfiguration(
                     certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
                     keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
                 )

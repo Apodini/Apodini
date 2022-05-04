@@ -20,10 +20,10 @@ import Apodini
 /// which will result in noticably slower performance)
 public enum XCTApodiniHTTPResponderTestingMethod: Hashable {
     case internalDispatch
-    case actualRequests(interface: String?, port: Int?)
+    case actualRequests(address: String?, port: Int?)
     
     public static var actualRequests: Self {
-        .actualRequests(interface: nil, port: nil)
+        .actualRequests(address: nil, port: nil)
     }
 }
 
@@ -113,8 +113,8 @@ extension HTTPServer: XCTApodiniNetworkingRequestResponseTestable {
             switch method {
             case .internalDispatch:
                 return InternalDispatchTester(eventLoopGroup: self.eventLoopGroup, httpResponder: self)
-            case let .actualRequests(interface, port):
-                return ActualRequestsTester(httpServer: self, interface: interface, port: port)
+            case let .actualRequests(address, port):
+                return ActualRequestsTester(httpServer: self, address: address, port: port)
             }
         })
     }

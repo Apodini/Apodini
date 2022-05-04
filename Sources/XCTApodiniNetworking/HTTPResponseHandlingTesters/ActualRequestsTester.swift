@@ -18,7 +18,7 @@ import AsyncHTTPClient
 /// A HTTP request handling tester which dispatches all test requests by sending actual live requests to the HTTP responder.
 struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
     let httpServer: HTTPServer
-    let interface: String?
+    let address: String?
     let port: Int?
     
     
@@ -29,16 +29,8 @@ struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
         responseEnd: (HTTPResponse) throws -> Void
     ) throws {
         precondition(!httpServer.isRunning)
-        let address: (interface: String, port: Int?)
-        switch httpServer.address {
-        case let .interface(currentAppHostname, port: currentAppPort):
-            address = (interface ?? currentAppHostname, port ?? currentAppPort)
-        case .unixDomainSocket:
-            fatalError("Expected a hostname-based http config")
-        }
-        
         httpServer.updateHTTPConfiguration(
-            bindAddress: .interface(address.interface, port: address.port),
+            bindAddress: .init(address: self.address ?? httpServer.address.address, port: self.port ?? httpServer.address.port),
             hostname: nil,
             tlsConfiguration: nil
         )
@@ -64,7 +56,7 @@ struct ActualRequestsTester: XCTApodiniNetworkingHTTPRequestHandlingTester {
             }
         )
         let responseTask = httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
-            url: "\(request.url.scheme)://\(address.interface):\(httpServer.port!)\(request.url.pathIncludingQueryAndFragment)",
+            url: "\(request.url.scheme)://\(httpServer.addressString)\(request.url.pathIncludingQueryAndFragment)",
             method: request.method,
             headers: request.headers,
             body: .byteBuffer(request.body),
