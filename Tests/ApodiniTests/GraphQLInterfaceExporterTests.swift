@@ -209,6 +209,13 @@ private struct EchoHandler<T: Codable & Equatable>: Handler {
 }
 
 
+private struct NeverReturningHandler: Handler {
+    func handle() -> Never {
+        fatalError()
+    }
+}
+
+
 private struct TestWebService: WebService {
     var content: some Component {
         Text("Hello, there")
@@ -224,8 +231,8 @@ private struct TestWebService: WebService {
             .endpointName("addAlbum")
         EchoHandler<Album>()
             .endpointName("echo")
-        EchoHandler<Never>()
-            .endpointName("echoNever")
+        NeverReturningHandler()
+            .endpointName("neverHandler")
     }
 }
 

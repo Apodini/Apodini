@@ -175,10 +175,11 @@ extension __ANNIOHTTPHeadersType {
                 return self[name.rawValue].map { T(httpHeaderFieldValue: $0)! }
             default:
                 // All other headers can be split on commas
-                return self[name.rawValue]
-                    .flatMap { $0.split(separator: ",") }
-                    .map { $0.trimmingLeadingWhitespace() }
-                    .map { T(httpHeaderFieldValue: String($0))! }
+                return self[name.rawValue].flatMap { rawHeaderValue -> [T] in
+                    rawHeaderValue
+                        .split(separator: ",")
+                        .map { T(httpHeaderFieldValue: String($0.trimmingLeadingWhitespace()))! }
+                }
             }
         }
         set {
