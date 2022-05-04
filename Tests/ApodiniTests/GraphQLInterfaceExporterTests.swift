@@ -238,7 +238,7 @@ struct WrappedGraphQLResponse<T: Decodable>: Decodable {
 class GraphQLInterfaceExporterTests: XCTApodiniTest {
     struct TestGraphQLExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: false, enableCustom64BitIntScalars: true)
+            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: true, enableCustom64BitIntScalars: true)
         }
     }
     
@@ -517,6 +517,15 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
         try _testAlbumsQuery(parameters: ["title": "\"And I Return\""], expectedResponse: [
             AlbumQueryResponse(title: "...And I Return To Nothingness", artist: "Lorna Shore", genres: [.deathcore])
         ])
+    }
+    
+    
+    func testGraphiQLEndpoint() throws {
+        // We can't really test whether it works, but we can test that it's there...
+        try app.testable().test(.GET, "/graphiql") { response in
+            let responseHTML = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
+            XCTAssert(responseHTML.contains("GraphiQL.createFetcher({ url: '\(app.httpConfiguration.uriPrefix)/graphql' });"))
+        }
     }
 }
 
