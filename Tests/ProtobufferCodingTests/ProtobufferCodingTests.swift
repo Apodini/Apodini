@@ -872,6 +872,29 @@ class ProtobufferCodingTests: XCTestCase {
         XCTAssertEqual(message.value, expected)
     }
     
+    func testDecodeBytes2() throws {
+        let data = Data([10, 6, 1, 2, 3, 253, 254, 255])
+        let expected: [UInt8] = [1, 2, 3, 253, 254, 255]
+        let message = try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<[UInt8]>.self, from: data)
+        XCTAssertEqual(message.value, expected)
+    }
+    
+    func testEncodeDecodeBytes() throws {
+        // Test that a `Data` property gets handled the same way as a `[UInt8]` property
+        let bytes: [UInt8] = [1, 2, 3, 253, 254, 255]
+        let encoded1 = try ProtobufferEncoder().encode(SingleFieldProtoTestMessage<[UInt8]>(value: bytes))
+        let encoded2 = try ProtobufferEncoder().encode(SingleFieldProtoTestMessage<Data>(value: Data(bytes)))
+        XCTAssertEqual(encoded1, encoded2)
+        XCTAssertEqual(
+            try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<Data>.self, from: encoded1).value,
+            Data(bytes)
+        )
+        XCTAssertEqual(
+            try ProtobufferDecoder().decode(SingleFieldProtoTestMessage<[UInt8]>.self, from: encoded2).value.intoArray(),
+            bytes
+        )
+    }
+    
     func testDecodeRepeatedBool() throws {
         try _testImpl(
             SingleFieldProtoTestMessage<[Bool]>(value: [true, false, true]),
@@ -957,8 +980,6 @@ class ProtobufferCodingTests: XCTestCase {
     }
     
     func testDecodeRepeatedUInt32() throws {
-        //let message = try ProtobufferDecoder().decode(ProtoTestMessage<[UInt32]>.self, from: data)
-        //XCTAssertEqual(message.content, expected)
         try _testImpl(
             SingleFieldProtoTestMessage<[UInt32]>(value: [0, 1, 2, 3, 4, 5]),
             expectedBytes: [0b1010, 6, 0, 1, 2, 3, 4, 5],
