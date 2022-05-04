@@ -9,7 +9,7 @@
 import ApodiniContext
 
 extension Context: KnowledgeSource {
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.init(copying: blackboard[AnyEndpointSource.self].context)
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.init(copying: sharedRepository[AnyEndpointSource.self].context)
     }
 }

@@ -12,7 +12,7 @@ import Logging
 extension Logger: KnowledgeSource {
     public static var preference: LocationPreference { .global }
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self = blackboard[Application.self].logger
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self = sharedRepository[Application.self].logger
     }
 }

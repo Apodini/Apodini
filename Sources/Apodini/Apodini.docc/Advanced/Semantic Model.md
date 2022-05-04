@@ -28,21 +28,21 @@ Instead, the semantic model should
 
 ### Implementation
 
-We use a slightly modified [Blackboard-Pattern](https://en.wikipedia.org/wiki/Blackboard_(design_pattern)) to provide a generic framework for building exporter-specific semantic models while achieving high reusability but avoiding unnecessary computations at startup-time.
+We use a slightly modified Shared Repository Pattern according to Buschmann et al. (_Pattern-Oriented Software Architecture: A Pattern Language for Distributed Computing_) to provide a generic framework for building exporter-specific semantic models while achieving high reusability but avoiding unnecessary computations at startup-time.
 
-The standard blackboard-pattern aggregates some form of knowledge on a blackboard using knowledge-sources. The aggregation-process is controlled by a controller. In our implementation, the knowledge-items on the ``Blackboard`` are **instances** of ``KnowledgeSource``s. The static type defines how the instance can be created from other knowledge that is available on the `Blackboard`. 
+The standard sharedRepository-pattern aggregates some form of knowledge on a sharedRepository using knowledge-sources. The aggregation-process is controlled by a controller. In our implementation, the knowledge-items on the ``SharedRepository`` are **instances** of ``KnowledgeSource``s. The static type defines how the instance can be created from other knowledge that is available on the `SharedRepository`. 
 
-The blackboard-pattern implemented here is not an exact replica of the standard pattern. There is no defined controller, instead some initial basic knowledge is placed on the ``Blackboard``s by the internal `SemanticModelBuilder`. Afterwards, all other ``KnowledgeSource``s are initialized lazily based on the exporters' demand.
+The sharedRepository-pattern implemented here is not an exact replica of the standard pattern. There is no defined controller, instead some initial basic knowledge is placed on the ``SharedRepository``s by the internal `SemanticModelBuilder`. Afterwards, all other ``KnowledgeSource``s are initialized lazily based on the exporters' demand.
 
-A ``KnowledgeSource`` can furthermore specify if it is to be initialized on a local (i.e. ``Endpoint``-scoped) or global (i.e. ``Application``-scoped) ``Blackboard``. The local blackboard transparently also provides access to the global blackboard, whereas the global one provides a basic ``KnowledgeSource`` called ``Blackboards``, which contains a list of all local ``Blackboard``s present on the ``Application``.
+A ``KnowledgeSource`` can furthermore specify if it is to be initialized on a local (i.e. ``Endpoint``-scoped) or global (i.e. ``Application``-scoped) ``SharedRepository``. The local sharedRepository transparently also provides access to the global sharedRepository, whereas the global one provides a basic ``KnowledgeSource`` called ``SharedRepositorys``, which contains a list of all local ``SharedRepository``s present on the ``Application``.
 
 ### API
 
 #### Using KnowledgeSources
 
-``InterfaceExporter``s can access the **local** ``Blackboard`` from the ``Endpoint`` instance passed to ``InterfaceExporter/export(_:)`` and the **global** one from the ``WebServiceModel`` passed to ``InterfaceExporter/finishedExporting(_:)-9eep3``. Keep in mind that you cannot access **local** (i.e. endpoint-specific) knowledge from a global blackboard (i.e. in ``InterfaceExporter/finishedExporting(_:)-64gse``).
+``InterfaceExporter``s can access the **local** ``SharedRepository`` from the ``Endpoint`` instance passed to ``InterfaceExporter/export(_:)`` and the **global** one from the ``WebServiceModel`` passed to ``InterfaceExporter/finishedExporting(_:)-9eep3``. Keep in mind that you cannot access **local** (i.e. endpoint-specific) knowledge from a global sharedRepository (i.e. in ``InterfaceExporter/finishedExporting(_:)-64gse``).
 
-The ``Blackboard`` provides access to the ``KnowledgeSource``-instances based on their type via a subscript:
+The ``SharedRepository`` provides access to the ``KnowledgeSource``-instances based on their type via a subscript:
 
 ```swift
 let operation = endpoint[Operation.self]
@@ -77,7 +77,7 @@ Apodini also defines more specialized protocols for building ``KnowledgeSource``
 public struct HandleReturnType: HandlerKnowledgeSource {
     public let type: Encodable.Type
     
-    public init<H: Handler, B: Blackboard>(from handler: H, _ blackboard: B) throws {
+    public init<H: Handler, B: SharedRepository>(from handler: H, _ sharedRepository: B) throws {
         self.type = H.Response.Content.self
     }
 }
@@ -106,29 +106,29 @@ extension CommunicationPattern: ContextKeyKnowledgeSource {
 
 ##### Global KnowledgeSources
 
-If you want to build global structures that connect all the different endpoints, you either need to build this structure based on the ``Blackboards`` ``KnowledgeSource`` available on the **global** blackboard (i.e. ``WebServiceModel``), or you need to use a ``KnowledgeSource`` that itself builds upon that ``Blackboards`` knowledge.
+If you want to build global structures that connect all the different endpoints, you either need to build this structure based on the ``SharedRepositorys`` ``KnowledgeSource`` available on the **global** sharedRepository (i.e. ``WebServiceModel``), or you need to use a ``KnowledgeSource`` that itself builds upon that ``SharedRepositorys`` knowledge.
 
 An example for that is ``WebServiceRoot``, which builds a global structure of your web service based on endpoints paths and operations:
 
 ```swift
-public required init<B>(_ blackboard: B) throws where B: Blackboard {
-    self.node = WebServiceComponent(parent: nil, identifier: .root, blackboards: blackboard[Blackboards.self][for: A.self])
+public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+    self.node = WebServiceComponent(parent: nil, identifier: .root, sharedRepositorys: sharedRepository[SharedRepositorys.self][for: A.self])
 }
 ```
 
-``Blackboards`` provides access to a list of local blackboards that are accessible for a specific ``TruthAnchor``. In most cases the ``TruthAnchor`` will be the ``InterfaceExporter`` you are building the ``KnowledgeSource`` for. If you build a generic ``KnowledgeSource``, make the ``TruthAnchor`` used by your ``KnowledgeSource`` generic.
+``SharedRepositorys`` provides access to a list of local sharedRepositorys that are accessible for a specific ``TruthAnchor``. In most cases the ``TruthAnchor`` will be the ``InterfaceExporter`` you are building the ``KnowledgeSource`` for. If you build a generic ``KnowledgeSource``, make the ``TruthAnchor`` used by your ``KnowledgeSource`` generic.
 
 ##### Local Access to Global KnowledgeSources
 
-If you have a ``LocationPreference/global`` ``KnowledgeSource`` you might want to have local access to the structure build by the ``LocationPreference/global`` ``KnowledgeSource``. E.g. you can access a ``WebServiceComponent`` from a local ``Blackboard``. This component is the one that has this exact ``Blackboard`` as one of its ``WebServiceComponent/endpoints``.
+If you have a ``LocationPreference/global`` ``KnowledgeSource`` you might want to have local access to the structure build by the ``LocationPreference/global`` ``KnowledgeSource``. E.g. you can access a ``WebServiceComponent`` from a local ``SharedRepository``. This component is the one that has this exact ``SharedRepository`` as one of its ``WebServiceComponent/endpoints``.
 
-But how do you initialize this ``KnowledgeSource``s locally, if they depend on a **global** structure? The answer is, you don't. Instead you delegate the initialization of the **local** ``KnowledgeSource`` to your **global** ``KnowledgeSource``. Afterwards, you throw ``KnowledgeError/instancePresent`` from the **local** initializer and the ``Blackboard`` will automatically look for an instance of fitting type and return that one instead. E.g. for ``WebServiceComponent``:
+But how do you initialize this ``KnowledgeSource``s locally, if they depend on a **global** structure? The answer is, you don't. Instead you delegate the initialization of the **local** ``KnowledgeSource`` to your **global** ``KnowledgeSource``. Afterwards, you throw ``KnowledgeError/instancePresent`` from the **local** initializer and the ``SharedRepository`` will automatically look for an instance of fitting type and return that one instead. E.g. for ``WebServiceComponent``:
 
 ```swift
-public required init<B>(_ blackboard: B) throws where B: Blackboard {
+public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
     // we make sure the WebServiceComponent that is meant to be initialized here is created by
     // delegating to the WebServiceRoot
-    _ = blackboard[WebServiceRoot<A>.self].node.findChild(for: blackboard[PathComponents.self].value, registerSelfToBlackboards: true)
+    _ = sharedRepository[WebServiceRoot<A>.self].node.findChild(for: sharedRepository[PathComponents.self].value, registerSelfToSharedRepositorys: true)
     throw KnowledgeError.instancePresent
 }
 ```
@@ -137,7 +137,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 
 ### Basics
 
-- ``Blackboard``
+- ``SharedRepository``
 - ``KnowledgeSource``
 - ``LocationPreference``
 - ``Endpoint``
@@ -172,7 +172,7 @@ public required init<B>(_ blackboard: B) throws where B: Blackboard {
 - ``Application``
 - ``EndpointSource``
 - ``AnyEndpointSource``
-- ``Blackboards``
+- ``SharedRepositorys``
 - `Context`
 - ``CommunicationPattern``
 <!-- TODO: ``All`` -->

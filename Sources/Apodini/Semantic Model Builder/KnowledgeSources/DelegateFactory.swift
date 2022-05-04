@@ -11,20 +11,20 @@ import Foundation
 public struct DelegateFactoryBasis<H: Handler>: KnowledgeSource {
     public let delegate: Delegate<H>
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.delegate = Delegate(blackboard[EndpointSource<H>.self].handler, .required)
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.delegate = Delegate(sharedRepository[EndpointSource<H>.self].handler, .required)
     }
 }
 
 /// A ``DelegateFactory`` allows for creating ``instance()``s of a ``Delegate``
 /// suitable for usage in an ``InterfaceExporter``.
 public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource {
-    private let blackboard: Blackboard
+    private let sharedRepository: SharedRepository
     
-    private lazy var delegate: Delegate<H> = blackboard[DelegateFactoryBasis<H>.self].delegate
+    private lazy var delegate: Delegate<H> = sharedRepository[DelegateFactoryBasis<H>.self].delegate
     
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.blackboard = blackboard
+    public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.sharedRepository = sharedRepository
     }
     
     /// Creates one instance of the ``Delegate``.

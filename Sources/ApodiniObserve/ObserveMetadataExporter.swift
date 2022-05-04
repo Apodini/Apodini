@@ -10,11 +10,11 @@ import Apodini
 import ApodiniExtension
 import ApodiniUtils
 
-/// An `IntefaceExporter`that writes information from the `Blackboard` to the `Environment` of the delegating `Handler`
+/// An `IntefaceExporter`that writes information from the `SharedRepository` to the `Environment` of the delegating `Handler`
 public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
-    /// Contains all the necessary information from the `Blackboard`, then accessed via the `Environment` property wrapper within a delegating `Handler`
-    public struct BlackboardObserveMetadata: EnvironmentAccessible {
-        public struct BlackboardObserveMetadata {
+    /// Contains all the necessary information from the `SharedRepository`, then accessed via the `Environment` property wrapper within a delegating `Handler`
+    public struct SharedRepositoryObserveMetadata: EnvironmentAccessible {
+        public struct SharedRepositoryObserveMetadata {
             let endpointName: String
             let endpointParameters: EndpointParameters
             let parameters: [(String, ParameterRetriever)]
@@ -27,7 +27,7 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
             let communicationPattern: CommunicationPattern
         }
         
-        public var value: BlackboardObserveMetadata
+        public var value: SharedRepositoryObserveMetadata
     }
     
     let app: Apodini.Application
@@ -44,20 +44,20 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
     }
     
     public func export<H>(_ endpoint: Endpoint<H>) where H: Handler {
-        self.exportOntoBlackboard(endpoint)
+        self.exportOntoSharedRepository(endpoint)
     }
     
     public func export<H>(blob endpoint: Endpoint<H>) where H: Handler, H.Response.Content == Blob {
-        self.exportOntoBlackboard(endpoint)
+        self.exportOntoSharedRepository(endpoint)
     }
     
-    /// Writes information from the `Blackboard` into the `Envionment` of the `Delegate` so it is accessible from a delegating `Handler` via the `Envionment` property wrapper
-    private func exportOntoBlackboard<H>(_ endpoint: Endpoint<H>) where H: Handler {
+    /// Writes information from the `SharedRepository` into the `Envionment` of the `Delegate` so it is accessible from a delegating `Handler` via the `Envionment` property wrapper
+    private func exportOntoSharedRepository<H>(_ endpoint: Endpoint<H>) where H: Handler {
         let delegate = endpoint[DelegateFactoryBasis<H>.self].delegate
         
         delegate.environment(
-            \BlackboardObserveMetadata.value,
-            BlackboardObserveMetadata.BlackboardObserveMetadata(
+            \SharedRepositoryObserveMetadata.value,
+            SharedRepositoryObserveMetadata.SharedRepositoryObserveMetadata(
                 endpointName: Self.extractRawEndpointName(endpoint.description),
                 endpointParameters: endpoint[EndpointParameters.self],
                 parameters: endpoint[All<ParameterRetriever>.self].elements,

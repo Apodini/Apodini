@@ -15,8 +15,8 @@ public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
     
     public let node: WebServiceComponent<A>
     
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.node = WebServiceComponent(parent: nil, identifier: .root, blackboards: blackboard[Blackboards.self][for: A.self])
+    public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.node = WebServiceComponent(parent: nil, identifier: .root, sharedRepositorys: sharedRepository[SharedRepositorys.self][for: A.self])
     }
     
     subscript<T>(dynamicMember keyPath: KeyPath<WebServiceComponent<A>, T>) -> T {
@@ -30,29 +30,29 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     public let parent: WebServiceComponent<A>?
     public let identifier: EndpointPath
     
-    public lazy var endpoints: [Operation: Blackboard] = deriveEndpoints()
+    public lazy var endpoints: [Operation: SharedRepository] = deriveEndpoints()
     public lazy var children: [WebServiceComponent<A>] = deriveChildren()
     
     public lazy var globalPath: [EndpointPath] = (parent?.globalPath ?? []) + [identifier]
     
-    private let blackboards: [Blackboard]
+    private let sharedRepositorys: [SharedRepository]
     
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
+    public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         // we make sure the WebServiceComponent that is meant to be initilaized here is created by
         // delegating to the WebServiceRoot
-        _ = blackboard[WebServiceRoot<A>.self].node.findChild(for: blackboard[PathComponents.self].value, registerSelfToBlackboards: true)
+        _ = sharedRepository[WebServiceRoot<A>.self].node.findChild(for: sharedRepository[PathComponents.self].value, registerSelfToSharedRepositorys: true)
         throw KnowledgeError.instancePresent
     }
     
-    fileprivate init(parent: WebServiceComponent<A>?, identifier: EndpointPath, blackboards: [Blackboard]) {
+    fileprivate init(parent: WebServiceComponent<A>?, identifier: EndpointPath, sharedRepositorys: [SharedRepository]) {
         self.parent = parent
         self.identifier = identifier
-        self.blackboards = blackboards
+        self.sharedRepositorys = sharedRepositorys
     }
     
-    private func deriveEndpoints() -> [Operation: Blackboard] {
-        var endpoints = [Operation: Blackboard]()
-        for endpoint in blackboards.filter({ blackboard in blackboard[PathComponents.self].value.count == self.globalPath.count - 1 }) {
+    private func deriveEndpoints() -> [Operation: SharedRepository] {
+        var endpoints = [Operation: SharedRepository]()
+        for endpoint in sharedRepositorys.filter({ sharedRepository in sharedRepository[PathComponents.self].value.count == self.globalPath.count - 1 }) {
             endpoints[endpoint[Operation.self]] = endpoint
             endpoint[WebServiceComponent<A>.self] = self
         }
@@ -60,21 +60,21 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     }
     
     private func deriveChildren() -> [WebServiceComponent] {
-        let children = blackboards.filter { blackboard in
-            blackboard[PathComponents.self].value.count > self.globalPath.count - 1
+        let children = sharedRepositorys.filter { sharedRepository in
+            sharedRepository[PathComponents.self].value.count > self.globalPath.count - 1
         }
         
-        var childrenByPathElement = [EndpointPath: [Blackboard]]()
+        var childrenByPathElement = [EndpointPath: [SharedRepository]]()
         
-        for blackboard in children {
-            let identifier = blackboard[PathComponents.self].value[self.globalPath.count - 1].toEndpointPath()
+        for sharedRepository in children {
+            let identifier = sharedRepository[PathComponents.self].value[self.globalPath.count - 1].toEndpointPath()
             var allChildrenWithSameIdentifier = childrenByPathElement[identifier] ?? []
-            allChildrenWithSameIdentifier.append(blackboard)
+            allChildrenWithSameIdentifier.append(sharedRepository)
             childrenByPathElement[identifier] = allChildrenWithSameIdentifier
         }
         
-        return childrenByPathElement.map { identifier, blackboards in
-            WebServiceComponent(parent: self, identifier: identifier, blackboards: blackboards)
+        return childrenByPathElement.map { identifier, sharedRepositorys in
+            WebServiceComponent(parent: self, identifier: identifier, sharedRepositorys: sharedRepositorys)
         }
     }
 }
@@ -83,8 +83,8 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
 extension WebServiceComponent: CustomStringConvertible {
     public var description: String {
         var desc = "\(globalPath)"
-        for (operation, blackboard) in endpoints {
-            desc += "\n  - \(operation): \(blackboard[HandlerDescription.self])"
+        for (operation, sharedRepository) in endpoints {
+            desc += "\n  - \(operation): \(sharedRepository[HandlerDescription.self])"
         }
         for child in children {
             desc += "\n" + child.description
@@ -94,9 +94,9 @@ extension WebServiceComponent: CustomStringConvertible {
 }
 
 extension WebServiceComponent {
-    func findChild(for path: [PathComponent], registerSelfToBlackboards: Bool = false) -> WebServiceComponent? {
+    func findChild(for path: [PathComponent], registerSelfToSharedRepositorys: Bool = false) -> WebServiceComponent? {
         if path.isEmpty {
-            if registerSelfToBlackboards {
+            if registerSelfToSharedRepositorys {
                 _ = self.endpoints
             }
             return self
@@ -104,7 +104,7 @@ extension WebServiceComponent {
         
         for child in children {
             if child.identifier == path[0].toEndpointPath() {
-                return child.findChild(for: Array(path[1...]), registerSelfToBlackboards: registerSelfToBlackboards)
+                return child.findChild(for: Array(path[1...]), registerSelfToSharedRepositorys: registerSelfToSharedRepositorys)
             }
         }
         return nil

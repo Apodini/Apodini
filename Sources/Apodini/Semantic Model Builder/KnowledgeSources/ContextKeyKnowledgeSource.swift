@@ -13,20 +13,20 @@ public protocol OptionalContextKeyKnowledgeSource: KnowledgeSource {
     /// The `OptionalContextKey` used to identify the value.
     associatedtype Key: OptionalContextKey
     /// Initializes the `KnowledgeSource` based on the `Key`'s value in the `Context`
-    /// associated with the underlying `Blackboard`.
+    /// associated with the underlying `SharedRepository`.
     init(from value: Key.Value?) throws
 }
 
 extension OptionalContextKeyKnowledgeSource {
     /// Calls `OptionalContextKeyKnowledgeSource.init` using the value stored in `AnyEndpointSource`.
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        try self.init(from: blackboard[AnyEndpointSource.self].context.get(valueFor: Key.self))
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        try self.init(from: sharedRepository[AnyEndpointSource.self].context.get(valueFor: Key.self))
     }
 }
 
 public protocol ContextKeyKnowledgeSource: OptionalContextKeyKnowledgeSource where Key: ContextKey {
     /// Initializes the `KnowledgeSource` based on the `Key`'s value in the `Context`
-    /// associated with the underlying `Blackboard`.
+    /// associated with the underlying `SharedRepository`.
     init(from value: Key.Value) throws
 }
 

@@ -12,21 +12,21 @@ import Apodini
 /// It is used by the ``LoggingMetadata`` to provide raw context information about the execution of a `Handler`
 @propertyWrapper
 public struct ObserveMetadata: DynamicProperty {
-    public typealias BlackboardMetadata = ObserveMetadataExporter.BlackboardObserveMetadata.BlackboardObserveMetadata
+    public typealias SharedRepositoryMetadata = ObserveMetadataExporter.SharedRepositoryObserveMetadata.SharedRepositoryObserveMetadata
     public typealias ExporterMetadata = ExporterTypeObserveMetadata.ExporterTypeObserveMetadata
-    public typealias Value = (blackboardMetadata: BlackboardMetadata, exporterMetadata: ExporterMetadata)
+    public typealias Value = (sharedRepositoryMetadata: SharedRepositoryMetadata, exporterMetadata: ExporterMetadata)
     
-    /// Metadata from the `Blackboard` that is injected into the environment of the `Handler` via a `Delegate`
-    @Environment(\ObserveMetadataExporter.BlackboardObserveMetadata.value)
-    var blackboardMetadata
+    /// Metadata from the `SharedRepository` that is injected into the environment of the `Handler` via a `Delegate`
+    @Environment(\ObserveMetadataExporter.SharedRepositoryObserveMetadata.value)
+    var sharedRepositoryMetadata
     
     /// Metadata regarding the `Exporter` type
     @Environment(\ExporterTypeObserveMetadata.value)
     var exporterMetadata
     
-    /// Holds the built `Blackboard` metadata
+    /// Holds the built `SharedRepository` metadata
     @State
-    private var builtBlackboardMetadata: BlackboardMetadata?
+    private var builtSharedRepositoryMetadata: SharedRepositoryMetadata?
     /// Holds the built `InterfaceExporter` metadata
     @State
     private var builtExporterMetadata: ExporterMetadata?
@@ -35,22 +35,22 @@ public struct ObserveMetadata: DynamicProperty {
     
     /// Provides the metadata
     public var wrappedValue: Value {
-        if self.builtBlackboardMetadata == nil || self.builtExporterMetadata == nil {
-            self.builtBlackboardMetadata = blackboardMetadata
+        if self.builtSharedRepositoryMetadata == nil || self.builtExporterMetadata == nil {
+            self.builtSharedRepositoryMetadata = sharedRepositoryMetadata
             self.builtExporterMetadata = exporterMetadata
         } else {
-            switch self.builtBlackboardMetadata?.communicationPattern {
+            switch self.builtSharedRepositoryMetadata?.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
-                self.builtBlackboardMetadata = blackboardMetadata
+                self.builtSharedRepositoryMetadata = sharedRepositoryMetadata
             default: break
             }
         }
         
-        guard let builtBlackboardMetadata = self.builtBlackboardMetadata,
+        guard let builtSharedRepositoryMetadata = self.builtSharedRepositoryMetadata,
               let builtExporterMetadata = self.builtExporterMetadata else {
             fatalError("The ObserveMetadata isn't built correctly!")
         }
         
-        return (blackboardMetadata: builtBlackboardMetadata, exporterMetadata: builtExporterMetadata)
+        return (sharedRepositoryMetadata: builtSharedRepositoryMetadata, exporterMetadata: builtExporterMetadata)
     }
 }
