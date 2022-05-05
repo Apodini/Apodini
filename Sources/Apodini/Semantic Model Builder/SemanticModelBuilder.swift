@@ -28,18 +28,18 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     func register<H: Handler>(handler: H, withContext context: Context) {
         let handler = handler.inject(app: app)
         
-        // GlobalBlackboard's content lives on the app's `Store`, this is only a wrapper for accessing it
-        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
+        // GlobalSharedRepository's content lives on the app's `Store`, this is only a wrapper for accessing it
+        let globalSharedRepository = GlobalSharedRepository<LazyHashmapSharedRepository>(app)
         
-        let localBlackboard = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: handler, context)
+        let localSharedRepository = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: handler, context)
         
-        // We first only build the blackboards and the `Endpoint`. The validation and exporting is done at the
+        // We first only build the sharedRepositorys and the `Endpoint`. The validation and exporting is done at the
         // beginning of `finishedRegistration`. This way `.global` `KnowledgeSource`s get a complete view of
         // the web service even when accessed from an `Endpoint`.
-        collectedEndpoints.append(Endpoint<H>(blackboard: localBlackboard))
+        collectedEndpoints.append(Endpoint<H>(sharedRepository: localSharedRepository))
     }
 
     func finishedRegistration() {
@@ -51,7 +51,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
 
     func visit<I>(exporter: I) where I: InterfaceExporter {
         call(exporter: exporter)
-        exporter.finishedExporting(WebServiceModel(blackboard: GlobalBlackboard<LazyHashmapBlackboard>(app)))
+        exporter.finishedExporting(WebServiceModel(sharedRepository: GlobalSharedRepository<LazyHashmapSharedRepository>(app)))
     }
 
     private func call<I: InterfaceExporter>(exporter: I) {

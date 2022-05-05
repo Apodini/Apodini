@@ -50,8 +50,8 @@ public typealias EndpointPathComponentsHTTP = ScopedEndpointPathComponents<Unsco
 public struct UnscopedEndpointPathComponents: EndpointPathComponentProvider {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.value = blackboard[PathComponents.self].value
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.value = sharedRepository[PathComponents.self].value
             .pathModelBuilder()
             .results.map { component in component.path }
     }
@@ -64,9 +64,9 @@ public protocol EndpointPathComponentProvider: KnowledgeSource {
 public struct ScopedEndpointPathComponents<P: EndpointPathComponentProvider>: KnowledgeSource {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        self.value = blackboard[P.self].value
-            .scoped(on: blackboard[ParameterCollection.self])
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        self.value = sharedRepository[P.self].value
+            .scoped(on: sharedRepository[ParameterCollection.self])
             .map { path in
                 if case let .parameter(parameter) = path {
                     precondition(parameter.scopedEndpointHasDefinedParameter, "Endpoint was identified by its path while its Handler did not contain a matching Parameter for PathParameter \(path)!")
@@ -79,9 +79,9 @@ public struct ScopedEndpointPathComponents<P: EndpointPathComponentProvider>: Kn
 public struct UnscopedEndpointPathComponentsHTTP: EndpointPathComponentProvider {
     public let value: [EndpointPath]
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        let baseElements = blackboard[UnscopedEndpointPathComponents.self].value
-        let pathParametersOnHandler = blackboard[EndpointParameters.self].filter { parameter in
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        let baseElements = sharedRepository[UnscopedEndpointPathComponents.self].value
+        let pathParametersOnHandler = sharedRepository[EndpointParameters.self].filter { parameter in
             parameter.parameterType == .path
         }
 
@@ -109,8 +109,8 @@ extension ScopedEndpointPathComponents {
     struct ParameterCollection: Apodini.ParameterCollection, KnowledgeSource {
         let parameters: [AnyEndpointParameter]
         
-        init<B>(_ blackboard: B) throws where B: Blackboard {
-            self.parameters = blackboard[EndpointParameters.self]
+        init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+            self.parameters = sharedRepository[EndpointParameters.self]
         }
         
         func findParameter(for id: UUID) -> AnyEndpointParameter? {

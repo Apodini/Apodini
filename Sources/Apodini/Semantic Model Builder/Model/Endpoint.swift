@@ -28,7 +28,7 @@ public extension ParameterCollection {
 }
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
-public protocol AnyEndpoint: Blackboard, CustomStringConvertible, ParameterCollection {
+public protocol AnyEndpoint: SharedRepository, CustomStringConvertible, ParameterCollection {
     /// This method can be called, to export all `EndpointParameter`s of the given `Endpoint` on the supplied `InterfaceExporter`.
     /// It will call the `InterfaceExporter.exporterParameter(...)` method for every parameter on this `Endpoint`.
     ///
@@ -52,19 +52,19 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
-    private let blackboard: Blackboard
+    private let sharedRepository: SharedRepository
     
-    init(blackboard: Blackboard) {
-        self.blackboard = blackboard
+    init(sharedRepository: SharedRepository) {
+        self.sharedRepository = sharedRepository
     }
     
     public subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource {
-        get { blackboard[type] }
-        nonmutating set { blackboard[type] = newValue }
+        get { sharedRepository[type] }
+        nonmutating set { sharedRepository[type] = newValue }
     }
     
     public func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
-        try self.blackboard.request(type)
+        try self.sharedRepository.request(type)
     }
 
     /// Provides the ``EndpointParameters`` that correspond to the ``Parameter``s defined on the ``Handler`` of this ``Endpoint``
@@ -81,7 +81,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
 extension Endpoint {
     /// The ``Handler`` responsible for this ``Endpoint``.
     ///
-    /// This is just a shortcut for ``EndpointSource/handler``. which can be accessed via the ``Blackboard``.
+    /// This is just a shortcut for ``EndpointSource/handler``. which can be accessed via the ``SharedRepository``.
     public var handler: H {
         self[EndpointSource<H>.self].handler
     }

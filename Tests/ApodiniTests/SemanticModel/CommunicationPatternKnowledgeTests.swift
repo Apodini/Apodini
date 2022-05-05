@@ -127,46 +127,46 @@ final class CommunicationPatternKnowledgeTests: ApodiniTests {
     func testAutomaticCommunicationPattern() throws {
         let context = Context()
         
-        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
+        let globalSharedRepository = GlobalSharedRepository<LazyHashmapSharedRepository>(app)
         
         
         let basicRR = Greeter()
-        let lbBasicRR = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: basicRR, context)
+        let lbBasicRR = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: basicRR, context)
         
         XCTAssertEqual(lbBasicRR[AutomaticCommunicationPattern.self].value, .requestResponse)
         
         let blobRR = BlobGreeter()
-        let lbBlobRR = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: blobRR, context)
+        let lbBlobRR = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: blobRR, context)
         
         XCTAssertEqual(lbBlobRR[AutomaticCommunicationPattern.self].value, .requestResponse)
         
         let serviceSide = Rocket()
-        let lbServiceSide = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: serviceSide, context)
+        let lbServiceSide = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: serviceSide, context)
         
         XCTAssertEqual(lbServiceSide[AutomaticCommunicationPattern.self].value, .serviceSideStream)
         
         let clientSide = ClientStreamingGreeter()
-        let lbClientSide = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: clientSide, context)
+        let lbClientSide = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: clientSide, context)
         
         XCTAssertEqual(lbClientSide[AutomaticCommunicationPattern.self].value, .clientSideStream)
         
         let bidirectional = BidirectionalStreamingGreeter()
-        let lbBidirectional = LocalBlackboard<
-            LazyHashmapBlackboard,
-            GlobalBlackboard<LazyHashmapBlackboard>
-        >(globalBlackboard, using: bidirectional, context)
+        let lbBidirectional = LocalSharedRepository<
+            LazyHashmapSharedRepository,
+            GlobalSharedRepository<LazyHashmapSharedRepository>
+        >(globalSharedRepository, using: bidirectional, context)
         
         XCTAssertEqual(lbBidirectional[AutomaticCommunicationPattern.self].value, .bidirectionalStream)
     }

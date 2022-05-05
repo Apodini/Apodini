@@ -15,12 +15,12 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
     static var preference: LocationPreference { .global }
     
     /// `KnowledgeSource` initializer
-    init<B>(_ blackboard: B) throws where B: Blackboard {
+    init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         var storage: Set<AnyHandlerIdentifier> = []
         
-        for blackboard in blackboard[Blackboards.self][for: AllAnyHandlerIdentifiersAnchor.self] {
-            let dslSpecifiedIdentifier = blackboard[DSLSpecifiedIdentifier.self].value
-            let handlerSpecifiedIdentifier = blackboard[ExplicitlySpecifiedIdentifier.self].value
+        for sharedRepository in sharedRepository[SharedRepositorys.self][for: AllAnyHandlerIdentifiersAnchor.self] {
+            let dslSpecifiedIdentifier = sharedRepository[DSLSpecifiedIdentifier.self].value
+            let handlerSpecifiedIdentifier = sharedRepository[ExplicitlySpecifiedIdentifier.self].value
             
             let rawValue: String
             
@@ -34,14 +34,14 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
                     rawValue = ident1.rawValue
                 } else {
                     preconditionFailure("""
-                        Handler '\(blackboard[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
+                        Handler '\(sharedRepository[HandlerName.self].name)' has multiple explicitly specified identifiers ('\(ident1)' and '\(ident2)').
                         A handler may only have one explicitly specified identifier.
                         This is caused by using both the 'IdentifiableHandler.handlerId' property as well as the '.identified(by:)' modifier.
                         """
                     )
                 }
             case (.none, .none):
-                let handlerIndexPath = blackboard[HandlerIndexPath.self]
+                let handlerIndexPath = sharedRepository[HandlerIndexPath.self]
                 rawValue = handlerIndexPath.rawValue
             }
             
@@ -51,7 +51,7 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
                 preconditionFailure("Encountered a duplicated handler identifier: '\(rawValue)'. The explicitly specified identifiers must be unique")
             }
             
-            blackboard[AnyHandlerIdentifier.self] = anyHandlerIdentifier
+            sharedRepository[AnyHandlerIdentifier.self] = anyHandlerIdentifier
         }
     }
 }
@@ -60,8 +60,8 @@ private struct AllAnyHandlerIdentifiers: KnowledgeSource {
 open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, CustomStringConvertible, KnowledgeSource {
     public let rawValue: String
     
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        _ = blackboard[AllAnyHandlerIdentifiers.self]
+    public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        _ = sharedRepository[AllAnyHandlerIdentifiers.self]
         throw KnowledgeError.instancePresent
     }
     
@@ -118,8 +118,8 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
         try super.init(from: decoder)
     }
     
-    public required init<B>(_ blackboard: B) throws where B: Blackboard {
-        try super.init(blackboard)
+    public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        try super.init(sharedRepository)
     }
 }
 
@@ -136,7 +136,7 @@ struct DSLSpecifiedIdentifier: OptionalContextKeyKnowledgeSource {
 struct ExplicitlySpecifiedIdentifier: HandlerKnowledgeSource {
     let value: AnyHandlerIdentifier?
     
-    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.value = handler.getExplicitlySpecifiedIdentifier()
     }
 }
@@ -144,7 +144,7 @@ struct ExplicitlySpecifiedIdentifier: HandlerKnowledgeSource {
 struct HandlerName: HandlerKnowledgeSource {
     let name: String
     
-    init<H, B>(from handler: H, _ blackboard: B) throws where H: Handler, B: Blackboard {
+    init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.name = "\(handler)"
     }
 }

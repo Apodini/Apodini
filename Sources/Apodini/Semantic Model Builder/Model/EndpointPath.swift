@@ -437,7 +437,7 @@ class EndpointPathModule: KnowledgeSource {
     // swiftlint:disable:next discouraged_optional_collection
     private var _absolutePath: [EndpointPath]?
     
-    required init<B>(_ blackboard: B) throws where B: Blackboard { }
+    required init<B>(_ sharedRepository: B) throws where B: SharedRepository { }
     
     func inject(absolutePath: [EndpointPath]) {
         self._absolutePath = absolutePath

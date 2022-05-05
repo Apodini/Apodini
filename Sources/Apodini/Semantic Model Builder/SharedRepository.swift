@@ -8,18 +8,18 @@
 
 import Foundation
 
-/// A storage for `KnowledgeSource`s. The `Blackboard` takes care of initialization and storage of `KnowledgeSource`s.
+/// A storage for `KnowledgeSource`s. The `SharedRepository` takes care of initialization and storage of `KnowledgeSource`s.
 /// It also allows for mutating `KnowledgeSource`s. Most initializations are performed lazily.
-public protocol Blackboard {
-    /// `Blackboard`s can be read from and written to based on a `KnowledgeSource`'s type. If not present yet,
-    /// the `Blackboard` takes care of initializing the `KnowledgeSource`.
+public protocol SharedRepository {
+    /// `SharedRepository`s can be read from and written to based on a `KnowledgeSource`'s type. If not present yet,
+    /// the `SharedRepository` takes care of initializing the `KnowledgeSource`.
     subscript<S>(_ type: S.Type) -> S where S: KnowledgeSource { get nonmutating set }
     
-    /// An alternative for the `Blackboard`'s subscript for graceful error handling.
+    /// An alternative for the `SharedRepository`'s subscript for graceful error handling.
     func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource
 }
 
-extension Blackboard {
+extension SharedRepository {
     subscript<S>() -> S where S: KnowledgeSource {
         get {
             self[S.self]
@@ -35,18 +35,18 @@ extension Blackboard {
 }
 
 
-protocol IndependentBlackboard: Blackboard {
+protocol IndependentSharedRepository: SharedRepository {
     init()
-    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S: KnowledgeSource, B: Blackboard
+    func request<S, B>(_ type: S.Type, using sharedRepository: B) throws -> S where S: KnowledgeSource, B: SharedRepository
 }
 
-extension IndependentBlackboard {
+extension IndependentSharedRepository {
     func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
         try self.request(type, using: self)
     }
 }
 
-final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard {
+final class LocalSharedRepository<L: IndependentSharedRepository, G: SharedRepository>: SharedRepository {
     private let global: G
     private var local: L
     
@@ -58,9 +58,9 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
         self.local[EndpointSource<H>.self] = source
         self.local[AnyEndpointSource.self] = AnyEndpointSource(source: source)
         
-        if var blackboards = try? global.request(Blackboards.self) {
-            blackboards.addBoard(self, hiddenFor: restrictions)
-            global[Blackboards.self] = blackboards
+        if var sharedRepositorys = try? global.request(SharedRepositorys.self) {
+            sharedRepositorys.addSharedRepository(self, hiddenFor: restrictions)
+            global[SharedRepositorys.self] = sharedRepositorys
         }
     }
     
@@ -101,7 +101,7 @@ final class LocalBlackboard<L: IndependentBlackboard, G: Blackboard>: Blackboard
 }
 
 
-struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
+struct GlobalSharedRepository<B: IndependentSharedRepository>: SharedRepository, StorageKey {
     typealias Value = B
     
     private unowned let app: Application
@@ -110,37 +110,37 @@ struct GlobalBlackboard<B: IndependentBlackboard>: Blackboard, StorageKey {
         self.app = app
         
         if app.storage[Self.self] == nil {
-            let board = getOrInitializeBlackboard()
-            board[Application.self] = app
-            board[Blackboards.self] = Blackboards()
+            let sharedRepository = getOrInitializeSharedRepository()
+            sharedRepository[Application.self] = app
+            sharedRepository[SharedRepositorys.self] = SharedRepositorys()
         }
     }
     
     subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
         get {
-            getOrInitializeBlackboard()[type]
+            getOrInitializeSharedRepository()[type]
         }
         nonmutating set {
-            getOrInitializeBlackboard()[type] = newValue
+            getOrInitializeSharedRepository()[type] = newValue
         }
     }
     
     func request<S>(_ type: S.Type) throws -> S where S: KnowledgeSource {
-        try getOrInitializeBlackboard().request(type)
+        try getOrInitializeSharedRepository().request(type)
     }
     
-    private func getOrInitializeBlackboard() -> Value {
-        if let blackboard = app.storage[Self.self] {
-            return blackboard
+    private func getOrInitializeSharedRepository() -> Value {
+        if let sharedRepository = app.storage[Self.self] {
+            return sharedRepository
         }
         
-        let blackboard = B()
-        app.storage.set(Self.self, to: blackboard)
-        return blackboard
+        let sharedRepository = B()
+        app.storage.set(Self.self, to: sharedRepository)
+        return sharedRepository
     }
 }
 
-final class LazyHashmapBlackboard: IndependentBlackboard {
+final class LazyHashmapSharedRepository: IndependentSharedRepository {
     private var storage: [ObjectIdentifier: KnowledgeSource] = [:]
     
     subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
@@ -157,14 +157,14 @@ final class LazyHashmapBlackboard: IndependentBlackboard {
         }
     }
     
-    func request<S, B>(_ type: S.Type, using blackboard: B) throws -> S where S: KnowledgeSource, B: Blackboard {
+    func request<S, B>(_ type: S.Type, using sharedRepository: B) throws -> S where S: KnowledgeSource, B: SharedRepository {
         let id = ObjectIdentifier(type)
         if let stored = storage[id] as? S {
             return stored
         }
         
         do {
-            let new = try S(blackboard)
+            let new = try S(sharedRepository)
             storage[id] = new
             return new
         } catch KnowledgeError.instancePresent {
