@@ -120,16 +120,11 @@ extension String {
         guard !locations.isEmpty else {
             return self
         }
-//        let newStartIdx = !locations.contains(.leading) ? self.startIndex : self.firstIndex(where: { !characterSet.contains($0) })
-//        let newEndIdx = !locations.contains(.trailing) ? self.endIndex : self.lastIndex(where: { characterSet.contains($0) })
-//        return String(self[newStartIdx]
         var result = self[...]
         if locations.contains(.leading) {
-            //result = result.drop(while: { characterSet.contains($0) })
             result = result.trimmingPrefix(while: { characterSet.contains($0) })
         }
         if locations.contains(.trailing) {
-            //result = result.trimming(while: <#T##(Character) throws -> Bool#>)
             result = result.trimmingSuffix(while: { characterSet.contains($0) })
         }
         return String(result)

@@ -85,8 +85,7 @@ public struct BindAddress: Hashable, BindAddressProtocol {
     }
 }
 
-
-@available(*, deprecated, renamed: "BindAddress")
+/// A Hostname, consisting of an address and a port.
 public typealias Hostname = BindAddress
 
 

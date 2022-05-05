@@ -70,11 +70,14 @@ public final class HTTPServer {
     }
     
     
-    private var config: Config
+    private var config: Config {
+        didSet {
+            precondition(!isRunning, "Cannot change config while the server is running.")
+        }
+    }
     private let router: HTTPRouter
-    
     private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
-    
+    /// The NIO channel on which the server is currently running. Nil if the server is not running.
     private var channel: Channel?
     
     /// Whether the HTTP server should bind to the specified address when its `start()` function is called.

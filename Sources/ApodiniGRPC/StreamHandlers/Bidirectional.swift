@@ -45,12 +45,9 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                 guard let response = response else {
                     fatalError("Unexpectedly got a nil response from the handler")
                 }
-//                print("R", response)
-//                print("RC", response.content)
                 if response.isNothing {
                     return .nothing(headers)
                 } else if let content = response.content {
-//                    print("RESPONDING WITH \(content)")
                     return .singleMessage(
                         headers: headers,
                         payload: try! self.encodeResponseIntoProtoMessage(content),

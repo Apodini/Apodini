@@ -97,11 +97,6 @@ public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
         
         let remainingAttributes: [String: String] = components[1...].mapIntoDict { (value: Substring) -> (String, String) in
             if let equalsSepIdx = value.firstIndex(of: "=") {
-//                let split = value.split(separator: "=")
-//                return (
-//                    String(split[0].trimmingLeadingAndTrailingWhitespace()),
-//                    String(split[1].trimmingLeadingAndTrailingWhitespace())
-//                )
                 return (
                     String(value[value.startIndex..<equalsSepIdx].trimmingLeadingAndTrailingWhitespace()),
                     String(value[value.index(after: equalsSepIdx)..<value.endIndex].trimmingLeadingAndTrailingWhitespace())

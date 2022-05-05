@@ -109,17 +109,9 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 return future
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
-//                        switch result {
-//                        case .success(let messageOut):
-//                            return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
-//                        case .failure(let error):
-//                            let status = (error as? GRPCStatus) ?? GRPCStatus(code: .unknown, message: "\(error.localizedDescription)")
-//                            return context
-//                        }
                         writeMessage(result, to: context, with: self.connectionCtx!)
                     }
             }
-//            self.connectionCtx!.handleStreamOpen()
             
         case .message(let messageIn):
             guard let connectionCtx = connectionCtx else {
@@ -129,13 +121,6 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
-//                        switch result {
-//                        case .success(let messageOut):
-//                            return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
-//                        case .failure(let error):
-//                            let status = (error as? GRPCStatus) ?? GRPCStatus(code: .unknown, message: "\(error.localizedDescription)")
-//                            return context.writeAndFlush(self.wrapOutboundOut(.error(status, connectionCtx)))
-//                        }
                         writeMessage(result, to: context, with: connectionCtx)
                     }
             }

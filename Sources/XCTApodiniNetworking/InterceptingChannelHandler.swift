@@ -23,8 +23,6 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     public private(set) var interceptedData: [T] = []
     private(set) var nextInterceptedDataHandler: ((T) -> Void)?
     
-//    /// The expectation which should be fulfilled the next time data is written to the channel.
-//    public var nextWriteExpectation: XCTestExpectation?
     
     /// - parameter closeExpectation: An XCTestExpectation which will be fulfilled when the channel is closed.
     public init(closeExpectation: XCTestExpectation? = nil) {

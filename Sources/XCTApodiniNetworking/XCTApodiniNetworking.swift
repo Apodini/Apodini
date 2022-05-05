@@ -27,8 +27,9 @@ public struct XCTHTTPHeaderEntry: Hashable {
 
 
 extension __ANNIOHTTPHeadersType {
+    /// Maps the headers object into an array of `XCTHTTPHeaderEntry` objects.
     public func mapToXCTHeaderEntries() -> [XCTHTTPHeaderEntry] {
-        self.entries.map { (name, value, _) in
+        self.entries.map { name, value, _ in
             XCTHTTPHeaderEntry(name: name, value: value)
         }
     }
