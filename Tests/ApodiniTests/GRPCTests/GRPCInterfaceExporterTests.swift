@@ -547,8 +547,13 @@ struct BidirectionalStreamTestHandler: Handler {
     }
 }
 
+private func logLoc(_ fName: StaticString = #function, _ lNo: UInt = #line) {
+    print(fname, lNo)
+}
+
 extension GRPCInterfaceExporterTests {
     func testBidirectionalStream() throws {
+        logLoc()
         struct WebService: Apodini.WebService {
             var content: some Component {
                 BidirectionalStreamTestHandler()
@@ -556,22 +561,30 @@ extension GRPCInterfaceExporterTests {
                     .pattern(.bidirectionalStream)
             }
         }
-        
+        logLoc()
         struct HandlerMessageWrapper: Codable {
             let value: Int
         }
-        
+        logLoc()
         TestGRPCExporterCollection().configuration.configure(app)
+        logLoc()
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        logLoc()
         WebService().accept(visitor)
+        logLoc()
         visitor.finishParsing()
+        logLoc()
         // Intentionally not starting the app here...
-        
+        logLoc()
         let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
+        logLoc()
         
         let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
+        logLoc()
         let messageOutInterceptor = OutboundInterceptingChannelHandler<GRPCMessageHandler.OutboundOut>()
+        logLoc()
         let httpOutInterceptor = OutboundInterceptingChannelHandler<HTTP2Frame.FramePayload>(closeExpectation: channelCloseExpectation)
+        logLoc()
         
         // We create an embedded channel which receives already-decoded input (skipping the HTTP2 frame -> grpc handler input step here),
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
@@ -584,6 +597,7 @@ extension GRPCInterfaceExporterTests {
             messageOutInterceptor,
             GRPCMessageHandler(server: grpcIE.server)
         ])
+        logLoc()
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
@@ -591,8 +605,10 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/AcceptNumber"
             $0[.contentType] = .gRPC(.proto)
         }
+        logLoc()
         
         try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
+        logLoc()
         
         enum TestStepInput {
             case message(value: Int, includeHeaders: Bool = false)
@@ -648,40 +664,51 @@ extension GRPCInterfaceExporterTests {
             self.wait(for: [expectation], timeout: 2)
         }
         
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 1, includeHeaders: true),
             expectedResponse: .message(value: 2, closeStream: false)
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 2, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 3, includeHeaders: true),
             expectedResponse: .message(value: 4, closeStream: false)
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 4, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 5, includeHeaders: true),
             expectedResponse: .message(value: 6, closeStream: false)
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 6, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
+        logLoc()
         try testStepImp_V2(
             input: .message(value: 7, includeHeaders: true),
             expectedResponse: .message(value: 8, closeStream: false)
         )
+        logLoc()
         try testStepImp_V2(
             input: .closeStream,
             expectedResponse: .message(value: 28, closeStream: true)
         )
+        logLoc()
         wait(for: [channelCloseExpectation], timeout: 8)
+        logLoc()
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 8)
+        logLoc()
     }
     
     
