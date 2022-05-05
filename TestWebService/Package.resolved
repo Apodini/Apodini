@@ -167,8 +167,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pvieito/PythonKit.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "8de2a3f1f8c1388e9fca84f192f96821d9ccd43d"
+        "revision" : "d383a1b1e35fff450fe5ca2443c6d1ec9e040ec4",
+        "version" : "0.2.2"
       }
     },
     {
