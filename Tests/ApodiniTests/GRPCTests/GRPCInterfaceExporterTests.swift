@@ -646,7 +646,6 @@ extension GRPCInterfaceExporterTests {
                 try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
             }
             self.wait(for: [expectation], timeout: 2)
-            
         }
         
         try testStepImp_V2(
@@ -692,7 +691,7 @@ extension GRPCInterfaceExporterTests {
         status.encode(into: &headers)
         XCTAssertEqualIgnoringOrder(headers.mapToXCTHeaderEntries(), [
             .init(name: "grpc-status", value: "12"),
-            .init(name: "grpc-message", value: "Not yet implemented. (Trigger encoded char: %25)"),
+            .init(name: "grpc-message", value: "Not yet implemented. (Trigger encoded char: %25)")
         ])
     }
 }

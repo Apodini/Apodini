@@ -211,7 +211,7 @@ private struct EchoHandler<T: Codable & Equatable>: Handler {
 
 private struct NeverReturningHandler: Handler {
     func handle() -> Never {
-        fatalError("")
+        fatalError(".")
     }
 }
 
