@@ -23,12 +23,17 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 }
 
 
+/// :nodoc:
 public protocol BindAddressProtocol {
+    /// Creates a new BindAddress from a hostname and a port.
     init(address: String, port: Int)
 }
 
 
 extension BindAddressProtocol {
+    /// Creates a new BindAddress by parsing a hostname and port from a string, if possible.
+    /// - parameter string: A string in the form of `"hostname:port"`
+    /// - returns: Nil if the parsing failed, otherwise a bind address.
     public init?(_ string: String) {
         let components = string.split(separator: ":")
         guard components.count == 2, let port = Int(components[1]) else {

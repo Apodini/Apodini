@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-// swiftlint:disable syntactic_sugar
 
 import NIO
 import Apodini

@@ -116,6 +116,7 @@ extension String {
     }
     
     
+    /// Returns a copy of this string, with the specified characters removed from the specified trim locations.
     public func trimmingCharacters(from characterSet: Set<Character>, at locations: TrimLocation = [.leading, .trailing]) -> String {
         guard !locations.isEmpty else {
             return self
