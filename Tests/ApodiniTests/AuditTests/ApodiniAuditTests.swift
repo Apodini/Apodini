@@ -55,44 +55,44 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
         
-        let auditReports = auditInterfaceExporter.audits.flatMap { $0.reports }
+        let auditFindings = auditInterfaceExporter.reports.flatMap { $0.findings }
         
-        let expectedAuditReports = [
-//            AuditReport(
+        let expectedAuditFindings = [
+//            AuditFinding(
 //                message: "The path segments do not contain any underscores",
-//                auditResult: .success
+//                result: .success
 //            ),
-            AuditReport(
+            AuditFinding(
                 message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "The path segment crudGet contains one or more CRUD verbs!",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "\"crudGet\" and \"looooooooooooooooooooooooooooooooooongSeg2\" are not related!",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "\"looooooooooooooooooooooooooooooooooongSeg2\" and \"withextension.html\" are not related!",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "The path segment crudGet contains one or more uppercase letters!",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-                auditResult: .fail
+                result: .fail
             ),
-            AuditReport(
+            AuditFinding(
                 message: "The path segment withextension.html has a file extension.",
-                auditResult: .fail
+                result: .fail
             )
         ]
         
-        XCTAssertEqualIgnoringOrder(auditReports, expectedAuditReports)
+        XCTAssertEqualIgnoringOrder(auditFindings, expectedAuditFindings)
     }
     
     func testRegisterCommandOnce() throws {

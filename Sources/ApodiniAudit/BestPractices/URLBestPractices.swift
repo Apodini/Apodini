@@ -9,13 +9,13 @@
 import Foundation
 import Apodini
 
-struct ContextualisedResourceNames: _BestPractice {
+struct ContextualisedResourceNames: BestPractice {
     
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
-    static func performAudit(_ app: Application, _ audit: Audit) {
-        let pathSegments = audit.endpoint.absolutePath
+    static func check(into report: AuditReport, _ app: Application) {
+        let pathSegments = report.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
             if case .string( _) = path {
                 return true
@@ -25,7 +25,7 @@ struct ContextualisedResourceNames: _BestPractice {
         guard let firstStringSegment = firstStringSegment,
               case .string(let firstString) = firstStringSegment,
               let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
-            audit.report("Nothing to check for endpoint \(audit.endpoint)", .success)
+            report.recordFinding("Nothing to check for endpoint \(report.endpoint)", .success)
             return
         }
 
@@ -33,7 +33,7 @@ struct ContextualisedResourceNames: _BestPractice {
         for segmentIndex in firstStringIndex + 1..<pathSegments.count {
             if case .string(let nextString) = pathSegments[segmentIndex] {
                 if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
-                    audit.report("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
+                    report.recordFinding("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
                 }
                 print("\"\(latestString)\" and \"\(nextString)\" are related!")
                 latestString = nextString
@@ -42,18 +42,18 @@ struct ContextualisedResourceNames: _BestPractice {
     }
 }
 
-protocol URLSegmentBestPractice: _BestPractice {
+protocol URLSegmentBestPractice: BestPractice {
     static var successMessage: String { get }
     
     static func checkSegment(segment: String) -> String?
 }
 
 extension URLSegmentBestPractice {
-    static func performAudit(_ app: Application, _ audit: Audit) {
-        for segment in audit.endpoint.absolutePath {
+    static func check(into report: AuditReport, _ app: Application) {
+        for segment in report.endpoint.absolutePath {
             if case .string(let identifier) = segment,
                 let failMessage = checkSegment(segment: identifier) {
-                audit.report(failMessage, .fail)
+                report.recordFinding(failMessage, .fail)
             }
         }
     }

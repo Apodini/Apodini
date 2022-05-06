@@ -11,7 +11,7 @@ import Apodini
 import ApodiniHTTP
 
 final class AuditInterfaceExporter: InterfaceExporter {
-    var audits: [Audit] = []
+    var reports: [AuditReport] = []
     
     var app: Application
     var parentConfiguration: HTTPExporterConfiguration
@@ -26,7 +26,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
             guard applyRESTBestPractices || bestPracticeType.scope == .all else {
                 continue
             }
-            audits.append(bestPracticeType.generateAudit(app, endpoint))
+            reports.append(bestPracticeType.check(for: endpoint, app))
         }
     }
     
@@ -36,9 +36,9 @@ final class AuditInterfaceExporter: InterfaceExporter {
     
     func finishedExporting(_ webService: WebServiceModel) {
         // where audit.report.auditResult == .fail {
-        for audit in audits {
-            for report in audit.reports {
-                app.logger.info("[Audit] \(report.message)")
+        for report in reports {
+            for finding in report.findings {
+                app.logger.info("[Audit] \(finding.message)")
             }
         }
     }
@@ -50,7 +50,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
 }
 
 extension AuditInterfaceExporter {
-    static let bestPractices: [_BestPractice.Type] = [
+    static let bestPractices: [BestPractice.Type] = [
         AppropriateLengthForURLPathSegments.self,
         NoUnderscoresInURLPathSegments.self,
         NoCRUDVerbsInURLPathSegments.self,
