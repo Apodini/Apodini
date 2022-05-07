@@ -11,10 +11,10 @@ import Apodini
 import ApodiniTypeInformation
 
 struct GetHasComplexReturnType: BestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .method
+    var scope: BestPracticeScopes = .rest
+    var category: BestPracticeCategories = .method
     
-    static func check(into report: AuditReport, _ app: Application) {
+    func check(into report: AuditReport, _ app: Application) {
         // get operation for endpoint
         guard report.endpoint[Operation.self] == Operation.read else {
             return

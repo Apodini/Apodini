@@ -21,12 +21,16 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        guard let bestPractices = app.storage[BestPracticesStorageKey.self] else {
+            app.logger.error("Could not find best practices in app storage")
+            return
+        }
         // FUTURE figure out which ones are silenced for the current endpoint
-        for bestPracticeType in Self.bestPractices {
-            guard applyRESTBestPractices || bestPracticeType.scope == .all else {
+        for bestPractice in bestPractices {
+            guard applyRESTBestPractices || bestPractice.scope == .all else {
                 continue
             }
-            reports.append(bestPracticeType.check(for: endpoint, app))
+            reports.append(bestPractice.check(for: endpoint, app))
         }
     }
     
@@ -50,13 +54,13 @@ final class AuditInterfaceExporter: InterfaceExporter {
 }
 
 extension AuditInterfaceExporter {
-    static let bestPractices: [BestPractice.Type] = [
-        AppropriateLengthForURLPathSegments.self,
-        NoUnderscoresInURLPathSegments.self,
-        NoCRUDVerbsInURLPathSegments.self,
-        LowercaseURLPathSegments.self,
-        NoFileExtensionsInURLPathSegments.self,
-        ContextualisedResourceNames.self,
-        GetHasComplexReturnType.self
+    static let defaultBestPracticeConfigurations: [BestPracticeConfiguration] = [
+        EmptyBestPracticeConfiguration<AppropriateLengthForURLPathSegments>(),
+        EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
+        EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
+        EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
+        EmptyBestPracticeConfiguration<NoFileExtensionsInURLPathSegments>(),
+        EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
+        EmptyBestPracticeConfiguration<GetHasComplexReturnType>()
     ]
 }

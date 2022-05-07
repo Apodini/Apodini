@@ -9,20 +9,20 @@
 import Foundation
 import Apodini
 
-/// A best practice that can be checked for an Endpoint.
-/// Implementations of this protocol are listed in `AuditInterfaceExporter.bestPractices`.
 public protocol BestPractice {
     /// The scope of this best practice (http or rest)
-    static var scope: BestPracticeScopes { get }
+    var scope: BestPracticeScopes { get }
     /// The category this best practice fits into
-    static var category: BestPracticeCategories { get }
+    var category: BestPracticeCategories { get }
     
     /// Check this best practice into the given AuditReport.
-    static func check(into report: AuditReport, _ app: Application)
+    func check(into report: AuditReport, _ app: Application)
+    
+    init()
 }
 
 extension BestPractice {
-    static func check(for endpoint: AnyEndpoint, _ app: Application) -> AuditReport {
+    func check(for endpoint: AnyEndpoint, _ app: Application) -> AuditReport {
         let report = AuditReport(endpoint, Self.self)
         check(into: report, app)
         if report.findings.isEmpty {
