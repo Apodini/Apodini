@@ -107,7 +107,12 @@ final class ApodiniAuditTests: ApodiniTests {
         try TestWebService.start(mode: .boot, app: app, webService: webService)
         let commands = webService.configuration._commands
         
-        XCTAssertEqual(commands.count, 1)
+        // Filter to get only auditcommands
+        let auditCommands = commands.filter { cmd in
+            cmd is AuditCommand<TestWebService>.Type
+        }
+        
+        XCTAssertEqual(auditCommands.count, 1)
     }
 }
 
