@@ -137,7 +137,7 @@ public final class Application {
     }
 
     /// Create a new application instance
-    public init(_ eventLoopGroupProvider: EventLoopGroupProvider = .createNew) {
+    public init(eventLoopGroupProvider: EventLoopGroupProvider = .createNew) {
         self.eventLoopGroupProvider = eventLoopGroupProvider
         switch eventLoopGroupProvider {
         case .shared(let group):
