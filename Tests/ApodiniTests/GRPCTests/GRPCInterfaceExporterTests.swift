@@ -577,7 +577,7 @@ struct BidirectionalStreamTestHandler: Handler {
 }
 
 private func logLoc(_ fName: StaticString = #function, _ lNo: UInt = #line) {
-    print(fName, lNo)
+//    print(fName, lNo)
 }
 
 extension GRPCInterfaceExporterTests {
