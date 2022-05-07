@@ -32,7 +32,7 @@ public struct AuditFinding {
     var result: AuditResult
 }
 
-enum AuditResult {
+enum AuditResult: Hashable {
     case success
     case fail
 }

@@ -55,7 +55,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
 
 extension AuditInterfaceExporter {
     static let defaultBestPracticeConfigurations: [BestPracticeConfiguration] = [
-        EmptyBestPracticeConfiguration<AppropriateLengthForURLPathSegments>(),
+        AppropriateLengthForURLPathSegmentsConfiguration(),
         EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
         EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),

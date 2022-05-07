@@ -15,7 +15,7 @@ import XCTest
 final class ApodiniAuditTests: ApodiniTests {
     struct TestWebService: WebService {
         var content: some Component {
-            Group("crudGet", "looooooooooooooooooooooooooooooooooongSeg2", "withextension.html/") {
+            Group("crudGet", "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", "withextension.html") {
                 SomeComp()
             }
         }
@@ -31,6 +31,12 @@ final class ApodiniAuditTests: ApodiniTests {
                 } else {
                     APIAuditor()
                 }
+            }
+            
+            AuditConfiguration {
+                AppropriateLengthForURLPathSegmentsConfiguration(
+                    maximumLength: 50
+                )
             }
         }
     }
@@ -62,37 +68,37 @@ final class ApodiniAuditTests: ApodiniTests {
 //                message: "The path segments do not contain any underscores",
 //                result: .success
 //            ),
-            AuditFinding(
-                message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
-                result: .fail
-            ),
+//            AuditFinding(
+//                message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
+//                result: .fail
+//            ),
             AuditFinding(
                 message: "The path segment crudGet contains one or more CRUD verbs!",
                 result: .fail
             ),
             AuditFinding(
-                message: "\"crudGet\" and \"looooooooooooooooooooooooooooooooooongSeg2\" are not related!",
+                message: "\"crudGet\" and \"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" are not related!",
                 result: .fail
             ),
             AuditFinding(
-                message: "\"looooooooooooooooooooooooooooooooooongSeg2\" and \"withextension.html\" are not related!",
+                message: "\"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" and \"withextension.html\" are not related!",
                 result: .fail
             ),
             AuditFinding(
                 message: "The path segment crudGet contains one or more uppercase letters!",
                 result: .fail
             ),
-            AuditFinding(
-                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-                result: .fail
-            ),
+//            AuditFinding(
+//                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
+//                result: .fail
+//            ),
             AuditFinding(
                 message: "The path segment withextension.html has a file extension.",
                 result: .fail
             )
         ]
         
-        XCTAssertEqualIgnoringOrder(auditFindings, expectedAuditFindings)
+        XCTAssertSetEqual(auditFindings, expectedAuditFindings)
     }
     
     func testRegisterCommandOnce() throws {
@@ -103,4 +109,42 @@ final class ApodiniAuditTests: ApodiniTests {
         
         XCTAssertEqual(commands.count, 1)
     }
+}
+
+func XCTAssertSetEqual<T: Hashable>(
+    _ actual: [T],
+    _ expected: [T],
+    _ message: @autoclosure () -> String = "" ,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    let actualCounts = actual.distinctElementCounts()
+    let expectedCounts = expected.distinctElementCounts()
+    if actualCounts == expectedCounts {
+        return
+    }
+    
+    // Build sets
+    let actualSet = Set(actual)
+    let expectedSet = Set(expected)
+    
+    if actualSet.count != actual.count || expectedSet.count != expected.count {
+        XCTFail("The expected or actual array is not duplicate-free!", file: file, line: line)
+    }
+    
+    let missingElements = expectedSet.subtracting(actualSet)
+    let superfluousElements = actualSet.subtracting(expectedSet)
+    
+    var failureMsg = ""
+    if !missingElements.isEmpty {
+        failureMsg += "Missing elements:\n\(missingElements.map { "- \($0)" }.joined(separator: "\n"))\n"
+    }
+    if !superfluousElements.isEmpty {
+        failureMsg += "Superfluous elements:\n\(superfluousElements.map { "- \($0)" }.joined(separator: "\n"))\n"
+    }
+    let customMsg = message()
+    if !customMsg.isEmpty {
+        failureMsg.append(customMsg)
+    }
+    XCTFail(failureMsg, file: file, line: line)
 }
