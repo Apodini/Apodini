@@ -9,6 +9,7 @@
 import Foundation
 import NIO
 import NIOHPACK
+import NIOConcurrencyHelpers
 
 
 /// Type that can handle events on a gRPC connection.
@@ -90,6 +91,7 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
 /// A queue of `EventLoopFuture`s, which will be evaluated one after the other.
 /// - Note: This is not always a useful or desirable thing, so use with caution.
 class EventLoopFutureQueue {
+    private let lock = Lock()
     private let eventLoop: EventLoop?
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
@@ -102,13 +104,17 @@ class EventLoopFutureQueue {
         guard let eventLoop = eventLoop ?? self.eventLoop else {
             fatalError("You need to specify an event loop, either here or in the initializer!")
         }
+        self.lock.lock()
         defer {
+            self.lock.unlock()
             self.lastMessageResponseFuture!.whenComplete { [self] _ in
+                self.lock.lock()
                 self.numQueuedHandlerCalls -= 1
                 precondition(self.numQueuedHandlerCalls >= 0)
                 if self.numQueuedHandlerCalls == 0 {
                     self.lastMessageResponseFuture = nil
                 }
+                self.lock.unlock()
             }
         }
         precondition((self.numQueuedHandlerCalls == 0) == (self.lastMessageResponseFuture == nil))
