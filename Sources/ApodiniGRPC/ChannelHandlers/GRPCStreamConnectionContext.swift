@@ -88,7 +88,7 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
 }
 
 
-/// A queue of `EventLoopFuture`s, which will be evaluated one after the other.
+/// A queue of `EventLoopFuture`s, which will be evaluated in the order in which they were submitted.
 /// - Note: This is not always a useful or desirable thing, so use with caution.
 class EventLoopFutureQueue {
     private let lock = Lock()
