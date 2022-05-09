@@ -465,7 +465,6 @@ extension GRPCInterfaceExporterTests {
     // because it also serves as a proof-of-concept of using `EmbeddedChannel`s for testing the gRPC IE,
     // rather than relying on grpcurl.
     func testResponseHeaders() throws {
-//        logLoc()
         struct WebService: Apodini.WebService {
             var content: some Component {
                 Text("Hello World")
@@ -486,38 +485,23 @@ extension GRPCInterfaceExporterTests {
             }
         }
         
-//        logLoc()
         let eventLoop = EmbeddedEventLoop()
-//        logLoc()
         let app = Application(eventLoopGroupProvider: .shared(eventLoop))
-//        logLoc()
         defer {
-//            logLoc()
             app.shutdown()
-//            logLoc()
             try! eventLoop.syncShutdownGracefully()
-//            logLoc()
         }
-//        logLoc()
         TestGRPCExporterCollection().configuration.configure(app)
-//        logLoc()
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-//        logLoc()
         WebService().accept(visitor)
-//        logLoc()
         visitor.finishParsing()
-//        logLoc()
         // Intentionally not starting the app here...
         
         let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
-//        logLoc()
         
         let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
-//        logLoc()
         let messageOutInterceptor = OutboundInterceptingChannelHandler<GRPCMessageHandler.OutboundOut>()
-//        logLoc()
         let httpOutInterceptor = OutboundInterceptingChannelHandler<HTTP2Frame.FramePayload>(closeExpectation: channelCloseExpectation)
-//        logLoc()
         
         // We create an embedded channel which receives already-decoded input (skipping the HTTP2 frame -> grpc handler input step here),
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
@@ -530,13 +514,9 @@ extension GRPCInterfaceExporterTests {
             messageOutInterceptor,
             GRPCMessageHandler(server: grpcIE.server)
         ], loop: eventLoop)
-//        logLoc()
         channel.connect(to: try .makeAddressResolvingHost("127.0.0.1", port: 52520), promise: nil)
-//        logLoc()
         XCTAssertTrue(channel.isActive)
-//        logLoc()
         XCTAssertTrue(channel.isWritable)
-//        logLoc()
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
@@ -544,25 +524,18 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/GetTeam"
             $0[.contentType] = .gRPC(.proto)
         }
-//        logLoc()
         try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
-//        logLoc()
         try channel.writeInbound(GRPCMessageHandler.Input.message(GRPCMessageIn(
             remoteAddress: nil,
             requestHeaders: clientHeaders,
             payload: ByteBuffer()
         )))
-//        logLoc()
         try channel.writeInbound(GRPCMessageHandler.Input.closeStream(reason: .client))
-//        logLoc()
         
         wait(for: [channelCloseExpectation], timeout: 5)
-//        logLoc()
         XCTAssert(try channel.finish(acceptAlreadyClosed: true).isClean)
-//        logLoc()
         
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 2)
-//        logLoc()
         XCTAssertEqual(messageOutInterceptor.interceptedData[0].asSingleMessage, GRPCMessageOut.singleMessage(
             headers: HPACKHeaders {
                 $0[.contentType] = .gRPC(.proto)
@@ -570,11 +543,8 @@ extension GRPCInterfaceExporterTests {
             payload: ByteBuffer(bytes: [10, 13, 65, 108, 105, 99, 101, 32, 97, 110, 100, 32, 66, 111, 98]),
             closeStream: true
         ))
-//        logLoc()
         XCTAssertEqual(messageOutInterceptor.interceptedData[1], .closeStream(trailers: HPACKHeaders()))
-//        logLoc()
         XCTAssertTrue(!channel.isActive)
-//        logLoc()
     }
 }
 
@@ -603,14 +573,9 @@ struct BidirectionalStreamTestHandler: Handler {
     }
 }
 
-//@inline(__always)
-//private func logLoc(_ fName: StaticString = #function, _ lNo: UInt = #line) {
-////    print(fName, lNo)
-//}
 
 extension GRPCInterfaceExporterTests {
     func testBidirectionalStream() throws {
-//        logLoc()
         struct WebService: Apodini.WebService {
             var content: some Component {
                 BidirectionalStreamTestHandler()
@@ -618,7 +583,6 @@ extension GRPCInterfaceExporterTests {
                     .pattern(.bidirectionalStream)
             }
         }
-//        logLoc()
         struct HandlerMessageWrapper: Codable {
             let value: Int
         }
@@ -629,26 +593,16 @@ extension GRPCInterfaceExporterTests {
             app.shutdown()
             try! eventLoop.syncShutdownGracefully()
         }
-//        logLoc()
         TestGRPCExporterCollection().configuration.configure(app)
-//        logLoc()
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-//        logLoc()
         WebService().accept(visitor)
-//        logLoc()
         visitor.finishParsing()
-//        logLoc()
         // Intentionally not starting the app here...
-//        logLoc()
         let grpcIE = try XCTUnwrap(app.firstInterfaceExporter(ofType: GRPCInterfaceExporter.self))
-//        logLoc()
         
         let channelCloseExpectation = XCTestExpectation(description: "NIO outbound channel close")
-//        logLoc()
         let messageOutInterceptor = OutboundInterceptingChannelHandler<GRPCMessageHandler.OutboundOut>()
-//        logLoc()
         let httpOutInterceptor = OutboundInterceptingChannelHandler<HTTP2Frame.FramePayload>(closeExpectation: channelCloseExpectation)
-//        logLoc()
         
         // We create an embedded channel which receives already-decoded input (skipping the HTTP2 frame -> grpc handler input step here),
         // and otherwise behaves the same was as the "normal" gRPC channel pipeline.
@@ -661,12 +615,9 @@ extension GRPCInterfaceExporterTests {
             messageOutInterceptor,
             GRPCMessageHandler(server: grpcIE.server)
         ], loop: eventLoop)
-//        logLoc()
         channel.connect(to: try .makeAddressResolvingHost("127.0.0.1", port: 52520), promise: nil)
         XCTAssertTrue(channel.isActive)
-//        logLoc()
         XCTAssertTrue(channel.isWritable)
-//        logLoc()
         // The HTTP/2 headers with which the client initiated the connection
         let clientHeaders = HPACKHeaders {
             $0[.methodPseudoHeader] = .POST
@@ -674,10 +625,8 @@ extension GRPCInterfaceExporterTests {
             $0[.pathPseudoHeader] = "/de.lukaskollmer.TestWebService/AcceptNumber"
             $0[.contentType] = .gRPC(.proto)
         }
-//        logLoc()
         
         try channel.writeInbound(GRPCMessageHandler.Input.openStream(clientHeaders))
-//        logLoc()
         
         enum TestStepInput {
             case message(value: Int, includeHeaders: Bool = false)
@@ -733,51 +682,40 @@ extension GRPCInterfaceExporterTests {
             self.wait(for: [expectation], timeout: 2)
         }
         
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 1, includeHeaders: true),
             expectedResponse: .message(value: 2, closeStream: false)
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 2, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 3, includeHeaders: true),
             expectedResponse: .message(value: 4, closeStream: false)
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 4, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 5, includeHeaders: true),
             expectedResponse: .message(value: 6, closeStream: false)
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 6, includeHeaders: true),
             expectedResponse: .nothingAndKeepOpen
         )
-//        logLoc()
         try testStepImp_V2(
             input: .message(value: 7, includeHeaders: true),
             expectedResponse: .message(value: 8, closeStream: false)
         )
-//        logLoc()
         try testStepImp_V2(
             input: .closeStream,
             expectedResponse: .message(value: 28, closeStream: true)
         )
-//        logLoc()
         wait(for: [channelCloseExpectation], timeout: 8)
-//        logLoc()
         XCTAssertEqual(messageOutInterceptor.interceptedData.count, 8)
-//        logLoc()
         XCTAssertTrue(!channel.isActive)
     }
     
