@@ -23,7 +23,7 @@ public protocol BestPractice {
 
 extension BestPractice {
     func check(for endpoint: AnyEndpoint, _ app: Application) -> AuditReport {
-        let report = AuditReport(endpoint, Self.self)
+        let report = AuditReport(endpoint, self)
         check(into: report, app)
         if report.findings.isEmpty {
             // TODO generate success message
@@ -39,6 +39,10 @@ public struct BestPracticeCategories: OptionSet {
     static let urlPath      = BestPracticeCategories(rawValue: 1 << 0)
     static let statusCode   = BestPracticeCategories(rawValue: 1 << 1)
     static let method       = BestPracticeCategories(rawValue: 1 << 2)
+    
+    static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
+    
+    static let linguisticURL: BestPracticeCategories = [.linguistic, .urlPath]
     
     public init(rawValue: Int) {
         self.rawValue = rawValue

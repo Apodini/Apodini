@@ -14,15 +14,15 @@ import Apodini
 public class AuditReport {
     var findings: [AuditFinding] = []
     var endpoint: AnyEndpoint
-    var bestPracticeType: BestPractice.Type
+    var bestPractice: BestPractice
     
     func recordFinding(_ message: String, _ result: AuditResult) {
         findings.append(AuditFinding(message: message, result: result))
     }
     
-    init(_ endpoint: AnyEndpoint, _ bestPracticeType: BestPractice.Type) {
+    init(_ endpoint: AnyEndpoint, _ bestPractice: BestPractice) {
         self.endpoint = endpoint
-        self.bestPracticeType = bestPracticeType
+        self.bestPractice = bestPractice
     }
 }
 

@@ -13,10 +13,12 @@ struct NLTKInterface {
     static let shared = NLTKInterface()
     
     private let wordnet: PythonObject
+    private let nltk: PythonObject
     
     private init() {
         let corpus = Python.import("nltk.corpus")
         self.wordnet = corpus.wordnet
+        self.nltk = Python.import("nltk")
     }
     
     func synsetIntersectionEmpty(_ str1: String, _ str2: String) -> Bool {
@@ -24,5 +26,12 @@ struct NLTKInterface {
         let synsets2 = Set(wordnet.synsets(str2))
         
         return synsets1.intersection(synsets2).isEmpty
+    }
+    
+    func isPluralNoun(_ str: String) -> Bool {
+        let tags = nltk.pos_tag([str])
+        let firstTagTuple = tags[0]
+        let tag = String(firstTagTuple.tuple2.1)
+        return tag == "NNPS" || tag == "NNS"
     }
 }

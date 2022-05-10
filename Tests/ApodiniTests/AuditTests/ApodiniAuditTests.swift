@@ -13,14 +13,14 @@ import XCTest
 
 
 final class ApodiniAuditTests: ApodiniTests {
-    struct TestWebService: WebService {
+    struct AuditableWebService: WebService {
         var content: some Component {
             Group("crudGet", "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", "withextension.html") {
                 SomeComp()
             }
         }
 
-        var configuration: Configuration {
+        @ConfigurationBuilder static var conf: Configuration {
             REST {
                 // swiftlint:disable:next all
                 if 1 == 1 {
@@ -39,6 +39,39 @@ final class ApodiniAuditTests: ApodiniTests {
                 )
             }
         }
+        
+        var configuration: Configuration {
+            Self.conf
+        }
+    }
+    
+    struct AuditableWebService2: WebService {
+        var content: some Component {
+            Group("getThisResource") {
+                SomeComp()
+            }
+            Group("testGreetings") {
+                SomePOSTComp()
+                DELETEComponent()
+            }
+            Group("testGreeting") {
+                SomePOSTComp()
+            }
+        }
+        
+        var configuration: Configuration {
+            AuditableWebService.conf
+        }
+    }
+    
+    struct DELETEComponent: Component {
+        @PathParameter var greetingID: UUID
+        
+        var content: some Component {
+            Group($greetingID) {
+                SomeDELETEComp(greetingID: $greetingID)
+            }
+        }
     }
     
     struct SomeComp: Handler {
@@ -46,22 +79,35 @@ final class ApodiniAuditTests: ApodiniTests {
             "Test"
         }
     }
+    
+    struct SomePOSTComp: Handler {
+        func handle() -> String {
+            "Hello"
+        }
+        
+        var metadata: AnyHandlerMetadata {
+            Operation(.create)
+        }
+    }
+    
+    struct SomeDELETEComp: Handler {
+        @Binding var greetingID: UUID
+        
+        func handle() -> String {
+            "Hello"
+        }
+        
+        var metadata: AnyHandlerMetadata {
+            Operation(.delete)
+        }
+    }
 
     func testBasicAuditing() throws {
-        let commandType = AuditRunCommand<TestWebService>.self
+        let commandType = AuditRunCommand<AuditableWebService>.self
         var command = commandType.init()
-        command.webService = .init()
         
-        try command.run(app: app)
-        
-        // Get the AuditInterfaceExporter
-        // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
-        let optionalExporter = app.interfaceExporters.first { exporter in
-            exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
-        }
-        let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
-        
-        let auditFindings = auditInterfaceExporter.reports.flatMap { $0.findings }
+        let reports = try getReportsForAuditRunCommand(&command)
+        let actualAuditFindings = reports.flatMap { $0.findings }
         
         let expectedAuditFindings = [
 //            AuditFinding(
@@ -70,6 +116,10 @@ final class ApodiniAuditTests: ApodiniTests {
 //            ),
 //            AuditFinding(
 //                message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
+//                result: .fail
+//            ),
+//            AuditFinding(
+//                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
 //                result: .fail
 //            ),
             AuditFinding(
@@ -88,28 +138,66 @@ final class ApodiniAuditTests: ApodiniTests {
                 message: "The path segment crudGet contains one or more uppercase letters!",
                 result: .fail
             ),
-//            AuditFinding(
-//                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-//                result: .fail
-//            ),
             AuditFinding(
                 message: "The path segment withextension.html has a file extension.",
                 result: .fail
             )
         ]
         
-        XCTAssertSetEqual(auditFindings, expectedAuditFindings)
+        XCTAssertSetEqual(actualAuditFindings, expectedAuditFindings)
+    }
+    
+    func testLingusticAuditing() throws {
+        let commandType = AuditRunCommand<AuditableWebService2>.self
+        var command = commandType.init()
+        
+        let reports = try getReportsForAuditRunCommand(&command)
+        
+        let lingReports = reports.filter { $0.bestPractice.category.contains(.linguistic) }
+        let lingAudits = lingReports.flatMap { $0.findings }
+        
+        let expectedLingAudits = [
+            AuditFinding(
+                message: "\"Greeting\" is not a plural noun for a POST handler",
+                result: .fail
+            ),
+            AuditFinding(
+                message: "\"Greetings\" is a plural noun for a POST handler",
+                result: .success
+            ),
+            AuditFinding(
+                message: "\"ID\" is a singular noun for a PUT or DELETE handler",
+                result: .success
+            )
+        ]
+        
+        XCTAssertSetEqual(lingAudits, expectedLingAudits)
+    }
+    
+    func getReportsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [AuditReport] {
+        command.webService = .init()
+        
+        try command.run(app: app)
+        
+        // Get the AuditInterfaceExporter
+        // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
+        let optionalExporter = app.interfaceExporters.first { exporter in
+            exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
+        }
+        let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
+        
+        return auditInterfaceExporter.reports
     }
     
     func testRegisterCommandOnce() throws {
-        let webService = TestWebService()
+        let webService = AuditableWebService()
         
-        try TestWebService.start(mode: .boot, app: app, webService: webService)
+        try AuditableWebService.start(mode: .boot, app: app, webService: webService)
         let commands = webService.configuration._commands
         
         // Filter to get only auditcommands
         let auditCommands = commands.filter { cmd in
-            cmd is AuditCommand<TestWebService>.Type
+            cmd is AuditCommand<AuditableWebService>.Type
         }
         
         XCTAssertEqual(auditCommands.count, 1)

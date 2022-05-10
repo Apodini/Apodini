@@ -41,8 +41,8 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         
         print("Successfully installed nltk!")
         
-        // Install wordnet and omw-1.4 corpora
-        let python3Args = ["-m", "nltk.downloader", "wordnet", "omw-1.4"]
+        // Install wordnet, omw-1.4, and averaged_perceptron_tagger corpora
+        let python3Args = ["-m", "nltk.downloader", "wordnet", "omw-1.4", "averaged_perceptron_tagger"]
         (exitCode, output) = try runCommand("python3", python3Args)
         
         if exitCode != 0 {
@@ -50,7 +50,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
             return
         }
         
-        print("Successfully installed wordnet and omw-1.4 corpora!")
+        print("Successfully installed wordnet, omw-1.4, and averaged_perceptron_tagger corpora!")
     }
     
     private func executableURL(for executable: String) -> URL? {
