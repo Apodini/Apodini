@@ -17,8 +17,8 @@ struct TracingHandler<H: Handler>: Handler {
     @Environment(\.connection)
     var connection
 
-    @Environment(\ObserveMetadataExporter.BlackboardObserveMetadata.value)
-    var blackboardMetadata
+    @Environment(\ObserveMetadataExporter.SharedRepositoryObserveMetadata.value)
+    var sharedRepositoryMetadata
 
     /// Logging metadata is only accessed in case of a server error.
     @LoggingMetadata
@@ -62,21 +62,23 @@ struct TracingHandler<H: Handler>: Handler {
     }
 
     private func getOperationName() -> String {
-        "\(blackboardMetadata.operation.description) \(blackboardMetadata.endpointName)"
+        "\(sharedRepositoryMetadata.operation.description) \(sharedRepositoryMetadata.endpointName)"
     }
 
     private func setEndpointMetadata(to span: Span) {
-        span.attributes.apodini.endpointName = blackboardMetadata.endpointName
-        span.attributes.apodini.endpointOperation = blackboardMetadata.operation.description
+        span.attributes.apodini.endpointName = sharedRepositoryMetadata.endpointName
+        span.attributes.apodini.endpointOperation = sharedRepositoryMetadata.operation.description
         span.attributes.apodini.endpointPath = String(
-            blackboardMetadata.endpointPathComponents.value
+            sharedRepositoryMetadata.endpointPathComponents.value
                 .reduce(into: "") { path, endpointPath in
                     path.append(contentsOf: endpointPath.description + "/")
                 }
                 .dropLast()
         )
-        span.attributes.apodini.endpointCommunicationalPattern = blackboardMetadata.communicationPattern.rawValue
-        span.attributes.apodini.endpointVersion = blackboardMetadata.context.get(valueFor: APIVersionContextKey.self)?.debugDescription ?? "unknown"
+        span.attributes.apodini.endpointCommunicationalPattern = sharedRepositoryMetadata.communicationPattern.rawValue
+        span.attributes.apodini.endpointVersion = sharedRepositoryMetadata.context.get(
+            valueFor: APIVersionContextKey.self
+        )?.debugDescription ?? "unknown"
     }
 
     private func setErrorMetadata(to span: Span, for error: Error) {

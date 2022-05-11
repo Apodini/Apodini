@@ -26,10 +26,10 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
 
     private var finishedParsing = false
     
-    public let globalBlackboard: Blackboard
+    public let globalSharedRepository: SharedRepository
 
-    init(_ globalBlackboard: Blackboard) {
-        self.globalBlackboard = globalBlackboard
+    init(_ globalSharedRepository: SharedRepository) {
+        self.globalSharedRepository = globalSharedRepository
     }
 
     /// Retrieve the `RelationshipEndpoint` located under the `EndpointPath.root`.

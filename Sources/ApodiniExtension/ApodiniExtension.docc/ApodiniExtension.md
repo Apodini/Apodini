@@ -132,7 +132,7 @@ Once you have decoded the `Request`, there may still be some processing steps to
 
 These steps include the following:
 
-First is the insertion of default values. Usually, this can be done using the ``DefaultValueStore``, which is available via the `Blackboard`. However, if your middleware-library already takes care of inserting default values, you can skip this step.
+First is the insertion of default values. Usually, this can be done using the ``DefaultValueStore``, which is available via the `SharedRepository`. However, if your middleware-library already takes care of inserting default values, you can skip this step.
 
 Second is the validation of parameter-mutability. If your exporter allows for multiple request messages, you have to ensure `Parameter`s marked as `.mutability(.constant)` don't change from one request to an other as long as they are part of the same connection. This can be done using ``MutabilityValidatingRequest``.
 
@@ -146,7 +146,7 @@ Finally you may want to add a `Request`-level cache using ``CachingRequest``. Th
 
 ### Evaluating Endpoints
 
-The evaluation of the now completely processed `Request` is based on Apodini's `Delegate`. Use the `DelegateFactory` from a `Blackboard` to obtain a prepared `Delegate`.
+The evaluation of the now completely processed `Request` is based on Apodini's `Delegate`. Use the `DelegateFactory` from a `SharedRepository` to obtain a prepared `Delegate`.
 
 > Warning: Make sure to use a new `DelegateFactory/instance()` for each connection!
 

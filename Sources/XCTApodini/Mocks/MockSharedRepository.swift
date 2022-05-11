@@ -10,9 +10,9 @@
 import Foundation
 @testable import Apodini
 
-/// A `Blackboard` which only provides access to the `contents` provided on initialization or values
-/// that have previously been placed on the board.
-public class MockBlackboard: Blackboard {
+/// A `SharedRepository` which only provides access to the `contents` provided on initialization or values
+/// that have previously been placed on the shared repository.
+public class MockSharedRepository: SharedRepository {
     private var content: [ObjectIdentifier: KnowledgeSource]
     
     public init(_ contents: (KnowledgeSource.Type, KnowledgeSource)...) {
@@ -38,9 +38,9 @@ public class MockBlackboard: Blackboard {
 }
 
 public extension RelationshipWebServiceModel {
-    /// Create a `RelationshipWebServiceModel` providing access to an empty global `Blackboard`
-    convenience init(mockBlackboard: Blackboard = MockBlackboard()) {
-        self.init(mockBlackboard)
+    /// Create a `RelationshipWebServiceModel` providing access to an empty global `SharedRepository`
+    convenience init(mockSharedRepository: SharedRepository = MockSharedRepository()) {
+        self.init(mockSharedRepository)
     }
 }
 #endif

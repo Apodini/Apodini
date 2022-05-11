@@ -11,15 +11,15 @@ import ApodiniContext
 
 // MARK: KnowledgeSource
 
-/// A `KnowledgeSource` can be anything that can be initialized from a `Blackboard`, i.e.
+/// A `KnowledgeSource` can be anything that can be initialized from a `SharedRepository`, i.e.
 /// from other `KnowledgeSource`s. `KnowledgeSource`s are used to provide `InterfaceExporter`s
 /// with information on a `.local` endpoint, or the `.global` structure of the web service.
 public protocol KnowledgeSource {
-    /// The `LocationPreference` used to determine the place of initialization on a `Blackboard`.
+    /// The `LocationPreference` used to determine the place of initialization on a `SharedRepository`.
     static var preference: LocationPreference { get }
     /// Initializes the `KnowledgeSource` based on other `KnowledgeSource`s
-    /// available on the `blackboard`.
-    init<B: Blackboard>(_ blackboard: B) throws
+    /// available on the `sharedRepository`.
+    init<B: SharedRepository>(_ sharedRepository: B) throws
 }
 
 extension KnowledgeSource {
@@ -38,11 +38,11 @@ public enum LocationPreference {
 }
 
 public enum KnowledgeError: Error, CustomDebugStringConvertible {
-    /// An error thrown if a `KnowledgeSource` is requested from the wrong `Blackboard`, i.e. one that
+    /// An error thrown if a `KnowledgeSource` is requested from the wrong `SharedRepository`, i.e. one that
     /// cannot provide all `KnowledgeSource`s required to initialize the former.
     case unsatisfiableDependency(String, String?)
     /// An error thrown if  a `KnowledgeSource`'s initializer is called, but there is already an instance of
-    /// that type present on the `Blackboard`. This can be used to signalize to the `Blackboard`, that
+    /// that type present on the `SharedRepository`. This can be used to signalize to the `SharedRepository`, that
     /// creation of the instance was delegated from the original initializer to some other `KnowledgeSource`.
     case instancePresent
     /// An error thrown if a `KnowledgeSource`'s initializer failed with `instancePresent`, but there was
@@ -51,9 +51,9 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
     
     public var debugDescription: String {
         switch self {
-        case let .unsatisfiableDependency(dependency, requiredBoard):
+        case let .unsatisfiableDependency(dependency, requiredSharedRepository):
             var message = "'\(dependency)' was initialized as a regular 'KnowledgeSource'."
-            if let required = requiredBoard {
+            if let required = requiredSharedRepository {
                 message += " You can only access '\(dependency)' from a '\(required)'."
             }
             return  message
@@ -83,21 +83,21 @@ public enum KnowledgeError: Error, CustomDebugStringConvertible {
 public protocol TruthAnchor { }
 
 // MARK: Base KnowledgeSources
-// Below are KnowledgeSources that need support by special Blackboard implementations. They
+// Below are KnowledgeSources that need support by special SharedRepository implementations. They
 // are the foundation for all other KnowledgeSource-Implementations.
 
 /// A `.global` `KnowledgeSource` that provides access to the `Application`
-/// - Note: This `KnowledgeSource` can only be accessed from `GlobalBlackboard`
+/// - Note: This `KnowledgeSource` can only be accessed from `GlobalSharedRepository`
 extension Application: KnowledgeSource {
     public static let preference: LocationPreference = .global
     
-    public convenience init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("Application", "GlobalBlackboard")
+    public convenience init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        throw KnowledgeError.unsatisfiableDependency("Application", "GlobalSharedRepository")
     }
 }
 
-/// A `KnowledgeSource` providing access to the `Handler` and `Context` related to the `.local` `Blackboard`.
-/// - Note: This `KnowledgeSource` can only be accessed from `LocalBlackboard`
+/// A `KnowledgeSource` providing access to the `Handler` and `Context` related to the `.local` `SharedRepository`.
+/// - Note: This `KnowledgeSource` can only be accessed from `LocalSharedRepository`
 public struct EndpointSource<H: Handler>: KnowledgeSource {
     public let handler: H
     public let context: Context
@@ -107,13 +107,13 @@ public struct EndpointSource<H: Handler>: KnowledgeSource {
         self.context = context
     }
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalBlackboard")
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        throw KnowledgeError.unsatisfiableDependency("EndpointSource", "LocalSharedRepository")
     }
 }
 
 /// An untyped version of the generic `EndpointSource`
-/// - Note: This `KnowledgeSource` can only be accessed from `LocalBlackboard`
+/// - Note: This `KnowledgeSource` can only be accessed from `LocalSharedRepository`
 public struct AnyEndpointSource: KnowledgeSource {
     public let handler: Any
     public let handlerType: Any.Type
@@ -128,66 +128,66 @@ public struct AnyEndpointSource: KnowledgeSource {
         self.handlerType = H.self
     }
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalBlackboard")
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        throw KnowledgeError.unsatisfiableDependency("AnyEndpointSource", "LocalSharedRepository")
     }
 }
 
 private protocol HandlerKnowledgeSourceInitializer {
-    func create<S: HandlerKnowledgeSource, B: Blackboard>(_ type: S.Type, using blackboard: B) throws -> S
+    func create<S: HandlerKnowledgeSource, B: SharedRepository>(_ type: S.Type, using sharedRepository: B) throws -> S
 }
 
 extension EndpointSource: HandlerKnowledgeSourceInitializer {
-    func create<S, B>(_ type: S.Type = S.self, using blackboard: B) throws -> S where S: HandlerKnowledgeSource, B: Blackboard {
-        try type.init(from: self.handler, blackboard)
+    func create<S, B>(_ type: S.Type = S.self, using sharedRepository: B) throws -> S where S: HandlerKnowledgeSource, B: SharedRepository {
+        try type.init(from: self.handler, sharedRepository)
     }
 }
 
 extension AnyEndpointSource: HandlerKnowledgeSourceInitializer {
-    func create<S, B>(_ type: S.Type = S.self, using blackboard: B) throws -> S where S: HandlerKnowledgeSource, B: Blackboard {
-        try initializer.create(type, using: blackboard)
+    func create<S, B>(_ type: S.Type = S.self, using sharedRepository: B) throws -> S where S: HandlerKnowledgeSource, B: SharedRepository {
+        try initializer.create(type, using: sharedRepository)
     }
 }
 
-/// A `KnowledgeSource` that lives on a `.global` `Blackboard`. It provides access to a list of local `Blackboard`s
+/// A `KnowledgeSource` that lives on a `.global` `SharedRepository`. It provides access to a list of local `SharedRepository`s
 /// available to a certain `TruthAnchor`.
-///  - Note: This `KnowledgeSource` is only accessible on `GlobalBlackboard`
-public struct Blackboards: KnowledgeSource {
+///  - Note: This `KnowledgeSource` is only accessible on `GlobalSharedRepository`
+public struct SharedRepositorys: KnowledgeSource {
     public static let preference: LocationPreference = .global
     
-    // default collection of available Blackboards for unrestricted TruthAnchors
-    private var boards: [Blackboard] = []
+    // default collection of available SharedRepositorys for unrestricted TruthAnchors
+    private var sharedRepositorys: [SharedRepository] = []
     
-    // we store the available Blackboards for each restricted TruthAnchor separately
-    private var restricted: [ObjectIdentifier: [Blackboard]] = [:]
+    // we store the available SharedRepositorys for each restricted TruthAnchor separately
+    private var restricted: [ObjectIdentifier: [SharedRepository]] = [:]
     
-    public init<B>(_ blackboard: B) throws where B: Blackboard {
-        throw KnowledgeError.unsatisfiableDependency("Blackboards", "GlobalBlackboard")
+    public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
+        throw KnowledgeError.unsatisfiableDependency("SharedRepositorys", "GlobalSharedRepository")
     }
     
     internal init() { }
     
-    public subscript<A>(for anchor: A.Type) -> [Blackboard] where A: TruthAnchor {
-        restricted[ObjectIdentifier(anchor)] ?? boards
+    public subscript<A>(for anchor: A.Type) -> [SharedRepository] where A: TruthAnchor {
+        restricted[ObjectIdentifier(anchor)] ?? sharedRepositorys
     }
     
-    mutating func addBoard(_ board: Blackboard, hiddenFor restrictions: [TruthAnchor.Type] = []) {
+    mutating func addSharedRepository(_ sharedRepository: SharedRepository, hiddenFor restrictions: [TruthAnchor.Type] = []) {
         // we handle restrictions first
         for knownRestriction in self.restricted.keys {
             if !restrictions.contains(where: { newRestriction in ObjectIdentifier(newRestriction) == knownRestriction }) {
-                // the board we are adding is not hidden for the `knownRestriction`
-                self.restricted[knownRestriction]?.append(board)
+                // the sharedRepository we are adding is not hidden for the `knownRestriction`
+                self.restricted[knownRestriction]?.append(sharedRepository)
             }
         }
         for newRestriction in restrictions {
             if self.restricted[ObjectIdentifier(newRestriction)] == nil {
-                // we don't know of any other boards that are hidden from this `newRestriction`,
-                // thus we create a new entry with all the default `self.boards` (which don't
-                // include the new `board` yet)
-                self.restricted[ObjectIdentifier(newRestriction)] = self.boards
+                // we don't know of any other sharedRepositorys that are hidden from this `newRestriction`,
+                // thus we create a new entry with all the default `self.sharedRepositorys` (which don't
+                // include the new `sharedRepository` yet)
+                self.restricted[ObjectIdentifier(newRestriction)] = self.sharedRepositorys
             }
         }
-        // finally the new board is added to the default collection of boards
-        boards.append(board)
+        // finally the new sharedRepository is added to the default collection of sharedRepositorys
+        sharedRepositorys.append(sharedRepository)
     }
 }

@@ -19,7 +19,7 @@ public struct LoggingMetadata: DynamicProperty {
     @Environment(\.connection)
     private var connection: Connection
     
-    /// Metadata from `BlackBoard` and data regarding the `Exporter` that is injected into the environment of the `Handler`
+    /// Metadata from `SharedRepository` and data regarding the `Exporter` that is injected into the environment of the `Handler`
     @ObserveMetadata
     var observeMetadata
     
@@ -50,7 +50,7 @@ public struct LoggingMetadata: DynamicProperty {
         } else {
             // Connection stays open since these communication patterns allow for any amount of client messages
             // Therfore the metadata chould have changed and we need to reevaluate it
-            switch self.observeMetadata.blackboardMetadata.communicationPattern {
+            switch self.observeMetadata.sharedRepositoryMetadata.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Refresh connection metadata
                 builtMetadata["connection"] = .dictionary(self.connectionMetadata)
@@ -79,28 +79,28 @@ private extension LoggingMetadata {
     /// Holds `Logger.Metadata` regarding the `Endpoint` like name, operation, and parameters
     private var endpointMetadata: Logger.Metadata {
         [
-            "name": .string(self.observeMetadata.blackboardMetadata.endpointName),
-            "parameters": .array(self.observeMetadata.blackboardMetadata.endpointParameters.map { parameter in
+            "name": .string(self.observeMetadata.sharedRepositoryMetadata.endpointName),
+            "parameters": .array(self.observeMetadata.sharedRepositoryMetadata.endpointParameters.map { parameter in
                     .string(parameter.debugDescription)
             }),
-            "operation": .string(self.observeMetadata.blackboardMetadata.operation.description),
+            "operation": .string(self.observeMetadata.sharedRepositoryMetadata.operation.description),
             "endpointPath": .string(
                 String(
-                    self.observeMetadata.blackboardMetadata.endpointPathComponents.value.reduce(into: "") { partialResult, endpointPath in
+                    self.observeMetadata.sharedRepositoryMetadata.endpointPathComponents.value.reduce(into: "") { partialResult, endpointPath in
                         partialResult.append(contentsOf: endpointPath.description + "/")
                     }
                     .dropLast()
                 )
             ),
             "version": .string(
-                self.observeMetadata.blackboardMetadata.context.get(
+                self.observeMetadata.sharedRepositoryMetadata.context.get(
                     valueFor: APIVersionContextKey.self
                 )?.debugDescription ?? "unknown"),
             "handlerType": .string(ObserveMetadataExporter.extractRawEndpointName(
-                String(describing: self.observeMetadata.blackboardMetadata.anyEndpointSource.handlerType))
+                String(describing: self.observeMetadata.sharedRepositoryMetadata.anyEndpointSource.handlerType))
             ),
-            "handlerReturnType": .string(String(describing: self.observeMetadata.blackboardMetadata.handleReturnType.type)),
-            "communicationPattern": .string(self.observeMetadata.blackboardMetadata.communicationPattern.rawValue)
+            "handlerReturnType": .string(String(describing: self.observeMetadata.sharedRepositoryMetadata.handleReturnType.type)),
+            "communicationPattern": .string(self.observeMetadata.sharedRepositoryMetadata.communicationPattern.rawValue)
         ]
     }
     
@@ -148,7 +148,7 @@ private extension LoggingMetadata {
         // Limit size since eg. the description of the WebSocket exporter contains the request parameters
         builtRequestMetadata["description"] = .string(request.description.count < 32_768 ? request.description : "\(request.description.prefix(32_715))... (further bytes omitted since description too large!")
         
-        let parameterMetadata = self.observeMetadata.blackboardMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
+        let parameterMetadata = self.observeMetadata.sharedRepositoryMetadata.parameters.reduce(into: Logger.Metadata(), { partialResult, parameter in
             if let typeErasedParameter = try? parameter.1.retrieveParameter(from: connection.request) {
                 partialResult[String(parameter.0.dropFirst())] = Self.convertToMetadata(parameter: typeErasedParameter.wrappedValue)
             } else {

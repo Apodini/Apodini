@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "7a4dfe026f6ee0f8ad741b58df74c60af296365d",
-        "version" : "1.9.0"
+        "revision" : "24425989dadab6d6e4167174791a23d4e2a6d0c3",
+        "version" : "1.10.0"
       }
     },
     {
@@ -77,8 +77,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/fluent-kit.git",
       "state" : {
-        "revision" : "63c13b1fcc5266d35df676a8e75bbb602497f12b",
-        "version" : "1.23.4"
+        "revision" : "6fc2804a4d8b3f8a66f2d4bb3e3789aac3abd53d",
+        "version" : "1.23.5"
       }
     },
     {
@@ -230,8 +230,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/sql-kit.git",
       "state" : {
-        "revision" : "afc74d888649f2b2a2f8cc7963be5eb179409610",
-        "version" : "3.17.0"
+        "revision" : "89b0a0a5f110e77272fb5a775064a31bfc1f155c",
+        "version" : "3.18.0"
       }
     },
     {
@@ -311,8 +311,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "067254c79435de759aeef4a6a03e43d087d61312",
-        "version" : "2.0.5"
+        "revision" : "d9825fa541df64b1a7b182178d61b9a82730d01f",
+        "version" : "2.1.0"
       }
     },
     {
@@ -365,8 +365,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "d6e3762e0a5f7ede652559f53623baf11006e17c",
-        "version" : "2.39.0"
+        "revision" : "124119f0bb12384cef35aa041d7c3a686108722d",
+        "version" : "2.40.0"
       }
     },
     {
@@ -374,8 +374,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-extras.git",
       "state" : {
-        "revision" : "f73ca5ee9c6806800243f1ac415fcf82de9a4c91",
-        "version" : "1.10.2"
+        "revision" : "8eea84ec6144167354387ef9244b0939f5852dc8",
+        "version" : "1.11.0"
       }
     },
     {
@@ -383,8 +383,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-http2.git",
       "state" : {
-        "revision" : "50c25c132b140e62b45e90b5a76f13ded02c8a46",
-        "version" : "1.20.1"
+        "revision" : "72bcaf607b40d7c51044f65b0f5ed8581a911832",
+        "version" : "1.21.0"
       }
     },
     {
@@ -392,8 +392,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "b5260a31c2a72a89fa684f5efb3054d8725a2316",
-        "version" : "2.18.0"
+        "revision" : "1750873bce84b4129b5303655cce2c3d35b9ed3a",
+        "version" : "2.19.0"
       }
     },
     {
@@ -401,8 +401,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-transport-services.git",
       "state" : {
-        "revision" : "8ab824b140d0ebcd87e9149266ddc353e3705a3e",
-        "version" : "1.11.4"
+        "revision" : "1a4692acb88156e3da1b0c6732a8a38b2a744166",
+        "version" : "1.12.0"
       }
     },
     {

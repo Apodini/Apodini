@@ -109,8 +109,8 @@ final class SemanticModelBuilderTests: ApodiniTests {
         visitor.finishParsing()
 
         let nameParameterId: UUID = try XCTUnwrap(testComponent.$name.parameterId)
-        let globalBlackboard = GlobalBlackboard<LazyHashmapBlackboard>(app)
-        let model = globalBlackboard[RelationshipModelKnowledgeSource.self].model
+        let globalSharedRepository = GlobalSharedRepository<LazyHashmapSharedRepository>(app)
+        let model = globalSharedRepository[RelationshipModelKnowledgeSource.self].model
         
         XCTAssertEqual(model.root.collectEndpoints().count, 3)
         

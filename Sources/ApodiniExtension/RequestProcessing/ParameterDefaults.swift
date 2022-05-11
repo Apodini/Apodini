@@ -13,7 +13,7 @@ import Apodini
 /// be used to obtain an ``DefaultInsertingRequest`` using the `Request`'s
 /// `insertDefaults(with:)` function.
 ///
-/// - Note: An instance can be obtained from any local `Blackboard`, e.g. an `Endpoint`.
+/// - Note: An instance can be obtained from any local `SharedRepository`, e.g. an `Endpoint`.
 public struct DefaultValueStore {
     private let handler: (UUID, Error) throws -> Any
     
