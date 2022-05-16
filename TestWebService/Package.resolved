@@ -77,8 +77,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/fluent-kit.git",
       "state" : {
-        "revision" : "6fc2804a4d8b3f8a66f2d4bb3e3789aac3abd53d",
-        "version" : "1.23.5"
+        "revision" : "8958da5e2aec8d56ad45c340683117a074e2885a",
+        "version" : "1.25.0"
       }
     },
     {
@@ -122,8 +122,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/jwt-kit.git",
       "state" : {
-        "revision" : "5f9c44d4c196cc06c3fc601f279169f121d6f62d",
-        "version" : "4.4.0"
+        "revision" : "3537dd319dfbcc403a5165d8c19c4834e8e64730",
+        "version" : "4.5.0"
       }
     },
     {
