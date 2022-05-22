@@ -25,15 +25,28 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         SharedAPIAuditorConfiguration.getAuditCommand(AuditCommand<Service>.self)
     }
     
+    private let bestPractices: [BestPractice]
+    
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        // Only register exporter if the webservice has been run through the audit CLI
-        if app.storage[AuditStorageKey.self] != nil {
-            let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
-            app.registerExporter(exporter: auditInterfaceExporter)
+        // This Configuration is only relevant if the webservice has been run through the audit CLI
+        guard app.storage[AuditStorageKey.self] != nil else {
+            return
         }
+        // Store the best practices in the app storage
+        app.storage[BestPracticesStorageKey.self] = bestPractices
+        
+        // Register exporter
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+        app.registerExporter(exporter: auditInterfaceExporter)
     }
     
-    public init() { }
+    public init(@AuditConfigurationBuilder bestPractices: () -> [BestPractice]) {
+        self.bestPractices = bestPractices()
+    }
+    
+    public convenience init() {
+        self.init { }
+    }
 }
 
 private enum SharedAPIAuditorConfiguration {
@@ -45,5 +58,19 @@ private enum SharedAPIAuditorConfiguration {
             return auditCommand
         }
         return nil
+    }
+}
+
+struct BestPracticesStorageKey: StorageKey {
+    typealias Value = [BestPractice]
+}
+
+public protocol BestPracticeConfiguration {
+    func configureBestPractice() -> BestPractice
+}
+
+public struct EmptyBestPracticeConfiguration<BP: BestPractice>: BestPracticeConfiguration {
+    public func configureBestPractice() -> BestPractice {
+        BP.init()
     }
 }

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-/// A function builder used to aggregate multiple `DependentStaticConfiguration`s
+/// A function builder used to aggregate multiple `BestPracticeConfiguration`s
 @resultBuilder
 public enum AuditConfigurationBuilder {
     /// Initializes all the best practices listed in `AuditInterfaceExporter.bestPractices` and returns them.
