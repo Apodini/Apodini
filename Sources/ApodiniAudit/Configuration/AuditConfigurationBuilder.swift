@@ -20,11 +20,22 @@ public enum AuditConfigurationBuilder {
         var bestPracticeConfigurations = [BestPracticeConfiguration]()
         
         for conf in AuditInterfaceExporter.defaultBestPracticeConfigurations {
-            // Search for a matching configuration in `component`
+            /// Search for a matching configuration in `component`
             let matchingConfiguration = component.first { customConf in
                 type(of: customConf) == type(of: conf)
             }
             bestPracticeConfigurations.append(matchingConfiguration ?? conf)
+        }
+        
+        /// Find custom configurations in `component`
+        for conf in component {
+            let isDefaultBP = AuditInterfaceExporter.defaultBestPracticeConfigurations.contains {
+                type(of: $0) == type(of: conf)
+            }
+            
+            if !isDefaultBP {
+                bestPracticeConfigurations.append(conf)
+            }
         }
         
         return bestPracticeConfigurations.map { $0.configureBestPractice() }

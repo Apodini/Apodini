@@ -24,19 +24,13 @@ final class ApodiniAuditTests: ApodiniTests {
             REST {
                 // swiftlint:disable:next all
                 if 1 == 1 {
-                    APIAuditor()
+                    APIAuditor {
+                        AppropriateLengthForURLPathSegmentsConfiguration(
+                            maximumLength: 50
+                        )
+                        CustomBPConfig()
+                    }
                 }
-                if Int.random(in: 1...2) == 1 {
-                    APIAuditor()
-                } else {
-                    APIAuditor()
-                }
-            }
-            
-            AuditConfiguration {
-                AppropriateLengthForURLPathSegmentsConfiguration(
-                    maximumLength: 50
-                )
             }
         }
         
@@ -100,6 +94,21 @@ final class ApodiniAuditTests: ApodiniTests {
         var metadata: AnyHandlerMetadata {
             Operation(.delete)
         }
+    }
+    
+    struct CustomBPConfig: BestPracticeConfiguration {
+        func configureBestPractice() -> BestPractice {
+            CustomBP()
+        }
+    }
+    
+    struct CustomBP: BestPractice {
+        func check(into report: AuditReport, _ app: Application) {
+            print("custom best practice!")
+        }
+        
+        var scope: BestPracticeScopes = .all
+        var category: BestPracticeCategories = .method
     }
 
     func testBasicAuditing() throws {
