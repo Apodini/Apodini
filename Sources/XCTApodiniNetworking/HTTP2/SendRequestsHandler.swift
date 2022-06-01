@@ -1,3 +1,11 @@
+//
+// This source file is part of the Apodini open source project
+//
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
+//
+// SPDX-License-Identifier: MIT
+//  
+
 import NIO
 import NIOHTTP1
 import NIOHTTP2
@@ -17,9 +25,9 @@ final class SendRequestsHandler: ChannelInboundHandler {
     private var responsePartAccumulator: [[HTTPClientResponsePart]] = []
     private var currentResponse: [HTTPClientResponsePart] = []
     private let host: String
-    private let requests: [HTTPRequest]
+    private let requests: [TestHTTPRequest]
 
-    init(host: String, requests: [HTTPRequest], responseReceivedPromise: EventLoopPromise<[[HTTPClientResponsePart]]>) {
+    init(host: String, requests: [TestHTTPRequest], responseReceivedPromise: EventLoopPromise<[[HTTPClientResponsePart]]>) {
         self.responseReceivedPromise = responseReceivedPromise
         self.host = host
         self.requests = requests
@@ -41,8 +49,8 @@ final class SendRequestsHandler: ChannelInboundHandler {
                 buffer.writeBytes(body)
                 context.write(self.wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
             }
-            context.writeAndFlush(self.wrapOutboundOut(.end(nil)), promise: nil)
         }
+        context.writeAndFlush(self.wrapOutboundOut(.end(nil)), promise: nil)
         context.fireChannelActive()
     }
 

@@ -1,16 +1,10 @@
-//===----------------------------------------------------------------------===//
 //
-// This source file is part of the SwiftNIO open source project
+// This source file is part of the Apodini open source project
 //
-// Copyright (c) 2017-2018 Apple Inc. and the SwiftNIO project authors
-// Licensed under Apache License v2.0
+// SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
-// See LICENSE.txt for license information
-// See CONTRIBUTORS.txt for the list of SwiftNIO project authors
+// SPDX-License-Identifier: MIT
 //
-// SPDX-License-Identifier: Apache-2.0
-//
-//===----------------------------------------------------------------------===//
 
 import NIOHTTP1
 
@@ -19,7 +13,7 @@ struct HostAndPort: Equatable, Hashable {
     var port: Int
 }
 
-public struct HTTPRequest {
+public struct TestHTTPRequest {
     class _Storage {
         var method: HTTPMethod
         var target: String
@@ -61,9 +55,9 @@ public struct HTTPRequest {
     }
 }
 
-extension HTTPRequest._Storage {
-    func copy() -> HTTPRequest._Storage {
-        return HTTPRequest._Storage(method: self.method,
+extension TestHTTPRequest._Storage {
+    func copy() -> TestHTTPRequest._Storage {
+        return TestHTTPRequest._Storage(method: self.method,
                                             target: self.target,
                                             version: self.version,
                                             headers: self.headers,
@@ -72,7 +66,7 @@ extension HTTPRequest._Storage {
     }
 }
 
-extension HTTPRequest {
+extension TestHTTPRequest {
     public var method: HTTPMethod {
         get {
             return self._storage.method
