@@ -43,7 +43,7 @@ final class SendRequestsHandler: ChannelInboundHandler {
             headersArray.append((":method", "GET"))
             headersArray.append((":path", "/"))
             headersArray.append((":scheme", "https"))
-            headersArray.append(("host", self.host))
+            headersArray.append((":authority", self.host))
             
             let headerContent = HTTP2Frame.FramePayload.Headers(headers: HPACKHeaders(headersArray), endStream: noBody)
             context.writeAndFlush(self.wrapOutboundOut(.headers(headerContent)), promise: nil)
