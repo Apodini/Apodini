@@ -18,16 +18,16 @@ import NIOExtras
 ///
 /// - warning: This will read the whole response into memory and delivers it into a promise.
 final class SendRequestsHandler: ChannelInboundHandler {
-    typealias InboundIn = HTTPClientResponsePart
-    typealias OutboundOut = HTTPClientRequestPart
+    typealias InboundIn = HTTP2Frame.FramePayload
+    typealias OutboundOut = HTTP2Frame.FramePayload
 
-    private let responseReceivedPromise: EventLoopPromise<[[HTTPClientResponsePart]]>
-    private var responsePartAccumulator: [[HTTPClientResponsePart]] = []
-    private var currentResponse: [HTTPClientResponsePart] = []
+    private let responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>
+    private var responsePartAccumulator: [[HTTP2Frame.FramePayload]] = []
+    private var currentResponse: [HTTP2Frame.FramePayload] = []
     private let host: String
     private let requests: [TestHTTPRequest]
 
-    init(host: String, requests: [TestHTTPRequest], responseReceivedPromise: EventLoopPromise<[[HTTPClientResponsePart]]>) {
+    init(host: String, requests: [TestHTTPRequest], responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>) {
         self.responseReceivedPromise = responseReceivedPromise
         self.host = host
         self.requests = requests
@@ -37,20 +37,26 @@ final class SendRequestsHandler: ChannelInboundHandler {
         assert(context.channel.parent!.isActive)
         // Send all the requests
         for request in self.requests {
-            var headers = HTTPHeaders(request.headers)
-            headers.add(name: "host", value: self.host)
-            var reqHead = HTTPRequestHead(version: request.version,
-                                          method: request.method,
-                                          uri: request.target)
-            reqHead.headers = headers
-            context.write(self.wrapOutboundOut(.head(reqHead)), promise: nil)
-            if let body = request.body {
-                var buffer = context.channel.allocator.buffer(capacity: body.count)
+            let noBody = request.body == nil
+            
+            var headersArray = request.headers
+            headersArray.append((":method", "GET"))
+            headersArray.append((":path", "/"))
+            headersArray.append((":scheme", "https"))
+            headersArray.append(("host", self.host))
+            
+            let headerContent = HTTP2Frame.FramePayload.Headers(headers: HPACKHeaders(headersArray), endStream: noBody)
+            context.writeAndFlush(self.wrapOutboundOut(.headers(headerContent)), promise: nil)
+
+            if !noBody, let body = request.body {
+                var buffer: ByteBuffer
+                buffer = context.channel.allocator.buffer(capacity: body.count)
                 buffer.writeBytes(body)
-                context.write(self.wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
+                context.writeAndFlush(self.wrapOutboundOut(.data(HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: true))), promise: nil)
             }
         }
-        context.writeAndFlush(self.wrapOutboundOut(.end(nil)), promise: nil)
+//        let emptyBuffer = context.channel.allocator.buffer(capacity: 0)
+//        context.writeAndFlush(self.wrapOutboundOut(.data(HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(emptyBuffer), endStream: true))), promise: nil)
         context.fireChannelActive()
     }
 
@@ -61,14 +67,23 @@ final class SendRequestsHandler: ChannelInboundHandler {
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-        let resPart = self.unwrapInboundIn(data)
-        switch(resPart) {
-        case .body, .head:
-            currentResponse.append(resPart)
-        case .end:
-            self.responsePartAccumulator.append(currentResponse)
-            currentResponse = []
+        let payload = self.unwrapInboundIn(data)
+        currentResponse.append(payload)
+        switch payload {
+        case .data(let data):
+            if data.endStream {
+                self.responsePartAccumulator.append(currentResponse)
+            }
+        default:
+            break
         }
+//        switch(resPart) {
+//        case .body, .head:
+//            currentResponse.append(resPart)
+//        case .end:
+//            self.responsePartAccumulator.append(currentResponse)
+//            currentResponse = []
+//        }
     }
     
     func channelInactive(context: ChannelHandlerContext) {

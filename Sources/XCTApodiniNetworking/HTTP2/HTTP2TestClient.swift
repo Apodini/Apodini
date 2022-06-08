@@ -36,12 +36,11 @@ public class HTTP2TestClient {
     private func send(
         requests: [TestHTTPRequest],
         on channel: Channel,
-        with responseReceivedPromise: EventLoopPromise<[[HTTPClientResponsePart]]>
+        with responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>
     ) -> EventLoopFuture<Void> {
         channel.eventLoop.assertInEventLoop()
         
-        return channel.pipeline.addHandlers([HTTP2FramePayloadToHTTP1ClientCodec(httpProtocol: .https),
-                                             SendRequestsHandler(host: self.host,
+        return channel.pipeline.addHandlers([SendRequestsHandler(host: self.host,
                                                                 requests: requests,
                                                                 responseReceivedPromise: responseReceivedPromise)],
                                             position: .last)
@@ -60,19 +59,23 @@ public class HTTP2TestClient {
     ///             `HTTPClientResponsePart`s of the received server response to that request.
     private func sendRequests(channel: Channel,
                       requestGroups: [[TestHTTPRequest]],
-                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[([TestHTTPRequest], EventLoopPromise<[[HTTPClientResponsePart]]>)]> {
+                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)]> {
         // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
-        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [([TestHTTPRequest], EventLoopPromise<[[HTTPClientResponsePart]]>)] in
+        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] in
 
             // Step 2: Let's create an HTTP/2 stream for each request.
-            var responseReceivedPromises: [([TestHTTPRequest], EventLoopPromise<[[HTTPClientResponsePart]]>)] = []
+            var responseReceivedPromises: [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] = []
             for requestGroup in requestGroups {
-                let promise = channel.eventLoop.makePromise(of: [[HTTPClientResponsePart]].self)
+                let promise = channel.eventLoop.makePromise(of: [[HTTP2Frame.FramePayload]].self)
                 channelErrorForwarder.cascadeFailure(to: promise)
                 responseReceivedPromises.append((requestGroup, promise))
                 
                 // Create the actual HTTP/2 stream using the multiplexer's `createStreamChannel` method.
                 http2Multiplexer.createStreamChannel(promise: nil) { (channel: Channel) -> EventLoopFuture<Void> in
+//                    channel.pipeline.handler(type: NIOHTTP2Handler.self).flatMap { (handler: NIOHTTP2Handler) in
+//                        print("found it")
+//                        return self.send(requests: requestGroup, on: channel, with: promise)
+//                    }
                     self.send(requests: requestGroup, on: channel, with: promise)
                 }
             }
@@ -164,8 +167,8 @@ public class HTTP2TestClient {
     public func sendTestRequests() {
         do {
             let requestGroups = [[
-                TestHTTPRequest(target: "/", headers: [], body: nil, trailers: nil),
-                TestHTTPRequest(target: "/moin", headers: [], body: nil, trailers: nil)
+                TestHTTPRequest(target: "/", headers: [], body: nil, trailers: nil)
+                //TestHTTPRequest(target: "/moin", headers: [], body: nil, trailers: nil)
             ]]
             
             guard let bs = self.bootstrap else {
@@ -187,7 +190,7 @@ public class HTTP2TestClient {
             let responseFutures = requestResponsePairs.map { $0.1.futureResult }
 
             // Here, we build a future that aggregates all the responses from all the different requests.
-            let allRequestsAndResponses = try EventLoopFuture<[[[HTTPClientResponsePart]]]>.reduce([],
+            let allRequestsAndResponses = try EventLoopFuture<[[[HTTP2Frame.FramePayload]]]>.reduce([],
                                                                                        responseFutures,
                                                                                        on: channel.eventLoop,
                                                                                        { $0 + [$1] })
