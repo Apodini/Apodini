@@ -57,8 +57,8 @@ extension GrammaticalNumberBestPractice {
 }
 
 struct PluralLastSegmentForPOST: GrammaticalNumberBestPractice {
-    var scope: BestPracticeScopes = .rest
-    var category: BestPracticeCategories = .linguisticURL
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .linguisticURL
     
     func checkLastPart(into report: AuditReport, _ app: Application, _ lastPart: String) {
         if report.endpoint[Operation.self] != .create {
@@ -74,8 +74,8 @@ struct PluralLastSegmentForPOST: GrammaticalNumberBestPractice {
 }
 
 struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
-    var scope: BestPracticeScopes = .rest
-    var category: BestPracticeCategories = .linguisticURL
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .linguisticURL
     
     func checkLastPart(into report: AuditReport, _ app: Application, _ lastPart: String) {
         if report.endpoint[Operation.self] != .update && report.endpoint[Operation.self] != .delete {

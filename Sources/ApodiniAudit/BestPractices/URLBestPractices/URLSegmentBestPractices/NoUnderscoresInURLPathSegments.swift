@@ -9,8 +9,8 @@
 import Foundation
 
 struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
-    var scope: BestPracticeScopes = .all
-    var category: BestPracticeCategories = .urlPath
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any underscores"
     
     func checkSegment(segment: String) -> String? {

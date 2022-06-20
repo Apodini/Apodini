@@ -10,8 +10,8 @@ import Foundation
 import Apodini
 
 struct ContextualisedResourceNames: BestPractice {
-    var scope: BestPracticeScopes = .all
-    var category: BestPracticeCategories = .urlPath
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
     
     func check(into report: AuditReport, _ app: Application) {
         let pathSegments = report.endpoint.absolutePath

@@ -11,9 +11,9 @@ import Apodini
 
 public protocol BestPractice {
     /// The scope of this best practice (http or rest)
-    var scope: BestPracticeScopes { get }
+    static var scope: BestPracticeScopes { get }
     /// The category this best practice fits into
-    var category: BestPracticeCategories { get }
+    static var category: BestPracticeCategories { get }
     
     /// Check this best practice into the given AuditReport.
     func check(into report: AuditReport, _ app: Application)

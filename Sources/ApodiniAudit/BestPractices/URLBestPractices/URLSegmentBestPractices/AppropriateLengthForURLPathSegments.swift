@@ -9,8 +9,8 @@
 import Foundation
 
 struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
-    var scope: BestPracticeScopes = .all
-    var category: BestPracticeCategories = .urlPath
+    static var scope: BestPracticeScopes = .all
+    static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments have appropriate lengths"
     
     var configuration = AppropriateLengthForURLPathSegmentsConfiguration()

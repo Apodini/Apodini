@@ -27,7 +27,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
         }
         // FUTURE figure out which ones are silenced for the current endpoint
         for bestPractice in bestPractices {
-            guard applyRESTBestPractices || bestPractice.scope == .all else {
+            guard applyRESTBestPractices || type(of: bestPractice).scope == .all else {
                 continue
             }
             reports.append(bestPractice.check(for: endpoint, app))

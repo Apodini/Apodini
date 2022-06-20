@@ -9,8 +9,8 @@
 import Foundation
 
 struct LowercaseURLPathSegments: URLSegmentBestPractice {
-    var scope: BestPracticeScopes = .rest
-    var category: BestPracticeCategories = .urlPath
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
     
     func checkSegment(segment: String) -> String? {

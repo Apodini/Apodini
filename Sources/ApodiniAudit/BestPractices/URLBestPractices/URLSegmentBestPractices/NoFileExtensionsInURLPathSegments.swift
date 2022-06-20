@@ -9,8 +9,8 @@
 import Foundation
 
 struct NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
-    var scope: BestPracticeScopes = .rest
-    var category: BestPracticeCategories = .urlPath
+    static var scope: BestPracticeScopes = .rest
+    static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
     var allowedExtensions: [String] = []
     /// The minimum distance from the end of the segment that a dot has to have
