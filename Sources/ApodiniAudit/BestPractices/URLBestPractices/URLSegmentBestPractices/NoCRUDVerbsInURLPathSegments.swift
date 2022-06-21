@@ -8,9 +8,9 @@
 
 import Foundation
 
-struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .urlPath
+public struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
+    public static var scope: BestPracticeScopes = .rest
+    public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any CRUD verbs"
     private var crudVerbs = ["get", "post", "remove", "delete", "put"]
     
@@ -21,4 +21,6 @@ struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
         }
         return nil
     }
+    
+    public init() { }
 }

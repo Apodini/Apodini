@@ -12,6 +12,12 @@ public protocol BestPracticeInclusionRule {
     func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction
 }
 
+extension BestPracticeInclusionRule {
+    func apply(_ newRule: BestPracticeInclusionRule) -> BestPracticeInclusionRule {
+        return CompositeBestPracticeInclusionRule(rules: [self, newRule])
+    }
+}
+
 struct BestPracticeScopeInclusionRule: BestPracticeInclusionRule {
     let scopes: BestPracticeScopes
     let action: BestPracticeInclusionAction
@@ -30,18 +36,6 @@ struct BestPracticeCategoryInclusionRule: BestPracticeInclusionRule {
     }
 }
 
-//extension BestPracticeScopes: BestPracticeInclusionRule {
-//    func rule(for bestPractice: BestPractice.Type) -> Bool {
-//        self.contains(bestPractice.scope)
-//    }
-//}
-//
-//extension BestPracticeCategories: BestPracticeInclusionRule {
-//    func includes(_ bestPractice: BestPractice.Type) -> Bool {
-//        self.contains(bestPractice.category)
-//    }
-//}
-
 struct SingleBestPracticeInclusionRule: BestPracticeInclusionRule {
     var action: BestPracticeInclusionAction
     var bestPractice: BestPractice.Type
@@ -55,12 +49,13 @@ struct SingleBestPracticeInclusionRule: BestPracticeInclusionRule {
 struct CompositeBestPracticeInclusionRule: BestPracticeInclusionRule {
     var rules: [BestPracticeInclusionRule] = []
     
-    mutating func apply(_ rule: BestPracticeInclusionRule) {
-        rules.append(rule)
+    mutating func apply(_ newRule: BestPracticeInclusionRule) -> BestPracticeInclusionRule {
+        rules.append(newRule)
+        return self
     }
     
     func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
-        rules.reduce(.enable) { (action, rule) -> BestPracticeInclusionAction in
+        rules.reduce(.noAction) { (action, rule) -> BestPracticeInclusionAction in
             let newAction = rule.action(for: bestPractice)
             if newAction == .noAction {
                 return action
@@ -71,6 +66,11 @@ struct CompositeBestPracticeInclusionRule: BestPracticeInclusionRule {
     }
 }
 
+struct PassThroughInclusionRule: BestPracticeInclusionRule {
+    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+        .noAction
+    }
+}
 
 public enum BestPracticeInclusionAction {
     case enable, disable, noAction

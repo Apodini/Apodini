@@ -26,23 +26,15 @@ public struct BestPracticeMetadata: ComponentMetadataDefinition {
     }
 }
 
-public struct BestPracticeContextKey: OptionalContextKey {
+public struct BestPracticeContextKey: ContextKey {
     public typealias Value = BestPracticeInclusionRule
+    
+    static public var defaultValue: BestPracticeInclusionRule = PassThroughInclusionRule()
+    
+    public static func reduce(value: inout BestPracticeInclusionRule, nextValue: BestPracticeInclusionRule) {
+        value = value.apply(nextValue)
+    }
 }
-
-//public struct EnableBestPracticeMetadata: ComponentMetadataDefinition {
-//    public typealias Key = EnableBestPracticeContextKey
-//
-//    public let value: BestPractice.Type
-//
-//    public init(_ bestPractice: BestPractice.Type) {
-//        self.value = bestPractice
-//    }
-//}
-//
-//public struct EnableBestPracticeContextKey: OptionalContextKey {
-//    public typealias Value = BestPractice.Type
-//}
 
 public extension ComponentMetadataNamespace {
     typealias SelectBestPractices = BestPracticeMetadata

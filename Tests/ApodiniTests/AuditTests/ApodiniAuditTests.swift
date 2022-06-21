@@ -56,6 +56,10 @@ final class ApodiniAuditTests: ApodiniTests {
         var configuration: Configuration {
             AuditableWebService.conf
         }
+        
+        var metadata: AnyWebServiceMetadata {
+            SelectBestPractices(.disable, .all)
+        }
     }
     
     struct DELETEComponent: Component {
@@ -72,6 +76,10 @@ final class ApodiniAuditTests: ApodiniTests {
         func handle() -> String {
             "Test"
         }
+        
+        var metadata: AnyHandlerMetadata {
+            SelectBestPractices(.enable, .urlPath)
+        }
     }
     
     struct SomePOSTComp: Handler {
@@ -81,6 +89,7 @@ final class ApodiniAuditTests: ApodiniTests {
         
         var metadata: AnyHandlerMetadata {
             Operation(.create)
+            Pattern(.requestResponse)
         }
     }
     
@@ -107,8 +116,8 @@ final class ApodiniAuditTests: ApodiniTests {
             print("custom best practice!")
         }
         
-        var scope: BestPracticeScopes = .all
-        var category: BestPracticeCategories = .method
+        static var scope: BestPracticeScopes = .all
+        static var category: BestPracticeCategories = .method
     }
 
     func testBasicAuditing() throws {
@@ -162,7 +171,7 @@ final class ApodiniAuditTests: ApodiniTests {
         
         let reports = try getReportsForAuditRunCommand(&command)
         
-        let lingReports = reports.filter { $0.bestPractice.category.contains(.linguistic) }
+        let lingReports = reports.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
         let lingAudits = lingReports.flatMap { $0.findings }
         
         let expectedLingAudits = [
@@ -181,6 +190,19 @@ final class ApodiniAuditTests: ApodiniTests {
         ]
         
         XCTAssertSetEqual(lingAudits, expectedLingAudits)
+    }
+    
+    func testSelectingBestPractices() throws {
+        let commandType = AuditRunCommand<AuditableWebService2>.self
+        var command = commandType.init()
+        
+        let reports = try getReportsForAuditRunCommand(&command)
+        
+        XCTAssertTrue(reports.contains {
+            $0.findings.contains {
+                $0.message.contains("getThisResource")
+            }
+        })
     }
     
     func getReportsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [AuditReport] {

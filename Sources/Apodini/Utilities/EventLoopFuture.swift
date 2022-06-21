@@ -22,11 +22,9 @@ extension EventLoopFuture {
     /// - returns: A future that will receive the eventual value.
     @inlinable
     func flatMapThrowing<NewValue>(
-        file: StaticString = #file,
-        line: UInt = #line,
         _ callback: @escaping (Value) throws -> EventLoopFuture<NewValue>
     ) -> EventLoopFuture<NewValue> {
-        self.flatMap(file: file, line: line) { (value: Value) -> EventLoopFuture<NewValue> in
+        self.flatMap { (value: Value) -> EventLoopFuture<NewValue> in
             do {
                 return try callback(value)
             } catch {

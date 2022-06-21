@@ -9,6 +9,7 @@ import Apodini
 import ApodiniObserve
 import Logging
 import Tracing
+import ApodiniAudit
 
 
 struct TraditionalGreeter: Handler {
@@ -41,5 +42,9 @@ struct TraditionalGreeter: Handler {
         } else {
             return .send("Hello, \(surname)! You are now \(age) years old!")
         }
+    }
+    
+    var metadata: AnyHandlerMetadata {
+        SelectBestPractices(.enable, NoCRUDVerbsInURLPathSegments.self)
     }
 }

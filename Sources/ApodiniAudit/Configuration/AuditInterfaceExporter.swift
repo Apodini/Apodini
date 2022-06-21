@@ -21,12 +21,20 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
+        // Access metadata
+        let bestPracticeRule = endpoint[Context.self].get(valueFor: BestPracticeContextKey.self)
+        
         guard let bestPractices = app.storage[BestPracticesStorageKey.self] else {
             app.logger.error("Could not find best practices in app storage")
             return
         }
-        // FUTURE figure out which ones are silenced for the current endpoint
+        
         for bestPractice in bestPractices {
+            // Check whether this best practice is silenced
+            guard bestPracticeRule.action(for: type(of: bestPractice)) != .disable else {
+                continue
+            }
+            
             guard applyRESTBestPractices || type(of: bestPractice).scope == .all else {
                 continue
             }

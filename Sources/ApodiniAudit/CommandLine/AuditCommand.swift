@@ -44,6 +44,10 @@ protocol AuditParsableSubcommand: ParsableCommand {
 }
 
 extension AuditParsableSubcommand {
+    func run() throws {
+        try run(app: Application())
+    }
+    
     func start(_ app: Application) throws {
         // Indicate to the ``APIAuditorConfiguration`` that the web service is being started to audit the endpoints
         app.storage[AuditStorageKey.self] = true
