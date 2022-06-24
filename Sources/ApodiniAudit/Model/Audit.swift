@@ -32,9 +32,10 @@ public struct AuditFinding {
     var result: AuditResult
 }
 
+extension AuditFinding: Hashable { }
+
 enum AuditResult: Hashable {
     case success
     case fail
 }
 
-extension AuditFinding: Hashable { }
