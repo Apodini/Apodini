@@ -18,7 +18,6 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     typealias OutboundOut = HTTPResponse
     
     private let responder: HTTPResponder
-    private var isCurrentlyWaitingOnSomeStream = false
     
     init(responder: HTTPResponder) {
         self.responder = responder

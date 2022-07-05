@@ -40,8 +40,8 @@ final class SendRequestsHandler: ChannelInboundHandler {
             let noBody = request.body == nil
             
             var headersArray = request.headers
-            headersArray.append((":method", "GET"))
-            headersArray.append((":path", "/"))
+            headersArray.append((":method", "GET")) // TODO use request method
+            headersArray.append((":path", request.target))
             headersArray.append((":scheme", "https"))
             headersArray.append((":authority", self.host))
             

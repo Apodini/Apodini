@@ -15,6 +15,7 @@ import Foundation
 import NIOExtras
 
 public class HTTP2TestClient {
+    // MARK: Singleton pattern
     public static let client: HTTP2TestClient = {
         do {
             return try .init()
@@ -23,67 +24,17 @@ public class HTTP2TestClient {
         }
     }()
     
-    let host = "localhost"
-    let port = 443
+    // MARK: Connection details
+    static let host = "localhost"
+    static let port = 443
     
     var numberOfErrors = 0
     var bootstrap: ClientBootstrap?
     var eventLoop: EventLoop
     var forwardChannelErrorToStreamsPromise: EventLoopPromise<Void>
     
-    /// Adds a `SendRequestsHandler` to the passed `channel`, which will send the `requests`.
-    /// `responseReceivedPromise` will be resolved when the response is received.
-    private func send(
-        requests: [TestHTTPRequest],
-        on channel: Channel,
-        with responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>
-    ) -> EventLoopFuture<Void> {
-        channel.eventLoop.assertInEventLoop()
-        
-        return channel.pipeline.addHandlers([SendRequestsHandler(host: self.host,
-                                                                requests: requests,
-                                                                responseReceivedPromise: responseReceivedPromise)],
-                                            position: .last)
-    }
-    
-    /// Send the `requests` on the `channel`
-    /// Each array of requests is sent on its own stream.
-    ///
-    /// - parameters:
-    ///   - channel: The root channel (ie. the actual TCP connection with the HTTP/2 multiplexer).
-    ///   - requestGroups: The requests to send to the server, grouped into streams.
-    ///   - channelErrorForwarder: A future that will be failed if we detect any errors on the parent channel (such as the
-    ///                            server not speaking HTTP/2).
-    ///  - returns: A future that will be fulfilled when the requests have been sent. The future holds a list of tuples.
-    ///             Each tuple contains a request as well as the corresponding future that will hold the
-    ///             `HTTPClientResponsePart`s of the received server response to that request.
-    private func sendRequests(channel: Channel,
-                      requestGroups: [[TestHTTPRequest]],
-                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)]> {
-        // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
-        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] in
-
-            // Step 2: Let's create an HTTP/2 stream for each request.
-            var responseReceivedPromises: [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] = []
-            for requestGroup in requestGroups {
-                let promise = channel.eventLoop.makePromise(of: [[HTTP2Frame.FramePayload]].self)
-                channelErrorForwarder.cascadeFailure(to: promise)
-                responseReceivedPromises.append((requestGroup, promise))
-                
-                // Create the actual HTTP/2 stream using the multiplexer's `createStreamChannel` method.
-                http2Multiplexer.createStreamChannel(promise: nil) { (channel: Channel) -> EventLoopFuture<Void> in
-//                    channel.pipeline.handler(type: NIOHTTP2Handler.self).flatMap { (handler: NIOHTTP2Handler) in
-//                        print("found it")
-//                        return self.send(requests: requestGroup, on: channel, with: promise)
-//                    }
-                    self.send(requests: requestGroup, on: channel, with: promise)
-                }
-            }
-            return responseReceivedPromises
-        }
-    }
-    
     private init() throws {
+        // MARK: Client Config, mainly about TLS
         var clientConfig = TLSConfiguration.makeClientConfiguration()
         clientConfig.applicationProtocols = ["h2"]
         clientConfig.certificateVerification = .none
@@ -128,8 +79,6 @@ public class HTTP2TestClient {
 //        defer {
 //            try! dumpPCAPFileSink?.syncClose()
 //        }
-        
-        self.numberOfErrors = 0
 
         self.eventLoop = group.next()
 
@@ -140,21 +89,24 @@ public class HTTP2TestClient {
         self.bootstrap = ClientBootstrap(group: eventLoop)
             .channelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
             .channelInitializer { channel in
-                let heuristics = HeuristicForServerTooOldToSpeakGoodProtocolsHandler()
+                //let heuristics = HeuristicForServerTooOldToSpeakGoodProtocolsHandler()
                 let errorHandler = CollectErrorsAndCloseStreamHandler(promise: self.forwardChannelErrorToStreamsPromise)
-                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: self.host)
-                return channel.pipeline.addHandler(sslHandler).flatMap {
-                    return channel.pipeline.addHandler(heuristics, position: .after(sslHandler))
-                }.flatMap { _ in
-//                    if let dumpPCAPFileSink = dumpPCAPFileSink {
-//                        return channel.pipeline.addHandler(NIOWritePCAPHandler(mode: .client,
-//                                                                               fakeRemoteAddress: try! .init(ipAddress: "1.2.3.4", port: 12345),
-//                                                                               fileSink: dumpPCAPFileSink.write),
-//                                                           position: .after(sslHandler))
-//                    } else {
-                    return channel.eventLoop.makeSucceededFuture(())
-//                    }
-                }.flatMap {
+                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: HTTP2TestClient.host)
+                return channel.pipeline.addHandler(sslHandler)
+//                .flatMap {
+//                    return channel.pipeline.addHandler(heuristics, position: .after(sslHandler))
+//                }
+//                .flatMap { _ in
+////                    if let dumpPCAPFileSink = dumpPCAPFileSink {
+////                        return channel.pipeline.addHandler(NIOWritePCAPHandler(mode: .client,
+////                                                                               fakeRemoteAddress: try! .init(ipAddress: "1.2.3.4", port: 12345),
+////                                                                               fileSink: dumpPCAPFileSink.write),
+////                                                           position: .after(sslHandler))
+////                    } else {
+//                    return channel.eventLoop.makeSucceededFuture(())
+////                    }
+//                }
+                .flatMap {
                     channel.pipeline.addHandler(errorHandler)
                 }.flatMap {
                     channel.configureHTTP2Pipeline(mode: .client) { channel in
@@ -164,10 +116,62 @@ public class HTTP2TestClient {
         }
     }
     
+    /// Adds a `SendRequestsHandler` to the passed `channel`, which will send the `requests`.
+    /// `responseReceivedPromise` will be resolved when the response is received.
+    private func send(
+        requests: [TestHTTPRequest],
+        on channel: Channel,
+        with responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>
+    ) -> EventLoopFuture<Void> {
+        channel.eventLoop.assertInEventLoop()
+        
+        return channel.pipeline.addHandlers([SendRequestsHandler(host: HTTP2TestClient.host,
+                                                                requests: requests,
+                                                                responseReceivedPromise: responseReceivedPromise)],
+                                            position: .last)
+    }
+    
+    /// Send the `requests` on the `channel`
+    /// Each array of requests is sent on its own stream.
+    ///
+    /// - parameters:
+    ///   - channel: The root channel (ie. the actual TCP connection with the HTTP/2 multiplexer).
+    ///   - requestGroups: The requests to send to the server, grouped into streams.
+    ///   - channelErrorForwarder: A future that will be failed if we detect any errors on the parent channel (such as the
+    ///                            server not speaking HTTP/2).
+    ///  - returns: A future that will be fulfilled when the requests have been sent. The future holds a list of tuples.
+    ///             Each tuple contains a request as well as the corresponding future that will hold the
+    ///             `HTTPClientResponsePart`s of the received server response to that request.
+    private func sendRequests(channel: Channel,
+                      requestGroups: [[TestHTTPRequest]],
+                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)]> {
+        // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
+        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] in
+
+            // Step 2: Let's create an HTTP/2 stream for each request.
+            var responseReceivedPromises: [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] = []
+            for requestGroup in requestGroups {
+                let promise = channel.eventLoop.makePromise(of: [[HTTP2Frame.FramePayload]].self)
+                channelErrorForwarder.cascadeFailure(to: promise)
+                responseReceivedPromises.append((requestGroup, promise))
+                
+                // Create the actual HTTP/2 stream using the multiplexer's `createStreamChannel` method.
+                http2Multiplexer.createStreamChannel(promise: nil) { (channel: Channel) -> EventLoopFuture<Void> in
+//                    channel.pipeline.handler(type: NIOHTTP2Handler.self).flatMap { (handler: NIOHTTP2Handler) in
+//                        print("found it")
+//                        return self.send(requests: requestGroup, on: channel, with: promise)
+//                    }
+                    self.send(requests: requestGroup, on: channel, with: promise)
+                }
+            }
+            return responseReceivedPromises
+        }
+    }
+    
     public func sendTestRequests() {
         do {
             let requestGroups = [[
-                TestHTTPRequest(target: "/", headers: [], body: nil, trailers: nil)
+                TestHTTPRequest(target: "/http/countdown", headers: [], body: nil, trailers: nil)
                 //TestHTTPRequest(target: "/moin", headers: [], body: nil, trailers: nil)
             ]]
             
@@ -175,7 +179,7 @@ public class HTTP2TestClient {
                 return
             }
             
-            let (channel, requestResponsePairs) = try bs.connect(host: host, port: port)
+            let (channel, requestResponsePairs) = try bs.connect(host: HTTP2TestClient.host, port: HTTP2TestClient.port)
                 .flatMap { channel in
                     self.sendRequests(channel: channel,
                                       requestGroups: requestGroups,
@@ -200,7 +204,16 @@ public class HTTP2TestClient {
                 .wait()
             
             for (requestGroup, responseGroup) in allRequestsAndResponses {
-                print("Group: \(requestGroup.count) requests, \(responseGroup.count) responses")
+                let actualResponseGroup = responseGroup[0]
+                print("Group: \(requestGroup.count) requests, \(actualResponseGroup.count) responses")
+                
+                for response in actualResponseGroup {
+                    if case .data(let dataPayload) = response,
+                       case .byteBuffer(let buffer) = dataPayload.data {
+                        print(buffer.getString(at: 0, length: buffer.readableBytes) ?? "Can't convert")
+                    }
+                }
+
 //                if verbose {
 //                    print("> GET \(uriAndResponse.0)")
 //                }
@@ -225,6 +238,8 @@ public class HTTP2TestClient {
 //                    }
 //                }
             }
+            
+            try channel.close().wait()
         } catch {
             print("ERROR: \(error)")
             numberOfErrors += 1
