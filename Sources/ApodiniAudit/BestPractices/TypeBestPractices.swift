@@ -14,14 +14,14 @@ struct GetHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .method
     
-    func check(into report: Audit, _ app: Application) {
+    func check(into audit: Audit, _ app: Application) {
         // get operation for endpoint
-        guard report.endpoint[Operation.self] == Operation.read else {
+        guard audit.endpoint[Operation.self] == Operation.read else {
             return
         }
         // If GET:
         // get return type of endpoint
-        let returnType = report.endpoint[ResponseType.self].type
+        let returnType = audit.endpoint[ResponseType.self].type
         
         guard let responseTypeInformation = TypeInformation.buildOptional(returnType) else {
             return
@@ -29,7 +29,7 @@ struct GetHasComplexReturnType: BestPractice {
         
         // Check that it is not primitive
         if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
-            report.recordFinding("The GET handler at does not return a complex type", .fail)
+            audit.recordFinding("The GET handler at does not return a complex type", .fail)
         }
     }
 }

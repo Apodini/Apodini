@@ -23,12 +23,12 @@ public protocol BestPractice {
 
 extension BestPractice {
     func check(for endpoint: AnyEndpoint, _ app: Application) -> Audit {
-        let report = Audit(endpoint, self)
-        check(into: report, app)
-        if report.findings.isEmpty {
+        let audit = Audit(endpoint, self)
+        check(into: audit, app)
+        if audit.findings.isEmpty {
             // TODO generate success message
         }
-        return report
+        return audit
     }
 }
 

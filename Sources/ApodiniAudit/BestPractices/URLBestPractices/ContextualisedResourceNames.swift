@@ -13,8 +13,8 @@ struct ContextualisedResourceNames: BestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
-    func check(into report: Audit, _ app: Application) {
-        let pathSegments = report.endpoint.absolutePath
+    func check(into audit: Audit, _ app: Application) {
+        let pathSegments = audit.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
             if case .string( _) = path {
                 return true
@@ -24,7 +24,7 @@ struct ContextualisedResourceNames: BestPractice {
         guard let firstStringSegment = firstStringSegment,
               case .string(let firstString) = firstStringSegment,
               let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
-            report.recordFinding("Nothing to check for endpoint \(report.endpoint)", .pass)
+            audit.recordFinding("Nothing to check for endpoint \(audit.endpoint)", .pass)
             return
         }
 
@@ -32,7 +32,7 @@ struct ContextualisedResourceNames: BestPractice {
         for segmentIndex in firstStringIndex + 1..<pathSegments.count {
             if case .string(let nextString) = pathSegments[segmentIndex] {
                 if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
-                    report.recordFinding("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
+                    audit.recordFinding("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
                 }
                 print("\"\(latestString)\" and \"\(nextString)\" are related!")
                 latestString = nextString

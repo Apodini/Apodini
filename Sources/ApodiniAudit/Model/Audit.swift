@@ -10,7 +10,11 @@ import Foundation
 import Apodini
 
 public struct Report {
-    var audits: [Audit]
+    var audits = [Audit]()
+    
+    mutating func addAudit(_ audit: Audit) {
+        audits.append(audit)
+    }
 }
 
 /// An `Audit` stores the findings of a best practice for an endpoint.

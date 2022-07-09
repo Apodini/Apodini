@@ -112,7 +112,7 @@ final class ApodiniAuditTests: ApodiniTests {
     }
     
     struct CustomBP: BestPractice {
-        func check(into report: Audit, _ app: Application) {
+        func check(into audit: Audit, _ app: Application) {
             print("custom best practice!")
         }
         
@@ -124,10 +124,10 @@ final class ApodiniAuditTests: ApodiniTests {
         let commandType = AuditRunCommand<AuditableWebService>.self
         var command = commandType.init()
         
-        let reports = try getReportsForAuditRunCommand(&command)
-        let actualAuditFindings = reports.flatMap { $0.findings }
+        let audits = try getAuditsForAuditRunCommand(&command)
+        let actualFindings = audits.flatMap { $0.findings }
         
-        let expectedAuditFindings = [
+        let expectedFindings = [
 //            AuditFinding(
 //                message: "The path segments do not contain any underscores",
 //                result: .success
@@ -162,19 +162,19 @@ final class ApodiniAuditTests: ApodiniTests {
             )
         ]
         
-        XCTAssertSetEqual(actualAuditFindings, expectedAuditFindings)
+        XCTAssertSetEqual(actualFindings, expectedFindings)
     }
     
     func testLingusticAuditing() throws {
         let commandType = AuditRunCommand<AuditableWebService2>.self
         var command = commandType.init()
         
-        let reports = try getReportsForAuditRunCommand(&command)
+        let audits = try getAuditsForAuditRunCommand(&command)
         
-        let lingReports = reports.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
-        let lingAudits = lingReports.flatMap { $0.findings }
+        let lingAudits = audits.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
+        let lingFindings = lingAudits.flatMap { $0.findings }
         
-        let expectedLingAudits = [
+        let expectedLingFindings = [
             Finding(
                 message: "\"Greeting\" is not a plural noun for a POST handler",
                 assessment: .fail
@@ -189,23 +189,23 @@ final class ApodiniAuditTests: ApodiniTests {
             )
         ]
         
-        XCTAssertSetEqual(lingAudits, expectedLingAudits)
+        XCTAssertSetEqual(lingFindings, expectedLingFindings)
     }
     
     func testSelectingBestPractices() throws {
         let commandType = AuditRunCommand<AuditableWebService2>.self
         var command = commandType.init()
         
-        let reports = try getReportsForAuditRunCommand(&command)
+        let audits = try getAuditsForAuditRunCommand(&command)
         
-        XCTAssertTrue(reports.contains {
+        XCTAssertTrue(audits.contains {
             $0.findings.contains {
                 $0.message.contains("getThisResource")
             }
         })
     }
     
-    func getReportsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
+    func getAuditsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
         command.webService = .init()
         
         try command.run(app: app)
@@ -217,7 +217,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
         
-        return auditInterfaceExporter.reports
+        return auditInterfaceExporter.report.audits
     }
     
     func testRegisterCommandOnce() throws {
