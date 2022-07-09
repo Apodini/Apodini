@@ -15,11 +15,11 @@ protocol URLSegmentBestPractice: BestPractice {
 }
 
 extension URLSegmentBestPractice {
-    func check(into report: Audit, _ app: Application) {
-        for segment in report.endpoint.absolutePath {
+    public func check(into audit: Audit, _ app: Application) {
+        for segment in audit.endpoint.absolutePath {
             if case .string(let identifier) = segment,
                 let failMessage = checkSegment(segment: identifier) {
-                report.recordFinding(failMessage, .fail)
+                audit.recordFinding(failMessage, .fail)
             }
         }
     }

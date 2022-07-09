@@ -16,7 +16,7 @@ public protocol BestPractice {
     static var category: BestPracticeCategories { get }
     
     /// Check this best practice into the given AuditReport.
-    func check(into report: Audit, _ app: Application)
+    func check(into audit: Audit, _ app: Application)
     
     init()
 }
