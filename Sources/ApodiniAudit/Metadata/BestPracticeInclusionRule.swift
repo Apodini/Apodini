@@ -73,5 +73,5 @@ struct PassThroughInclusionRule: BestPracticeInclusionRule {
 }
 
 public enum BestPracticeInclusionAction {
-    case enable, disable, noAction
+    case include, exclude, noAction
 }

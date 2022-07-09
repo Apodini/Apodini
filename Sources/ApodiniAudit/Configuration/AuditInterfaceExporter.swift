@@ -31,7 +31,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
         
         for bestPractice in bestPractices {
             // Check whether this best practice is silenced
-            guard bestPracticeRule.action(for: type(of: bestPractice)) != .disable else {
+            guard bestPracticeRule.action(for: type(of: bestPractice)) != .exclude else {
                 continue
             }
             

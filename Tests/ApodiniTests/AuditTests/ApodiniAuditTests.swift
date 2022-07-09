@@ -58,7 +58,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         
         var metadata: AnyWebServiceMetadata {
-            SelectBestPractices(.disable, .all)
+            SelectBestPractices(.exclude, .all)
         }
     }
     
@@ -78,7 +78,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         
         var metadata: AnyHandlerMetadata {
-            SelectBestPractices(.enable, .urlPath)
+            SelectBestPractices(.include, .urlPath)
         }
     }
     
