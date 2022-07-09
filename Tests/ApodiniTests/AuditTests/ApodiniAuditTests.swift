@@ -112,7 +112,7 @@ final class ApodiniAuditTests: ApodiniTests {
     }
     
     struct CustomBP: BestPractice {
-        func check(into report: AuditReport, _ app: Application) {
+        func check(into report: Audit, _ app: Application) {
             print("custom best practice!")
         }
         
@@ -140,25 +140,25 @@ final class ApodiniAuditTests: ApodiniTests {
 //                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
 //                result: .fail
 //            ),
-            AuditFinding(
+            Finding(
                 message: "The path segment crudGet contains one or more CRUD verbs!",
-                result: .fail
+                assessment: .fail
             ),
-            AuditFinding(
+            Finding(
                 message: "\"crudGet\" and \"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" are not related!",
-                result: .fail
+                assessment: .fail
             ),
-            AuditFinding(
+            Finding(
                 message: "\"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" and \"withextension.html\" are not related!",
-                result: .fail
+                assessment: .fail
             ),
-            AuditFinding(
+            Finding(
                 message: "The path segment crudGet contains one or more uppercase letters!",
-                result: .fail
+                assessment: .fail
             ),
-            AuditFinding(
+            Finding(
                 message: "The path segment withextension.html has a file extension.",
-                result: .fail
+                assessment: .fail
             )
         ]
         
@@ -175,17 +175,17 @@ final class ApodiniAuditTests: ApodiniTests {
         let lingAudits = lingReports.flatMap { $0.findings }
         
         let expectedLingAudits = [
-            AuditFinding(
+            Finding(
                 message: "\"Greeting\" is not a plural noun for a POST handler",
-                result: .fail
+                assessment: .fail
             ),
-            AuditFinding(
+            Finding(
                 message: "\"Greetings\" is a plural noun for a POST handler",
-                result: .success
+                assessment: .pass
             ),
-            AuditFinding(
+            Finding(
                 message: "\"ID\" is a singular noun for a PUT or DELETE handler",
-                result: .success
+                assessment: .pass
             )
         ]
         
@@ -205,7 +205,7 @@ final class ApodiniAuditTests: ApodiniTests {
         })
     }
     
-    func getReportsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [AuditReport] {
+    func getReportsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
         command.webService = .init()
         
         try command.run(app: app)

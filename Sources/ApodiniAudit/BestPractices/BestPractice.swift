@@ -16,14 +16,14 @@ public protocol BestPractice {
     static var category: BestPracticeCategories { get }
     
     /// Check this best practice into the given AuditReport.
-    func check(into report: AuditReport, _ app: Application)
+    func check(into report: Audit, _ app: Application)
     
     init()
 }
 
 extension BestPractice {
-    func check(for endpoint: AnyEndpoint, _ app: Application) -> AuditReport {
-        let report = AuditReport(endpoint, self)
+    func check(for endpoint: AnyEndpoint, _ app: Application) -> Audit {
+        let report = Audit(endpoint, self)
         check(into: report, app)
         if report.findings.isEmpty {
             // TODO generate success message

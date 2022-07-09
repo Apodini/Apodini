@@ -9,15 +9,19 @@
 import Foundation
 import Apodini
 
-/// An `Audit` stores the reports of an audit of a best practice for an endpoint.
-/// There can be multiple reports, e.g. one for every URL segment of the endpoint.
-public class AuditReport {
-    var findings: [AuditFinding] = []
+public struct Report {
+    var audits: [Audit]
+}
+
+/// An `Audit` stores the findings of a best practice for an endpoint.
+/// There can be multiple findings, e.g. one for every URL segment of the endpoint.
+public class Audit {
+    var findings: [Finding] = []
     var endpoint: AnyEndpoint
     var bestPractice: BestPractice
     
-    func recordFinding(_ message: String, _ result: AuditResult) {
-        findings.append(AuditFinding(message: message, result: result))
+    func recordFinding(_ message: String, _ assessment: Assessment) {
+        findings.append(Finding(message: message, assessment: assessment))
     }
     
     init(_ endpoint: AnyEndpoint, _ bestPractice: BestPractice) {
@@ -26,16 +30,13 @@ public class AuditReport {
     }
 }
 
-/// A report for an audit, including a message and a result.
-public struct AuditFinding {
+/// A finding for an audit, including a message and a result.
+public struct Finding: Hashable {
     var message: String
-    var result: AuditResult
+    var assessment: Assessment
 }
 
-extension AuditFinding: Hashable { }
-
-enum AuditResult: Hashable {
-    case success
+enum Assessment: Hashable {
+    case pass
     case fail
 }
-

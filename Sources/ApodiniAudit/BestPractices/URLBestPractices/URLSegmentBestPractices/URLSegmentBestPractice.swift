@@ -15,7 +15,7 @@ protocol URLSegmentBestPractice: BestPractice {
 }
 
 extension URLSegmentBestPractice {
-    public func check(into report: AuditReport, _ app: Application) {
+    func check(into report: Audit, _ app: Application) {
         for segment in report.endpoint.absolutePath {
             if case .string(let identifier) = segment,
                 let failMessage = checkSegment(segment: identifier) {

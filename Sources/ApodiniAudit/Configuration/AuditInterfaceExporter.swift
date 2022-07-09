@@ -11,7 +11,7 @@ import Apodini
 import ApodiniHTTP
 
 final class AuditInterfaceExporter: InterfaceExporter {
-    var reports: [AuditReport] = []
+    var reports: [Audit] = []
     
     var app: Application
     var parentConfiguration: HTTPExporterConfiguration

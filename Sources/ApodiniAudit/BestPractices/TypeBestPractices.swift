@@ -14,7 +14,7 @@ struct GetHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .method
     
-    func check(into report: AuditReport, _ app: Application) {
+    func check(into report: Audit, _ app: Application) {
         // get operation for endpoint
         guard report.endpoint[Operation.self] == Operation.read else {
             return

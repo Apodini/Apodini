@@ -10,12 +10,12 @@ import Foundation
 import Apodini
 
 protocol GrammaticalNumberBestPractice: BestPractice {
-    func checkLastPart(into report: AuditReport, _ app: Application, _ lastPart: String)
+    func checkLastPart(into report: Audit, _ app: Application, _ lastPart: String)
 }
 
 extension GrammaticalNumberBestPractice {
     // Adapted from detectPluralisedNodes in the DOLAR project
-    func check(into report: AuditReport, _ app: Application) {
+    func check(into report: Audit, _ app: Application) {
         let path = report.endpoint.absolutePath
         let lastSegment = path.last
         let lastSegmentString: String
@@ -60,7 +60,7 @@ struct PluralLastSegmentForPOST: GrammaticalNumberBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .linguisticURL
     
-    func checkLastPart(into report: AuditReport, _ app: Application, _ lastPart: String) {
+    func checkLastPart(into report: Audit, _ app: Application, _ lastPart: String) {
         if report.endpoint[Operation.self] != .create {
             return
         }
@@ -68,7 +68,7 @@ struct PluralLastSegmentForPOST: GrammaticalNumberBestPractice {
         if !NLTKInterface.shared.isPluralNoun(lastPart) {
             report.recordFinding("\"\(lastPart)\" is not a plural noun for a POST handler", .fail)
         } else {
-            report.recordFinding("\"\(lastPart)\" is a plural noun for a POST handler", .success)
+            report.recordFinding("\"\(lastPart)\" is a plural noun for a POST handler", .pass)
         }
     }
 }
@@ -77,7 +77,7 @@ struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .linguisticURL
     
-    func checkLastPart(into report: AuditReport, _ app: Application, _ lastPart: String) {
+    func checkLastPart(into report: Audit, _ app: Application, _ lastPart: String) {
         if report.endpoint[Operation.self] != .update && report.endpoint[Operation.self] != .delete {
             return
         }
@@ -85,7 +85,7 @@ struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
         if NLTKInterface.shared.isPluralNoun(lastPart) {
             report.recordFinding("\"\(lastPart)\" is not a singular noun for a PUT or DELETE handler", .fail)
         } else {
-            report.recordFinding("\"\(lastPart)\" is a singular noun for a PUT or DELETE handler", .success)
+            report.recordFinding("\"\(lastPart)\" is a singular noun for a PUT or DELETE handler", .pass)
         }
     }
 }

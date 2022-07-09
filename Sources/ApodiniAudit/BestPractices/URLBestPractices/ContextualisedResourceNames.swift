@@ -13,7 +13,7 @@ struct ContextualisedResourceNames: BestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
-    func check(into report: AuditReport, _ app: Application) {
+    func check(into report: Audit, _ app: Application) {
         let pathSegments = report.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
             if case .string( _) = path {
@@ -24,7 +24,7 @@ struct ContextualisedResourceNames: BestPractice {
         guard let firstStringSegment = firstStringSegment,
               case .string(let firstString) = firstStringSegment,
               let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
-            report.recordFinding("Nothing to check for endpoint \(report.endpoint)", .success)
+            report.recordFinding("Nothing to check for endpoint \(report.endpoint)", .pass)
             return
         }
 
