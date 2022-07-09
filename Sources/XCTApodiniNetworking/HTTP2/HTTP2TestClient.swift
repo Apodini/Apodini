@@ -119,7 +119,7 @@ public class HTTP2TestClient {
     /// Adds a `SendRequestsHandler` to the passed `channel`, which will send the `requests`.
     /// `responseReceivedPromise` will be resolved when the response is received.
     private func send(
-        requests: [TestHTTPRequest],
+        requests: HTTP2RequestStream,
         on channel: Channel,
         with responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>
     ) -> EventLoopFuture<Void> {
@@ -143,13 +143,13 @@ public class HTTP2TestClient {
     ///             Each tuple contains a request as well as the corresponding future that will hold the
     ///             `HTTPClientResponsePart`s of the received server response to that request.
     private func sendRequests(channel: Channel,
-                      requestGroups: [[TestHTTPRequest]],
-                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)]> {
+                      requestGroups: [HTTP2RequestStream],
+                      channelErrorForwarder: EventLoopFuture<Void>) -> EventLoopFuture<[(HTTP2RequestStream, EventLoopPromise<[[HTTP2Frame.FramePayload]]>)]> {
         // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
-        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] in
+        return channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).map { http2Multiplexer -> [(HTTP2RequestStream, EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] in
 
             // Step 2: Let's create an HTTP/2 stream for each request.
-            var responseReceivedPromises: [([TestHTTPRequest], EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] = []
+            var responseReceivedPromises: [(HTTP2RequestStream, EventLoopPromise<[[HTTP2Frame.FramePayload]]>)] = []
             for requestGroup in requestGroups {
                 let promise = channel.eventLoop.makePromise(of: [[HTTP2Frame.FramePayload]].self)
                 channelErrorForwarder.cascadeFailure(to: promise)
@@ -170,10 +170,17 @@ public class HTTP2TestClient {
     
     public func sendTestRequests() {
         do {
-            let requestGroups = [[
-                TestHTTPRequest(target: "/http/countdown", headers: [], body: nil, trailers: nil)
-                //TestHTTPRequest(target: "/moin", headers: [], body: nil, trailers: nil)
-            ]]
+            let requestGroups = [
+                HTTP2RequestStream(
+                    method: .POST,
+                    url: "/http/hello",
+                    requests: [
+//                        DATAFrameRequest(query: [:]),
+                        DATAFrameRequest(query: [:])
+                    ])
+//                TestHTTPRequest(target: , headers: [], body: nil, trailers: nil)
+//                TestHTTPRequest(target: "/moin", headers: [], body: nil, trailers: nil)
+            ]
             
             guard let bs = self.bootstrap else {
                 return
@@ -205,7 +212,7 @@ public class HTTP2TestClient {
             
             for (requestGroup, responseGroup) in allRequestsAndResponses {
                 let actualResponseGroup = responseGroup[0]
-                print("Group: \(requestGroup.count) requests, \(actualResponseGroup.count) responses")
+                print("Group: \(requestGroup.requests.count) requests, \(actualResponseGroup.count) responses")
                 
                 for response in actualResponseGroup {
                     if case .data(let dataPayload) = response,

@@ -25,35 +25,39 @@ final class SendRequestsHandler: ChannelInboundHandler {
     private var responsePartAccumulator: [[HTTP2Frame.FramePayload]] = []
     private var currentResponse: [HTTP2Frame.FramePayload] = []
     private let host: String
-    private let requests: [TestHTTPRequest]
+    private let requestStream: HTTP2RequestStream
 
-    init(host: String, requests: [TestHTTPRequest], responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>) {
+    init(host: String, requests: HTTP2RequestStream, responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>) {
         self.responseReceivedPromise = responseReceivedPromise
         self.host = host
-        self.requests = requests
+        self.requestStream = requests
     }
 
     func channelActive(context: ChannelHandlerContext) {
         assert(context.channel.parent!.isActive)
-        // Send all the requests
-        for request in self.requests {
-            let noBody = request.body == nil
-            
-            var headersArray = request.headers
-            headersArray.append((":method", "GET")) // TODO use request method
-            headersArray.append((":path", request.target))
-            headersArray.append((":scheme", "https"))
-            headersArray.append((":authority", self.host))
-            
-            let headerContent = HTTP2Frame.FramePayload.Headers(headers: HPACKHeaders(headersArray), endStream: noBody)
-            context.writeAndFlush(self.wrapOutboundOut(.headers(headerContent)), promise: nil)
-
-            if !noBody, let body = request.body {
-                var buffer: ByteBuffer
-                buffer = context.channel.allocator.buffer(capacity: body.count)
-                buffer.writeBytes(body)
-                context.writeAndFlush(self.wrapOutboundOut(.data(HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: true))), promise: nil)
+        // Send header frame
+        var headers = [(String, String)]()
+        headers.append((":method", requestStream.method.rawValue)) // TODO use request method
+        headers.append((":path", requestStream.url))
+        headers.append((":scheme", "https"))
+        headers.append((":authority", self.host))
+        
+        let headerContent = HTTP2Frame.FramePayload.Headers(headers: HPACKHeaders(headers), endStream: false)
+        context.writeAndFlush(self.wrapOutboundOut(.headers(headerContent)), promise: nil)
+        
+        let encoder = JSONEncoder()
+        
+        // Send requests as DATA frames
+        for (index, request) in self.requestStream.requests.enumerated() {
+            do {
+                let buffer = try encoder.encodeAsByteBuffer(request, allocator: .init())
+                let endStream = index == requestStream.requests.count - 1
+                
+                    context.writeAndFlush(self.wrapOutboundOut(.data(HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: endStream))), promise: nil)
+            } catch {
+                print(error)
             }
+            
         }
 //        let emptyBuffer = context.channel.allocator.buffer(capacity: 0)
 //        context.writeAndFlush(self.wrapOutboundOut(.data(HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(emptyBuffer), endStream: true))), promise: nil)
