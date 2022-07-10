@@ -38,6 +38,7 @@ public class Audit {
 public struct Finding: Hashable {
     var message: String
     var assessment: Assessment
+    var priority: Priority = .normal
 }
 
 enum Assessment: Hashable {
