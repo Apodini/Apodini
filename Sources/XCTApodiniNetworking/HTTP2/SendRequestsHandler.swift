@@ -25,9 +25,9 @@ final class SendRequestsHandler: ChannelInboundHandler {
     private var responsePartAccumulator: [[HTTP2Frame.FramePayload]] = []
     private var currentResponse: [HTTP2Frame.FramePayload] = []
     private let host: String
-    private let requestStream: HTTP2RequestStream
+    private let requestStream: HTTP2RequestStream<AddStruct>
 
-    init(host: String, requests: HTTP2RequestStream, responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>) {
+    init(host: String, requests: HTTP2RequestStream<AddStruct>, responseReceivedPromise: EventLoopPromise<[[HTTP2Frame.FramePayload]]>) {
         self.responseReceivedPromise = responseReceivedPromise
         self.host = host
         self.requestStream = requests

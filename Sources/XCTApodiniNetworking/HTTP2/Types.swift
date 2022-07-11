@@ -13,14 +13,19 @@ struct HostAndPort: Equatable, Hashable {
     var port: Int
 }
 
-public struct DATAFrameRequest: Encodable {
-    var query: [String: String]
+struct AddStruct: Encodable {
+    let sum: Int
+    let number: Int
 }
 
-public struct HTTP2RequestStream {
+public struct DATAFrameRequest<T: Encodable>: Encodable {
+    var query: T
+}
+
+public struct HTTP2RequestStream<T: Encodable> {
     var method: HTTPMethod
     var url: String
-    var requests: [DATAFrameRequest]
+    var requests: [DATAFrameRequest<T>]
 }
 
 //class _Storage {
