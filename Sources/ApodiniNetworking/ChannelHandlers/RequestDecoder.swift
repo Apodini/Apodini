@@ -90,7 +90,7 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             if req.headers[.contentLength] == bodyBuffer.readableBytes {
                 req.bodyStorage = .buffer(bodyBuffer)
                 state = .awaitingEnd(req)
-            } else if req.headers[.transferEncoding].contains(.chunked) {
+            } else if req.headers[.transferEncoding].contains(.chunked) && req.version != .http2 {
                 handleError(
                     context: context,
                     requestVersion: req.version,
@@ -103,6 +103,7 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
                 req.bodyStorage = .stream()
                 state = .readingBodyStream(req)
                 context.fireChannelRead(wrapInboundOut(req))
+                req.bodyStorage.stream!.write(bodyBuffer)
             } else {
                 // Either there is no Content-Length header, or it has a size that doesn't match the body we were sent
                 logger.error("Potentially unhandled incoming HTTP request")

@@ -57,6 +57,8 @@ struct TestWebService: Apodini.WebService {
         WeatherComponent()
         CountdownComponent()
         BidirectionalGreeterComponent()
+        HelloComponent()
+        AddComponent()
     }
     
     var configuration: Configuration {

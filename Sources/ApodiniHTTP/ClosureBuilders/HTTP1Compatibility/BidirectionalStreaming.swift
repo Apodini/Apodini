@@ -19,8 +19,12 @@ extension HTTPInterfaceExporter {
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
         let encoder = configuration.encoder
-        return _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { responses, _ in
-            ByteBuffer(data: try encoder.encode(responses))
+        return _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { response -> Data? in
+            if let response = response {
+                return try encoder.encode(response)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -28,15 +32,9 @@ extension HTTPInterfaceExporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> where H.Response.Content == Blob {
-        _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { (responses: [Blob], headers: inout HTTPHeaders) in
-            if let mediaType = responses.first?.type {
-                headers[.contentType] = mediaType
-            }
-            var data = ByteBuffer()
-            for response in responses {
-                data.writeImmutableBuffer(response.byteBuffer)
-            }
-            return data
+        _buildBidirectionalStreamingClosure(for: endpoint, using: defaultValues) { (response: Blob?) -> Data? in
+            precondition(response?.byteBuffer.readerIndex == 0)
+            return response?.byteBuffer.getAllData()
         }
     }
     
@@ -44,65 +42,88 @@ extension HTTPInterfaceExporter {
     private func _buildBidirectionalStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore,
-        encodeResponse: @escaping ([H.Response.Content], _ httpResponseHeaders: inout HTTPHeaders) throws -> ByteBuffer
+        encodeResponse: @escaping (H.Response.Content?) throws -> Data?
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
-        let strategy = multiInputDecodingStrategy(for: endpoint)
+        let strategy = dataFrameDecodingStrategy(for: endpoint)
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer<H>(),
             forwarder: endpoint[ErrorForwarder.self]
         )
         let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
-        return { [unowned self] (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
-            do {
-                guard let requestCount = try configuration.decoder.decode(
-                    ArrayCount.self,
-                    from: request.bodyStorage.getFullBodyData() ?? .init()
-                ).count else {
-                    throw ApodiniError(
-                        type: .badInput,
-                        reason: "Expected array at top level of body.",
-                        description: "Input for client side steaming endpoints must be an array at top level.")
+        return { (request: HTTPRequest) in // swiftlint:disable:this closure_body_length
+//            guard let requestCount = try configuration.decoder.decode(
+//                ArrayCount.self,
+//                from: request.bodyStorage.getFullBodyData() ?? .init()
+//            ).count else {
+//                throw ApodiniError(
+//                    type: .badInput,
+//                    reason: "Expected array at top level of body.",
+//                    description: "Input for client side steaming endpoints must be an array at top level.")
+//            }
+            let delegate = factory.instance()
+            let httpResponseStream = BodyStorage.Stream()
+            
+            return HTTPRequestStreamAsyncSequence(request)
+                .map { request in
+                    (request, request)
                 }
-                let delegate = factory.instance()
-                return Array(0..<requestCount)
-                    .asAsyncSequence
-                    .map { index in
-                        (request, (request, index))
-                    }
-                    .decode(using: strategy, with: request.eventLoop)
-                    .insertDefaults(with: defaultValues)
-                    .validateParameterMutability()
-                    .cache()
-                    .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
-                    .subscribe(to: delegate)
-                    .evaluate(on: delegate)
-                    .transform(using: abortAnyError)
-                    .cancelIf { $0.connectionEffect == .close }
-                    .collect()
-                    .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
-                        let status: Status? = responses.last?.status
-                        let information: InformationSet = responses.last?.information ?? []
-                        let content: [H.Response.Content] = responses.compactMap { response in
-                            response.content
+                .decode(using: strategy, with: request.eventLoop)
+                .insertDefaults(with: defaultValues)
+                .validateParameterMutability()
+                .cache()
+                .forwardDecodingErrors(with: endpoint[ErrorForwarder.self])
+                .subscribe(to: delegate)
+                .evaluate(on: delegate)
+                .transform(using: abortAnyError)
+                .cancelIf { $0.connectionEffect == .close }
+                //.collect()
+                .firstFutureAndForEach(
+                    on: request.eventLoop,
+                    objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+                        defer {
+                            if response.connectionEffect == .close {
+                                httpResponseStream.close()
+                            }
                         }
-                        var httpHeaders = HTTPHeaders(information)
-                        let body = try encodeResponse(content, &httpHeaders)
-                        return HTTPResponse(
-                            version: request.version,
-                            status: HTTPResponseStatus(status ?? .ok),
-                            headers: httpHeaders,
-                            bodyStorage: .buffer(initialValue: body)
-                        )
+                        do {
+                            if let data = try encodeResponse(response.content) {
+                                httpResponseStream.write(data)
+                            }
+                        } catch {
+                            // Error encoding the response data
+                            endpoint[ErrorForwarder.self].forward(error)
+                            self.logger.error("Error encoding part of response: \(error)")
+                        }
                     }
-                    .firstFuture(on: request.eventLoop)
-                    .map { optionalResponse in
-                        precondition(optionalResponse != nil)
-                        return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
-                    }
-            } catch {
-                endpoint[ErrorForwarder.self].forward(error)
-                throw error
-            }
+                )
+                .map { firstResponse -> HTTPResponse in
+                    HTTPResponse(
+                        version: request.version,
+                        status: HTTPResponseStatus(firstResponse?.status ?? .ok),
+                        headers: HTTPHeaders(firstResponse?.information ?? []),
+                        bodyStorage: .stream(httpResponseStream)
+                    )
+                }
+//                .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
+//                    let status: Status? = responses.last?.status
+//                    let information: InformationSet = responses.last?.information ?? []
+//                    let content: [H.Response.Content] = responses.compactMap { response in
+//                        response.content
+//                    }
+//                    var httpHeaders = HTTPHeaders(information)
+//                    let body = try encodeResponse(content, &httpHeaders)
+//                    return HTTPResponse(
+//                        version: request.version,
+//                        status: HTTPResponseStatus(status ?? .ok),
+//                        headers: httpHeaders,
+//                        bodyStorage: .buffer(initialValue: body)
+//                    )
+//                }
+//                .firstFuture(on: request.eventLoop)
+//                .map { optionalResponse in
+//                    precondition(optionalResponse != nil)
+//                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
+//                }
         }
     }
 }
