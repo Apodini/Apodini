@@ -8,6 +8,7 @@
 
 import Apodini
 import ApodiniNetworking
+import Foundation
 
 /// An ``AsyncSequence`` which emits ``Data`` objects of serialized JSON.
 /// The ``Data`` objects are created by reading length-prefixed blocks from an ``HTTPRequest``'s stream body storage.
@@ -24,40 +25,76 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
             fatalError("Cannot construct an AsyncSequence from a non-streaming request body")
         }
         
-        self.request = request
         self.stream = stream
-        
-        self.stream.setObserver { stream, event in
-            self.events.append(event)
-        }
     }
     
     func next() async throws -> Element? {
-        defer {
-            print("Incrementing event index in AsyncSequence")
-            nextEventIndex += 1
+        // We expect the stream to always point at the Int32
+        // indicating the beginning of the next object.
+
+        // If there's an object in the stream, we emit it.
+        // Even if the stream has been closed already.
+        if let data = readObjectFromStream() {
+            return data
         }
         
+        // The stream has been closed and there is no complete object on the stream.
+        // This is the end of the AsyncSequence.
         if streamClosed {
-            print("Returning nil after .writeAndClose")
+            print("Ending AsyncSequence")
             return nil
         }
         
-        while nextEventIndex == events.count {
-            await Task.yield()
-            //try await Task.sleep(nanoseconds: 100_000_000)
+        // The stream is not closed, but there's also not a complete object on the stream.
+        // We wait until the next stream event.
+        var dataObject: Data?
+        repeat {
+            await awaitStreamEvent()
+            dataObject = readObjectFromStream()
+        } while dataObject == nil
+        
+        guard let dataObject = dataObject else {
+            fatalError("This should not be possible")
         }
-        let latestEvent = events[nextEventIndex]
-        if latestEvent == .close  {
-            print("Returning nil after .close")
+
+        return dataObject
+    }
+    
+    private func awaitStreamEvent() async -> Void {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            stream.setObserver { (_, event) in
+                if event == .close || event == .writeAndClose {
+                    self.streamClosed = true
+                }
+                self.stream.removeObserver()
+                continuation.resume()
+            }
+        }
+    }
+    
+    /// Tries to read a ``Data`` object of the expected length from the stream and moves the reader index.
+    /// Returns nil if the stream is not long enough.
+    private func readObjectFromStream() -> Data? {
+        // We get the integer and check whether the stream is long enough.
+        guard let int32ByteBuffer = stream.getBytes(4),
+              let objectLengthInt32 = int32ByteBuffer.getInteger(at: 0, as: Int32.self),
+              stream.readableBytes >= objectLengthInt32 + 4 else {
             return nil
-        } else if latestEvent == .writeAndClose {
-            print("AsyncSequence sees that stream was closed")
-            streamClosed = true
         }
-        print("Yielding request from asyncsequence as stream has been written to")
-        print("Current Body data: \(request.bodyStorage.getFullBodyDataAsString())")
-        return request
+        
+        let objectLength = Int(objectLengthInt32)
+        
+        guard let int32AndObjectByteBuffer = stream.readBytes(objectLength + 4) else {
+            print("Something is pretty wrong. The stream said it's long enough, but we can't read as much as we're supposed to.")
+            return nil
+        }
+        
+        guard let data = int32AndObjectByteBuffer.getData(at: 4, length: objectLength) else {
+            print("Something is pretty wrong. We can't read as much data as we would like to.")
+            return nil
+        }
+        
+        return data
     }
     
     func makeAsyncIterator() -> HTTPRequestStreamAsyncSequence {

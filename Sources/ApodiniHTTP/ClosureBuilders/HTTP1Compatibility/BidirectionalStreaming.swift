@@ -64,8 +64,8 @@ extension HTTPInterfaceExporter {
             let httpResponseStream = BodyStorage.Stream()
             
             return HTTPRequestStreamAsyncSequence(request)
-                .map { request in
-                    (request, request)
+                .map { data in
+                    (request, data)
                 }
                 .decode(using: strategy, with: request.eventLoop)
                 .insertDefaults(with: defaultValues)
