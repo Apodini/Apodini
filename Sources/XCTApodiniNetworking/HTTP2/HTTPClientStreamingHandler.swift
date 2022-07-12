@@ -9,14 +9,13 @@
 import NIO
 import NIOHTTP1
 import NIOHTTP2
+import NIOHPACK
 import NIOTLS
 import NIOSSL
 import Foundation
 import NIOExtras
+import NIOFoundationCompat
 
-///
-///
-/// - warning: This will read the whole response into memory and delivers it into a promise.
 final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHandler {
     typealias InboundIn = HTTP2Frame.FramePayload
     typealias OutboundOut = HTTP2Frame.FramePayload
