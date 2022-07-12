@@ -24,6 +24,6 @@ struct GreetComponent: Component {
     }
     
     var metadata: AnyComponentOnlyMetadata {
-        SelectBestPractices(.disable, NoCRUDVerbsInURLPathSegments.self)
+        SelectBestPractices(.exclude, NoCRUDVerbsInURLPathSegments.self)
     }
 }

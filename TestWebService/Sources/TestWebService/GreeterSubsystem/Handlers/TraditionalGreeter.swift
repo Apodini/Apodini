@@ -45,6 +45,6 @@ struct TraditionalGreeter: Handler {
     }
     
     var metadata: AnyHandlerMetadata {
-        SelectBestPractices(.enable, NoCRUDVerbsInURLPathSegments.self)
+        SelectBestPractices(.include, NoCRUDVerbsInURLPathSegments.self)
     }
 }
