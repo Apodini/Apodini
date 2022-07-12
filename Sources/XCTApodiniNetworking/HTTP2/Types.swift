@@ -8,24 +8,14 @@
 
 import NIOHTTP1
 
-struct HostAndPort: Equatable, Hashable {
-    var host: String
-    var port: Int
-}
-
-struct AddStruct: Encodable {
-    let sum: Int
-    let number: Int
-}
-
 public struct DATAFrameRequest<T: Encodable>: Encodable {
     var query: T
 }
 
-public struct HTTP2RequestStream<T: Encodable> {
+public struct BasicHTTPHeaderFields {
     var method: HTTPMethod
     var url: String
-    var requests: [DATAFrameRequest<T>]
+    var host: String
 }
 
 //class _Storage {
