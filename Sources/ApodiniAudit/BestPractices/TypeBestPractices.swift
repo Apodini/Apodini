@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 import ApodiniTypeInformation
 
-struct GetHasComplexReturnType: BestPractice {
+struct GETHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .method
     
@@ -27,9 +27,9 @@ struct GetHasComplexReturnType: BestPractice {
             return
         }
         
-        // Check that it is not primitive
+        // Report failure if the return type is primitive
         if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
-            audit.recordFinding("The GET handler at does not return a complex type", .fail)
+            audit.recordFinding("The GET handler does not return a complex type", .fail)
         }
     }
 }
