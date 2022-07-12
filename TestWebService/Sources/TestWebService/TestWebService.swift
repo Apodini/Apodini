@@ -36,7 +36,7 @@ struct TestWebService: Apodini.WebService {
     var port: Int?
     
     @Option(help: "The TestWebService's HTTPS config. Omit to disable HTTPS, specify 'builtin' to use buitin self-signed certificates, or pass a path to a custom certificate and key.") // swiftlint:disable:this line_length
-    var httpsConfig: HTTPSConfig = .builtinSelfSignedCertificate
+    var httpsConfig: HTTPSConfig = .none
     
     @Option(help: "Endpoint to expose OpenAPI specification")
     var openApiEndpoint: String = "oas"
