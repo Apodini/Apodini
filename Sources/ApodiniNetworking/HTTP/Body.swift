@@ -38,6 +38,12 @@ extension Array: ByteBufferWritable where Element == UInt8 {
     }
 }
 
+extension Int32: ByteBufferWritable {
+    public func write(to byteBuffer: inout ByteBuffer) {
+        byteBuffer.writeInteger(self, as: Int32.self)
+    }
+}
+
 
 extension ByteBuffer: ByteBufferWritable {
     public func write(to byteBuffer: inout ByteBuffer) {

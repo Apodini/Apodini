@@ -18,7 +18,6 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
     typealias Element = Data
     
     var stream: BodyStorage.Stream
-    var streamClosed = false
     
     init(_ request: HTTPRequest) {
         guard case .stream(let stream) = request.bodyStorage else {
@@ -40,7 +39,7 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
         
         // The stream has been closed and there is no complete object on the stream.
         // This is the end of the AsyncSequence.
-        if streamClosed {
+        if stream.isClosed {
             print("Ending AsyncSequence")
             return nil
         }
@@ -51,10 +50,11 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
         repeat {
             await awaitStreamEvent()
             dataObject = readObjectFromStream()
-        } while dataObject == nil
+        } while dataObject == nil && !stream.isClosed
         
         guard let dataObject = dataObject else {
-            fatalError("This should not be possible")
+            // The stream has been closed.
+            return nil
         }
 
         return dataObject
@@ -62,10 +62,11 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
     
     private func awaitStreamEvent() async -> Void {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            if stream.isClosed {
+                continuation.resume()
+                return
+            }
             stream.setObserver { (_, event) in
-                if event == .close || event == .writeAndClose {
-                    self.streamClosed = true
-                }
                 self.stream.removeObserver()
                 continuation.resume()
             }
