@@ -69,7 +69,6 @@ public class HTTP2TestClient {
     var numberOfErrors = 0
     var bootstrap: ClientBootstrap?
     var eventLoop: EventLoop
-    var forwardChannelErrorToStreamsPromise: EventLoopPromise<Void>
     
     private init() throws {
         // MARK: Client Config, mainly about TLS
@@ -104,19 +103,11 @@ public class HTTP2TestClient {
 
         self.eventLoop = group.next()
 
-        // This promise will be fulfilled when the Channel closes (not very interesting) but more interestingly, it will
-        // be fulfilled with an error if the heuristic has determined that the server probably doesn't speak HTTP/2.
-        self.forwardChannelErrorToStreamsPromise = eventLoop.makePromise(of: Void.self)
-
         self.bootstrap = ClientBootstrap(group: eventLoop)
             .channelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
             .channelInitializer { channel in
-                //let heuristics = HeuristicForServerTooOldToSpeakGoodProtocolsHandler()
-                let errorHandler = CollectErrorsAndCloseStreamHandler(promise: self.forwardChannelErrorToStreamsPromise)
                 let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: HTTP2TestClient.host)
                 return channel.pipeline.addHandler(sslHandler).flatMap {
-                    channel.pipeline.addHandler(errorHandler)
-                }.flatMap {
                     channel.configureHTTP2Pipeline(mode: .client) { channel in
                         channel.eventLoop.makeSucceededVoidFuture()
                     }.map { (_: HTTP2StreamMultiplexer) in () }
@@ -208,7 +199,6 @@ public class HTTP2TestClient {
         } catch {
             print("ERROR: \(error)")
             numberOfErrors += 1
-            forwardChannelErrorToStreamsPromise.fail(error)
         }
     }
 }

@@ -12,6 +12,6 @@ import XCTApodiniNetworking
 
 class HTTP2Tests: XCTApodiniTest {
     func testHTTP2() throws {
-//        HTTP2TestClient.client.sendTestRequests()
+        HTTP2TestClient.client.sendTestRequests()
     }
 }
