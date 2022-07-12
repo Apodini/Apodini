@@ -63,7 +63,11 @@ extension HTTPInterfaceExporter {
             let delegate = factory.instance()
             let httpResponseStream = BodyStorage.Stream()
             
-            return HTTPRequestStreamAsyncSequence(request)
+            guard case .stream(let stream) = request.bodyStorage else {
+                throw BodyStorageTypeError.notStream
+            }
+            
+            return HTTPRequestStreamAsyncSequence(stream)
                 .map { data in
                     (request, data)
                 }
@@ -125,6 +129,17 @@ extension HTTPInterfaceExporter {
 //                    precondition(optionalResponse != nil)
 //                    return optionalResponse ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
 //                }
+        }
+    }
+}
+
+enum BodyStorageTypeError: Error, CustomStringConvertible {
+    case notStream
+    
+    public var description: String {
+        switch self {
+        case .notStream:
+            return "A .stream BodyStorage must be supplied!"
         }
     }
 }

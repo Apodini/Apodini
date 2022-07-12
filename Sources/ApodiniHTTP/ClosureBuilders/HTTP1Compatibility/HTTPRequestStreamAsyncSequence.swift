@@ -19,11 +19,7 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
     
     var stream: BodyStorage.Stream
     
-    init(_ request: HTTPRequest) {
-        guard case .stream(let stream) = request.bodyStorage else {
-            fatalError("Cannot construct an AsyncSequence from a non-streaming request body")
-        }
-        
+    init(_ stream: BodyStorage.Stream) {
         self.stream = stream
     }
     
