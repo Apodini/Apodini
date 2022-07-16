@@ -74,6 +74,7 @@ extension HTTPInterfaceExporter {
                         }
                         do {
                             if let data = try encodeResponse(response.content) {
+                                httpResponseStream.write(Int32(data.count))
                                 httpResponseStream.write(data)
                             }
                         } catch {
