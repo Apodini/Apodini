@@ -259,6 +259,8 @@ public extension AnyHTTPHeaderName {
     static let contentLength = HTTPHeaderName<Int>("Content-Length")
     /// The `ETag` HTTP header field
     static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
+//    /// The `LastModified` HTTP header field
+//    static let lastModified = HTTPHeaderName<LastModifiedHTTPHeaderValue>("Last-Modified")
     /// The `Access-Control-Allow-Origin` header field
     static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
 }

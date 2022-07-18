@@ -99,7 +99,7 @@ private struct PathParameterStrategy<E: Codable>: ParameterDecodingStrategy {
 
 public extension DecodingStrategy where Input == Data {
     /// Transforms a ``DecodingStrategy`` with ``DecodingStrategy/Input`` type `Data` to
-    /// a strategy that takes a Vapor `Request` as an ``DecodingStrategy/Input`` by extracting
+    /// a strategy that takes an `HTTPRequest` by extracting
     /// the request's ``bodyData``.
     func transformedToHTTPRequestBasedStrategy() -> TransformingStrategy<Self, HTTPRequest> {
         self.transformed { (request: HTTPRequest) in
@@ -111,7 +111,7 @@ public extension DecodingStrategy where Input == Data {
 
 public extension EndpointDecodingStrategy where Input == Data {
     /// Transforms an ``EndpointDecodingStrategy`` with ``EndpointDecodingStrategy/Input`` type `Data` to
-    /// a strategy that takes a Vapor `Request` as an ``EndpointDecodingStrategy/Input`` by extracting
+    /// a strategy that takes an `HTTPRequest` by extracting
     /// the request's ``bodyData``.
     func transformedToHTTPRequestBasedStrategy() -> TransformingEndpointStrategy<Self, HTTPRequest> {
         self.transformed { (request: HTTPRequest) in
@@ -123,7 +123,7 @@ public extension EndpointDecodingStrategy where Input == Data {
 
 public extension BaseDecodingStrategy where Input == Data {
     /// Transforms a ``BaseDecodingStrategy`` with ``BaseDecodingStrategy/Input`` type `Data` to
-    /// a strategy that takes a Vapor `Request` as an ``BaseDecodingStrategy/Input`` by extracting
+    /// a strategy that takes an `HTTPRequest` by extracting
     /// the request's ``bodyData``.
     func transformedToHTTPRequestBasedStrategy() -> TransformingBaseStrategy<Self, HTTPRequest> {
         self.transformed { (request: HTTPRequest) in

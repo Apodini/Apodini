@@ -32,7 +32,7 @@ struct TraditionalGreeter: Handler {
         
         switch connection.state {
         case .end, .close:
-            return.end
+            return .end
         default:
             break
         }
