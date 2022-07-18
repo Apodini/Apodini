@@ -11,7 +11,7 @@ import NIOHTTP1
 
 
 /// An `Status` expresses additional information that can be passed to a `Response`
-public enum Status: ResponseTransformable {
+public enum Status: ResponseTransformable, Equatable {
     /// The request was handled and the response contains the expected content
     case ok
     /// The request was handled and a new resource has been created
