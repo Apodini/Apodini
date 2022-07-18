@@ -18,7 +18,7 @@ final class ApodiniAuditTests: ApodiniTests {
         
         // Run the AuditSetupCommand. It doesn't matter which WebService we specify.
         let commandType = AuditSetupNLTKCommand<AuditableWebService>.self
-        var command = commandType.init()
+        let command = commandType.init()
         try command.run(app: app)
         print("Installing")
     }

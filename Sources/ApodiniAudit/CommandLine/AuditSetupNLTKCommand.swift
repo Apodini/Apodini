@@ -31,8 +31,8 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         }
         
         // Install nltk
-        let pip3Args = ["install", "--user", "-U", "nltk"]
-        var (exitCode, output) = try runCommand("pip3", pip3Args)
+        let pipArgs = ["install", "--user", "-U", "nltk"]
+        var (exitCode, output) = try runCommand("pip", pipArgs)
         
         if exitCode != 0 {
             print("Failed to install nltk. Aborting. Output: \(output)")
@@ -42,8 +42,8 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         print("Successfully installed nltk!")
         
         // Install wordnet, omw-1.4, and averaged_perceptron_tagger corpora
-        let python3Args = ["-m", "nltk.downloader", "wordnet", "omw-1.4", "averaged_perceptron_tagger"]
-        (exitCode, output) = try runCommand("python3", python3Args)
+        let pythonArgs = ["-m", "nltk.downloader", "wordnet", "omw-1.4", "averaged_perceptron_tagger"]
+        (exitCode, output) = try runCommand("python", pythonArgs)
         
         if exitCode != 0 {
             print("Failed to install corpora. Aborting. Output: \(output)")
@@ -54,19 +54,19 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
     }
     
     private func executableURL(for executable: String) -> URL? {
-        if let url = ChildProcess.findExecutable(
+        ChildProcess.findExecutable(
             named: executable,
             additionalSearchPaths: ["/usr/local/bin/", "/opt/homebrew/bin/"]
-        ) {
-            return url
-        }
-        print("Could not find executable \"\(executable)\"")
-        return nil
+        )
     }
     
     private func runCommand(_ executable: String, _ arguments: [String]) throws -> (exitCode: Int32, output: String) {
+        guard let executableURL = executableURL(for: executable) else {
+            throw ExecutableNotFound.notFound(executable)
+        }
+        
         let childProcess = ChildProcess(
-            executableUrl: executableURL(for: executable)!,
+            executableUrl: executableURL,
             arguments: arguments,
             workingDirectory: nil,
             captureOutput: true,
@@ -77,5 +77,16 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         )
         let terminationInfo = try childProcess.launchSync()
         return (terminationInfo.exitCode, try childProcess.readStdoutToEnd())
+    }
+}
+
+enum ExecutableNotFound: Error, CustomStringConvertible {
+    case notFound(_ exec: String)
+    
+    public var description: String {
+        switch self {
+        case .notFound(let exec):
+            return exec
+        }
     }
 }
