@@ -8,8 +8,6 @@
 
 import Apodini
 import Foundation
-import Network
-
 
 // MARK: Last-Modified
 /// An `HTTPInformation` instance carrying a Last -Modified data that indicates when a resource was last modified.

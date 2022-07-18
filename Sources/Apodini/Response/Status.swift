@@ -7,6 +7,7 @@
 //              
 
 import NIO
+import NIOHTTP1
 
 
 /// An `Status` expresses additional information that can be passed to a `Response`
@@ -19,6 +20,9 @@ public enum Status: ResponseTransformable {
     case noContent
     /// The request was handled and the client should be redirected to another URL
     case redirect
+    
+    /// Explicitly return a `HTTPResponseStatus`
+    case httpStatus(HTTPResponseStatus)
     
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Empty>> {
         eventLoop.makeSucceededFuture(Response.final(self))

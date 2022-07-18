@@ -37,6 +37,8 @@ extension HTTPResponseStatus {
             self = .noContent
         case .redirect:
             self = .seeOther
+        case .httpStatus(let httpResponseStatus):
+            self = httpResponseStatus
         }
     }
 }
