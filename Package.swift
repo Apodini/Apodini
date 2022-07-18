@@ -354,6 +354,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniNetworkingHTTPSupport"),
+                .target(name: "ApodiniAuthorization"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),

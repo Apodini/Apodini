@@ -13,6 +13,16 @@ import XCTest
 
 
 final class ApodiniAuditTests: ApodiniTests {
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        
+        // Run the AuditSetupCommand
+        let commandType = AuditSetupNLTKCommand.self
+        var command = commandType.init()
+        try command.run(app: app)
+        print("Installing")
+    }
+    
     struct AuditableWebService: WebService {
         var content: some Component {
             Group("crudGet", "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", "withextension.html") {
