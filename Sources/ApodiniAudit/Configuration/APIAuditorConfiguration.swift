@@ -32,11 +32,9 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         guard app.storage[AuditStorageKey.self] != nil else {
             return
         }
-        // Store the best practices in the app storage
-        app.storage[BestPracticesStorageKey.self] = bestPractices
         
-        // Register exporter
-        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+        // Register exporter with configured Best Practices
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration, bestPractices)
         app.registerExporter(exporter: auditInterfaceExporter)
     }
     

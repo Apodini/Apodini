@@ -16,7 +16,7 @@ final class ApodiniAuditTests: ApodiniTests {
     struct AuditableWebService: WebService {
         var content: some Component {
             Group("crudGet", "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", "withextension.html") {
-                SomeComp()
+                SomeHandler()
             }
         }
 
@@ -42,14 +42,14 @@ final class ApodiniAuditTests: ApodiniTests {
     struct AuditableWebService2: WebService {
         var content: some Component {
             Group("getThisResource") {
-                SomeComp()
+                SomeHandler()
             }
             Group("testGreetings") {
-                SomePOSTComp()
+                SomePOSTHandler()
                 DELETEComponent()
             }
             Group("testGreeting") {
-                SomePOSTComp()
+                SomePOSTHandler()
             }
         }
         
@@ -57,9 +57,9 @@ final class ApodiniAuditTests: ApodiniTests {
             AuditableWebService.conf
         }
         
-        var metadata: AnyWebServiceMetadata {
-            SelectBestPractices(.exclude, .all)
-        }
+//        var metadata: AnyWebServiceMetadata {
+//            SelectBestPractices(.exclude, .all)
+//        }
     }
     
     struct DELETEComponent: Component {
@@ -67,14 +67,14 @@ final class ApodiniAuditTests: ApodiniTests {
         
         var content: some Component {
             Group($greetingID) {
-                SomeDELETEComp(greetingID: $greetingID)
+                SomeDELETEHandler(greetingID: $greetingID)
             }
         }
     }
     
-    struct SomeComp: Handler {
-        func handle() -> String {
-            "Test"
+    struct SomeHandler: Handler {
+        func handle() -> Response<String> {
+            .final(information: ETag("aosidhaoshid"))
         }
         
         var metadata: AnyHandlerMetadata {
@@ -82,7 +82,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
     }
     
-    struct SomePOSTComp: Handler {
+    struct SomePOSTHandler: Handler {
         func handle() -> String {
             "Hello"
         }
@@ -93,7 +93,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
     }
     
-    struct SomeDELETEComp: Handler {
+    struct SomeDELETEHandler: Handler {
         @Binding var greetingID: UUID
         
         func handle() -> String {

@@ -15,6 +15,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
     
     var app: Application
     var parentConfiguration: HTTPExporterConfiguration
+    var bestPractices: [BestPractice]
     
     var applyRESTBestPractices: Bool {
         parentConfiguration.exportAsREST
@@ -22,22 +23,21 @@ final class AuditInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         // Access metadata
-        let bestPracticeRule = endpoint[Context.self].get(valueFor: BestPracticeContextKey.self)
+        let bestPracticeInclusionRule = endpoint[Context.self].get(valueFor: BestPracticeInclusionRuleContextKey.self)
         
-        guard let bestPractices = app.storage[BestPracticesStorageKey.self] else {
-            app.logger.error("Could not find best practices in app storage")
-            return
-        }
-        
-        for bestPractice in bestPractices {
+        for bestPractice in self.bestPractices {
             // Check whether this best practice is silenced
-            guard bestPracticeRule.action(for: type(of: bestPractice)) != .exclude else {
+            guard bestPracticeInclusionRule.action(for: type(of: bestPractice)) != .exclude else {
                 continue
             }
             
-            guard applyRESTBestPractices || type(of: bestPractice).scope == .all else {
+            // Check whether the scope of this best practice matches the parentConfiguration
+            // I.e. we only want to run HTTP best practices for HTTP APIs etc.
+            let scope = applyRESTBestPractices ? BestPracticeScopes.rest : .http
+            guard type(of: bestPractice).scope.contains(scope) else {
                 continue
             }
+            
             report.addAudit(bestPractice.check(for: endpoint, app))
         }
     }
@@ -47,7 +47,12 @@ final class AuditInterfaceExporter: InterfaceExporter {
     }
     
     func finishedExporting(_ webService: WebServiceModel) {
-        // where audit.report.auditResult == .fail {
+        // Call finishCheck for every Audit
+        for audit in report.audits {
+            audit.bestPractice.finishCheck(for: audit, app)
+        }
+        
+        // Export the report
         for audit in report.audits {
             for finding in audit.findings {
                 app.logger.info("[ApodiniAudit] \(finding.message)")
@@ -55,10 +60,11 @@ final class AuditInterfaceExporter: InterfaceExporter {
         }
     }
     
-    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration) {
+    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [BestPractice]) {
         self.app = app
         self.parentConfiguration = parentConfiguration
         self.report = Report()
+        self.bestPractices = bestPractices
     }
 }
 
@@ -72,6 +78,7 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
         EmptyBestPracticeConfiguration<GETHasComplexReturnType>(),
         EmptyBestPracticeConfiguration<PluralLastSegmentForPOST>(),
-        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>()
+        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
+        EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>()
     ]
 }

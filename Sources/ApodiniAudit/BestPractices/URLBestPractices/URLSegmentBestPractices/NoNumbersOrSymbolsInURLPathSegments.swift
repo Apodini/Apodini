@@ -8,14 +8,15 @@
 
 import Foundation
 
-struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
+struct NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
-    var successMessage = "The path segments do not contain any underscores"
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
-        if segment.contains("_") {
-            return Finding(message: "The path segment \(segment) contains one or more underscores", assessment: .fail)
+        if segment.contains(where: { c in
+            !c.isLetter
+        }) {
+            return Finding(message: "The segment \(segment) contains one or more non-letter characters.", assessment: .fail)
         }
         return nil
     }

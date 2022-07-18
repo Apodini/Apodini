@@ -15,9 +15,9 @@ struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
     
     var configuration = AppropriateLengthForURLPathSegmentsConfiguration()
     
-    func checkSegment(segment: String) -> String? {
+    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.count < configuration.minimumLength || segment.count > configuration.maximumLength {
-            return "The path segment \"\(segment)\" is too short or too long"
+            return Finding(message: "The path segment \"\(segment)\" is too short or too long", assessment: .fail)
         }
         return nil
     }

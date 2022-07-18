@@ -31,5 +31,7 @@ struct GETHasComplexReturnType: BestPractice {
         if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
             audit.recordFinding("The GET handler does not return a complex type", .fail)
         }
+        
+        // TODO do something special for `Response` types?
     }
 }

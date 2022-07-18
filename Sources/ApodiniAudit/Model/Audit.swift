@@ -28,6 +28,10 @@ public class Audit {
         findings.append(Finding(message: message, assessment: assessment))
     }
     
+    func recordFinding(_ finding: Finding) {
+        findings.append(finding)
+    }
+    
     init(_ endpoint: AnyEndpoint, _ bestPractice: BestPractice) {
         self.endpoint = endpoint
         self.bestPractice = bestPractice
@@ -37,6 +41,7 @@ public class Audit {
 /// A finding for an audit, including a message and a result.
 public struct Finding: Hashable {
     var message: String
+    var suggestion: String?
     var assessment: Assessment
     var priority: Priority = .normal
 }

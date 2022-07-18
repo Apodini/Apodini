@@ -14,10 +14,10 @@ public struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     var successMessage = "The path segments do not contain any CRUD verbs"
     private var crudVerbs = ["get", "post", "remove", "delete", "put"]
     
-    func checkSegment(segment: String) -> String? {
+    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         let containsCRUDVerb = crudVerbs.contains { segment.lowercased().contains($0) }
         if containsCRUDVerb {
-            return "The path segment \(segment) contains one or more CRUD verbs!"
+            return Finding(message: "The path segment \(segment) contains one or more CRUD verbs!", assessment: .fail)
         }
         return nil
     }

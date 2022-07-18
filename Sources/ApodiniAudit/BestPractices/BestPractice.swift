@@ -17,8 +17,13 @@ public protocol BestPractice {
     /// This best practice's priority. Can be overwritten by a higher priority of an individual finding.
     static var priority: Priority { get }
     
-    /// Check this best practice into the given AuditReport.
+    /// Check this `BestPractice` into the given `Audit`.
+    /// The `Audit` holds the `Endpoint` to check which can be used to gather knowledge about the `WebService`.
     func check(into audit: Audit, _ app: Application)
+    
+    /// Finish the check for the given `Audit`.
+    /// This method is called once `check` has been called for all `Endpoint`s.
+    func finishCheck(for audit: Audit, _ app: Application)
     
     init()
 }
@@ -31,11 +36,11 @@ extension BestPractice {
     func check(for endpoint: AnyEndpoint, _ app: Application) -> Audit {
         let audit = Audit(endpoint, self)
         check(into: audit, app)
-        if audit.findings.isEmpty {
-            // TODO generate success message
-        }
         return audit
     }
+    
+    /// Do nothing to finish the Audit by default.
+    public func finishCheck(for audit: Audit, _ app: Application) { }
 }
 
 public struct BestPracticeCategories: OptionSet {

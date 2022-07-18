@@ -9,7 +9,7 @@
 import Apodini
 
 public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
-    public typealias Key = BestPracticeContextKey
+    public typealias Key = BestPracticeInclusionRuleContextKey
     
     public let value: BestPracticeInclusionRule
     
@@ -26,7 +26,7 @@ public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
     }
 }
 
-public struct BestPracticeContextKey: ContextKey {
+public struct BestPracticeInclusionRuleContextKey: ContextKey {
     public typealias Value = BestPracticeInclusionRule
     
     static public var defaultValue: BestPracticeInclusionRule = PassThroughInclusionRule()
