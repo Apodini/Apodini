@@ -16,8 +16,8 @@ final class ApodiniAuditTests: ApodiniTests {
     override func setUpWithError() throws {
         try super.setUpWithError()
         
-        // Run the AuditSetupCommand
-        let commandType = AuditSetupNLTKCommand.self
+        // Run the AuditSetupCommand. It doesn't matter which WebService we specify.
+        let commandType = AuditSetupNLTKCommand<AuditableWebService>.self
         var command = commandType.init()
         try command.run(app: app)
         print("Installing")
