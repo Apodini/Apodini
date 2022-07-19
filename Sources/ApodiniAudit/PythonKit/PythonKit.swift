@@ -34,4 +34,11 @@ struct NLTKInterface {
         let tag = String(firstTagTuple.tuple2.1)
         return tag == "NNPS" || tag == "NNS"
     }
+    
+    func isSingularNoun(_ str: String) -> Bool {
+        let tags = nltk.pos_tag([str])
+        let firstTagTuple = tags[0]
+        let tag = String(firstTagTuple.tuple2.1)
+        return tag == "NNP" || tag == "NN"
+    }
 }

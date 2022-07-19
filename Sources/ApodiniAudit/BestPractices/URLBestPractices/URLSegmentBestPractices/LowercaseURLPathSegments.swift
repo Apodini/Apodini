@@ -13,10 +13,21 @@ struct LowercaseURLPathSegments: URLSegmentBestPractice {
     static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
         if segment.lowercased() != segment {
-            return Finding(message: "The path segment \(segment) contains one or more uppercase letters!", assessment: .fail)
+            return Finding.uppercaseCharacterFound(segment: segment)
         }
         return nil
+    }
+    
+    enum Finding: FindingProtocol {
+        case uppercaseCharacterFound(segment: String)
+        
+        var diagnosis: String {
+            switch self {
+            case .uppercaseCharacterFound(let segment):
+                return "The path segment \(segment) contains one or more uppercase letters"
+            }
+        }
     }
 }

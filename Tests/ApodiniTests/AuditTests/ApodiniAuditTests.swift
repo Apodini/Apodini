@@ -139,36 +139,36 @@ final class ApodiniAuditTests: ApodiniTests {
         
         let expectedFindings = [
 //            AuditFinding(
-//                message: "The path segments do not contain any underscores",
+//                diagnosis: "The path segments do not contain any underscores",
 //                result: .success
 //            ),
 //            AuditFinding(
-//                message: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
-//                result: .fail
+//                diagnosis: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
+//                result: .violation
 //            ),
 //            AuditFinding(
-//                message: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-//                result: .fail
+//                diagnosis: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
+//                result: .violation
 //            ),
             Finding(
-                message: "The path segment crudGet contains one or more CRUD verbs!",
-                assessment: .fail
+                diagnosis: "The path segment crudGet contains one or more CRUD verbs!",
+                findingType: .violation
             ),
             Finding(
-                message: "\"crudGet\" and \"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" are not related!",
-                assessment: .fail
+                diagnosis: "\"crudGet\" and \"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" are not related!",
+                findingType: .violation
             ),
             Finding(
-                message: "\"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" and \"withextension.html\" are not related!",
-                assessment: .fail
+                diagnosis: "\"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" and \"withextension.html\" are not related!",
+                findingType: .violation
             ),
             Finding(
-                message: "The path segment crudGet contains one or more uppercase letters!",
-                assessment: .fail
+                diagnosis: "The path segment crudGet contains one or more uppercase letters!",
+                findingType: .violation
             ),
             Finding(
-                message: "The path segment withextension.html has a file extension.",
-                assessment: .fail
+                diagnosis: "The path segment withextension.html has a file extension.",
+                findingType: .violation
             )
         ]
         
@@ -186,16 +186,16 @@ final class ApodiniAuditTests: ApodiniTests {
         
         let expectedLingFindings = [
             Finding(
-                message: "\"Greeting\" is not a plural noun for a POST handler",
-                assessment: .fail
+                diagnosis: "\"Greeting\" is not a plural noun for a POST handler",
+                findingType: .violation
             ),
             Finding(
-                message: "\"Greetings\" is a plural noun for a POST handler",
-                assessment: .pass
+                diagnosis: "\"Greetings\" is a plural noun for a POST handler",
+                findingType: .pass
             ),
             Finding(
-                message: "\"ID\" is a singular noun for a PUT or DELETE handler",
-                assessment: .pass
+                diagnosis: "\"ID\" is a singular noun for a PUT or DELETE handler",
+                findingType: .pass
             )
         ]
         
@@ -210,7 +210,7 @@ final class ApodiniAuditTests: ApodiniTests {
         
         XCTAssertTrue(audits.contains {
             $0.findings.contains {
-                $0.message.contains("getThisResource")
+                $0.diagnosis.contains("getThisResource")
             }
         })
     }

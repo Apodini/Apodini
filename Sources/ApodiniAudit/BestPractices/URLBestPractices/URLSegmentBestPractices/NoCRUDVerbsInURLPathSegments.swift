@@ -14,13 +14,24 @@ public struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     var successMessage = "The path segments do not contain any CRUD verbs"
     private var crudVerbs = ["get", "post", "remove", "delete", "put"]
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
         let containsCRUDVerb = crudVerbs.contains { segment.lowercased().contains($0) }
         if containsCRUDVerb {
-            return Finding(message: "The path segment \(segment) contains one or more CRUD verbs!", assessment: .fail)
+            return Finding.crudVerbFound(segment: segment)
         }
         return nil
     }
     
     public init() { }
+    
+    enum Finding: FindingProtocol {
+        case crudVerbFound(segment: String)
+        
+        var diagnosis: String {
+            switch self {
+            case .crudVerbFound(let segment):
+                return "The path segment \(segment) contains one or more CRUD verbs!"
+            }
+        }
+    }
 }

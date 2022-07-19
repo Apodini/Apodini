@@ -24,7 +24,7 @@ struct ContextualisedResourceNames: BestPractice {
         guard let firstStringSegment = firstStringSegment,
               case .string(let firstString) = firstStringSegment,
               let firstStringIndex = pathSegments.firstIndex(of: firstStringSegment) else {
-            audit.recordFinding("Nothing to check for endpoint \(audit.endpoint)", .pass)
+            // We have nothing to check here
             return
         }
 
@@ -32,11 +32,21 @@ struct ContextualisedResourceNames: BestPractice {
         for segmentIndex in firstStringIndex + 1..<pathSegments.count {
             if case .string(let nextString) = pathSegments[segmentIndex] {
                 if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
-                    audit.recordFinding("\"\(latestString)\" and \"\(nextString)\" are not related!", .fail)
+                    audit.recordFinding(Finding.unrelatedSegments(segment1: latestString, segment2: nextString))
                 }
-                print("\"\(latestString)\" and \"\(nextString)\" are related!")
                 latestString = nextString
             }
         }
+    }
+    
+    enum Finding: FindingProtocol {
+        var diagnosis: String {
+            switch self {
+            case .unrelatedSegments(let segment1, let segment2):
+                return "\"\(segment1)\" and \"\(segment2)\" are not related!"
+            }
+        }
+        
+        case unrelatedSegments(segment1: String, segment2: String)
     }
 }

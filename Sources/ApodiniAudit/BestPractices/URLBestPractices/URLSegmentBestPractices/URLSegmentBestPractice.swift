@@ -9,7 +9,7 @@
 import Apodini
 
 protocol URLSegmentBestPractice: BestPractice {
-    func checkSegment(segment: String, isParameter: Bool) -> Finding?
+    func checkSegment(segment: String, isParameter: Bool) -> FindingBase?
 }
 
 extension URLSegmentBestPractice {

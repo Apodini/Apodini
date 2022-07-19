@@ -86,7 +86,7 @@ enum ExecutableNotFound: Error, CustomStringConvertible {
     public var description: String {
         switch self {
         case .notFound(let exec):
-            return exec
+            return "Could not find executable \(exec)"
         }
     }
 }

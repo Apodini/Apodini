@@ -11,12 +11,22 @@ import Foundation
 struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
-    var successMessage = "The path segments do not contain any underscores"
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
         if segment.contains("_") {
-            return Finding(message: "The path segment \(segment) contains one or more underscores", assessment: .fail)
+            return Finding.underscoreFound(segment: segment)
         }
         return nil
+    }
+    
+    enum Finding: FindingProtocol {
+        case underscoreFound(segment: String)
+        
+        var diagnosis: String {
+            switch self {
+            case .underscoreFound(let segment):
+                return "The path segment \(segment) contains one or more underscores"
+            }
+        }
     }
 }

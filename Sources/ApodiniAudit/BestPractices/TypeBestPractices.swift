@@ -29,9 +29,20 @@ struct GETHasComplexReturnType: BestPractice {
         
         // Report failure if the return type is primitive
         if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
-            audit.recordFinding("The GET handler does not return a complex type", .fail)
+            audit.recordFinding(Finding.getHasPrimitiveType)
         }
         
         // TODO do something special for `Response` types?
+    }
+    
+    enum Finding: FindingProtocol {
+        case getHasPrimitiveType
+        
+        var diagnosis: String {
+            switch self {
+            case .getHasPrimitiveType:
+                return "The GET handler returns a simple type"
+            }
+        }
     }
 }

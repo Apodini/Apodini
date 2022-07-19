@@ -55,7 +55,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
         // Export the report
         for audit in report.audits {
             for finding in audit.findings {
-                app.logger.info("[ApodiniAudit] \(finding.message)")
+                app.logger.info("[ApodiniAudit] \(finding.diagnosis)")
             }
         }
     }
