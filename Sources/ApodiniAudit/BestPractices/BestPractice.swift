@@ -47,9 +47,11 @@ public struct BestPracticeCategories: OptionSet {
     // FUTURE complete list from Masse
     public let rawValue: Int
     
-    static let urlPath      = BestPracticeCategories(rawValue: 1 << 0)
-    static let statusCode   = BestPracticeCategories(rawValue: 1 << 1)
-    static let method       = BestPracticeCategories(rawValue: 1 << 2)
+    static let urlPath          = BestPracticeCategories(rawValue: 1 << 0)
+    static let httpStatusCode   = BestPracticeCategories(rawValue: 1 << 1)
+    static let httpMethod       = BestPracticeCategories(rawValue: 1 << 2)
+    static let parameters       = BestPracticeCategories(rawValue: 1 << 3)
+    static let caching       = BestPracticeCategories(rawValue: 1 << 4)
     
     static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
     
@@ -74,5 +76,5 @@ public struct BestPracticeScopes: OptionSet {
 }
 
 public enum Priority: Int, Hashable {
-    case high = 1, normal
+    case high = 1, normal, low
 }

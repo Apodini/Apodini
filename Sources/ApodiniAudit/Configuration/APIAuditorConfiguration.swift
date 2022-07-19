@@ -64,11 +64,11 @@ struct BestPracticesStorageKey: StorageKey {
 }
 
 public protocol BestPracticeConfiguration {
-    func configureBestPractice() -> BestPractice
+    func configure() -> BestPractice
 }
 
 public struct EmptyBestPracticeConfiguration<BP: BestPractice>: BestPracticeConfiguration {
-    public func configureBestPractice() -> BestPractice {
+    public func configure() -> BestPractice {
         BP.init()
     }
 }

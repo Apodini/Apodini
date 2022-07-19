@@ -116,7 +116,7 @@ final class ApodiniAuditTests: ApodiniTests {
     }
     
     struct CustomBPConfig: BestPracticeConfiguration {
-        func configureBestPractice() -> BestPractice {
+        func configure() -> BestPractice {
             CustomBP()
         }
     }
@@ -127,7 +127,7 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         
         static var scope: BestPracticeScopes = .all
-        static var category: BestPracticeCategories = .method
+        static var category: BestPracticeCategories = .httpMethod
     }
 
     func testBasicAuditing() throws {

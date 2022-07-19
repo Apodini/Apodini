@@ -46,7 +46,7 @@ struct AppropriateLengthForURLPathSegmentsConfiguration: BestPracticeConfigurati
     var minimumLength = 3
     var maximumLength = 30
     
-    func configureBestPractice() -> BestPractice {
+    func configure() -> BestPractice {
         AppropriateLengthForURLPathSegments(configuration: self)
     }
 }

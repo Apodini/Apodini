@@ -38,7 +38,7 @@ public enum AuditConfigurationBuilder {
             }
         }
         
-        return bestPracticeConfigurations.map { $0.configureBestPractice() }
+        return bestPracticeConfigurations.map { $0.configure() }
     }
     
     /// A method that transforms a `BestPracticeConfiguration`

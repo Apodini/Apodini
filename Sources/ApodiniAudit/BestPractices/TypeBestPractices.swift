@@ -12,7 +12,7 @@ import ApodiniTypeInformation
 
 struct GETHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .method
+    static var category: BestPracticeCategories = .httpMethod
     
     func check(into audit: Audit, _ app: Application) {
         // get operation for endpoint
