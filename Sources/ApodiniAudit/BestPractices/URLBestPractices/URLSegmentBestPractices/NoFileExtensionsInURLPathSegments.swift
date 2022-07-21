@@ -18,7 +18,7 @@ struct NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
     /// If this is 4, then 'html' would not be recognized as a file extension
     var minDistanceFromEnd = 5
     
-    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
+    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         let dotIndex = segment.firstIndex(of: ".")
         guard let dotIndex = dotIndex else {
             return nil
@@ -29,17 +29,17 @@ struct NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
             allowedExtensions.contains(String(segment.suffix(extensionLength))) {
             return nil
         }
-        return Finding.fileExtensionFound(segment: segment)
+        return URLFileExtensionFinding.fileExtensionFound(segment: segment)
     }
+}
+
+enum URLFileExtensionFinding: Finding {
+    case fileExtensionFound(segment: String)
     
-    enum Finding: FindingProtocol {
-        case fileExtensionFound(segment: String)
-        
-        var diagnosis: String {
-            switch self {
-            case .fileExtensionFound(let segment):
-                return "The path segment \(segment) has a file extension."
-            }
+    var diagnosis: String {
+        switch self {
+        case .fileExtensionFound(let segment):
+            return "The path segment \(segment) has a file extension."
         }
     }
 }

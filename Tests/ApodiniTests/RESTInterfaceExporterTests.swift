@@ -480,7 +480,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
 
         let userId = "1234"
         try app.testable().test(.GET, "user/\(userId)") { response in
-            XCTAssertEqual(response.status, .internalServerError)
+            XCTAssertEqual(response.status, .badRequest)
             let apodiniError = try XCTUnwrap(forwardedError as? ApodiniError)
             XCTAssertEqual(apodiniError.option(for: .errorType), .badInput)
         }

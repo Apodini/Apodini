@@ -19,24 +19,24 @@ struct EncourageETags: BestPractice {
             return
         }
         
-        audit.recordFinding(Finding.cacheableBlob)
+        audit.recordFinding(ETagsFinding.cacheableBlob)
+    }
+}
+
+enum ETagsFinding: Finding {
+    case cacheableBlob
+    
+    var diagnosis: String {
+        switch self {
+        case .cacheableBlob:
+            return "This Endpoint returns blob data"
+        }
     }
     
-    enum Finding: FindingProtocol {
-        case cacheableBlob
-        
-        var diagnosis: String {
-            switch self {
-            case .cacheableBlob:
-                return "This Endpoint returns blob data"
-            }
-        }
-        
-        var suggestion: String? {
-            switch self {
-            case .cacheableBlob:
-                return "You can use ETags to enable caching for this endpoint"
-            }
+    var suggestion: String? {
+        switch self {
+        case .cacheableBlob:
+            return "You can use ETags to enable caching for this endpoint"
         }
     }
 }

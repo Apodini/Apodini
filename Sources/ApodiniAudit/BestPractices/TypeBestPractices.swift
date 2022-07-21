@@ -29,21 +29,22 @@ struct GETHasComplexReturnType: BestPractice {
         
         // Report failure if the return type is primitive
         if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
-            audit.recordFinding(Finding.getHasPrimitiveType)
+            audit.recordFinding(GETReturnTypeFinding.getHasPrimitiveType)
         }
         
         // TODO do something special for `Response` types?
         // TODO check if type name (stemmed) appears in path, it should
     }
+}
+
+
+enum GETReturnTypeFinding: Finding {
+    case getHasPrimitiveType
     
-    enum Finding: FindingProtocol {
-        case getHasPrimitiveType
-        
-        var diagnosis: String {
-            switch self {
-            case .getHasPrimitiveType:
-                return "The GET handler returns a simple type"
-            }
+    var diagnosis: String {
+        switch self {
+        case .getHasPrimitiveType:
+            return "The GET handler returns a simple type"
         }
     }
 }

@@ -20,11 +20,11 @@ public struct Report {
 /// An `Audit` stores the findings of a best practice for an endpoint.
 /// There can be multiple findings, e.g. one for every URL segment of the endpoint.
 public class Audit {
-    var findings: [FindingBase] = []
+    var findings: [Finding] = []
     var endpoint: AnyEndpoint
     var bestPractice: BestPractice
     
-    func recordFinding(_ finding: FindingBase) {
+    func recordFinding(_ finding: Finding) {
         findings.append(finding)
     }
     
@@ -35,15 +35,13 @@ public class Audit {
 }
 
 /// A finding for an audit, including a diagnosis and possibly a suggestion.
-public protocol FindingBase {
+public protocol Finding {
     var diagnosis: String { get }
     var suggestion: String? { get }
     var priority: Priority { get }
 }
 
-typealias FindingProtocol = FindingBase & Hashable
-
-extension FindingBase {
+extension Finding {
     var suggestion: String? {
         nil
     }

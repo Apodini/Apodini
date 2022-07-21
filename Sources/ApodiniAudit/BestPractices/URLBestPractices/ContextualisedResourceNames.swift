@@ -32,21 +32,21 @@ struct ContextualisedResourceNames: BestPractice {
         for segmentIndex in firstStringIndex + 1..<pathSegments.count {
             if case .string(let nextString) = pathSegments[segmentIndex] {
                 if NLTKInterface.shared.synsetIntersectionEmpty(latestString, nextString) {
-                    audit.recordFinding(Finding.unrelatedSegments(segment1: latestString, segment2: nextString))
+                    audit.recordFinding(ContextualisedResourceNamesFinding.unrelatedSegments(segment1: latestString, segment2: nextString))
                 }
                 latestString = nextString
             }
         }
     }
+}
+
+enum ContextualisedResourceNamesFinding: Finding {
+    case unrelatedSegments(segment1: String, segment2: String)
     
-    enum Finding: FindingProtocol {
-        var diagnosis: String {
-            switch self {
-            case .unrelatedSegments(let segment1, let segment2):
-                return "\"\(segment1)\" and \"\(segment2)\" are not related!"
-            }
+    var diagnosis: String {
+        switch self {
+        case .unrelatedSegments(let segment1, let segment2):
+            return "\"\(segment1)\" and \"\(segment2)\" are not related!"
         }
-        
-        case unrelatedSegments(segment1: String, segment2: String)
     }
 }

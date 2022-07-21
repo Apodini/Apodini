@@ -12,23 +12,23 @@ struct NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
-    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
+    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.contains(where: { c in
             !c.isLetter
         }) {
-            return Finding.nonLetterCharacterFound(segment: segment)
+            return NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: segment)
         }
         return nil
     }
+}
+
+enum NumberOrSymbolsInURLFinding: Finding {
+    case nonLetterCharacterFound(segment: String)
     
-    enum Finding: FindingProtocol {
-        case nonLetterCharacterFound(segment: String)
-        
-        var diagnosis: String {
-            switch self {
-            case .nonLetterCharacterFound(let segment):
-                return "The segment \(segment) contains one or more non-letter characters."
-            }
+    var diagnosis: String {
+        switch self {
+        case .nonLetterCharacterFound(let segment):
+            return "The segment \(segment) contains one or more non-letter characters."
         }
     }
 }

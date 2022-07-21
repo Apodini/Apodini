@@ -17,10 +17,10 @@ final class ApodiniAuditTests: ApodiniTests {
         try super.setUpWithError()
         
         // Run the AuditSetupCommand. It doesn't matter which WebService we specify.
-        let commandType = AuditSetupNLTKCommand<AuditableWebService>.self
-        let command = commandType.init()
-        try command.run(app: app)
-        print("Installing")
+//        let commandType = AuditSetupNLTKCommand<AuditableWebService>.self
+//        let command = commandType.init()
+//        try command.run(app: app)
+//        print("Installing")
     }
     
     struct AuditableWebService: WebService {
@@ -137,7 +137,7 @@ final class ApodiniAuditTests: ApodiniTests {
         let audits = try getAuditsForAuditRunCommand(&command)
         let actualFindings = audits.flatMap { $0.findings }
         
-        let expectedFindings = [
+        let expectedFindings: [Finding] = [
 //            AuditFinding(
 //                diagnosis: "The path segments do not contain any underscores",
 //                result: .success
@@ -150,29 +150,15 @@ final class ApodiniAuditTests: ApodiniTests {
 //                diagnosis: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
 //                result: .violation
 //            ),
-            Finding(
-                diagnosis: "The path segment crudGet contains one or more CRUD verbs!",
-                findingType: .violation
-            ),
-            Finding(
-                diagnosis: "\"crudGet\" and \"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" are not related!",
-                findingType: .violation
-            ),
-            Finding(
-                diagnosis: "\"ooooooaaaaaaooooooaaaaaaooooooaaaaaa\" and \"withextension.html\" are not related!",
-                findingType: .violation
-            ),
-            Finding(
-                diagnosis: "The path segment crudGet contains one or more uppercase letters!",
-                findingType: .violation
-            ),
-            Finding(
-                diagnosis: "The path segment withextension.html has a file extension.",
-                findingType: .violation
-            )
+            URLCRUDVerbsFinding.crudVerbFound(segment: "crudGet"),
+            ContextualisedResourceNamesFinding.unrelatedSegments(segment1: "crudGet", segment2: "ooooooaaaaaaooooooaaaaaaooooooaaaaaa"),
+            ContextualisedResourceNamesFinding.unrelatedSegments(segment1: "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", segment2: "withextension.html"),
+            LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: "crudGet"),
+            URLFileExtensionFinding.fileExtensionFound(segment: "withextension.html"),
+            NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: "withextension.html")
         ]
         
-        XCTAssertSetEqual(actualFindings, expectedFindings)
+        XCTAssertFindingsEqual(actualFindings, expectedFindings)
     }
     
     func testLingusticAuditing() throws {
@@ -185,21 +171,10 @@ final class ApodiniAuditTests: ApodiniTests {
         let lingFindings = lingAudits.flatMap { $0.findings }
         
         let expectedLingFindings = [
-            Finding(
-                diagnosis: "\"Greeting\" is not a plural noun for a POST handler",
-                findingType: .violation
-            ),
-            Finding(
-                diagnosis: "\"Greetings\" is a plural noun for a POST handler",
-                findingType: .pass
-            ),
-            Finding(
-                diagnosis: "\"ID\" is a singular noun for a PUT or DELETE handler",
-                findingType: .pass
-            )
+            PluralForPOSTFinding.singularForPost(lastSegment: "Greeting")
         ]
         
-        XCTAssertSetEqual(lingFindings, expectedLingFindings)
+        XCTAssertFindingsEqual(lingFindings, expectedLingFindings)
     }
     
     func testSelectingBestPractices() throws {
@@ -243,6 +218,30 @@ final class ApodiniAuditTests: ApodiniTests {
         
         XCTAssertEqual(auditCommands.count, 1)
     }
+}
+
+private struct FindingMessage: Hashable {
+    let diagnosis: String
+    let suggestion: String?
+    let priority: Priority
+    
+    init(_ diagnosis: String, _ suggestion: String?, _ priority: Priority) {
+        self.diagnosis = diagnosis
+        self.suggestion = suggestion
+        self.priority = priority
+    }
+}
+
+func XCTAssertFindingsEqual(_ actual: [Finding], _ expected: [Finding]) {
+    let actualMessages = actual.map { finding in
+        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
+    }
+    
+    let expectedMessages = expected.map { finding in
+        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
+    }
+    
+    XCTAssertSetEqual(actualMessages, expectedMessages)
 }
 
 func XCTAssertSetEqual<T: Hashable>(

@@ -66,18 +66,18 @@ struct PluralLastSegmentForPOST: GrammaticalNumberBestPractice {
         }
         
         if !NLTKInterface.shared.isPluralNoun(lastPart) {
-            audit.recordFinding(Finding.singularForPost(lastSegment: lastPart))
+            audit.recordFinding(PluralForPOSTFinding.singularForPost(lastSegment: lastPart))
         }
     }
+}
+
+enum PluralForPOSTFinding: Finding {
+    case singularForPost(lastSegment: String)
     
-    enum Finding: FindingProtocol {
-        case singularForPost(lastSegment: String)
-        
-        var diagnosis: String {
-            switch self {
-            case .singularForPost(let lastSegment):
-                return "\"\(lastSegment)\" is not a plural noun for a POST handler"
-            }
+    var diagnosis: String {
+        switch self {
+        case .singularForPost(let lastSegment):
+            return "\"\(lastSegment)\" is not a plural noun for a POST handler"
         }
     }
 }
@@ -95,23 +95,23 @@ struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
         case .create, .read:
             return
         case .update:
-            audit.recordFinding(Finding.pluralForPUT(lastSegment: lastPart))
+            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForPUT(lastSegment: lastPart))
         case .delete:
-            audit.recordFinding(Finding.pluralForDELETE(lastSegment: lastPart))
+            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForDELETE(lastSegment: lastPart))
         }
     }
+}
+
+enum SingularForPUTAndDELETEFinding: Finding {
+    case pluralForPUT(lastSegment: String)
+    case pluralForDELETE(lastSegment: String)
     
-    enum Finding: FindingProtocol {
-        case pluralForPUT(lastSegment: String)
-        case pluralForDELETE(lastSegment: String)
-        
-        var diagnosis: String {
-            switch self {
-            case .pluralForPUT(let lastSegment):
-                return "\"\(lastSegment)\" is not a singular noun for a PUT handler"
-            case .pluralForDELETE(let lastSegment):
-                return "\"\(lastSegment)\" is not a singular noun for a DELETE handler"
-            }
+    var diagnosis: String {
+        switch self {
+        case .pluralForPUT(let lastSegment):
+            return "\"\(lastSegment)\" is not a singular noun for a PUT handler"
+        case .pluralForDELETE(let lastSegment):
+            return "\"\(lastSegment)\" is not a singular noun for a DELETE handler"
         }
     }
 }

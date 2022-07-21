@@ -25,18 +25,18 @@ struct ReasonableParameterCount: BestPractice {
         let paramCount = nonContentParams.count
         
         if paramCount > configuration.maximumCount {
-            audit.recordFinding(Finding.tooManyParameters(count: paramCount))
+            audit.recordFinding(ParameterCountFinding.tooManyParameters(count: paramCount))
         }
     }
+}
+
+enum ParameterCountFinding: Finding {
+    case tooManyParameters(count: Int)
     
-    enum Finding: FindingProtocol {
-        case tooManyParameters(count: Int)
-        
-        var diagnosis: String {
-            switch self {
-            case .tooManyParameters(let count):
-                return "This Endpoint has too many parameters: \(count)"
-            }
+    var diagnosis: String {
+        switch self {
+        case .tooManyParameters(let count):
+            return "This Endpoint has too many parameters: \(count)"
         }
     }
 }

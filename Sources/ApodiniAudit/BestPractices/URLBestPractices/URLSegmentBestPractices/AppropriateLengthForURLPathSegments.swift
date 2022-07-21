@@ -15,29 +15,29 @@ struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
     
     var configuration = AppropriateLengthForURLPathSegmentsConfiguration()
     
-    func checkSegment(segment: String, isParameter: Bool) -> FindingBase? {
+    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.count < configuration.minimumLength {
-            return Finding.segmentTooShort(segment: segment)
+            return URLPathLengthFinding.segmentTooShort(segment: segment)
         }
         
         if segment.count > configuration.maximumLength {
-            return Finding.segmentTooLong(segment: segment)
+            return URLPathLengthFinding.segmentTooLong(segment: segment)
         }
         
         return nil
     }
+}
+
+enum URLPathLengthFinding: Finding {
+    case segmentTooShort(segment: String)
+    case segmentTooLong(segment: String)
     
-    enum Finding: FindingProtocol {
-        case segmentTooShort(segment: String)
-        case segmentTooLong(segment: String)
-        
-        var diagnosis: String {
-            switch self {
-            case .segmentTooShort(let segment):
-                return "The path segment \"\(segment)\" is too short"
-            case .segmentTooLong(let segment):
-                return "The path segment \"\(segment)\" is too long"
-            }
+    var diagnosis: String {
+        switch self {
+        case .segmentTooShort(let segment):
+            return "The path segment \"\(segment)\" is too short"
+        case .segmentTooLong(let segment):
+            return "The path segment \"\(segment)\" is too long"
         }
     }
 }
