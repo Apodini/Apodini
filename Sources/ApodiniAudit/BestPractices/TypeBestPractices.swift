@@ -33,6 +33,7 @@ struct GETHasComplexReturnType: BestPractice {
         }
         
         // TODO do something special for `Response` types?
+        // TODO check if type name (stemmed) appears in path, it should
     }
     
     enum Finding: FindingProtocol {

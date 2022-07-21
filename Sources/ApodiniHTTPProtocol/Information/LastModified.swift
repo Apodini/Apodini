@@ -12,10 +12,7 @@ import Foundation
 // MARK: Last-Modified
 /// An `HTTPInformation` instance carrying a Last -Modified data that indicates when a resource was last modified.
 public struct LastModified: HTTPInformation {
-    public static var header: String {
-        print("Hi")
-        return "Last-Modified"
-    }
+    public static var header = "Last-Modified"
     
     public let value: LastModifiedValue
     
