@@ -21,7 +21,7 @@ public struct Report {
 /// There can be multiple findings, e.g. one for every URL segment of the endpoint.
 public class Audit {
     var findings: [Finding] = []
-    var endpoint: AnyEndpoint
+    public var endpoint: AnyEndpoint
     var bestPractice: BestPractice
     
     func recordFinding(_ finding: Finding) {
@@ -41,7 +41,7 @@ public protocol Finding {
     var priority: Priority { get }
 }
 
-extension Finding {
+public extension Finding {
     var suggestion: String? {
         nil
     }

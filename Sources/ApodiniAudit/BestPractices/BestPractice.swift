@@ -47,15 +47,15 @@ public struct BestPracticeCategories: OptionSet {
     // FUTURE complete list from Masse
     public let rawValue: Int
     
-    static let urlPath          = BestPracticeCategories(rawValue: 1 << 0)
-    static let httpStatusCode   = BestPracticeCategories(rawValue: 1 << 1)
-    static let httpMethod       = BestPracticeCategories(rawValue: 1 << 2)
-    static let parameters       = BestPracticeCategories(rawValue: 1 << 3)
-    static let caching       = BestPracticeCategories(rawValue: 1 << 4)
+    public static let urlPath          = BestPracticeCategories(rawValue: 1 << 0)
+    public static let httpStatusCode   = BestPracticeCategories(rawValue: 1 << 1)
+    public static let httpMethod       = BestPracticeCategories(rawValue: 1 << 2)
+    public static let parameters       = BestPracticeCategories(rawValue: 1 << 3)
+    public static let caching       = BestPracticeCategories(rawValue: 1 << 4)
     
-    static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
+    public static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
     
-    static let linguisticURL: BestPracticeCategories = [.linguistic, .urlPath]
+    public static let linguisticURL: BestPracticeCategories = [.linguistic, .urlPath]
     
     public init(rawValue: Int) {
         self.rawValue = rawValue
@@ -65,10 +65,10 @@ public struct BestPracticeCategories: OptionSet {
 public struct BestPracticeScopes: OptionSet {
     public let rawValue: Int
     
-    static let http = BestPracticeScopes(rawValue: 1 << 0)
-    static let rest = BestPracticeScopes(rawValue: 1 << 1)
+    public static let http = BestPracticeScopes(rawValue: 1 << 0)
+    public static let rest = BestPracticeScopes(rawValue: 1 << 1)
     
-    static let all: BestPracticeScopes = [.http, .rest]
+    public static let all: BestPracticeScopes = [.http, .rest]
     
     public init(rawValue: Int) {
         self.rawValue = rawValue
