@@ -78,7 +78,7 @@ class ApodiniAuthorizationTests: XCTApodiniTest {
                 using: BasicAuthenticationScheme(realm: "Realm"),
                 verifiedBy: MockCredentialVerifier(expectedPassword: "123456", state: 2),
                 skipRequirementsForAuthorized: true) {
-                Deny() // this requirements checks are skipped, because they are established above
+                Deny() // these requirements checks are skipped, because they are established above
             }
 
             Authorize(

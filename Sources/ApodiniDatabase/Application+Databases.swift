@@ -115,7 +115,7 @@ extension Application {
         }
     }
 
-    /// Used to keep track of the fluent database configutation
+    /// Used to keep track of the fluent database configuration
     public var fluent: Fluent {
         .init(application: self)
     }

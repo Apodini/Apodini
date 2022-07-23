@@ -32,7 +32,7 @@ struct GETHasComplexReturnType: BestPractice {
             audit.recordFinding(GETReturnTypeFinding.getHasPrimitiveType)
         }
         
-        // TODO do something special for `Response` types?
+        // TODO do something special for `Response` types and `EventLoopFuture` types?
         // TODO check if type name (stemmed) appears in path, it should
     }
 }
