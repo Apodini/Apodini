@@ -11,9 +11,9 @@ import Foundation
 import Apodini
 
 
-///A protocol all Models that are used with `ApodiniDatabase` need conform to
+/// A protocol all Models that are used with `ApodiniDatabase` need to conform to
 public protocol DatabaseModel: Model, Apodini.Content {
-    ///Has to be overwritten to use `Update` handler.
+    /// Has to be overwritten to use `Update` handler.
     func update(_ object: Self)
 }
 
