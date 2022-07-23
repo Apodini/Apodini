@@ -171,7 +171,7 @@ final class ApodiniAuditTests: ApodiniTests {
         let lingFindings = lingAudits.flatMap { $0.findings }
         
         let expectedLingFindings = [
-            PluralForPOSTFinding.singularForPost(lastSegment: "Greeting")
+            BadCollectionSegmentName.nonPluralBeforeParameter("Greeting")
         ]
         
         XCTAssertFindingsEqual(lingFindings, expectedLingFindings)
