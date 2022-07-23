@@ -16,9 +16,9 @@ import Foundation
 import NIOExtras
 import NIOFoundationCompat
 
-final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHandler {
-    typealias InboundIn = HTTP2Frame.FramePayload
-    typealias OutboundOut = HTTP2Frame.FramePayload
+public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHandler {
+    public typealias InboundIn = HTTP2Frame.FramePayload
+    public typealias OutboundOut = HTTP2Frame.FramePayload
 
     private var streamingDelegate: D
     private weak var context: ChannelHandlerContext?
@@ -61,7 +61,7 @@ final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHand
         }
     }
 
-    func channelActive(context: ChannelHandlerContext) {
+    public func channelActive(context: ChannelHandlerContext) {
         precondition(context.channel.parent!.isActive)
         
         // Send header frame
@@ -82,7 +82,7 @@ final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHand
         context.fireChannelActive()
     }
 
-    func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+    public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let payload = self.unwrapInboundIn(data)
         
         guard case .data(let data) = payload else {
@@ -123,7 +123,7 @@ final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInboundHand
         self.streamingDelegate.handleInbound(response: response, serverSideClosed: data.endStream)
     }
     
-    func errorCaught(context: ChannelHandlerContext, error: Error) {
+    public func errorCaught(context: ChannelHandlerContext, error: Error) {
 //        self.responseReceivedPromise.fail(error)
         context.fireErrorCaught(error)
         context.close(promise: nil)

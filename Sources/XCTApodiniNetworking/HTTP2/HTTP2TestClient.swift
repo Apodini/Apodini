@@ -14,44 +14,6 @@ import NIOSSL
 import Foundation
 import NIOExtras
 
-struct AddStruct: Codable {
-    let sum: Int
-    let number: Int
-}
-
-final class AddingStreamingDelegate: StreamingDelegate {
-    typealias SRequest = DATAFrameRequest<AddStruct>
-    typealias SResponse = AddStruct
-    var streamingHandler: HTTPClientStreamingHandler<AddingStreamingDelegate>?
-    var headerFields: BasicHTTPHeaderFields
-    
-    var responseCount = 0
-    
-    func handleInbound(response: AddStruct, serverSideClosed: Bool) {
-        if responseCount == 1 {
-            close()
-            return
-        }
-        
-        responseCount += 1
-        
-        let newNumber = Int.random(in: 0..<10)
-        let addStruct = AddStruct(sum: response.sum + response.number, number: newNumber)
-        
-        sendOutbound(request: DATAFrameRequest(query: addStruct))
-    }
-    
-    func handleStreamStart() {
-        let addStruct = AddStruct(sum: 0, number: 4)
-        
-        sendOutbound(request: DATAFrameRequest(query: addStruct))
-    }
-    
-    init(_ headerfields: BasicHTTPHeaderFields) {
-        self.headerFields = headerfields
-    }
-}
-
 public class HTTP2TestClient {
     // MARK: Singleton pattern
     public static let client: HTTP2TestClient = {
@@ -133,72 +95,34 @@ public class HTTP2TestClient {
         }
     }
     
-    public func sendTestRequests() {
-        // Set the header fields
-        let headerFields = BasicHTTPHeaderFields(method: .POST, url: "/http/add", host: "localhost")
-        
-        // Create the StreamingDelegate
-        let delegate = AddingStreamingDelegate(headerFields)
-        
+    @discardableResult
+    public func startStreamingDelegate<SD: StreamingDelegate>(_ delegate: SD) throws -> EventLoopFuture<Void> {
         guard let bs = self.bootstrap else {
-            return
+            return eventLoop.makeSucceededVoidFuture()
         }
         
+        return bs.connect(host: "localhost", port: 4443)
+            .flatMap { channel in
+                self.registerStreamingHandler(channel: channel, streamingDelegate: delegate)
+                    .and(value: channel)
+            }
+            .flatMap { streamChannel, channel in
+                return streamChannel.closeFuture.map {
+                    channel
+                }
+            }
+            .flatMap { channel in
+                let promise = self.eventLoop.makePromise(of: Void.self)
+                channel.close(promise: promise)
+                return promise.futureResult
+            }
+    }
+    
+    deinit {
         do {
-            _ = try bs.connect(host: "localhost", port: 443)
-                .flatMap { channel in
-                    self.registerStreamingHandler(channel: channel, streamingDelegate: delegate)
-                        .and(value: channel)
-                }
-                .flatMap { streamChannel, channel in
-                    streamChannel.closeFuture.and(value: channel)
-                }
-                .map { void, channel in
-                    channel.close()
-                }
-                .wait()
-            
-//            try streamChannel.closeFuture.flatMap {
-//                channel
-//            }
-//            .map { actualChannel in
-//                actualChannel.close()
-//            }
-//            .wait()
-
-//            // separate the already available targets (URIs) and the future received responses.
-//            //let requestGroups = requestResponsePairs.map { $0.0 }
-//            let responseFutures = requestResponsePairs.map { $0.1.futureResult }
-//
-//            // Here, we build a future that aggregates all the responses from all the different requests.
-//            let allRequestsAndResponses = try EventLoopFuture<[[[HTTP2Frame.FramePayload]]]>.reduce([],
-//                                                                                       responseFutures,
-//                                                                                       on: channel.eventLoop,
-//                                                                                       { $0 + [$1] })
-//                // zip the URIs and responses together again
-//                .map { zip(requestGroups, $0) }
-//                // and just wait until they arrive.
-//                .wait()
-//
-//            for (requestGroup, responseGroup) in allRequestsAndResponses {
-//                let actualResponseGroup = responseGroup[0]
-//                print("Group: \(requestGroup.requests.count) requests, \(actualResponseGroup.count) responses")
-//
-//                for response in actualResponseGroup {
-//                    if case .data(let dataPayload) = response,
-//                       case .byteBuffer(let buffer) = dataPayload.data {
-//                        if buffer.readableBytes == 0 && dataPayload.endStream {
-//                            print("Empty DATA frame to end stream")
-//                        }
-//                        print(buffer.getString(at: 0, length: buffer.readableBytes) ?? "Can't convert")
-//                    } else if case .headers = response {
-//                        print("HEADERS frame")
-//                    }
-//                }
-//            }
+            try eventLoop.close()
         } catch {
-            print("ERROR: \(error)")
-            numberOfErrors += 1
+            print(error)
         }
     }
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol StreamingDelegate: AnyObject {
+public protocol StreamingDelegate: AnyObject {
     associatedtype SRequest: Encodable
     associatedtype SResponse: Decodable
     
@@ -22,7 +22,7 @@ protocol StreamingDelegate: AnyObject {
     func handleStreamStart()
 }
 
-extension StreamingDelegate {
+public extension StreamingDelegate {
     func sendOutbound(request: SRequest) {
         streamingHandler?.sendOutbound(request: request)
     }

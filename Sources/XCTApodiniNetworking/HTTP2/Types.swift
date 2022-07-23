@@ -10,12 +10,22 @@ import NIOHTTP1
 
 public struct DATAFrameRequest<T: Encodable>: Encodable {
     var query: T
+    
+    public init(_ query: T) {
+        self.query = query
+    }
 }
 
 public struct BasicHTTPHeaderFields {
     var method: HTTPMethod
     var url: String
     var host: String
+    
+    public init(_ method: HTTPMethod, _ url: String, _ host: String) {
+        self.method = method
+        self.url = url
+        self.host = host
+    }
 }
 
 //class _Storage {
