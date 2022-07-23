@@ -16,9 +16,9 @@ final class GrammaricalNumberTests: ApodiniTests {
         let nouns = [
             "images",
             "forests",
-            "players",
-            "theses",
-            "corpora",
+            "soccerplayers",
+            "masters-theses",
+            "russian_dictionary_corpora",
             "longTheses"
         ]
         
@@ -36,10 +36,12 @@ final class GrammaricalNumberTests: ApodiniTests {
     func testFailingNouns() throws {
         let nouns = [
             "image",
-            "file",
-            "team",
-            "product",
-            "table"
+            "largeFile",
+            "exceltable",
+            "masters-thesis",
+            "classical_concert",
+            "go",
+            "12493"
         ]
         
         var webService = BestPracticeWebService()
