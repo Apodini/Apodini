@@ -217,6 +217,7 @@ extension HTTPMediaType {
     public enum ImageSubtype: String {
         case png = "png"
         case gif = "gif"
+        case jpeg = "jpeg"
     }
     
     /// Creates an `image/<subtype>` media type for the specified subtype

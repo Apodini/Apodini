@@ -24,7 +24,7 @@ public class Audit {
     public var endpoint: AnyEndpoint
     var bestPractice: BestPractice
     
-    func recordFinding(_ finding: Finding) {
+    public func recordFinding(_ finding: Finding) {
         findings.append(finding)
     }
     
