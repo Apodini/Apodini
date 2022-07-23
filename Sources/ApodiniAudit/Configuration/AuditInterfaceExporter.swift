@@ -77,8 +77,8 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<NoFileExtensionsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
         EmptyBestPracticeConfiguration<GETHasComplexReturnType>(),
-        EmptyBestPracticeConfiguration<PluralSegmentForStores>(),
-        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
+        EmptyBestPracticeConfiguration<PluralSegmentForStoresAndCollections>(),
+//        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
         EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>()
     ]
 }

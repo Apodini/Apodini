@@ -9,63 +9,14 @@
 import Foundation
 import Apodini
 
-protocol GrammaticalNumberBestPractice: BestPractice {
-    func checkLastPart(into audit: Audit, _ app: Application, _ lastPart: String)
-}
-
-// TODO consider Handler type string for decision?
-
-extension GrammaticalNumberBestPractice {
-    // Adapted from detectPluralisedNodes in the DOLAR project
-    func check(into audit: Audit, _ app: Application) {
-        let path = audit.endpoint.absolutePath
-        let lastSegment = path.last
-        let lastSegmentString: String
-        
-        switch(lastSegment) {
-        case .root:
-            return
-        case .string(let path):
-            lastSegmentString = path
-        case .parameter(let parameter):
-            if parameter.scopedEndpointHasDefinedParameter {
-                lastSegmentString = parameter.name
-            } else {
-                return
-            }
-        case .none:
-            return
-        }
-        
-        // Split last segment into words
-        let lastSegmentParts = lastSegmentString.splitIntoWords(delimiters: [
-            .uppercase,
-            .notAlphaNumerical
-        ])
-        
-        guard let lastPart = lastSegmentParts.last else {
-            return
-        }
-        
-        // Build cleanup regex
-        guard let cleanUpRegex = try? NSRegularExpression(pattern: "[^a-zA-Z0-9]") else {
-            fatalError("Could not build regexes")
-        }
-        
-        let cleanedLastPart = cleanUpRegex.stringByReplacingMatches(in: lastPart, options: [], range: NSMakeRange(0, lastPart.count), withTemplate: "")
-        
-        checkLastPart(into: audit, app, cleanedLastPart)
-    }
-}
-
-struct PluralSegmentForStoresAndCollections: GrammaticalNumberBestPractice {
+final class PluralSegmentForStoresAndCollections: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .linguisticURL
     
     var checkedParameters = [UUID]()
     
     func check(into audit: Audit, _ app: Application) {
-        let path = audit.endpoint.absolutePath
+        let path = audit.endpoint[EndpointPathComponentsHTTP.self].value
         
         let idParameterIndices: [Int] = path.enumerated().compactMap { index, pathSegment in
             guard case .parameter(let parameter) = pathSegment else {
@@ -104,21 +55,8 @@ struct PluralSegmentForStoresAndCollections: GrammaticalNumberBestPractice {
                 }
             }
         }
-    }
-    
-    func checkLastPart(into audit: Audit, _ app: Application, _ lastPart: String) {
-        // Find all path parameters carrying some form of ID
         
-        // Check what the path segment in front of the ID is
-        // If it's not a plural noun, issue a warning
-        
-        if audit.endpoint[Operation.self] != .create {
-            return
-        }
-        
-        if !NLTKInterface.shared.isPluralNoun(lastPart) {
-            audit.recordFinding(BadCollectionSegmentName.singularForPost(lastSegment: lastPart))
-        }
+        // TODO add inverse: if last segment is singular, then delete would be kinda weird?
     }
 }
 
@@ -129,42 +67,46 @@ enum BadCollectionSegmentName: Finding {
     
     var diagnosis: String {
         switch self {
-        case .singularForPost(let lastSegment):
-            return "\"\(lastSegment)\" is not a plural noun for a POST handler"
+        case .parametersInSuccession:
+            return "Found two parameters in succession"
+        case .nonPluralBeforeParameter(let word):
+            return "Found non-plural word \"\(word)\" in front of a parameter"
+        case .firstLevelIdParameter:
+            return "Found an ID parameter immediately after the path root"
         }
     }
 }
 
-struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .linguisticURL
-    
-    func checkLastPart(into audit: Audit, _ app: Application, _ lastPart: String) {
-        guard !NLTKInterface.shared.isSingularNoun(lastPart) else {
-            return
-        }
-        
-        switch audit.endpoint[Operation.self] {
-        case .create, .read:
-            return
-        case .update:
-            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForPUT(lastSegment: lastPart))
-        case .delete:
-            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForDELETE(lastSegment: lastPart))
-        }
-    }
-}
-
-enum SingularForPUTAndDELETEFinding: Finding {
-    case pluralForPUT(lastSegment: String)
-    case pluralForDELETE(lastSegment: String)
-    
-    var diagnosis: String {
-        switch self {
-        case .pluralForPUT(let lastSegment):
-            return "\"\(lastSegment)\" is not a singular noun for a PUT handler"
-        case .pluralForDELETE(let lastSegment):
-            return "\"\(lastSegment)\" is not a singular noun for a DELETE handler"
-        }
-    }
-}
+//struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
+//    static var scope: BestPracticeScopes = .rest
+//    static var category: BestPracticeCategories = .linguisticURL
+//    
+//    func checkLastPart(into audit: Audit, _ app: Application, _ lastPart: String) {
+//        guard !NLTKInterface.shared.isSingularNoun(lastPart) else {
+//            return
+//        }
+//        
+//        switch audit.endpoint[Operation.self] {
+//        case .create, .read:
+//            return
+//        case .update:
+//            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForPUT(lastSegment: lastPart))
+//        case .delete:
+//            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForDELETE(lastSegment: lastPart))
+//        }
+//    }
+//}
+//
+//enum SingularForPUTAndDELETEFinding: Finding {
+//    case pluralForPUT(lastSegment: String)
+//    case pluralForDELETE(lastSegment: String)
+//    
+//    var diagnosis: String {
+//        switch self {
+//        case .pluralForPUT(let lastSegment):
+//            return "\"\(lastSegment)\" is not a singular noun for a PUT handler"
+//        case .pluralForDELETE(let lastSegment):
+//            return "\"\(lastSegment)\" is not a singular noun for a DELETE handler"
+//        }
+//    }
+//}

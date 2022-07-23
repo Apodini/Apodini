@@ -16,8 +16,8 @@ extension String {
             .notAlphaNumerical
         ])
         
-        guard let lastPart = lastSegmentParts.last else {
-            return
+        guard let lastPart = segmentParts.last else {
+            return ""
         }
         
         // Build cleanup regex
