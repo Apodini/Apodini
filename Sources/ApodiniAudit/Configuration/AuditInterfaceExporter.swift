@@ -17,6 +17,8 @@ final class AuditInterfaceExporter: InterfaceExporter {
     var parentConfiguration: HTTPExporterConfiguration
     var bestPractices: [BestPractice]
     
+    var webServiceString: String
+    
     var applyRESTBestPractices: Bool {
         parentConfiguration.exportAsREST
     }
@@ -53,14 +55,15 @@ final class AuditInterfaceExporter: InterfaceExporter {
         }
         
         // Export the report
-        Reporter.logReport(report)
+        Reporter.logReport(report, webServiceString)
     }
     
-    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [BestPractice]) {
+    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [BestPractice], _ webServiceString: String) {
         self.app = app
         self.parentConfiguration = parentConfiguration
         self.report = Report()
         self.bestPractices = bestPractices
+        self.webServiceString = webServiceString
     }
 }
 

@@ -34,7 +34,7 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         }
         
         // Register exporter with configured Best Practices
-        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration, bestPractices)
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration, bestPractices, String(describing: Service.self))
         app.registerExporter(exporter: auditInterfaceExporter)
     }
     

@@ -11,7 +11,7 @@ import Apodini
 import ApodiniNetworking
 
 class Reporter {
-    static func logReport(_ report: Report) {
+    static func logReport(_ report: Report, _ webServiceString: String) {
         // Group audits by Endpoint they are related to
         let indexedAudits = Dictionary(grouping: report.audits, by: { $0.endpoint.absolutePath.pathString })
         let sortedEndpoints = Array(indexedAudits.keys).sorted()
@@ -30,18 +30,32 @@ class Reporter {
                 continue
             }
             
+            let auditsByHandler = Dictionary(grouping: audits, by: { $0.endpoint.bareHandlerName(webServiceString) })
+            let sortedHandlers = Array(auditsByHandler.keys).sorted()
+            
             print(endpoint)
             
-            for audit in audits {
-                guard !audit.findings.isEmpty else {
+            for handler in sortedHandlers {
+                guard let audits = auditsByHandler[handler],
+                      !audits.flatMap({ $0.findings }).isEmpty else {
                     continue
                 }
                 
-                // Sort findings by priority
-                let sortedFindings = audit.findings.sorted(by: \Finding.priority)
-                for finding in sortedFindings {
-                    printedSomething = true
-                    print("  \(finding.diagnosis)")
+                print("  \(handler)")
+                for audit in audits {
+                    guard !audit.findings.isEmpty else {
+                        continue
+                    }
+                    
+                    // Sort findings by priority
+                    let sortedFindings = audit.findings.sorted(by: \Finding.priority)
+                    for finding in sortedFindings {
+                        printedSomething = true
+                        print("    \(finding.diagnosis)")
+                        if let suggestion = finding.suggestion {
+                            print("      \(suggestion)")
+                        }
+                    }
                 }
             }
             print()
@@ -88,5 +102,50 @@ extension EndpointPath {
         case .parameter(let par):
             return "{\(par.name)}"
         }
+    }
+}
+
+extension AnyEndpoint {
+    func bareHandlerName(_ webServiceString: String) -> String {
+        let fullName = self[HandlerReflectiveName.self].rawValue
+        
+        guard let webServiceIndex = fullName.index(of: webServiceString) else {
+            return self[HandlerDescription.self].rawValue
+        }
+        
+        let endOfWebServiceIndex = fullName.index(webServiceIndex, offsetBy: webServiceString.count + 1)
+        
+        guard let nonLetterIndex = fullName.firstIndex(after: endOfWebServiceIndex, where: {
+            [",", " ", ">", "<"].contains($0)
+        }) else {
+            return self[HandlerDescription.self].rawValue
+        }
+        
+        return String(fullName[endOfWebServiceIndex..<nonLetterIndex])
+    }
+}
+
+// https://stackoverflow.com/questions/32305891/index-of-a-substring-in-a-string-with-swift
+extension StringProtocol {
+    func index<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
+        range(of: string, options: options)?.lowerBound
+    }
+    func endIndex<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> Index? {
+        range(of: string, options: options)?.upperBound
+    }
+    func indices<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Index] {
+        ranges(of: string, options: options).map(\.lowerBound)
+    }
+    func ranges<S: StringProtocol>(of string: S, options: String.CompareOptions = []) -> [Range<Index>] {
+        var result: [Range<Index>] = []
+        var startIndex = self.startIndex
+        while startIndex < endIndex,
+            let range = self[startIndex...]
+                .range(of: string, options: options) {
+                result.append(range)
+                startIndex = range.lowerBound < range.upperBound ? range.upperBound :
+                    index(range.lowerBound, offsetBy: 1, limitedBy: endIndex) ?? endIndex
+        }
+        return result
     }
 }

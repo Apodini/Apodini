@@ -13,7 +13,16 @@ public class EncourageETags: BestPractice {
     public static var scope: BestPracticeScopes = .all
     public static var category: BestPracticeCategories = .caching
     
+    private var checkedHandlerNames = [String]()
+    
     public func check(into audit: Audit, _ app: Application) {
+        let handlerName = audit.endpoint[HandlerReflectiveName.self].rawValue
+        guard !checkedHandlerNames.contains(handlerName) else {
+            return
+        }
+        
+        checkedHandlerNames.append(handlerName)
+        
         /// Check whether the endpoint is a blob endpoint
         let typeString = String(describing: audit.endpoint[HandleReturnType.self].type)
         guard typeString.contains("Blob") else {
@@ -32,14 +41,14 @@ enum ETagsFinding: Finding {
     var diagnosis: String {
         switch self {
         case .cacheableBlob:
-            return "This Endpoint returns blob data"
+            return "This handler returns blob data"
         }
     }
     
     var suggestion: String? {
         switch self {
         case .cacheableBlob:
-            return "You can use ETags to enable caching for this endpoint"
+            return "You can use ETags to enable caching for this endpoint!"
         }
     }
 }

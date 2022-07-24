@@ -17,7 +17,16 @@ public class ReasonableParameterCount: BestPractice {
     
     var configuration = ReasonableParameterCountConfiguration()
     
+    private var checkedHandlerNames = [String]()
+    
     public func check(into audit: Audit, _ app: Application) {
+        let handlerName = audit.endpoint[HandlerReflectiveName.self].rawValue
+        guard !checkedHandlerNames.contains(handlerName) else {
+            return
+        }
+        
+        checkedHandlerNames.append(handlerName)
+        
         let parameters = audit.endpoint.parameters
         
         /// We consider `lightweight` and `path` parameters here
@@ -42,7 +51,7 @@ enum ParameterCountFinding: Finding {
     var diagnosis: String {
         switch self {
         case .tooManyParameters(let count):
-            return "This Endpoint has too many parameters: \(count)"
+            return "This handler has too many parameters: \(count)"
         }
     }
 }

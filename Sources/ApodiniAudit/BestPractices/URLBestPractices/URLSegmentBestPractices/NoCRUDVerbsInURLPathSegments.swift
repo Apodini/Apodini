@@ -32,7 +32,7 @@ enum URLCRUDVerbsFinding: Finding {
     var diagnosis: String {
         switch self {
         case .crudVerbFound(let segment):
-            return "The path segment \(segment) contains one or more CRUD verbs!"
+            return "The path segment \(segment) contains one or more CRUD verbs"
         }
     }
 }

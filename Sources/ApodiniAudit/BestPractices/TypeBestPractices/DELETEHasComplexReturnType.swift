@@ -14,7 +14,16 @@ class DELETEHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .httpMethod
     
+    private var checkedHandlerNames = [String]()
+    
     func check(into audit: Audit, _ app: Application) {
+        let handlerName = audit.endpoint[HandlerReflectiveName.self].rawValue
+        guard !checkedHandlerNames.contains(handlerName) else {
+            return
+        }
+        
+        checkedHandlerNames.append(handlerName)
+        
         // get operation for endpoint
         guard audit.endpoint[Operation.self] == Operation.delete else {
             return
@@ -30,7 +39,7 @@ class DELETEHasComplexReturnType: BestPractice {
         
         // Report failure if the return type is Status or Empty
         if returnType == Empty.self || returnType == Status.self {
-            audit.recordFinding(GETReturnTypeFinding.getHasPrimitiveType)
+            audit.recordFinding(DELETEReturnTypeFinding.deleteHasPrimitiveType)
         }
     }
     
@@ -45,6 +54,13 @@ enum DELETEReturnTypeFinding: Finding {
         switch self {
         case .deleteHasPrimitiveType:
             return "The deleted resource is not returned"
+        }
+    }
+    
+    var suggestion: String? {
+        switch self {
+        case .deleteHasPrimitiveType:
+            return "Consider using Apodini's standard Delete handler!"
         }
     }
 }
