@@ -244,11 +244,14 @@ final class DatabaseHandlerTests: ApodiniTests {
         
         try XCTCheckResponse(
             context.handle(request: request),
-            Bird.self,
-            status: .ok,
-            content: bird,
+            Empty.self,
+            status: .noContent,
+            content: nil,
             connectionEffect: .close
         )
+        
+        expectation(description: "database access").isInverted = true
+        waitForExpectations(timeout: 10, handler: nil)
         
         let deletedBird = try Bird.find(dbBird.id, on: app.database).wait()
         XCTAssertNil(deletedBird)
