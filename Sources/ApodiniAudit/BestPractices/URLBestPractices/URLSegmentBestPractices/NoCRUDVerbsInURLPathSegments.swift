@@ -8,11 +8,12 @@
 
 import Foundation
 
-public struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
+public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any CRUD verbs"
     private var crudVerbs = ["get", "post", "remove", "delete", "put"]
+    var checkedSegments = [String]()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         let containsCRUDVerb = crudVerbs.contains { segment.lowercased().contains($0) }
@@ -22,7 +23,7 @@ public struct NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    public init() { }
+    required public init() { }
 }
 
 enum URLCRUDVerbsFinding: Finding {

@@ -9,18 +9,21 @@
 import Foundation
 import Apodini
 
-struct EncourageETags: BestPractice {
-    static var scope: BestPracticeScopes = .http
-    static var category: BestPracticeCategories = .caching
+public class EncourageETags: BestPractice {
+    public static var scope: BestPracticeScopes = .all
+    public static var category: BestPracticeCategories = .caching
     
-    func check(into audit: Audit, _ app: Application) {
+    public func check(into audit: Audit, _ app: Application) {
         /// Check whether the endpoint is a blob endpoint
-        guard audit.endpoint[HandleReturnType.self].type == Blob.self else {
+        let typeString = String(describing: audit.endpoint[HandleReturnType.self].type)
+        guard typeString.contains("Blob") else {
             return
         }
         
         audit.recordFinding(ETagsFinding.cacheableBlob)
     }
+    
+    required public init() { }
 }
 
 enum ETagsFinding: Finding {

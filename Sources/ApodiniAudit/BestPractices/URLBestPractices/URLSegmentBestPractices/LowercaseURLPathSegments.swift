@@ -8,17 +8,20 @@
 
 import Foundation
 
-struct LowercaseURLPathSegments: URLSegmentBestPractice {
+class LowercaseURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
+    var checkedSegments = [String]()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
-        if segment.lowercased() != segment {
+        if segment.lowercased() != segment && !isParameter {
             return LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: segment)
         }
         return nil
     }
+    
+    required init() { }
 }
 
 enum LowercasePathSegmentsFinding: Finding {

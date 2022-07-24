@@ -10,41 +10,41 @@ import Foundation
 import Apodini
 import ApodiniTypeInformation
 
-struct GETHasComplexReturnType: BestPractice {
+class DELETEHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .httpMethod
     
     func check(into audit: Audit, _ app: Application) {
         // get operation for endpoint
-        guard audit.endpoint[Operation.self] == Operation.read else {
+        guard audit.endpoint[Operation.self] == Operation.delete else {
             return
         }
-        // If GET:
+        // If DELETE:
         // get return type of endpoint
         let returnType = audit.endpoint[ResponseType.self].type
         
-        guard let responseTypeInformation = TypeInformation.buildOptional(returnType) else {
-            return
-        }
+        // Heuristic: report failure if
+        // - Response Type is Status
+        // - Response Type is Empty
+        // - not implemented: stemmed Response type appears neither in Handler name nor endpoint path
         
-        // Report failure if the return type is primitive
-        if !responseTypeInformation.isObject && !responseTypeInformation.isDictionary && !responseTypeInformation.isRepeated {
+        // Report failure if the return type is Status or Empty
+        if returnType == Empty.self || returnType == Status.self {
             audit.recordFinding(GETReturnTypeFinding.getHasPrimitiveType)
         }
-        
-        // TODO do something special for `Response` types and `EventLoopFuture` types?
-        // TODO check if type name (stemmed) appears in path, it should
     }
+    
+    required init() { }
 }
 
 
-enum GETReturnTypeFinding: Finding {
-    case getHasPrimitiveType
+enum DELETEReturnTypeFinding: Finding {
+    case deleteHasPrimitiveType
     
     var diagnosis: String {
         switch self {
-        case .getHasPrimitiveType:
-            return "The GET handler returns a simple type"
+        case .deleteHasPrimitiveType:
+            return "The deleted resource is not returned"
         }
     }
 }

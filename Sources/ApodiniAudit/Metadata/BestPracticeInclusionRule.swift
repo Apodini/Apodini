@@ -32,7 +32,7 @@ struct BestPracticeCategoryInclusionRule: BestPracticeInclusionRule {
     let action: BestPracticeInclusionAction
     
     func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
-        categories.contains(bestPractice.category) ? action : .noAction
+        bestPractice.category.contains(categories) ? action : .noAction
     }
 }
 

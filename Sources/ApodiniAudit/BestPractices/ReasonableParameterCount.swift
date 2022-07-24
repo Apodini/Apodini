@@ -9,13 +9,15 @@
 import Foundation
 import Apodini
 
-struct ReasonableParameterCount: BestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .parameters
+public class ReasonableParameterCount: BestPractice {
+    required public init() { }
+    
+    public static var scope: BestPracticeScopes = .rest
+    public static var category: BestPracticeCategories = .parameters
     
     var configuration = ReasonableParameterCountConfiguration()
     
-    func check(into audit: Audit, _ app: Application) {
+    public func check(into audit: Audit, _ app: Application) {
         let parameters = audit.endpoint.parameters
         
         /// We consider `lightweight` and `path` parameters here
@@ -27,6 +29,10 @@ struct ReasonableParameterCount: BestPractice {
         if paramCount > configuration.maximumCount {
             audit.recordFinding(ParameterCountFinding.tooManyParameters(count: paramCount))
         }
+    }
+    
+    public init(configuration: ReasonableParameterCountConfiguration) {
+        self.configuration = configuration
     }
 }
 
@@ -41,10 +47,14 @@ enum ParameterCountFinding: Finding {
     }
 }
 
-struct ReasonableParameterCountConfiguration: BestPracticeConfiguration {
-    var maximumCount = 10
+public struct ReasonableParameterCountConfiguration: BestPracticeConfiguration {
+    var maximumCount: Int
     
-    func configure() -> BestPractice {
+    public func configure() -> BestPractice {
         ReasonableParameterCount(configuration: self)
+    }
+    
+    public init(maximumCount: Int = 10) {
+        self.maximumCount = maximumCount
     }
 }

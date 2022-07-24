@@ -8,14 +8,19 @@
 
 import Foundation
 
-struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
+class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments have appropriate lengths"
+    var checkedSegments = [String]()
     
     var configuration = AppropriateLengthForURLPathSegmentsConfiguration()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+        guard !isParameter && !configuration.allowedSegments.contains(segment) else {
+            return nil
+        }
+        
         if segment.count < configuration.minimumLength {
             return URLPathLengthFinding.segmentTooShort(segment: segment)
         }
@@ -25,6 +30,12 @@ struct AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
         }
         
         return nil
+    }
+    
+    required init() { }
+    
+    init(configuration: AppropriateLengthForURLPathSegmentsConfiguration) {
+        self.configuration = configuration
     }
 }
 
@@ -42,11 +53,18 @@ enum URLPathLengthFinding: Finding {
     }
 }
 
-struct AppropriateLengthForURLPathSegmentsConfiguration: BestPracticeConfiguration {
-    var minimumLength = 3
-    var maximumLength = 30
+public struct AppropriateLengthForURLPathSegmentsConfiguration: BestPracticeConfiguration {
+    var minimumLength: Int
+    var maximumLength: Int
+    var allowedSegments: [String]
     
-    func configure() -> BestPractice {
+    public func configure() -> BestPractice {
         AppropriateLengthForURLPathSegments(configuration: self)
+    }
+    
+    public init(minimumLength: Int = 3, maximumLength: Int = 30, allowedSegments: [String] = []) {
+        self.minimumLength = minimumLength
+        self.maximumLength = maximumLength
+        self.allowedSegments = allowedSegments
     }
 }

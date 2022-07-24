@@ -8,9 +8,11 @@
 
 import Foundation
 
-struct NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
+class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
+    
+    var checkedSegments = [String]()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.contains(where: { c in
@@ -20,6 +22,8 @@ struct NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
         }
         return nil
     }
+    
+    required init() { }
 }
 
 enum NumberOrSymbolsInURLFinding: Finding {

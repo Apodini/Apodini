@@ -9,12 +9,18 @@
 import Apodini
 
 protocol URLSegmentBestPractice: BestPractice {
+    var checkedSegments: [String] { get set }
+    
     func checkSegment(segment: String, isParameter: Bool) -> Finding?
 }
 
 extension URLSegmentBestPractice {
     public func check(into audit: Audit, _ app: Application) {
         for segment in audit.endpoint.absolutePath {
+            if checkedSegments.contains(segment.description) {
+                continue
+            }
+            
             let segmentString: String
             var isParameter = false
             switch(segment) {
@@ -26,6 +32,8 @@ extension URLSegmentBestPractice {
             default:
                 continue
             }
+            
+            checkedSegments.append(segment.description)
             
             if let finding = checkSegment(segment: segmentString, isParameter: isParameter) {
                 audit.recordFinding(finding)

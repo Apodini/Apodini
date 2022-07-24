@@ -53,11 +53,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
         }
         
         // Export the report
-        for audit in report.audits {
-            for finding in audit.findings {
-                app.logger.info("[ApodiniAudit] \(finding.diagnosis)")
-            }
-        }
+        Reporter.logReport(report)
     }
     
     init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [BestPractice]) {
@@ -70,15 +66,27 @@ final class AuditInterfaceExporter: InterfaceExporter {
 
 extension AuditInterfaceExporter {
     static let defaultBestPracticeConfigurations: [BestPracticeConfiguration] = [
+        // Syntactic URL Segment Best Practices
         AppropriateLengthForURLPathSegmentsConfiguration(),
-        EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
-        EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
+        EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<NoFileExtensionsInURLPathSegments>(),
-        EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
-        EmptyBestPracticeConfiguration<GETHasComplexReturnType>(),
+        EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>(),
+        EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
+        
+        // Linguistic URL Segment Best Practices
+//        EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
         EmptyBestPracticeConfiguration<PluralSegmentForStoresAndCollections>(),
 //        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
-        EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>()
+        
+        // Type Best Practices
+        EmptyBestPracticeConfiguration<GETHasComplexReturnType>(),
+        EmptyBestPracticeConfiguration<DELETEHasComplexReturnType>(),
+        
+        // Suggestions
+        EmptyBestPracticeConfiguration<EncourageETags>(),
+        
+        // Parameter BPs
+        ReasonableParameterCountConfiguration()
     ]
 }

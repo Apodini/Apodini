@@ -8,9 +8,11 @@
 
 import Foundation
 
-struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
+class NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
+    
+    var checkedSegments = [String]()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.contains("_") {
@@ -18,6 +20,8 @@ struct NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
         }
         return nil
     }
+    
+    required init() { }
 }
 
 

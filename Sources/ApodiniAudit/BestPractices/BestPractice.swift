@@ -9,7 +9,7 @@
 import Foundation
 import Apodini
 
-public protocol BestPractice {
+public protocol BestPractice: AnyObject {
     /// The scope of this best practice (http or rest)
     static var scope: BestPracticeScopes { get }
     /// The category this best practice fits into
@@ -51,7 +51,8 @@ public struct BestPracticeCategories: OptionSet {
     public static let httpStatusCode   = BestPracticeCategories(rawValue: 1 << 1)
     public static let httpMethod       = BestPracticeCategories(rawValue: 1 << 2)
     public static let parameters       = BestPracticeCategories(rawValue: 1 << 3)
-    public static let caching       = BestPracticeCategories(rawValue: 1 << 4)
+    public static let caching          = BestPracticeCategories(rawValue: 1 << 4)
+    public static let returnType       = BestPracticeCategories(rawValue: 1 << 5)
     
     public static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
     
@@ -75,6 +76,6 @@ public struct BestPracticeScopes: OptionSet {
     }
 }
 
-public enum Priority: Int, Hashable {
-    case high = 1, normal, low
+public enum Priority: Comparable {
+    case high, normal, low
 }

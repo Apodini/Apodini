@@ -9,7 +9,7 @@
 import Foundation
 import Apodini
 
-struct ContextualisedResourceNames: BestPractice {
+class ContextualisedResourceNames: BestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
     
@@ -38,6 +38,8 @@ struct ContextualisedResourceNames: BestPractice {
             }
         }
     }
+    
+    required init() { }
 }
 
 enum ContextualisedResourceNamesFinding: Finding {
