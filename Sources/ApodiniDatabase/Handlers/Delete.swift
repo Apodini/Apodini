@@ -19,11 +19,12 @@ public struct Delete<Model: DatabaseModel>: Handler {
     @Parameter(.http(.path))
     var id: Model.IDValue
     
-    public func handle() -> EventLoopFuture<Status> {
+    public func handle() -> EventLoopFuture<Apodini.Response<Model>> {
         Model.find(id, on: database)
             .unwrap(orError: HTTPAbortError(status: .notFound))
-            .flatMap { $0.delete(on: database ) }
-            .transform(to: .noContent)
+            .flatMap {
+                $0.delete(on: database).transform(to: Apodini.Response.final($0, status: .ok))
+            }
     }
     
     public init() {}

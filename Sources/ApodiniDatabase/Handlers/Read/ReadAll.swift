@@ -15,10 +15,10 @@ import Apodini
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 /// An Example using a REST request:
 /// Group("api", "birds") {
-///     Read<Bird>()
+///     ReadAll<Bird>()
 /// }
 /// Sending a request to  ~/api/birds/birds?age=19&name=Foo would 
-/// return an array of `Bird` object that have an age of 19 and the name Foo.
+/// return an array of `Bird` objects that have an age of 19 and the name Foo.
 public struct ReadAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
     private var database: FluentKit.Database
