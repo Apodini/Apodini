@@ -22,6 +22,8 @@ class Reporter {
         print("====================================")
         print()
         
+        var printedSomething = false
+        
         for endpoint in sortedEndpoints {
             guard let audits = indexedAudits[endpoint],
                   !audits.flatMap({ $0.findings }).isEmpty else {
@@ -38,10 +40,15 @@ class Reporter {
                 // Sort findings by priority
                 let sortedFindings = audit.findings.sorted(by: \Finding.priority)
                 for finding in sortedFindings {
+                    printedSomething = true
                     print("  \(finding.diagnosis)")
                 }
             }
             print()
+        }
+        
+        if !printedSomething {
+            print("No findings! 🚀")
         }
         
 //        // Sort audits by best practice priority
