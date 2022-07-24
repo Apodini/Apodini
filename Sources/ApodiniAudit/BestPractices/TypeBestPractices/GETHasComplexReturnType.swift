@@ -10,6 +10,8 @@ import Foundation
 import Apodini
 import ApodiniTypeInformation
 
+/// BP23
+/// TODO merge this with DELETEHasComplexReturnType, and also consider PUT and PATCH
 class GETHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .httpMethod

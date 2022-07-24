@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// BP18
 public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath

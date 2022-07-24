@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// BP2
 class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath
@@ -16,7 +17,7 @@ class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.contains(where: { c in
-            !c.isLetter
+            !c.isLetter && c != "-"
         }) {
             return NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: segment)
         }

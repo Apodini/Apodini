@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// BP8
 class NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath

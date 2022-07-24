@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 import ApodiniTypeInformation
 
+/// BP73
 class DELETEHasComplexReturnType: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .httpMethod

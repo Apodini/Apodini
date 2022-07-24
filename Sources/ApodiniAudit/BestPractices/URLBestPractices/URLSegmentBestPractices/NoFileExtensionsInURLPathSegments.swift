@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// BP10
 class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .urlPath

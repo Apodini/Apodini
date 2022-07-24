@@ -8,6 +8,8 @@
 
 import Foundation
 
+/// BP3
+
 class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath

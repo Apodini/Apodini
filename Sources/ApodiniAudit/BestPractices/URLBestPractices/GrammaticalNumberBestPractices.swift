@@ -9,6 +9,7 @@
 import Foundation
 import Apodini
 
+/// BP14 & BP15
 final class PluralSegmentForStoresAndCollections: BestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .linguisticURL
@@ -76,37 +77,3 @@ enum BadCollectionSegmentName: Finding {
         }
     }
 }
-
-//struct SingularLastSegmentForPUTAndDELETE: GrammaticalNumberBestPractice {
-//    static var scope: BestPracticeScopes = .rest
-//    static var category: BestPracticeCategories = .linguisticURL
-//    
-//    func checkLastPart(into audit: Audit, _ app: Application, _ lastPart: String) {
-//        guard !NLTKInterface.shared.isSingularNoun(lastPart) else {
-//            return
-//        }
-//        
-//        switch audit.endpoint[Operation.self] {
-//        case .create, .read:
-//            return
-//        case .update:
-//            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForPUT(lastSegment: lastPart))
-//        case .delete:
-//            audit.recordFinding(SingularForPUTAndDELETEFinding.pluralForDELETE(lastSegment: lastPart))
-//        }
-//    }
-//}
-//
-//enum SingularForPUTAndDELETEFinding: Finding {
-//    case pluralForPUT(lastSegment: String)
-//    case pluralForDELETE(lastSegment: String)
-//    
-//    var diagnosis: String {
-//        switch self {
-//        case .pluralForPUT(let lastSegment):
-//            return "\"\(lastSegment)\" is not a singular noun for a PUT handler"
-//        case .pluralForDELETE(let lastSegment):
-//            return "\"\(lastSegment)\" is not a singular noun for a DELETE handler"
-//        }
-//    }
-//}

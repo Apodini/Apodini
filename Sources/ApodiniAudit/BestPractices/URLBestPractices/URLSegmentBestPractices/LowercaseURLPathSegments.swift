@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// BP9
 class LowercaseURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .rest
     static var category: BestPracticeCategories = .urlPath
