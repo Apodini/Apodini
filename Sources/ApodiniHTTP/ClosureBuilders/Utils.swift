@@ -14,7 +14,31 @@ import ApodiniNetworking
 import Logging
 
 extension HTTPInterfaceExporter {
-    func http1RequestSequence<H: Handler>(
+    func singleDecodingSequence<H: Handler>(
+        _ request: HTTPRequest,
+        _ defaultValues: DefaultValueStore,
+        _ endpoint: Endpoint<H>
+    ) -> AnyAsyncSequence<DefaultValueStore.DefaultInsertingRequest> {
+        let strategy = singleInputDecodingStrategy(for: endpoint)
+        
+        return [request]
+            .asAsyncSequence
+            .decode(using: strategy, with: request.eventLoop)
+            .insertDefaults(with: defaultValues)
+            .typeErased
+    }
+    
+    func singleLengthPrefixedDecodingSequence<H: Handler>(
+        _ request: HTTPRequest,
+        _ defaultValues: DefaultValueStore,
+        _ endpoint: Endpoint<H>
+    ) throws -> AnyAsyncSequence<DefaultValueStore.DefaultInsertingRequest> {
+        return try lengthPrefixDecodingSequence(request, defaultValues, endpoint)
+            .firstAndThenError(StreamingError.moreThanOneRequest)
+            .typeErased
+    }
+    
+    func arrayDecodingSequence<H: Handler>(
         _ request: HTTPRequest,
         _ defaultValues: DefaultValueStore,
         _ endpoint: Endpoint<H>
@@ -41,7 +65,7 @@ extension HTTPInterfaceExporter {
             .typeErased
     }
     
-    func http2RequestSequence<H: Handler>(
+    func lengthPrefixDecodingSequence<H: Handler>(
         _ request: HTTPRequest,
         _ defaultValues: DefaultValueStore,
         _ endpoint: Endpoint<H>
@@ -63,7 +87,40 @@ extension HTTPInterfaceExporter {
 }
 
 extension AsyncSequence {
-    func http1ResponseSequence<H: Handler>(
+    func encodeAsHTTPResponse<E: Encodable>(
+        _ request: HTTPRequest,
+        _ encoder: AnyEncoder
+    ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<E> {
+        return self.map { (response: Apodini.Response<E>) -> HTTPResponse in
+            let information: InformationSet = response.information
+            var httpHeaders = HTTPHeaders(information)
+            
+            var body: ByteBuffer
+            if let blobContent = response.content as? Blob {
+                // content type is blob
+                httpHeaders[.contentType] = blobContent.type
+                body = ByteBuffer()
+                body.writeImmutableBuffer(blobContent.byteBuffer)
+            } else {
+                body = ByteBuffer(data: try encoder.encode(response.content))
+            }
+            
+            return HTTPResponse(
+                version: request.version,
+                status: HTTPResponseStatus(response.status ?? .ok),
+                headers: httpHeaders,
+                bodyStorage: .buffer(initialValue: body)
+            )
+        }
+        .firstFuture(on: request.eventLoop)
+        .map { response in
+            precondition(response != nil)
+            response?.setContentLengthForCurrentBody()
+            return response ?? HTTPResponse(version: request.version, status: .ok, headers: [:])
+        }
+    }
+    
+    func encodeAsArray<H: Handler>(
         _ request: HTTPRequest,
         _ encoder: AnyEncoder,
         _ endpoint: Endpoint<H>
@@ -98,9 +155,10 @@ extension AsyncSequence {
                 )
             }
             .firstFuture(on: request.eventLoop)
+            .unwrap(orError: StreamingError.noResponse)
     }
     
-    func http2ResponseSequence<H: Handler>(
+    func encodeForHTTP2Streaming<H: Handler>(
         _ request: HTTPRequest,
         _ logger: Logger,
         _ encoder: AnyEncoder,
@@ -111,6 +169,10 @@ extension AsyncSequence {
         return self.firstFutureAndForEach(
             on: request.eventLoop,
             objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+                if response.connectionEffect == .close {
+                    httpResponseStream.close()
+                    return
+                }
                 defer {
                     if response.connectionEffect == .close {
                         httpResponseStream.close()
@@ -156,6 +218,23 @@ enum BodyStorageTypeError: Error, CustomStringConvertible {
         switch self {
         case .notStream:
             return "A .stream BodyStorage must be supplied!"
+        }
+    }
+}
+
+enum StreamingError: Error, CustomStringConvertible {
+    case noResponse
+    case moreThanOneRequest
+    case moreThanOneResponse
+    
+    public var description: String {
+        switch self {
+        case .noResponse:
+            return "Nil response found!"
+        case .moreThanOneRequest:
+            return "More than one request found although only one is allowed!"
+        case .moreThanOneResponse:
+            return "More than one response found although only one is allowed!"
         }
     }
 }

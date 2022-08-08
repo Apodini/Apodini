@@ -15,7 +15,7 @@ import Logging
 
 
 extension HTTPInterfaceExporter {
-    private func buildBidirectionalStreamingClosure<H: Handler>(
+    func buildBidirectionalStreamingClosure<H: Handler>(
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
@@ -29,9 +29,9 @@ extension HTTPInterfaceExporter {
             
             do {
                 if request.version.major == 2 {
-                    requestSequence = try self.http1RequestSequence(request, defaultValues, endpoint)
+                    requestSequence = try self.lengthPrefixDecodingSequence(request, defaultValues, endpoint)
                 } else {
-                    requestSequence = try self.http2RequestSequence(request, defaultValues, endpoint)
+                    requestSequence = try self.arrayDecodingSequence(request, defaultValues, endpoint)
                 }
             } catch {
                 endpoint[ErrorForwarder.self].forward(error)
@@ -50,9 +50,9 @@ extension HTTPInterfaceExporter {
                 .cancelIf { $0.connectionEffect == .close }
                 
             if request.version.major == 2 {
-                return requestProcessor.http2ResponseSequence(request, self.logger, self.configuration.encoder, endpoint)
+                return requestProcessor.encodeForHTTP2Streaming(request, self.logger, self.configuration.encoder, endpoint)
             } else {
-                return requestProcessor.http1ResponseSequence(request, self.configuration.encoder, endpoint)
+                return requestProcessor.encodeAsArray(request, self.configuration.encoder, endpoint)
             }
         }
     }

@@ -14,15 +14,15 @@ import Foundation
 
 
 class EndToEndTests: XCTApodiniTest {
-//    override func setUpWithError() throws {
-//        try super.setUpWithError()
-//
-//        configuration.configure(app)
-//
-//        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-//        content.accept(visitor)
-//        visitor.finishParsing()
-//    }
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+
+        configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        content.accept(visitor)
+        visitor.finishParsing()
+    }
     
     
     struct Greeter: Handler {
@@ -164,109 +164,109 @@ class EndToEndTests: XCTApodiniTest {
         }
     }
 
-//    func testRequestResponsePattern() throws {
-//        try app.testable().test(.GET, "/rr/Paul") { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Paul!")
-//        }
-//        
-//        try app.testable().test(.GET, "/rr/Andi?greeting=Wuzzup") { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Wuzzup, Andi!")
-//        }
-//    }
-//    
-//    func testServiceSideStreamingPattern() throws {
-//        try app.testable([.actualRequests]).test(
-//            version: .http1_1,
-//            .GET,
-//            "/ss?start=10",
-//            expectedBodyType: .stream,
-//            responseEnd: { response in
-//                XCTAssertEqual(response.status, .ok)
-//                let responseStream = try XCTUnwrap(response.bodyStorage.stream)
-//                XCTAssert(responseStream.isClosed)
-//                // We want to get rid of leading and trailing newlines since that would mess up the line splitting
-//                let responseText = try XCTUnwrap(response.bodyStorage.readNewDataAsString()).trimmingLeadingAndTrailingWhitespace()
-//                XCTAssertEqual(responseText.split(separator: "\n"), [
-//                    "10...",
-//                    "9...",
-//                    "8...",
-//                    "7...",
-//                    "6...",
-//                    "5...",
-//                    "4...",
-//                    "3...",
-//                    "2...",
-//                    "1...",
-//                    "🚀🚀🚀 Launch !!! 🚀🚀🚀"
-//                ])
-//            }
-//        )
-//    }
-//    
-//    func testClientSideStreamingPattern() throws {
-//        let body = [
-//            [
-//                "query": [
-//                    "country": "Germany"
-//                ]
-//            ],
-//            [
-//                "query": [
-//                    "country": "Taiwan"
-//                ]
-//            ],
-//            [String: [String: String]]()
-//        ]
-//        
-//        try app.testable().test(.GET, "/cs", body: .init(data: JSONEncoder().encode(body))) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(
-//                try! response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()),
-//                "Hello, Germany, Taiwan and the World!"
-//            )
-//        }
-//    }
-//    
-//    func testBidirectionalStreamingPattern() throws {
-//        let body = [
-//            [
-//                "query": [
-//                    "country": "Germany"
-//                ]
-//            ],
-//            [
-//                "query": [
-//                    "country": "Taiwan"
-//                ]
-//            ],
-//            [String: [String: String]]()
-//        ]
-//        
-//        try app.testable().test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: [String].self, using: JSONDecoder()), [
-//                "Hello, Germany!",
-//                "Hello, Taiwan!",
-//                "Hello, World!"
-//            ])
-//        }
-//    }
-//    
-//    func testBlob() throws {
-//        try app.testable().test(.GET, "/blob/Paul") { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Hello, Paul!")
-//            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
-//            XCTAssertEqual(response.headers["Test"].first, "Test")
-//        }
-//        
-//        try app.testable().test(.GET, "/blob/Andi?greeting=Wuzzup") { response in
-//            XCTAssertEqual(response.status, .ok)
-//            XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Wuzzup, Andi!")
-//            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
-//            XCTAssertEqual(response.headers["Test"].first, "Test")
-//        }
-//    }
+    func testRequestResponsePattern() throws {
+        try app.testable().test(.GET, "/rr/Paul") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Hello, Paul!")
+        }
+        
+        try app.testable().test(.GET, "/rr/Andi?greeting=Wuzzup") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Wuzzup, Andi!")
+        }
+    }
+    
+    func testServiceSideStreamingPattern() throws {
+        try app.testable([.actualRequests]).test(
+            version: .http1_1,
+            .GET,
+            "/ss?start=10",
+            expectedBodyType: .stream,
+            responseEnd: { response in
+                XCTAssertEqual(response.status, .ok)
+                let responseStream = try XCTUnwrap(response.bodyStorage.stream)
+                XCTAssert(responseStream.isClosed)
+                // We want to get rid of leading and trailing newlines since that would mess up the line splitting
+                let responseText = try XCTUnwrap(response.bodyStorage.readNewDataAsString()).trimmingLeadingAndTrailingWhitespace()
+                XCTAssertEqual(responseText.split(separator: "\n"), [
+                    "10...",
+                    "9...",
+                    "8...",
+                    "7...",
+                    "6...",
+                    "5...",
+                    "4...",
+                    "3...",
+                    "2...",
+                    "1...",
+                    "🚀🚀🚀 Launch !!! 🚀🚀🚀"
+                ])
+            }
+        )
+    }
+    
+    func testClientSideStreamingPattern() throws {
+        let body = [
+            [
+                "query": [
+                    "country": "Germany"
+                ]
+            ],
+            [
+                "query": [
+                    "country": "Taiwan"
+                ]
+            ],
+            [String: [String: String]]()
+        ]
+        
+        try app.testable().test(.GET, "/cs", body: .init(data: JSONEncoder().encode(body))) { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(
+                try! response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()),
+                "Hello, Germany, Taiwan and the World!"
+            )
+        }
+    }
+    
+    func testBidirectionalStreamingPattern() throws {
+        let body = [
+            [
+                "query": [
+                    "country": "Germany"
+                ]
+            ],
+            [
+                "query": [
+                    "country": "Taiwan"
+                ]
+            ],
+            [String: [String: String]]()
+        ]
+        
+        try app.testable().test(.GET, "/bs", body: JSONEncoder().encodeAsByteBuffer(body, allocator: .init())) { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: [String].self, using: JSONDecoder()), [
+                "Hello, Germany!",
+                "Hello, Taiwan!",
+                "Hello, World!"
+            ])
+        }
+    }
+    
+    func testBlob() throws {
+        try app.testable().test(.GET, "/blob/Paul") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Hello, Paul!")
+            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+        }
+        
+        try app.testable().test(.GET, "/blob/Andi?greeting=Wuzzup") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(response.bodyStorage.readNewDataAsString(), "Wuzzup, Andi!")
+            XCTAssertEqual(response.headers["Content-Type"].first, HTTPMediaType.text(.plain, charset: .utf8).encodeToHTTPHeaderFieldValue())
+            XCTAssertEqual(response.headers["Test"].first, "Test")
+        }
+    }
 }
