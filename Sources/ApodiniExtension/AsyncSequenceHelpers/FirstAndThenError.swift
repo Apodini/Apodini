@@ -9,11 +9,13 @@
 import Foundation
 
 extension AsyncSequence {
+    /// Emits the first element of the upstream sequence. Throws the given error if there is more than one element.
     public func firstAndThenError(_ error: Error) -> AsyncFirstAndThenErrorSequence<Self> {
-        return AsyncFirstAndThenErrorSequence(upstream: self, error: error)
+        AsyncFirstAndThenErrorSequence(upstream: self, error: error)
     }
 }
 
+/// Emits the first element of the upstream sequence. Throws the given error if there is more than one element.
 public struct AsyncFirstAndThenErrorSequence<Upstream: AsyncSequence>: AsyncSequence {
     public typealias Element = Upstream.Element
     public typealias AsyncIterator = AsyncIteratorImpl
@@ -26,6 +28,7 @@ public struct AsyncFirstAndThenErrorSequence<Upstream: AsyncSequence>: AsyncSequ
     }
 }
 
+/// Emits the first element of the upstream sequence. Throws the given error if there is more than one element.
 public extension AsyncFirstAndThenErrorSequence {
     struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var upstreamIt: Upstream.AsyncIterator?
@@ -35,7 +38,7 @@ public extension AsyncFirstAndThenErrorSequence {
         
         public mutating func next() async throws -> Element? {
             if hadFirst {
-                if let _ = try await upstreamIt?.next() {
+                if try await upstreamIt?.next() != nil {
                     // We've found a second element, throw error
                     upstreamIt = nil
                     throw error
@@ -54,4 +57,3 @@ public extension AsyncFirstAndThenErrorSequence {
         }
     }
 }
-

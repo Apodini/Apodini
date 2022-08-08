@@ -56,13 +56,13 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
         return dataObject
     }
     
-    private func awaitStreamEvent() async -> Void {
+    private func awaitStreamEvent() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             if stream.isClosed {
                 continuation.resume()
                 return
             }
-            stream.setObserver { (_, event) in
+            stream.setObserver { _, _ in
                 self.stream.removeObserver()
                 continuation.resume()
             }

@@ -14,7 +14,7 @@ import NIO
 // MARK: ResultTransformer
 
 /// A ``ResultTransformer`` provides a strategies for handling both
-/// cases of an `Result`.
+/// cases of a `Result`.
 public protocol ResultTransformer {
     /// The type carried by `Result`'s `success(_:)` case
     associatedtype Input

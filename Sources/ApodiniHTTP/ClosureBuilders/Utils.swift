@@ -33,7 +33,7 @@ extension HTTPInterfaceExporter {
         _ defaultValues: DefaultValueStore,
         _ endpoint: Endpoint<H>
     ) throws -> AnyAsyncSequence<DefaultValueStore.DefaultInsertingRequest> {
-        return try lengthPrefixDecodingSequence(request, defaultValues, endpoint)
+        try lengthPrefixDecodingSequence(request, defaultValues, endpoint)
             .firstAndThenError(StreamingError.moreThanOneRequest)
             .typeErased
     }
@@ -91,7 +91,7 @@ extension AsyncSequence {
         _ request: HTTPRequest,
         _ encoder: AnyEncoder
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<E> {
-        return self.map { (response: Apodini.Response<E>) -> HTTPResponse in
+        self.map { (response: Apodini.Response<E>) -> HTTPResponse in
             let information: InformationSet = response.information
             var httpHeaders = HTTPHeaders(information)
             
@@ -125,7 +125,7 @@ extension AsyncSequence {
         _ encoder: AnyEncoder,
         _ endpoint: Endpoint<H>
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<H.Response.Content> {
-        return self.collect()
+        self.collect()
             .map { (responses: [Apodini.Response<H.Response.Content>]) -> HTTPResponse in
                 let status: Status? = responses.last?.status
                 let information: InformationSet = responses.last?.information ?? []

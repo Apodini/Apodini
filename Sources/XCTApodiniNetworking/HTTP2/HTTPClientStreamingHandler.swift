@@ -124,13 +124,7 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
     }
     
     public func errorCaught(context: ChannelHandlerContext, error: Error) {
-//        self.responseReceivedPromise.fail(error)
         context.fireErrorCaught(error)
         context.close(promise: nil)
     }
-    
-//    func channelInactive(context: ChannelHandlerContext) {
-//        self.responseReceivedPromise.succeed(responsePartAccumulator)
-//        context.fireChannelInactive()
-//    }
 }
