@@ -44,7 +44,6 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
             context?.eventLoop.execute { [unowned self] in
                 self.context?.writeAndFlush(wrapped, promise: nil)
             }
-            
         } catch {
             print(error)
         }

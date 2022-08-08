@@ -214,7 +214,7 @@ extension AsyncSequence {
 enum BodyStorageTypeError: Error, CustomStringConvertible {
     case notStream
     
-    public var description: String {
+    var description: String {
         switch self {
         case .notStream:
             return "A .stream BodyStorage must be supplied!"
@@ -227,7 +227,7 @@ enum StreamingError: Error, CustomStringConvertible {
     case moreThanOneRequest
     case moreThanOneResponse
     
-    public var description: String {
+    var description: String {
         switch self {
         case .noResponse:
             return "Nil response found!"

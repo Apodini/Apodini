@@ -14,8 +14,11 @@ import NIOSSL
 import Foundation
 import NIOExtras
 
+/// A client which can be used to test the HTTP/2 streaming patterns exported by the ``HTTPInterfaceExporter``.
+/// ``StreamingDelegate``s can be attached to the client to send and receive on an individual HTTP/2 stream.
 public class HTTP2TestClient {
     // MARK: Singleton pattern
+    /// The default HTTP2TestClient used to connect to the server
     public static let client: HTTP2TestClient = {
         do {
             return try .init()
@@ -39,7 +42,10 @@ public class HTTP2TestClient {
         clientConfig.certificateVerification = .none
         clientConfig.cipherSuites = "RSA+AESGCM"
         clientConfig.keyLogCallback = { buffer in
-            let dir = FileManager.default.urls(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask).last!
+            let dir = FileManager.default.urls(
+                for: FileManager.SearchPathDirectory.cachesDirectory,
+                in: FileManager.SearchPathDomainMask.userDomainMask
+            ).last!
             let fileurl = dir.appendingPathComponent("keylog.txt")
 
             let data = Data(buffer: buffer, byteTransferStrategy: .copy)
@@ -72,16 +78,16 @@ public class HTTP2TestClient {
                 return channel.pipeline.addHandler(sslHandler).flatMap {
                     channel.configureHTTP2Pipeline(mode: .client) { channel in
                         channel.eventLoop.makeSucceededVoidFuture()
-                    }.map { (_: HTTP2StreamMultiplexer) in () }
+                    }
+                    .map { (_: HTTP2StreamMultiplexer) in () }
                 }
-        }
+            }
     }
     
     /// Register a ``HTTPClientStreamingHandler`` on the passed `channel` for the `streamingDelegate`
     private func registerStreamingHandler<D: StreamingDelegate>(channel: Channel, streamingDelegate: D) -> EventLoopFuture<Channel> {
         // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
         channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).flatMap { http2Multiplexer in
-
             // Step 2: Let's create the HTTP/2 stream.
             let promise = channel.eventLoop.makePromise(of: Channel.self)
             http2Multiplexer.createStreamChannel(promise: promise) { (streamChannel: Channel) in
@@ -95,19 +101,20 @@ public class HTTP2TestClient {
         }
     }
     
+    /// Attach a streaming delegate to the client by creating an HTTP/2 stream and starting the delegate's `handleStreamStart` method
     @discardableResult
     public func startStreamingDelegate<SD: StreamingDelegate>(_ delegate: SD) throws -> EventLoopFuture<Void> {
-        guard let bs = self.bootstrap else {
+        guard let bootstrap = self.bootstrap else {
             return eventLoop.makeSucceededVoidFuture()
         }
         
-        return bs.connect(host: "localhost", port: 4443)
+        return bootstrap.connect(host: "localhost", port: 4443)
             .flatMap { channel in
                 self.registerStreamingHandler(channel: channel, streamingDelegate: delegate)
                     .and(value: channel)
             }
             .flatMap { streamChannel, channel in
-                return streamChannel.closeFuture.map {
+                streamChannel.closeFuture.map {
                     channel
                 }
             }

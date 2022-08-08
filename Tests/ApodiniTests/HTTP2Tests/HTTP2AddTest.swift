@@ -13,7 +13,7 @@ import ApodiniHTTP
 @testable import Apodini
 
 class HTTP2AddTest: XCTApodiniTest {
-    override open func setUpWithError() throws {
+    override func setUpWithError() throws {
         try super.setUpWithError()
         
         configuration.configure(app)

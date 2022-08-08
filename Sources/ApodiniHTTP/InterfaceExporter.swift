@@ -309,7 +309,7 @@ class HTTPInterfaceExporter: InterfaceExporter {
         let decoder: AnyDecoder
         
         func strategy<Element>(for parameter: EndpointParameter<Element>)
-            -> AnyParameterDecodingStrategy<Element, Data> where Element : Decodable, Element : Encodable {
+            -> AnyParameterDecodingStrategy<Element, Data> where Element: Decodable, Element: Encodable {
             NamedChildPatternStrategy<
                 LightweightPattern<
                     DynamicNamePattern<
@@ -321,7 +321,7 @@ class HTTPInterfaceExporter: InterfaceExporter {
         let decoder: AnyDecoder
         
         func strategy<Element>(for parameter: EndpointParameter<Element>)
-            -> AnyParameterDecodingStrategy<Element, Data> where Element : Decodable, Element : Encodable {
+            -> AnyParameterDecodingStrategy<Element, Data> where Element: Decodable, Element: Encodable {
             NamedChildPatternStrategy<
                 ContentPattern<
                     DynamicNamePattern<

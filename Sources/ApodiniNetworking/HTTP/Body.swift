@@ -259,6 +259,7 @@ extension BodyStorage {
             }
         }
         
+        /// Remove the observer from the stream
         public func removeObserver() {
             lock.withLock {
                 self.observer = nil

@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// A delegate which receives responses from an HTTP server speaking the HTTP/2 length-prefixed streaming protocol
 public protocol StreamingDelegate: AnyObject {
     associatedtype SRequest: Encodable
     associatedtype SResponse: Decodable
@@ -23,10 +24,12 @@ public protocol StreamingDelegate: AnyObject {
 }
 
 public extension StreamingDelegate {
+    /// Send a request to the server
     func sendOutbound(request: SRequest) {
         streamingHandler?.sendOutbound(request: request)
     }
     
+    /// Close the HTTP/2 stream
     func close() {
         streamingHandler?.close()
     }
