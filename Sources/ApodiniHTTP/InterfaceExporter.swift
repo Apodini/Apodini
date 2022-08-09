@@ -210,7 +210,6 @@ class HTTPInterfaceExporter: InterfaceExporter {
     func dataFrameDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Data> {
         ParameterTypeSpecific(
             lightweight: LightweightFromBodyStrategy(decoder: configuration.decoder),
-            // TODO take path params from path
             path: LightweightFromBodyStrategy(decoder: configuration.decoder),
             content: ContentFromBodyStrategy(decoder: configuration.decoder))
         .applied(to: endpoint)

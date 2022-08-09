@@ -66,7 +66,7 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         // Send header frame
         var headers = [(String, String)]()
         let simpleHeaders = streamingDelegate.headerFields
-        headers.append((":method", simpleHeaders.method.rawValue)) // TODO use request method
+        headers.append((":method", simpleHeaders.method.rawValue))
         headers.append((":path", simpleHeaders.url))
         headers.append((":scheme", "https"))
         headers.append((":authority", simpleHeaders.host))

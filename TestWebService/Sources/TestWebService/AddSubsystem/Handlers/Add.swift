@@ -22,7 +22,6 @@ struct Add: Handler {
         // Verify that the request is correct given the last response we sent
         if sum != nextExpectedSum {
             let failAddStruct = AddStruct(sum: -1, number: -1)
-            // TODO throw error here instead
             return .final(failAddStruct)
         }
         
