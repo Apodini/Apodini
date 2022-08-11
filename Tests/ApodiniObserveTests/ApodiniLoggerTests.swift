@@ -979,7 +979,7 @@ class ApodiniLoggerTests: XCTestCase {
             logMessage = container.messages[1]
             XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
 
-            // Assert metadata
+            // Assert metadata count
             metadata = try XCTUnwrap(logMessage.metadata)
             XCTAssertEqual(6, metadata.count)
 
