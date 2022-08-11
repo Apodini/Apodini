@@ -48,8 +48,8 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         let payload = HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: false)
         let wrapped = self.wrapOutboundOut(.data(payload))
         
-        context?.eventLoop.execute { [weak self] in
-            self?.context?.writeAndFlush(wrapped, promise: nil)
+        context?.eventLoop.execute { [unowned self] in
+            self.context?.writeAndFlush(wrapped, promise: nil)
         }
     }
     
