@@ -17,13 +17,11 @@ extension HTTPInterfaceExporter {
         for endpoint: Endpoint<H>,
         using defaultValues: DefaultValueStore
     ) -> (HTTPRequest) throws -> EventLoopFuture<HTTPResponse> {
-        let strategy = multiInputDecodingStrategy(for: endpoint)
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer<H>(),
             forwarder: endpoint[ErrorForwarder.self]
         )
         let factory = endpoint[DelegateFactory<H, HTTPInterfaceExporter>.self]
-        let delegate = factory.instance()
         
         return { [unowned self] (request: HTTPRequest) in
             let decodingSequence: AnyAsyncSequence<DefaultValueStore.DefaultInsertingRequest>
@@ -32,6 +30,8 @@ extension HTTPInterfaceExporter {
             } else {
                 decodingSequence = try self.arrayDecodingSequence(request, defaultValues, endpoint)
             }
+            
+            let delegate = factory.instance()
             
             let decodeAndHandle: AnyAsyncSequence<Apodini.Response<H.Response.Content>> = decodingSequence
                 .validateParameterMutability()

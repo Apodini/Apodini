@@ -38,14 +38,18 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
             buffer.writeInteger(Int32(objectBuffer.readableBytes))
             buffer.writeBuffer(&objectBuffer)
             
-            let payload = HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: false)
-            let wrapped = self.wrapOutboundOut(.data(payload))
-            
-            context?.eventLoop.execute { [unowned self] in
-                self.context?.writeAndFlush(wrapped, promise: nil)
-            }
+            self.send(buffer)
         } catch {
             print(error)
+        }
+    }
+    
+    func send(_ buffer: ByteBuffer) {
+        let payload = HTTP2Frame.FramePayload.Data(data: IOData.byteBuffer(buffer), endStream: false)
+        let wrapped = self.wrapOutboundOut(.data(payload))
+        
+        context?.eventLoop.execute { [unowned self] in
+            self.context?.writeAndFlush(wrapped, promise: nil)
         }
     }
     

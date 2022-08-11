@@ -12,7 +12,7 @@ import XCTApodiniNetworking
 import ApodiniHTTP
 @testable import Apodini
 
-class HTTP2AddTest: XCTApodiniTest {
+class HTTP2BidirectionalTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
         
@@ -23,6 +23,20 @@ class HTTP2AddTest: XCTApodiniTest {
         visitor.finishParsing()
         
         try app.httpServer.start()
+    }
+    
+    func testBidirectionalAdding() throws {
+        let countExpectation = XCTestExpectation("Count the number of reponses")
+        countExpectation.assertForOverFulfill = true
+        countExpectation.expectedFulfillmentCount = 100
+        let errorExpectation = XCTestExpectation("An error occured!")
+        errorExpectation.isInverted = true
+        
+        let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
+        let delegate = AddStreamingDelegate(headerFields, errorExpectation, countExpectation)
+        try HTTP2TestClient.client.startStreamingDelegate(delegate)
+        
+        wait(for: [countExpectation, errorExpectation], timeout: 1.0)
     }
     
     @ConfigurationBuilder
@@ -40,21 +54,7 @@ class HTTP2AddTest: XCTApodiniTest {
 
     @ComponentBuilder
     var content: some Component {
-        Add()
-    }
-    
-    func testAddWebService() throws {
-        let countExpectation = XCTestExpectation("Count the number of reponses")
-        countExpectation.assertForOverFulfill = true
-        countExpectation.expectedFulfillmentCount = 100
-        let errorExpectation = XCTestExpectation("An error occured!")
-        errorExpectation.isInverted = true
-        
-        let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
-        let delegate = AddingStreamingDelegate(headerFields, errorExpectation, countExpectation)
-        try HTTP2TestClient.client.startStreamingDelegate(delegate)
-        
-        wait(for: [countExpectation, errorExpectation], timeout: 1.0)
+        AddHandler()
     }
     
     struct AddStruct: Codable {
@@ -62,10 +62,10 @@ class HTTP2AddTest: XCTApodiniTest {
         let number: Int
     }
 
-    final class AddingStreamingDelegate: StreamingDelegate {
+    final class AddStreamingDelegate: StreamingDelegate {
         typealias SRequest = DATAFrameRequest<AddStruct>
         typealias SResponse = AddStruct
-        var streamingHandler: HTTPClientStreamingHandler<AddingStreamingDelegate>?
+        var streamingHandler: HTTPClientStreamingHandler<AddStreamingDelegate>?
         var headerFields: BasicHTTPHeaderFields
         
         var countExpectation: XCTestExpectation
@@ -109,7 +109,7 @@ class HTTP2AddTest: XCTApodiniTest {
         }
     }
 
-    struct Add: Handler {
+    struct AddHandler: Handler {
         @Parameter(.http(.query)) var sum: Int
         @Parameter(.http(.query)) var number: Int
         @Environment(\.connection) var connection: Connection
