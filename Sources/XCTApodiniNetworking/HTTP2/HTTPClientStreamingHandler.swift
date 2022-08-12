@@ -34,14 +34,18 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         do {
             let encoder = JSONEncoder()
             var objectBuffer = try encoder.encodeAsByteBuffer(request, allocator: .init())
-            var buffer = ByteBuffer()
-            buffer.writeInteger(Int32(objectBuffer.readableBytes))
-            buffer.writeBuffer(&objectBuffer)
-            
-            self.send(buffer)
+            sendLengthPrefixed(&objectBuffer)
         } catch {
             print(error)
         }
+    }
+    
+    func sendLengthPrefixed(_ buffer: inout ByteBuffer) {
+        var prefixedBuffer = ByteBuffer()
+        prefixedBuffer.writeInteger(Int32(buffer.readableBytes))
+        prefixedBuffer.writeBuffer(&buffer)
+        
+        self.send(prefixedBuffer)
     }
     
     func send(_ buffer: ByteBuffer) {
