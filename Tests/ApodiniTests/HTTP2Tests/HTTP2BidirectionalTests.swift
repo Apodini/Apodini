@@ -13,6 +13,9 @@ import ApodiniHTTP
 @testable import Apodini
 
 class HTTP2BidirectionalTests: XCTApodiniTest {
+    let host = "localhost"
+    let port = 4443
+    
     override func setUpWithError() throws {
         try super.setUpWithError()
         
@@ -34,7 +37,8 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         
         let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
         let delegate = AddStreamingDelegate(headerFields, errorExpectation, countExpectation)
-        try HTTP2StreamingClient.client.startStreamingDelegate(delegate)
+        let client = try HTTP2StreamingClient(host, port)
+        try client.startStreamingDelegate(delegate)
         
         wait(for: [countExpectation, errorExpectation], timeout: 1.0)
     }
@@ -44,7 +48,7 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         HTTP()
         
         HTTPConfiguration(
-            bindAddress: .interface("localhost", port: 4443),
+            bindAddress: .interface(host, port: port),
             tlsConfiguration: .init(
                 certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
                 keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path

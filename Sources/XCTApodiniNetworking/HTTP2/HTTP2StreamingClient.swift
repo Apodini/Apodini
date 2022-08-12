@@ -17,25 +17,11 @@ import NIOExtras
 /// A client which can be used to test the HTTP/2 streaming patterns exported by the ``HTTPInterfaceExporter``.
 /// ``StreamingDelegate``s can be attached to the client to send and receive on an individual HTTP/2 stream.
 public class HTTP2StreamingClient {
-    // MARK: Singleton pattern
-    /// The default HTTP2TestClient used to connect to the server
-    public static let client: HTTP2StreamingClient = {
-        do {
-            return try .init()
-        } catch {
-            fatalError("dead")
-        }
-    }()
-    
-    // MARK: Connection details
-    static let host = "localhost"
-    static let port = 443
-    
     var numberOfErrors = 0
-    var bootstrap: ClientBootstrap?
+    var connection: Channel?
     var eventLoop: EventLoop
     
-    private init() throws {
+    public init(_ host: String, _ port: Int) throws {
         // MARK: Client Config, mainly about TLS
         var clientConfig = TLSConfiguration.makeClientConfiguration()
         clientConfig.applicationProtocols = ["h2"]
@@ -71,10 +57,10 @@ public class HTTP2StreamingClient {
 
         self.eventLoop = group.next()
 
-        self.bootstrap = ClientBootstrap(group: eventLoop)
+        self.connection = try ClientBootstrap(group: eventLoop)
             .channelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
             .channelInitializer { channel in
-                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: HTTP2StreamingClient.host)
+                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: host)
                 return channel.pipeline.addHandler(sslHandler).flatMap {
                     channel.configureHTTP2Pipeline(mode: .client) { channel in
                         channel.eventLoop.makeSucceededVoidFuture()
@@ -82,6 +68,8 @@ public class HTTP2StreamingClient {
                     .map { (_: HTTP2StreamMultiplexer) in () }
                 }
             }
+            .connect(host: host, port: port)
+            .wait()
     }
     
     /// Register a ``HTTPClientStreamingHandler`` on the passed `channel` for the `streamingDelegate`
@@ -104,25 +92,15 @@ public class HTTP2StreamingClient {
     /// Attach a streaming delegate to the client by creating an HTTP/2 stream and starting the delegate's `handleStreamStart` method
     @discardableResult
     public func startStreamingDelegate<SD: StreamingDelegate>(_ delegate: SD) throws -> EventLoopFuture<Void> {
-        guard let bootstrap = self.bootstrap else {
+        guard let connection = connection else {
             return eventLoop.makeSucceededVoidFuture()
         }
         
-        return bootstrap.connect(host: "localhost", port: 443)
-            .flatMap { channel in
-                self.registerStreamingHandler(channel: channel, streamingDelegate: delegate)
-                    .and(value: channel)
+        return self.registerStreamingHandler(channel: connection, streamingDelegate: delegate)
+            .flatMap { streamChannel in
+                streamChannel.closeFuture
             }
-            .flatMap { streamChannel, channel in
-                streamChannel.closeFuture.map {
-                    channel
-                }
-            }
-            .flatMap { channel in
-                let promise = self.eventLoop.makePromise(of: Void.self)
-                channel.close(promise: promise)
-                return promise.futureResult
-            }
+        // TODO close main channel when all streams are gone??
     }
     
     deinit {
