@@ -15,7 +15,7 @@ on:
 jobs:
   build_and_test:
     name: Build and Test
-    uses: Apodini/.github/.github/workflows/build-and-test.yml@main
+    uses: Apodini/.github/.github/workflows/build-and-test.yml@v1
     with:
       packagename: Apodini
       aptgetdependencies: libsqlite3-dev
@@ -23,12 +23,12 @@ jobs:
       installgrpcurl: true
   docker-compose-test:
     name: Docker Compose Test
-    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@main
+    uses: Apodini/.github/.github/workflows/docker-compose-test.yml@v1
     with:
       testscript: TestWebService/test.sh
   reuse_action:
     name: REUSE Compliance Check
-    uses: Apodini/.github/.github/workflows/reuse.yml@main
+    uses: Apodini/.github/.github/workflows/reuse.yml@v1
   swiftlint:
     name: SwiftLint
-    uses: Apodini/.github/.github/workflows/swiftlint.yml@main
+    uses: Apodini/.github/.github/workflows/swiftlint.yml@v1
