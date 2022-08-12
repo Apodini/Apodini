@@ -34,7 +34,7 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         
         let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
         let delegate = AddStreamingDelegate(headerFields, errorExpectation, countExpectation)
-        try HTTP2TestClient.client.startStreamingDelegate(delegate)
+        try HTTP2StreamingClient.client.startStreamingDelegate(delegate)
         
         wait(for: [countExpectation, errorExpectation], timeout: 1.0)
     }

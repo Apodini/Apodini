@@ -16,10 +16,10 @@ import NIOExtras
 
 /// A client which can be used to test the HTTP/2 streaming patterns exported by the ``HTTPInterfaceExporter``.
 /// ``StreamingDelegate``s can be attached to the client to send and receive on an individual HTTP/2 stream.
-public class HTTP2TestClient {
+public class HTTP2StreamingClient {
     // MARK: Singleton pattern
     /// The default HTTP2TestClient used to connect to the server
-    public static let client: HTTP2TestClient = {
+    public static let client: HTTP2StreamingClient = {
         do {
             return try .init()
         } catch {
@@ -74,7 +74,7 @@ public class HTTP2TestClient {
         self.bootstrap = ClientBootstrap(group: eventLoop)
             .channelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: 1)
             .channelInitializer { channel in
-                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: HTTP2TestClient.host)
+                let sslHandler = try! NIOSSLClientHandler(context: sslContext, serverHostname: HTTP2StreamingClient.host)
                 return channel.pipeline.addHandler(sslHandler).flatMap {
                     channel.configureHTTP2Pipeline(mode: .client) { channel in
                         channel.eventLoop.makeSucceededVoidFuture()
@@ -108,7 +108,7 @@ public class HTTP2TestClient {
             return eventLoop.makeSucceededVoidFuture()
         }
         
-        return bootstrap.connect(host: "localhost", port: 4443)
+        return bootstrap.connect(host: "localhost", port: 443)
             .flatMap { channel in
                 self.registerStreamingHandler(channel: channel, streamingDelegate: delegate)
                     .and(value: channel)
