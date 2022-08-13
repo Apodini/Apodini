@@ -32,9 +32,9 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ runner.os }}-spm-tws-${{ hashFiles('**/Package.resolved') }}
         restore-keys: |
-          ${{ runner.os }}-spm-
+          ${{ runner.os }}-spm-tws-
     - uses: maxim-lobanov/setup-xcode@v1.4.0
       with:
         xcode-version: latest-stable
@@ -44,8 +44,8 @@ jobs:
           swift --version
     - name: Run ${{ matrix.configuration }} build
       run: |
-          swift build -c debug
-          exec 3< <(swift run -c debug)
+          swift build -c ${{ matrix.configuration }}
+          exec 3< <(swift run -c ${{ matrix.configuration }})
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash test.sh
       shell: bash
@@ -69,9 +69,9 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: .build
-        key: ${{ runner.os }}-${{ matrix.linux }}-spm-${{ hashFiles('**/Package.resolved') }}
+        key: ${{ runner.os }}-${{ matrix.linux }}-spm-tws-${{ hashFiles('**/Package.resolved') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.linux }}-spm-
+          ${{ runner.os }}-${{ matrix.linux }}-spm-tws-
     - name: Check environment
       run: swift --version
     - name: Install apt-get Dependencies
@@ -86,7 +86,9 @@ jobs:
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}
-          .build/${{ matrix.configuration }}/TestWebService &
-          sleep 10
-          sh test.sh
-          kill -9 $(lsof -ti:80)
+          exec 3< <(.build/${{ matrix.configuration }}/TestWebService)
+          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
+          bash test.sh
+      shell: bash
+    - name: Kill TestWebService
+      run: kill -9 $(lsof -ti:80)
