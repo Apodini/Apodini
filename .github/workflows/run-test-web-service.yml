@@ -28,7 +28,13 @@ jobs:
       run:
         working-directory: TestWebService
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
     - uses: maxim-lobanov/setup-xcode@v1.4.0
       with:
         xcode-version: latest-stable
@@ -59,11 +65,13 @@ jobs:
       run:
         working-directory: TestWebService
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/cache@v2
+    - uses: actions/checkout@v3
+    - uses: actions/cache@v3
       with:
         path: .build
-        key: ${{ runner.os }}-${{matrix.linux}}-spm-${{ hashFiles('Package.resolved') }}
+        key: ${{ runner.os }}-${{ matrix.linux }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.linux }}-spm-
     - name: Check environment
       run: swift --version
     - name: Install apt-get Dependencies
