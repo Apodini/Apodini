@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # This source file is part of the Apodini open source project
 #
@@ -6,5 +7,6 @@
 # SPDX-License-Identifier: MIT
 #
 
+set -e
 curl --fail http://localhost:81/
 curl --fail http://localhost/http
