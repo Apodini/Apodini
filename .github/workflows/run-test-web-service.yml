@@ -51,6 +51,7 @@ jobs:
       shell: bash
     - name: Kill TestWebService
       run: kill -9 $(lsof -ti:80)
+      shell: bash
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
@@ -92,3 +93,4 @@ jobs:
       shell: bash
     - name: Kill TestWebService
       run: kill -9 $(lsof -ti:80)
+      shell: bash
