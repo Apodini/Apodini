@@ -8,5 +8,5 @@
 #
 
 set -e
-curl --fail http://localhost:80/
+curl --fail http://localhost/
 curl --fail http://localhost/http
