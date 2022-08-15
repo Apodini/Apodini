@@ -50,8 +50,6 @@ jobs:
     - name: Kill TestWebService
       run: kill -9 $(lsof -ti:80)
       shell: bash
-    - name: List build folder
-      run: ls .build
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
@@ -92,5 +90,3 @@ jobs:
     - name: Kill TestWebService
       run: kill -9 $(lsof -ti:80)
       shell: bash
-    - name: List build folder
-      run: ls .build

@@ -150,7 +150,7 @@ extension ApodiniError {
         self.options.option(for: key)
     }
     
-    public func message(with prefix: String?) -> String {
+    public func message(with prefix: String? = nil) -> String {
         let prefix: String? = prefix?.appending(reason == nil && description == nil ? "" : ": ")
         
         #if DEBUG

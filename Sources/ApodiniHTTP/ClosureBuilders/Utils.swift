@@ -166,48 +166,54 @@ extension AsyncSequence {
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<H.Response.Content> {
         let httpResponseStream = BodyStorage.Stream()
         
-        return self.firstFutureAndForEach(
-            on: request.eventLoop,
-            objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
-                if response.connectionEffect == .close {
-                    httpResponseStream.close()
-                    return
+        return self
+            .map { (response: Apodini.Response<H.Response.Content>) -> Apodini.Response<Data> in
+                try response.map { content in
+                    if let blobContent = content as? Blob {
+                        precondition(blobContent.byteBuffer.readerIndex == 0)
+                        return blobContent.byteBuffer.getAllData() ?? Data()
+                    } else {
+                        do {
+                            return try encoder.encode(content)
+                        } catch {
+                            // Error encoding the response data
+                            endpoint[ErrorForwarder.self].forward(error)
+                            logger.error("Error encoding part of response: \(error)")
+                        }
+                    }
                 }
-                defer {
+            }
+            .replaceErrorAndEnd { error in
+                .final(error.standardMessage.data(using: .utf8) ?? Data())
+            }
+            .firstFutureAndForEach(
+                on: request.eventLoop,
+                objectsHandler: { (response: Apodini.Response<Data>) -> Void in
+                    // TODO is this correct? What about .final responses?
                     if response.connectionEffect == .close {
                         httpResponseStream.close()
+                        return
                     }
-                }
-                do {
-                    let data: Data
-                    if let content = response.content {
-                        if let blobContent = content as? Blob {
-                            precondition(blobContent.byteBuffer.readerIndex == 0)
-                            data = blobContent.byteBuffer.getAllData() ?? Data()
-                        } else {
-                            data = try encoder.encode(content)
+                    defer {
+                        if response.connectionEffect == .close {
+                            httpResponseStream.close()
                         }
-                    } else {
-                        data = Data()
                     }
+                    
+                    let data = response.content ?? Data()
                     
                     httpResponseStream.write(Int32(data.count))
                     httpResponseStream.write(data)
-                } catch {
-                    // Error encoding the response data
-                    endpoint[ErrorForwarder.self].forward(error)
-                    logger.error("Error encoding part of response: \(error)")
                 }
-            }
-        )
-        .map { firstResponse -> HTTPResponse in
-            HTTPResponse(
-                version: request.version,
-                status: HTTPResponseStatus(firstResponse?.status ?? .ok),
-                headers: HTTPHeaders(firstResponse?.information ?? []),
-                bodyStorage: .stream(httpResponseStream)
             )
-        }
+            .map { firstResponse -> HTTPResponse in
+                HTTPResponse(
+                    version: request.version,
+                    status: HTTPResponseStatus(firstResponse?.status ?? .ok),
+                    headers: HTTPHeaders(firstResponse?.information ?? []),
+                    bodyStorage: .stream(httpResponseStream)
+                )
+            }
     }
 }
 
