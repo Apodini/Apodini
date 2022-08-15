@@ -20,6 +20,7 @@ public class HTTP2StreamingClient {
     var connection: Channel?
     var eventLoop: EventLoop
     
+    /// Initialize an ``HTTP2StreamingClient`` and connect it to the specified `host` and `port`
     public init(_ host: String, _ port: Int) throws {
         // MARK: Client Config, mainly about TLS
         var clientConfig = TLSConfiguration.makeClientConfiguration()
