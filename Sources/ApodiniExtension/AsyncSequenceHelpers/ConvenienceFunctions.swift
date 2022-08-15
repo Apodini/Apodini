@@ -40,7 +40,7 @@ public extension AsyncSequence {
     }
     
     /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
-    public func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+    func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         Task {
             var idx = 0

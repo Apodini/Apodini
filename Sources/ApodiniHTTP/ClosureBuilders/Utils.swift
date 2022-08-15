@@ -168,7 +168,7 @@ extension AsyncSequence {
         
         return self
             .map { (response: Apodini.Response<H.Response.Content>) -> Apodini.Response<Data> in
-                try response.map { content in
+                response.map { content in
                     if let blobContent = content as? Blob {
                         precondition(blobContent.byteBuffer.readerIndex == 0)
                         return blobContent.byteBuffer.getAllData() ?? Data()
@@ -179,6 +179,7 @@ extension AsyncSequence {
                             // Error encoding the response data
                             endpoint[ErrorForwarder.self].forward(error)
                             logger.error("Error encoding part of response: \(error)")
+                            return Data()
                         }
                     }
                 }
