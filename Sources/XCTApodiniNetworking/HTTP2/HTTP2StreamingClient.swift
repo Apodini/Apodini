@@ -17,7 +17,6 @@ import NIOExtras
 /// A client which can be used to test the HTTP/2 streaming patterns exported by the ``HTTPInterfaceExporter``.
 /// ``StreamingDelegate``s can be attached to the client to send and receive on an individual HTTP/2 stream.
 public class HTTP2StreamingClient {
-    var numberOfErrors = 0
     var connection: Channel?
     var eventLoop: EventLoop
     
@@ -52,7 +51,7 @@ public class HTTP2StreamingClient {
         }
         let sslContext = try NIOSSLContext(configuration: clientConfig)
         
-        // MARK: Set up the connection bootstrap
+        // MARK: Set up the connection
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
         self.eventLoop = group.next()
@@ -100,12 +99,11 @@ public class HTTP2StreamingClient {
             .flatMap { streamChannel in
                 streamChannel.closeFuture
             }
-        // TODO close main channel when all streams are gone??
     }
     
     deinit {
         do {
-            try eventLoop.close()
+            try connection?.close().wait()
         } catch {
             print(error)
         }
