@@ -11,7 +11,7 @@ import Foundation
 extension AsyncSequence {
     /// Passes the elements of this `AsyncSequence` through until an upstream error is caught.
     /// The error can be transformed into an element using `replacer` which ends the sequence.
-    public func replaceErrorAndEnd(_ replacer: @escaping (Error) -> Element?) -> AsyncErrorReplacingSequence<Self> {
+    public func replaceErrorAndEnd(_ replacer: @escaping (Error) -> (Element, Element)?) -> AsyncErrorReplacingSequence<Self> {
         AsyncErrorReplacingSequence(upstream: self, replacer: replacer)
     }
 }
@@ -23,7 +23,7 @@ public struct AsyncErrorReplacingSequence<Upstream: AsyncSequence>: AsyncSequenc
     public typealias AsyncIterator = AsyncIteratorImpl
     
     let upstream: Upstream
-    let replacer: (Error) -> Element?
+    let replacer: (Error) -> (Element, Element)?
     
     public func makeAsyncIterator() -> AsyncIteratorImpl {
         AsyncIteratorImpl(upstreamIt: upstream.makeAsyncIterator(), replacer: replacer)
@@ -34,9 +34,15 @@ public struct AsyncErrorReplacingSequence<Upstream: AsyncSequence>: AsyncSequenc
 public extension AsyncErrorReplacingSequence {
     struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var upstreamIt: Upstream.AsyncIterator?
-        let replacer: (Error) -> Element?
+        let replacer: (Error) -> (Element, Element)?
+        var secondElement: Element?
         
         public mutating func next() async -> Element? {
+            if secondElement != nil {
+                let sec = secondElement
+                secondElement = nil
+                return sec
+            }
             if upstreamIt == nil {
                 return nil
             }
@@ -50,9 +56,10 @@ public extension AsyncErrorReplacingSequence {
                 }
             } catch {
                 // We've caught an error
-                let transformed = replacer(error)
+                let (firstElement, seco) = replacer(error) ?? (nil, nil)
+                secondElement = seco
                 upstreamIt = nil
-                return transformed
+                return firstElement
             }
         }
     }
