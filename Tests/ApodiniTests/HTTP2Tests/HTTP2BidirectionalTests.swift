@@ -14,19 +14,21 @@ import ApodiniHTTP
 
 class HTTP2BidirectionalTests: XCTApodiniTest {
     let host = "localhost"
-    let port = 4443
+    let port = 443
     
     override func setUpWithError() throws {
-        try super.setUpWithError()
-        
-        configuration.configure(app)
-        
-        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        content.accept(visitor)
-        visitor.finishParsing()
-        
-        try app.httpServer.start()
+//        try super.setUpWithError()
+//
+//        configuration.configure(app)
+//
+//        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+//        content.accept(visitor)
+//        visitor.finishParsing()
+//
+//        try app.httpServer.start()
     }
+    
+    override open func tearDownWithError() throws { }
     
     func testBidirectionalAdding() throws {
         let countExpectation = XCTestExpectation("Count the number of reponses")
@@ -35,7 +37,7 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         let errorExpectation = XCTestExpectation("An error occured!")
         errorExpectation.isInverted = true
         
-        let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
+        let headerFields = BasicHTTPHeaderFields(.POST, "/http/add", "localhost")
         let delegate = AddStreamingDelegate(headerFields, errorExpectation, countExpectation)
         let client = try HTTP2StreamingClient(host, port)
         try client.startStreamingDelegate(delegate)

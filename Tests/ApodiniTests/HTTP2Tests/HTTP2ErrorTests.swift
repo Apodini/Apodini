@@ -65,13 +65,18 @@ class HTTP2ErrorTests: XCTApodiniTest {
         var streamingHandler: HTTPClientStreamingHandler<IncompleteStreamingDelegate>?
         var headerFields: BasicHTTPHeaderFields
         
+        var responseCount = 0
+        
         func handleInbound(response: String, serverSideClosed: Bool) {
-            
+            responseCount += 1
+            if responseCount == 2 {
+                self.close()
+            }
         }
         
         func handleStreamStart() {
-            var msg1 = ByteBuffer(string: "{\"query\": {}}")
-            var msg2 = ByteBuffer(string: "{\"query\": {\"sum\": 3, \"number\": 4}}")
+            var msg1 = ByteBuffer(string: "{\"query\": {\"sum\": 0, \"number\": 4}}")
+            var msg2 = ByteBuffer(string: "{\"query\": {}}")
             
             streamingHandler?.sendLengthPrefixed(&msg1)
             streamingHandler?.sendLengthPrefixed(&msg2)
