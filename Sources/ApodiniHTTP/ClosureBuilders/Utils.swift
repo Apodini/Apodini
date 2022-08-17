@@ -192,13 +192,9 @@ extension AsyncSequence {
                 objectsHandler: { (response: Apodini.Response<Data>) -> Void in
                     // TODO is this correct? What about .final responses?
                     if response.connectionEffect == .close {
+                        print("Closing response stream")
                         httpResponseStream.close()
                         return
-                    }
-                    defer {
-                        if response.connectionEffect == .close {
-                            httpResponseStream.close()
-                        }
                     }
                     
                     let data = response.content ?? Data()

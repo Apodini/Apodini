@@ -40,6 +40,7 @@ public class HTTPResponse {
         headers: HTTPHeaders,
         bodyStorage: BodyStorage = .buffer()
     ) {
+        print("HTTPResponse inited")
         self.version = version
         self.status = status
         self.headers = headers
@@ -49,6 +50,10 @@ public class HTTPResponse {
     /// Sets the `Content-Length` header to match the number of readable bytes currently in the response's body.
     public func setContentLengthForCurrentBody() {
         headers[.contentLength] = bodyStorage.readableBytes
+    }
+    
+    deinit {
+        print("HTTPresponse deinited!")
     }
 }
 
