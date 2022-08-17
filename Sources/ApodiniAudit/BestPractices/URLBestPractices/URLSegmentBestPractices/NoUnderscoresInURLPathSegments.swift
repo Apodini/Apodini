@@ -9,6 +9,7 @@
 import Foundation
 
 /// BP8
+/// Checks whether a URL path segment contains any underscores, which is discouraged.
 class NoUnderscoresInURLPathSegments: URLSegmentBestPractice {
     static var scope: BestPracticeScopes = .all
     static var category: BestPracticeCategories = .urlPath

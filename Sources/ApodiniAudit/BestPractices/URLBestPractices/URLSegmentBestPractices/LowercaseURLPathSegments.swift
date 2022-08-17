@@ -9,9 +9,10 @@
 import Foundation
 
 /// BP9
-class LowercaseURLPathSegments: URLSegmentBestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .urlPath
+/// Checks whether URL path segments contain only lowercase letters.
+public class LowercaseURLPathSegments: URLSegmentBestPractice {
+    public static var scope: BestPracticeScopes = .rest
+    public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
     var checkedSegments = [String]()
     
@@ -22,7 +23,7 @@ class LowercaseURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required init() { }
+    required public init() { }
 }
 
 enum LowercasePathSegmentsFinding: Finding {

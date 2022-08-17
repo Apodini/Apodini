@@ -9,10 +9,11 @@
 import Foundation
 
 /// BP3
-
-class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
-    static var scope: BestPracticeScopes = .all
-    static var category: BestPracticeCategories = .urlPath
+/// Checks whether a URL path segment's length is within the specified.
+/// The default minimum and maximum lengths are 3 and 30, respectively.
+public class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
+    public static var scope: BestPracticeScopes = .all
+    public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments have appropriate lengths"
     var checkedSegments = [String]()
     
@@ -34,7 +35,7 @@ class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required init() { }
+    required public init() { }
     
     init(configuration: AppropriateLengthForURLPathSegmentsConfiguration) {
         self.configuration = configuration

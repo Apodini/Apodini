@@ -9,9 +9,10 @@
 import Foundation
 
 /// BP10
-class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .urlPath
+/// Checks whether a URL path segment has a file extension, which is discouraged.
+public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
+    public static var scope: BestPracticeScopes = .rest
+    public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments do not contain any uppercase letters"
     var allowedExtensions: [String] = []
     /// The minimum distance from the end of the segment that a dot has to have
@@ -35,7 +36,7 @@ class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
         return URLFileExtensionFinding.fileExtensionFound(segment: segment)
     }
     
-    required init() { }
+    required public init() { }
 }
 
 enum URLFileExtensionFinding: Finding {

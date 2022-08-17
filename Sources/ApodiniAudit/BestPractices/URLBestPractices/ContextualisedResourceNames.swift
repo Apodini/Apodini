@@ -9,11 +9,12 @@
 import Foundation
 import Apodini
 
-class ContextualisedResourceNames: BestPractice {
-    static var scope: BestPracticeScopes = .all
-    static var category: BestPracticeCategories = .urlPath
+// TODO keep this??
+public class ContextualisedResourceNames: BestPractice {
+    public static var scope: BestPracticeScopes = .all
+    public static var category: BestPracticeCategories = .urlPath
     
-    func check(into audit: Audit, _ app: Application) {
+    public func check(into audit: Audit, _ app: Application) {
         let pathSegments = audit.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
             if case .string( _) = path {
@@ -39,7 +40,7 @@ class ContextualisedResourceNames: BestPractice {
         }
     }
     
-    required init() { }
+    required public init() { }
 }
 
 enum ContextualisedResourceNamesFinding: Finding {

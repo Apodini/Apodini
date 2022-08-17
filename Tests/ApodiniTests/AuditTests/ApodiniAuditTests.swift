@@ -121,10 +121,12 @@ final class ApodiniAuditTests: ApodiniTests {
         }
     }
     
-    struct CustomBP: BestPractice {
+    class CustomBP: BestPractice {
         func check(into audit: Audit, _ app: Application) {
             print("custom best practice!")
         }
+        
+        required init() { }
         
         static var scope: BestPracticeScopes = .all
         static var category: BestPracticeCategories = .httpMethod

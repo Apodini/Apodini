@@ -10,13 +10,13 @@ import Foundation
 import Apodini
 
 /// BP14 & BP15
-final class PluralSegmentForStoresAndCollections: BestPractice {
-    static var scope: BestPracticeScopes = .rest
-    static var category: BestPracticeCategories = .linguisticURL
+public final class PluralSegmentForStoresAndCollections: BestPractice {
+    public static var scope: BestPracticeScopes = .rest
+    public static var category: BestPracticeCategories = .linguisticURL
     
     var checkedParameters = [UUID]()
     
-    func check(into audit: Audit, _ app: Application) {
+    public func check(into audit: Audit, _ app: Application) {
         let path = audit.endpoint[EndpointPathComponentsHTTP.self].value
         
         let idParameterIndices: [Int] = path.enumerated().compactMap { index, pathSegment in
@@ -59,6 +59,8 @@ final class PluralSegmentForStoresAndCollections: BestPractice {
         
         // TODO add inverse: if last segment is singular, then delete would be kinda weird?
     }
+    
+    public required init() { }
 }
 
 enum BadCollectionSegmentName: Finding {

@@ -69,6 +69,13 @@ final class AuditInterfaceExporter: InterfaceExporter {
 
 extension AuditInterfaceExporter {
     static let defaultBestPracticeConfigurations: [BestPracticeConfiguration] = [
+        // Suggestions
+        EmptyBestPracticeConfiguration<EncourageETags>(),
+        
+        // Type Best Practices
+        EmptyBestPracticeConfiguration<EndpointHasComplexReturnType>(),
+        EmptyBestPracticeConfiguration<DELETEHasComplexReturnType>(),
+        
         // Syntactic URL Segment Best Practices
         AppropriateLengthForURLPathSegmentsConfiguration(),
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
@@ -77,17 +84,10 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
         
-        // Linguistic URL Segment Best Practices
+        // Linguistic URL Best Practices
 //        EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
         EmptyBestPracticeConfiguration<PluralSegmentForStoresAndCollections>(),
 //        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
-        
-        // Type Best Practices
-        EmptyBestPracticeConfiguration<GETHasComplexReturnType>(),
-        EmptyBestPracticeConfiguration<DELETEHasComplexReturnType>(),
-        
-        // Suggestions
-        EmptyBestPracticeConfiguration<EncourageETags>(),
         
         // Parameter BPs
         ReasonableParameterCountConfiguration()

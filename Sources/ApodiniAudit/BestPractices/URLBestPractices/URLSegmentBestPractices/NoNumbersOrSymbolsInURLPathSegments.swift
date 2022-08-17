@@ -9,9 +9,10 @@
 import Foundation
 
 /// BP2
-class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
-    static var scope: BestPracticeScopes = .all
-    static var category: BestPracticeCategories = .urlPath
+/// Checks whether a URL path segment contains any numbers or symbols, which is discouraged.
+public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
+    public static var scope: BestPracticeScopes = .all
+    public static var category: BestPracticeCategories = .urlPath
     
     var checkedSegments = [String]()
     
@@ -24,7 +25,7 @@ class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required init() { }
+    required public init() { }
 }
 
 enum NumberOrSymbolsInURLFinding: Finding {
