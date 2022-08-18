@@ -80,6 +80,7 @@ jobs:
         which python3
         which pip3
         ls
+      shell: sh {0}
       working-directory: ~
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
