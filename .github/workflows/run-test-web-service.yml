@@ -81,6 +81,7 @@ jobs:
         which pip3
         python --version
         python3 --version
+      working-directory: ~
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
       with:
