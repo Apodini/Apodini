@@ -28,15 +28,6 @@ jobs:
       run:
         working-directory: TestWebService
     steps:
-    - name: Pyth
-      run: |
-        which python
-        which pip
-        which python3
-        which pip3
-        python --version
-        python3 --version
-      working-directory: ~
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
       with:
@@ -73,18 +64,6 @@ jobs:
       run:
         working-directory: TestWebService
     steps:
-    - name: Pyth
-      run: |
-        which python
-        which pip
-        which python3
-        which pip3
-        ls
-        command -v which
-        command -v python3
-        command -v python
-      shell: sh {0}
-      working-directory: ~
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
       with:
@@ -94,13 +73,19 @@ jobs:
       run: swift --version
     - name: Install apt-get Dependencies
       if: matrix.linux != 'centos8' && matrix.linux != 'amazonlinux2'
-      run: apt-get update && apt-get install -y --no-install-recommends curl lsof
+      run: apt-get update && apt-get install -y --no-install-recommends curl lsof python3
     - name: Install yum Dependencies
       if: matrix.linux == 'amazonlinux2'
-      run: yum update -y && yum install -y curl lsof
+      run: yum update -y && yum install -y curl lsof python3
     - name: Install yum Dependencies
       if: matrix.linux == 'centos8'
-      run: yum update -y --nobest && yum install -y curl lsof
+      run: yum update -y --nobest && yum install -y curl lsof python3
+    - name: Pyth
+      run: |
+        command -v python3
+        command -v pip3
+      shell: sh {0}
+      working-directory: ~
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}
