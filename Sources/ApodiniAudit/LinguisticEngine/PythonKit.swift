@@ -10,15 +10,15 @@ import Foundation
 import PythonKit
 
 struct NLTKInterface {
-    private static var _shared: NLTKInterface? = nil
+    private static var _shared: NLTKInterface?
     static var shared: NLTKInterface {
         print("init!")
-        if let sh = _shared {
-            return sh
+        if let sha = _shared {
+            return sha
         }
-        let sh = NLTKInterface()
-        _shared = sh
-        return sh
+        let sha = NLTKInterface()
+        _shared = sha
+        return sha
     }
     
     private let wordnet: PythonObject

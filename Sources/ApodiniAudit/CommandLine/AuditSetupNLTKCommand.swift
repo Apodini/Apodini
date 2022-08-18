@@ -31,7 +31,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         }
         
         // Install nltk
-        let pipArgs = ["install", "--user", "-U", "nltk"]
+        let pipArgs = ["install", "-U", "nltk"] // FUTURE --user
         var (exitCode, output) = try runCommand("pip3", pipArgs)
         
         if exitCode != 0 {
