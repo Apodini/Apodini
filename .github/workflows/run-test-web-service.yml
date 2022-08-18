@@ -28,6 +28,12 @@ jobs:
       run:
         working-directory: TestWebService
     steps:
+    - name: Pyth
+      run: |
+        which python
+        which pip
+        python --version
+        python3 --version
     - uses: actions/checkout@v2
     - uses: actions/cache@v2
       with:

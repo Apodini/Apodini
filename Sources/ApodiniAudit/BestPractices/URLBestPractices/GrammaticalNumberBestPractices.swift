@@ -39,8 +39,8 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
         }
         
         for index in idParameterIndices {
-            // Check what the path segment in front of the ID is
-            // If it's not a plural noun, issue a warning
+            // Check the grammatical number of the path segment in front of the ID.
+            // If it's not a plural noun, issue a warning.
             
             let previousSegment = path[index - 1]
             switch previousSegment {
