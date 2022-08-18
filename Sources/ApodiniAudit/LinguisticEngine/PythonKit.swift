@@ -10,15 +10,26 @@ import Foundation
 import PythonKit
 
 struct NLTKInterface {
-    static let shared = NLTKInterface()
+    private static var _shared: NLTKInterface? = nil
+    static var shared: NLTKInterface {
+        print("init!")
+        if let sh = _shared {
+            return sh
+        }
+        let sh = NLTKInterface()
+        _shared = sh
+        return sh
+    }
     
     private let wordnet: PythonObject
     private let nltk: PythonObject
     
     private init() {
         let corpus = Python.import("nltk.corpus")
+        print("Successfully loaded nltk.corpus")
         self.wordnet = corpus.wordnet
         self.nltk = Python.import("nltk")
+        print("Successfully loaded nltk!")
     }
     
     func synsetIntersectionEmpty(_ str1: String, _ str2: String) -> Bool {
