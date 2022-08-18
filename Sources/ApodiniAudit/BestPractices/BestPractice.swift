@@ -54,7 +54,7 @@ public struct BestPracticeCategories: OptionSet {
     public static let caching          = BestPracticeCategories(rawValue: 1 << 4)
     public static let returnType       = BestPracticeCategories(rawValue: 1 << 5)
     
-    public static let linguistic   = BestPracticeCategories(rawValue: 1 << 31)
+    public static let linguistic = BestPracticeCategories(rawValue: 1 << 31)
     
     public static let linguisticURL: BestPracticeCategories = [.linguistic, .urlPath]
     

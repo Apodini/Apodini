@@ -25,7 +25,7 @@ extension String {
             fatalError("Could not build regexes")
         }
         
-        let cleanedLastPart = cleanUpRegex.stringByReplacingMatches(in: lastPart, options: [], range: NSMakeRange(0, lastPart.count), withTemplate: "")
+        let cleanedLastPart = cleanUpRegex.stringByReplacingMatches(in: lastPart, options: [], range: NSRange(location: 0, length: lastPart.count), withTemplate: "")
         return cleanedLastPart
     }
 }

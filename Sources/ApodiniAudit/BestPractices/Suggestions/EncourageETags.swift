@@ -33,7 +33,7 @@ public class EncourageETags: BestPractice {
         audit.recordFinding(ETagsFinding.cacheableBlob)
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum ETagsFinding: Finding {

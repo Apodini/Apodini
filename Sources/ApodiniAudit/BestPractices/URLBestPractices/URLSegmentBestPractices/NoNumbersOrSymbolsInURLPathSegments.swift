@@ -25,7 +25,7 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum NumberOrSymbolsInURLFinding: Finding {

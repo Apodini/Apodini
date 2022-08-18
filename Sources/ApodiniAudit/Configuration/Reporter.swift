@@ -74,7 +74,7 @@ class Reporter {
 //        }
     }
     
-    static private func printEndpoint(_ endpoint: AnyEndpoint) {
+    private static func printEndpoint(_ endpoint: AnyEndpoint) {
         // Get method
         let method = HTTPMethod(endpoint[Operation.self])
         let endpointString = endpoint.absolutePath.pathString

@@ -25,7 +25,7 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum URLCRUDVerbsFinding: Finding {

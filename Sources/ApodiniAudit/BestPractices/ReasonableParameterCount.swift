@@ -11,7 +11,7 @@ import Apodini
 
 /// BP19
 public class ReasonableParameterCount: BestPractice {
-    required public init() { }
+    public required init() { }
     
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .parameters

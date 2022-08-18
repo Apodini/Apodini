@@ -17,7 +17,7 @@ public class ContextualisedResourceNames: BestPractice {
     public func check(into audit: Audit, _ app: Application) {
         let pathSegments = audit.endpoint.absolutePath
         let firstStringSegment = pathSegments.first { path in
-            if case .string( _) = path {
+            if case .string = path {
                 return true
             }
             return false
@@ -40,7 +40,7 @@ public class ContextualisedResourceNames: BestPractice {
         }
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum ContextualisedResourceNamesFinding: Finding {

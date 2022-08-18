@@ -23,7 +23,7 @@ public class LowercaseURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum LowercasePathSegmentsFinding: Finding {

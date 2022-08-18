@@ -69,6 +69,6 @@ public protocol BestPracticeConfiguration {
 
 public struct EmptyBestPracticeConfiguration<BP: BestPractice>: BestPracticeConfiguration {
     public func configure() -> BestPractice {
-        BP.init()
+        BP()
     }
 }

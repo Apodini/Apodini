@@ -23,7 +23,7 @@ extension URLSegmentBestPractice {
             
             let segmentString: String
             var isParameter = false
-            switch(segment) {
+            switch segment {
             case .string(let path):
                 segmentString = path
             case .parameter(let parameter):

@@ -47,7 +47,7 @@ public class EndpointHasComplexReturnType: BestPractice {
         }
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 

@@ -48,5 +48,4 @@ func getEndpointFromWebService(_ webService: BestPracticeWebService, _ app: Appl
 }
 
 func generateAudit(for bestPractice: BestPractice, _ endpoint: AnyEndpoint, _ app: Application) {
-    return 
-}
+    }

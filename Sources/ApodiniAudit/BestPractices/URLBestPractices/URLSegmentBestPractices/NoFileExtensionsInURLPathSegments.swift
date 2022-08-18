@@ -36,7 +36,7 @@ public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
         return URLFileExtensionFinding.fileExtensionFound(segment: segment)
     }
     
-    required public init() { }
+    public required init() { }
 }
 
 enum URLFileExtensionFinding: Finding {

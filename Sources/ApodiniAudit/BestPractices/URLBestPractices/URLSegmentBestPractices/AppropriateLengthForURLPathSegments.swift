@@ -35,7 +35,7 @@ public class AppropriateLengthForURLPathSegments: URLSegmentBestPractice {
         return nil
     }
     
-    required public init() { }
+    public required init() { }
     
     init(configuration: AppropriateLengthForURLPathSegmentsConfiguration) {
         self.configuration = configuration

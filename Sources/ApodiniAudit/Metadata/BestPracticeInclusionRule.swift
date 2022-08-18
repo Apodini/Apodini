@@ -14,7 +14,7 @@ public protocol BestPracticeInclusionRule {
 
 extension BestPracticeInclusionRule {
     func apply(_ newRule: BestPracticeInclusionRule) -> BestPracticeInclusionRule {
-        return CompositeBestPracticeInclusionRule(rules: [self, newRule])
+        CompositeBestPracticeInclusionRule(rules: [self, newRule])
     }
 }
 
@@ -55,7 +55,7 @@ struct CompositeBestPracticeInclusionRule: BestPracticeInclusionRule {
     }
     
     func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
-        rules.reduce(.noAction) { (action, rule) -> BestPracticeInclusionAction in
+        rules.reduce(.noAction) { action, rule -> BestPracticeInclusionAction in
             let newAction = rule.action(for: bestPractice)
             if newAction == .noAction {
                 return action

@@ -29,7 +29,7 @@ public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
 public struct BestPracticeInclusionRuleContextKey: ContextKey {
     public typealias Value = BestPracticeInclusionRule
     
-    static public var defaultValue: BestPracticeInclusionRule = PassThroughInclusionRule()
+    public static var defaultValue: BestPracticeInclusionRule = PassThroughInclusionRule()
     
     public static func reduce(value: inout BestPracticeInclusionRule, nextValue: BestPracticeInclusionRule) {
         value = value.apply(nextValue)
