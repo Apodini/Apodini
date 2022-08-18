@@ -46,7 +46,7 @@ public class ReasonableParameterCount: BestPractice {
     }
 }
 
-enum ParameterCountFinding: Finding {
+enum ParameterCountFinding: Finding, Equatable {
     case tooManyParameters(count: Int)
     
     var diagnosis: String {

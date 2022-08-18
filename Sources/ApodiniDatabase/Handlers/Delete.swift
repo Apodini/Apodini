@@ -27,5 +27,9 @@ public struct Delete<Model: DatabaseModel>: Handler {
             }
     }
     
+    public var metadata: AnyHandlerMetadata {
+        Operation(.delete)
+    }
+    
     public init() {}
 }

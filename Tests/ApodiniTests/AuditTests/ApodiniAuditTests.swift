@@ -192,21 +192,6 @@ final class ApodiniAuditTests: ApodiniTests {
         })
     }
     
-    func getAuditsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
-        command.webService = .init()
-        
-        try command.run(app: app)
-        
-        // Get the AuditInterfaceExporter
-        // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
-        let optionalExporter = app.interfaceExporters.first { exporter in
-            exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
-        }
-        let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
-        
-        return auditInterfaceExporter.report.audits
-    }
-    
     func testRegisterCommandOnce() throws {
         let webService = AuditableWebService()
         
@@ -219,6 +204,21 @@ final class ApodiniAuditTests: ApodiniTests {
         }
         
         XCTAssertEqual(auditCommands.count, 1)
+    }
+    
+    private func getAuditsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
+        command.webService = .init()
+        
+        try command.run(app: app)
+        
+        // Get the AuditInterfaceExporter
+        // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
+        let optionalExporter = app.interfaceExporters.first { exporter in
+            exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
+        }
+        let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
+        
+        return auditInterfaceExporter.report.audits
     }
 }
 

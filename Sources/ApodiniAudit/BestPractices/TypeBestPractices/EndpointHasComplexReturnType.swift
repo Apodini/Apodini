@@ -51,7 +51,7 @@ public class EndpointHasComplexReturnType: BestPractice {
 }
 
 
-enum ReturnTypeFinding: Finding {
+enum ReturnTypeFinding: Finding, Equatable {
     case hasPrimitiveReturnType(Apodini.Operation)
     
     var diagnosis: String {

@@ -49,4 +49,8 @@ public struct ReadAll<Model: DatabaseModel>: Handler {
         let queryBuilder = QueryBuilder(type: Model.self, parameters: queryInfo)
         return queryBuilder.execute(on: database)
     }
+    
+    public var metadata: AnyHandlerMetadata {
+        Operation(.read)
+    }
 }

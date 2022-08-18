@@ -32,7 +32,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         
         // Install nltk
         let pipArgs = ["install", "--user", "-U", "nltk"]
-        var (exitCode, output) = try runCommand("pip", pipArgs)
+        var (exitCode, output) = try runCommand("pip3", pipArgs)
         
         if exitCode != 0 {
             print("Failed to install nltk. Aborting. Output: \(output)")
@@ -43,7 +43,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
         
         // Install wordnet, omw-1.4, and averaged_perceptron_tagger corpora
         let pythonArgs = ["-m", "nltk.downloader", "wordnet", "omw-1.4", "averaged_perceptron_tagger"]
-        (exitCode, output) = try runCommand("python", pythonArgs)
+        (exitCode, output) = try runCommand("python3", pythonArgs)
         
         if exitCode != 0 {
             print("Failed to install corpora. Aborting. Output: \(output)")
