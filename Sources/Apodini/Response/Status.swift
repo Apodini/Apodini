@@ -18,11 +18,16 @@ public enum Status: ResponseTransformable, Equatable {
     case created
     /// The request was handled and the response does not contain any content
     case noContent
+    
     /// The request was handled and the client should be redirected to another URL
     case redirect
+    /// The request was handled and the response has not been changed versus the client's cache.
+    case notModified
     
-    /// Explicitly return a `HTTPResponseStatus`
-    case httpStatus(HTTPResponseStatus)
+    /// The request was not handled as the request was malformed.
+    case badRequest
+    /// The request was not handled as the resource could not be found
+    case notFound
     
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Empty>> {
         eventLoop.makeSucceededFuture(Response.final(self))

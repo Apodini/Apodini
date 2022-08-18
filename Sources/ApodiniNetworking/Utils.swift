@@ -37,8 +37,12 @@ extension HTTPResponseStatus {
             self = .noContent
         case .redirect:
             self = .seeOther
-        case .httpStatus(let httpResponseStatus):
-            self = httpResponseStatus
+        case .badRequest:
+            self = .badRequest
+        case .notFound:
+            self = .notFound
+        case .notModified:
+            self = .notModified
         }
     }
 }

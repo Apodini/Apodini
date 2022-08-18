@@ -33,6 +33,7 @@ jobs:
         which python
         which pip
         which python3
+        which pip3
         python --version
         python3 --version
       working-directory: ~
