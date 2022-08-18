@@ -56,7 +56,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
     private func executableURL(for executable: String) -> URL? {
         ChildProcess.findExecutable(
             named: executable,
-            additionalSearchPaths: ["/usr/local/bin/", "/opt/homebrew/bin/"]
+            additionalSearchPaths: ["/usr/local/bin/", "/opt/homebrew/bin/", "/usr/bin/"]
         )
     }
     

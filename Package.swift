@@ -202,7 +202,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
-                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport"),
+                .product(name: "PythonKit", package: "PythonKit")
             ],
             resources: [
                 .process("Resources")
