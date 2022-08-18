@@ -80,6 +80,9 @@ jobs:
         which python3
         which pip3
         ls
+        command -v which
+        command -v python3
+        command -v python
       shell: sh {0}
       working-directory: ~
     - uses: actions/checkout@v2
