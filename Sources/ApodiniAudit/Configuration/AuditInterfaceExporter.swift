@@ -76,7 +76,7 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<EndpointHasComplexReturnType>(),
         
         // Syntactic URL Segment Best Practices
-        AppropriateLengthForURLPathSegmentsConfiguration(),
+        URLPathSegmentLengthConfiguration(),
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
         EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
         EmptyBestPracticeConfiguration<NoFileExtensionsInURLPathSegments>(),
