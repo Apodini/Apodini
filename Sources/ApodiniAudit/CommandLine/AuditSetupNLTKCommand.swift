@@ -83,7 +83,7 @@ struct AuditSetupNLTKCommand<Service: WebService>: AuditParsableSubcommand {
 enum ExecutableNotFound: Error, CustomStringConvertible {
     case notFound(_ exec: String)
     
-    public var description: String {
+    var description: String {
         switch self {
         case .notFound(let exec):
             return "Could not find executable \(exec)"

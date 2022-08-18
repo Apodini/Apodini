@@ -235,6 +235,7 @@ extension ApodiniError: HTTPResponseConvertible {
 }
 
 public extension HTTPResponseStatus {
+    /// Initialize an ``HTTPResponseStatus`` from an Apodini ``ErrorType``.
     init(_ apodiniErrorType: ErrorType) {
         switch apodiniErrorType {
         case .badInput:

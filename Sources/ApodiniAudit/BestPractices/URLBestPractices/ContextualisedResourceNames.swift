@@ -9,7 +9,7 @@
 import Foundation
 import Apodini
 
-// TODO keep this??
+// FUTURE keep this??
 public class ContextualisedResourceNames: BestPractice {
     public static var scope: BestPracticeScopes = .all
     public static var category: BestPracticeCategories = .urlPath
@@ -48,7 +48,7 @@ enum ContextualisedResourceNamesFinding: Finding {
     
     var diagnosis: String {
         switch self {
-        case .unrelatedSegments(let segment1, let segment2):
+        case let .unrelatedSegments(segment1, segment2):
             return "\"\(segment1)\" and \"\(segment2)\" are not related!"
         }
     }

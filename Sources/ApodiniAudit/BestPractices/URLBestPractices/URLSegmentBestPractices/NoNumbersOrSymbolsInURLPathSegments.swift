@@ -17,8 +17,8 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     var checkedSegments = [String]()
     
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
-        if segment.contains(where: { c in
-            !c.isLetter && c != "-"
+        if segment.contains(where: { char in
+            !char.isLetter && char != "-"
         }) {
             return NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: segment)
         }

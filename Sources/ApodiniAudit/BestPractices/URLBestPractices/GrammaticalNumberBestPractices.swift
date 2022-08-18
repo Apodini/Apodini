@@ -57,7 +57,7 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
             }
         }
         
-        // TODO add inverse: if last segment is singular, then delete would be kinda weird?
+        // FUTURE add inverse: if last segment is singular, then delete would be kinda weird?
     }
     
     public required init() { }

@@ -25,7 +25,7 @@ struct NLTKInterface {
         let synsets1 = Set(wordnet.synsets(str1))
         let synsets2 = Set(wordnet.synsets(str2))
         
-        return synsets1.intersection(synsets2).isEmpty
+        return synsets1.isDisjoint(synsets2)
     }
     
     func isPluralNoun(_ str: String) -> Bool {

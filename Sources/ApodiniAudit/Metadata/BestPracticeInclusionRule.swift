@@ -8,7 +8,9 @@
 
 import Foundation
 
+/// A rule capturing the inclusion and exclusion of specific ``BestPractice``s from auditing.
 public protocol BestPracticeInclusionRule {
+    /// Derive an action for a specific ``BestPractice`` from this inclusion rule.
     func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction
 }
 
@@ -72,6 +74,12 @@ struct PassThroughInclusionRule: BestPracticeInclusionRule {
     }
 }
 
+/// An action capturing whether to include, exclude or pass through ``BestPractice``s
 public enum BestPracticeInclusionAction {
-    case include, exclude, noAction
+    /// Include the ``BestPractice``(s).
+    case include
+    /// Exclude the ``BestPractice``(s).
+    case exclude
+    /// Pass through the ``BestPractice``(s).
+    case noAction
 }

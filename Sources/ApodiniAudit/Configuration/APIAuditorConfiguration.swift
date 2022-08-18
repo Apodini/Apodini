@@ -63,7 +63,9 @@ struct BestPracticesStorageKey: StorageKey {
     typealias Value = [BestPractice]
 }
 
+/// A configuration for a ``BestPractice``.
 public protocol BestPracticeConfiguration {
+    /// Produce a ``BestPractice`` instance with this configuration.
     func configure() -> BestPractice
 }
 

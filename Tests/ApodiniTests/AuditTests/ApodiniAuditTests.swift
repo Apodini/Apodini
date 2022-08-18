@@ -35,7 +35,7 @@ final class ApodiniAuditTests: ApodiniTests {
                 // swiftlint:disable:next all
                 if 1 == 1 {
                     APIAuditor {
-                        AppropriateLengthForURLPathSegmentsConfiguration(
+                        URLPathSegmentLengthConfiguration(
                             maximumLength: 50
                         )
                         CustomBPConfig()

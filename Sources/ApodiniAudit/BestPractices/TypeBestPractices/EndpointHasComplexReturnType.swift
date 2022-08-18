@@ -38,8 +38,8 @@ public class EndpointHasComplexReturnType: BestPractice {
         // Heuristic: report failure if
         // - Response Type is Status
         // - Response Type is Empty
-        // - TODO not implemented: stemmed Response type appears neither in Handler name nor endpoint path
-        // - TODO report is type is Response<Status> ? doesn't really make sense
+        // - FUTURE not implemented: stemmed Response type appears neither in Handler name nor endpoint path
+        // - FUTURE report is type is Response<Status> ? doesn't really make sense
         
         // Report failure if the return type is Status or Empty
         if returnType == Empty.self || returnType == Status.self {

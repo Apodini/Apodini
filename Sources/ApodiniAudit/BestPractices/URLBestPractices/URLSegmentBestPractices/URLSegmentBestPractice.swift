@@ -15,6 +15,7 @@ protocol URLSegmentBestPractice: BestPractice {
 }
 
 extension URLSegmentBestPractice {
+    /// Checks this ``URLSegmentBestPractice`` into the given ``Audit`` by calling `checkSegment` for each URL path segment.
     public func check(into audit: Audit, _ app: Application) {
         for segment in audit.endpoint.absolutePath {
             if checkedSegments.contains(segment.description) {

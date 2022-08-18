@@ -29,6 +29,7 @@ public protocol BestPractice: AnyObject {
 }
 
 extension BestPractice {
+    /// The default priority for a BestPractice is `.normal`.
     public static var priority: Priority {
         .normal
     }

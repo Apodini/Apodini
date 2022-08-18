@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 import ApodiniNetworking
 
-class Reporter {
+enum Reporter {
     static func logReport(_ report: Report, _ webServiceString: String) {
         // Group audits by Endpoint they are related to
         let indexedAudits = Dictionary(grouping: report.audits, by: { $0.endpoint.absolutePath.pathString })

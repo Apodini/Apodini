@@ -37,5 +37,6 @@ public struct BestPracticeInclusionRuleContextKey: ContextKey {
 }
 
 public extension ComponentMetadataNamespace {
+    /// Select which ``BestPractice``s to include or exclude when auditing a ``WebService``, ``Component``,  or ``Handler``.
     typealias SelectBestPractices = SelectBestPracticesMetadata
 }
