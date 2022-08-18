@@ -79,8 +79,6 @@ jobs:
         which pip
         which python3
         which pip3
-        python --version
-        python3 --version
         ls
       working-directory: ~
     - uses: actions/checkout@v2
