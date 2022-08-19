@@ -78,15 +78,14 @@ extension AuditInterfaceExporter {
         // Syntactic URL Segment Best Practices
         URLPathSegmentLengthConfiguration(),
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
-        EmptyBestPracticeConfiguration<NoCRUDVerbsInURLPathSegments>(),
-        EmptyBestPracticeConfiguration<NoFileExtensionsInURLPathSegments>(),
+        CRUDVerbConfiguration(),
+        FileExtensionConfiguration(),
         EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>(),
-        EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
         
         // Linguistic URL Best Practices
-        EmptyBestPracticeConfiguration<PluralSegmentForStoresAndCollections>(),
+        PluralSegmentConfiguration(),
         
-        // Parameter BPs
+        // Parameter Best Practices
         ReasonableParameterCountConfiguration()
     ]
 }

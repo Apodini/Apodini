@@ -13,12 +13,8 @@ import Foundation
 public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath
-    var successMessage = "The path segments do not contain any uppercase letters"
-    var allowedExtensions: [String] = []
-    /// The minimum distance from the end of the segment that a dot has to have
-    /// in order to not be recognized as a file extension.
-    /// If this is 4, then 'html' would not be recognized as a file extension
-    var minDistanceFromEnd = 5
+    
+    var configuration = FileExtensionConfiguration()
     
     var checkedSegments = [String]()
     
@@ -29,14 +25,29 @@ public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
         }
         let dotIndexInt = segment.distance(from: segment.startIndex, to: dotIndex)
         let extensionLength = segment.count - dotIndexInt - 1
-        if extensionLength >= minDistanceFromEnd ||
-            allowedExtensions.contains(String(segment.suffix(extensionLength))) {
+        if configuration.allowedExtensions.contains(String(segment.suffix(extensionLength))) {
             return nil
         }
         return URLFileExtensionFinding.fileExtensionFound(segment: segment)
     }
     
     public required init() { }
+    
+    init(configuration: FileExtensionConfiguration) {
+        self.configuration = configuration
+    }
+}
+
+public struct FileExtensionConfiguration: BestPracticeConfiguration {
+    var allowedExtensions: [String]
+    
+    public func configure() -> BestPractice {
+        NoFileExtensionsInURLPathSegments(configuration: self)
+    }
+    
+    public init(allowedExtensions: [String] = []) {
+        self.allowedExtensions = allowedExtensions
+    }
 }
 
 enum URLFileExtensionFinding: Finding {

@@ -13,12 +13,13 @@ import Foundation
 public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath
-    var successMessage = "The path segments do not contain any CRUD verbs"
-    private var crudVerbs = ["get", "post", "remove", "delete", "put"]
+    
     var checkedSegments = [String]()
     
+    var configuration = CRUDVerbConfiguration()
+    
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
-        let containsCRUDVerb = crudVerbs.contains { segment.lowercased().contains($0) }
+        let containsCRUDVerb = configuration.forbiddenVerbs.contains { segment.lowercased().contains($0.lowercased()) }
         if containsCRUDVerb {
             return URLCRUDVerbsFinding.crudVerbFound(segment: segment)
         }
@@ -26,6 +27,22 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     }
     
     public required init() { }
+    
+    init(configuration: CRUDVerbConfiguration) {
+        self.configuration = configuration
+    }
+}
+
+public struct CRUDVerbConfiguration: BestPracticeConfiguration {
+    var forbiddenVerbs: [String]
+    
+    public func configure() -> BestPractice {
+        NoCRUDVerbsInURLPathSegments(configuration: self)
+    }
+    
+    public init(forbiddenVerbs: [String] = ["get", "post", "remove", "delete", "put"]) {
+        self.forbiddenVerbs = forbiddenVerbs
+    }
 }
 
 enum URLCRUDVerbsFinding: Finding, Equatable {

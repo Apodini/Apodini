@@ -15,6 +15,7 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
     public static var category: BestPracticeCategories = .linguisticURL
     
     var checkedParameters = [UUID]()
+    var configuration = PluralSegmentConfiguration()
     
     public func check(into audit: Audit, _ app: Application) {
         let path = audit.endpoint[EndpointPathComponentsHTTP.self].value
@@ -51,16 +52,31 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
             case .string(let prevSegmentString):
                 let lastPart = prevSegmentString.getLastSegment()
                 
-                if !NLTKInterface.shared.isPluralNoun(lastPart) {
+                if !configuration.allowedSegments.contains(prevSegmentString) &&
+                    !NLTKInterface.shared.isPluralNoun(lastPart) {
                     audit.recordFinding(BadCollectionSegmentName.nonPluralBeforeParameter(prevSegmentString))
                 }
             }
         }
-        
-        // FUTURE add inverse: if last segment is singular, then delete would be kinda weird?
     }
     
     public required init() { }
+    
+    init(configuration: PluralSegmentConfiguration) {
+        self.configuration = configuration
+    }
+}
+
+public struct PluralSegmentConfiguration: BestPracticeConfiguration {
+    var allowedSegments: [String]
+    
+    public func configure() -> BestPractice {
+        PluralSegmentForStoresAndCollections(configuration: self)
+    }
+    
+    public init(allowedSegments: [String] = []) {
+        self.allowedSegments = allowedSegments
+    }
 }
 
 enum BadCollectionSegmentName: Finding, Equatable {

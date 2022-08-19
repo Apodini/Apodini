@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// BP2
+/// BP2 & BP8
 /// Checks whether a URL path segment contains any numbers or symbols, which is discouraged.
 public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .all
