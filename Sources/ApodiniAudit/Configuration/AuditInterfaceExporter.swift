@@ -84,9 +84,7 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<NoUnderscoresInURLPathSegments>(),
         
         // Linguistic URL Best Practices
-//        EmptyBestPracticeConfiguration<ContextualisedResourceNames>(),
         EmptyBestPracticeConfiguration<PluralSegmentForStoresAndCollections>(),
-//        EmptyBestPracticeConfiguration<SingularLastSegmentForPUTAndDELETE>(),
         
         // Parameter BPs
         ReasonableParameterCountConfiguration()

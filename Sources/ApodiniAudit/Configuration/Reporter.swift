@@ -11,16 +11,18 @@ import Apodini
 import ApodiniNetworking
 
 enum Reporter {
-    static func logReport(_ report: Report, _ webServiceString: String) {
+    static func generateReportString(_ report: Report, _ webServiceString: String) -> String{
         // Group audits by Endpoint they are related to
         let indexedAudits = Dictionary(grouping: report.audits, by: { $0.endpoint.absolutePath.pathString })
         let sortedEndpoints = Array(indexedAudits.keys).sorted()
         
-        print()
-        print("====================================")
-        print("ApodiniAudit Report")
-        print("====================================")
-        print()
+        var reportStr = ""
+        
+        addLine(&reportStr)
+        addLine(&reportStr, "====================================")
+        addLine(&reportStr, "ApodiniAudit Report")
+        addLine(&reportStr, "====================================")
+        addLine(&reportStr)
         
         var printedSomething = false
         
@@ -33,7 +35,7 @@ enum Reporter {
             let auditsByHandler = Dictionary(grouping: audits, by: { $0.endpoint.bareHandlerName(webServiceString) })
             let sortedHandlers = Array(auditsByHandler.keys).sorted()
             
-            print(endpoint)
+            addLine(&reportStr, endpoint)
             
             for handler in sortedHandlers {
                 guard let audits = auditsByHandler[handler],
@@ -41,7 +43,7 @@ enum Reporter {
                     continue
                 }
                 
-                print("  \(handler)")
+                addLine(&reportStr, "  \(handler)")
                 for audit in audits {
                     guard !audit.findings.isEmpty else {
                         continue
@@ -51,20 +53,21 @@ enum Reporter {
                     let sortedFindings = audit.findings.sorted(by: \Finding.priority)
                     for finding in sortedFindings {
                         printedSomething = true
-                        print("    \(finding.diagnosis)")
+                        addLine(&reportStr, "    \(finding.diagnosis)")
                         if let suggestion = finding.suggestion {
-                            print("      \(suggestion)")
+                            addLine(&reportStr, "      \(suggestion)")
                         }
                     }
                 }
             }
-            print()
+            addLine(&reportStr)
         }
         
         if !printedSomething {
-            print("No findings! 🚀")
+            addLine(&reportStr, "No findings! 🚀")
         }
         
+        // FUTURE remove this
 //        // Sort audits by best practice priority
 //        let sortedAudits = report.audits.sorted { (audit1, audit2) in
 //            if type(of: audit1.bestPractice).priority < type(of: audit2.bestPractice).priority {
@@ -72,14 +75,15 @@ enum Reporter {
 //            }
 //            return false
 //        }
+        return reportStr
     }
     
-    private static func printEndpoint(_ endpoint: AnyEndpoint) {
-        // Get method
-        let method = HTTPMethod(endpoint[Operation.self])
-        let endpointString = endpoint.absolutePath.pathString
-        
-        print("\(method) \(endpointString)")
+    static func logReport(_ report: Report, _ webServiceString: String) {
+        print(generateReportString(report, webServiceString))
+    }
+    
+    private static func addLine(_ reportString: inout String, _ line: String = "") {
+        reportString += "\(line)\n"
     }
 }
 

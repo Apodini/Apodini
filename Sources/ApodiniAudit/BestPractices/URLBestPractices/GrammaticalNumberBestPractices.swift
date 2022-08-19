@@ -63,7 +63,7 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
     public required init() { }
 }
 
-enum BadCollectionSegmentName: Finding {
+enum BadCollectionSegmentName: Finding, Equatable {
     case parametersInSuccession
     case nonPluralBeforeParameter(_ nonPluralWord: String)
     case firstLevelIdParameter

@@ -26,7 +26,7 @@ public class LowercaseURLPathSegments: URLSegmentBestPractice {
     public required init() { }
 }
 
-enum LowercasePathSegmentsFinding: Finding {
+enum LowercasePathSegmentsFinding: Finding, Equatable {
     case uppercaseCharacterFound(segment: String)
     
     var diagnosis: String {

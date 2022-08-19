@@ -10,6 +10,7 @@ import Foundation
 import Apodini
 
 /// Encourages the use of ETags when the return type of an endpoint is ``Blob``.
+/// BP55
 public class EncourageETags: BestPractice {
     public static var scope: BestPracticeScopes = .all
     public static var category: BestPracticeCategories = .caching

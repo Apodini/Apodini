@@ -28,7 +28,7 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     public required init() { }
 }
 
-enum URLCRUDVerbsFinding: Finding {
+enum URLCRUDVerbsFinding: Finding, Equatable {
     case crudVerbFound(segment: String)
     
     var diagnosis: String {
