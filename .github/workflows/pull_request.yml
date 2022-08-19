@@ -15,7 +15,7 @@ on:
 jobs:
   build_and_test:
     name: Build and Test
-    uses: simonbohnen/.github/.github/workflows/build-and-test.yml@main
+    uses: simonbohnen/.github/.github/workflows/build-and-test.yml@origmain
     with:
       packagename: Apodini
       aptgetdependencies: libsqlite3-dev python3 python3-pip
