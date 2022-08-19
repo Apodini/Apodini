@@ -12,7 +12,6 @@ import PythonKit
 struct NLTKInterface {
     private static var _shared: NLTKInterface?
     static var shared: NLTKInterface {
-        print("init!")
         if let sha = _shared {
             return sha
         }

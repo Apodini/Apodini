@@ -73,19 +73,13 @@ jobs:
       run: swift --version
     - name: Install apt-get Dependencies
       if: matrix.linux != 'centos8' && matrix.linux != 'amazonlinux2'
-      run: apt-get update && apt-get install -y --no-install-recommends curl lsof python3 python3-pip
+      run: apt-get update && apt-get install -y --no-install-recommends curl lsof
     - name: Install yum Dependencies
       if: matrix.linux == 'amazonlinux2'
       run: yum update -y && yum install -y curl lsof python3
     - name: Install yum Dependencies
       if: matrix.linux == 'centos8'
       run: yum update -y --nobest && yum install -y curl lsof python3
-    - name: Pyth
-      run: |
-        command -v python3
-        command -v pip3
-      shell: sh {0}
-      working-directory: ~
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}

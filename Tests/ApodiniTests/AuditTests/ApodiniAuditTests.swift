@@ -25,9 +25,6 @@ final class ApodiniAuditTests: ApodiniTests {
         } catch {
             print("Could not install requirements: \(error)")
         }
-        
-        let sys = Python.import("sys")
-        print("Python Version: \(sys.version)")
     }
     
     struct AuditableWebService: WebService {
