@@ -10,267 +10,200 @@ import XCTest
 @testable import Apodini
 @testable import ApodiniAudit
 @testable import ApodiniREST
+@testable import ApodiniHTTP
 import PythonKit
 
 
 final class ConfigurationTests: ApodiniTests {
-    // To test
-    // HTTP config only runs HTTP BPs
-    // we can select a config with if etc.
-    // the audit command is only registered once
+    struct SomeHandler: Handler {
+        func handle() -> Response<String> {
+            .final(information: ETag("aosidhaoshid"))
+        }
+
+        var metadata: AnyHandlerMetadata {
+            SelectBestPractices(.include, .urlPath)
+        }
+    }
+
+    class CustomBP: BestPractice {
+        func check(into audit: Audit, _ app: Application) {
+            audit.recordFinding(CustomFinding.finding)
+        }
+
+        required init() { }
+
+        static var scope: BestPracticeScopes = .all
+        static var category: BestPracticeCategories = .httpMethod
+    }
+
+    enum CustomFinding: Finding, Equatable {
+        var diagnosis: String {
+            ""
+        }
+
+        case finding
+    }
     
-    
-    struct RESTAuditWebService: WebService {
+    struct AuditWebService: WebService {
+        var addCustomConfig = true
+        
         var content: some Component {
-            Group("crudGet", "ooooooaaaaaaooooooaaaaaaooooooaaaaaa", "withextension.html") {
+            Group("hi") {
                 SomeHandler()
             }
         }
 
-        @ConfigurationBuilder static var conf: Configuration {
-            REST {
-                // swiftlint:disable:next all
-                if 1 == 1 {
-                    APIAuditor {
-                        URLPathSegmentLengthConfiguration(
-                            maximumLength: 50
-                        )
-                        CustomBPConfig()
+        @ConfigurationBuilder var conf: Configuration {
+            HTTP {
+                APIAuditor {
+                    if addCustomConfig {
+                        EmptyBestPracticeConfiguration<CustomBP>()
                     }
                 }
             }
         }
         
         var configuration: Configuration {
-            Self.conf
+            conf
         }
     }
     
-    struct AuditableWebService2: WebService {
-        @PathParameter var someId: UUID
-        
+    struct AuditWebService2: WebService {
         var content: some Component {
-            Group("getThisResource") {
+            Group("hi") {
                 SomeHandler()
             }
-            Group("testGreetings", $someId) {
-                SomePOSTHandler(whateverId: $someId)
-                Group("delete") {
-                    SomeDELETEHandler(greetingID: $someId)
-                }
-            }
-            Group("testGreeting", $someId) {
-                SomePOSTHandler(whateverId: $someId)
+        }
+
+        @ConfigurationBuilder var conf: Configuration {
+            REST {
+                APIAuditor()
             }
         }
         
         var configuration: Configuration {
-            AuditableWebService.conf
-        }
-        
-//        var metadata: AnyWebServiceMetadata {
-//            SelectBestPractices(.exclude, .all)
-//        }
-    }
-    
-    struct SomeHandler: Handler {
-        func handle() -> Response<String> {
-            .final(information: ETag("aosidhaoshid"))
-        }
-        
-        var metadata: AnyHandlerMetadata {
-            SelectBestPractices(.include, .urlPath)
+            conf
         }
     }
     
-    struct SomePOSTHandler: Handler {
-        @Binding var whateverId: UUID
+    func testConfigurationBuilder() throws {
+        let withoutWebService = AuditWebService(addCustomConfig: false)
+        try assertNoFinding(
+            webService: withoutWebService,
+            bestPracticeType: CustomBP.self,
+            endpointPath: "/"
+        )
         
-        func handle() -> String {
-            "Hello"
-        }
-        
-        var metadata: AnyHandlerMetadata {
-            Operation(.create)
-            Pattern(.requestResponse)
-        }
+        let withWebService = AuditWebService(addCustomConfig: true)
+        try assertOneFinding(
+            webService: withWebService,
+            bestPracticeType: CustomBP.self,
+            endpointPath: "/",
+            expectedFinding: CustomFinding.finding
+        )
     }
     
-    struct SomeDELETEHandler: Handler {
-        @Binding var greetingID: UUID
+    func testOnlyHTTPBPs() throws {
+        // Test that Best Practices with scope .rest are only run for API's with a REST configuration.
+        let httpWebService = AuditWebService()
+        try assertNoFinding(
+            webService: httpWebService,
+            bestPracticeType: URLPathSegmentLength.self,
+            endpointPath: "/hi"
+        )
         
-        func handle() -> String {
-            "Hello"
-        }
-        
-        var metadata: AnyHandlerMetadata {
-            Operation(.delete)
-        }
+        let restWebService = AuditWebService2()
+        try assertOneFinding(
+            webService: restWebService,
+            bestPracticeType: URLPathSegmentLength.self,
+            endpointPath: "/hi",
+            expectedFinding: URLPathSegmentLengthFinding.segmentTooShort(segment: "hi")
+        )
     }
     
-    struct CustomBPConfig: BestPracticeConfiguration {
-        func configure() -> BestPractice {
-            CustomBP()
+    struct MultipleAuditorsWebService: WebService {
+        var content: some Component {
+            SomeHandler()
         }
-    }
-    
-    class CustomBP: BestPractice {
-        func check(into audit: Audit, _ app: Application) {
-            print("custom best practice!")
-        }
-        
-        required init() { }
-        
-        static var scope: BestPracticeScopes = .all
-        static var category: BestPracticeCategories = .httpMethod
-    }
 
-    func testBasicAuditing() throws {
-        let commandType = AuditRunCommand<AuditableWebService>.self
-        var command = commandType.init()
-        
-        let audits = try getAuditsForAuditRunCommand(&command)
-        let actualFindings = audits.flatMap { $0.findings }
-        
-        let expectedFindings: [Finding] = [
-//            AuditFinding(
-//                diagnosis: "The path segments do not contain any underscores",
-//                result: .success
-//            ),
-//            AuditFinding(
-//                diagnosis: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
-//                result: .violation
-//            ),
-//            AuditFinding(
-//                diagnosis: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-//                result: .violation
-//            ),
-            URLCRUDVerbsFinding.crudVerbFound(segment: "crudGet"),
-            LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: "crudGet"),
-            URLFileExtensionFinding.fileExtensionFound(segment: "withextension.html"),
-            NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: "withextension.html")
-        ]
-        
-        XCTAssertFindingsEqual(actualFindings, expectedFindings)
-    }
-    
-    func testLingusticAuditing() throws {
-        let commandType = AuditRunCommand<AuditableWebService2>.self
-        var command = commandType.init()
-        
-        let audits = try getAuditsForAuditRunCommand(&command)
-        
-        let lingAudits = audits.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
-        let lingFindings = lingAudits.flatMap { $0.findings }
-        
-        let expectedLingFindings: [BadCollectionSegmentName] = [
-            //BadCollectionSegmentName.nonPluralBeforeParameter("Greeting")
-        ]
-        
-        XCTAssertFindingsEqual(lingFindings, expectedLingFindings)
-    }
-    
-    func testSelectingBestPractices() throws {
-        let commandType = AuditRunCommand<AuditableWebService2>.self
-        var command = commandType.init()
-        
-        let audits = try getAuditsForAuditRunCommand(&command)
-        
-        XCTAssertTrue(audits.contains {
-            $0.findings.contains {
-                $0.diagnosis.contains("getThisResource")
+        var configuration: Configuration {
+            REST {
+                APIAuditor()
             }
-        })
+            HTTP(rootPath: "http") {
+                APIAuditor()
+            }
+        }
     }
     
     func testRegisterCommandOnce() throws {
-        let webService = AuditableWebService()
+        // Test that the AuditCommand is only registered once, even if there are multiple Auditors configured
+        let webService = MultipleAuditorsWebService()
         
-        try AuditableWebService.start(mode: .boot, app: app, webService: webService)
+        let app = Application()
+        try MultipleAuditorsWebService.start(mode: .boot, app: app, webService: webService)
         let commands = webService.configuration._commands
         
         // Filter to get only auditcommands
         let auditCommands = commands.filter { cmd in
-            cmd is AuditCommand<AuditableWebService>.Type
+            cmd is AuditCommand<MultipleAuditorsWebService>.Type
         }
         
         XCTAssertEqual(auditCommands.count, 1)
-    }
-    
-    private func getAuditsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
-        command.webService = .init()
-
-        try command.run(app: app)
-
-        // Get the AuditInterfaceExporter
-        // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
-        let optionalExporter = app.interfaceExporters.first { exporter in
-            exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
-        }
-        let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
-
-        return auditInterfaceExporter.report.audits
+        app.shutdown()
     }
 }
 
-//private struct FindingMessage: Hashable {
-//    let diagnosis: String
-//    let suggestion: String?
-//    let priority: Priority
-//
-//    init(_ diagnosis: String, _ suggestion: String?, _ priority: Priority) {
-//        self.diagnosis = diagnosis
-//        self.suggestion = suggestion
-//        self.priority = priority
-//    }
-//}
-//
-//func XCTAssertFindingsEqual(_ actual: [Finding], _ expected: [Finding]) {
-//    let actualMessages = actual.map { finding in
-//        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
-//    }
-//
-//    let expectedMessages = expected.map { finding in
-//        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
-//    }
-//
-//    XCTAssertSetEqual(actualMessages, expectedMessages)
-//}
-//
-//func XCTAssertSetEqual<T: Hashable>(
-//    _ actual: [T],
-//    _ expected: [T],
-//    _ message: @autoclosure () -> String = "" ,
-//    file: StaticString = #filePath,
-//    line: UInt = #line
-//) {
-//    let actualCounts = actual.distinctElementCounts()
-//    let expectedCounts = expected.distinctElementCounts()
-//    if actualCounts == expectedCounts {
-//        return
-//    }
-//
-//    // Build sets
-//    let actualSet = Set(actual)
-//    let expectedSet = Set(expected)
-//
-//    if actualSet.count != actual.count || expectedSet.count != expected.count {
-//        XCTFail("The expected or actual array is not duplicate-free!", file: file, line: line)
-//    }
-//
-//    let missingElements = expectedSet.subtracting(actualSet)
-//    let superfluousElements = actualSet.subtracting(expectedSet)
-//
-//    var failureMsg = ""
-//    if !missingElements.isEmpty {
-//        failureMsg += "Missing elements:\n\(missingElements.map { "- \($0)" }.joined(separator: "\n"))\n"
-//    }
-//    if !superfluousElements.isEmpty {
-//        failureMsg += "Superfluous elements:\n\(superfluousElements.map { "- \($0)" }.joined(separator: "\n"))\n"
-//    }
-//    let customMsg = message()
-//    if !customMsg.isEmpty {
-//        failureMsg.append(customMsg)
-//    }
-//    XCTFail(failureMsg, file: file, line: line)
-//}
+func getAudit<W: WebService>(
+    webService: W,
+    bestPracticeType: BestPractice.Type,
+    endpointPath: String
+) throws -> Audit? {
+    var command = AuditRunCommand<W>()
+    command.webService = webService
+
+    let app = Application()
+    try command.run(app: app)
+
+    // Get the AuditInterfaceExporter
+    let optionalExporter = app.interfaceExporters.first { exporter in
+        exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
+    }
+    let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
+    let audits = auditInterfaceExporter.report.audits
+    let relevantAudit = audits.filter {
+        type(of: $0.bestPractice) == bestPracticeType &&
+        $0.endpoint.absolutePath.pathString == endpointPath
+    }
+    
+    return relevantAudit.first
+}
+
+func assertNoFinding<W: WebService>(
+    webService: W,
+    bestPracticeType: BestPractice.Type,
+    endpointPath: String
+) throws {
+    let audit = try getAudit(webService: webService, bestPracticeType: bestPracticeType, endpointPath: endpointPath)
+    if let audit = audit {
+        XCTAssertTrue(audit.findings.isEmpty)
+    }
+}
+
+func assertOneFinding<F: Finding & Equatable, W: WebService>(
+    webService: W,
+    bestPracticeType: BestPractice.Type,
+    endpointPath: String,
+    expectedFinding: F
+) throws {
+    let audit = try XCTUnwrap(getAudit(webService: webService, bestPracticeType: bestPracticeType, endpointPath: endpointPath))
+    XCTAssertEqual(audit.findings.count, 1)
+    guard let finding = audit.findings[0] as? F else {
+        XCTFail("Could not typecast Finding")
+        return
+    }
+    guard finding == expectedFinding else {
+        XCTFail("Findings \(finding) and \(expectedFinding) are not equal!")
+        return
+    }
+}

@@ -126,50 +126,50 @@ final class SelectionTests: ApodiniTests {
         static var category: BestPracticeCategories = .httpMethod
     }
 
-    func testBasicAuditing() throws {
-        let commandType = AuditRunCommand<AuditableWebService>.self
-        var command = commandType.init()
-        
-        let audits = try getAuditsForAuditRunCommand(&command)
-        let actualFindings = audits.flatMap { $0.findings }
-        
-        let expectedFindings: [Finding] = [
-//            AuditFinding(
-//                diagnosis: "The path segments do not contain any underscores",
-//                result: .success
-//            ),
-//            AuditFinding(
-//                diagnosis: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
-//                result: .violation
-//            ),
-//            AuditFinding(
-//                diagnosis: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
-//                result: .violation
-//            ),
-            URLCRUDVerbsFinding.crudVerbFound(segment: "crudGet"),
-            LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: "crudGet"),
-            URLFileExtensionFinding.fileExtensionFound(segment: "withextension.html"),
-            NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: "withextension.html")
-        ]
-        
-        XCTAssertFindingsEqual(actualFindings, expectedFindings)
-    }
+//    func testBasicAuditing() throws {
+//        let commandType = AuditRunCommand<AuditableWebService>.self
+//        var command = commandType.init()
+//
+//        let audits = try getAuditsForAuditRunCommand(&command)
+//        let actualFindings = audits.flatMap { $0.findings }
+//
+//        let expectedFindings: [Finding] = [
+////            AuditFinding(
+////                diagnosis: "The path segments do not contain any underscores",
+////                result: .success
+////            ),
+////            AuditFinding(
+////                diagnosis: "The path segment \"looooooooooooooooooooooooooooooooooongSeg2\" is too short or too long",
+////                result: .violation
+////            ),
+////            AuditFinding(
+////                diagnosis: "The path segment looooooooooooooooooooooooooooooooooongSeg2 contains one or more uppercase letters!",
+////                result: .violation
+////            ),
+//            URLCRUDVerbsFinding.crudVerbFound(segment: "crudGet"),
+//            LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: "crudGet"),
+//            URLFileExtensionFinding.fileExtensionFound(segment: "withextension.html"),
+//            NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: "withextension.html")
+//        ]
+//
+//        XCTAssertFindingsEqual(actualFindings, expectedFindings)
+//    }
     
-    func testLingusticAuditing() throws {
-        let commandType = AuditRunCommand<AuditableWebService2>.self
-        var command = commandType.init()
-        
-        let audits = try getAuditsForAuditRunCommand(&command)
-        
-        let lingAudits = audits.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
-        let lingFindings = lingAudits.flatMap { $0.findings }
-        
-        let expectedLingFindings: [BadCollectionSegmentName] = [
-            //BadCollectionSegmentName.nonPluralBeforeParameter("Greeting")
-        ]
-        
-        XCTAssertFindingsEqual(lingFindings, expectedLingFindings)
-    }
+//    func testLingusticAuditing() throws {
+//        let commandType = AuditRunCommand<AuditableWebService2>.self
+//        var command = commandType.init()
+//
+//        let audits = try getAuditsForAuditRunCommand(&command)
+//
+//        let lingAudits = audits.filter { type(of: $0.bestPractice).category.contains(.linguistic) }
+//        let lingFindings = lingAudits.flatMap { $0.findings }
+//
+//        let expectedLingFindings: [BadCollectionSegmentName] = [
+//            //BadCollectionSegmentName.nonPluralBeforeParameter("Greeting")
+//        ]
+//
+//        XCTAssertFindingsEqual(lingFindings, expectedLingFindings)
+//    }
     
     func testSelectingBestPractices() throws {
         let commandType = AuditRunCommand<AuditableWebService2>.self

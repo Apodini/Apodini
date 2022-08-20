@@ -12,7 +12,7 @@ import Foundation
 /// Checks whether a URL path segment's length is within the specified.
 /// The default minimum and maximum lengths are 3 and 30, respectively.
 public class URLPathSegmentLength: URLSegmentBestPractice {
-    public static var scope: BestPracticeScopes = .all
+    public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath
     var successMessage = "The path segments have appropriate lengths"
     var checkedSegments = [String]()

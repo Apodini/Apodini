@@ -89,7 +89,10 @@ enum Reporter {
 
 extension Array where Element == EndpointPath {
     var pathString: String {
-        self.map {
+        if self.count <= 1 {
+            return "/"
+        }
+        return self.map {
             $0.segmentString
         }
         .joined(separator: "/")
