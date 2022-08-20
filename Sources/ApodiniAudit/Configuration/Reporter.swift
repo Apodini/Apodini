@@ -11,7 +11,7 @@ import Apodini
 import ApodiniNetworking
 
 enum Reporter {
-    static func generateReportString(_ report: Report, _ webServiceString: String) -> String{
+    static func generateReportString(_ report: Report, _ webServiceString: String) -> String {
         // Group audits by Endpoint they are related to
         let indexedAudits = Dictionary(grouping: report.audits, by: { $0.endpoint.absolutePath.pathString })
         let sortedEndpoints = Array(indexedAudits.keys).sorted()

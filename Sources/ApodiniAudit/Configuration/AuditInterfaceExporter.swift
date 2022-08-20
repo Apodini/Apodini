@@ -80,12 +80,12 @@ extension AuditInterfaceExporter {
         EmptyBestPracticeConfiguration<LowercaseURLPathSegments>(),
         CRUDVerbConfiguration(),
         FileExtensionConfiguration(),
-        EmptyBestPracticeConfiguration<NoNumbersOrSymbolsInURLPathSegments>(),
+        NumberOrSymbolConfiguration(),
         
         // Linguistic URL Best Practices
         PluralSegmentConfiguration(),
         
         // Parameter Best Practices
-        ReasonableParameterCountConfiguration()
+        ParameterCountConfiguration()
     ]
 }

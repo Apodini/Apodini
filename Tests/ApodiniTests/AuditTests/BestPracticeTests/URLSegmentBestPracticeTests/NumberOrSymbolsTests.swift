@@ -12,51 +12,38 @@ import XCTest
 @testable import ApodiniREST
 
 final class NumbersOrSymbolsTests: ApodiniTests {
-    func testPassingNouns() throws {
-        let nouns = [
-            "images",
+    func testPassingSegments() throws {
+        let segments = [
+            "imag%s",
             "forests",
             "soccerplayers",
             "masters-theses",
-            "russian_dictionary_corpora",
-            "longTheses"
+            "longtheses"
         ]
-        
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssert(audit.findings.isEmpty, noun)
+                
+        for segment in segments {
+            try assertNoFinding(
+                segment: segment,
+                bestPractice: NumberOrSymbolConfiguration(allowedSymbols: ["%"]).configure()
+            )
         }
     }
     
-    func testFailingNouns() throws {
-        let nouns = [
-            "image",
-            "largeFile",
-            "exceltable",
-            "masters-thesis",
-            "classical_concert",
-            "go",
-            "12493"
+    func testFailingSegments() throws {
+        let segments = [
+            "imag&e",
+            ".test",
+            "$what",
+            "@me",
+            "under_score"
         ]
         
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssertEqual(audit.findings.count, 1)
-            let finding = audit.findings[0]
-            guard case BadCollectionSegmentName.nonPluralBeforeParameter(noun) = finding else {
-                XCTFail(noun)
-                continue
-            }
+        for segment in segments {
+            try assertOneFinding(
+                segment: segment,
+                bestPractice: NumberOrSymbolConfiguration().configure(),
+                expectedFinding: NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: segment)
+            )
         }
     }
 }

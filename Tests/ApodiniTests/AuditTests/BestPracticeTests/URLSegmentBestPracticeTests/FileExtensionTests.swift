@@ -12,51 +12,39 @@ import XCTest
 @testable import ApodiniREST
 
 final class FileExtensionTests: ApodiniTests {
-    func testPassingNouns() throws {
-        let nouns = [
+    func testPassingSegments() throws {
+        let segments = [
             "images",
             "forests",
             "soccerplayers",
             "masters-theses",
             "russian_dictionary_corpora",
-            "longTheses"
+            "longTheses.pdf"
         ]
-        
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssert(audit.findings.isEmpty, noun)
+                
+        for segment in segments {
+            try assertNoFinding(
+                segment: segment,
+                bestPractice: FileExtensionConfiguration(allowedExtensions: ["pdf"]).configure()
+            )
         }
     }
     
-    func testFailingNouns() throws {
-        let nouns = [
-            "image",
-            "largeFile",
-            "exceltable",
-            "masters-thesis",
-            "classical_concert",
-            "go",
-            "12493"
+    func testFailingSegments() throws {
+        let segments = [
+            "image.png",
+            "rough.aosidus",
+            "v1.jpg.tar.gz",
+            "test.swift",
+            "lib.o"
         ]
         
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssertEqual(audit.findings.count, 1)
-            let finding = audit.findings[0]
-            guard case BadCollectionSegmentName.nonPluralBeforeParameter(noun) = finding else {
-                XCTFail(noun)
-                continue
-            }
+        for segment in segments {
+            try assertOneFinding(
+                segment: segment,
+                bestPractice: NoFileExtensionsInURLPathSegments(),
+                expectedFinding: URLFileExtensionFinding.fileExtensionFound(segment: segment)
+            )
         }
     }
 }

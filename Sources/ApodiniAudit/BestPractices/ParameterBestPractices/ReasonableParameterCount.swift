@@ -16,7 +16,7 @@ public class ReasonableParameterCount: BestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .parameters
     
-    var configuration = ReasonableParameterCountConfiguration()
+    var configuration = ParameterCountConfiguration()
     
     private var checkedHandlerNames = [String]()
     
@@ -41,7 +41,7 @@ public class ReasonableParameterCount: BestPractice {
         }
     }
     
-    public init(configuration: ReasonableParameterCountConfiguration) {
+    public init(configuration: ParameterCountConfiguration) {
         self.configuration = configuration
     }
 }
@@ -57,7 +57,7 @@ enum ParameterCountFinding: Finding, Equatable {
     }
 }
 
-public struct ReasonableParameterCountConfiguration: BestPracticeConfiguration {
+public struct ParameterCountConfiguration: BestPracticeConfiguration {
     var maximumCount: Int
     
     public func configure() -> BestPractice {

@@ -13,12 +13,12 @@ import XCTest
 import ApodiniExtension
 
 struct BestPracticeWebService: WebService {
-    var pluralString = "images"
+    var segment = ""
     
     @PathParameter var someId: UUID
     
     var content: some Component {
-        Group(pluralString, $someId) {
+        Group(segment, $someId) {
             EmptyGetHandler(someId: $someId).endpointName("GetStoreHandler")
         }
     }
@@ -32,7 +32,7 @@ struct EmptyGetHandler: Handler {
     }
 }
 
-func getEndpointFromWebService(_ webService: BestPracticeWebService, _ app: Application, _ ename: String) throws -> AnyEndpoint {
+func getEndpointFromWebService<W: WebService>(_ webService: W, _ app: Application, _ ename: String) throws -> AnyEndpoint {
     let modelBuilder = SemanticModelBuilder(app)
     let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
     webService.accept(visitor)
@@ -47,5 +47,38 @@ func getEndpointFromWebService(_ webService: BestPracticeWebService, _ app: Appl
     return endpoint
 }
 
-func generateAudit(for bestPractice: BestPractice, _ endpoint: AnyEndpoint, _ app: Application) {
+func setSegmentAndGetAudit(
+    segment: String,
+    bestPractice: BestPractice
+) throws -> Audit {
+    var webService = BestPracticeWebService()
+    webService.segment = segment
+    let app = Application()
+    let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
+    return bestPractice.check(for: endpoint, app)
+}
+
+func assertNoFinding(
+    segment: String,
+    bestPractice: BestPractice
+) throws {
+    let audit = try setSegmentAndGetAudit(segment: segment, bestPractice: bestPractice)
+    XCTAssertEqual(audit.findings.count, 0)
+}
+
+func assertOneFinding<F: Finding & Equatable>(
+    segment: String,
+    bestPractice: BestPractice,
+    expectedFinding: F
+) throws {
+    let audit = try setSegmentAndGetAudit(segment: segment, bestPractice: bestPractice)
+    XCTAssertEqual(audit.findings.count, 1)
+    guard let finding = audit.findings[0] as? F else {
+        XCTFail("Could not typecast Finding")
+        return
     }
+    guard finding == expectedFinding else {
+        XCTFail("Findings \(finding) and \(expectedFinding) are not equal!")
+        return
+    }
+}

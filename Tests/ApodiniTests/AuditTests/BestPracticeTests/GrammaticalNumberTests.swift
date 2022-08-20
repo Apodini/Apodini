@@ -21,15 +21,12 @@ final class GrammaricalNumberTests: ApodiniTests {
             "russian_dictionary_corpora",
             "longTheses"
         ]
-        
-        var webService = BestPracticeWebService()
-        
+                
         for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssert(audit.findings.isEmpty, noun)
+            try assertNoFinding(
+                segment: noun,
+                bestPractice: PluralSegmentForStoresAndCollections()
+            )
         }
     }
     
@@ -44,19 +41,12 @@ final class GrammaricalNumberTests: ApodiniTests {
             "12493"
         ]
         
-        var webService = BestPracticeWebService()
-        
         for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssertEqual(audit.findings.count, 1)
-            let finding = audit.findings[0]
-            guard case BadCollectionSegmentName.nonPluralBeforeParameter(noun) = finding else {
-                XCTFail(noun)
-                continue
-            }
+            try assertOneFinding(
+                segment: noun,
+                bestPractice: PluralSegmentForStoresAndCollections(),
+                expectedFinding: BadCollectionSegmentName.nonPluralBeforeParameter(noun)
+            )
         }
     }
 }

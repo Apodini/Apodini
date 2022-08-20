@@ -16,9 +16,11 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     
     var checkedSegments = [String]()
     
+    var configuration = NumberOrSymbolConfiguration()
+    
     func checkSegment(segment: String, isParameter: Bool) -> Finding? {
         if segment.contains(where: { char in
-            !char.isLetter && char != "-"
+            !char.isLetter && !configuration.allowedSymbols.contains(char)
         }) {
             return NumberOrSymbolsInURLFinding.nonLetterCharacterFound(segment: segment)
         }
@@ -26,9 +28,25 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     }
     
     public required init() { }
+    
+    init(configuration: NumberOrSymbolConfiguration) {
+        self.configuration = configuration
+    }
 }
 
-enum NumberOrSymbolsInURLFinding: Finding {
+public struct NumberOrSymbolConfiguration: BestPracticeConfiguration {
+    var allowedSymbols: [Character] = ["-"]
+    
+    public func configure() -> BestPractice {
+        NoNumbersOrSymbolsInURLPathSegments(configuration: self)
+    }
+    
+    public init(allowedSymbols: [Character] = []) {
+        self.allowedSymbols += allowedSymbols
+    }
+}
+
+enum NumberOrSymbolsInURLFinding: Finding, Equatable {
     case nonLetterCharacterFound(segment: String)
     
     var diagnosis: String {

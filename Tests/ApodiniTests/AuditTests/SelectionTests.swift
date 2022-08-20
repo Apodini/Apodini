@@ -13,19 +13,13 @@ import XCTest
 import PythonKit
 
 
-final class ApodiniAuditTests: ApodiniTests {
-    override class func setUp() {
-        // Run the AuditSetupCommand. It doesn't matter which WebService we specify.
-        let app = Application()
-        let commandType = AuditSetupNLTKCommand<AuditableWebService>.self
-        let command = commandType.init()
-        do {
-            try command.run(app: app)
-            print("Installed requirements!")
-        } catch {
-            print("Could not install requirements: \(error)")
-        }
-    }
+final class SelectionTests: ApodiniTests {
+    // To test
+    // REST config only runs REST BPs
+    // (HTTP config only runs HTTP Bps)
+    // we can select a config with if etc.
+    // the audit command is only registered once
+    
     
     struct AuditableWebService: WebService {
         var content: some Component {
@@ -206,78 +200,78 @@ final class ApodiniAuditTests: ApodiniTests {
     
     private func getAuditsForAuditRunCommand<T: WebService>(_ command: inout AuditRunCommand<T>) throws -> [Audit] {
         command.webService = .init()
-        
+
         try command.run(app: app)
-        
+
         // Get the AuditInterfaceExporter
         // FUTURE We just get the first one, for now we do not consider the case of multiple exporters
         let optionalExporter = app.interfaceExporters.first { exporter in
             exporter.typeErasedInterfaceExporter is AuditInterfaceExporter
         }
         let auditInterfaceExporter = try XCTUnwrap(optionalExporter?.typeErasedInterfaceExporter as? AuditInterfaceExporter)
-        
+
         return auditInterfaceExporter.report.audits
     }
 }
 
-private struct FindingMessage: Hashable {
-    let diagnosis: String
-    let suggestion: String?
-    let priority: Priority
-    
-    init(_ diagnosis: String, _ suggestion: String?, _ priority: Priority) {
-        self.diagnosis = diagnosis
-        self.suggestion = suggestion
-        self.priority = priority
-    }
-}
-
-func XCTAssertFindingsEqual(_ actual: [Finding], _ expected: [Finding]) {
-    let actualMessages = actual.map { finding in
-        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
-    }
-    
-    let expectedMessages = expected.map { finding in
-        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
-    }
-    
-    XCTAssertSetEqual(actualMessages, expectedMessages)
-}
-
-func XCTAssertSetEqual<T: Hashable>(
-    _ actual: [T],
-    _ expected: [T],
-    _ message: @autoclosure () -> String = "" ,
-    file: StaticString = #filePath,
-    line: UInt = #line
-) {
-    let actualCounts = actual.distinctElementCounts()
-    let expectedCounts = expected.distinctElementCounts()
-    if actualCounts == expectedCounts {
-        return
-    }
-    
-    // Build sets
-    let actualSet = Set(actual)
-    let expectedSet = Set(expected)
-    
-    if actualSet.count != actual.count || expectedSet.count != expected.count {
-        XCTFail("The expected or actual array is not duplicate-free!", file: file, line: line)
-    }
-    
-    let missingElements = expectedSet.subtracting(actualSet)
-    let superfluousElements = actualSet.subtracting(expectedSet)
-    
-    var failureMsg = ""
-    if !missingElements.isEmpty {
-        failureMsg += "Missing elements:\n\(missingElements.map { "- \($0)" }.joined(separator: "\n"))\n"
-    }
-    if !superfluousElements.isEmpty {
-        failureMsg += "Superfluous elements:\n\(superfluousElements.map { "- \($0)" }.joined(separator: "\n"))\n"
-    }
-    let customMsg = message()
-    if !customMsg.isEmpty {
-        failureMsg.append(customMsg)
-    }
-    XCTFail(failureMsg, file: file, line: line)
-}
+//private struct FindingMessage: Hashable {
+//    let diagnosis: String
+//    let suggestion: String?
+//    let priority: Priority
+//
+//    init(_ diagnosis: String, _ suggestion: String?, _ priority: Priority) {
+//        self.diagnosis = diagnosis
+//        self.suggestion = suggestion
+//        self.priority = priority
+//    }
+//}
+//
+//func XCTAssertFindingsEqual(_ actual: [Finding], _ expected: [Finding]) {
+//    let actualMessages = actual.map { finding in
+//        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
+//    }
+//
+//    let expectedMessages = expected.map { finding in
+//        FindingMessage(finding.diagnosis, finding.suggestion, finding.priority)
+//    }
+//
+//    XCTAssertSetEqual(actualMessages, expectedMessages)
+//}
+//
+//func XCTAssertSetEqual<T: Hashable>(
+//    _ actual: [T],
+//    _ expected: [T],
+//    _ message: @autoclosure () -> String = "" ,
+//    file: StaticString = #filePath,
+//    line: UInt = #line
+//) {
+//    let actualCounts = actual.distinctElementCounts()
+//    let expectedCounts = expected.distinctElementCounts()
+//    if actualCounts == expectedCounts {
+//        return
+//    }
+//
+//    // Build sets
+//    let actualSet = Set(actual)
+//    let expectedSet = Set(expected)
+//
+//    if actualSet.count != actual.count || expectedSet.count != expected.count {
+//        XCTFail("The expected or actual array is not duplicate-free!", file: file, line: line)
+//    }
+//
+//    let missingElements = expectedSet.subtracting(actualSet)
+//    let superfluousElements = actualSet.subtracting(expectedSet)
+//
+//    var failureMsg = ""
+//    if !missingElements.isEmpty {
+//        failureMsg += "Missing elements:\n\(missingElements.map { "- \($0)" }.joined(separator: "\n"))\n"
+//    }
+//    if !superfluousElements.isEmpty {
+//        failureMsg += "Superfluous elements:\n\(superfluousElements.map { "- \($0)" }.joined(separator: "\n"))\n"
+//    }
+//    let customMsg = message()
+//    if !customMsg.isEmpty {
+//        failureMsg.append(customMsg)
+//    }
+//    XCTFail(failureMsg, file: file, line: line)
+//}

@@ -50,7 +50,7 @@ public struct FileExtensionConfiguration: BestPracticeConfiguration {
     }
 }
 
-enum URLFileExtensionFinding: Finding {
+enum URLFileExtensionFinding: Finding, Equatable {
     case fileExtensionFound(segment: String)
     
     var diagnosis: String {

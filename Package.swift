@@ -477,7 +477,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "XCTApodiniNetworking")
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniAudit")
             ]
         ),
         

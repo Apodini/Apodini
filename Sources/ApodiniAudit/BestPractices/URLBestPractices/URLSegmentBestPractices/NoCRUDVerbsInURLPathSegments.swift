@@ -34,14 +34,14 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
 }
 
 public struct CRUDVerbConfiguration: BestPracticeConfiguration {
-    var forbiddenVerbs: [String]
+    var forbiddenVerbs = ["get", "post", "remove", "delete", "put", "set", "create"]
     
     public func configure() -> BestPractice {
         NoCRUDVerbsInURLPathSegments(configuration: self)
     }
     
-    public init(forbiddenVerbs: [String] = ["get", "post", "remove", "delete", "put"]) {
-        self.forbiddenVerbs = forbiddenVerbs
+    public init(forbiddenVerbs: [String] = []) {
+        self.forbiddenVerbs += forbiddenVerbs
     }
 }
 

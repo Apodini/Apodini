@@ -33,13 +33,12 @@ public class EndpointHasComplexReturnType: BestPractice {
         }
         
         // get return type of endpoint
+        // This is the unwrapped return type, NOT something like EventLoopFuture<String> etc.
         let returnType = audit.endpoint[ResponseType.self].type
         
         // Heuristic: report failure if
         // - Response Type is Status
         // - Response Type is Empty
-        // - FUTURE not implemented: stemmed Response type appears neither in Handler name nor endpoint path
-        // - FUTURE report is type is Response<Status> ? doesn't really make sense
         
         // Report failure if the return type is Status or Empty
         if returnType == Empty.self || returnType == Status.self {

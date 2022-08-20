@@ -12,51 +12,44 @@ import XCTest
 @testable import ApodiniREST
 
 final class SegmentLengthTests: ApodiniTests {
-    func testPassingNouns() throws {
-        let nouns = [
-            "images",
-            "forests",
-            "soccerplayers",
-            "masters-theses",
-            "russian_dictionary_corpora",
-            "longTheses"
+    func testPassingSegments() throws {
+        let segments = [
+            "de",
+            "fore",
+            "soccerplay",
+            "masters",
+            "longtheses"
         ]
-        
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssert(audit.findings.isEmpty, noun)
+                
+        for segment in segments {
+            try assertNoFinding(
+                segment: segment,
+                bestPractice: URLPathSegmentLengthConfiguration(minimumLength: 4, maximumLength: 10, allowedSegments: ["de"]).configure()
+            )
         }
     }
     
-    func testFailingNouns() throws {
-        let nouns = [
-            "image",
-            "largeFile",
-            "exceltable",
-            "masters-thesis",
-            "classical_concert",
-            "go",
-            "12493"
+    func testFailingSegments() throws {
+        let segments = [
+            "de",
+            "s",
+            "v",
+            "asdfghjkltu",
+            "mainBranchActor"
         ]
         
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssertEqual(audit.findings.count, 1)
-            let finding = audit.findings[0]
-            guard case BadCollectionSegmentName.nonPluralBeforeParameter(noun) = finding else {
-                XCTFail(noun)
-                continue
+        for segment in segments {
+            let finding: URLPathSegmentLengthFinding
+            if segment.count < 3 {
+                finding = .segmentTooShort(segment: segment)
+            } else {
+                finding = .segmentTooLong(segment: segment)
             }
+            try assertOneFinding(
+                segment: segment,
+                bestPractice: URLPathSegmentLengthConfiguration(minimumLength: 3, maximumLength: 10).configure(),
+                expectedFinding: finding
+            )
         }
     }
 }

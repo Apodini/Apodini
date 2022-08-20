@@ -12,8 +12,8 @@ import XCTest
 @testable import ApodiniREST
 
 final class CRUDVerbTests: ApodiniTests {
-    func testPassingNouns() throws {
-        let nouns = [
+    func testPassingVerbs() throws {
+        let segments = [
             "images",
             "forests",
             "soccerplayers",
@@ -21,42 +21,31 @@ final class CRUDVerbTests: ApodiniTests {
             "russian_dictionary_corpora",
             "longTheses"
         ]
-        
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssert(audit.findings.isEmpty, noun)
+                
+        for segment in segments {
+            try assertNoFinding(
+                segment: segment,
+                bestPractice: NoCRUDVerbsInURLPathSegments()
+            )
         }
     }
     
-    func testFailingNouns() throws {
-        let nouns = [
-            "image",
-            "largeFile",
-            "exceltable",
-            "masters-thesis",
-            "classical_concert",
-            "go",
-            "12493"
+    func testFailingVerbs() throws {
+        let segments = [
+            "getImage",
+            "setPicture",
+            "DELETEAPPLICATION",
+            "createDraft",
+            "removeParent",
+            "makePost"
         ]
         
-        var webService = BestPracticeWebService()
-        
-        for noun in nouns {
-            webService.pluralString = noun
-            let bestPractice = PluralSegmentForStoresAndCollections()
-            let endpoint = try getEndpointFromWebService(webService, app, "GetStoreHandler")
-            let audit = bestPractice.check(for: endpoint, app)
-            XCTAssertEqual(audit.findings.count, 1)
-            let finding = audit.findings[0]
-            guard case BadCollectionSegmentName.nonPluralBeforeParameter(noun) = finding else {
-                XCTFail(noun)
-                continue
-            }
+        for segment in segments {
+            try assertOneFinding(
+                segment: segment,
+                bestPractice: CRUDVerbConfiguration(forbiddenVerbs: ["make"]).configure(),
+                expectedFinding: URLCRUDVerbsFinding.crudVerbFound(segment: segment)
+            )
         }
     }
 }

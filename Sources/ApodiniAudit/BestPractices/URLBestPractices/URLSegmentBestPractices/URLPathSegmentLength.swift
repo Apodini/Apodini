@@ -42,7 +42,7 @@ public class URLPathSegmentLength: URLSegmentBestPractice {
     }
 }
 
-enum URLPathSegmentLengthFinding: Finding {
+enum URLPathSegmentLengthFinding: Finding, Equatable {
     case segmentTooShort(segment: String)
     case segmentTooLong(segment: String)
     
