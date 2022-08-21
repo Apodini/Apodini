@@ -35,14 +35,22 @@ final class HTTPStatusTests: XCTApodiniTest {
         try assertStatus(route: "/a", status: .created)
         StatusHandler.status = .noContent
         try assertStatus(route: "/a", status: .noContent)
+        StatusHandler.status = .accepted
+        try assertStatus(route: "/a", status: .accepted)
+        
         StatusHandler.status = .redirect
         try assertStatus(route: "/a", status: .seeOther)
+        StatusHandler.status = .notModified
+        try assertStatus(route: "/a", status: .notModified)
+        
         StatusHandler.status = .badRequest
         try assertStatus(route: "/a", status: .badRequest)
         StatusHandler.status = .notFound
         try assertStatus(route: "/a", status: .notFound)
-        StatusHandler.status = .notModified
-        try assertStatus(route: "/a", status: .notModified)
+        StatusHandler.status = .conflict
+        try assertStatus(route: "/a", status: .conflict)
+        StatusHandler.status = .preconditionFailed
+        try assertStatus(route: "/a", status: .preconditionFailed)
     }
     
     struct StatusHandler: Handler {
