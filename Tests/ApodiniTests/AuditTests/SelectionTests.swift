@@ -14,10 +14,6 @@ import PythonKit
 
 
 final class SelectionTests: ApodiniTests {
-    // To test
-    // Three levels: WebService, Component, Handler
-    // Three options for selection: category, scope, bp
-    
     func testWebServiceCategoryExclude() throws {
         try assertNoFinding(
             webService: WebService1(),
@@ -36,7 +32,12 @@ final class SelectionTests: ApodiniTests {
     }
     
     func testComponentBestPracticeInclude() throws {
-        
+        try assertOneFinding(
+            webService: WebService3(),
+            bestPracticeType: URLPathSegmentLength.self,
+            endpointPath: "/hi",
+            expectedFinding: URLPathSegmentLengthFinding.segmentTooShort(segment: "hi")
+        )
     }
     
     struct WebService1: WebService {
@@ -104,7 +105,7 @@ final class SelectionTests: ApodiniTests {
         }
         
         var metadata: AnyWebServiceMetadata {
-            SelectBestPractices(.exclude, .urlPath)
+            SelectBestPractices(.exclude, .rest)
         }
     }
     
