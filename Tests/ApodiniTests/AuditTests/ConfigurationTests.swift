@@ -91,14 +91,14 @@ final class ConfigurationTests: ApodiniTests {
         try assertNoFinding(
             webService: withoutWebService,
             bestPracticeType: CustomBP.self,
-            endpointPath: "/"
+            endpointPath: "/hi"
         )
         
         let withWebService = AuditWebService(addCustomConfig: true)
         try assertOneFinding(
             webService: withWebService,
             bestPracticeType: CustomBP.self,
-            endpointPath: "/",
+            endpointPath: "/hi",
             expectedFinding: CustomFinding.finding
         )
     }
