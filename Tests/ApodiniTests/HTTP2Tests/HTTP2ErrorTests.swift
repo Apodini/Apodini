@@ -13,31 +13,22 @@ import ApodiniHTTP
 @testable import Apodini
 
 class HTTP2ErrorTests: XCTApodiniTest {
-    let host = "localhost"
-    let port = 443
-    
     override func setUpWithError() throws {
         try super.setUpWithError()
         
-//        configuration.configure(app)
-//
-//        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-//        content.accept(visitor)
-//        visitor.finishParsing()
-//
-//        try app.httpServer.start()
+        AddStuff.configuration.configure(app)
+
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        AddStuff.content.accept(visitor)
+        visitor.finishParsing()
+
+        try app.httpServer.start()
     }
     
     func testIncompleteRequest() throws {
-//        let countExpectation = XCTestExpectation("Count the number of reponses")
-//        countExpectation.assertForOverFulfill = true
-//        countExpectation.expectedFulfillmentCount = 100
-//        let errorExpectation = XCTestExpectation("An error occured!")
-//        errorExpectation.isInverted = true
-        
         let headerFields = BasicHTTPHeaderFields(.POST, "/http/add", "localhost")
         let delegate = IncompleteStreamingDelegate(headerFields)
-        let client = try HTTP2StreamingClient(host, port)
+        let client = try HTTP2StreamingClient("localhost", 4443)
         try client.startStreamingDelegate(delegate).flatMapAlways { result -> EventLoopFuture<Void> in
             switch result {
             case .failure(let failure):
@@ -48,24 +39,6 @@ class HTTP2ErrorTests: XCTApodiniTest {
             return client.eventLoop.makeSucceededVoidFuture()
         }.wait()
     }
-    
-//    @ConfigurationBuilder
-//    var configuration: Configuration {
-//        HTTP()
-//
-//        HTTPConfiguration(
-//            bindAddress: .interface("localhost", port: 4443),
-//            tlsConfiguration: .init(
-//                certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
-//                keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
-//            )
-//        )
-//    }
-//
-//    @ComponentBuilder
-//    var content: some Component {
-//        AddHandler()
-//    }
 
     final class IncompleteStreamingDelegate: StreamingDelegate {
         typealias SRequest = DATAFrameRequest<String>

@@ -13,16 +13,13 @@ import ApodiniHTTP
 @testable import Apodini
 
 class HTTP2BidirectionalTests: XCTApodiniTest {
-    let host = "localhost"
-    let port = 4443
-    
     override func setUpWithError() throws {
         try super.setUpWithError()
 
-        configuration.configure(app)
+        AddStuff.configuration.configure(app)
 
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        content.accept(visitor)
+        AddStuff.content.accept(visitor)
         visitor.finishParsing()
 
         try app.httpServer.start()
@@ -37,33 +34,10 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         
         let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
         let delegate = AddStreamingDelegate(headerFields, errorExpectation, countExpectation)
-        let client = try HTTP2StreamingClient(host, port)
+        let client = try HTTP2StreamingClient("localhost", 4443)
         client.startStreamingDelegate(delegate)
         
         wait(for: [countExpectation, errorExpectation], timeout: 1.0)
-    }
-    
-    @ConfigurationBuilder
-    var configuration: Configuration {
-        HTTP()
-        
-        HTTPConfiguration(
-            bindAddress: .interface(host, port: port),
-            tlsConfiguration: .init(
-                certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
-                keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
-            )
-        )
-    }
-
-    @ComponentBuilder
-    var content: some Component {
-        AddHandler()
-    }
-    
-    struct AddStruct: Codable {
-        let sum: Int
-        let number: Int
     }
 
     final class AddStreamingDelegate: StreamingDelegate {
@@ -110,48 +84,6 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
             self.headerFields = headerfields
             self.errorExpectation = errorExpectation
             self.countExpectation = countExpectation
-        }
-    }
-
-    struct AddHandler: Handler {
-        @Parameter(.http(.query)) var sum: Int
-        @Parameter(.http(.query)) var number: Int
-        @Environment(\.connection) var connection: Connection
-        @State var nextExpectedSum = 0
-        
-        func handle() -> Response<AddStruct> {
-            switch connection.state {
-            case .close:
-                return .final()
-            default:
-                break
-            }
-            
-            // Verify that the request is correct given the last response we sent
-            if sum != nextExpectedSum {
-                let failAddStruct = AddStruct(sum: -1, number: -1)
-                return .final(failAddStruct)
-            }
-            
-            let newNumber = Int.random(in: 0..<10)
-            let confirmedSum = self.sum + self.number
-            self.nextExpectedSum = confirmedSum + newNumber
-            let responseAddStruct = AddStruct(sum: confirmedSum, number: newNumber)
-            
-            
-            switch connection.state {
-            case .open:
-                return .send(responseAddStruct)
-            case .end:
-                return .final(responseAddStruct)
-            default:
-                return .final()
-            }
-        }
-        
-        var metadata: AnyHandlerMetadata {
-            Pattern(.bidirectionalStream)
-            Operation(.create)
         }
     }
 }
