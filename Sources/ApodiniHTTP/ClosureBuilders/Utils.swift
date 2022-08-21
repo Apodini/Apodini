@@ -189,18 +189,20 @@ extension AsyncSequence {
             }
             .firstFutureAndForEach(
                 on: request.eventLoop,
-                objectsHandler: { (response: Apodini.Response<Data>) -> Void in
-                    // TODO is this correct? What about .final responses?
-                    if response.connectionEffect == .close {
-                        print("Closing response stream")
-                        httpResponseStream.close()
+                objectsHandler: { (response: Apodini.Response<Data>) -> Void in                    
+                    if httpResponseStream.isClosed {
                         return
                     }
                     
-                    let data = response.content ?? Data()
+                    if let data = response.content {
+                        httpResponseStream.write(Int32(data.count))
+                        httpResponseStream.write(data)
+                    }
                     
-                    httpResponseStream.write(Int32(data.count))
-                    httpResponseStream.write(data)
+                    if response.connectionEffect == .close {
+                        print("Closing response stream")
+                        httpResponseStream.close()
+                    }
                 }
             )
             .map { firstResponse -> HTTPResponse in

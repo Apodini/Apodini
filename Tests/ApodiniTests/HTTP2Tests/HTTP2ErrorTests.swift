@@ -26,18 +26,21 @@ class HTTP2ErrorTests: XCTApodiniTest {
     }
     
     func testIncompleteRequest() throws {
-        let headerFields = BasicHTTPHeaderFields(.POST, "/http/add", "localhost")
+        let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
         let delegate = IncompleteStreamingDelegate(headerFields)
         let client = try HTTP2StreamingClient("localhost", 4443)
-        try client.startStreamingDelegate(delegate).flatMapAlways { result -> EventLoopFuture<Void> in
-            switch result {
-            case .failure(let failure):
-                XCTAssertTrue(failure is NIOHTTP2Errors.StreamClosed)
-            default:
-                XCTFail("Did not catch error!")
+        try client
+            .startStreamingDelegate(delegate)
+            .flatMapAlways { result -> EventLoopFuture<Void> in
+                switch result {
+                case .failure(let failure):
+                    XCTAssertTrue(failure is NIOHTTP2Errors.StreamClosed)
+                default:
+                    XCTFail("Did not catch error!")
+                }
+                return client.eventLoop.makeSucceededVoidFuture()
             }
-            return client.eventLoop.makeSucceededVoidFuture()
-        }.wait()
+            .wait()
     }
 
     final class IncompleteStreamingDelegate: StreamingDelegate {
@@ -50,8 +53,9 @@ class HTTP2ErrorTests: XCTApodiniTest {
         
         func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
             let str = buffer.getString(at: 0, length: buffer.readableBytes)
-            XCTAssertEqual(str,
-                "Bad Input: Didn't retrieve any parameters for a required parameter '@Parameter var sum: Int'. (keyNotFound(\"sum\", Swift.DecodingError.Context(codingPath: [\"query\"], debugDescription: \"No value associated with key sum (\\\"sum\\\").\", underlyingError: nil)))"
+            XCTAssertEqual(
+                str,
+                "Bad Input: Didn't retrieve any parameters for a required parameter '@Parameter var sum: Int'. (keyNotFound(\"sum\", Swift.DecodingError.Context(codingPath: [\"query\"], debugDescription: \"No value associated with key sum (\\\"sum\\\").\", underlyingError: nil)))" // swiftlint:disable:this line_length
             )
         }
         
