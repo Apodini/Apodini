@@ -26,7 +26,7 @@ class ApodiniTests: XCTApodiniTest {
     
     static var didInstallNLTK = false
     
-    override open class func setUp() {
+    override class func setUp() {
         if !didInstallNLTK {
             // Run the AuditSetupCommand. It doesn't matter which WebService we specify.
             let app = Application()
