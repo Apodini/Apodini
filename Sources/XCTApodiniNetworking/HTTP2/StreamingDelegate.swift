@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NIOCore
 
 /// A delegate which receives responses from an HTTP server speaking the HTTP/2 length-prefixed streaming protocol
 public protocol StreamingDelegate: AnyObject {
@@ -20,6 +21,7 @@ public protocol StreamingDelegate: AnyObject {
     func close()
     
     func handleInbound(response: SResponse, serverSideClosed: Bool)
+    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool)
     func handleStreamStart()
 }
 
@@ -32,5 +34,10 @@ public extension StreamingDelegate {
     /// Close the HTTP/2 stream
     func close() {
         streamingHandler?.close()
+    }
+    
+    /// Try to print data that was not decodable
+    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+        print("Got undecodable data! As a String: \(buffer.getString(at: 0, length: buffer.readableBytes))")
     }
 }

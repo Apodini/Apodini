@@ -107,7 +107,7 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         
         // Check whether we have a whole object available
         // We get the integer and check whether the stream is long enough.
-        guard let int32ByteBuffer = buffer.getSlice(at: 0, length: 4),
+        guard let int32ByteBuffer = buffer.readSlice(length: 4),
               let objectLengthInt32 = int32ByteBuffer.getInteger(at: 0, as: Int32.self),
               buffer.readableBytes >= objectLengthInt32 + 4 else {
             return
@@ -115,13 +115,17 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         
         let objectLength = Int(objectLengthInt32)
         
-        guard let int32AndObjectByteBuffer = buffer.readSlice(length: objectLength + 4) else {
+        guard let objectBuffer = buffer.readSlice(length: objectLength) else {
             print("Something is pretty wrong. The stream said it's long enough, but we can't read as much as we're supposed to.")
             return
         }
         
-        guard let response = try? int32AndObjectByteBuffer.getJSONDecodable(D.SResponse.self, at: 4, length: objectLength) else {
-            print("Something is pretty wrong. We can't read as much data as we would like to.")
+        guard let response = try? objectBuffer.getJSONDecodable(D.SResponse.self, at: 0, length: objectLength) else {
+            print("Can't decode server response into \(D.SResponse.self)!")
+            self.streamingDelegate.handleInboundNotDecodable(
+                buffer: objectBuffer,
+                serverSideClosed: data.endStream
+            )
             return
         }
         

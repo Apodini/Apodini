@@ -38,7 +38,15 @@ class HTTP2ErrorTests: XCTApodiniTest {
         let headerFields = BasicHTTPHeaderFields(.POST, "/http/add", "localhost")
         let delegate = IncompleteStreamingDelegate(headerFields)
         let client = try HTTP2StreamingClient(host, port)
-        try client.startStreamingDelegate(delegate).wait()
+        try client.startStreamingDelegate(delegate).flatMapAlways { result -> EventLoopFuture<Void> in
+            switch result {
+            case .failure(let failure):
+                XCTAssertTrue(failure is NIOHTTP2Errors.StreamClosed)
+            default:
+                XCTFail("Did not catch error!")
+            }
+            return client.eventLoop.makeSucceededVoidFuture()
+        }.wait()
     }
     
 //    @ConfigurationBuilder
@@ -65,21 +73,19 @@ class HTTP2ErrorTests: XCTApodiniTest {
         var streamingHandler: HTTPClientStreamingHandler<IncompleteStreamingDelegate>?
         var headerFields: BasicHTTPHeaderFields
         
-        var responseCount = 0
+        func handleInbound(response: String, serverSideClosed: Bool) { }
         
-        func handleInbound(response: String, serverSideClosed: Bool) {
-            responseCount += 1
-            if responseCount == 2 {
-                self.close()
-            }
+        func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+            let str = buffer.getString(at: 0, length: buffer.readableBytes)
+            XCTAssertEqual(str,
+                "Bad Input: Didn't retrieve any parameters for a required parameter '@Parameter var sum: Int'. (keyNotFound(\"sum\", Swift.DecodingError.Context(codingPath: [\"query\"], debugDescription: \"No value associated with key sum (\\\"sum\\\").\", underlyingError: nil)))"
+            )
         }
         
         func handleStreamStart() {
-            var msg1 = ByteBuffer(string: "{\"query\": {\"sum\": 0, \"number\": 4}}")
-            var msg2 = ByteBuffer(string: "{\"query\": {}}")
+            var msg = ByteBuffer(string: "{\"query\": {}}")
             
-            streamingHandler?.sendLengthPrefixed(&msg1)
-            streamingHandler?.sendLengthPrefixed(&msg2)
+            streamingHandler?.sendLengthPrefixed(&msg)
         }
         
         init(_ headerfields: BasicHTTPHeaderFields) {

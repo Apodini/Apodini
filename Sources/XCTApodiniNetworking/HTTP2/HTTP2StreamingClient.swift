@@ -91,7 +91,7 @@ public class HTTP2StreamingClient {
     
     /// Attach a streaming delegate to the client by creating an HTTP/2 stream and starting the delegate's `handleStreamStart` method
     @discardableResult
-    public func startStreamingDelegate<SD: StreamingDelegate>(_ delegate: SD) throws -> EventLoopFuture<Void> {
+    public func startStreamingDelegate<SD: StreamingDelegate>(_ delegate: SD) -> EventLoopFuture<Void> {
         guard let connection = connection else {
             return eventLoop.makeSucceededVoidFuture()
         }
@@ -106,6 +106,10 @@ public class HTTP2StreamingClient {
         do {
             try connection?.close().wait()
         } catch {
+            if let error = error as? ChannelError,
+               error == .alreadyClosed {
+                return
+            }
             print(error)
         }
     }
