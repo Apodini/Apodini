@@ -15,10 +15,8 @@ import PythonKit
 
 final class SelectionTests: ApodiniTests {
     // To test
-    // REST config only runs REST BPs
-    // (HTTP config only runs HTTP Bps)
-    // we can select a config with if etc.
-    // the audit command is only registered once
+    // Three levels: WebService, Component, Handler
+    // Three options for selection: category, scope, bp
     
     
     struct AuditableWebService: WebService {

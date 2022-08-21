@@ -48,7 +48,6 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
 }
 
 private enum SharedAPIAuditorConfiguration {
-    // FUTURE write test that _commands works
     fileprivate static var registeredCommand = false
     fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
         if !registeredCommand {

@@ -67,14 +67,6 @@ enum Reporter {
             addLine(&reportStr, "No findings! 🚀")
         }
         
-        // FUTURE remove this
-//        // Sort audits by best practice priority
-//        let sortedAudits = report.audits.sorted { (audit1, audit2) in
-//            if type(of: audit1.bestPractice).priority < type(of: audit2.bestPractice).priority {
-//                return true
-//            }
-//            return false
-//        }
         return reportStr
     }
     

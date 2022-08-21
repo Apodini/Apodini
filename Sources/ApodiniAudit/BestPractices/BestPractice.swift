@@ -45,7 +45,6 @@ extension BestPractice {
 }
 
 public struct BestPracticeCategories: OptionSet {
-    // FUTURE complete list from Masse
     public let rawValue: Int
     
     public static let urlPath          = BestPracticeCategories(rawValue: 1 << 0)
