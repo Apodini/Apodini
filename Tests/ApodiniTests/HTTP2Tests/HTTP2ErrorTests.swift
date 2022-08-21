@@ -69,4 +69,43 @@ class HTTP2ErrorTests: XCTApodiniTest {
             self.headerFields = headerfields
         }
     }
+    
+    func testDoubleRequest() throws {
+        let headerFields = BasicHTTPHeaderFields(.POST, "/ss", "localhost")
+        let delegate = TwoRequestsStreamingDelegate(headerFields)
+        let client = try HTTP2StreamingClient("localhost", 4443)
+        try client
+            .startStreamingDelegate(delegate)
+            .flatMapAlways { result -> EventLoopFuture<Void> in
+                switch result {
+                case .failure(let failure):
+                    XCTAssertTrue(failure is NIOHTTP2Errors.StreamClosed)
+                default:
+                    XCTFail("Did not catch error!")
+                }
+                return client.eventLoop.makeSucceededVoidFuture()
+            }
+            .wait()
+    }
+    
+    final class TwoRequestsStreamingDelegate: StreamingDelegate {
+        typealias SRequest = DATAFrameRequest<AddStruct>
+        typealias SResponse = AddStruct
+        var streamingHandler: HTTPClientStreamingHandler<TwoRequestsStreamingDelegate>?
+        var headerFields: BasicHTTPHeaderFields
+        
+        func handleStreamStart() {
+            let msg1 = AddStruct(sum: 0, number: 4)
+            let msg2 = AddStruct(sum: 4, number: 5)
+            
+            streamingHandler?.sendOutbound(request: DATAFrameRequest(msg1))
+            streamingHandler?.sendOutbound(request: DATAFrameRequest(msg2))
+        }
+        
+        func handleInbound(response: AddStruct, serverSideClosed: Bool) { }
+        
+        init(_ headerfields: BasicHTTPHeaderFields) {
+            self.headerFields = headerfields
+        }
+    }
 }

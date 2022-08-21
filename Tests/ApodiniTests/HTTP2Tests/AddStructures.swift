@@ -54,6 +54,20 @@ struct AddHandler: Handler {
     }
 }
 
+struct ServiceSideStreamingHandler: Handler {
+    @Parameter(.http(.query)) var sum: Int
+    @Parameter(.http(.query)) var number: Int
+    
+    func handle() -> Response<AddStruct> {
+        .send(AddStruct(sum: 3, number: 3))
+    }
+    
+    var metadata: AnyHandlerMetadata {
+        Operation(.create)
+        Pattern(.serviceSideStream)
+    }
+}
+
 struct AddStruct: Codable {
     let sum: Int
     let number: Int
@@ -76,5 +90,8 @@ enum AddStuff {
     @ComponentBuilder
     static var content: some Component {
         AddHandler()
+        Group("ss") {
+            ServiceSideStreamingHandler()
+        }
     }
 }
