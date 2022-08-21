@@ -89,7 +89,6 @@ final class SelectionTests: ApodiniTests {
         var content: some Component {
             Group("hi") {
                 SomeHandler()
-                    
             }
             .metadata(SelectBestPractices(.include, URLPathSegmentLength.self))
         }
