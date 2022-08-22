@@ -189,7 +189,7 @@ extension AsyncSequence {
             }
             .firstFutureAndForEach(
                 on: request.eventLoop,
-                objectsHandler: { (response: Apodini.Response<Data>) -> Void in                    
+                objectsHandler: { (response: Apodini.Response<Data>) -> Void in
                     if httpResponseStream.isClosed {
                         return
                     }
