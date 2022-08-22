@@ -120,6 +120,8 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
             return
         }
         
+        buffer.discardReadBytes()
+        
         guard let response = try? int32AndObjectBuffer.getJSONDecodable(D.SResponse.self, at: 4, length: objectLength) else {
             print("Can't decode server response into \(D.SResponse.self)!")
             self.streamingDelegate.handleInboundNotDecodable(
@@ -128,8 +130,6 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
             )
             return
         }
-        
-        buffer.discardReadBytes()
         
         self.streamingDelegate.handleInbound(response: response, serverSideClosed: data.endStream)
     }

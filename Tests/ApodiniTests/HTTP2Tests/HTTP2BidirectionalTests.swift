@@ -16,10 +16,10 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
 
-        AddStuff.configuration.configure(app)
+        httpsConfiguration.configure(app)
 
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        AddStuff.content.accept(visitor)
+        http2Content.accept(visitor)
         visitor.finishParsing()
 
         try app.httpServer.start()

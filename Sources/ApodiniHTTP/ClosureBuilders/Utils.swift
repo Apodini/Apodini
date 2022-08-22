@@ -185,7 +185,7 @@ extension AsyncSequence {
                 }
             }
             .replaceErrorAndEnd { error in
-                (.send(error.standardMessage.data(using: .utf8) ?? Data()), .final())
+                .final(error.standardMessage.data(using: .utf8) ?? Data())
             }
             .firstFutureAndForEach(
                 on: request.eventLoop,
