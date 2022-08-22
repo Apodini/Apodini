@@ -274,23 +274,11 @@ extension BodyStorage {
         
         /// Writes some data to the stream, and (if applicable) informs the observer that new data can be read
         public func write<T: ByteBufferWritable>(_ data: T) {
-            print("Will write data of type \(T.self) with lock")
             // Note ideally this (and the other mutating write functions) would also take a promise/future parameter, or return smth; that would allow us to control when data is written to the stream.
             // Otherwise we could, for very large streams, eventually run out of memory, which would be somewhat suboptimal
             lock.withLock {
                 precondition(!isClosed, "Cannot write to closed stream")
                 data.write(to: &storage)
-                if let buf = data as? ByteBuffer {
-                    print("Writing ByteBuffer of length \(buf.readableBytes): \(buf.getString(at: 0, length: buf.readableBytes))")
-                }
-                if let dat = data as? Data {
-                    print("Writing Data of length \(dat.count)")
-                }
-                if observer == nil {
-                    print("No stream observer set, not calling anything\n")
-                } else {
-                    print("Calling stream observer")
-                }
                 observer?(self, .write)
             }
         }

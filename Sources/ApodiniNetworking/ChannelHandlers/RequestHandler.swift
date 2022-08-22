@@ -46,9 +46,7 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
                         self.handleResponse(httpResponse, context: context)
                     case .stream(let stream):
                         stream.setObserver { [weak httpResponse] _, _ in
-                            print("Stream observer called!")
                             context.eventLoop.execute { [weak httpResponse] in
-                                print("EventLoop block in stream observer")
                                 self.handleResponse(httpResponse, context: context)
                             }
                         }
@@ -60,15 +58,14 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
     
     
     private func handleResponse(_ resp: HTTPResponse?, context: ChannelHandlerContext) {
-        let response: HTTPResponse?
-        if resp != nil {
-            response = resp
-        } else {
-            response = lastHTTPResponse
-        }
-        guard let response = response else {
+        guard !channelClosed else {
             return
         }
+        guard let lastHTTPResponse = lastHTTPResponse else {
+            return
+        }
+
+        let response = resp ?? lastHTTPResponse
         
         response.headers.setUnlessPresent(name: .date, value: Date())
         if response.bodyStorage.isBuffer {
@@ -76,9 +73,7 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
         }
         response.headers.setUnlessPresent(name: .server, value: "ApodiniNetworking")
         // Note might want to use this as an opportunity to log errors/warning if responses are lacking certain headers, to give clients the ability to address this.
-        print("SwiftNIO-writing \(response.bodyStorage.readableBytes) bytes")
         context.write(self.wrapOutboundOut(response)).whenComplete { result in
-            print("Successfully sent \(response.bodyStorage.readableBytes) bytes")
             switch result {
             case .success:
                 let keepAlive = false // If this is true, the channel will always be kept open. otherwise, it might be if it's a stream
@@ -90,7 +85,6 @@ class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
                     }
                 case .stream(let stream):
                     if !keepAlive && stream.isClosed && stream.readableBytes == 0 {
-                        print("Closing swift nio channel as Apodini stream is closed")
                         self.channelClosed = true
                         context.close(promise: nil)
                     }
