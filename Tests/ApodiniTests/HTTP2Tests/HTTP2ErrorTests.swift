@@ -53,10 +53,17 @@ class HTTP2ErrorTests: XCTApodiniTest {
         
         func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
             let str = buffer.getString(at: 0, length: buffer.readableBytes)
+            #if DEBUG
             XCTAssertEqual(
                 str,
                 "Bad Input: Didn't retrieve any parameters for a required parameter '@Parameter var sum: Int'. (keyNotFound(\"sum\", Swift.DecodingError.Context(codingPath: [\"query\"], debugDescription: \"No value associated with key sum (\\\"sum\\\").\", underlyingError: nil)))" // swiftlint:disable:this line_length
             )
+            #else
+            XCTAssertEqual(
+                str,
+                "Bad Input: Didn't retrieve any parameters for a required parameter '@Parameter var sum: Int'."
+            )
+            #endif
         }
         
         func handleStreamStart() {
