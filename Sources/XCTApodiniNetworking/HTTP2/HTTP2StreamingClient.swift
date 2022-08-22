@@ -103,14 +103,6 @@ public class HTTP2StreamingClient {
     }
     
     deinit {
-        do {
-            try connection?.close().wait()
-        } catch {
-            if let error = error as? ChannelError,
-               error == .alreadyClosed {
-                return
-            }
-            print(error)
-        }
+        _ = connection?.close()
     }
 }
