@@ -78,7 +78,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
         case .path:
             endpointIdentifier = endpoint.absolutePath.build(with: WebSocketPathBuilder.self)
         case .endpointNameMetadata:
-            endpointIdentifier = endpoint.getEndointName(.verb, format: .camelCase)
+            endpointIdentifier = endpoint.getEndpointName(.verb, format: .camelCase)
         }
         self.router.register(on: endpointIdentifier) { (clientInput: AnyAsyncSequence<SomeInput>, eventLoop, request: HTTPRequest) -> (
             defaultInput: SomeInput,
@@ -237,7 +237,7 @@ private func messagePrefix(for error: ApodiniError) -> String? {
         return "I messed up"
     case .notAvailable:
         return "Not now...I'm busy"
-    case .other:
+    default:
         return "Something's wrong, I can feel it"
     }
 }

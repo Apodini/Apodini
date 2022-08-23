@@ -16,7 +16,11 @@ public class WebServiceRoot<A: TruthAnchor>: KnowledgeSource {
     public let node: WebServiceComponent<A>
     
     public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
-        self.node = WebServiceComponent(parent: nil, identifier: .root, sharedRepositorys: sharedRepository[SharedRepositorys.self][for: A.self])
+        self.node = WebServiceComponent(
+            parent: nil,
+            identifier: .root,
+            sharedRepositorys: sharedRepository[SharedRepositorys.self][for: A.self]
+        )
     }
     
     subscript<T>(dynamicMember keyPath: KeyPath<WebServiceComponent<A>, T>) -> T {
@@ -40,7 +44,10 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         // we make sure the WebServiceComponent that is meant to be initilaized here is created by
         // delegating to the WebServiceRoot
-        _ = sharedRepository[WebServiceRoot<A>.self].node.findChild(for: sharedRepository[PathComponents.self].value, registerSelfToSharedRepositorys: true)
+        _ = sharedRepository[WebServiceRoot<A>.self].node.findChild(
+            for: sharedRepository[PathComponents.self].value,
+            registerSelfToSharedRepositorys: true
+        )
         throw KnowledgeError.instancePresent
     }
     
@@ -52,7 +59,9 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     
     private func deriveEndpoints() -> [Operation: SharedRepository] {
         var endpoints = [Operation: SharedRepository]()
-        for endpoint in sharedRepositorys.filter({ sharedRepository in sharedRepository[PathComponents.self].value.count == self.globalPath.count - 1 }) {
+        for endpoint in sharedRepositorys.filter({ sharedRepository in
+            sharedRepository[PathComponents.self].value.count == self.globalPath.count - 1
+        }) {
             endpoints[endpoint[Operation.self]] = endpoint
             endpoint[WebServiceComponent<A>.self] = self
         }

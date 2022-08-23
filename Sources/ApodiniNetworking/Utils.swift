@@ -29,14 +29,20 @@ extension HTTPResponseStatus {
     /// Creates a `HTTPResponseStatus` based on an `Apodini.Status`.
     public init(_ status: Apodini.Status) {
         switch status {
+            // 200
         case .ok:
             self = .ok
         case .created:
             self = .created
         case .noContent:
             self = .noContent
+        case .accepted:
+            self = .accepted
+            // 300
         case .redirect:
             self = .seeOther
+        case .notModified:
+            self = .notModified
         }
     }
 }

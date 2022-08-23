@@ -24,4 +24,8 @@ public struct ReadOne<Model: DatabaseModel>: Handler {
     }
     
     public init() {}
+    
+    public var metadata: AnyHandlerMetadata {
+        Operation(.read)
+    }
 }

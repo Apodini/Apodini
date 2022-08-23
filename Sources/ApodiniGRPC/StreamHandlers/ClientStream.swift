@@ -77,8 +77,8 @@ class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                         guard let responseContent = response.content else {
                             // Important question. What semantics do we want for client-streaming RPC handlers?
                             // The way this should end up working is that the client can send as many requests as they want, and the first "non-nothing"
-                            // response from the handler will ter,inate the call.
-                            // Quesrion: do we accept only `.nothing` resopnses as "keep the stream open" responses, or also empty responses.
+                            // response from the handler will terminate the call.
+                            // Question: do we accept only `.nothing` responses as "keep the stream open" responses, or also empty responses.
                             // What if the handler intentionally wants to end the stream w/ an empty response?
                             return context.eventLoop.makeSucceededFuture(.singleMessage(
                                 headers: headers,

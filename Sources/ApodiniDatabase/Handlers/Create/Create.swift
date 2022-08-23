@@ -27,4 +27,8 @@ public struct Create<Model: DatabaseModel>: Handler {
     }
     
     public init() {}
+    
+    public var metadata: AnyHandlerMetadata {
+        Operation(.create)
+    }
 }

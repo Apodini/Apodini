@@ -10,7 +10,7 @@ import Foundation
 import Apodini
 import ArgumentParser
 
-// MARK: - AuditRun
+// MARK: - AuditRunCommand
 struct AuditRunCommand<Service: WebService>: AuditParsableSubcommand {
     static var configuration: CommandConfiguration {
         CommandConfiguration(

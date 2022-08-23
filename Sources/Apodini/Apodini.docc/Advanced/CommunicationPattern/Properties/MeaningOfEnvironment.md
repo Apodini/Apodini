@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 ## Overview
 
-The `@Environment` property wrapper provides different functionality depending on the `wrappedValue`. For more detail on how the `wrappedValue` is provided to the environment and what values are provided by the Apodini framework refer to **RequestAndEnivornment**.
+The `@Environment` property wrapper provides different functionality depending on the `wrappedValue`. For more detail on how the `wrappedValue` is provided to the environment and what values are provided by the Apodini framework refer to **RequestAndEnvironment**.
 
 ## Connection
 

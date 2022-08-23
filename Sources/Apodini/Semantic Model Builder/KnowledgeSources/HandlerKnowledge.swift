@@ -26,7 +26,7 @@ public struct HandlerDescription: HandlerKnowledgeSource, RawRepresentable, Cust
     }
 }
 
-/// `HandlerDescription` describes the full type-name of a `Handler`.
+/// `HandlerReflectiveName` describes the full type-name of a `Handler`.
 public struct HandlerReflectiveName: HandlerKnowledgeSource, RawRepresentable, CustomStringConvertible {
     public let rawValue: String
 

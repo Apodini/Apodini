@@ -79,7 +79,7 @@ extension HTTPInterfaceExporter {
                         } catch {
                             // Error encoding the response data
                             endpoint[ErrorForwarder.self].forward(error)
-                            logger.error("Error encoding part of response: \(error)")
+                            self.logger.error("Error encoding part of response: \(error)")
                         }
                     }
                 )

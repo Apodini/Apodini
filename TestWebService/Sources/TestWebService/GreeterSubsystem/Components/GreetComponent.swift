@@ -7,6 +7,7 @@
 //
 
 import Apodini
+import ApodiniAudit
 
 
 struct GreetComponent: Component {
@@ -20,5 +21,9 @@ struct GreetComponent: Component {
                 .identified(by: "greetMe")
                 .endpointName("greetMe")
         }
+    }
+    
+    var metadata: AnyComponentOnlyMetadata {
+        SelectBestPractices(.exclude, NoCRUDVerbsInURLPathSegments.self)
     }
 }

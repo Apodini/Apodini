@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Apodini/ApodiniDocumentExport.git",
       "state" : {
-        "revision" : "0a3fe4195f011057ad2cd5150c9091f2a17c2ec1",
-        "version" : "0.1.1"
+        "revision" : "7de65b4c81929b56eadad190b11f02cf42ff9afe",
+        "version" : "0.1.0"
       }
     },
     {
@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "24425989dadab6d6e4167174791a23d4e2a6d0c3",
-        "version" : "1.10.0"
+        "revision" : "794dc9d42720af97cedd395e8cd2add9173ffd9a",
+        "version" : "1.11.1"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/async-kit.git",
       "state" : {
-        "revision" : "e2f741640364c1d271405da637029ea6a33f754e",
-        "version" : "1.11.1"
+        "revision" : "c3329e444bafbb12d1d312af9191be95348a8175",
+        "version" : "1.13.0"
       }
     },
     {
@@ -77,8 +77,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/fluent-kit.git",
       "state" : {
-        "revision" : "8958da5e2aec8d56ad45c340683117a074e2885a",
-        "version" : "1.25.0"
+        "revision" : "f5ae02083656d1218cc32ad10c0608c040b4d22c",
+        "version" : "1.30.0"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/fluent-sqlite-driver.git",
       "state" : {
-        "revision" : "9ca34be792979fb0f1dbd8e45b8af9f1e1440474",
-        "version" : "4.1.0"
+        "revision" : "9439661820e547abc1807121cb3d3482447239a5",
+        "version" : "4.2.0"
       }
     },
     {
@@ -104,8 +104,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/grpc/grpc-swift.git",
       "state" : {
-        "revision" : "593fe0fe931f7e838969243cd137be48e8055b1d",
-        "version" : "1.7.3"
+        "revision" : "d772b688d718c2eb29f99b535fc4d92ebba031c5",
+        "version" : "1.8.1"
       }
     },
     {
@@ -122,8 +122,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/jwt-kit.git",
       "state" : {
-        "revision" : "3537dd319dfbcc403a5165d8c19c4834e8e64730",
-        "version" : "4.5.0"
+        "revision" : "718e94f917a4c053758e5bb50c28553561a6ef91",
+        "version" : "4.6.0"
       }
     },
     {
@@ -163,6 +163,15 @@
       }
     },
     {
+      "identity" : "pythonkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pvieito/PythonKit.git",
+      "state" : {
+        "revision" : "81f621d094a7c8923207efe5178f50dba1b56c39",
+        "version" : "0.3.1"
+      }
+    },
+    {
       "identity" : "richjsonparser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/omochi/RichJSONParser.git",
@@ -185,8 +194,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto.git",
       "state" : {
-        "revision" : "b98994beabdced18cbedbe50e947e6f2c8e0d602",
-        "version" : "5.12.1"
+        "revision" : "3648a7fcbaa1ac06b6ab2b4b227d521ed065e780",
+        "version" : "5.13.1"
       }
     },
     {
@@ -284,8 +293,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/swift-backtrace.git",
       "state" : {
-        "revision" : "d3e04a9d4b3833363fb6192065b763310b156d54",
-        "version" : "1.3.1"
+        "revision" : "f25620d5d05e2f1ba27154b40cafea2b67566956",
+        "version" : "1.3.3"
       }
     },
     {
@@ -365,8 +374,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-extras.git",
       "state" : {
-        "revision" : "8eea84ec6144167354387ef9244b0939f5852dc8",
-        "version" : "1.11.0"
+        "revision" : "a75e92bde3683241c15df3dd905b7a6dcac4d551",
+        "version" : "1.12.1"
       }
     },
     {
@@ -374,8 +383,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-http2.git",
       "state" : {
-        "revision" : "72bcaf607b40d7c51044f65b0f5ed8581a911832",
-        "version" : "1.21.0"
+        "revision" : "108ac15087ea9b79abb6f6742699cf31de0e8772",
+        "version" : "1.22.0"
       }
     },
     {
@@ -383,8 +392,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "1750873bce84b4129b5303655cce2c3d35b9ed3a",
-        "version" : "2.19.0"
+        "revision" : "42436a25ff32c390465567f5c089a9a8ce8d7baf",
+        "version" : "2.20.0"
       }
     },
     {
@@ -392,8 +401,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-transport-services.git",
       "state" : {
-        "revision" : "1a4692acb88156e3da1b0c6732a8a38b2a744166",
-        "version" : "1.12.0"
+        "revision" : "2cb54f91ddafc90832c5fa247faf5798d0a7c204",
+        "version" : "1.13.0"
       }
     },
     {
@@ -419,8 +428,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/websocket-kit.git",
       "state" : {
-        "revision" : "e32033ad3c68ebec1b761bc961be7bd56bad02f8",
-        "version" : "2.3.1"
+        "revision" : "d8230eae70650652661f360f322db0cc22955b2f",
+        "version" : "2.5.0"
       }
     },
     {

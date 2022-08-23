@@ -50,12 +50,12 @@ class EndpointNameTests: XCTApodiniTest {
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<AddUser>)
         
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "User")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "addUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "AddUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "add_user")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .camelCase), "user")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .pascalCase), "User")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .snakeCase), "user")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .camelCase), "addUser")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .pascalCase), "AddUser")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .snakeCase), "add_user")
     }
     
     
@@ -66,12 +66,12 @@ class EndpointNameTests: XCTApodiniTest {
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<GetUser>)
         
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "User")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "user")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "getUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "GetUser")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "get_user")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .camelCase), "user")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .pascalCase), "User")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .snakeCase), "user")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .camelCase), "getUser")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .pascalCase), "GetUser")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .snakeCase), "get_user")
     }
     
     
@@ -83,12 +83,12 @@ class EndpointNameTests: XCTApodiniTest {
             .accept(visitor)
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<Text>)
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "retryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "RetryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "retry_failed_transactions")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "getRetryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "GetRetryFailedTransactions")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "get_retry_failed_transactions")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .camelCase), "retryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .pascalCase), "RetryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .snakeCase), "retry_failed_transactions")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .camelCase), "getRetryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .pascalCase), "GetRetryFailedTransactions")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .snakeCase), "get_retry_failed_transactions")
     }
     
     
@@ -100,11 +100,11 @@ class EndpointNameTests: XCTApodiniTest {
             .accept(visitor)
         visitor.finishParsing()
         let endpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first as? Endpoint<Text>)
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.noun, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
-        XCTAssertEqual(endpoint.getEndointName(.verb, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.noun, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .camelCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .pascalCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
+        XCTAssertEqual(endpoint.getEndpointName(.verb, format: .snakeCase), "eNdPoInTnAmEThAtDoEsNTmaKeALOtoFsEnSe")
     }
 }

@@ -20,6 +20,10 @@ extension HTTPResponseStatus: ApodiniErrorCompliantOption {
             return .unauthorized
         case .forbidden:
             return .forbidden
+        case .conflict:
+            return .conflict
+        case .preconditionFailed:
+            return .preconditionFailed
         case .serverError:
             return .internalServerError
         case .notAvailable:

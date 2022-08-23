@@ -96,7 +96,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
 
 
 extension Response {
-    /// Maps an `Self.Content` to an `Response` with an other `Self.Content`
+    /// Maps this response to a `Response` with another `Content`
     /// - Parameter transform: The closure to transform the `Self.Content`
     /// - Returns: The transformed `Response`
     public func map<T: Encodable>(_ transform: (Self.Content) throws -> (T)) rethrows -> Response<T> {

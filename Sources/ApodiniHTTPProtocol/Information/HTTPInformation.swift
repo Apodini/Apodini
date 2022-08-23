@@ -19,7 +19,7 @@ import Apodini
 public protocol HTTPInformation: InformationInstantiatable {
     typealias AssociatedInformation = AnyHTTPInformation
 
-    /// The HTTP header type. Must to adhere to the according standard.
+    /// The HTTP header type. Must adhere to the respective standard.
     static var header: String { get }
 }
 

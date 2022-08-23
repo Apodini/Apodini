@@ -60,6 +60,10 @@ public enum WebSocketConnectionConsequence: ApodiniErrorCompliantOption {
             return .closeContext
         case .forbidden:
             return .closeChannel
+        case .conflict:
+            return .closeContext
+        case .preconditionFailed:
+            return .closeContext
         case .serverError:
             return .closeContext
         case .notAvailable:
