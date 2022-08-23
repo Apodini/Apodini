@@ -76,7 +76,7 @@ struct BHandler: Handler {
 
 struct CHandler: Handler {
     func handle() -> Apodini.Status {
-        .badRequest
+        .noContent
     }
     
     var metadata: AnyHandlerMetadata {

@@ -218,7 +218,7 @@ extension ApodiniError: HTTPResponseConvertible {
             }
         }
         
-        return HTTPResponseStatus(self.option(for: .errorType))
+        return HTTPResponseStatus.default(for: self.option(for: .errorType))
     }
     
     public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
@@ -231,28 +231,5 @@ extension ApodiniError: HTTPResponseConvertible {
             // the error's description is only included in DEBUG mode
             bodyStorage: .buffer(initialValue: self.message()))
         )
-    }
-}
-
-public extension HTTPResponseStatus {
-    /// Initialize an ``HTTPResponseStatus`` from an Apodini ``ErrorType``.
-    init(_ apodiniErrorType: ErrorType) {
-        switch apodiniErrorType {
-        case .badInput:
-            self = .badRequest
-        case .notFound:
-            self = .notFound
-        case .unauthenticated:
-            // This is correct, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
-            self = .unauthorized
-        case .forbidden:
-            self = .forbidden
-        case .serverError:
-            self = .internalServerError
-        case .notAvailable:
-            self = .serviceUnavailable
-        case .other:
-            self = .internalServerError
-        }
     }
 }

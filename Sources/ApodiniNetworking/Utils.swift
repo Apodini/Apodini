@@ -43,15 +43,6 @@ extension HTTPResponseStatus {
             self = .seeOther
         case .notModified:
             self = .notModified
-            // 400
-        case .badRequest:
-            self = .badRequest
-        case .notFound:
-            self = .notFound
-        case .conflict:
-            self = .conflict
-        case .preconditionFailed:
-            self = .preconditionFailed
         }
     }
 }
