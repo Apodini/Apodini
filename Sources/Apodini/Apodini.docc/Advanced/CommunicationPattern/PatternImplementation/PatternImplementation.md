@@ -30,11 +30,125 @@ Currently, most exporters do not support all communication patterns:
 | gRPC      | ✅                | ✅                  | ❌                   | ❌                    |
 | WebSocket | ✅                | ✅                  | ✅                   | ✅                    |
 | GraphQL   | ✅                | ❌                  | ❌                   | ❌                    |
+| HTTP      | ✅                | ✅                  | ✅                   | ✅                    |
+
+### HTTP Streaming
+
+Streaming via the HTTP interface exporter is implemented in two ways. Via HTTP/1.1, array-based streaming is available. Via HTTP/2, dynamic streaming is supported via HTTP/2 streams.
+
+**HTTP/1.1 Array-based Streaming**
+
+Multiple Apodini requests and responses can be colletively represented as a JSON array, which is used as the body of an HTTP request or response. As HTTP Request Headers can only be sent once, query parameters have to be represented as part of the JSON body.
+
+The `SingleParameterHandler` (see below) could be supplied with the following HTTP body:
+
+```json
+[
+    {
+        "query": {
+            "name": "Max"
+        }
+    },
+    {
+        "query": {
+            "name": "Moritz"
+        }
+    }
+]
+```
+
+```swift
+struct SingleParameterHandler: Handler {
+    @Parameter var name: String
+    @Environment(\.connection) var connection: Connection
 
 
-The following sections detail how different communication patterns can be implemented using the tools described in the previous chapter.
+    func handle() -> Response<String> {
+        print(name)
+
+        if connection.state == .end {
+            return .final("End")
+        } else { // connection.state == .open
+            return .nothing // Send no reponse to the client as the connection is not yet terminated
+        }
+    }
+}
+```
+
+Thus, proper streaming is not supported via HTTP/1.1, as all of the requests have to be known a priori and are sent as one block.
+
+**HTTP/2 Length-prefixed Streaming**
+
+Via HTTP/2's streams, dynamic streaming is supported. Individual messages are length-prefixed, and the same encoding is used to represent query parameters in JSON as for the array-based streaming. A client implementing this lightweight protocol is provided (see `HTTP2StreamingClient`). Equivalently to Apodini Handlers on the server, client-side handlers can be implemented using `StreamingDelegate`s.
+
+See the following example of a `StreamingDelegate` which can send requests to the `BidirectionalStreamingGreeter` handler.
+
+```swift
+struct BidirectionalStreamingGreeter: Handler {
+    @Parameter(.http(.query)) var country: String?
+    
+    @Apodini.Environment(\.connection) var connection
+    
+    func handle() -> Apodini.Response<String> {
+        switch connection.state {
+        case .open:
+            return .send("Hello, \(country ?? "World")!")
+        case .end, .close:
+            return .end
+        }
+    }
+    
+    var metadata: AnyHandlerMetadata {
+        Pattern(.bidirectionalStream)
+    }
+}
+```
+
+```swift
+struct CountryStruct: Codable {
+    let country: String
+}
+
+final class GreeterDelegate: StreamingDelegate {
+    typealias SRequest = DATAFrameRequest<CountryStruct>
+    typealias SResponse = String
+    var streamingHandler: HTTPClientStreamingHandler<GreeterDelegate>?
+    var headerFields: BasicHTTPHeaderFields
+    
+    let countries = ["Germany, USA"]
+    var nextExpectedIndex = 0
+    
+    func handleInbound(response: String, serverSideClosed: Bool) {
+        // As a String cannot be decoded into JSON directly, this method won't be called
+    }
+    
+    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+        guard let countryString = buffer.getString(at: 0, length: buffer.readableBytes) else {
+            return
+        }
+        if countryString != countries[nextExpectedIndex] {
+            fatalError("Got the wrong country!")
+        }
+        nextExpectedIndex += 1
+    }
+    
+    func handleStreamStart() {
+        for country in countries {
+            sendOutbound(request: DATAFrameRequest(CountryStruct(country: country)))
+        }
+    }
+    
+    init(_ headerfields: BasicHTTPHeaderFields) {
+        self.headerFields = headerfields
+    }
+}
+```
+
+For further examples, see the `HTTP2BidirectionalTests`, `HTTP2ServiceSideTests`, and `HTTP2ClientSideTests`.
 
 ## Topics
+
+The following sections detail how different communication patterns can be implemented using the tools described in the previous chapter.
 
 ### Pattern Implementation
 
