@@ -37,7 +37,7 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         let client = try HTTP2StreamingClient("localhost", 4443)
         client.startStreamingDelegate(delegate)
         
-        wait(for: [countExpectation, errorExpectation], timeout: 1.0)
+        wait(for: [countExpectation, errorExpectation], timeout: 3.0)
     }
 
     final class AddStreamingDelegate: StreamingDelegate {
