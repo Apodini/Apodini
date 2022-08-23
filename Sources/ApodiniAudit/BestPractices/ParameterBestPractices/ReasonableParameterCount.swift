@@ -10,6 +10,8 @@ import Foundation
 import Apodini
 
 /// BP19
+/// Checks that Handlers don't have too many parameters. If a Handler has lots of parameters, this suggests that it acts like a "God Component",
+/// and might better be split up into multiple smaller Handlers.
 public class ReasonableParameterCount: BestPractice {
     public required init() { }
     

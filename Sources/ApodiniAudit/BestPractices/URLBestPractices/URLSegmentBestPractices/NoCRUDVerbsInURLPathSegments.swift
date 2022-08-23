@@ -10,6 +10,7 @@ import Foundation
 
 /// BP18
 /// Checks whether a URL segment contains any CRUD verbs, which is discouraged.
+/// Additional forbidden verbs can be passed in via the `CRUDVerbConfiguration`.
 public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .urlPath

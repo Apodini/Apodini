@@ -10,6 +10,11 @@ import Foundation
 import Apodini
 
 /// BP14 & BP15
+/// Ensures that ID parameters are preceded by a plural noun, e.g. like this:
+/// `/posts/{postId}`
+///
+/// This increases readability by differentiating these collections of resources from singleton resources, such as
+/// `/user/profilepicture`
 public final class PluralSegmentForStoresAndCollections: BestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .linguisticURL

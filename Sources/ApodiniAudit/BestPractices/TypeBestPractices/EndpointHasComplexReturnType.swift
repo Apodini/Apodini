@@ -12,6 +12,8 @@ import ApodiniTypeInformation
 import ApodiniNetworking
 
 /// BP23 & BP73
+/// Ensures that GET, PUT, and DELETE Handlers have complex return types,
+/// as opposed to performing e.g. a database transaction and not returning a resource.
 public class EndpointHasComplexReturnType: BestPractice {
     public static var scope: BestPracticeScopes = .rest
     public static var category: BestPracticeCategories = .httpMethod
