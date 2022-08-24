@@ -68,7 +68,7 @@ public struct ResponseContainer: Encodable {
         
         switch status {
         case .noContent where !containsNoContent:
-            // If there is any content in the HTTP body (data or links) we must not return an status code .noContent
+            // If there is any content in the HTTP body (data or links) we must not return a .noContent status code
             response.status = .ok
         case let .some(status):
             response.status = .init(status)

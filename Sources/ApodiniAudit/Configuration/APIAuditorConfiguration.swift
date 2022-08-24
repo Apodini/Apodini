@@ -25,17 +25,29 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         SharedAPIAuditorConfiguration.getAuditCommand(AuditCommand<Service>.self)
     }
     
+    private let bestPractices: [BestPractice]
+    
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
-        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration)
+        // This Configuration is only relevant if the webservice has been run through the audit CLI
+        guard app.storage[AuditStorageKey.self] != nil else {
+            return
+        }
         
+        // Register exporter with configured Best Practices
+        let auditInterfaceExporter = AuditInterfaceExporter(app, parentConfiguration, bestPractices, String(describing: Service.self))
         app.registerExporter(exporter: auditInterfaceExporter)
     }
     
-    public init() { }
+    public init(@AuditConfigurationBuilder bestPractices: () -> [BestPractice]) {
+        self.bestPractices = bestPractices()
+    }
+    
+    public convenience init() {
+        self.init { }
+    }
 }
 
 private enum SharedAPIAuditorConfiguration {
-    // FUTURE write test that _commands works
     fileprivate static var registeredCommand = false
     fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
         if !registeredCommand {
@@ -43,5 +55,21 @@ private enum SharedAPIAuditorConfiguration {
             return auditCommand
         }
         return nil
+    }
+}
+
+struct BestPracticesStorageKey: StorageKey {
+    typealias Value = [BestPractice]
+}
+
+/// A configuration for a ``BestPractice``.
+public protocol BestPracticeConfiguration {
+    /// Produce a ``BestPractice`` instance with this configuration.
+    func configure() -> BestPractice
+}
+
+public struct EmptyBestPracticeConfiguration<BP: BestPractice>: BestPracticeConfiguration {
+    public func configure() -> BestPractice {
+        BP()
     }
 }

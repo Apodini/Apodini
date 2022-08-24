@@ -237,7 +237,7 @@ private func messagePrefix(for error: ApodiniError) -> String? {
         return "I messed up"
     case .notAvailable:
         return "Not now...I'm busy"
-    case .other:
+    default:
         return "Something's wrong, I can feel it"
     }
 }

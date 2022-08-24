@@ -17,7 +17,7 @@ public enum ErrorOptionNameSpace { }
 /// A collection of the most important error types where defaults exist for every interface exporter
 public enum ErrorType: String {
     /// Error types corresponding to HTTP 4xx codes
-    case badInput, notFound, unauthenticated, forbidden
+    case badInput, notFound, unauthenticated, forbidden, conflict, preconditionFailed
     /// Error types corresponding to HTTP 5xx codes
     case serverError, notAvailable
     /// A unspecified custom error
@@ -164,7 +164,7 @@ extension ApodiniError {
             if let description = self.description {
                 return (prefix ?? "") + description
             } else {
-                return prefix ?? "Undefined Error"
+                return prefix ?? "\(self)"
             }
         }
         #else

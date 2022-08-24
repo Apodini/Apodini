@@ -76,10 +76,10 @@ jobs:
       run: apt-get update && apt-get install -y --no-install-recommends curl lsof
     - name: Install yum Dependencies
       if: matrix.linux == 'amazonlinux2'
-      run: yum update -y && yum install -y curl lsof
+      run: yum update -y && yum install -y curl lsof python3
     - name: Install yum Dependencies
       if: matrix.linux == 'centos8'
-      run: yum update -y --nobest && yum install -y curl lsof
+      run: yum update -y --nobest && yum install -y curl lsof python3
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}

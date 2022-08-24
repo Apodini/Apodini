@@ -202,7 +202,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
-                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport"),
+                .product(name: "PythonKit", package: "PythonKit")
             ],
             resources: [
                 .process("Resources")
@@ -354,6 +355,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniNetworkingHTTPSupport"),
+                .target(name: "ApodiniAuthorization"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -475,7 +477,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "XCTApodiniNetworking")
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniAudit")
             ]
         ),
         

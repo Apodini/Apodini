@@ -11,6 +11,8 @@ import NIOHTTP1
 import NIOWebSocket
 import WebSocketKit
 import Foundation
+import Apodini
+import ApodiniAuthorization
 
 
 /// A HTTP response, i.e. a response to a `HTTPRequest`
@@ -193,5 +195,41 @@ public struct HTTPAbortError: Swift.Error, HTTPResponseConvertible {
             headers: [:],
             bodyStorage: .buffer(initialValue: message ?? "")
         ))
+    }
+}
+
+extension ApodiniError: HTTPResponseConvertible {
+    private func extractHTTPResponseStatus() -> HTTPResponseStatus {
+        // First try to extract a specific status code from the options
+        if let status = self.option(for: .httpResponseStatus) {
+            return status
+        }
+        
+        // Then we see whether there's a ``AuthorizationErrorReason`` present
+        if let reason = self.option(for: .authorizationErrorReason) {
+            switch reason {
+            case .authenticationRequired,
+                    .invalidAuthenticationRequest,
+                    .failedAuthentication,
+                    .custom:
+                return .unauthorized
+            case .failedAuthorization:
+                return .forbidden
+            }
+        }
+        
+        return HTTPResponseStatus.default(for: self.option(for: .errorType))
+    }
+    
+    public func makeHTTPResponse(for request: HTTPRequest) -> EventLoopFuture<HTTPResponse> {
+        request.eventLoop.makeSucceededFuture(HTTPResponse(
+            version: request.version,
+            status: self.extractHTTPResponseStatus(),
+            headers: HTTPHeaders {
+                $0[.contentType] = .text
+            },
+            // the error's description is only included in DEBUG mode
+            bodyStorage: .buffer(initialValue: self.message()))
+        )
     }
 }

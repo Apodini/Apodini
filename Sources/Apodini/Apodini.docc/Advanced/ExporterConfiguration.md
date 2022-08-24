@@ -180,6 +180,26 @@ public struct Example: WebService {
 }
 ```
 
+### Auditing your REST or HTTP API
+
+Many best practices have been developed in the last decades which constrain REST and HTTP APIs. To ensure compliance with these, you can use the ``APIAuditor``:
+
+```swift
+import Apodini
+import ApodiniREST
+import ApodiniAudit
+
+public struct Example: WebService {
+    public var configuration: Configuration { 
+        REST {
+            APIAuditor()
+        }
+    }
+}
+```
+
+For more information on how to run an audit and configure the auditor, see <doc:Auditing>
+
 ## Topics
 
 ### Protocols

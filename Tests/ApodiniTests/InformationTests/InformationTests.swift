@@ -182,6 +182,20 @@ final class InformationTests: XCTestCase {
         )
     }
     
+    func testInformationParsingLastModified() throws {
+        let lastModified = try XCTUnwrap(
+            AnyHTTPInformation(key: "LastModified", rawValue: "Wed, 16 June 2021 11:42:00 GMT")
+                .typed(LastModified.self)
+        )
+        XCTAssertEqual(lastModified.value, Date(timeIntervalSince1970: 1623843720))
+        
+        
+        XCTAssertNil(
+            AnyHTTPInformation(key: "LastModified", rawValue: "...")
+                .typed(LastModified.self)
+        )
+    }
+    
     func testInformationParsingRedirectTo() throws {
         let redirectTo = try XCTUnwrap(
             AnyHTTPInformation(key: "Location", rawValue: "https://ase.in.tum.de/schmiedmayer")

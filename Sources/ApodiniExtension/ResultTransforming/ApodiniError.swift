@@ -47,6 +47,10 @@ private func standardMessagePrefix(for error: ApodiniError) -> String? {
         return "Unauthenticated"
     case .forbidden:
         return "Forbidden"
+    case .conflict:
+        return "Conflict"
+    case .preconditionFailed:
+        return "Precondition Failed"
     case .serverError:
         return "Unexpected Server Error"
     case .notAvailable:

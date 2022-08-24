@@ -36,4 +36,8 @@ public struct CreateAll<Model: DatabaseModel>: Handler {
                 .final(objects, status: .created)
             }
     }
+    
+    public var metadata: AnyHandlerMetadata {
+        Operation(.create)
+    }
 }
