@@ -93,8 +93,13 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         let payload = self.unwrapInboundIn(data)
         
         guard case .data(let data) = payload else {
-            print("Caught some other frame type than DATA")
             return
+        }
+        
+        defer {
+            if data.endStream {
+                streamingDelegate.handleClose()
+            }
         }
         
         guard case .byteBuffer(let newBuffer) = data.data else {
@@ -125,13 +130,12 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         guard let response = try? int32AndObjectBuffer.getJSONDecodable(D.SResponse.self, at: 4, length: objectLength) else {
             print("Can't decode server response into \(D.SResponse.self)!")
             self.streamingDelegate.handleInboundNotDecodable(
-                buffer: int32AndObjectBuffer.getSlice(at: 4, length: objectLength) ?? ByteBuffer(),
-                serverSideClosed: data.endStream
+                buffer: int32AndObjectBuffer.getSlice(at: 4, length: objectLength) ?? ByteBuffer()
             )
             return
         }
         
-        self.streamingDelegate.handleInbound(response: response, serverSideClosed: data.endStream)
+        self.streamingDelegate.handleInbound(response: response)
     }
     
     public func errorCaught(context: ChannelHandlerContext, error: Error) {

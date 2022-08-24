@@ -84,7 +84,7 @@ Via HTTP/2's streams, dynamic streaming is supported. Individual messages are le
 See the following example of a `StreamingDelegate` which can send requests to the `BidirectionalStreamingGreeter` handler.
 
 ```swift
-struct BidirectionalStreamingGreeter: Handler {
+struct BidirectionalStreamingGreeter1: Handler {
     @Parameter(.http(.query)) var country: String?
     
     @Apodini.Environment(\.connection) var connection
@@ -100,11 +100,12 @@ struct BidirectionalStreamingGreeter: Handler {
     
     var metadata: AnyHandlerMetadata {
         Pattern(.bidirectionalStream)
+        Operation(.create)
     }
 }
-```
-
 ```swift
+
+```
 struct CountryStruct: Codable {
     let country: String
 }
@@ -115,18 +116,11 @@ final class GreeterDelegate: StreamingDelegate {
     var streamingHandler: HTTPClientStreamingHandler<GreeterDelegate>?
     var headerFields: BasicHTTPHeaderFields
     
-    let countries = ["Germany, USA"]
+    let countries = ["Germany", "USA"]
     var nextExpectedIndex = 0
     
-    func handleInbound(response: String, serverSideClosed: Bool) {
-        // As a String cannot be decoded into JSON directly, this method won't be called
-    }
-    
-    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
-        guard let countryString = buffer.getString(at: 0, length: buffer.readableBytes) else {
-            return
-        }
-        if countryString != countries[nextExpectedIndex] {
+    func handleInbound(response: String) {
+        if !response.contains(countries[nextExpectedIndex]) {
             fatalError("Got the wrong country!")
         }
         nextExpectedIndex += 1
@@ -136,6 +130,11 @@ final class GreeterDelegate: StreamingDelegate {
         for country in countries {
             sendOutbound(request: DATAFrameRequest(CountryStruct(country: country)))
         }
+        close()
+    }
+    
+    func handleClose() {
+        precondition(nextExpectedIndex == 2)
     }
     
     init(_ headerfields: BasicHTTPHeaderFields) {

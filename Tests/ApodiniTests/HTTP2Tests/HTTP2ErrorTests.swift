@@ -49,9 +49,9 @@ class HTTP2ErrorTests: XCTApodiniTest {
         var streamingHandler: HTTPClientStreamingHandler<IncompleteStreamingDelegate>?
         var headerFields: BasicHTTPHeaderFields
         
-        func handleInbound(response: String, serverSideClosed: Bool) { }
+        func handleInbound(response: String) { }
         
-        func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+        func handleInboundNotDecodable(buffer: ByteBuffer) {
             let str = buffer.getString(at: 0, length: buffer.readableBytes)
             #if DEBUG
             XCTAssertEqual(
@@ -109,7 +109,7 @@ class HTTP2ErrorTests: XCTApodiniTest {
             streamingHandler?.sendOutbound(request: DATAFrameRequest(msg2))
         }
         
-        func handleInbound(response: AddStruct, serverSideClosed: Bool) { }
+        func handleInbound(response: AddStruct) { }
         
         init(_ headerfields: BasicHTTPHeaderFields) {
             self.headerFields = headerfields

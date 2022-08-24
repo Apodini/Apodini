@@ -200,7 +200,6 @@ extension AsyncSequence {
                     }
                     
                     if response.connectionEffect == .close {
-                        print("Closing response stream")
                         httpResponseStream.close()
                     }
                 }

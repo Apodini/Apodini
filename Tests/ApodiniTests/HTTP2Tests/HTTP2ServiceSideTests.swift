@@ -41,11 +41,11 @@ class HTTP2ServiceSideTests: XCTApodiniTest {
         var nextExpectedLength = 1
         var max = 10
         
-        func handleInbound(response: AddStruct, serverSideClosed: Bool) {
+        func handleInbound(response: AddStruct) {
             XCTFail("Got decodable response??")
         }
         
-        func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+        func handleInboundNotDecodable(buffer: ByteBuffer) {
             XCTAssertEqual(buffer.readableBytes, nextExpectedLength)
             XCTAssertTrue(nextExpectedLength <= max)
             nextExpectedLength += 1

@@ -36,7 +36,6 @@ class HTTPRequestStreamAsyncSequence: AsyncSequence, AsyncIteratorProtocol {
         // The stream has been closed and there is no complete object on the stream.
         // This is the end of the AsyncSequence.
         if stream.isClosed {
-            print("Ending AsyncSequence")
             return nil
         }
         

@@ -20,8 +20,9 @@ public protocol StreamingDelegate: AnyObject {
     func sendOutbound(request: SRequest)
     func close()
     
-    func handleInbound(response: SResponse, serverSideClosed: Bool)
-    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool)
+    func handleInbound(response: SResponse)
+    func handleInboundNotDecodable(buffer: ByteBuffer)
+    func handleClose()
     func handleStreamStart()
 }
 
@@ -37,7 +38,10 @@ public extension StreamingDelegate {
     }
     
     /// Try to print data that was not decodable
-    func handleInboundNotDecodable(buffer: ByteBuffer, serverSideClosed: Bool) {
+    func handleInboundNotDecodable(buffer: ByteBuffer) {
         print("Got undecodable data! As a String: \(buffer.getString(at: 0, length: buffer.readableBytes))")
     }
+    
+    /// Do nothing
+    func handleClose() { }
 }

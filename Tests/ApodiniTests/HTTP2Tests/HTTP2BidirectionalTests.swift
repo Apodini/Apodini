@@ -52,7 +52,7 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
         var responseCount = 0
         var nextExpectedSum = 0
         
-        func handleInbound(response: AddStruct, serverSideClosed: Bool) {
+        func handleInbound(response: AddStruct) {
             // Verify response
             if nextExpectedSum != response.sum {
                 errorExpectation.fulfill()

@@ -41,7 +41,7 @@ class HTTP2ClientSideTests: XCTApodiniTest {
         var headerFields: BasicHTTPHeaderFields
         var hadResponse = false
         
-        func handleInbound(response: SumStruct, serverSideClosed: Bool) {
+        func handleInbound(response: SumStruct) {
             if hadResponse {
                 XCTFail("Received more than one response!")
             }
