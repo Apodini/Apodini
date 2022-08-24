@@ -26,10 +26,10 @@ class HTTP2BidirectionalTests: XCTApodiniTest {
     }
     
     func testBidirectionalAdding() throws {
-        let countExpectation = XCTestExpectation("Count the number of reponses")
+        let countExpectation = XCTestExpectation(description: "Count the number of reponses")
         countExpectation.assertForOverFulfill = true
         countExpectation.expectedFulfillmentCount = 100
-        let errorExpectation = XCTestExpectation("An error occured!")
+        let errorExpectation = XCTestExpectation(description: "An error occured!")
         errorExpectation.isInverted = true
         
         let headerFields = BasicHTTPHeaderFields(.POST, "/", "localhost")
