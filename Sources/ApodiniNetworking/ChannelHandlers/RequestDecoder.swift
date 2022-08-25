@@ -87,22 +87,24 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
             )
         
         case let (.awaitingBody(req), .body(bodyBuffer)):
-            if req.headers[.contentLength] == bodyBuffer.readableBytes {
+            if req.headers[.contentLength] == bodyBuffer.readableBytes && req.version != .http2 {
                 req.bodyStorage = .buffer(bodyBuffer)
                 state = .awaitingEnd(req)
-            } else if req.headers[.transferEncoding].contains(.chunked) {
+            } else if req.headers[.transferEncoding].contains(.chunked) && req.version != .http2 {
                 handleError(
                     context: context,
                     requestVersion: req.version,
                     errorMessage: "'Transfer-Encoding: chunked' not supported. Use HTTP/2 instead."
                 )
-            } else if let contentLength = req.headers[.contentLength], contentLength > bodyBuffer.readableBytes {
+            } else if let contentLength = req.headers[.contentLength],
+                      contentLength > bodyBuffer.readableBytes {
                 req.bodyStorage = .buffer(bodyBuffer)
                 state = .collectingNonStreamBody(req, expectedContentLength: contentLength)
             } else if let expectedCommPattern = responder.expectedCommunicationPattern(for: req), expectedCommPattern.isStream {
                 req.bodyStorage = .stream()
                 state = .readingBodyStream(req)
                 context.fireChannelRead(wrapInboundOut(req))
+                req.bodyStorage.stream!.write(bodyBuffer)
             } else {
                 // Either there is no Content-Length header, or it has a size that doesn't match the body we were sent
                 logger.error("Potentially unhandled incoming HTTP request")

@@ -207,6 +207,15 @@ class HTTPInterfaceExporter: InterfaceExporter {
     
     // MARK: Decoding Strategies
     
+    func dataFrameDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<Data> {
+        ParameterTypeSpecific(
+            lightweight: LightweightFromBodyStrategy(decoder: configuration.decoder),
+            path: LightweightFromBodyStrategy(decoder: configuration.decoder),
+            content: ContentFromBodyStrategy(decoder: configuration.decoder))
+        .applied(to: endpoint)
+        .typeErased
+    }
+    
     func singleInputDecodingStrategy(for endpoint: AnyEndpoint) -> AnyDecodingStrategy<HTTPRequest> {
         ParameterTypeSpecific(
             lightweight: LightweightStrategy(dateDecodingStrategy: configuration.urlParamDateDecodingStrategy),
@@ -292,6 +301,30 @@ class HTTPInterfaceExporter: InterfaceExporter {
                     ContentPattern<
                         DynamicNamePattern<
                             IdentityPattern<Element>>>>>(parameter.name, decoder).typeErased
+        }
+    }
+    
+    private struct LightweightFromBodyStrategy: EndpointDecodingStrategy {
+        let decoder: AnyDecoder
+        
+        func strategy<Element>(for parameter: EndpointParameter<Element>)
+            -> AnyParameterDecodingStrategy<Element, Data> where Element: Decodable, Element: Encodable {
+            NamedChildPatternStrategy<
+                LightweightPattern<
+                    DynamicNamePattern<
+                        IdentityPattern<Element>>>>(parameter.name, decoder).typeErased
+        }
+    }
+    
+    private struct ContentFromBodyStrategy: EndpointDecodingStrategy {
+        let decoder: AnyDecoder
+        
+        func strategy<Element>(for parameter: EndpointParameter<Element>)
+            -> AnyParameterDecodingStrategy<Element, Data> where Element: Decodable, Element: Encodable {
+            NamedChildPatternStrategy<
+                ContentPattern<
+                    DynamicNamePattern<
+                        IdentityPattern<Element>>>>(parameter.name, decoder).typeErased
         }
     }
 }

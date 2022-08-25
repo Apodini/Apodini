@@ -74,7 +74,7 @@ public struct Storage {
         self.storage.keys.contains(ObjectIdentifier(keyPath))
     }
 
-    /// Get a a value for a key from application storage
+    /// Get a value for a key from application storage
     public func get<Key: StorageKey>(_ key: Key.Type) -> Key.Value? {
         guard let value = self.storage[ObjectIdentifier(Key.self)] as? Value<Key.Value> else {
             return nil
@@ -82,7 +82,7 @@ public struct Storage {
         return value.value
     }
     
-    /// Get a a value for a key path from application storage
+    /// Get a value for a key path from application storage
     public func get<Key, Type>(_ keyPath: KeyPath<Key, Type>) -> Type? {
         guard let value = storage[ObjectIdentifier(keyPath)] as? Value<Type> else {
             return nil
@@ -90,7 +90,7 @@ public struct Storage {
         return value.value
     }
     
-    /// Get a a value for an `ObjectIdentifier` and a Type from application storage
+    /// Get a value for an `ObjectIdentifier` and a Type from application storage
     public func get<Element>(_ objectIdentifer: ObjectIdentifier, _ key: Element.Type) -> Element? {
         guard let value = storage[objectIdentifer] as? Value<Element> else {
             return nil
@@ -98,7 +98,7 @@ public struct Storage {
         return value.value
     }
 
-    /// Set a key for a value in application storage
+    /// Set a value for a key in application storage
     public mutating func set<Key: StorageKey>(
         _ key: Key.Type,
         to value: Key.Value?,

@@ -522,6 +522,9 @@ let package = Package(
                 .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "XCTApodiniNetworking")
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         

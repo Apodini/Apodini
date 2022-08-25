@@ -56,7 +56,6 @@ class HTTPServerResponseEncoder: ChannelOutboundHandler, RemovableChannelHandler
             context.writeAndFlush(wrapOutboundOut(.body(.byteBuffer(stream.readNewData()!))), promise: nil)
         }
         if stream.isClosed {
-            print("writing .end. This should close the channel????")
             context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: promise)
             state = .ready
         }

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import NIO
 import enum Apodini.CommunicationPattern
 
 

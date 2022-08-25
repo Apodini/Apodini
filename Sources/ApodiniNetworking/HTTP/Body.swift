@@ -38,6 +38,12 @@ extension Array: ByteBufferWritable where Element == UInt8 {
     }
 }
 
+extension Int32: ByteBufferWritable {
+    public func write(to byteBuffer: inout ByteBuffer) {
+        byteBuffer.writeInteger(self, as: Int32.self)
+    }
+}
+
 
 extension ByteBuffer: ByteBufferWritable {
     public func write(to byteBuffer: inout ByteBuffer) {
@@ -253,6 +259,13 @@ extension BodyStorage {
             }
         }
         
+        /// Remove the observer from the stream
+        public func removeObserver() {
+            lock.withLock {
+                self.observer = nil
+            }
+        }
+        
         
         /// The number of readable bytes in the stream.
         public var readableBytes: Int {
@@ -292,6 +305,20 @@ extension BodyStorage {
             }
         }
         
+        /// Reads `length` bytes from the stream.
+        public func readBytes(_ length: Int) -> ByteBuffer? {
+            lock.withLock {
+                storage.readSlice(length: length)
+            }
+        }
+        
+        /// Gets `length` bytes from the stream. Doesn't move the readIndex in the underlying `ByteBuffer`.
+        public func getBytes(_ length: Int) -> ByteBuffer? {
+            lock.withLock {
+                storage.getSlice(at: storage.readerIndex, length: length)
+            }
+        }
+        
         /// Reads new data from the stream, if available.
         public func readNewData() -> ByteBuffer? {
             lock.withLock {
@@ -299,7 +326,7 @@ extension BodyStorage {
             }
         }
         
-        /// Reads new data from the stream, if available. Doesn't move the readIndex in the underlying `ByteBuffer`
+        /// Reads new data from the stream, if available. Doesn't move the readIndex in the underlying `ByteBuffer`.
         public func getNewData() -> ByteBuffer? {
             lock.withLock {
                 storage.getSlice(at: storage.readerIndex, length: storage.readableBytes)
