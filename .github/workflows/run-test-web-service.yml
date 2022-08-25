@@ -36,6 +36,9 @@ jobs:
     - uses: maxim-lobanov/setup-xcode@v1.4.0
       with:
         xcode-version: latest-stable
+    - name: Check Resources
+      run: |
+        ls -l ./.build/debug/TestWebService_TestWebService.bundle
     - name: Check environment
       run: |
           xcodebuild -version
