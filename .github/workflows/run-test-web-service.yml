@@ -44,7 +44,7 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Test HTTP/1.1
       run: |
-          exec 3< <(swift run --skip-build)
+          exec 3< <(swift run --skip-build -c ${{ matrix.configuration }})
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash test.sh
       shell: bash
@@ -53,7 +53,7 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(swift run --skip-build TestWebService --https-config builtin)
+          exec 3< <(swift run --skip-build -c ${{ matrix.configuration }} TestWebService --https-config builtin)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash testhttp2.sh
       shell: bash
