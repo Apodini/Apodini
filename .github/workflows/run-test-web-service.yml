@@ -56,7 +56,7 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          swift run -c ${{ matrix.configuration }} TestWebService --https-config builtin --port 4443 &
+          swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443 &
           sleep 15
 # sh testhttp2.sh
       shell: bash
@@ -109,7 +109,7 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config builtin)
+          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash testhttp2.sh
       shell: bash
