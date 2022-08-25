@@ -53,12 +53,12 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          swift run --skip-build -c ${{ matrix.configuration }} TestWebService --https-config builtin &
+          swift run --skip-build -c ${{ matrix.configuration }} TestWebService --https-config builtin --port 4443 &
           sleep 15
           sh testhttp2.sh
       shell: bash
-    - name: Kill port 443 TestWebService
-      run: kill -9 $(lsof -ti:443)
+    - name: Kill port 4443 TestWebService
+      run: kill -9 $(lsof -ti:4443)
       shell: bash
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
