@@ -44,7 +44,7 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Test HTTP/1.1
       run: |
-          exec 3< <(swift run -c ${{ matrix.configuration }})
+          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash test.sh
       shell: bash
@@ -94,7 +94,7 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Test HTTP/1.1
       run: |
-          exec 3< <(.build/${{ matrix.configuration }}/TestWebService)
+          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash test.sh
       shell: bash
@@ -103,7 +103,7 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443)
+          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash testhttp2.sh
       shell: bash
