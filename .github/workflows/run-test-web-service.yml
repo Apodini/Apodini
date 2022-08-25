@@ -53,9 +53,9 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(swift run --skip-build -c ${{ matrix.configuration }} TestWebService --https-config builtin)
-          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
-          bash testhttp2.sh
+          swift run --skip-build -c ${{ matrix.configuration }} TestWebService --https-config builtin &
+          sleep 15
+          sh testhttp2.sh
       shell: bash
     - name: Kill port 443 TestWebService
       run: kill -9 $(lsof -ti:443)
