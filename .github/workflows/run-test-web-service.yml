@@ -83,10 +83,10 @@ jobs:
     - name: Run ${{ matrix.configuration }} build
       run: |
           swift build -c ${{ matrix.configuration }}
-          exec 3< <(.build/${{ matrix.configuration }}/TestWebService)
+          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config builtin)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash test.sh
       shell: bash
     - name: Kill TestWebService
-      run: kill -9 $(lsof -ti:80)
+      run: kill -9 $(lsof -ti:443)
       shell: bash
