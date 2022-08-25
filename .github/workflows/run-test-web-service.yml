@@ -97,7 +97,7 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Check Resources
       run: |
-        ls -l ./.build/debug/TestWebService_TestWebService.bundle
+        ls -l ./.build/debug/T*
     - name: Test HTTP/1.1
       run: |
           exec 3< <(.build/${{ matrix.configuration }}/TestWebService)
