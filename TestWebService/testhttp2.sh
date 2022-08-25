@@ -8,4 +8,4 @@
 #
 
 set -e
-curl --fail --insecure --request GET --data-binary "@teststreamingrequest" -H "Content-Type: application/data" --http2-prior-knowledge --output /dev/null https://localhost/http/countdown
+curl --fail --insecure --request GET --data-binary "@teststreamingrequest" -H "Content-Type: application/data" --http2-prior-knowledge --output response https://localhost/http/countdown
