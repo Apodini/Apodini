@@ -42,9 +42,6 @@ jobs:
           swift --version
     - name: Run ${{ matrix.configuration }} build
       run: swift build -c ${{ matrix.configuration }}
-    - name: Check Resources
-      run: |
-        ls -l ./.build/debug/TestWebService_TestWebService.bundle
     - name: Test HTTP/1.1
       run: |
           exec 3< <(swift run -c ${{ matrix.configuration }})
@@ -95,9 +92,6 @@ jobs:
       run: yum update -y --nobest && yum install -y curl lsof python3
     - name: Run ${{ matrix.configuration }} build
       run: swift build -c ${{ matrix.configuration }}
-    - name: Check Resources
-      run: |
-        ls -l ./.build/debug/T*
     - name: Test HTTP/1.1
       run: |
           exec 3< <(.build/${{ matrix.configuration }}/TestWebService)
@@ -109,10 +103,10 @@ jobs:
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem)
+          exec 3< <(.build/${{ matrix.configuration }}/TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443)
           sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
           bash testhttp2.sh
       shell: bash
-    - name: Kill port 443 TestWebService
-      run: kill -9 $(lsof -ti:443)
+    - name: Kill port 4443 TestWebService
+      run: kill -9 $(lsof -ti:4443)
       shell: bash
