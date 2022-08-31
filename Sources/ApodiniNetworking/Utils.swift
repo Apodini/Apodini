@@ -127,6 +127,7 @@ extension AsyncSequence {
         Task {
             var idx = 0
             for try await element in self {
+                print("GOT AN ELEMENT [idx=\(idx)]: \(element)")
                 if idx == 0 {
                     promise.succeed(element)
                 }

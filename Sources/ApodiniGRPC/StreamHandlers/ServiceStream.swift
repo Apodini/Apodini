@@ -15,6 +15,7 @@ import Foundation
 
 class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
     override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+        print(Self.self, #function)
         let responsesStream = GRPCMessageOut.Stream()
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer(),
@@ -33,6 +34,7 @@ class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             .firstFutureAndForEach(
                 on: context.eventLoop,
                 objectsHandler: { (response: Apodini.Response<H.Response.Content>) -> Void in
+                    print(Self.self, #function, "GOT A RESPONSE FROM THE HANDLER")
                     do {
                         if let content = response.content {
                             let buffer = try self.encodeResponseIntoProtoMessage(content)

@@ -82,6 +82,7 @@ public extension AsyncSequence where Element == Event {
             case let .request(request):
                 latestRequest = request
                 do {
+                    print("RUNNING HANDLER FOR .request (?)")
                     return .success(try await handler.evaluate(using: request, with: connectionState))
                 } catch {
                     return .failure(error)
@@ -91,6 +92,7 @@ public extension AsyncSequence where Element == Event {
                     fatalError("Cannot handle TriggerEvent before first Request!")
                 }
                 do {
+                    print("RUNNING HANDLER FOR .trigger (?)")
                     return .success(try await handler.evaluate(trigger, using: request, with: connectionState))
                 } catch {
                     return .failure(error)
@@ -98,6 +100,7 @@ public extension AsyncSequence where Element == Event {
             case .end:
                 if let latestRequest = latestRequest {
                     do {
+                        print("RUNNING HANDLER FOR .end (?)")
                         return .success(try await handler.evaluate(using: latestRequest, with: .close))
                     } catch {
                         return .failure(error)

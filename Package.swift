@@ -776,6 +776,18 @@ let package = Package(
                 .target(name: "XCTUtils"),
                 .product(name: "Algorithms", package: "swift-algorithms")
             ]
+        ),
+        
+        .executableTarget(
+            name: "LKTestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
+                .target(name: "ApodiniWebSocket")
+            ]
         )
     ]
 )
