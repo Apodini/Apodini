@@ -133,7 +133,10 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
         
         // Apodini Audit
-        .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2")
+        .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2"),
+
+        // XCTApodiniNetworking
+        .package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.0.0")
     ],
     targets: [
         .target(name: "CApodiniUtils"),
@@ -488,7 +491,8 @@ let package = Package(
                 .target(name: "XCTUtils"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "NIOExtras", package: "swift-nio-extras")
             ]
         ),
 
