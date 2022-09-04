@@ -9,7 +9,7 @@
 
 set -e
 INTERVAL=5
-TRIES=10
+TRIES=20
 
 # Send requests every 5 seconds
 COUNTER=0
