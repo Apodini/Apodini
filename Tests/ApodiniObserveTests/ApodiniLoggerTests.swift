@@ -324,7 +324,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.requestResponseHandler1Line)
 
@@ -425,7 +425,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world!")
             XCTAssertEqual(logMessage.level, .debug)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.requestResponseHandler2Line)
 
@@ -520,7 +520,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.requestResponseHandler3Line)
 
@@ -552,7 +552,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.requestResponseHandler4Line)
 
@@ -616,7 +616,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.requestResponseHandler5Line)
 
@@ -682,7 +682,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(firstLogMessage.message, "Hello world - Countdown!")
             XCTAssertEqual(firstLogMessage.level, .info)
-            XCTAssertEqual(firstLogMessage.file, #file)
+            XCTAssertEqual(firstLogMessage.file, #fileID)
             XCTAssertEqual(firstLogMessage.function, "handle()")
             XCTAssertEqual(firstLogMessage.line, Self.serverSideStreamingHandlerStreamingLine)
 
@@ -769,7 +769,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(eleventhLogMessage.message, "Hello world - Launch!")
             XCTAssertEqual(eleventhLogMessage.level, .info)
-            XCTAssertEqual(eleventhLogMessage.file, #file)
+            XCTAssertEqual(eleventhLogMessage.file, #fileID)
             XCTAssertEqual(eleventhLogMessage.function, "handle()")
             XCTAssertEqual(eleventhLogMessage.line, Self.serverSideStreamingHandlerFinalLine)
 
@@ -900,7 +900,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.clientSideStreamingHandlerStreamingLine)
 
@@ -1128,7 +1128,7 @@ class ApodiniLoggerTests: XCTestCase {
             // Assert log message, level etc.
             XCTAssertEqual(logMessage.message, "Hello world - Streaming!")
             XCTAssertEqual(logMessage.level, .info)
-            XCTAssertEqual(logMessage.file, #file)
+            XCTAssertEqual(logMessage.file, #fileID)
             XCTAssertEqual(logMessage.function, "handle()")
             XCTAssertEqual(logMessage.line, Self.bidirectionalStreamingHandlerStreamingLine)
 
