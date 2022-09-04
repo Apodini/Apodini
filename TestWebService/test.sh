@@ -8,5 +8,19 @@
 #
 
 set -e
-curl --fail http://localhost/
-curl --fail http://localhost/http
+INTERVAL=5
+TRIES=10
+
+# Send requests every 5 seconds
+COUNTER=0
+while [ $COUNTER != $TRIES ]
+do
+    sleep $INTERVAL
+    echo "Trying..."
+    curl --fail http://localhost/ &&
+    curl --fail http://localhost/http &&
+    exit 0
+    COUNTER=$[$COUNTER + 1]
+done
+
+exit 1
