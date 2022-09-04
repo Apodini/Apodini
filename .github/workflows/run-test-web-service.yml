@@ -93,9 +93,7 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Start port 80 TestWebService
       run: |
-        nohup swift run -c ${{ matrix.configuration }} TestWebService
-        sleep 30
-        cat nohup.out
+        nohup swift run -c ${{ matrix.configuration }} TestWebService &
     - name: Test HTTP/1.1
       run: bash test.sh
       shell: bash
