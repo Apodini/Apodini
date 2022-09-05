@@ -44,22 +44,16 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Test HTTP/1.1
       run: |
-          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService)
-          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
-          bash test.sh
-      shell: bash
-    - name: Kill port 80 TestWebService
-      run: kill -9 $(lsof -ti:80)
+        swift run -c ${{ matrix.configuration }} TestWebService &
+        bash test.sh
+        kill -9 $(lsof -ti:80)
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443)
-          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
-          bash testhttp2.sh
-      shell: bash
-    - name: Kill port 4443 TestWebService
-      run: kill -9 $(lsof -ti:4443)
-      shell: bash
+        swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443 &
+        bash testhttp2.sh
+        kill -9 $(lsof -ti:4443)
+
   linux:
     name: Linux ${{ matrix.linux }} ${{ matrix.configuration }}
     container:
@@ -94,19 +88,12 @@ jobs:
       run: swift build -c ${{ matrix.configuration }}
     - name: Test HTTP/1.1
       run: |
-          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService)
-          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
-          bash test.sh
-      shell: bash
-    - name: Kill port 80 TestWebService
-      run: kill -9 $(lsof -ti:80)
+        swift run -c ${{ matrix.configuration }} TestWebService &
+        bash test.sh
+        kill -9 $(lsof -ti:80)
       shell: bash
     - name: Test HTTP/2
       run: |
-          exec 3< <(swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443)
-          sed '/info org.apodini.application : Server starting on/q' <&3 ; cat <&3 &
-          bash testhttp2.sh
-      shell: bash
-    - name: Kill port 4443 TestWebService
-      run: kill -9 $(lsof -ti:4443)
-      shell: bash
+        swift run -c ${{ matrix.configuration }} TestWebService --https-config ./Sources/TestWebService/Resources/localhost.cer.pem,./Sources/TestWebService/Resources/localhost.key.pem --port 4443 &
+        bash testhttp2.sh
+        kill -9 $(lsof -ti:4443)
