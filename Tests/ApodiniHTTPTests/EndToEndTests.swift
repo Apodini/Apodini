@@ -16,9 +16,9 @@ import Foundation
 class EndToEndTests: XCTApodiniTest {
     override func setUpWithError() throws {
         try super.setUpWithError()
-        
+
         configuration.configure(app)
-        
+
         let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
         content.accept(visitor)
         visitor.finishParsing()

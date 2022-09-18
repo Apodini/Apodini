@@ -86,7 +86,7 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
         case .ready:
             break
         case .applyingAction:
-            // We're already applying an config action, so we just keep track of the data we've reveived in the meantime
+            // We're already applying a config action, so we just keep track of the data we've received in the meantime
             bufferedInput.append(data)
             return
         }

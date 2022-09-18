@@ -34,4 +34,8 @@ public struct Update<Model: DatabaseModel>: Handler {
     }
     
     public init() {}
+    
+    public var metadata: AnyHandlerMetadata {
+        Operation(.update)
+    }
 }

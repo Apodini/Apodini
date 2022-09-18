@@ -146,7 +146,7 @@ final class TracingHandlerTests: XCTestCase {
             XCTAssertEqual(span.attributes.count, 5) // no extra attributes recorded
             XCTAssertEqual(span.endCallCount, 1)
 
-            XCTAssertEqual(response.status, .internalServerError)
+            XCTAssertEqual(response.status, .badRequest)
         }
     }
 

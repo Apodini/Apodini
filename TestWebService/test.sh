@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # This source file is part of the Apodini open source project
 #
@@ -6,5 +7,20 @@
 # SPDX-License-Identifier: MIT
 #
 
-curl --fail http://localhost/
-curl --fail http://localhost/http
+set -e
+INTERVAL=5
+TRIES=20
+
+# Send requests every 5 seconds
+COUNTER=0
+while [ $COUNTER != $TRIES ]
+do
+    sleep $INTERVAL
+    echo "Trying..."
+    curl --fail http://localhost/ &&
+    curl --fail http://localhost/http &&
+    exit 0
+    COUNTER=$[$COUNTER + 1]
+done
+
+exit 1

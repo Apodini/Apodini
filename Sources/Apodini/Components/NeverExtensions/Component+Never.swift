@@ -33,13 +33,13 @@ import NIO
 /// }
 /// ```
 /// Swift will deduce `S.Value` from the provided protocol extension.
-/// NB: I have absolutely no idea why this is the case. Maybe it's a but and will get fixed in the future.
+/// NB: I have absolutely no idea why this is the case. Maybe it's a bug and will get fixed in the future.
 ///
 /// This behaviour (effectively giving the associatedtype a default, despite us explicitly not defining one)
 /// is undesired from our point of view, since we want a `Component` struct definition which doesn't specify its `Content` type
 /// (either explicitly via a typealias or implicitly via the `content` property's return type) to result in a compilation error.
 ///
-/// Since apparently Swift looks at protocol extebsions to deduce default values for associatedtypes, we simply define a
+/// Since apparently Swift looks at protocol extensions to deduce default values for associatedtypes, we simply define a
 /// second, functionally equivalent, extension with a different type.
 /// The result is that, from Swift's point of view, both of these two extension's `Content` types are equally "valid" to
 /// use as a component's `Content` type.

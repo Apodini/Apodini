@@ -118,7 +118,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
         let commPattern = endpoint[CommunicationPattern.self]
-        let methodName = endpoint.getEndointName(.verb, format: .pascalCase)
+        let methodName = endpoint.getEndpointName(.verb, format: .pascalCase)
         let apodiniIdentifier = endpoint[AnyHandlerIdentifier.self]
         let handlerName = endpoint[HandlerReflectiveName.self]
 

@@ -12,7 +12,6 @@ import XCTest
 import ApodiniDatabase
 import ApodiniUtils
 
-
 open class XCTApodiniTest: XCTestCase {
     // swiftlint:disable implicitly_unwrapped_optional
     open var app: Application!

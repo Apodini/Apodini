@@ -55,6 +55,10 @@ struct TestWebService: Apodini.WebService {
         SwiftComponent()
         UserComponent(greeterRelationship: TestWebService.greeterRelationship)
         WeatherComponent()
+        CountdownComponent()
+        BidirectionalGreeterComponent()
+        HelloComponent()
+        AddComponent()
     }
     
     var configuration: Configuration {

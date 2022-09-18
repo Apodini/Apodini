@@ -49,7 +49,7 @@ public struct LoggingMetadata: DynamicProperty {
             builtMetadata["exporter"] = .dictionary(self.exporterMetadata)
         } else {
             // Connection stays open since these communication patterns allow for any amount of client messages
-            // Therfore the metadata chould have changed and we need to reevaluate it
+            // Therefore the metadata chould have changed and we need to reevaluate it
             switch self.observeMetadata.sharedRepositoryMetadata.communicationPattern {
             case .clientSideStream, .bidirectionalStream:
                 // Refresh connection metadata

@@ -22,13 +22,14 @@ struct AuditCommand<Service: WebService>: ParsableCommand {
             discussion: "Audits the web service with regards to HTTP and REST best practices",
             version: "0.1.0",
             subcommands: [
-                `default`
+                runCommand,
+                AuditSetupNLTKCommand<Service>.self
             ],
-            defaultSubcommand: `default`
+            defaultSubcommand: runCommand
         )
     }
     
-    private static var `default`: ParsableCommand.Type {
+    private static var runCommand: ParsableCommand.Type {
         AuditRunCommand<Service>.self
     }
 }
@@ -43,8 +44,18 @@ protocol AuditParsableSubcommand: ParsableCommand {
 }
 
 extension AuditParsableSubcommand {
+    func run() throws {
+        try run(app: Application())
+    }
+    
     func start(_ app: Application) throws {
+        // Indicate to the ``APIAuditorConfiguration`` that the web service is being started to audit the endpoints
+        app.storage[AuditStorageKey.self] = true
         // Only builds the semantic model to run the InterfaceExporters, does not run the web service
         try Service.start(mode: .startup, app: app, webService: webService)
     }
+}
+
+struct AuditStorageKey: StorageKey {
+    typealias Value = Bool
 }

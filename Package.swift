@@ -130,7 +130,13 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
         
         // Apodini Document Export
-        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0"))
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
+        
+        // Apodini Audit
+        .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2"),
+
+        // XCTApodiniNetworking
+        .package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.0.0")
     ],
     targets: [
         // MARK: Primary targets
@@ -163,7 +169,9 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniREST"),
-                .target(name: "ApodiniHTTP")
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniHTTP"),
+                .product(name: "PythonKit", package: "PythonKit")
             ]
         ),
         
@@ -365,6 +373,7 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniNetworkingHTTPSupport"),
+                .target(name: "ApodiniAuthorization"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -583,7 +592,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniNetworking"),
-                .target(name: "XCTApodiniNetworking")
+                .target(name: "XCTApodiniNetworking"),
+                .target(name: "ApodiniAudit")
             ]
         ),
         
@@ -593,7 +603,8 @@ let package = Package(
                 .target(name: "XCTUtils"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "NIOExtras", package: "swift-nio-extras")
             ]
         ),
         
@@ -662,6 +673,9 @@ let package = Package(
                 .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "XCTApodiniNetworking")
+            ],
+            resources: [
+                .process("Resources")
             ]
         ),
         
@@ -746,7 +760,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationJWT"),
                 .product(name: "SotoTestUtils", package: "soto-core"),
                 .product(name: "OrderedCollections", package: "swift-collections"),
-                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
+                .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport"),
+                .product(name: "PythonKit", package: "PythonKit")
             ],
             resources: [
                 .process("Resources")

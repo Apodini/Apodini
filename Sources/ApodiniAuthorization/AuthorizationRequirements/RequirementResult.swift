@@ -30,7 +30,7 @@ public enum RequirementResult {
         case error(_ error: Error, in: AnyAuthorizationRequirement? = nil)
         /// The result is the cause of a single ``AuthenticationRequirement``.
         case result(_ requirement: AnyAuthorizationRequirement)
-        /// The result is the cause of multiple evaluations of different ``AuthenticationRequirement``.
+        /// The result is the cause of multiple evaluations of different ``AuthenticationRequirement``s.
         case results(_ results: [RequirementResult])
         /// The cause is not specified.
         case unspecified

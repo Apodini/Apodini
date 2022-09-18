@@ -398,9 +398,7 @@ extension ChildProcess {
     /// - parameter additionalSearchPaths: An array of directories which should be searched in addition to the directories found in the PATH.
     ///         Note that the directories in this path take precedence over the ones in the PATH
     public static func findExecutable(named binaryName: String, additionalSearchPaths: [String] = []) -> URL? {
-        guard let pathSplit = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") else {
-            return nil
-        }
+        let pathSplit = ProcessInfo.processInfo.environment["PATH"]?.components(separatedBy: ":") ?? []
         let fileManager = FileManager.default
         let searchPaths = additionalSearchPaths + pathSplit
         for searchPath in searchPaths {

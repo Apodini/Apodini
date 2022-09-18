@@ -231,7 +231,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
 
     mutating func resolved(value: Any) {
         guard let resolvedValue = value as? Type else {
-            fatalError("The resolved value \(value) couldn't be casted to \(Type.self) for path parameter \(name)")
+            fatalError("The resolved value \(value) couldn't be cast to \(Type.self) for path parameter \(name)")
         }
         self.resolvedValue = resolvedValue
     }

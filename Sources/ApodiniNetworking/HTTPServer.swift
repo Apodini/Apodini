@@ -316,7 +316,7 @@ public final class HTTPServer {
     
     /// Register a HTTP/2 stream configuration handler.
     /// This handler will be invoked as part of a new channel's configuration phase, allowing custom handlers be added to the channel.
-    /// Whether or not a configuration handler will be used to configure a new cannel depends on the `Content-Type` header sent
+    /// Whether or not a configuration handler will be used to configure a new channel depends on the `Content-Type` header sent
     /// by the client with the channel-opening initial request,
     public func addIncomingHTTP2StreamConfigurationHandler(
         forContentTypes contentTypes: Set<HTTPMediaType>,

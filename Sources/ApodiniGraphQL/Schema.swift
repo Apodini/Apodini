@@ -142,9 +142,9 @@ class GraphQLSchemaBuilder {
         let endpointName: String
         switch endpointKind {
         case .query:
-            endpointName = endpoint.getEndointName(.noun, format: .camelCase)
+            endpointName = endpoint.getEndpointName(.noun, format: .camelCase)
         case .mutation:
-            endpointName = endpoint.getEndointName(.verb, format: .camelCase)
+            endpointName = endpoint.getEndpointName(.verb, format: .camelCase)
         }
         guard !handlers.keys.contains(endpointName) else {
             throw SchemaError.duplicateEndpointNames(endpointName)

@@ -94,7 +94,7 @@ extension Endpoint {
     /// - Note: This is a best-effort implementation, and there is no guarantee that the resulting name will make sense or even be unique within the web service.
     /// - parameter preferredOutputType: Whether the resulting name should be e.g. a noun or a verb
     /// - parameter format: How the resulting string should be formatted, e.g. using `camelCase`, `snake_case`, or others
-    public func getEndointName( // swiftlint:disable:this cyclomatic_complexity
+    public func getEndpointName( // swiftlint:disable:this cyclomatic_complexity
         _ preferredOutputType: EndpointNamePartOfSpeech,
         format outputFormat: EndpointNameFormat
     ) -> String {

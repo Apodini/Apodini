@@ -197,6 +197,11 @@ extension String {
         public static let uppercase = Self.custom { prev, cur in
             prev.isLowercase && cur.isUppercase
         }
+        
+        /// Split by any non alphanumerical characters
+        public static let notAlphaNumerical = Self.custom { _, cur in
+            !cur.isLetter && !cur.isNumber
+        }
     }
     
     

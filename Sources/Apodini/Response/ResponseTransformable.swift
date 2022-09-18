@@ -36,7 +36,7 @@ extension Encodable {
     
     /// Default Implementation for types conforming to `ResponseTransformable`
     ///
-    /// Transforms an `ResponseTransformable` into an `Response` to be processed by the Apodini
+    /// Transforms a `ResponseTransformable` into a `Response` to be processed by Apodini
     /// - Parameter eventLoop: The `EventLoop` that should be used to transform the `ResponseTransformable` to an `Response` if needed
     public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Self>> {
         eventLoop.makeSucceededFuture(.final(self))
