@@ -12,6 +12,9 @@
 
 import PackageDescription
 
+
+//Package(name: <#T##String#>, defaultLocalization: <#T##LanguageTag?#>, platforms: <#T##[SupportedPlatform]?#>, pkgConfig: <#T##String?#>, providers: <#T##[SystemPackageProvider]?#>, products: <#T##[Product]#>, dependencies: <#T##[Package.Dependency]#>, targets: <#T##[Target]#>, swiftLanguageVersions: <#T##[SwiftVersion]?#>, cLanguageStandard: <#T##CLanguageStandard?#>, cxxLanguageStandard: <#T##CXXLanguageStandard?#>)
+
 let package = Package(
     name: "Apodini",
     platforms: [
@@ -64,7 +67,8 @@ let package = Package(
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
-        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
+        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"]),
+        .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0"),

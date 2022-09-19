@@ -73,6 +73,7 @@ struct WebService: Apodini.WebService {
             )
         )
         GRPC(packageName: "de.lukaskollmer", serviceName: "LKTestWebService")
+        HTTP()
     }
 }
 
