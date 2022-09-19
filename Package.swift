@@ -130,7 +130,9 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
         
         // Apodini Document Export
-        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
+        // This should ideally be simply `.upToNextMinor(from: "0.1.0")`, but for some reason that doesn't seem to work and Xcode keeps switching the actually checked-out revision to some obscure commit lying around somewhere in the repo that isn't even associated w/ any specific branch...
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport", .revision("7de65b4c81929b56eadad190b11f02cf42ff9afe")),
+        //.package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
         
         // Apodini Audit
         .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2"),
