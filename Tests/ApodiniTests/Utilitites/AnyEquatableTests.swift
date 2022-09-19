@@ -9,19 +9,22 @@
 import XCTApodini
 import ApodiniUtils
 
-final class AnyEncodableTests: ApodiniTests {
-    struct NonEquatable {
-        var test: String
-    }
 
-    func testLHSNonEquatable() throws {
-        let result = AnyEquatable.compare("asdf", NonEquatable(test: "asdf"))
-        XCTAssertEqual(result, .notEquatable)
+final class AnyEquatableTests: ApodiniTests {
+    struct NonEquatable {}
+
+    func testNonEquatableInput() throws {
+        let lhs = "asdf"
+        let rhs = NonEquatable()
+        XCTAssertEqual(AnyEquatable.compare(lhs, rhs), .inputNotEquatable)
+        XCTAssertEqual(AnyEquatable.compare(rhs, lhs), .inputNotEquatable)
+        XCTAssertEqual(AnyEquatable.compare(rhs, rhs), .inputNotEquatable)
+        XCTAssertEqual(AnyEquatable.compare(lhs, lhs), .equal)
     }
 
     func testNonMatchingTypes() {
         let result = AnyEquatable.compare("asdf", 3)
-        XCTAssertEqual(result, .nonMatchingTypes)
+        XCTAssertEqual(result, .inputNotEquatable)
     }
 
     func testEquality() {
