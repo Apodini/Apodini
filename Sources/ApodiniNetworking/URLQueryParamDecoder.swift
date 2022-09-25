@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import AssociatedTypeRequirementsVisitor
 
 
 /// How a decoder should decode dates.

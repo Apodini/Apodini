@@ -28,6 +28,7 @@ class TypeInfoTests: ApodiniTests {
         XCTAssertEqual(isOptional((() -> Void).self), false)
     }
 
+    
     func testIsEnum() {
         /// A custom type
         enum Test {
@@ -46,6 +47,7 @@ class TypeInfoTests: ApodiniTests {
         XCTAssertEqual(isEnum((() -> Void).self), false)
     }
     
+    
     func testDescription() {
         let parameter = Parameter<String>()
         XCTAssertEqual(ApodiniUtils.mangledName(of: type(of: parameter)), "Parameter")
@@ -58,5 +60,36 @@ class TypeInfoTests: ApodiniTests {
         
         XCTAssertEqual(ApodiniUtils.mangledName(of: (() -> Void).self), "() -> ()")
         XCTAssertEqual(ApodiniUtils.mangledName(of: ((String) -> (Int)).self), "(String) -> Int")
+    }
+    
+    
+    func testIsSequence() throws {
+        func imp(_ value: Any, _ expected: Bool) {
+            XCTAssertEqual(isSequence(value), expected)
+        }
+        imp(0..<4, true)
+        imp(0..., true)
+        imp("hello", true)
+        imp(Set<Int>(), true)
+        imp(JSONDecoder(), false)
+        imp(Array<Any>(), true)
+        imp(Array<Int>(), true)
+        imp(Dictionary<String, String>().keys, true)
+        imp(NSObject(), false)
+    }
+    
+    func testIsCollection() throws {
+        func imp(_ value: Any, _ expected: Bool) {
+            XCTAssertEqual(isCollection(value), expected)
+        }
+        imp(0..<4, true)
+        imp(0..., false)
+        imp("hello", true)
+        imp(Set<Int>(), true)
+        imp(JSONDecoder(), false)
+        imp(Array<Any>(), true)
+        imp(Array<Int>(), true)
+        imp(Dictionary<String, String>().keys, true)
+        imp(NSObject(), false)
     }
 }

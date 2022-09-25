@@ -9,7 +9,6 @@
 import NIO
 import ApodiniUtils
 import Foundation
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 internal struct CodableBox<T> {

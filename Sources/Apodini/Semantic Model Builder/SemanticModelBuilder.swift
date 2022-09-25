@@ -8,7 +8,7 @@
 
 import Foundation
 import NIO
-@_implementationOnly import AssociatedTypeRequirementsVisitor
+
 
 class SemanticModelBuilder: InterfaceExporterVisitor {
     private(set) var app: Application
@@ -73,32 +73,6 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 }
 
-private protocol IdentifiableHandlerATRVisitorHelper: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = IdentifiableHandlerATRVisitorHelper
-    associatedtype Input = IdentifiableHandler
-    associatedtype Output
-    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> Output
-}
-
-private struct TestHandlerType: IdentifiableHandler {
-    typealias Response = Never
-    let handlerId = ScopedHandlerIdentifier<Self>("main")
-}
-
-extension IdentifiableHandlerATRVisitorHelper {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(TestHandlerType())
-    }
-}
-
-private struct IdentifiableHandlerATRVisitor: IdentifiableHandlerATRVisitorHelper {
-    func callAsFunction<T: IdentifiableHandler>(_ value: T) -> AnyHandlerIdentifier {
-        value.handlerId
-    }
-}
-
 
 extension Handler {
     /// If `self` is an `IdentifiableHandler`, returns the handler's `handlerId`. Otherwise nil
@@ -106,8 +80,8 @@ extension Handler {
         // Intentionally using the if-let here to make sure we get an error
         // if for some reason the ATRVisitor's return type isn't an optional anymore,
         // since that (a guaranteed non-nil return value) would defeat the whole point of this function
-        if let identifier = IdentifiableHandlerATRVisitor()(self) {
-            return identifier
+        if let identifiableHandler = self as? any IdentifiableHandler {
+            return identifiableHandler.handlerId
         } else {
             return nil
         }

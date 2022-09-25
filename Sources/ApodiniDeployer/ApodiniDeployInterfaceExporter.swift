@@ -14,7 +14,6 @@ import ApodiniUtils
 import ApodiniDeployerBuildSupport
 import ApodiniDeployerRuntimeSupport
 import ApodiniNetworking
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 @_implementationOnly import AsyncHTTPClient
 
 

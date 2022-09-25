@@ -23,6 +23,12 @@ public protocol ProtobufEnumWithAssociatedValues: AnyProtobufEnumWithAssociatedV
 }
 
 
+extension Encodable {
+    fileprivate func _encode<Key: CodingKey>(into container: inout KeyedEncodingContainer<Key>, forKey key: Key) throws {
+        try container.encode(self, forKey: key)
+    }
+}
+
 extension ProtobufEnumWithAssociatedValues {
     /// Default `Decodable` implementation, decoding this enum type from a protobuf value
     /// - NOTE: This will only work with the `_ProtobufferDecoder`
@@ -59,17 +65,10 @@ extension ProtobufEnumWithAssociatedValues {
         precondition(encoder is _ProtobufferEncoder)
         let (codingKey, payload) = self.getCodingKeyAndPayload
         var keyedEncodingContainer = encoder.container(keyedBy: CodingKeys.self)
-        let containerContainer = ProtoKeyedEncodingContainerContainer<CodingKeys>(key: codingKey, keyedEncodingContainer: keyedEncodingContainer)
-        let encodableATRVisitor = AnyEncodableEncodeIntoKeyedEncodingContainerATRVisitor(containerContainer: containerContainer)
-        switch encodableATRVisitor(payload as! Encodable) {
-        case nil:
-            fatalError("Nil")
-        case .failure(let error):
-            throw error
-        case .success:
-            break
+        guard let payload = payload as? Encodable else {
+            fatalError("Payload of type \(type(of: payload)) is not Encodable.")
         }
-        keyedEncodingContainer = containerContainer.keyedEncodingContainer
+        try payload._encode(into: &keyedEncodingContainer, forKey: codingKey)
     }
     
     
