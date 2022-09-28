@@ -72,9 +72,9 @@ class TypeInfoTests: ApodiniTests {
         imp("hello", true)
         imp(Set<Int>(), true)
         imp(JSONDecoder(), false)
-        imp(Array<Any>(), true)
-        imp(Array<Int>(), true)
-        imp(Dictionary<String, String>().keys, true)
+        imp([Any](), true)
+        imp([Int](), true)
+        imp([String: String]().keys, true)
         imp(NSObject(), false)
     }
     
@@ -87,9 +87,9 @@ class TypeInfoTests: ApodiniTests {
         imp("hello", true)
         imp(Set<Int>(), true)
         imp(JSONDecoder(), false)
-        imp(Array<Any>(), true)
-        imp(Array<Int>(), true)
-        imp(Dictionary<String, String>().keys, true)
+        imp([Any](), true)
+        imp([Int](), true)
+        imp([String: String]().keys, true)
         imp(NSObject(), false)
     }
 }

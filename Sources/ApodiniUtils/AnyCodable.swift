@@ -52,6 +52,7 @@ extension Encodable {
 }
 
 extension AnyEncoder {
+    /// Encode an `Encodable` value using this encoder.
     public func encode(value: Encodable) throws -> Data {
         try value.encode(using: self)
     }

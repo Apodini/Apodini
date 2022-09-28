@@ -10,7 +10,7 @@ import Foundation
 
 
 extension Equatable {
-    fileprivate func comparesEqual(with other: Any) -> Bool? {
+    fileprivate func comparesEqual(with other: Any) -> Bool? { // swiftlint:disable:this discouraged_optional_boolean
         if let other = other as? Self {
             return self == other
         } else {
