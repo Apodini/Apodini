@@ -128,7 +128,7 @@ class ApodiniDeployerInterfaceExporter: LegacyInterfaceExporter {
     
     fileprivate func shutdownHTTPClient() {
         do {
-            try self.httpClient.syncShutdown()
+            try httpClient.syncShutdown()
         } catch {
             app.logger.error("[\(Self.self)] error shutting down httpClient: \(error)")
         }
