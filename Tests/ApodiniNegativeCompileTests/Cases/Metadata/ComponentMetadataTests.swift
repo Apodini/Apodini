@@ -14,7 +14,7 @@ private struct TestComponent: Component {
     }
 
     var metadata: Metadata {
-        // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         TestVoidHandlerMetadata()
 
         TestVoidComponentOnlyMetadata()
@@ -31,7 +31,7 @@ private struct TestComponent: Component {
         }
 
         StandardComponentOnlyMetadataBlock {
-            // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+            // error: Argument type 'any AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
             TestVoidHandlerMetadata()
 
             TestVoidComponentOnlyMetadata()
@@ -73,15 +73,15 @@ private struct TestComponent2: Component {
     var metadata: Metadata {
         TestVoidComponentOnlyMetadata()
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         TestVoidWebServiceMetadata()
 
-        // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         StandardHandlerMetadataBlock {
             TestVoidHandlerMetadata()
         }
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         StandardWebServiceMetadataBlock {
             TestVoidWebServiceMetadata()
         }
@@ -89,7 +89,7 @@ private struct TestComponent2: Component {
         StandardComponentOnlyMetadataBlock {
             TestVoidComponentOnlyMetadata()
 
-            // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+            // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
             TestVoidWebServiceMetadata()
 
             TestVoidComponentOnlyMetadata()

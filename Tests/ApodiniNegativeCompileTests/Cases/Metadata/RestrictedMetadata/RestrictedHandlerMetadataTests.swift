@@ -27,7 +27,7 @@ private struct TestHandler: Handler {
             }
         }
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
         WebServiceVoids {
             TestVoidWebServiceMetadata()
         }
@@ -36,7 +36,7 @@ private struct TestHandler: Handler {
             TestVoidComponentMetadata()
         }
 
-        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
         ComponentOnlyVoids {
             TestVoidComponentOnlyMetadata()
         }
