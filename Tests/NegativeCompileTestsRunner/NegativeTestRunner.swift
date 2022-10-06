@@ -286,9 +286,9 @@ class NegativeTestRunner {
         arguments += " --enable-test-discovery"
         #endif
 
-        #if COVERAGE // custom defined Active Compilation Condition which we set when we enable code coverage collection
-        arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
-        #endif
+        //#if COVERAGE // custom defined Active Compilation Condition which we set when we enable code coverage collection
+        //arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
+        //#endif
 
         let stdOutput = try runCommand(command: "swift", arguments: arguments, expectedStatus: 1)
 
