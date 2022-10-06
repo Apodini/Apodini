@@ -30,7 +30,7 @@ private struct TestComponent: Component {
             TestVoidComponentMetadata()
         }
 
-        // error: Argument type 'AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyHandlerMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         HandlerVoids {
             TestVoidHandlerMetadata()
         }
@@ -50,7 +50,7 @@ private struct TestComponent2: Component {
     var metadata: Metadata {
         TestVoidComponentOnlyMetadata()
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyComponentOnlyMetadata'
         WebServiceVoids {
             TestVoidWebServiceMetadata()
         }

@@ -16,10 +16,10 @@ private struct TestStruct: Handler {
     var metadata: Metadata {
         TestVoidHandlerMetadata()
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
         TestVoidWebServiceMetadata()
 
-        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
         TestVoidComponentOnlyMetadata()
 
         TestVoidComponentMetadata()
@@ -34,10 +34,10 @@ private struct TestStruct: Handler {
         StandardHandlerMetadataBlock {
             TestVoidHandlerMetadata()
 
-            // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
+            // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
             TestVoidWebServiceMetadata()
 
-            // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
+            // error: Argument type 'any AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
             TestVoidComponentOnlyMetadata()
 
             TestVoidComponentMetadata()
@@ -46,12 +46,12 @@ private struct TestStruct: Handler {
             TestVoidContentMetadata()
         }
 
-        // error: Argument type 'AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyWebServiceMetadata' does not conform to expected type 'AnyHandlerMetadata'
         StandardWebServiceMetadataBlock {
             TestVoidWebServiceMetadata()
         }
 
-        // error: Argument type 'AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
+        // error: Argument type 'any AnyComponentOnlyMetadata' does not conform to expected type 'AnyHandlerMetadata'
         StandardComponentOnlyMetadataBlock {
             TestVoidComponentOnlyMetadata()
         }

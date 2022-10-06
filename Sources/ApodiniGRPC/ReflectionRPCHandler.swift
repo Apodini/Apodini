@@ -11,7 +11,6 @@ import Runtime
 import ApodiniUtils
 import Foundation
 import NIOHPACK
-import AssociatedTypeRequirementsVisitor
 import ProtobufferCoding
 
 

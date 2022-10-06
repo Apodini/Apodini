@@ -12,10 +12,9 @@
     {
       "identity" : "apodinidocumentexport",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Apodini/ApodiniDocumentExport.git",
+      "location" : "https://github.com/Apodini/ApodiniDocumentExport",
       "state" : {
-        "revision" : "7de65b4c81929b56eadad190b11f02cf42ff9afe",
-        "version" : "0.1.1"
+        "revision" : "7de65b4c81929b56eadad190b11f02cf42ff9afe"
       }
     },
     {
@@ -32,17 +31,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Apodini/ApodiniTypeInformation.git",
       "state" : {
-        "revision" : "40247bedd5153b7641e95a11bd826b16a15fd12e",
-        "version" : "0.3.6"
-      }
-    },
-    {
-      "identity" : "associatedtyperequirementskit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git",
-      "state" : {
-        "revision" : "2e4c49c21ffb2135f1c99fbfcf2119c9d24f5e8c",
-        "version" : "0.3.2"
+        "revision" : "a5c86293f1fd3585321d38999d8c98176a02b7b0",
+        "version" : "0.3.7"
       }
     },
     {
@@ -131,8 +121,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Apodini/MetadataSystem.git",
       "state" : {
-        "revision" : "f655813f1953af8d3aaac432dad35f394e7bdf75",
-        "version" : "0.1.6"
+        "revision" : "761c5dbaa9f53293b1109f81d469370b5f5f61e7",
+        "version" : "0.1.7"
       }
     },
     {

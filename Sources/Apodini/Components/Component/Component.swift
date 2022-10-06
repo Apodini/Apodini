@@ -8,7 +8,6 @@
 
 import NIO
 import ApodiniUtils
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 /// A `Component` is the central building block of  Apodini. Each component handles a specific functionality of the Apodini web service.
 ///
@@ -63,15 +62,15 @@ extension Component {
 
             // As stated above, this might be a Modifier and the Metadata of Modifiers can't be accessed.
             // So we only start parsing the metadata if in fact we know that it isn't a Modifier.
-            if StandardModifierVisitor()(self) != true {
+            if (self as? any Modifier) == nil {
                 (metadata as! AnyMetadata).collectMetadata(visitor)
             }
 
             visitable.accept(visitor)
         } else {
-            let visited = HandlerVisitorHelperImpl(visitor: visitor)(self) != nil
-
-            if !visited {
+            if let handler = self as? any Handler {
+                handler._accept(visitor: visitor)
+            } else {
                 // Covering components which are not Handlers and don't conform to `SyntaxTreeVisitable`.
                 // Such Components are typically constructed by users.
                 // Executed before we enter the content below.
@@ -90,53 +89,8 @@ extension Component {
 }
 
 
-private protocol HandlerVisitorHelperImplBase: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = HandlerVisitorHelperImplBase
-    associatedtype Input = Handler
-    associatedtype Output
-    func callAsFunction<H: Handler>(_ value: H) -> Output
-}
-
-extension HandlerVisitorHelperImplBase {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(Text(""))
-    }
-}
-
-private struct HandlerVisitorHelperImpl: HandlerVisitorHelperImplBase {
-    let visitor: SyntaxTreeVisitor
-    func callAsFunction<H: Handler>(_ value: H) {
-        visitor.visit(handler: value)
-    }
-}
-
-
-private protocol ModifierVisitor: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = ModifierVisitor
-    associatedtype Input = Modifier
-    associatedtype Output
-
-    func callAsFunction<M: Modifier>(_ value: M) -> Output
-}
-
-private struct TestModifier: Modifier {
-    var component = Text("")
-
-    func parseModifier(_ visitor: SyntaxTreeVisitor) {}
-}
-
-extension ModifierVisitor {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(TestModifier())
-    }
-}
-
-private struct StandardModifierVisitor: ModifierVisitor {
-    func callAsFunction<M: Modifier>(_ value: M) -> Bool {
-        true
+extension Handler {
+    fileprivate func _accept(visitor: SyntaxTreeVisitor) {
+        visitor.visit(handler: self)
     }
 }

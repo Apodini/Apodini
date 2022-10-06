@@ -1,4 +1,4 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 
 //
 // This source file is part of the Apodini open source project
@@ -72,9 +72,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.1.0"),
         // Used by the `NotificationCenter` to send push notifications to `APNS`
         .package(url: "https://github.com/kylebrowning/APNSwift.git", from: "3.2.0"),
-        // Use to navigate around some of the existentials limitations of the Swift Compiler
-        // As AssociatedTypeRequirementsKit does not follow semantic versioning we constraint it to the current minor version
-        .package(url: "https://github.com/nerdsupremacist/AssociatedTypeRequirementsKit.git", .upToNextMinor(from: "0.3.2")),
         // Used to parse crontabs in the `Scheduler` class
         .package(url: "https://github.com/MihaelIsaev/SwifCron.git", from: "1.3.0"),
         .package(url: "https://github.com/mattpolzin/OpenAPIKit.git", from: "2.4.0"),
@@ -106,7 +103,7 @@ let package = Package(
         .package(url: "https://github.com/norio-nomura/XCTAssertCrash.git", from: "0.2.0"),
 
         // Metadata
-        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.3")),
+        .package(url: "https://github.com/Apodini/MetadataSystem.git", .upToNextMinor(from: "0.1.7")),
 
         // Apodini Authorization
         .package(url: "https://github.com/vapor/jwt-kit.git", from: "4.3.0"),
@@ -124,13 +121,14 @@ let package = Package(
         .package(url: "https://github.com/Apodini/ApodiniMigrator.git", .upToNextMinor(from: "0.3.0")),
 
         // TypeInformation
-        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.2")),
+        .package(url: "https://github.com/Apodini/ApodiniTypeInformation.git", .upToNextMinor(from: "0.3.7")),
 
         // GraphQL
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
         
         // Apodini Document Export
-        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.0")),
+//         .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.1")),
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport", .revision("7de65b4c81929b56eadad190b11f02cf42ff9afe")),
         
         // Apodini Audit
         .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2"),
@@ -145,7 +143,6 @@ let package = Package(
             dependencies: [
                 .target(name: "CApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Algorithms", package: "swift-algorithms")
             ]
@@ -158,7 +155,6 @@ let package = Package(
                 .target(name: "ApodiniNetworkingHTTPSupport"),
                 .product(name: "ApodiniContext", package: "MetadataSystem"),
                 .product(name: "MetadataSystem", package: "MetadataSystem"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
@@ -390,7 +386,6 @@ let package = Package(
                 .target(name: "ApodiniLoggingSupport"),
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "Runtime", package: "Runtime")
             ]
         ),
@@ -578,8 +573,7 @@ let package = Package(
                 .target(name: "ApodiniDeployerBuildSupport"),
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .product(name: "Logging", package: "swift-log")
             ]
         ),
         .testTarget(
@@ -714,8 +708,7 @@ let package = Package(
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ProtobufferCoding"),
                 .target(name: "ApodiniUtils"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         
@@ -727,8 +720,7 @@ let package = Package(
                 .target(name: "ApodiniNetworkingHTTPSupport"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "NIO", package: "swift-nio"),
-                .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit")
+                .product(name: "Runtime", package: "Runtime")
             ]
         ),
         
@@ -751,7 +743,6 @@ let package = Package(
                 .target(name: "ApodiniLoggingSupport"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime"),
-                .product(name: "AssociatedTypeRequirementsKit", package: "AssociatedTypeRequirementsKit"),
                 .product(name: "GraphQL", package: "GraphQL")
             ],
             resources: [

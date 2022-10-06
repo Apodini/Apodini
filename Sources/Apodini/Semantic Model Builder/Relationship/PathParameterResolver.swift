@@ -8,7 +8,7 @@
 
 import Foundation
 import ApodiniUtils
-@_implementationOnly import AssociatedTypeRequirementsVisitor
+
 
 typealias MatchedResolvers = [UUID: AnyPathParameterResolver]
 
@@ -113,14 +113,13 @@ struct PathParameterResolver: AnyPathParameterResolver {
 extension ParsedTypeIndexEntryCapture {
     func asSource() -> RelationshipSourceCandidate {
         var resolvers = pathParameters.resolvers()
-
+        
         // if the return type conforms to Identifiable we need
         // to create a potential resolver for the `id` property (as required by `Identifiable`)
-        let visitor = IdentifiableIdPropertyResolverVisitor()
-        if let propertyResolver = visitor(type) {
-            resolvers.append(propertyResolver)
+        if let identifiableTy = type as? any Identifiable.Type {
+            resolvers.append(identifiableTy.makePathParameterPropertyResolver())
         }
-
+        
         return RelationshipSourceCandidate(destinationType: type, reference: reference, resolvers: resolvers)
     }
 }
@@ -155,8 +154,9 @@ extension Array where Element == AnyPathParameterResolver {
     }
 }
 
-struct IdentifiableIdPropertyResolverVisitor: IdentifiableTypeVisitor {
-    func callAsFunction<T: Identifiable>(_ value: T.Type) -> AnyPathParameterResolver {
-        PathParameterPropertyResolver(destination: T.self, at: \T.id)
+
+extension Identifiable {
+    static func makePathParameterPropertyResolver() -> AnyPathParameterResolver {
+        PathParameterPropertyResolver(destination: Self.self, at: \Self.id)
     }
 }

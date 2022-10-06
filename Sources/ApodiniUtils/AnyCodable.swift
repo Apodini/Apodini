@@ -37,9 +37,25 @@ public protocol AnyEncoder {
     /// Encode some `Encodable` object to `Data`
     func encode<E: Encodable>(_ value: E) throws -> Data
     
+    /// Encodes a non-generic `Encodable` object into a sequence of bytes.
+    func encode(value: Encodable) throws -> Data
+    
     /// The HTTP media type associated with the data format produced by this encoder.
     /// Return `nil` if not applicable
     var resultMediaTypeRawValue: String? { get }
+}
+
+extension Encodable {
+    fileprivate func encode(using encoder: AnyEncoder) throws -> Data {
+        try encoder.encode(self)
+    }
+}
+
+extension AnyEncoder {
+    /// Encode an `Encodable` value using this encoder.
+    public func encode(value: Encodable) throws -> Data {
+        try value.encode(using: self)
+    }
 }
 
 extension JSONEncoder: AnyEncoder {

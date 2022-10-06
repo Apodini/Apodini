@@ -13,7 +13,6 @@ import Apodini
 import ApodiniUtils
 import Foundation
 @_implementationOnly import Runtime
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 let protobufferUnsupportedNumericTypes = Set(
@@ -384,53 +383,5 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         } else {
             // The optional field does not have a value, so we don't encode anything into the buffer
         }
-    }
-}
-
-
-// MARK: Utilities
-
-protocol AnyEncodableATRVisitorBase: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AnyEncodableATRVisitorBase
-    associatedtype Input = Encodable
-    associatedtype Output
-
-    func callAsFunction<T: Encodable>(_ value: T) -> Output
-}
-
-extension AnyEncodableATRVisitorBase {
-    @inline(never)
-    @_optimize(none)
-    func _test() { // swiftlint:disable:this identifier_name
-        _ = self(12)
-    }
-}
-
-
-protocol AnyKeyedEncodingContainerContainerProtocol {
-    func encode<T: Encodable>(_ value: T) throws
-}
-
-
-class ProtoKeyedEncodingContainerContainer<Key: CodingKey>: AnyKeyedEncodingContainerContainerProtocol {
-    let key: Key
-    var keyedEncodingContainer: KeyedEncodingContainer<Key>
-    
-    init(key: Key, keyedEncodingContainer: KeyedEncodingContainer<Key>) {
-        self.key = key
-        self.keyedEncodingContainer = keyedEncodingContainer
-    }
-    
-    func encode<T: Encodable>(_ value: T) throws {
-        try keyedEncodingContainer.encode(value, forKey: key)
-    }
-}
-
-
-struct AnyEncodableEncodeIntoKeyedEncodingContainerATRVisitor: AnyEncodableATRVisitorBase { // swiftlint:disable:this type_name
-    let containerContainer: AnyKeyedEncodingContainerContainerProtocol
-    
-    func callAsFunction<T: Encodable>(_ value: T) -> Result<Void, Error> {
-        .init(catching: { try containerContainer.encode(value) })
     }
 }

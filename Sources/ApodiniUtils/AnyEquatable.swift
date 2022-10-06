@@ -7,7 +7,17 @@
 //              
 
 import Foundation
-@_implementationOnly import AssociatedTypeRequirementsVisitor
+
+
+extension Equatable {
+    fileprivate func comparesEqual(with other: Any) -> Bool? { // swiftlint:disable:this discouraged_optional_boolean
+        if let other = other as? Self {
+            return self == other
+        } else {
+            return nil
+        }
+    }
+}
 
 
 /// Utility functions for testing arbitrary objects for equality.
@@ -18,10 +28,8 @@ public enum AnyEquatable {
         case equal
         /// Both objects are of the same type, which conforms to `Equatable`, and the comparison returned `false`.
         case notEqual
-        /// Both objects are of the same type, but that type does not conform to `Equatable`, meaning we cannot compare the objects.
-        case notEquatable
-        /// The objects are of different types, meaning they cannot be compared.
-        case nonMatchingTypes
+        /// The objects may or may not be of the same type, but at least one of the objects is of a type which does not conform to `Equatable`.
+        case inputNotEquatable
         
         /// Whether the objects were equal.
         /// - Note: This property being `true` implies that the objects were of the same type, and that that type conforms to `Equatable`.
@@ -36,30 +44,16 @@ public enum AnyEquatable {
     /// Checks whether the two objects of unknown types are equal.
     /// - Returns: Returns a according ``ComparisonResult``.
     public static func compare(_ lhs: Any, _ rhs: Any) -> ComparisonResult {
-        switch TestEqualsImpl(lhs)(rhs) {
-        case .some(let result):
-            return result
-        case .none:
-            // If the visitor returns nil, it was unable to visit the type, meaning `rhs` is not Equatable.
-            return .notEquatable
+        guard let lhsEq = lhs as? any Equatable else {
+            return .inputNotEquatable
         }
-    }
-    
-    
-    private struct TestEqualsImpl: EquatableVisitor {
-        let lhs: Any
-        
-        init(_ lhs: Any) {
-            self.lhs = lhs
-        }
-        
-        func callAsFunction<T: Equatable>(_ rhs: T) -> ComparisonResult {
-            if let lhs = lhs as? T {
-                precondition(type(of: lhs) == type(of: rhs))
-                return lhs == rhs ? .equal : .notEqual
-            } else {
-                return .nonMatchingTypes
-            }
+        switch lhsEq.comparesEqual(with: rhs) {
+        case nil:
+            return .inputNotEquatable
+        case .some(true):
+            return .equal
+        case .some(false):
+            return .notEqual
         }
     }
 }

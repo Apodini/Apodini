@@ -8,7 +8,6 @@
 
 import Foundation
 @_implementationOnly import Runtime
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 /// Returns the mangled name of a type
@@ -75,61 +74,13 @@ public func assertTypeIsStruct<T>(_: T.Type, messagePrefix: String? = nil) {
 
 /// Test whether a value is a `Sequence`
 public func isSequence(_ value: Any) -> Bool {
-    AnySequenceVisitor()(value) != nil
+    (value as? any Sequence) != nil
 }
 
 
 /// Test whether a value is a `Collection`
 public func isCollection(_ value: Any) -> Bool {
-    AnyCollectionVisitor()(value) != nil
-}
-
-
-// MARK: Utils
-
-private protocol AnySequenceVisitorBase: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AnySequenceVisitorBase
-    associatedtype Input = Sequence
-    associatedtype Output
-
-    func callAsFunction<T: Sequence>(_ value: T) -> Output
-}
-
-private extension AnySequenceVisitorBase {
-    @inline(never)
-    @_optimize(none)
-    func _test() {
-        _ = self([1, 2, 3])
-    }
-}
-
-private struct AnySequenceVisitor: AnySequenceVisitorBase {
-    func callAsFunction<T: Sequence>(_ value: T) -> Void { // swiftlint:disable:this redundant_void_return
-        ()
-    }
-}
-
-
-private protocol AnyCollectionVisitorBase: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AnyCollectionVisitorBase
-    associatedtype Input = Collection
-    associatedtype Output
-
-    func callAsFunction<T: Collection>(_ value: T) -> Output
-}
-
-private extension AnyCollectionVisitorBase {
-    @inline(never)
-    @_optimize(none)
-    func _test() {
-        _ = self([1, 2, 3])
-    }
-}
-
-private struct AnyCollectionVisitor: AnyCollectionVisitorBase {
-    func callAsFunction<T: Collection>(_ value: T) -> Void { // swiftlint:disable:this redundant_void_return
-        ()
-    }
+    (value as? any Collection) != nil
 }
 
 

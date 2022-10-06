@@ -227,7 +227,7 @@ class NegativeTestRunner {
             lineNumber += 1
         }
 
-        print("Found \(foundCount) error declaration\(foundCount != 1 ? "s": "") in \(fileURL.path)")
+        print("Found \(foundCount) error declaration\(foundCount != 1 ? "s" : "") in \(fileURL.path)")
     }
 
     private func build(target: NegativeTestTarget) throws {
@@ -286,9 +286,9 @@ class NegativeTestRunner {
         arguments += " --enable-test-discovery"
         #endif
 
-        #if COVERAGE // custom defined Active Compilation Condition which we set when we enable code coverage collection
-        arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
-        #endif
+        //#if COVERAGE // custom defined Active Compilation Condition which we set when we enable code coverage collection
+        //arguments += " --enable-code-coverage -Xswiftc -DCOVERAGE"
+        //#endif
 
         let stdOutput = try runCommand(command: "swift", arguments: arguments, expectedStatus: 1)
 

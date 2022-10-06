@@ -10,7 +10,6 @@ import Foundation
 import Apodini
 import ApodiniUtils
 import ApodiniDeployerBuildSupport
-@_implementationOnly import AssociatedTypeRequirementsVisitor
 
 
 public struct ApodiniDeployerRuntimeSupportError: Swift.Error, LocalizedError, CustomStringConvertible {
@@ -89,40 +88,7 @@ extension HandlerInvocation {
         
         /// Encode the value to a `Data` object, using the specified encoder.
         public func encodeValue(using encoder: AnyEncoder) throws -> Data {
-            switch AnyEncodableEncodeUsingEncoderATRVisitor(encoder: encoder)(value) {
-            case nil:
-                throw ApodiniDeployerRuntimeSupportError(message: "Value is not encodable")
-            case .success(let data):
-                return data
-            case .failure(let error):
-                throw error
-            }
+            try encoder.encode(value)
         }
-    }
-}
-
-
-// MARK: Utilities
-
-private protocol AnyEncodableATRVisitorBase: AssociatedTypeRequirementsVisitor {
-    associatedtype Visitor = AnyEncodableATRVisitorBase
-    associatedtype Input = Encodable
-    associatedtype Output
-
-    func callAsFunction<T: Encodable>(_ value: T) -> Output
-}
-
-extension AnyEncodableATRVisitorBase {
-    @inline(never)
-    @_optimize(none)
-    fileprivate func _test() {
-        _ = self(12)
-    }
-}
-
-private struct AnyEncodableEncodeUsingEncoderATRVisitor: AnyEncodableATRVisitorBase {
-    let encoder: AnyEncoder
-    func callAsFunction<T: Encodable>(_ value: T) -> Result<Data, Error> {
-        .init(catching: { try encoder.encode(value) })
     }
 }

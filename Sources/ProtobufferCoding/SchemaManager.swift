@@ -678,9 +678,6 @@ public class ProtoSchema {
     public func informAboutMessageType(_ type: ProtobufMessage.Type) throws -> ProtoType {
 //        precondition(!isFinalized, "Cannot add type to already finalized schema")
         precondition(getProtoCodingKind(type) == .message)
-//        let result = try protoType(for: type, requireTopLevelCompatibleOutput: false)
-//        try collectTypes(in: result)
-//        return result
         return try informAboutType(type)
     }
     
