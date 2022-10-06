@@ -227,7 +227,7 @@ class NegativeTestRunner {
             lineNumber += 1
         }
 
-        print("Found \(foundCount) error declaration\(foundCount != 1 ? "s": "") in \(fileURL.path)")
+        print("Found \(foundCount) error declaration\(foundCount != 1 ? "s" : "") in \(fileURL.path)")
     }
 
     private func build(target: NegativeTestTarget) throws {
