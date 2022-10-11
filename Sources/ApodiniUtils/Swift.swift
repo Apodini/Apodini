@@ -118,10 +118,8 @@ extension Sequence {
     /// Returns the number of elements in the sequence that satisfy the predicate.
     public func count(where predicate: (Element) -> Bool) -> Int {
         var retval = 0
-        for element in self {
-            if predicate(element) {
-                retval += 1
-            }
+        for element in self where predicate(element) {
+            retval += 1
         }
         return retval
     }

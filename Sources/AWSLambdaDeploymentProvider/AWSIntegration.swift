@@ -600,7 +600,7 @@ extension AWSIntegration {
         repeat {
             let response = try lambda.listFunctions(Lambda.ListFunctionsRequest(
                 marker: nextMarker
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.functions ?? [])
             nextMarker = response.nextMarker
         } while nextMarker != nil
@@ -617,7 +617,7 @@ extension AWSIntegration {
                 apiId: apiId,
                 maxResults: nil,
                 nextToken: marker
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             marker = response.nextToken
             retval.append(contentsOf: response.items ?? [])
         } while marker != nil
@@ -634,7 +634,7 @@ extension AWSIntegration {
                 marker: nextMarker,
                 maxItems: nil,
                 pathPrefix: Self.apodiniIamRolePath
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.roles)
             nextMarker = response.marker
         } while nextMarker != nil
@@ -649,7 +649,7 @@ extension AWSIntegration {
             let response = try iam.listAttachedRolePolicies(IAM.ListAttachedRolePoliciesRequest(
                 marker: marker,
                 roleName: role.roleName
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
             retval.append(contentsOf: response.attachedPolicies ?? [])
             marker = response.marker
         } while marker != nil
@@ -665,7 +665,7 @@ extension AWSIntegration {
             try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
                 policyArn: attachedPolicy.policyArn!,
                 roleName: role.roleName
-            )).wait()
+            )).wait() // swiftlint:disable:this multiline_function_chains
         }
         try iam.deleteRole(.init(roleName: role.roleName)).wait()
     }

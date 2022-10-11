@@ -95,12 +95,8 @@ extension String {
     
     /// Returns a copy of the string, with its prefix dropped, if the prefix is contained in the set of specified prefixes to drop
     public func dropPrefix(ifAnyOf prefixes: Set<String>) -> String {
-        for potentialPrefix in prefixes {
-            if self.starts(with: potentialPrefix) {
-                return String(self.dropFirst(potentialPrefix.count))
-            }
-        }
-        return self
+        let dropCount: Int = prefixes.first { self.starts(with: $0) }?.count ?? 0
+        return String(self.dropFirst(dropCount))
     }
 }
 
