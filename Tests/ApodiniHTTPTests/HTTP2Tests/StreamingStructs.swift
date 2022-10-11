@@ -144,8 +144,8 @@ var httpsConfiguration: Configuration {
     HTTP()
     
     HTTPConfiguration(
-        bindAddress: .interface("localhost", port: 4443),
-        tlsConfiguration: .init(
+        bindAddress: .init(address: "localhost", port: 4443),
+        tlsConfiguration: try! .makeServerConfiguration(
             certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
             keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
         )

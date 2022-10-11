@@ -9,12 +9,13 @@
 import Foundation
 import NIO
 import NIOHPACK
+import NIOConcurrencyHelpers
 
 
 /// Type that can handle events on a gRPC connection.
 protocol GRPCStreamRPCHandler: AnyObject {
     /// The function that will be invoked when the stream is first opened
-    func handleStreamOpen(context: GRPCStreamConnectionContext)
+    func handleStreamOpen(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
     /// Invoked when the RPC connection receives an incoming client message.
     /// - returns: An EventLoopFuture that will eventually fulfill to a gRPC resonse message.
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
@@ -25,7 +26,9 @@ protocol GRPCStreamRPCHandler: AnyObject {
 }
 
 extension GRPCStreamRPCHandler {
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
+    func handleStreamOpen(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        nil
+    }
     func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         nil
     }
@@ -57,7 +60,7 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
         self.grpcMethodName = grpcMethodName
     }
     
-    func handleStreamOpen() {
+    func handleStreamOpen() -> EventLoopFuture<GRPCMessageOut>? {
         rpcHandler.handleStreamOpen(context: self)
     }
     
@@ -85,9 +88,10 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
 }
 
 
-/// A queue of `EventLoopFuture`s, which will be evaluated one after the other.
+/// A queue of `EventLoopFuture`s, which will be evaluated in the order in which they were submitted.
 /// - Note: This is not always a useful or desirable thing, so use with caution.
 class EventLoopFutureQueue {
+    private let lock = NIOLock()
     private let eventLoop: EventLoop?
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
@@ -100,13 +104,17 @@ class EventLoopFutureQueue {
         guard let eventLoop = eventLoop ?? self.eventLoop else {
             fatalError("You need to specify an event loop, either here or in the initializer!")
         }
+        self.lock.lock()
         defer {
+            self.lock.unlock()
             self.lastMessageResponseFuture!.whenComplete { [self] _ in
+                self.lock.lock()
                 self.numQueuedHandlerCalls -= 1
                 precondition(self.numQueuedHandlerCalls >= 0)
                 if self.numQueuedHandlerCalls == 0 {
                     self.lastMessageResponseFuture = nil
                 }
+                self.lock.unlock()
             }
         }
         precondition((self.numQueuedHandlerCalls == 0) == (self.lastMessageResponseFuture == nil))

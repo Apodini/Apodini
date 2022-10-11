@@ -66,9 +66,9 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
         switch action {
         case .forwardToHTTP1Handler(let responder):
             _ = context.channel.initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(
+                responder: responder,
                 hostname: hostname,
-                isTLSEnabled: isTLSEnabled,
-                responder: responder
+                isTLSEnabled: isTLSEnabled
             )
                 .flatMap { context.pipeline.removeHandler(self) }
         case .configureHTTP2Stream(let streamConfigurator):

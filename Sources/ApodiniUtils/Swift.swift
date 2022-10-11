@@ -318,6 +318,13 @@ extension Array {
             self[idx] = element
         }
     }
+    
+    /// Appends `newElement` to the array, unless an element comparing equal to `newElement` already exists in the array.
+    public mutating func appendUnlessPresent(_ newElement: Element) where Element: Equatable {
+        if !contains(newElement) {
+            append(newElement)
+        }
+    }
 }
 
 

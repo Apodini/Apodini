@@ -19,7 +19,10 @@ import Foundation
 // But even then there's really no good way for the handler to differentiate between getting called for a proper message or for one of these observed object calls.
 // Also, the NIO channel handler calling the handler will somehow need to know about the fact that the handler is currently still busy, so that it can wait with handling new incoming requests until the handler is done handling the current one.
 class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
+    private var lastRequest: GRPCMessageIn?
+    
     override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+        self.lastRequest = message
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)
         }
@@ -56,5 +59,32 @@ class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
                 }
             }
         return retFuture
+    }
+    
+    override func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        let message = self.lastRequest!
+        let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = self.decodingStrategy
+            .decodeRequest(from: message, with: message, with: context.eventLoop)
+            .insertDefaults(with: self.defaults)
+            .cache()
+            .forwardDecodingErrors(with: errorForwarder)
+            .evaluate(on: self.delegate, .close)
+        return responseFuture
+            .map { (response: Apodini.Response<H.Response.Content>) -> GRPCMessageOut in
+                let headers = HPACKHeaders {
+                    $0[.contentType] = .gRPC(.proto)
+                }
+                guard let responseContent = response.content else {
+                    return .singleMessage(headers: headers, payload: ByteBuffer(), closeStream: true)
+                }
+                return .singleMessage(
+                    headers: headers,
+                    payload: try! self.encodeResponseIntoProtoMessage(responseContent),
+                    closeStream: true
+                )
+            }
+            .inspectFailure { [weak self] error in
+                self?.errorForwarder.forward(error)
+            }
     }
 }

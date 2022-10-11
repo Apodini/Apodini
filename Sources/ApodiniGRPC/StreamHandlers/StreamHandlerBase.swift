@@ -39,12 +39,18 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
         self.endpointContext = endpointContext
     }
     
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
+    /// Called when a new stream (i.e., connection) between the gRPC server and a client is opened.
+    func handleStreamOpen(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+        nil
+    }
     
+    /// Called when the connection is about to close. Gives the server the ability to send one final message to the client.
     func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         nil
     }
     
+    /// Called when the client sends a new message in the curren connection.
+    /// - returns: The server should return a Future resolving to a response message.
     func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         fatalError("Abstract. Implement in subclass.")
     }

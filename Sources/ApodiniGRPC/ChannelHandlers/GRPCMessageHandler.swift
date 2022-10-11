@@ -64,6 +64,19 @@ class GRPCMessageHandler: ChannelInboundHandler {
         guard !isConnectionClosed else {
             fatalError("[\(Self.self)] received data on channel, even though the connection should already be closed")
         }
+        func writeMessage(
+            _ result: Result<GRPCMessageOut, Error>,
+            to context: ChannelHandlerContext,
+            with connectionCtx: GRPCStreamConnectionContextImpl
+        ) -> EventLoopFuture<Void> {
+            switch result {
+            case .success(let messageOut):
+                return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
+            case .failure(let error):
+                let status = (error as? GRPCStatus) ?? GRPCStatus(code: .unknown, message: "\(error.localizedDescription)")
+                return context.writeAndFlush(self.wrapOutboundOut(.error(status, connectionCtx)))
+            }
+        }
         switch unwrapInboundIn(data) {
         case .openStream(let headers):
             precondition(connectionCtx == nil, "Received .openStream even though we alrready have a connection up and running.")
@@ -87,7 +100,18 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 rpcHandler: rpcHandler,
                 grpcMethodName: "\(serviceName)/\(methodName)"
             )
-            self.connectionCtx!.handleStreamOpen()
+            _ = handleQueue.submit(on: context.eventLoop) { () -> EventLoopFuture<Void> in
+                guard let future = self.connectionCtx!.handleStreamOpen() else {
+                    return context.eventLoop.makeSucceededVoidFuture()
+                }
+                // The connection ctx has returned a future from its -handleStreamOpen function,
+                // meaning that it wants to send a message to the client directly after the stream was opened.
+                return future
+                    .hop(to: context.eventLoop)
+                    .flatMapAlways { (result: Result<GRPCMessageOut, Error>) in
+                        writeMessage(result, to: context, with: self.connectionCtx!)
+                    }
+            }
             
         case .message(let messageIn):
             guard let connectionCtx = connectionCtx else {
@@ -97,13 +121,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
                 connectionCtx.handleMessage(messageIn)
                     .hop(to: context.eventLoop)
                     .flatMapAlways { (result: Result<GRPCMessageOut, Error>) -> EventLoopFuture<Void> in
-                        switch result {
-                        case .success(let messageOut):
-                            return context.writeAndFlush(self.wrapOutboundOut(.message(messageOut, connectionCtx)))
-                        case .failure(let error):
-                            let status = (error as? GRPCStatus) ?? GRPCStatus(code: .unknown, message: "\(error.localizedDescription)")
-                            return context.writeAndFlush(self.wrapOutboundOut(.error(status, connectionCtx)))
-                        }
+                        writeMessage(result, to: context, with: connectionCtx)
                     }
             }
             

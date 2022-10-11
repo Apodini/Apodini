@@ -90,8 +90,8 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     struct TestGRPCExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
             HTTPConfiguration(
-                bindAddress: .interface("localhost", port: 50051),
-                tlsConfiguration: .init(
+                bindAddress: .init(address: "localhost", port: 50051),
+                tlsConfiguration: try! .makeServerConfiguration(
                     certificatePath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.cer", withExtension: "pem")).path,
                     keyPath: try! XCTUnwrap(Bundle.module.url(forResource: "apodini_https_cert_localhost.key", withExtension: "pem")).path
                 )

@@ -289,7 +289,7 @@ class GraphQLSchemaBuilder {
         case .optional:
             throw SchemaError.other("Unexpected Optional Type: \(typeInfo)")
         case let .enum(name, rawValueType: _, cases, context: _):
-            if typeInfo.isEqual(to: Never.self) {
+            guard !typeInfo.isEqual(to: Never.self) else {
                 // The Never type can't really be represented in GraphQL.
                 // We essentially have 2 options:
                 // 1. Map this into a field w/ an empty return type (i.e. a type that has no fields, and thus can't be instantiatd. though the same thing doesnt work for enums...)

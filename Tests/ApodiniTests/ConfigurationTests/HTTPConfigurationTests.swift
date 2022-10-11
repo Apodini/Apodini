@@ -1,52 +1,66 @@
-//                   
+//
 // This source file is part of the Apodini open source project
 //
 // SPDX-FileCopyrightText: 2019-2021 Paul Schmiedmayer and the Apodini project authors (see CONTRIBUTORS.md) <paul.schmiedmayer@tum.de>
 //
 // SPDX-License-Identifier: MIT
-//              
+//
 
+import XCTApodini
+import ApodiniHTTP
 @testable import Apodini
-import XCTest
+import XCTApodiniNetworking
+import Foundation
 
-final class HTTPConfigurationTests: ApodiniTests {
-    func testSettingAddress() throws {
-        HTTPConfiguration(bindAddress: .interface("1.2.3.4", port: 56))
-            .configure(app)
 
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 56))
-    }
+class HTTPConfigurationTests: XCTApodiniTest {
+    func testCustomRootPrefixRequest() throws {
+        var configuration: Configuration {
+            HTTP(rootPath: "prefix")
+        }
 
-    func testSettingSocket() throws {
-        HTTPConfiguration(bindAddress: .unixDomainSocket(path: "/tmp/test"))
-            .configure(app)
-
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .unixDomainSocket(path: "/tmp/test"))
+        @ComponentBuilder
+        var content: some Component {
+            Group("test") {
+                Text("Paul")
+            }
+        }
+        
+        app.storage[VersionStorageKey.self] = Version()
+        
+        configuration.configure(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        content.accept(visitor)
+        visitor.finishParsing()
+        
+        try app.testable().test(.GET, "/prefix/test") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Paul")
+        }
     }
     
-    func testCommandLineArguments() throws {
-        HTTPConfiguration(bindAddress: .interface(HTTPConfiguration.Defaults.bindAddress, port: 56))
-            .configure(app)
+    func testVersionPrefixRequest() throws {
+        var configuration: Configuration {
+            HTTP(rootPath: .version)
+        }
 
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface(HTTPConfiguration.Defaults.bindAddress, port: 56))
-    }
-    
-    func testCommandLineArguments1() throws {
-        HTTPConfiguration(bindAddress: .interface("1.2.3.4"))
-           .configure(app)
-
-       XCTAssertNotNil(app.httpConfiguration.bindAddress)
-       XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 80))
-   }
-    
-    func testCommandLineArguments3() throws {
-        HTTPConfiguration(bindAddress: .address("1.2.3.4:56"))
-            .configure(app)
-
-        XCTAssertNotNil(app.httpConfiguration.bindAddress)
-        XCTAssertEqual(app.httpConfiguration.bindAddress, .interface("1.2.3.4", port: 56))
+        @ComponentBuilder
+        var content: some Component {
+            Group("test") {
+                Text("Paul")
+            }
+        }
+        
+        app.storage[VersionStorageKey.self] = Version(prefix: "p", major: 3, minor: 2, patch: 1)
+        
+        configuration.configure(app)
+        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
+        content.accept(visitor)
+        visitor.finishParsing()
+        
+        try app.testable().test(.GET, "/p3/test") { response in
+            XCTAssertEqual(response.status, .ok)
+            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Paul")
+        }
     }
 }
