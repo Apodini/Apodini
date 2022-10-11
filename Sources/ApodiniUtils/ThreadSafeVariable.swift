@@ -27,7 +27,7 @@ public class ThreadSafeVariable<T> {
     
     
     /// Access the value stored by the wrapper.
-    public func read(_ block: (T) throws -> Void) rethrows {
+    public func read<Result>(_ block: (T) throws -> Result) rethrows -> Result {
         try queue.sync {
             try block(value)
         }
@@ -35,7 +35,7 @@ public class ThreadSafeVariable<T> {
     
     
     /// Access and modify the value stored by the wrapper.
-    public func write(_ block: (inout T) throws -> Void) rethrows {
+    public func write<Result>(_ block: (inout T) throws -> Result) rethrows -> Result {
         try queue.sync(flags: .barrier) {
             try block(&value)
         }

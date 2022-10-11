@@ -275,7 +275,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             }
             let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
             try fileManager.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
-            try fileManager.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
+            try fileManager.setPermissions("rwxr--r--", forItemAt: localUrl)
         }
         try runInDocker(
             imageName: dockerImageName,

@@ -82,6 +82,17 @@ extension String {
     }
     
     
+    /// Whether the string contains any of the specified characters
+    public func contains(anyOf characters: Set<Character>) -> Bool {
+        self.contains { characters.contains($0) }
+    }
+    
+    /// Whether all chatacters in the string are also contained in the character set
+    public func containsOnly(charsFrom characterSet: Set<Character>) -> Bool {
+        self.allSatisfy { characterSet.contains($0) }
+    }
+    
+    
     /// Returns a copy of the string, with its prefix dropped, if the prefix is contained in the set of specified prefixes to drop
     public func dropPrefix(ifAnyOf prefixes: Set<String>) -> String {
         for potentialPrefix in prefixes {
@@ -90,32 +101,6 @@ extension String {
             }
         }
         return self
-    }
-}
-
-
-extension StringProtocol {
-    /// Returns a Substring with the receiver's leading and trailing whitespace removed
-    public func trimmingLeadingAndTrailingWhitespace() -> SubSequence {
-        self.trimmingLeadingWhitespace().trimmingTrailingWhitespace()
-    }
-    
-    /// Returns a Substring with the receiver's leading whitespace removed
-    public func trimmingLeadingWhitespace() -> SubSequence {
-        if let first = self.first, first.isWhitespace {
-            return dropFirst().trimmingLeadingWhitespace()
-        } else {
-            return self[...]
-        }
-    }
-    
-    /// Returns a Substring with the receiver's trailing whitespace removed
-    public func trimmingTrailingWhitespace() -> SubSequence {
-        if let last = self.last, last.isWhitespace {
-            return dropLast().trimmingTrailingWhitespace()
-        } else {
-            return self[...]
-        }
     }
 }
 
@@ -235,5 +220,83 @@ extension Array where Element == String {
         return dropFirst().reduce(into: first!.lowercased()) {
             $0.append("_\($1.lowercased())")
         }
+    }
+}
+
+
+// MARK: Trimming
+
+extension String {
+    /// For trim operationg on a string, the place where the operation should take place
+    public struct TrimLocation: OptionSet {
+        public let rawValue: UInt8
+        
+        public init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+        
+        public static let leading = TrimLocation(rawValue: 1 << 1)
+        public static let trailing = TrimLocation(rawValue: 1 << 2)
+    }
+    
+    
+    /// Returns a copy of this string, with the specified characters removed from the specified trim locations.
+    public func trimmingCharacters(from characterSet: Set<Character>, at locations: TrimLocation = [.leading, .trailing]) -> String {
+        guard !locations.isEmpty else {
+            return self
+        }
+        var result = self[...]
+        if locations.contains(.leading) {
+            result = result.trimmingPrefix(while: { characterSet.contains($0) })
+        }
+        if locations.contains(.trailing) {
+            result = result.trimmingSuffix(while: { characterSet.contains($0) })
+        }
+        return String(result)
+    }
+}
+
+
+extension StringProtocol {
+    /// Returns a Substring with the receiver's leading and trailing whitespace removed
+    public func trimmingLeadingAndTrailingWhitespace() -> SubSequence {
+        self.trimmingLeadingWhitespace().trimmingTrailingWhitespace()
+    }
+    
+    /// Returns a Substring with the receiver's leading whitespace removed
+    public func trimmingLeadingWhitespace() -> SubSequence {
+        if let first = self.first, first.isWhitespace {
+            return dropFirst().trimmingLeadingWhitespace()
+        } else {
+            return self[...]
+        }
+    }
+    
+    /// Returns a Substring with the receiver's trailing whitespace removed
+    public func trimmingTrailingWhitespace() -> SubSequence {
+        if let last = self.last, last.isWhitespace {
+            return dropLast().trimmingTrailingWhitespace()
+        } else {
+            return self[...]
+        }
+    }
+}
+
+
+// MARK: Set<Character>
+
+extension Set where Element == Character {
+    /// The set of  all `Character`s which are US-ASCII characters
+    public static let ascii = Set<Character>(asciiRange: 0...127)
+    
+    /// The set of all `Character`s which are US-ASCII control characters
+    public static let asciiControlCharacters = Set(asciiRange: 0...31).union([Character(Unicode.Scalar(0x7f))])
+    
+    /// The set of all `Character`s which are US-ASCII numerals
+    public static let asciiNumerals = Set(asciiRange: 48...57)
+    
+    /// Creates a character set for the specified ascii range
+    public init(asciiRange: ClosedRange<UInt8>) {
+        self = asciiRange.mapIntoSet { Character(Unicode.Scalar($0)) }
     }
 }

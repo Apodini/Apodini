@@ -123,7 +123,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
         // Upload function code to S3
         //
         
-        let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(in: CharacterSet(charactersIn: "/")))/\(lambdaExecutableUrl.lastPathComponent).zip"
+        let s3ObjectKey = "\(s3ObjectFolderKey.trimmingCharacters(from: ["/"]))/\(lambdaExecutableUrl.lastPathComponent).zip"
         var launchInfoFileUrl: URL
         
         do {
@@ -154,7 +154,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
             
             launchInfoFileUrl = lambdaPackageTmpDir.appendingPathComponent("launchInfo.json", isDirectory: false)
             try deploymentStructure.writeJSON(to: launchInfoFileUrl)
-            try fileManager.setPosixPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
+            try fileManager.setPermissions("rw-r--r--", forItemAt: launchInfoFileUrl)
             
             
             do {
@@ -165,7 +165,7 @@ class AWSIntegration { // swiftlint:disable:this type_body_length
                 """
                 let bootstrapFileUrl = lambdaPackageTmpDir.appendingPathComponent("bootstrap", isDirectory: false)
                 try bootstrapFileContents.write(to: bootstrapFileUrl, atomically: true, encoding: .utf8)
-                try fileManager.setPosixPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
+                try fileManager.setPermissions("rwxrwxr-x", forItemAt: bootstrapFileUrl)
             }
             
             logger.notice("Zipping lambda package")

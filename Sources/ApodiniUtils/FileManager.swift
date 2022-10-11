@@ -10,9 +10,25 @@ import Foundation
 
 
 extension FileManager {
-    /// Initialises the file manager, creating the Apodini-specific temporary directory
+    private static let didInitialize = ThreadSafeVariable<Bool>(false)
+    
+    /// Initialises the file manager if necessary, creating the Apodini-specific temporary directory
+    private func initializeIfNecessary() throws {
+        guard !Self.didInitialize.read({ $0 }) else {
+            return
+        }
+        try Self.didInitialize.write { didInitialize in
+            guard !didInitialize else {
+                return
+            }
+            try createDirectory(at: apodiniTmpDir, withIntermediateDirectories: true, attributes: [:])
+            didInitialize = true
+        }
+    }
+    
+    /// Initialises the file manager, if necessary
     public func initialize() throws {
-        try createDirectory(at: apodiniDeployerTmpDir, withIntermediateDirectories: true, attributes: [:])
+        try initializeIfNecessary()
     }
     
     /// Check whether a directory exists at `url`
@@ -29,15 +45,16 @@ extension FileManager {
         }
     }
     
-    /// Url of the Apodini-specific temporary directory
-    public var apodiniDeployerTmpDir: URL {
-        temporaryDirectory.appendingPathComponent("ApodiniDeployer", isDirectory: true)
+    /// URL of the Apodini-specific temporary directory
+    public var apodiniTmpDir: URL {
+        temporaryDirectory.appendingPathComponent("Apodini", isDirectory: true)
     }
     
     
     /// Returns a temporary file url for the specified file extension
     public func getTemporaryFileUrl(fileExtension: String?) -> URL {
-        var tmpfile = apodiniDeployerTmpDir
+        try! initializeIfNecessary()
+        var tmpfile = apodiniTmpDir
             .appendingPathComponent(UUID().uuidString)
         if let ext = fileExtension {
             tmpfile.appendPathExtension(ext)
@@ -48,6 +65,7 @@ extension FileManager {
     
     /// Copy an item at `srcUrl` to `dstUrl`, overwriting an existing item if specified
     public func copyItem(at srcUrl: URL, to dstUrl: URL, overwriteExisting: Bool) throws {
+        try initializeIfNecessary()
         if overwriteExisting && fileExists(atPath: dstUrl.path) {
             try removeItem(at: dstUrl)
         }
@@ -60,7 +78,7 @@ extension FileManager {
 
 extension FileManager {
     /// Read file permissions
-    public func posixPermissions(ofItemAt url: URL) throws -> POSIXPermissions {
+    public func permissions(ofItemAt url: URL) throws -> POSIXPermissions {
         if let value = try self.attributesOfItem(atPath: url.absoluteURL.path)[.posixPermissions] as? NSNumber {
             return POSIXPermissions(rawValue: numericCast(value.uintValue))
         } else {
@@ -71,7 +89,7 @@ extension FileManager {
     }
     
     /// Write file permissions
-    public func setPosixPermissions(_ permissions: POSIXPermissions, forItemAt url: URL) throws {
+    public func setPermissions(_ permissions: POSIXPermissions, forItemAt url: URL) throws {
         try url.withUnsafeFileSystemRepresentation { ptr in
             guard let ptr = ptr else {
                 throw ApodiniUtilsError(message: "Unable to set file permissins: can't get file path")
