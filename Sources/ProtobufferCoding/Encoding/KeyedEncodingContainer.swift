@@ -47,6 +47,13 @@ func throwUnsupportedNumericTypeDecodingError(_ attemptedType: Any.Type, codingP
 }
 
 
+private protocol ArrayDetectionProtocol {}
+extension Array: ArrayDetectionProtocol {}
+
+private func isArray(_ value: Any) -> Bool {
+    value as? ArrayDetectionProtocol != nil
+}
+
 struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     let codingPath: [CodingKey]
     let dstBufferRef: Box<ByteBuffer>
@@ -163,12 +170,6 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     
     
     mutating func _encode(_ value: Encodable, forKey key: Key) throws { // swiftlint:disable:this cyclomatic_complexity identifier_name
-        func encodeLengthDelimitedKeyedBytes<S: Collection>(_ sequence: S) where S.Element == UInt8 {
-            precondition(!sequence.isEmpty)
-            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
-            dstBufferRef.value.writeProtoLengthDelimited(sequence)
-        }
-        
         if getProtoCodingKind(type(of: value)) == .message {
             context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3)
             precondition((value is Proto2Codable) == (getProtoSyntax(type(of: value)) == .proto2))
@@ -250,17 +251,20 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             try encode(urlValue.absoluteURL.resolvingSymlinksInPath().absoluteString, forKey: key)
         } else if let blob = value as? Apodini.Blob {
             try encode(ApodiniBlob(blob: blob), forKey: key)
-        } else if let array = value as? Array<UInt8>, type(of: value) == Array<UInt8>.self {
-            // ^^^ We need the additional type(of:) check bc Swift will happily convert
-            // empty arrays of type X to empty arrays of type Y :/
-            precondition(type(of: value) == Array<UInt8>.self)
-            // Protobuffer doesn't have a one-byte type, so this wouldn't be valid anyway, meaning that we can safely interpret an `[UInt8]` as "data"
-            encodeLengthDelimitedKeyedBytes(array)
-        } else if let data = value as? Data {
-            encodeLengthDelimitedKeyedBytes(data)
-        } else if let protobufRepeatedTy = value as? ProtobufRepeatedEncodable {
+        } else if let protobufRepeatedTy = value as? ProtobufRepeatedEncodable, value as? ProtobufBytesMapped == nil {
+            // The object is encoded as a repeated field, but it is not mapped to bytes.
+            // The second check is required to properly handle `[UInt8]` properties, which are both repeated (because they're arrays) and byte-mapped.
+            // We want the byte-mapped thing to take precedence, hence the exclusion here.
             let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
             try protobufRepeatedTy.encodeElements(to: encoder, forKey: key)
+        } else if let bytesMapped = value as? ProtobufBytesMapped {
+            precondition(isArray(value), implies: type(of: value) == Array<UInt8>.self)
+            // ^^^ We need the additional type(of:) check bc Swift will happily convert
+            // empty arrays of type X to empty arrays of type Y :/
+            // Protobuffer doesn't have a one-byte type, so this wouldn't be valid anyway, meaning that we can safely interpret an `[UInt8]` as "data"
+            let rawBytes = try bytesMapped.asRawBytes()
+            dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
+            dstBufferRef.value.writeProtoLengthDelimited(rawBytes)
         } else {
             // We're encoding something that's not a message. In this case we do not apply explicit length-decoding.
             // Note that this is somehwat imperfect. Ideally we'd get rid of the message check above and somehow determine that dynamically!

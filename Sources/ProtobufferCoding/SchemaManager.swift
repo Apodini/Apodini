@@ -1165,7 +1165,7 @@ extension ProtoSchema {
         func handleTypename(_ mangledName: String) throws -> String {
             let protoTypename = ProtoTypename(mangled: mangledName)
             let newName = protoTypename.typename
-            if newName.rangeOfCharacter(from: CharacterSet(charactersIn: ".<>[]")) != nil {
+            if newName.contains(anyOf: .init(".<>[]")) {
                 throw ProtoValidationError.unableToResolveNestedProtoType(protoTypename)
             } else {
                 return newName
