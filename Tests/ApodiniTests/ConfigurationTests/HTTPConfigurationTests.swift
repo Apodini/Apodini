@@ -5,62 +5,46 @@
 //
 // SPDX-License-Identifier: MIT
 //
-
-import XCTApodini
-import ApodiniHTTP
 @testable import Apodini
-import XCTApodiniNetworking
-import Foundation
+import XCTest
 
-
-class HTTPConfigurationTests: XCTApodiniTest {
-    func testCustomRootPrefixRequest() throws {
-        var configuration: Configuration {
-            HTTP(rootPath: "prefix")
-        }
-
-        @ComponentBuilder
-        var content: some Component {
-            Group("test") {
-                Text("Paul")
-            }
-        }
-        
-        app.storage[VersionStorageKey.self] = Version()
-        
-        configuration.configure(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        content.accept(visitor)
-        visitor.finishParsing()
-        
-        try app.testable().test(.GET, "/prefix/test") { response in
-            XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Paul")
-        }
+final class HTTPConfigurationTests: ApodiniTests {
+    func testDefaultValues() throws {
+        let config = HTTPConfiguration()
+        XCTAssertEqual(config.bindAddress, .init(address: "0.0.0.0", port: 80))
+        XCTAssertEqual(config.hostname, .init(address: "localhost", port: 80))
+        XCTAssertNil(config.tlsConfiguration)
     }
     
-    func testVersionPrefixRequest() throws {
-        var configuration: Configuration {
-            HTTP(rootPath: .version)
-        }
+    func testSettingAddress() throws {
+        HTTPConfiguration(bindAddress: .init(address: "1.2.3.4", port: 56))
+            .configure(app)
 
-        @ComponentBuilder
-        var content: some Component {
-            Group("test") {
-                Text("Paul")
-            }
-        }
-        
-        app.storage[VersionStorageKey.self] = Version(prefix: "p", major: 3, minor: 2, patch: 1)
-        
-        configuration.configure(app)
-        let visitor = SyntaxTreeVisitor(modelBuilder: SemanticModelBuilder(app))
-        content.accept(visitor)
-        visitor.finishParsing()
-        
-        try app.testable().test(.GET, "/p3/test") { response in
-            XCTAssertEqual(response.status, .ok)
-            XCTAssertEqual(try response.bodyStorage.getFullBodyData(decodedAs: String.self, using: JSONDecoder()), "Paul")
-        }
+        XCTAssertNotNil(app.httpConfiguration.bindAddress)
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .init(address: "1.2.3.4", port: 56))
+    }
+    
+    func testCommandLineArguments() throws {
+        HTTPConfiguration(bindAddress: .init(address: HTTPConfiguration.Defaults.bindAddress, port: 56))
+            .configure(app)
+
+        XCTAssertNotNil(app.httpConfiguration.bindAddress)
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .init(address: HTTPConfiguration.Defaults.bindAddress, port: 56))
+    }
+    
+    func testCommandLineArguments1() throws {
+        HTTPConfiguration(bindAddress: .init(address: "1.2.3.4"))
+           .configure(app)
+
+       XCTAssertNotNil(app.httpConfiguration.bindAddress)
+       XCTAssertEqual(app.httpConfiguration.bindAddress, .init(address: "1.2.3.4", port: 80))
+   }
+    
+    func testCommandLineArguments3() throws {
+        HTTPConfiguration(bindAddress: try XCTUnwrap(.init("1.2.3.4:56")))
+            .configure(app)
+
+        XCTAssertNotNil(app.httpConfiguration.bindAddress)
+        XCTAssertEqual(app.httpConfiguration.bindAddress, .init(address: "1.2.3.4", port: 56))
     }
 }
