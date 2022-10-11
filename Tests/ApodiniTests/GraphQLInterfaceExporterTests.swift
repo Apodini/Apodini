@@ -542,7 +542,7 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
 func XCTAssertEqualIgnoringOrder<T: Hashable>(
     _ actual: [T],
     _ expected: [T],
-    _ message: @autoclosure () -> String = "" ,
+    _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
 ) {

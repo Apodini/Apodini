@@ -100,4 +100,11 @@ class ApodiniUtilsTests: XCTestCase {
         XCTAssertEqual("hello, world".trimmingCharacters(from: [" "]), "hello, world")
         XCTAssertEqual("///abc/def/g".trimmingCharacters(from: ["/"]), "abc/def/g")
     }
+    
+    
+    func testFirstIndexAfterWhere() throws {
+        XCTAssertEqual([0, 1, 2, 3, 4].firstIndex(after: 0, where: { $0.isMultiple(of: 2) }), 2)
+        XCTAssertEqual(["", "", "", "a", "b", "", "c", "d"].firstIndex(after: 2, where: { $0.isEmpty }), 5)
+        XCTAssertEqual(["", "", "", "a", "b", "", "c", "d"].firstIndex(after: 2, where: { $0.count > 5 }), nil)
+    }
 }

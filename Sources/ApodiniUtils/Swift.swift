@@ -158,12 +158,13 @@ extension Collection {
     
     /// Returns the index of the first element after the specified `otherIdx` for which the preducate evaluates to true
     public func firstIndex(after otherIdx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        for idx in indices[otherIdx...] {
+        for idx in indices[index(after: otherIdx)...] {
             if try predicate(self[idx]) {
                 return idx
             }
         }
         return nil
+//        return try indices[otherIdx...].first { try predicate(self[$0]) }
     }
     
     /// Returns the index of the first element which compares equal to the specied element after the specified `otherIdx`
