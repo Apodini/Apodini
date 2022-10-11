@@ -114,7 +114,7 @@ extension DeploymentProvider {
         providerCommand: String,
         additionalCommands: [String] = [],
         webServiceCommands: [String] = [],
-        as _ : T.Type = T.self) throws -> (URL, T) {
+        as _: T.Type = T.self) throws -> (URL, T) {
         let fileManager = FileManager()
         let logger = Logger(label: "ApodiniDeployerCLI.\(providerCommand)")
         

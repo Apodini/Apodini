@@ -74,13 +74,13 @@ extension HTTPMethod {
     public init(_ operation: Apodini.Operation) {
         switch operation {
         case .create:
-            self =  .POST
+            self = .POST
         case .read:
-            self =  .GET
+            self = .GET
         case .update:
-            self =  .PUT
+            self = .PUT
         case .delete:
-            self =  .DELETE
+            self = .DELETE
         }
     }
 }
