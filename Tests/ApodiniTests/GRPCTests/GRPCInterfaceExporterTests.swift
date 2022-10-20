@@ -584,7 +584,6 @@ struct BidirectionalStreamTestHandler: Handler {
 
 extension GRPCInterfaceExporterTests {
     func testBidirectionalStream() throws {
-        throw XCTSkip() // :/
         struct WebService: Apodini.WebService {
             var content: some Component {
                 BidirectionalStreamTestHandler()
