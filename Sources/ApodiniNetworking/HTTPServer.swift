@@ -254,7 +254,7 @@ public final class HTTPServer {
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
             .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
-            .childChannelInitializer { [weak self] (channel: Channel) -> EventLoopFuture<Void> in
+            .childChannelInitializer { [weak self] (channel: Channel) -> EventLoopFuture<Void> in // swiftlint:disable:this closure_body_length
                 guard let self = self else {
                     fatalError("Asked to configure NIO channel for already-deallocated HTTPServer")
                 }

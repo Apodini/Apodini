@@ -222,8 +222,8 @@ extension __ANNIOHTTPHeadersType {
     
     /// Returns a copy of this headers object, with HTTP/2 validations applied
     public func applyingHTTP2Validations() -> Self {
-        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
-        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = [] // swiftlint:disable:this large_tuple
+        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = [] // swiftlint:disable:this large_tuple
         for (headerName, headerValue, indexing) in entries {
             if headerName.hasPrefix(":") {
                 pseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
