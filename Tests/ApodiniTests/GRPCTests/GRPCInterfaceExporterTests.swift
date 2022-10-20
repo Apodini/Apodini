@@ -79,12 +79,7 @@ class GRPCInterfaceExporterTests: XCTestCase {
         try skipIfRunningInXcode()
         // ^^ For reasons I cannot understand, the gRPC tests will work fine when run from the terminal,
         // but always hang (waiting for the grpcurl child process, which itself is waiting for something else)
-        // when run in Xcode. This probably is caused by the attached debugger.
-    }
-    
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-//        XCTAssert(!app.httpServer.isRunning)
+        // when run in Xcode. This probably is caused by the attached debugger, which somehow messes up the process hierarchy/.
     }
     
     
@@ -496,6 +491,7 @@ extension GRPCInterfaceExporterTests {
         WebService().accept(visitor)
         print(#function, "-finishParsing")
         visitor.finishParsing()
+        print(#function, "didFinishParsing")
         // Intentionally not starting the app here...
         
         print(#function, "will fetch IE")
