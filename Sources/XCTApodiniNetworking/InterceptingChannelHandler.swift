@@ -31,6 +31,7 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     }
     
     public func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, data)
         interceptedData.append(unwrapOutboundIn(data))
         context.write(data, promise: promise)
         nextInterceptedDataHandler?(unwrapOutboundIn(data))
@@ -38,6 +39,7 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     }
     
     public func close(context: ChannelHandlerContext, mode: CloseMode, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, mode)
         context.close(mode: mode, promise: promise)
         closeExpectation?.fulfill()
     }
@@ -59,6 +61,7 @@ public class OutboundSinkholeChannelHandler: ChannelOutboundHandler {
     public init() {}
     
     public func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, data)
         receivedDataCount += 1
         promise?.succeed(())
     }
@@ -76,6 +79,7 @@ public class InboundInterceptingChannelHandler<T>: ChannelInboundHandler {
     
     
     public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+        print(Self.self, #function, data)
         interceptedData.append(unwrapInboundIn(data))
         context.fireChannelRead(data)
     }

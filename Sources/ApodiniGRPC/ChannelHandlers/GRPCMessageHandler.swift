@@ -61,6 +61,7 @@ class GRPCMessageHandler: ChannelInboundHandler {
     
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) { // swiftlint:disable:this cyclomatic_complexity
+        print(Self.self, #function, data)
         guard !isConnectionClosed else {
             fatalError("[\(Self.self)] received data on channel, even though the connection should already be closed")
         }
