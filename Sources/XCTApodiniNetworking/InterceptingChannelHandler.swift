@@ -6,9 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
+
 import Foundation
 import NIO
 import XCTest
+import ApodiniUtils
 
 
 #if DEBUG || RELEASE_TESTING
@@ -20,6 +22,8 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     
     private let closeExpectation: XCTestExpectation?
     public private(set) var interceptedData: [T] = []
+    private(set) var nextInterceptedDataHandler: ((T) -> Void)?
+    
     
     /// - parameter closeExpectation: An XCTestExpectation which will be fulfilled when the channel is closed.
     public init(closeExpectation: XCTestExpectation? = nil) {
@@ -27,13 +31,22 @@ public class OutboundInterceptingChannelHandler<T>: ChannelOutboundHandler {
     }
     
     public func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, data)
         interceptedData.append(unwrapOutboundIn(data))
         context.write(data, promise: promise)
+        nextInterceptedDataHandler?(unwrapOutboundIn(data))
+        nextInterceptedDataHandler = nil
     }
     
     public func close(context: ChannelHandlerContext, mode: CloseMode, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, mode)
         context.close(mode: mode, promise: promise)
         closeExpectation?.fulfill()
+    }
+    
+    
+    public func setNextInterceptedDataHandler(_ handler: @escaping (T) -> Void) {
+        self.nextInterceptedDataHandler = handler
     }
 }
 
@@ -48,6 +61,7 @@ public class OutboundSinkholeChannelHandler: ChannelOutboundHandler {
     public init() {}
     
     public func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, data)
         receivedDataCount += 1
         promise?.succeed(())
     }
@@ -65,6 +79,7 @@ public class InboundInterceptingChannelHandler<T>: ChannelInboundHandler {
     
     
     public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+        print(Self.self, #function, data)
         interceptedData.append(unwrapInboundIn(data))
         context.fireChannelRead(data)
     }

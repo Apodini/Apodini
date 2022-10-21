@@ -23,86 +23,87 @@ public enum HTTPVersionMajor: Equatable, Hashable {
 }
 
 
-/// BindAddress
-public enum BindAddress: Equatable {
-    case interface(_ address: String = HTTPConfiguration.Defaults.bindAddress, port: Int? = nil)
-    case unixDomainSocket(path: String)
-    
-    public static func address(_ address: String) -> BindAddress {
-        let components = address.split(separator: ":")
-        let address = components.first.map { String($0) }
-        let port = components.last.flatMap { Int($0) }
-        return .interface(address!, port: port)
-    }
-    
-    
-    /// Generates a address string representation based on the address, port and if TLS is enabled if no port is provided
-    /// - Parameter isTLSEnabled: If the server supports TLS, defaults to `true`
-    public func addressString(isTLSEnabled: Bool = true) -> String {
-        switch self {
-        case let .interface(hostname, port):
-            let portNumber = port ?? (isTLSEnabled ? HTTPConfiguration.Defaults.httpsPort : HTTPConfiguration.Defaults.httpPort)
-            return "\(hostname):\(portNumber)"
-        case .unixDomainSocket(let path):
-            return "unix:\(path)"
+/// :nodoc:
+public protocol BindAddressProtocol {
+    /// Creates a new BindAddress from a hostname and a port.
+    init(address: String, port: Int)
+}
+
+
+extension BindAddressProtocol {
+    /// Creates a new BindAddress by parsing a hostname and port from a string, if possible.
+    /// - parameter string: A string in the form of `"hostname:port"`
+    /// - returns: Nil if the parsing failed, otherwise a bind address.
+    public init?(_ string: String) {
+        let components = string.split(separator: ":")
+        guard components.count == 2, let port = Int(components[1]) else {
+            return nil
         }
+        self.init(address: String(components[0]), port: port)
     }
 }
 
 
-/// Hostname
-public struct Hostname {
-    /// The address part of the hostname
+/// :nodoc:
+public struct BindAddressInput: BindAddressProtocol {
     public let address: String
-    /// The port part of the hostname
     public let port: Int?
     
-    /// Create a new `Hostname`
-    ///
-    /// - parameters:
-    ///     - address: Address part of hostname.
-    ///     - port: Port of hostname.
-    public init(address: String, port: Int? = nil) {
+    public init(address: String, port: Int) {
         self.address = address
         self.port = port
     }
     
-    
-    /// Generates a URI prefix based on the address, port and if TLS is enabled if no port is provided
-    /// - Parameter isTLSEnabled: If the server supports TLS, defaults to `true`
-    public func uriPrefix(isTLSEnabled: Bool = true) -> String {
-        let portString: String
-        switch (port, isTLSEnabled) {
-        case (nil, _), (HTTPConfiguration.Defaults.httpPort, false), (HTTPConfiguration.Defaults.httpsPort, true): portString = ""
-        case let (.some(unwrappedPort), _): portString = ":\(unwrappedPort)"
-        }
-        return "http\(isTLSEnabled ? "s" : "")://\(address)\(portString)"
+    public init(address: String = HTTPConfiguration.Defaults.bindAddress, port: Int? = nil) {
+        self.address = address
+        self.port = port
     }
 }
 
 
-/// Builds the TLS configuration from given paths for use in HTTPConfiguration
-public struct TLSConfigurationBuilder {
-    let tlsConfiguration: TLSConfiguration
+/// A bind address, i.e. a combination of an address (e.g. a hostname) and a port
+public struct BindAddress: Hashable, BindAddressProtocol {
+    public let address: String
+    public let port: Int
+
+    public init(address: String, port: Int) {
+        self.address = address
+        self.port = port
+    }
     
-    /// Create a new `TLSConfigurationBuilder`
-    ///
-    /// - parameters:
-    ///     - certificatePath: Path to your certificate pem file.
-    ///     - keyPath: Path to your key pem file.
-    public init?(certificatePath: String, keyPath: String) {
-        do {
-            let certificate = try NIOSSLCertificate.fromPEMFile(certificatePath)
-            let privateKey = try NIOSSLPrivateKey(file: keyPath, format: .pem)
-            
-            self.tlsConfiguration = .makeServerConfiguration(
-                certificateChain: certificate.map { .certificate($0) },
-                privateKey: .privateKey(privateKey)
-            )
-        } catch {
-            print("Error while creating TLS Configuration: \(error)")
-            return nil
+    /// Generates a address string representation based on the address and port.
+    public func addressString() -> String {
+        "\(address):\(port)"
+    }
+    
+    /// Generates a URI-prefix suitable representation of this address.
+    public func uriPrefix(isTLSEnabled: Bool, omitDefaultPorts: Bool = true) -> String {
+        let scheme = "\(isTLSEnabled ? "https" : "http")"
+        let portSuffix: String
+        switch (omitDefaultPorts, port, isTLSEnabled) {
+        case (true, HTTPConfiguration.Defaults.httpPort, false), (true, HTTPConfiguration.Defaults.httpsPort, true):
+            portSuffix = ""
+        default:
+            portSuffix = ":\(port)"
         }
+        return "\(scheme)://\(address)\(portSuffix)"
+    }
+}
+
+
+/// A Hostname, consisting of an address and a port.
+public typealias Hostname = BindAddress
+
+
+extension NIOSSL.TLSConfiguration {
+    /// Creates a new `TLSConfiguration`, using the specified certificate and private key.
+    public static func makeServerConfiguration(certificatePath: String, keyPath: String) throws -> Self {
+        let cert = try NIOSSLCertificate.fromPEMFile(certificatePath)
+        let key = try NIOSSLPrivateKey(file: keyPath, format: .pem)
+        return .makeServerConfiguration(
+            certificateChain: cert.map { .certificate($0) },
+            privateKey: .privateKey(key)
+        )
     }
 }
 

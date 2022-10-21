@@ -44,6 +44,15 @@ public func XCTAssertEqualIgnoringOrder<C0: Collection, C1: Collection>(
     for element in rhs {
         msg += "- \(element)\n"
     }
+    msg += "\n"
+    msg += "Elements only in lhs:\n"
+    for element in Set(lhs).subtracting(rhs) {
+        msg += "- \(element)\n"
+    }
+    msg += "Elements only in rhs:\n"
+    for element in Set(rhs).subtracting(lhs) {
+        msg += "- \(element)\n"
+    }
     XCTFail(msg, file: file, line: line)
 }
 

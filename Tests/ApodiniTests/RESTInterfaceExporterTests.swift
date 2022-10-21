@@ -396,7 +396,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
         let restoredHeaders = HTTPHeaders(information)
         XCTAssertEqual(restoredHeaders[.authorization], .basic(credentials: authToken))
         XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.authorization.rawValue), value)
-        XCTAssertEqual(restoredHeaders[.eTag], .weak("W/\"someTag\""))
+        XCTAssertEqual(restoredHeaders[.eTag], .weak("\"someTag\""))
         XCTAssertEqual(restoredHeaders.first(name: AnyHTTPHeaderName.eTag.rawValue), "W/\"someTag\"")
     }
     

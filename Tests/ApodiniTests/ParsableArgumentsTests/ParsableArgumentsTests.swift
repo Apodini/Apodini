@@ -219,7 +219,7 @@ private struct NoDefaultsTestWebService: WebService {
     }
     
     var configuration: Configuration {
-        HTTPConfiguration(bindAddress: .interface(hostname, port: port))
+        HTTPConfiguration(bindAddress: .init(address: hostname, port: port))
         TestSubcommandConfiguration<Self>()
         TestNestedSubcommandConfiguration<Self>()
     }

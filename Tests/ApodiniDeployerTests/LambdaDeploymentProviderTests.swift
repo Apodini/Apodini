@@ -274,7 +274,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployerTestCase {
                 print("Deleting API gateway")
                 try apiGateway.deleteApi(.init(apiId: apiGatewayApiId)).wait()
             } else {
-                print("Do not delete API gateway \(awsAPIGatewayAPIID) as it was passed to the test case as a specific argument")
+                print("Do not delete API gateway \(String(describing: awsAPIGatewayAPIID)) as it was passed to the test case as a specific argument")
             }
             
             let detachRolePolicy = { (arn: String) throws -> Void in
@@ -282,7 +282,7 @@ class LambdaDeploymentProviderTests: ApodiniDeployerTestCase {
                 try iam.detachRolePolicy(IAM.DetachRolePolicyRequest(
                     policyArn: arn,
                     roleName: iamExecutionRoleName
-                )).wait()
+                )).wait() // swiftlint:disable:this multiline_function_chains
             }
             
             try detachRolePolicy("arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole")

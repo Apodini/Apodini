@@ -420,7 +420,7 @@ extension Pipe {
             let data = try fileHandleForReading.tryReadDataToEnd(),
             let string = String(data: data, encoding: encoding)
         else {
-            throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to read string from pipe"])
+            throw ApodiniUtilsError(message: "Unable to read string from pipe")
         }
         return string
     }

@@ -15,19 +15,22 @@ final class TLSConfigurationTests: ApodiniTests {
     private func keyPath() throws -> URL {
         try XCTUnwrap(Bundle.module.url(forResource: "key", withExtension: "pem"))
     }
+    
     private func key2Path() throws -> URL {
         try XCTUnwrap(Bundle.module.url(forResource: "key2", withExtension: "pem"))
     }
+    
     private func certPath() throws -> URL {
         try XCTUnwrap(Bundle.module.url(forResource: "cert", withExtension: "pem"))
     }
+    
     private func privateKey() throws -> NIOSSLPrivateKeySource {
         try NIOSSLPrivateKeySource.privateKey(NIOSSLPrivateKey(file: keyPath().path, format: .pem))
     }
     
     
     func testValidFile() throws {
-        HTTPConfiguration(tlsConfiguration: TLSConfigurationBuilder(certificatePath: try certPath().path, keyPath: try keyPath().path))
+        HTTPConfiguration(tlsConfiguration: try .makeServerConfiguration(certificatePath: try certPath().path, keyPath: try keyPath().path))
             .configure(app)
 
         XCTAssertNotNil(app.httpConfiguration.tlsConfiguration)

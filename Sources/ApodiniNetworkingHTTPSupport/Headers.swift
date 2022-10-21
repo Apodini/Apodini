@@ -6,13 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Foundation
+import ApodiniUtils
 @_exported import NIOHTTP1
 import NIOHTTP2
 @_exported import NIOHPACK
-import ApodiniUtils
-import Foundation
-
-// swiftlint:disable redundant_string_enum_value
 
 
 /// A type which represents a HTTP header field value
@@ -99,8 +97,13 @@ extension __ANNIOHTTPHeadersType {
         self.init([])
     }
     
+    /// Initialises a headers struct from the specified key-value pairs
+    public init<S: Sequence>(_ elements: S) where S.Element == (String, String) {
+        self.init(Array(elements))
+    }
+    
     /// Initialises a new headers struct with the specified entries
-    public init(_ elements: [(String, String, HPACKIndexing)]) { // swiftlint:disable:this large_tuple
+    public init<S: Sequence>(_ elements: S) where S.Element == (String, String, HPACKIndexing) { // swiftlint:disable:this large_tuple
         self.init()
         for (name, value, indexing) in elements {
             add(name: name, value: value, indexing: indexing)
@@ -163,7 +166,7 @@ extension __ANNIOHTTPHeadersType {
     /// Access a multi-value typed header field
     /// - Returns: When reading: `nil` if the field is not present
     /// - Throws: When reading: if the field is present, but there was an error decoding its value. When writing: if there was an error encoding the new value
-    /// /// - Note: Using this subscript to set HTTP2 header values will default the HPACKIndexable property to .indexable. If you don't want this, use the `add` or `replaceOrAdd` functions
+    /// - Note: Using this subscript to set HTTP2 header values will default the HPACKIndexable property to .indexable. If you don't want this, use the `add` or `replaceOrAdd` functions
     public subscript<T: HTTPHeaderFieldValueCodable>(name: HTTPHeaderName<[T]>) -> [T] {
         get {
             switch name {
@@ -172,15 +175,17 @@ extension __ANNIOHTTPHeadersType {
                 return self[name.rawValue].map { T(httpHeaderFieldValue: $0)! }
             default:
                 // All other headers can be split on commas
-                return self[name.rawValue]
-                    .flatMap { $0.split(separator: ",") }
-                    .map { $0.trimmingLeadingWhitespace() }
-                    .map { T(httpHeaderFieldValue: String($0))! }
+                return self[name.rawValue].flatMap { rawHeaderValue -> [T] in
+                    rawHeaderValue
+                        .split(separator: ",")
+                        .map { T(httpHeaderFieldValue: String($0.trimmingLeadingWhitespace()))! }
+                }
             }
         }
         set {
+            // We're overwriting an array of header fields, so we have to remove all previous entries for this name
+            remove(name)
             guard !newValue.isEmpty else {
-                remove(name: name.rawValue)
                 return
             }
             switch name {
@@ -217,8 +222,8 @@ extension __ANNIOHTTPHeadersType {
     
     /// Returns a copy of this headers object, with HTTP/2 validations applied
     public func applyingHTTP2Validations() -> Self {
-        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
-        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = []
+        var pseudoHeaderEntries: [(String, String, HPACKIndexing)] = [] // swiftlint:disable:this large_tuple
+        var nonPseudoHeaderEntries: [(String, String, HPACKIndexing)] = [] // swiftlint:disable:this large_tuple
         for (headerName, headerValue, indexing) in entries {
             if headerName.hasPrefix(":") {
                 pseudoHeaderEntries.append((headerName.lowercased(), headerValue, indexing))
@@ -227,405 +232,5 @@ extension __ANNIOHTTPHeadersType {
             }
         }
         return Self(pseudoHeaderEntries.sorted(by: \.0).appending(contentsOf: nonPseudoHeaderEntries.sorted(by: \.0)))
-    }
-}
-
-
-// MARK: List of HTTP Header Names
-
-
-public extension AnyHTTPHeaderName {
-    /// The `Accept` HTTP header field
-    static let accept = HTTPHeaderName<[HTTPMediaType]>("Accept")
-    /// The `Authorization` HTTP header field
-    static let authorization = HTTPHeaderName<AuthorizationHTTPHeaderValue>("Authorization")
-    /// The `Connection` HTTP header field
-    static let connection = HTTPHeaderName<[HTTPConnectionHeaderValue]>("Connection")
-    /// The `Content-Type` HTTP header field
-    static let contentType = HTTPHeaderName<HTTPMediaType>("Content-Type")
-    /// The `Date` HTTP header field
-    static let date = HTTPHeaderName<Date>("Date")
-    /// The `Set-Cookie` HTTP header field
-    static let setCookie = HTTPHeaderName<[SetCookieHTTPHeaderValue]>("Set-Cookie")
-    /// The `Transfer-Encoding` HTTP header field
-    static let transferEncoding = HTTPHeaderName<[TransferCodingHTTPHeaderValue]>("Transfer-Encoding")
-    /// The `Server` HTTP header field
-    static let server = HTTPHeaderName<String>("Server")
-    /// The `Upgrade` HTTP header field
-    static let upgrade = HTTPHeaderName<[HTTPUpgradeHeaderValue]>("Upgrade")
-    /// The `Content-Encoding` HTTP header field
-    static let contentEncoding = HTTPHeaderName<[ContentEncodingHTTPHeaderValue]>("Content-Encoding")
-    /// The `Content-Length` HTTP header field
-    static let contentLength = HTTPHeaderName<Int>("Content-Length")
-    /// The `ETag` HTTP header field
-    static let eTag = HTTPHeaderName<ETagHTTPHeaderValue>("ETag")
-    /// The `Access-Control-Allow-Origin` header field
-    static let accessControlAllowOrigin = HTTPHeaderName<AccessControlAllowOriginHeaderValue>("Access-Control-Allow-Origin")
-}
-
-
-public extension AnyHTTPHeaderName {
-    /// The HTTP/2 `:method` pseudo header field
-    static let methodPseudoHeader = HTTPHeaderName<HTTPMethod>(":method")
-    /// The HTTP/2 `:path` pseudo header field
-    static let pathPseudoHeader = HTTPHeaderName<String>(":path")
-    /// The HTTP/2 `:status` pseudo header field
-    static let statusPseudoHeader = HTTPHeaderName<HTTPResponseStatus>(":status")
-    /// The HTTP/2 `:authority` pseudo header field
-    static let authorityPseudoHeader = HTTPHeaderName<String>(":authority")
-    /// The HTTP/2 `:scheme` pseudo header field
-    static let schemePseudoHeader = HTTPHeaderName<String>(":scheme")
-}
-
-
-extension HTTPMethod: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        self.init(rawValue: value)
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        self.rawValue
-    }
-}
-
-
-extension HTTPResponseStatus: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        if let intValue = Int(value) {
-            self.init(statusCode: intValue)
-        } else {
-            return nil
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        String(code)
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(code)
-        hasher.combine(reasonPhrase)
-    }
-}
-
-
-public enum HTTPConnectionHeaderValue: HTTPHeaderFieldValueCodable {
-    case close
-    case keepAlive
-    case upgrade
-    case other(String)
-    
-    public init?(httpHeaderFieldValue value: String) {
-        switch value.lowercased() {
-        case "close":
-            self = .close
-        case "keep-alive":
-            self = .keepAlive
-        case "upgrade":
-            self = .upgrade
-        default:
-            self = .other(value)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        switch self {
-        case .close:
-            return "close"
-        case .keepAlive:
-            return "Keep-Alive"
-        case .upgrade:
-            return "Upgrade"
-        case .other(let value):
-            return value
-        }
-    }
-}
-
-
-public enum HTTPUpgradeHeaderValue: HTTPHeaderFieldValueCodable {
-    case http2
-    case webSocket
-    case other(String)
-    
-    public init?(httpHeaderFieldValue value: String) {
-        switch value {
-        case "HTTP/2.0", "HTTP/2":
-            self = .http2
-        case "websocket":
-            self = .webSocket
-        default:
-            self = .other(value)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        switch self {
-        case .http2:
-            return "HTTP/2.0"
-        case .webSocket:
-            return "websocket"
-        case .other(let value):
-            return value
-        }
-    }
-}
-
-
-public enum TransferCodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable {
-    case chunked = "chunked"
-    case compress = "compress"
-    case deflate = "deflate"
-    case gzip = "gzip"
-    
-    public init?(httpHeaderFieldValue value: String) {
-        self.init(rawValue: value)
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        self.rawValue
-    }
-}
-
-
-public enum ContentEncodingHTTPHeaderValue: String, HTTPHeaderFieldValueCodable {
-    case gzip = "gzip"
-    case compress = "compress"
-    case deflate = "deflate"
-    case br = "br" // swiftlint:disable:this identifier_name
-    
-    public init?(httpHeaderFieldValue value: String) {
-        self.init(rawValue: value)
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        self.rawValue
-    }
-}
-
-
-public struct SetCookieHTTPHeaderValue: HTTPHeaderFieldValueCodable {
-    public enum SameSite: String {
-        case strict = "Strict"
-        case lax = "Lax"
-        case none = "None"
-    }
-    
-    public let cookieName: String
-    public let cookieValue: String
-    
-    public let expires: Date?
-    public let maxAge: Int?
-    public let domain: String?
-    public let path: String?
-    public let secure: Bool? // swiftlint:disable:this discouraged_optional_boolean
-    public let httpOnly: Bool? // swiftlint:disable:this discouraged_optional_boolean
-    public let sameSite: SameSite?
-    
-    /// Create a new `SetCookieHeaderValue` object from the specified values.
-    /// - Note: This will, in conformance with the respective standard, automatically set the `secure` field to `true` if `sameSite` is set to `SameSite.none`, regardless of the `secure` fields' actual value.
-    public init(
-        cookieName: String,
-        cookieValue: String,
-        expires: Date?,
-        maxAge: Int?,
-        domain: String?,
-        path: String?,
-        secure: Bool?, // swiftlint:disable:this discouraged_optional_boolean
-        httpOnly: Bool?, // swiftlint:disable:this discouraged_optional_boolean
-        sameSite: SameSite?
-    ) {
-        self.cookieName = cookieName
-        self.cookieValue = cookieValue
-        self.expires = expires
-        self.maxAge = maxAge
-        self.domain = domain
-        self.path = path
-        self.secure = sameSite == SameSite.none ? true : secure
-        self.httpOnly = httpOnly
-        self.sameSite = sameSite
-    }
-    
-    
-    public init?(httpHeaderFieldValue value: String) {
-        fatalError("Not yet implemented")
-    }
-    
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        var retval = "\(cookieName)=\(cookieValue)"
-        if let expires = expires {
-            retval.append("; Expires=\(expires.encodeToHTTPHeaderFieldValue())")
-        }
-        if let maxAge = maxAge {
-            retval.append("; MaxAge=\(maxAge.encodeToHTTPHeaderFieldValue())")
-        }
-        if let domain = domain {
-            retval.append("; Domain=\(domain.encodeToHTTPHeaderFieldValue())")
-        }
-        if let path = path {
-            retval.append("; Path=\(path.encodeToHTTPHeaderFieldValue())")
-        }
-        if let secure = secure, secure {
-            retval.append("; Secure")
-        }
-        if let httpOnly = httpOnly, httpOnly {
-            retval.append("; HttpOnly")
-        }
-        if let sameSite = sameSite {
-            retval.append("; SameSite=\(sameSite.rawValue)")
-        }
-        return retval
-    }
-}
-
-
-public enum AuthorizationHTTPHeaderValue: HTTPHeaderFieldValueCodable {
-    case basic(credentials: String)
-    /// See [RFC6750](https://datatracker.ietf.org/doc/html/rfc6750)
-    case bearer(token: String)
-    case other(type: String, credentials: String)
-    
-    
-    public init?(httpHeaderFieldValue value: String) {
-        guard let typeEndIdx = value.firstIndex(of: " ") else {
-            return nil
-        }
-        let type = String(value[..<typeEndIdx])
-        let rawCredentials = String(value[typeEndIdx...].dropFirst())
-        switch type.lowercased() {
-        case "basic":
-            self = .basic(credentials: rawCredentials)
-        case "bearer":
-            self = .bearer(token: rawCredentials)
-        default:
-            self = .other(type: type, credentials: rawCredentials)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        switch self {
-        case .basic(let credentials):
-            return "Basic \(credentials)"
-        case .bearer(let token):
-            return "Bearer \(token)"
-        case let .other(type, credentials):
-            return "\(type) \(credentials)"
-        }
-    }
-}
-
-
-public enum ETagHTTPHeaderValue: HTTPHeaderFieldValueCodable {
-    case weak(String)
-    case strong(String)
-    
-    public init?(httpHeaderFieldValue value: String) {
-        if value.hasPrefix("W/") {
-            self = .weak(value)
-        } else {
-            self = .strong(value)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        switch self {
-        case .weak(let value), .strong(let value):
-            return value
-        }
-    }
-}
-
-
-// MARK: Extensions for raw types that may appear as HTTP header field values
-
-
-extension String: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        self = value
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        self
-    }
-}
-
-
-extension Int: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        self.init(value)
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        String(self)
-    }
-}
-
-
-extension Date: HTTPHeaderFieldValueCodable {
-    private static let httpDateFormatter: DateFormatter = {
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "en_US_POSIX")
-        fmt.timeZone = TimeZone(identifier: "GMT")!
-        fmt.dateFormat = "EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss zzz"
-        return fmt
-    }()
-    
-    public init?(httpHeaderFieldValue value: String) {
-        if let date = Self.httpDateFormatter.date(from: value) {
-            self = date
-        } else {
-            return nil
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        Self.httpDateFormatter.string(from: self)
-    }
-}
-
-
-extension Array: HTTPHeaderFieldValueCodable where Element: HTTPHeaderFieldValueCodable {
-    public init?(httpHeaderFieldValue value: String) {
-        self.init()
-        for component in value.split(separator: ",") {
-            guard let headerValue = Element(httpHeaderFieldValue: String(component.trimmingLeadingWhitespace())) else {
-                return nil
-            }
-            self.append(headerValue)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        self.map { $0.encodeToHTTPHeaderFieldValue() }
-            .joined(separator: ", ")
-    }
-}
-
-public enum AccessControlAllowOriginHeaderValue: HTTPHeaderFieldValueCodable {
-    case wildcard
-    case origin(String)
-    case null
-    
-    public init?(httpHeaderFieldValue value: String) {
-        switch value {
-        case "*":
-            self = .wildcard
-        case "null":
-            self = .null
-        default:
-            self = .origin(value)
-        }
-    }
-    
-    public func encodeToHTTPHeaderFieldValue() -> String {
-        switch self {
-        case .wildcard:
-            return "*"
-        case .origin(let origin):
-            return origin
-        case .null:
-            return "null"
-        }
     }
 }

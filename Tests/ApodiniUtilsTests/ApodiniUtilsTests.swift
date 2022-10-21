@@ -73,4 +73,38 @@ class ApodiniUtilsTests: XCTestCase {
         XCTAssertEqual(0.compareThreeWay(1), .orderedAscending)
         XCTAssertEqual(1.compareThreeWay(0), .orderedDescending)
     }
+    
+    
+    func testOtherUtilities() throws {
+        errno = EPERM
+        do {
+            try throwIfPosixError(errno)
+        } catch {
+            XCTAssertEqual(error as NSError, NSError(domain: NSPOSIXErrorDomain, code: Int(EPERM), userInfo: [
+                NSLocalizedDescriptionKey: "Operation not permitted"
+            ]))
+        }
+    }
+
+
+    func testCharacterSetUtilities() {
+        XCTAssertTrue("Lukas".containsOnly(charsFrom: .ascii))
+        XCTAssertFalse("Ärgernis".containsOnly(charsFrom: .ascii))
+        XCTAssertTrue(Set.asciiControlCharacters.contains("\n"))
+        XCTAssertTrue("Hello\nWorld".contains(anyOf: .asciiControlCharacters))
+        XCTAssertEqual(Set<Character>("abc").union("def"), Set<Character>("abcdef"))
+
+        XCTAssertEqual(" hello, world".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual(" hello, world ".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("hello, world ".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("hello, world".trimmingCharacters(from: [" "]), "hello, world")
+        XCTAssertEqual("///abc/def/g".trimmingCharacters(from: ["/"]), "abc/def/g")
+    }
+    
+    
+    func testFirstIndexAfterWhere() throws {
+        XCTAssertEqual([0, 1, 2, 3, 4].firstIndex(after: 0, where: { $0.isMultiple(of: 2) }), 2)
+        XCTAssertEqual(["", "", "", "a", "b", "", "c", "d"].firstIndex(after: 2, where: { $0.isEmpty }), 5)
+        XCTAssertEqual(["", "", "", "a", "b", "", "c", "d"].firstIndex(after: 2, where: { $0.count > 5 }), nil)
+    }
 }

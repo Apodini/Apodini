@@ -135,7 +135,7 @@ func injectAll<Element>(values: [AnyKeyPath: Any], into subject: Element) {
 
 /// Checks if an illegal element is used inside of a target.
 public func check<Target, Value, E: Error>(on target: Target, for value: Value.Type, throw error: E) throws {
-    try execute({ (_ : Value) in
+    try execute({ (_: Value) in
         throw error
     }, on: target)
 }

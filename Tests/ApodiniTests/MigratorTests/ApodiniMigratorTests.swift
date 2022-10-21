@@ -313,7 +313,7 @@ final class ApodiniMigratorTests: ApodiniTests {
             
             var configuration: Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
-                HTTPConfiguration(hostname: Hostname(address: "1.2.3.4", port: 56), bindAddress: .interface("1.2.3.4", port: 56))
+                HTTPConfiguration(hostname: Hostname(address: "1.2.3.4", port: 56), bindAddress: .init(address: "1.2.3.4", port: 56))
             }
             
             var metadata: Metadata {
@@ -338,7 +338,7 @@ final class ApodiniMigratorTests: ApodiniTests {
 
             var configuration: Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
-                HTTPConfiguration(hostname: Hostname(address: "myaddress"), bindAddress: .interface("1.2.3.4", port: 56))
+                HTTPConfiguration(hostname: .init(address: "myaddress"), bindAddress: .init(address: "1.2.3.4", port: 56))
             }
 
             var metadata: Metadata {
@@ -363,7 +363,7 @@ final class ApodiniMigratorTests: ApodiniTests {
 
             var configuration: Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
-                HTTPConfiguration(hostname: Hostname(address: "localhost2", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
+                HTTPConfiguration(hostname: Hostname(address: "localhost2", port: 57), bindAddress: .init(address: "1.2.3.4", port: 56))
             }
 
             var metadata: Metadata {

@@ -66,7 +66,7 @@ struct DeployWebServiceCommand: ParsableCommand {
     @Flag(help: "Whether to skip the compilation steps and assume that build artifacts from a previous run are still located at the expected places")
     var awsDeployOnly = false
     
-    @Argument(parsing: .unconditionalRemaining, help:"CLI arguments of the web service")
+    @Argument(parsing: .unconditionalRemaining, help: "CLI arguments of the web service")
     var webServiceArguments: [String] = []
     
     var packageRootDir: URL {
@@ -275,7 +275,7 @@ struct LambdaDeploymentProviderImpl: DeploymentProvider {
             }
             let localUrl = tmpDirUrl.appendingPathComponent(scriptFilename, isDirectory: false)
             try fileManager.copyItem(at: urlInBundle, to: localUrl, overwriteExisting: true)
-            try fileManager.setPosixPermissions("rwxr--r--", forItemAt: localUrl)
+            try fileManager.setPermissions("rwxr--r--", forItemAt: localUrl)
         }
         try runInDocker(
             imageName: dockerImageName,

@@ -118,10 +118,8 @@ extension Sequence {
     /// Returns the number of elements in the sequence that satisfy the predicate.
     public func count(where predicate: (Element) -> Bool) -> Int {
         var retval = 0
-        for element in self {
-            if predicate(element) {
-                retval += 1
-            }
+        for element in self where predicate(element) {
+            retval += 1
         }
         return retval
     }
@@ -160,12 +158,7 @@ extension Collection {
     
     /// Returns the index of the first element after the specified `otherIdx` for which the preducate evaluates to true
     public func firstIndex(after otherIdx: Index, where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        for idx in indices[otherIdx...] {
-            if try predicate(self[idx]) {
-                return idx
-            }
-        }
-        return nil
+        try indices[index(after: otherIdx)...].first { try predicate(self[$0]) }
     }
     
     /// Returns the index of the first element which compares equal to the specied element after the specified `otherIdx`
@@ -318,6 +311,13 @@ extension Array {
             self[idx] = element
         }
     }
+    
+    /// Appends `newElement` to the array, unless an element comparing equal to `newElement` already exists in the array.
+    public mutating func appendUnlessPresent(_ newElement: Element) where Element: Equatable {
+        if !contains(newElement) {
+            append(newElement)
+        }
+    }
 }
 
 
@@ -341,31 +341,6 @@ extension Array {
     ) where Element == (A, B, C), S: Sequence, S.Element == (A, B, C), A: Hashable, B: Hashable, C: Hashable { // swiftlint:disable:this large_tuple
         let otherAsSet = other.mapIntoSet { ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2) }
         self = filter { !otherAsSet.contains(ThreeValueHashable(a: $0.0, b: $0.1, c: $0.2)) }
-    }
-}
-
-
-// MARK: Result
-
-extension Result {
-    /// Whether the result is a success
-    public var isSuccess: Bool {
-        switch self {
-        case .success:
-            return true
-        case .failure:
-            return false
-        }
-    }
-    
-    /// Whether the result is a failure
-    public var isFailure: Bool {
-        switch self {
-        case .failure:
-            return true
-        case .success:
-            return false
-        }
     }
 }
 

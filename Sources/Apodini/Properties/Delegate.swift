@@ -5,6 +5,8 @@
 //
 // SPDX-License-Identifier: MIT
 //
+
+
 import ApodiniUtils
 import Foundation
 
@@ -131,7 +133,7 @@ extension Optionality {
     /// Reduction of ``Optionality`` favors ``Optionality/optional``, i.e. ``Optionality``
     /// will always be ``Optionality/optional``, except when all reduced elements are ``Optionality/required``.
     public static func & (lhs: Self, rhs: Self) -> Self {
-        lhs == .optional ?.optional : rhs
+        lhs == .optional ? .optional : rhs
     }
 }
 

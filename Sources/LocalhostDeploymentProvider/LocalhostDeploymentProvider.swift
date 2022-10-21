@@ -37,7 +37,7 @@ private struct LocalhostDeploymentProviderCLI: ParsableCommand {
     @Option(help: "Name of the web service's SPM target/product")
     var productName: String
     
-    @Argument(parsing: .unconditionalRemaining, help:"CLI arguments of the web service")
+    @Argument(parsing: .unconditionalRemaining, help: "CLI arguments of the web service")
     var webServiceArguments: [String] = []
     
     mutating func run() throws {

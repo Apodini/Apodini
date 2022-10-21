@@ -83,24 +83,6 @@ public func unsafelyCast<T>(_ value: Any, to _: T.Type) -> T {
 }
 
 
-/// The `DeferHandle` class can be used to tie an operation (e.g. some cleanup task) to the lifetime of an object.
-/// The object in this case is the `DeferHandle` instance.
-/// This is useful, for example, for returning handles (or tokens) which keep some state or association alive, and, when
-/// the handle is deallicated, automatically de-register the underlying association.
-public class DeferHandle {
-    let action: () -> Void
-    
-    /// Creates a new defer handle.
-    public init(_ action: @escaping () -> Void) {
-        self.action = action
-    }
-    
-    deinit {
-        action()
-    }
-}
-
-
 // MARK: NSRegularExpression and friends
 
 extension NSRegularExpression {

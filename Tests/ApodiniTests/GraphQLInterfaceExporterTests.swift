@@ -209,6 +209,13 @@ private struct EchoHandler<T: Codable & Equatable>: Handler {
 }
 
 
+private struct NeverReturningHandler: Handler {
+    func handle() -> Never {
+        fatalError(".")
+    }
+}
+
+
 private struct TestWebService: WebService {
     var content: some Component {
         Text("Hello, there")
@@ -224,6 +231,8 @@ private struct TestWebService: WebService {
             .endpointName("addAlbum")
         EchoHandler<Album>()
             .endpointName("echo")
+        NeverReturningHandler()
+            .endpointName("neverHandler")
     }
 }
 
@@ -238,7 +247,7 @@ struct WrappedGraphQLResponse<T: Decodable>: Decodable {
 class GraphQLInterfaceExporterTests: XCTApodiniTest {
     struct TestGraphQLExporterCollection: ConfigurationCollection {
         var configuration: Configuration {
-            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: false, enableCustom64BitIntScalars: true)
+            GraphQL(graphQLEndpoint: "/graphql", enableGraphiQL: true, enableCustom64BitIntScalars: true)
         }
     }
     
@@ -518,13 +527,22 @@ class GraphQLInterfaceExporterTests: XCTApodiniTest {
             AlbumQueryResponse(title: "...And I Return To Nothingness", artist: "Lorna Shore", genres: [.deathcore])
         ])
     }
+    
+    
+    func testGraphiQLEndpoint() throws {
+        // We can't really test whether it works, but we can test that it's there...
+        try app.testable().test(.GET, "/graphiql") { response in
+            let responseHTML = try XCTUnwrap(response.bodyStorage.getFullBodyDataAsString())
+            XCTAssert(responseHTML.contains("GraphiQL.createFetcher({ url: '\(app.httpConfiguration.uriPrefix)/graphql' });"))
+        }
+    }
 }
 
 
 func XCTAssertEqualIgnoringOrder<T: Hashable>(
     _ actual: [T],
     _ expected: [T],
-    _ message: @autoclosure () -> String = "" ,
+    _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,
     line: UInt = #line
 ) {

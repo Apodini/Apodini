@@ -237,6 +237,7 @@ let package = Package(
         .testTarget(
             name: "ApodiniNetworkingHTTPSupportTests",
             dependencies: [
+                .target(name: "XCTApodini"),
                 .target(name: "XCTApodiniNetworking"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniNetworkingHTTPSupport")

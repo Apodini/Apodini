@@ -10,7 +10,7 @@ import Foundation // Darwin.posix
 
 
 /// POSIX File System Permissions
-public struct POSIXPermissions: RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByStringLiteral {
+public struct POSIXPermissions: RawRepresentable, Hashable, ExpressibleByIntegerLiteral, ExpressibleByStringLiteral {
     public var rawValue: mode_t = 0
     
     public var owner: PermissionValues {
@@ -113,5 +113,6 @@ extension POSIXPermissions {
         public static let read = PermissionValues(rawValue: 1 << 2)
         public static let write = PermissionValues(rawValue: 1 << 1)
         public static let execute = PermissionValues(rawValue: 1 << 0)
+        public static let rwx: PermissionValues = [.read, .write, .execute]
     }
 }

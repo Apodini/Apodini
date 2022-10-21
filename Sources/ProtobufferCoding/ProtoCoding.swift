@@ -147,7 +147,7 @@ extension ByteBuffer {
     }
     
     /// Writes a length-delimited field to the output buffer.
-    /// - Returns: the nu,ber of written bytes
+    /// - Returns: the number of written bytes
     @discardableResult
     mutating func writeProtoLengthDelimited<C: Collection>(_ input: C) -> Int where C.Element == UInt8 {
         let bytesWritten = writeProtoVarInt(input.count) + write(input)

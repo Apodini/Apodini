@@ -159,7 +159,7 @@ public func XCTCheckResponse<C, T: Encodable & Equatable>(
     _ response: @autoclosure () throws -> Response<C>,
     _ type: T.Type = T.self,
     status: @escaping @autoclosure () -> Status?,
-    content:  @autoclosure () -> T?,
+    content: @autoclosure () -> T?,
     connectionEffect: @autoclosure () -> ConnectionEffect? = nil,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,

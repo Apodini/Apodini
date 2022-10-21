@@ -27,6 +27,7 @@ class GRPCResponseEncoder: ChannelOutboundHandler {
     
     
     func write(context: ChannelHandlerContext, data: NIOAny, promise: EventLoopPromise<Void>?) {
+        print(Self.self, #function, data)
         let response = unwrapOutboundIn(data)
         
         switch response {
