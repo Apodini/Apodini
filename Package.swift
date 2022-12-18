@@ -127,8 +127,7 @@ let package = Package(
         .package(url: "https://github.com/GraphQLSwift/GraphQL", from: "2.1.2"),
         
         // Apodini Document Export
-//         .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.1")),
-        .package(url: "https://github.com/Apodini/ApodiniDocumentExport", .revision("7de65b4c81929b56eadad190b11f02cf42ff9afe")),
+        .package(url: "https://github.com/Apodini/ApodiniDocumentExport.git", .upToNextMinor(from: "0.1.2")),
         
         // Apodini Audit
         .package(url: "https://github.com/pvieito/PythonKit.git", from: "0.2.2"),
