@@ -42,7 +42,7 @@ public protocol AnyComponentMetadataBlock: AnyMetadataBlock, AnyComponentMetadat
 public protocol HandlerMetadataBlock: AnyHandlerMetadataBlock {
     associatedtype Metadata = AnyHandlerMetadata
 
-    @MetadataBuilder
+    @MetadataBuilder<MetadataBuilderScope_Handler>
     var metadata: Metadata { get }
 }
 
@@ -75,7 +75,7 @@ extension HandlerMetadataBlock {
 public protocol ComponentOnlyMetadataBlock: AnyComponentOnlyMetadataBlock {
     associatedtype Metadata = AnyComponentOnlyMetadata
 
-    @MetadataBuilder
+    @MetadataBuilder<MetadataBuilderScope_ComponentOnly>
     var metadata: Metadata { get }
 }
 
@@ -110,7 +110,7 @@ extension ComponentOnlyMetadataBlock {
 public protocol WebServiceMetadataBlock: AnyWebServiceMetadataBlock {
     associatedtype Metadata = AnyWebServiceMetadata
 
-    @MetadataBuilder
+    @MetadataBuilder<MetadataBuilderScope_WebService>
     var metadata: Metadata { get }
 }
 
@@ -195,7 +195,7 @@ extension ComponentMetadataNamespace {
 public struct StandardHandlerMetadataBlock: HandlerMetadataBlock {
     public var metadata: AnyHandlerMetadata
 
-    public init(@MetadataBuilder metadata: () -> AnyHandlerMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_Handler> metadata: () -> AnyHandlerMetadata) {
         self.metadata = metadata()
     }
 }
@@ -219,7 +219,7 @@ public struct StandardHandlerMetadataBlock: HandlerMetadataBlock {
 public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
     public var metadata: AnyComponentOnlyMetadata
 
-    public init(@MetadataBuilder metadata: () -> AnyComponentOnlyMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_ComponentOnly> metadata: () -> AnyComponentOnlyMetadata) {
         self.metadata = metadata()
     }
 }
@@ -242,7 +242,7 @@ public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
 public struct StandardWebServiceMetadataBlock: WebServiceMetadataBlock {
     public var metadata: AnyWebServiceMetadata
 
-    public init(@MetadataBuilder metadata: () -> AnyWebServiceMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_WebService> metadata: () -> AnyWebServiceMetadata) {
         self.metadata = metadata()
     }
 }

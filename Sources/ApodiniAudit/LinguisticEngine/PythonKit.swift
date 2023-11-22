@@ -24,6 +24,7 @@ struct NLTKInterface {
     private let nltk: PythonObject
     
     private init() {
+        print(Python.import("sys").path)
         let corpus = Python.import("nltk.corpus")
         print("Successfully loaded nltk.corpus")
         self.wordnet = corpus.wordnet

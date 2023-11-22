@@ -9,7 +9,9 @@
 // swiftlint:disable missing_docs
 
 @resultBuilder
-public enum RelationshipIdentificationBuilder<From> {
+public enum RelationshipIdentificationBuilder<From> {}
+
+public extension RelationshipIdentificationBuilder {
     static func buildExpression<To: Identifiable>(_ expression: RelationshipIdentification<From, To>) -> [AnyRelationshipIdentification] {
         [AnyRelationshipIdentification(from: expression)]
     }

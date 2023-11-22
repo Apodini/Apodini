@@ -193,6 +193,16 @@ final class ComponentOnlyMetadataTest: ApodiniTests {
 
     func testComponentMetadataModifier() {
         let visitor = SyntaxTreeVisitor()
+        let componentA = TestMetadataComponent(state: true)
+        let _ = componentA as? any Handler
+        let componentB = componentA.metadata(TestIntComponentOnlyMetadata(16))
+        let _ = componentB as? any Handler
+        let componentC = componentB
+            .metadata {
+                TestIntComponentOnlyMetadata(17)
+            }
+        let _ = componentC as? any Handler
+        
         let component = TestMetadataComponent(state: true)
             .metadata(TestIntComponentOnlyMetadata(16))
             .metadata {

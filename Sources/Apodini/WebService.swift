@@ -12,12 +12,8 @@ import ArgumentParser
 
 
 /// Each Apodini program consists of a `WebService`component that is used to describe the Web API of the Web Service
-public protocol WebService: AnyWebServiceMetadataBlock, Component, ConfigurationCollection, ParsableCommand {
-#if compiler(>=5.6)
+public protocol WebService: AnyWebServiceMetadataBlock, Component, ConfigurationCollection, ParsableCommand where MetadataBuilderScope == MetadataBuilderScope_WebService {
     typealias Metadata = any AnyWebServiceMetadata
-#else
-    typealias Metadata = AnyWebServiceMetadata
-#endif
     
     /// An empty initializer used to create an Apodini `WebService`
     init()

@@ -9,11 +9,43 @@
 // swiftlint:disable missing_docs
 
 
+
+
+//public protocol MetadataBuilderScope {
+//    associatedtype MetadataTypee
+//}
+
+
+
+
+public enum MetadataBuilderScope_Handler {}
+public enum MetadataBuilderScope_ComponentOnly {}
+public enum MetadataBuilderScope_WebService {}
+
+
+
+public protocol MetadataBuilderScope_AnyComponent {}
+extension MetadataBuilderScope_Handler: MetadataBuilderScope_AnyComponent {}
+extension MetadataBuilderScope_ComponentOnly: MetadataBuilderScope_AnyComponent {}
+
+
+//public protocol MetadataBuilderScope_Handler: MetadataBuilderScope {
+//    typealias MetadataTypee = AnyHandlerMetadata
+//}
+//public protocol MetadataBuilderScope_ComponentOnly: MetadataBuilderScope {
+//    typealias MetadataTypee = AnyComponentOnlyMetadata
+//}
+//public protocol MetadataBuilderScope_WebService: MetadataBuilderScope {
+//    typealias MetadataTypee = AnyWebServiceMetadata
+//}
+
+
+
 @resultBuilder
-public enum MetadataBuilder {}
+public enum MetadataBuilder<Scope> {}
 
 // MARK: Handler Metadata
-public extension MetadataBuilder {
+public extension MetadataBuilder where Scope == MetadataBuilderScope_Handler {
     static func buildExpression<Metadata: HandlerMetadataDefinition>(_ expression: Metadata) -> AnyHandlerMetadata {
         WrappedHandlerMetadataDefinition(expression)
     }
@@ -48,7 +80,8 @@ public extension MetadataBuilder {
 }
 
 // MARK: Component-Only Metadata
-public extension MetadataBuilder {
+public extension MetadataBuilder where Scope == MetadataBuilderScope_ComponentOnly {
+//public extension MetadataBuilder where Scope.MetadataTypee: AnyComponentOnlyMetadata {
     static func buildExpression<Metadata: ComponentOnlyMetadataDefinition>(_ expression: Metadata) -> AnyComponentOnlyMetadata {
         WrappedComponentOnlyMetadataDefinition(expression)
     }
@@ -83,7 +116,7 @@ public extension MetadataBuilder {
 }
 
 // MARK: WebService Metadata
-public extension MetadataBuilder {
+public extension MetadataBuilder where Scope == MetadataBuilderScope_WebService {
     static func buildExpression<Metadata: WebServiceMetadataDefinition>(_ expression: Metadata) -> AnyWebServiceMetadata {
         WrappedWebServiceMetadataDefinition(expression)
     }

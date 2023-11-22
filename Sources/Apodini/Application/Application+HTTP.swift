@@ -90,7 +90,7 @@ public struct TLSConfigurationBuilder {
     /// - parameters:
     ///     - certificatePath: Path to your certificate pem file.
     ///     - keyPath: Path to your key pem file.
-    public init?(certificatePath: String, keyPath: String) {
+    public init?(certificatePath: String, keyPath: String) { // TODO why is this allowed to fail (eg if the specified file doesn't exist)
         do {
             let certificate = try NIOSSLCertificate.fromPEMFile(certificatePath)
             let privateKey = try NIOSSLPrivateKey(file: keyPath, format: .pem)

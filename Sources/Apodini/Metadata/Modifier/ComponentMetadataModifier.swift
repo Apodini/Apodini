@@ -26,6 +26,7 @@
 /// - Note: Be aware that a `Modifier` can be applied to all `Component`s including `Handler` and `WebService`.
 /// Therefore it is advised to not use `ComponentOnlyMetadataDefinition` with `ComponentMetadataModifier`.
 public struct ComponentMetadataModifier<C: Component>: Modifier {
+    public typealias MetadataBuilderScope = C.MetadataBuilderScope
     public let component: C
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
     let componentMetadata: AnyComponentOnlyMetadata
@@ -54,15 +55,44 @@ extension Component {
     /// to the given `Component`.
     /// - Parameter content: The closure containing the Metadata to be built.
     /// - Returns: The modified `Component` with the added Metadata.
-    public func metadata(@MetadataBuilder content: () -> AnyComponentOnlyMetadata) -> ComponentMetadataModifier<Self> {
+    public func metadata(
+        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyComponentOnlyMetadata
+    ) -> ComponentMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_ComponentOnly {
         ComponentMetadataModifier(modifies: self, with: content())
     }
-
+    
     /// The `Component.metadata(...)` Modifier can be used to add a instance of a `AnyComponentOnlyMetadata` Metadata
     /// to the given `Component`.
     /// - Parameter metadata: The instance of `AnyComponentOnlyMetadata`.
     /// - Returns: The modified `Component` with the added Metadata.
-    public func metadata<Metadata: AnyComponentOnlyMetadata>(_ metadata: Metadata) -> ComponentMetadataModifier<Self> {
+    public func metadata<Metadata: AnyComponentOnlyMetadata>(
+        _ metadata: Metadata
+    ) -> ComponentMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_ComponentOnly {
+        ComponentMetadataModifier(modifies: self, with: metadata)
+    }
+    
+    
+    
+    // TODO UPDATE DOCS HERE!!!
+    /// The `Component.metadata(content:)` Modifier can be used to apply a Component Metadata Declaration Block
+    /// to the given `Component`.
+    /// - Parameter content: The closure containing the Metadata to be built.
+    /// - Returns: The modified `Component` with the added Metadata.
+    public func metadata(
+        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyComponentMetadata
+    ) -> ComponentMetadataModifier<Self> {
+        ComponentMetadataModifier(modifies: self, with: content())
+    }
+    
+    // TODO UPDATE DOCS HERE!!!
+    /// The `Component.metadata(...)` Modifier can be used to add a instance of a `AnyComponentOnlyMetadata` Metadata
+    /// to the given `Component`.
+    /// - Parameter metadata: The instance of `AnyComponentOnlyMetadata`.
+    /// - Returns: The modified `Component` with the added Metadata.
+    @_disfavoredOverload // TODO is this actually needed?
+    public func metadata<Metadata: AnyComponentMetadata>(
+        _ metadata: Metadata
+    ) -> ComponentMetadataModifier<Self> {
         ComponentMetadataModifier(modifies: self, with: metadata)
     }
 }

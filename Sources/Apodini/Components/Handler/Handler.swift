@@ -10,15 +10,11 @@ import NIO
 
 
 /// A `Handler` is a `Component` which defines an endpoint and can handle requests.
-public protocol Handler: AnyHandlerMetadataBlock, Component {
+public protocol Handler: AnyHandlerMetadataBlock, Component where MetadataBuilderScope == MetadataBuilderScope_Handler { // TODO we might also be able to express the Scope stuff as a `where Metadata: AnyHandlerMetadata` (as already suggested by the compiler for the other thing), and then somehow using this in the MetadataBuilder as well... (repurpose the generic parameter for a `where T: AnyHandlerMetadata` etc)
     /// The type that is returned from the `handle()` method when the component handles a request. The return type of the `handle` method is encoded into the response send out to the client.
     associatedtype Response: ResponseTransformable
     
-#if compiler(>=5.6)
     typealias Metadata = any AnyHandlerMetadata
-#else
-    typealias Metadata = AnyHandlerMetadata
-#endif
     
     /// A function that is called when a request reaches the `Handler`
     func handle() async throws -> Response
@@ -39,4 +35,20 @@ extension Handler {
     public var content: some Component {
         EmptyComponent()
     }
+}
+
+
+
+
+extension Component where MetadataBuilderScope == MetadataBuilderScope_ComponentOnly {
+    var SCOPE__COMPONENT_IS_COMPONENT: Never { fatalError() }
+}
+
+
+extension Component where MetadataBuilderScope == MetadataBuilderScope_Handler {
+    var SCOPE__COMPONENT_IS_HANDLER: Never { fatalError() }
+}
+
+extension Handler where MetadataBuilderScope == MetadataBuilderScope_Handler {
+    var SCOPE__HANDLER_IS_HANDLER: Never { fatalError() }
 }

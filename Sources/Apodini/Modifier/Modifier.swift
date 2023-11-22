@@ -32,6 +32,7 @@ public protocol HandlerModifierProto: Modifier, Handler where ModifiedComponent:
 
 
 public extension HandlerModifierProto {
+    typealias MetadataBuilderScope = ModifiedComponent.MetadataBuilderScope
     /// `HandlerModifier`s don't provide any further content
     /// - Note: this property should not be implemented in a modifier type
     var content: some Component { EmptyComponent() }

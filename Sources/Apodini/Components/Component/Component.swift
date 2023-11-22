@@ -17,12 +17,13 @@ public protocol Component: AnyComponentOnlyMetadataBlock {
     associatedtype Content: Component
 
     associatedtype Metadata = AnyComponentOnlyMetadata
+    associatedtype MetadataBuilderScope = MetadataBuilderScope_ComponentOnly
     
     /// Different other `Component`s that are composed to describe the functionality of the`Component`
     @ComponentBuilder
     var content: Content { get }
 
-    @MetadataBuilder
+    @MetadataBuilder<MetadataBuilderScope>
     var metadata: Metadata { get }
 }
 

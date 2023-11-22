@@ -56,7 +56,15 @@ extension Handler {
     ///     thus the `HandlerMetadataNamespace` is not available there and only `MetadataDefinition`s
     ///     from `ComponentMetadataNamespace` are available.
     ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataBlock` and use it here.
-    public func metadata(@MetadataBuilder content: () -> AnyHandlerMetadata) -> HandlerMetadataModifier<Self> {
+    public func metadata(
+        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyHandlerMetadata
+    ) -> HandlerMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_Handler {
+        HandlerMetadataModifier(modifies: self, with: content())
+    }
+    
+    public func metadata2(
+        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyHandlerMetadata
+    ) -> HandlerMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_Handler {
         HandlerMetadataModifier(modifies: self, with: content())
     }
 

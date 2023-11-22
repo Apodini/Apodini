@@ -64,7 +64,9 @@ let package = Package(
         // Test Utils
         .library(name: "XCTApodini", targets: ["XCTApodini"]),
         .library(name: "XCTApodiniObserve", targets: ["XCTApodiniObserve"]),
-        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"])
+        .library(name: "XCTApodiniNetworking", targets: ["XCTApodiniNetworking"]),
+
+        .executable(name: "LKTestWebService", targets: ["LKTestWebService"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0"),
@@ -788,6 +790,18 @@ let package = Package(
                 .target(name: "ApodiniHTTP"),
                 .product(name: "PythonKit", package: "PythonKit")
             ]
-        )
+        ),
+
+        .executableTarget(name: "LKTestWebService", dependencies: [
+            .target(name: "Apodini"),
+            .target(name: "ApodiniHTTP"),
+            .target(name: "ApodiniREST"),
+            .target(name: "ApodiniGRPC"),
+            .target(name: "ApodiniGraphQL"),
+            .target(name: "ProtobufferCoding"),
+            .target(name: "ApodiniOpenAPI"),
+            .target(name: "ApodiniWebSocket"),
+            .target(name: "ApodiniDeployer")
+        ])
     ]
 )

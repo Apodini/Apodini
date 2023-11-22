@@ -43,11 +43,12 @@ public struct TracingMetadata: ComponentMetadataDefinition, DefinitionWithDelega
     }
 }
 
+
 extension Component {
     /// A `trace` modifier can be used to enable or disable tracing for a `Component` using `TracingMetadata`.
     /// - Parameter isEnabled: Boolean indicating of tracing should be enabled or disabled.
     /// - Returns: The modified `Component` with `TracingMetadata` attached.
-    public func trace(isEnabled: Bool = true) -> ComponentMetadataModifier<Self> {
+    public func trace(isEnabled: Bool = true) -> some Component /*ComponentMetadataModifier<Self>*/ /*where MetadataBuilderScope: MetadataBuilderScope_AnyComponent*/ {
         self.metadata(TracingMetadata(isEnabled: isEnabled))
     }
 }
