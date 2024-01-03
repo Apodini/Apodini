@@ -16,7 +16,7 @@ public class LowercaseURLPathSegments: URLSegmentBestPractice {
     var successMessage = "The path segments do not contain any uppercase letters"
     var checkedSegments = [String]()
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)? {
         if segment.lowercased() != segment && !isParameter {
             return LowercasePathSegmentsFinding.uppercaseCharacterFound(segment: segment)
         }

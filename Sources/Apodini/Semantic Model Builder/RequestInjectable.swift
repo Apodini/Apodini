@@ -10,5 +10,5 @@ import NIO
 
 
 protocol RequestInjectable {
-    func inject(using request: Request) throws
+    func inject(using request: any Request) throws // TODO why is this not generic (over the request)
 }

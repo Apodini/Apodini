@@ -42,7 +42,7 @@ public struct LocalhostStartupCommand<Service: WebService>: DeploymentStartupCom
     @OptionGroup
     var webServiceWithArguments: Service
     
-    public var deployedSystemType: AnyDeployedSystem.Type {
+    public var deployedSystemType: any AnyDeployedSystem.Type {
         LocalhostDeployedSystem.self
     }
     

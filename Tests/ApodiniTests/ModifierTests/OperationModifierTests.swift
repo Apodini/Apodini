@@ -48,7 +48,7 @@ final class OperationModifierTests: ApodiniTests {
             Version(prefix: "version", major: 3, minor: 2, patch: 4)
         }
 
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(rootPath: .version)
         }
     }

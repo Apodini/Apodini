@@ -9,7 +9,7 @@
 import Foundation
 import ApodiniUtils
 
-extension Array where Element == PathComponent {
+extension Array where Element == any PathComponent {
     func pathModelBuilder() -> PathModelBuilder {
         var builder = PathModelBuilder()
         for component in self {
@@ -28,7 +28,7 @@ struct PathModelBuilder: PathComponentParser {
 
     fileprivate init() {}
 
-    mutating func append(_ pathComponent: PathComponent) {
+    mutating func append(_ pathComponent: any PathComponent) {
         currentContext = currentContext.newContextNode()
 
         let pathComponent = pathComponent.toInternal()
@@ -74,11 +74,11 @@ private struct PathComponentElementParser: PathComponentParser {
 // MARK: Helpers
 
 private extension Parameter {
-    func toPathParameter() -> AnyEndpointPathParameter {
+    func toPathParameter() -> any AnyEndpointPathParameter {
         let identifyingType = self.option(for: PropertyOptionKey.identifying)
 
-        let pathParameter: AnyEndpointPathParameter
-        if let optionalParameter = self as? EncodeOptionalPathParameter {
+        let pathParameter: any AnyEndpointPathParameter
+        if let optionalParameter = self as? any EncodeOptionalPathParameter {
             pathParameter = optionalParameter.createPathParameterWithWrappedType(id: self.id, identifyingType: identifyingType)
         } else {
             pathParameter = EndpointPathParameter<Element>(id: self.id, identifyingType: identifyingType)
@@ -149,12 +149,12 @@ extension Array where Element == StoredEndpointPath {
 
 
 private protocol EncodeOptionalPathParameter {
-    func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter
+    func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> any AnyEndpointPathParameter
 }
 
 // MARK: PathParameter Model
 extension Parameter: EncodeOptionalPathParameter where Element: OptionalProtocol, Element.Wrapped: Codable {
-    func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> AnyEndpointPathParameter {
+    func createPathParameterWithWrappedType(id: UUID, identifyingType: IdentifyingType?) -> any AnyEndpointPathParameter {
         EndpointPathParameter<Element.Wrapped>(id: id, identifyingType: identifyingType)
     }
 }

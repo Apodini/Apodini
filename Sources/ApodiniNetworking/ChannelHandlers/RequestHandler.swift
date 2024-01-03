@@ -13,15 +13,15 @@ import WebSocketKit
 import Foundation
 
 
-class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler {
+class HTTPServerRequestHandler: ChannelInboundHandler, RemovableChannelHandler { // TODO make this generic over the responder? (same for the ReqDecoder)
     typealias InboundIn = HTTPRequest
     typealias OutboundOut = HTTPResponse
     
-    private let responder: HTTPResponder
+    private let responder: any HTTPResponder
     private var channelClosed = false
     private var lastHTTPResponse: HTTPResponse?
     
-    init(responder: HTTPResponder) {
+    init(responder: any HTTPResponder) {
         self.responder = responder
     }
     

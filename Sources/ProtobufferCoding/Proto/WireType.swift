@@ -32,12 +32,12 @@ enum WireType: UInt8, Hashable {
 /// Attempts to guess the protobuf wire type of the specified type.
 /// - Note: This function should only be called with types that can actually be encoded to protobuf, i.e. types that conform to `Encodable`.
 func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cyclomatic_complexity
-    if let optionalTy = type as? AnyOptional.Type {
+    if let optionalTy = type as? any AnyOptional.Type {
         return guessWireType(optionalTy.wrappedType)
     } else if type == String.self {
         return .lengthDelimited
     } else if case let types = Set(Bool.self, Int.self, UInt.self, Int32.self, UInt32.self, Int64.self, UInt64.self),
-              types.contains(type) || (type as? AnyProtobufEnum.Type != nil) {
+              types.contains(type) || (type as? any AnyProtobufEnum.Type != nil) {
         return .varInt
     } else if type == Float.self {
         return ._32Bit
@@ -47,11 +47,11 @@ func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cy
         return guessWireType(ProtoTimestamp.self)
     } else if type == UUID.self || type == URL.self {
         return guessWireType(String.self)
-    } else if type as? ProtobufBytesMapped.Type != nil {
+    } else if type as? any ProtobufBytesMapped.Type != nil {
         return .lengthDelimited
-    } else if let repeatedEncodableTy = type as? ProtobufRepeatedEncodable.Type {
+    } else if let repeatedEncodableTy = type as? any ProtobufRepeatedEncodable.Type {
         return repeatedEncodableTy.isPacked ? .lengthDelimited : guessWireType(repeatedEncodableTy.elementType)
-    } else if let repeatedDecodableTy = type as? ProtobufRepeatedDecodable.Type {
+    } else if let repeatedDecodableTy = type as? any ProtobufRepeatedDecodable.Type {
         return repeatedDecodableTy.isPacked ? .lengthDelimited : guessWireType(repeatedDecodableTy.elementType)
     } else if let typeInfo = try? Runtime.typeInfo(of: type) {
         // Try to determine the wire type based on the kind of type we're dealing with.
@@ -60,7 +60,7 @@ func guessWireType(_ type: Any.Type) -> WireType? { // swiftlint:disable:this cy
         case .struct:
             return .lengthDelimited
         case .enum:
-            if type as? AnyProtobufEnum.Type != nil {
+            if type as? any AnyProtobufEnum.Type != nil {
                 return .varInt
             } else {
                 return nil

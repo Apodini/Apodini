@@ -53,7 +53,7 @@ protocol _AnyRelationshipEndpoint: AnyRelationshipEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
-    private let sharedRepository: SharedRepository
+    private let sharedRepository: any SharedRepository
 
     var inserted = false
     
@@ -95,7 +95,7 @@ public struct RelationshipEndpoint<H: Handler>: _AnyRelationshipEndpoint {
 
     init(
         handler: H,
-        sharedRepository: SharedRepository
+        sharedRepository: any SharedRepository
     ) {
         self.handler = handler
         self.sharedRepository = sharedRepository

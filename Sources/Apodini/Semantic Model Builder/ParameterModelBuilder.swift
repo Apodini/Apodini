@@ -10,7 +10,7 @@ import ApodiniUtils
 
 
 extension Handler {
-    func buildParametersModel() -> [_AnyEndpointParameter] {
+    func buildParametersModel() -> [any _AnyEndpointParameter] {
         let builder = ParameterModelBuilder(from: self)
             .build()
         return builder.parametersInternal.uniqued(with: \.id)
@@ -18,16 +18,16 @@ extension Handler {
 }
 
 private class ParameterModelBuilder<H: Handler>: AnyParameterVisitor {
-    let orderedParameters: [(String, AnyParameter)]
-    let parameters: [String: AnyParameter]
+    let orderedParameters: [(String, any AnyParameter)]
+    let parameters: [String: any AnyParameter]
     var currentLabel: String?
 
-    var parametersInternal: [_AnyEndpointParameter] = []
+    var parametersInternal: [any _AnyEndpointParameter] = []
 
     init(from handler: H) {
         let orderedParameters = handler.extractParameters()
         self.orderedParameters = orderedParameters
-        var parameters = [String: AnyParameter]()
+        var parameters = [String: any AnyParameter]()
         for (label, parameter) in orderedParameters {
             parameters[label] = parameter
         }
@@ -60,8 +60,8 @@ private class ParameterModelBuilder<H: Handler>: AnyParameterVisitor {
                                 """)
         }
 
-        let endpointParameter: _AnyEndpointParameter
-        if let optionalParameter = parameter as? EncodeOptionalEndpointParameter {
+        let endpointParameter: any _AnyEndpointParameter
+        if let optionalParameter = parameter as? any EncodeOptionalEndpointParameter {
             endpointParameter = optionalParameter.createParameterWithWrappedType(
                 name: parameter.name ?? trimmedLabel,
                 label: label,
@@ -89,7 +89,7 @@ private protocol EncodeOptionalEndpointParameter {
         name: String,
         label: String,
         necessity: Necessity
-    ) -> _AnyEndpointParameter
+    ) -> any _AnyEndpointParameter // TODO some?
 }
 
 // MARK: Parameter Model
@@ -98,7 +98,7 @@ extension Parameter: EncodeOptionalEndpointParameter where Element: OptionalProt
         name: String,
         label: String,
         necessity: Necessity
-    ) -> _AnyEndpointParameter {
+    ) -> any _AnyEndpointParameter {
         var `default`: (() -> Element.Wrapped)?
         if let defaultValue = self.defaultValue, let originalDefaultValue = defaultValue().optionalInstance {
             `default` = {

@@ -43,7 +43,7 @@ public struct ProtobufferEncoder {
         )
         let isMessage = getProtoCodingKind(type(of: value)) == .message
         if isMessage {
-            encoder.context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3) // no need to pop here
+            encoder.context.pushSyntax(value is any Proto2Codable ? .proto2 : .proto3) // no need to pop here
         }
         // NOTE: We have to go through this wrapper type here, in order to give the KeyedEncodingContainer's `encode` function the opportunity
         // to apply type transformations and do some other special handling for specific types.
@@ -96,7 +96,7 @@ public struct ProtobufferEncoder {
         let dstBufferRef = Box(ByteBuffer())
         let encoder = _ProtobufferEncoder(codingPath: [], dstBufferRef: dstBufferRef, context: EncoderContext())
         if getProtoCodingKind(type(of: value)) == .message {
-            encoder.context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3) // no need to pop here
+            encoder.context.pushSyntax(value is any Proto2Codable ? .proto2 : .proto3) // no need to pop here
         }
         var keyedEncoder = encoder.container(keyedBy: FixedCodingKey.self)
         try keyedEncoder.encode(value, forKey: .init(intValue: field.fieldNumber))
@@ -128,43 +128,43 @@ class EncoderContext {
     
     /// Marking a coding path as "required output" will indicate to the encoder that values for this field should
     /// always be written into the proto buffer, even if the value is the field's zero default value.
-    func markAsRequiredOutput(_ codingPath: [CodingKey]) {
+    func markAsRequiredOutput(_ codingPath: [any CodingKey]) {
         fieldsMarkedAsRequiredOutput.insert(Self.codingPathToFieldNumbers(codingPath))
     }
     
-    func markAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
+    func markAsRequiredOutput(_ codingPaths: [[any CodingKey]]) {
         for codingPath in codingPaths {
             markAsRequiredOutput(codingPath)
         }
     }
     
-    func unmarkAsRequiredOutput(_ codingPath: [CodingKey]) {
+    func unmarkAsRequiredOutput(_ codingPath: [any CodingKey]) {
         fieldsMarkedAsRequiredOutput.remove(Self.codingPathToFieldNumbers(codingPath))
     }
     
-    func unmarkAsRequiredOutput(_ codingPaths: [[CodingKey]]) {
+    func unmarkAsRequiredOutput(_ codingPaths: [[any CodingKey]]) {
         for codingPath in codingPaths {
             unmarkAsRequiredOutput(codingPath)
         }
     }
     
-    func isMarkedAsRequiredOutput(_ codingPath: [CodingKey]) -> Bool {
+    func isMarkedAsRequiredOutput(_ codingPath: [any CodingKey]) -> Bool {
         fieldsMarkedAsRequiredOutput.contains(Self.codingPathToFieldNumbers(codingPath))
     }
     
-    private static func codingPathToFieldNumbers(_ codingPath: [CodingKey]) -> [Int] {
+    private static func codingPathToFieldNumbers(_ codingPath: [any CodingKey]) -> [Int] {
         codingPath.map { $0.getProtoFieldNumber() }
     }
 }
 
 
 class _ProtobufferEncoder: Encoder { // swiftlint:disable:this type_name
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let userInfo: [CodingUserInfoKey: Any]
     let dstBufferRef: Box<ByteBuffer>
     let context: EncoderContext
     
-    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
+    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.userInfo = userInfo
         self.dstBufferRef = dstBufferRef
@@ -181,7 +181,7 @@ class _ProtobufferEncoder: Encoder { // swiftlint:disable:this type_name
         ProtobufferKeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    func unkeyedContainer() -> any UnkeyedEncodingContainer {
         internalUnkeyedContainer()
     }
     
@@ -189,7 +189,7 @@ class _ProtobufferEncoder: Encoder { // swiftlint:disable:this type_name
         ProtobufferUnkeyedEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
     
-    func singleValueContainer() -> SingleValueEncodingContainer {
+    func singleValueContainer() -> any SingleValueEncodingContainer {
         ProtobufferSingleValueEncodingContainer(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
     }
 }

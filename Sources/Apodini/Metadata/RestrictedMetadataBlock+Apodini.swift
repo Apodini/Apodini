@@ -23,9 +23,9 @@ import MetadataSystem
 public struct RestrictedHandlerMetadataBlock<RestrictedContent: AnyHandlerMetadata>: HandlerMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var metadata: AnyHandlerMetadata
+    public var metadata: any AnyHandlerMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyHandlerMetadata) {
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> any AnyHandlerMetadata) {
         self.metadata = metadata()
     }
 }
@@ -46,9 +46,9 @@ public struct RestrictedHandlerMetadataBlock<RestrictedContent: AnyHandlerMetada
 public struct RestrictedComponentOnlyMetadataBlock<RestrictedContent: AnyComponentOnlyMetadata>: ComponentOnlyMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var metadata: AnyComponentOnlyMetadata
+    public var metadata: any AnyComponentOnlyMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyComponentOnlyMetadata) {
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> any AnyComponentOnlyMetadata) {
         self.metadata = metadata()
     }
 }
@@ -67,9 +67,9 @@ public struct RestrictedComponentOnlyMetadataBlock<RestrictedContent: AnyCompone
 public struct RestrictedWebServiceMetadataBlock<RestrictedContent: AnyWebServiceMetadata>: WebServiceMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var metadata: AnyWebServiceMetadata
+    public var metadata: any AnyWebServiceMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyWebServiceMetadata) {
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> any AnyWebServiceMetadata) {
         self.metadata = metadata()
     }
 }
@@ -88,9 +88,9 @@ public struct RestrictedWebServiceMetadataBlock<RestrictedContent: AnyWebService
 public struct RestrictedComponentMetadataBlock<RestrictedContent: AnyComponentMetadata>: ComponentMetadataBlock, RestrictedMetadataBlock {
     public typealias RestrictedContent = RestrictedContent
 
-    public var metadata: AnyComponentMetadata
+    public var metadata: any AnyComponentMetadata
 
-    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> AnyComponentMetadata) {
+    public init(@RestrictedMetadataBlockBuilder<Self> metadata: () -> any AnyComponentMetadata) {
         self.metadata = metadata()
     }
 }

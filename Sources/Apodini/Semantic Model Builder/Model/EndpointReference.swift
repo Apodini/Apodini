@@ -36,7 +36,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
 
     /// Resolve the referenced `Endpoint`
     /// - Returns: The instance of `RelationshipEntity` this `EndpointReference` references to.
-    func resolve() -> _AnyRelationshipEndpoint {
+    func resolve() -> any _AnyRelationshipEndpoint {
         guard let endpoint = node.endpoints[operation] else {
             fatalError("Failed to resolve Endpoint at \(absolutePath.asPathString()): Didn't find Endpoint with operation \(operation)")
         }
@@ -45,7 +45,7 @@ struct EndpointReference: CustomStringConvertible, CustomDebugStringConvertible 
 
     /// Mutates the reference `Endpoint`
     /// - Parameter mutate: The closure mutating the referenced `Endpoint`.
-    func resolveAndMutate(_ mutate: @escaping (inout _AnyRelationshipEndpoint) -> Void) {
+    func resolveAndMutate(_ mutate: @escaping (inout any _AnyRelationshipEndpoint) -> Void) {
         var endpoint = resolve()
         mutate(&endpoint)
         node.endpoints[operation] = endpoint

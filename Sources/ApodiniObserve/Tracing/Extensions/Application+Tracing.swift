@@ -13,7 +13,7 @@ extension Application {
     /// Returns the `Instrument` configured in `Configuration`.
     ///
     /// - Returns: An `Instrument` if the system was configured. Else, crashes the application.
-    public var instrument: Instrument {
+    public var instrument: any Instrument {
         guard let instrument = storage[TracingConfiguration.TracingStorageKey.self]?.instrument else {
             fatalError("Tracing wasn't configured correctly")
         }
@@ -23,7 +23,7 @@ extension Application {
     /// Returns the `Tracer` configured in `Configuration`.
     ///
     /// - Returns: A `Tracer` if the system was configured. Else, crashes the application.
-    public var tracer: Tracer {
+    public var tracer: any Tracer {
         guard let tracer = storage[TracingConfiguration.TracingStorageKey.self]?.tracer else {
             fatalError("Tracing wasn't configured correctly")
         }

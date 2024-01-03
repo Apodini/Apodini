@@ -78,7 +78,7 @@ extension EnvironmentObject: TypeInjectable {
     func inject<V>(_ value: V) {
         if let typedValue = value as? Value {
             _localEnvironment.setValue(typedValue)
-            (self as? Observing)?.registerChildObservation()
+            (self as? any Observing)?.registerChildObservation()
         }
     }
 }
@@ -146,7 +146,7 @@ extension EnvironmentObject: AnyObservedObject, Observing where Value: Observabl
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
-            case let published as AnyPublished:
+            case let published as any AnyPublished:
                 published.register(childObservation)
             default:
                 continue

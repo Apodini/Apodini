@@ -18,7 +18,7 @@ public protocol Content: Encodable & ResponseTransformable & StaticContentMetada
 // MARK: Metadata DSL
 public extension Content {
     /// Content Types have an empty `AnyContentMetadata` by default.
-    static var metadata: AnyContentMetadata {
+    static var metadata: any AnyContentMetadata {
         Empty()
     }
 }

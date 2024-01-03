@@ -19,9 +19,9 @@ public class RelationshipInheritance<From, To>: RelationshipsContentMetadataBloc
     }
 
     let destinationType: To.Type
-    let resolvers: [AnyPathParameterResolver]
+    let resolvers: [any AnyPathParameterResolver]
 
-    private init(from type: To.Type = To.self, resolvers: [AnyPathParameterResolver]) {
+    private init(from type: To.Type = To.self, resolvers: [any AnyPathParameterResolver]) {
         self.destinationType = type
         self.resolvers = resolvers
         precondition(From.self != To.self, "Can't define circular relationship inheritance. 'self' points to itself!")

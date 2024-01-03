@@ -15,9 +15,9 @@ public enum AuditConfigurationBuilder {
     /// - Parameter component: The `BestPracticeConfiguration`s
     ///
     /// - Returns: An array of all `BestPracticeConfiguration`s
-    public static func buildFinalResult(_ component: [BestPracticeConfiguration]) -> [BestPractice] {
+    public static func buildFinalResult(_ component: [any BestPracticeConfiguration]) -> [any BestPractice] {
         // Generate a configuration for every best practice
-        var bestPracticeConfigurations = [BestPracticeConfiguration]()
+        var bestPracticeConfigurations = [any BestPracticeConfiguration]()
         
         for conf in AuditInterfaceExporter.defaultBestPracticeConfigurations {
             /// Search for a matching configuration in `component`
@@ -47,7 +47,7 @@ public enum AuditConfigurationBuilder {
     /// - Parameter expression: The `BestPracticeConfiguration`
     ///
     /// - Returns: An array of `BestPracticeConfiguration`s
-    public static func buildExpression(_ expression: BestPracticeConfiguration) -> [BestPracticeConfiguration] {
+    public static func buildExpression(_ expression: any BestPracticeConfiguration) -> [any BestPracticeConfiguration] {
         [expression]
     }
     
@@ -56,7 +56,7 @@ public enum AuditConfigurationBuilder {
     /// - Parameter staticConfigurations: A variadic number of `BestPracticeConfiguration`s
     ///
     /// - Returns: An array of `AnyDependentStaticConfiguration`s
-    public static func buildBlock(_ bestPracticeConfigurations: [BestPracticeConfiguration]...) -> [BestPracticeConfiguration] {
+    public static func buildBlock(_ bestPracticeConfigurations: [any BestPracticeConfiguration]...) -> [any BestPracticeConfiguration] {
         bestPracticeConfigurations.flatMap { $0 }
     }
     
@@ -65,7 +65,7 @@ public enum AuditConfigurationBuilder {
     /// - Parameter first: The `BestPracticeConfiguration` within the if statement
     ///
     /// - Returns: The `BestPracticeConfiguration` within the if statement
-    public static func buildEither(first: [BestPracticeConfiguration]) -> [BestPracticeConfiguration] {
+    public static func buildEither(first: [any BestPracticeConfiguration]) -> [any BestPracticeConfiguration] {
         first
     }
     
@@ -75,7 +75,7 @@ public enum AuditConfigurationBuilder {
     /// - Parameter second: The `BestPracticeConfiguration` within the else statement
     ///
     /// - Returns: The `BestPracticeConfiguration` within the else statement
-    public static func buildEither(second: [BestPracticeConfiguration]) -> [BestPracticeConfiguration] {
+    public static func buildEither(second: [any BestPracticeConfiguration]) -> [any BestPracticeConfiguration] {
         second
     }
     
@@ -84,7 +84,7 @@ public enum AuditConfigurationBuilder {
     /// - Parameter component: The `BestPracticeConfiguration` within if statement
     ///
     /// - Returns: The `BestPracticeConfiguration` within the if statement if the condition is true, nil otherwise
-    public static func buildOptional(_ component: [BestPracticeConfiguration]?) -> [BestPracticeConfiguration] {
+    public static func buildOptional(_ component: [any BestPracticeConfiguration]?) -> [any BestPracticeConfiguration] {
         // swiftlint:disable:previous discouraged_optional_collection
         component ?? []
     }

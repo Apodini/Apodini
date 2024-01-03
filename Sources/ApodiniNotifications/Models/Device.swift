@@ -120,7 +120,7 @@ public enum DeviceType: String, Codable, CaseIterable {
 }
 
 internal struct DeviceMigration: Migration {
-    func prepare(on database: FluentKit.Database) -> EventLoopFuture<Void> {
+    func prepare(on database: any FluentKit.Database) -> EventLoopFuture<Void> {
         database.eventLoop.flatten([
             database.schema(Topic.schema)
                 .id()
@@ -145,7 +145,7 @@ internal struct DeviceMigration: Migration {
         ])
     }
     
-    func revert(on database: FluentKit.Database) -> EventLoopFuture<Void> {
+    func revert(on database: any FluentKit.Database) -> EventLoopFuture<Void> {
         database.eventLoop.flatten([
             database.schema(Topic.schema).delete(),
             database.enum("type").delete().flatMap {

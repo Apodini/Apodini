@@ -90,7 +90,7 @@ struct URLQueryParameterValueDecoder {
 
 private struct _Decoder: Decoder {
     // This decoder doesn't access nested values, therefore we always operate on an empty path.
-    let codingPath: [CodingKey] = []
+    let codingPath: [any CodingKey] = []
     let userInfo: [CodingUserInfoKey: Any] = [:]
     
     let rawValue: String
@@ -100,21 +100,21 @@ private struct _Decoder: Decoder {
         fatalError("Not supported")
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         fatalError("Not supported")
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> any SingleValueDecodingContainer {
         SingleValueContainer(rawValue: rawValue, codingPath: [], dateDecodingStrategy: dateDecodingStrategy)
     }
     
     
     private struct SingleValueContainer: SingleValueDecodingContainer {
         let rawValue: String
-        var codingPath: [CodingKey]
+        var codingPath: [any CodingKey]
         let dateDecodingStrategy: DateDecodingStrategy
         
-        init(rawValue: String, codingPath: [CodingKey], dateDecodingStrategy: DateDecodingStrategy) {
+        init(rawValue: String, codingPath: [any CodingKey], dateDecodingStrategy: DateDecodingStrategy) {
             self.rawValue = rawValue
             self.codingPath = codingPath
             self.dateDecodingStrategy = dateDecodingStrategy
@@ -128,30 +128,30 @@ private struct _Decoder: Decoder {
             guard !(T.self is Date.Type) else {
                 return try dateDecodingStrategy.decodeDate(from: rawValue) as! T
             }
-            if let queryParamValueDecodableTy = T.self as? URLQueryParameterValueDecodable.Type {
+            if let queryParamValueDecodableTy = T.self as? any URLQueryParameterValueDecodable.Type {
                 if let result = queryParamValueDecodableTy.init(urlQueryParamValue: rawValue) {
                     return result as! T
                 } else {
                     throw DecodingError.typeMismatch(T.self, DecodingError.Context(
                         codingPath: [],
-                        debugDescription: "Unable to decode value. (\(URLQueryParameterValueDecodable.self) conformance returned nil.) Raw value: '\(rawValue)'",
+                        debugDescription: "Unable to decode value. (\((any URLQueryParameterValueDecodable).self) conformance returned nil.) Raw value: '\(rawValue)'",
                         underlyingError: nil
                     ))
                 }
-            } else if let losslessStringDecodableTy = T.self as? LosslessStringConvertible.Type {
+            } else if let losslessStringDecodableTy = T.self as? any LosslessStringConvertible.Type {
                 if let result = losslessStringDecodableTy.init(rawValue) {
                     return result as! T
                 } else {
                     throw DecodingError.typeMismatch(T.self, DecodingError.Context(
                         codingPath: [],
-                        debugDescription: "Unable to decode value. (\(LosslessStringConvertible.self) conformance returned nil.) Raw value: '\(rawValue)'",
+                        debugDescription: "Unable to decode value. (\((any LosslessStringConvertible).self) conformance returned nil.) Raw value: '\(rawValue)'",
                         underlyingError: nil
                     ))
                 }
             } else {
                 throw DecodingError.typeMismatch(T.self, DecodingError.Context(
                     codingPath: [],
-                    debugDescription: "Unable to decode value, because '\(T.self)' conforms neither to \(URLQueryParameterValueDecodable.self), nor to \(LosslessStringConvertible.self).",
+                    debugDescription: "Unable to decode value, because '\(T.self)' conforms neither to \((any URLQueryParameterValueDecodable).self), nor to \((any LosslessStringConvertible).self).",
                     underlyingError: nil
                 ))
             }

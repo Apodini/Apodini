@@ -12,12 +12,12 @@ import ArgumentParser
 public protocol DependableConfiguration: Configuration {
     associatedtype InternalConfiguration
     
-    var staticConfigurations: [AnyDependentStaticConfiguration] { get }
+    var staticConfigurations: [any AnyDependentStaticConfiguration] { get }
 }
 
 extension DependableConfiguration {
     /// Collects all the commands from the `DependentStaticConfiguration`s and exports them for this `DependableConfiguration`
-    public var _commands: [ParsableCommand.Type] {
+    public var _commands: [any ParsableCommand.Type] {
         // swiftlint:disable:previous identifier_name
         staticConfigurations.compactMap { (staticConfiguration: AnyDependentStaticConfiguration) in
             staticConfiguration.command

@@ -89,7 +89,7 @@ extension HTTPInterfaceExporter {
 extension AsyncSequence {
     func encodeAsHTTPResponse<E: Encodable>(
         _ request: HTTPRequest,
-        _ encoder: AnyEncoder
+        _ encoder: any AnyEncoder
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<E> {
         self.map { (response: Apodini.Response<E>) -> HTTPResponse in
             let information: InformationSet = response.information
@@ -122,7 +122,7 @@ extension AsyncSequence {
     
     func encodeAsArray<H: Handler>(
         _ request: HTTPRequest,
-        _ encoder: AnyEncoder,
+        _ encoder: any AnyEncoder,
         _ endpoint: Endpoint<H>
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<H.Response.Content> {
         self.collect()
@@ -161,7 +161,7 @@ extension AsyncSequence {
     func encodeForHTTP2Streaming<H: Handler>(
         _ request: HTTPRequest,
         _ logger: Logger,
-        _ encoder: AnyEncoder,
+        _ encoder: any AnyEncoder,
         _ endpoint: Endpoint<H>
     ) -> EventLoopFuture<HTTPResponse> where Element == Apodini.Response<H.Response.Content> {
         let httpResponseStream = BodyStorage.Stream()

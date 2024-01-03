@@ -47,7 +47,7 @@ final class TraversableTests: ApodiniTests {
     @propertyWrapper
     struct BCD: DynamicProperty {
         @Param var b: String?
-        @Properties var properties: [String: Apodini.Property]
+        @Properties var properties: [String: any Apodini.Property]
         @D var d: String
         
         init() {

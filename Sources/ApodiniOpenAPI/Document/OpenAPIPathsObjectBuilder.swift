@@ -156,7 +156,7 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#parameter-object
-    mutating func buildParametersArray(from parameters: [AnyEndpointParameter], with handlerContext: Context) -> OpenAPIKit.OpenAPI.Parameter.Array {
+    mutating func buildParametersArray(from parameters: [any AnyEndpointParameter], with handlerContext: Context) -> OpenAPIKit.OpenAPI.Parameter.Array {
         let parameterDescription = handlerContext.get(valueFor: ParameterDescriptionContextKey.self)
 
         return parameters.compactMap {
@@ -174,7 +174,7 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#request-body-object
-    mutating func buildRequestBodyObject(from parameters: [AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Request? {
+    mutating func buildRequestBodyObject(from parameters: [any AnyEndpointParameter]) -> OpenAPIKit.OpenAPI.Request? {
         var requestBody: OpenAPIKit.OpenAPI.Request?
         let contentParameters = parameters.filter {
             $0.parameterType == .content
@@ -208,7 +208,7 @@ private extension OpenAPIPathsObjectBuilder {
     }
     
     /// https://swagger.io/specification/#responses-object
-    mutating func buildResponsesObject(from responseType: Encodable.Type) -> OpenAPIKit.OpenAPI.Response.Map {
+    mutating func buildResponsesObject(from responseType: any Encodable.Type) -> OpenAPIKit.OpenAPI.Response.Map {
         var responseContent: OpenAPIKit.OpenAPI.Content.Map = [:]
         let responseJSONSchema: JSONSchema
         do {

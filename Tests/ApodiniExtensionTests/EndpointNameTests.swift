@@ -20,7 +20,7 @@ private struct AddUser: Handler {
         UUID()
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.create)
     }
 }

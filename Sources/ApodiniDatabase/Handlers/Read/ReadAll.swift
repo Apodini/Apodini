@@ -21,10 +21,10 @@ import Apodini
 /// return an array of `Bird` objects that have an age of 19 and the name Foo.
 public struct ReadAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: FluentKit.Database
+    private var database: any FluentKit.Database
 
     @Properties
-    private var dynamics: [String: Apodini.Property]
+    private var dynamics: [String: any Apodini.Property]
     
     public init() {
         var dynamicValues: [String: Parameter<TypeContainer?>] = [:]
@@ -50,7 +50,7 @@ public struct ReadAll<Model: DatabaseModel>: Handler {
         return queryBuilder.execute(on: database)
     }
     
-    public var metadata: AnyHandlerMetadata {
+    public var metadata: any AnyHandlerMetadata {
         Operation(.read)
     }
 }

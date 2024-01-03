@@ -32,7 +32,7 @@ struct EmptyGetHandler: Handler {
     }
 }
 
-func getEndpointFromWebService<W: WebService>(_ webService: W, _ app: Application, _ ename: String) throws -> AnyEndpoint {
+func getEndpointFromWebService<W: WebService>(_ webService: W, _ app: Application, _ ename: String) throws -> any AnyEndpoint {
     let modelBuilder = SemanticModelBuilder(app)
     let visitor = SyntaxTreeVisitor(modelBuilder: modelBuilder)
     webService.accept(visitor)
@@ -49,7 +49,7 @@ func getEndpointFromWebService<W: WebService>(_ webService: W, _ app: Applicatio
 
 func setSegmentAndGetAudit(
     segment: String,
-    bestPractice: BestPractice
+    bestPractice: any BestPractice
 ) throws -> Audit {
     var webService = BestPracticeWebService()
     webService.segment = segment
@@ -60,7 +60,7 @@ func setSegmentAndGetAudit(
 
 func assertNoFinding(
     segment: String,
-    bestPractice: BestPractice
+    bestPractice: any BestPractice
 ) throws {
     let audit = try setSegmentAndGetAudit(segment: segment, bestPractice: bestPractice)
     XCTAssertEqual(audit.findings.count, 0)
@@ -68,7 +68,7 @@ func assertNoFinding(
 
 func assertOneFinding<F: Finding & Equatable>(
     segment: String,
-    bestPractice: BestPractice,
+    bestPractice: any BestPractice,
     expectedFinding: F
 ) throws {
     let audit = try setSegmentAndGetAudit(segment: segment, bestPractice: bestPractice)

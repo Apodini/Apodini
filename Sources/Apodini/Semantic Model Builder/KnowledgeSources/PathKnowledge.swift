@@ -12,9 +12,9 @@ import Foundation
 public struct PathComponents: ContextKeyKnowledgeSource {
     public typealias Key = PathComponentContextKey
     
-    public let value: [PathComponent]
+    public let value: [any PathComponent]
     
-    public init(from value: [PathComponent]) {
+    public init(from value: [any PathComponent]) {
         self.value = value
     }
 }
@@ -107,13 +107,13 @@ public struct UnscopedEndpointPathComponentsHTTP: EndpointPathComponentProvider 
 
 extension ScopedEndpointPathComponents {
     struct ParameterCollection: Apodini.ParameterCollection, KnowledgeSource {
-        let parameters: [AnyEndpointParameter]
+        let parameters: [any AnyEndpointParameter]
         
         init<B>(_ sharedRepository: B) throws where B: SharedRepository {
             self.parameters = sharedRepository[EndpointParameters.self]
         }
         
-        func findParameter(for id: UUID) -> AnyEndpointParameter? {
+        func findParameter(for id: UUID) -> (any AnyEndpointParameter)? {
             parameters.first { parameter in
                 parameter.id == id
             }

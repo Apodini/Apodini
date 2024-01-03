@@ -54,7 +54,7 @@ struct ElevenParameterHandler: Handler {
     func handle() -> String { "" }
 }
 
-func setHandlerAndGetAudit<H: Handler>(_ handler: H, bestPractice: BestPractice) throws -> Audit {
+func setHandlerAndGetAudit<H: Handler>(_ handler: H, bestPractice: any BestPractice) throws -> Audit {
     let webService = ParameterWebService(handler: handler)
     let app = Application()
     let endpoint = try getEndpointFromWebService(webService, app, "TheHandler")
@@ -63,7 +63,7 @@ func setHandlerAndGetAudit<H: Handler>(_ handler: H, bestPractice: BestPractice)
 
 func assertNoFinding<H: Handler>(
     handler: H,
-    bestPractice: BestPractice
+    bestPractice: any BestPractice
 ) throws {
     let audit = try setHandlerAndGetAudit(handler, bestPractice: bestPractice)
     XCTAssertEqual(audit.findings.count, 0)
@@ -71,7 +71,7 @@ func assertNoFinding<H: Handler>(
 
 func assertOneFinding<F: Finding & Equatable, H: Handler>(
     handler: H,
-    bestPractice: BestPractice,
+    bestPractice: any BestPractice,
     expectedFinding: F
 ) throws {
     let audit = try setHandlerAndGetAudit(handler, bestPractice: bestPractice)
@@ -101,7 +101,7 @@ extension ParameterWebService {
 }
 
 extension ParameterWebService: Decodable {
-    init(from: Decoder) {
+    init(from: any Decoder) {
         self.handler = OneParameterHandler() as! H
     }
 }

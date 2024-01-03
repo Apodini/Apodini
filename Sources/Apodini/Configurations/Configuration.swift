@@ -22,37 +22,37 @@ public protocol Configuration {
     /// A default CLI command that can be defined by the configuration.
     /// This command is automatically integrated into the Apodini CLI,
     /// if the `CommandConfiguration` has not been overridden.
-    var command: ParsableCommand.Type { get }
+    var command: any ParsableCommand.Type { get }
     
     // swiftlint:disable identifier_name
     /// *For internal use only:* An array of the `command` of the configuration.
     /// Used to allow iteration over the commands of a `ConfigurationBuilder`.
-    var _commands: [ParsableCommand.Type] { get }
+    var _commands: [any ParsableCommand.Type] { get }
 }
 
 /// This protocol is used by the `WebService` to declare `Configuration`s in an instance
 public protocol ConfigurationCollection {
     /// This stored property defines the `Configuration`s of the `WebService`
-    @ConfigurationBuilder var configuration: Configuration { get }
+    @ConfigurationBuilder var configuration: any Configuration { get }
 }
 
 extension Configuration {
     // swiftlint:disable identifier_name
     /// *For internal use only:* An array of the `command` of the configuration.
     /// Used to allow iteration over the commands of a `ConfigurationBuilder`.
-    public var _commands: [ParsableCommand.Type] {
+    public var _commands: [any ParsableCommand.Type] {
         [self.command]
     }
     
     /// Default implementation of the cli command
-    public var command: ParsableCommand.Type {
+    public var command: any ParsableCommand.Type {
         EmptyCommand.self
     }
 }
 
 extension ConfigurationCollection {
     /// The default configuration is an `EmptyConfiguration`
-    @ConfigurationBuilder public var configuration: Configuration {
+    @ConfigurationBuilder public var configuration: any Configuration {
         EmptyConfiguration()
     }
 }
@@ -73,12 +73,12 @@ public struct EmptyCommand: ParsableCommand {
 }
 
 
-extension Array: Configuration where Element == Configuration {
+extension Array: Configuration where Element == any Configuration {
     public func configure(_ app: Application) {
         forEach { $0.configure(app) }
     }
     // swiftlint:disable identifier_name
-    public var _commands: [ParsableCommand.Type] {
+    public var _commands: [any ParsableCommand.Type] {
         flatMap {
             $0._commands
         }
@@ -155,7 +155,7 @@ public struct ConditionalConfiguration: Configuration {
     /// The condition which needs to evaluate to true in order for this configuration to take effect
     let condition: ConfigurationCondition
     /// The underlying configuration
-    let configuration: Configuration
+    let configuration: any Configuration
     
     public func configure(_ app: Application) {
         if condition.evaluate(against: app) {
@@ -163,11 +163,11 @@ public struct ConditionalConfiguration: Configuration {
         }
     }
     
-    public var command: ParsableCommand.Type {
+    public var command: any ParsableCommand.Type {
         configuration.command
     }
     
-    public var _commands: [ParsableCommand.Type] {
+    public var _commands: [any ParsableCommand.Type] {
         configuration._commands
     }
 }
@@ -175,22 +175,22 @@ public struct ConditionalConfiguration: Configuration {
 
 extension Configuration {
     /// Causes the configuration to only take effect if the specified condition evaluates to true
-    public func enable(if condition: ConfigurationCondition) -> Configuration {
+    public func enable(if condition: ConfigurationCondition) -> some Configuration {
         ConditionalConfiguration(condition: condition, configuration: self)
     }
     
     /// Causes the configuration to only take effect if the specified condition evaluates to true
-    public func enable(if condition: @escaping () -> Bool) -> Configuration {
+    public func enable(if condition: @escaping () -> Bool) -> some Configuration {
         ConditionalConfiguration(condition: ConfigurationCondition(condition), configuration: self)
     }
     
     /// Causes the configuration to be skipped if the specified condition evaluates to true
-    public func skip(if condition: ConfigurationCondition) -> Configuration {
+    public func skip(if condition: ConfigurationCondition) -> some Configuration {
         ConditionalConfiguration(condition: !condition, configuration: self)
     }
     
     /// Causes the configuration to be skipped if the specified condition evaluates to true
-    public func skip(if condition: @escaping () -> Bool) -> Configuration {
+    public func skip(if condition: @escaping () -> Bool) -> some Configuration {
         ConditionalConfiguration(condition: !ConfigurationCondition(condition), configuration: self)
     }
 }

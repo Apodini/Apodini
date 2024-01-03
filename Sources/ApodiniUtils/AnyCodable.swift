@@ -10,13 +10,13 @@ import Foundation
 
 /// A type-erasing wrapper around some `Encodable` value
 public struct AnyEncodable: Encodable {
-    public let wrappedValue: Encodable
+    public let wrappedValue: any Encodable
     
-    public init(_ wrappedValue: Encodable) {
+    public init(_ wrappedValue: any Encodable) {
         self.wrappedValue = wrappedValue
     }
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         try wrappedValue.encode(to: encoder)
     }
 }
@@ -38,7 +38,7 @@ public protocol AnyEncoder {
     func encode<E: Encodable>(_ value: E) throws -> Data
     
     /// Encodes a non-generic `Encodable` object into a sequence of bytes.
-    func encode(value: Encodable) throws -> Data
+    func encode(value: any Encodable) throws -> Data
     
     /// The HTTP media type associated with the data format produced by this encoder.
     /// Return `nil` if not applicable
@@ -46,14 +46,14 @@ public protocol AnyEncoder {
 }
 
 extension Encodable {
-    fileprivate func encode(using encoder: AnyEncoder) throws -> Data {
+    fileprivate func encode(using encoder: any AnyEncoder) throws -> Data {
         try encoder.encode(self)
     }
 }
 
 extension AnyEncoder {
     /// Encode an `Encodable` value using this encoder.
-    public func encode(value: Encodable) throws -> Data {
+    public func encode(value: any Encodable) throws -> Data {
         try value.encode(using: self)
     }
 }
@@ -80,13 +80,13 @@ extension JSONDecoder: AnyDecoder {}
 public struct Null: Codable {
     public init() {}
     
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         guard try decoder.singleValueContainer().decodeNil() else {
             throw ApodiniUtilsError(message: "Expected nil value")
         }
     }
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encodeNil()
     }

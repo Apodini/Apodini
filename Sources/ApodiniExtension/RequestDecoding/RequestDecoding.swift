@@ -64,8 +64,8 @@ public struct DefaultRequestBasis: RequestBasis {
     public init(base: Any,
                 remoteAddress: SocketAddress? = nil,
                 information: InformationSet = []) {
-        self.init(description: (base as? CustomStringConvertible)?.description ?? "\(base)",
-                  debugDescription: (base as? CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
+        self.init(description: (base as? any CustomStringConvertible)?.description ?? "\(base)",
+                  debugDescription: (base as? any CustomDebugStringConvertible)?.debugDescription ?? "\(base)",
                   remoteAddress: remoteAddress,
                   information: information)
     }
@@ -83,7 +83,7 @@ extension DecodingStrategy {
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from
     ///     - `basis`: The further information that is needed next to parameter retrieval and the `eventLoop` that are required to build an Apodini `Request`
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with basis: RequestBasis, with eventLoop: EventLoop) -> DecodingRequest<Input> {
+    public func decodeRequest(from input: Input, with basis: any RequestBasis, with eventLoop: any EventLoop) -> DecodingRequest<Input> {
         DecodingRequest(basis: basis, input: input, strategy: self.typeErased, eventLoop: eventLoop)
     }
     
@@ -95,7 +95,7 @@ extension DecodingStrategy {
     /// - Parameters:
     ///     - `input`:  The ``DecodingStrategy/Input`` this strategy can decode parameter from, which also serves as the ``RequestBasis``
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decodeRequest(from input: Input, with eventLoop: EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
+    public func decodeRequest(from input: Input, with eventLoop: any EventLoop) -> DecodingRequest<Input> where Input: RequestBasis {
         self.decodeRequest(from: input, with: input, with: eventLoop)
     }
 }
@@ -110,7 +110,7 @@ extension AsyncSequence {
     ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
     ///     contained in the second element of each value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: EventLoop)
+    public func decode<S: DecodingStrategy, R: RequestBasis>(using strategy: S, with eventLoop: any EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == (R, S.Input) {
         self.map { requestBasis, input in
             strategy.decodeRequest(from: input, with: requestBasis, with: eventLoop)
@@ -124,7 +124,7 @@ extension AsyncSequence {
     ///     - `strategy`:  The ``DecodingStrategy`` that is required to retrieve parameters from the according ``DecodingStrategy/Input``
     ///     value in the upstream sequence
     ///     - `eventLoop`: The `EventLoop` this `Request` is to be evaluated on
-    public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: EventLoop)
+    public func decode<S: DecodingStrategy>(using strategy: S, with eventLoop: any EventLoop)
         -> AsyncMapSequence<Self, DecodingRequest<S.Input>> where Element == S.Input, S.Input: RequestBasis {
         self.map { input in
             strategy.decodeRequest(from: input, with: eventLoop)
@@ -136,7 +136,7 @@ extension AsyncSequence {
 /// as well as an instance of its ``DecodingStrategy/Input`` type to implement its
 /// ``DecodingRequest/retrieveParameter(_:)`` function.
 public struct DecodingRequest<Input>: Request {
-    let basis: RequestBasis
+    let basis: any RequestBasis
     let input: Input
     let strategy: AnyDecodingStrategy<Input>
     
@@ -145,7 +145,7 @@ public struct DecodingRequest<Input>: Request {
             .decode(from: input)
     }
     
-    public let eventLoop: EventLoop
+    public let eventLoop: any EventLoop
     
     public var description: String {
         basis.description

@@ -133,7 +133,7 @@ public struct Parameter<Element: Codable>: Property, Identifiable {
 }
 
 extension Parameter: RequestInjectable {
-    func inject(using request: Request) throws {
+    func inject(using request: any Request) throws {
         guard let storage = self.storage else {
             fatalError("Cannot inject request before Parameter was activated.")
         }
@@ -143,7 +143,7 @@ extension Parameter: RequestInjectable {
 }
 
 extension Parameter: AnyParameter {
-    func accept(_ visitor: AnyParameterVisitor) {
+    func accept(_ visitor: any AnyParameterVisitor) {
         visitor.visit(self)
     }
 }

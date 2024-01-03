@@ -18,7 +18,7 @@ struct InternalInvocationResponder<H: Handler>: HTTPResponder {
     unowned let internalInterfaceExporter: ApodiniDeployerInterfaceExporter
     let endpoint: Endpoint<H>
     
-    func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible {
+    func respond(to httpRequest: HTTPRequest) -> any HTTPResponseConvertible {
         // Note: this function _must always_ return non-failed futures!!!
         // Otherwise the caller would not be able to differentiate between errors
         // caused by e.g. a bad connection, and errors caused by e.g. the invoked handler

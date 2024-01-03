@@ -89,6 +89,6 @@ extension HTTPMethod {
 extension HTTPHeaders {
     /// Initialises a `HTTPHeaders` object with the contents of the specified `InformationSet`
     public init(_ information: InformationSet) {
-        self.init(information.compactMap { ($0 as? HTTPHeaderInformationClass)?.entry })
+        self.init(information.compactMap { ($0 as? any HTTPHeaderInformationClass)?.entry })
     }
 }

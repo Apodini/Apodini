@@ -13,10 +13,10 @@ import Apodini
 /// See also `Create`.
 public struct CreateAll<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: FluentKit.Database
+    private var database: any FluentKit.Database
     
     @Environment(\.eventLoopGroup)
-    private var eventLoopGroup: EventLoopGroup
+    private var eventLoopGroup: any EventLoopGroup
     
     @Parameter
     private var objects: [Model]
@@ -37,7 +37,7 @@ public struct CreateAll<Model: DatabaseModel>: Handler {
             }
     }
     
-    public var metadata: AnyHandlerMetadata {
+    public var metadata: any AnyHandlerMetadata {
         Operation(.create)
     }
 }

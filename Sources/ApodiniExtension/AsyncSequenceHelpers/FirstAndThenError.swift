@@ -10,7 +10,7 @@ import Foundation
 
 extension AsyncSequence {
     /// Emits the first element of the upstream sequence. Throws the given error if there is more than one element.
-    public func firstAndThenError(_ error: Error) -> AsyncFirstAndThenErrorSequence<Self> {
+    public func firstAndThenError(_ error: any Error) -> AsyncFirstAndThenErrorSequence<Self> {
         AsyncFirstAndThenErrorSequence(upstream: self, error: error)
     }
 }
@@ -21,7 +21,7 @@ public struct AsyncFirstAndThenErrorSequence<Upstream: AsyncSequence>: AsyncSequ
     public typealias AsyncIterator = AsyncIteratorImpl
     
     let upstream: Upstream
-    let error: Error
+    let error: any Error
     
     public func makeAsyncIterator() -> AsyncIteratorImpl {
         AsyncIteratorImpl(upstreamIt: upstream.makeAsyncIterator(), error: error)
@@ -32,7 +32,7 @@ public struct AsyncFirstAndThenErrorSequence<Upstream: AsyncSequence>: AsyncSequ
 public extension AsyncFirstAndThenErrorSequence {
     struct AsyncIteratorImpl: AsyncIteratorProtocol {
         var upstreamIt: Upstream.AsyncIterator?
-        var error: Error
+        var error: any Error
         
         var hadFirst = false
         

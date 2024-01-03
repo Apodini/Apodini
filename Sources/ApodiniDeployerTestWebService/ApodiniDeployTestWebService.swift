@@ -48,7 +48,7 @@ struct WebService: Apodini.WebService {
             .operation(.delete)
     }
 
-    var configuration: Configuration {
+    var configuration: any Configuration {
         REST {
             OpenAPI()
         }

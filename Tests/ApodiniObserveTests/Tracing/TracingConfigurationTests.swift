@@ -77,9 +77,9 @@ final class TracingConfigurationTests: XCTestCase {
         XCTAssertApodiniApplicationNotRunning()
     }
 
-    static var sutSpan: Span?
+    static var sutSpan: (any Span)?
     struct SUTHandler: Handler {
-        @Environment(\.tracer) var tracer: Tracer
+        @Environment(\.tracer) var tracer: any Tracer
 
         func handle() -> String {
             let span = tracer.startSpan("SUTHandler.handle()", baggage: .topLevel)
@@ -97,7 +97,7 @@ final class TracingConfigurationTests: XCTestCase {
         Self.sutSpan = nil
 
         @ConfigurationBuilder
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTP()
             TracingConfiguration.testable(
                 InstrumentConfiguration(MockTracer())

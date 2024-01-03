@@ -8,5 +8,5 @@
 
 /// The ``InformationClass`` identifying any ``Information`` which holds `Encodable` information.
 public protocol StringKeyedEncodableInformationClass: InformationClass {
-    var entry: (key: String, value: Encodable) { get }
+    var entry: (key: String, value: any Encodable) { get }
 }

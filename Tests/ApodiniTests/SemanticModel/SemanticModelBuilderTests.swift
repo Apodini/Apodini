@@ -118,9 +118,9 @@ final class SemanticModelBuilderTests: ApodiniTests {
         let treeNodeB: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description == "b" }!
         let treeNodeNameParameter: EndpointsTreeNode = treeNodeB.children.first!
         let treeNodeSomeOtherIdParameter: EndpointsTreeNode = treeNodeA.children.first { $0.storedPath.description != "b" }!
-        let endpointGroupLevel: AnyRelationshipEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
+        let endpointGroupLevel: any AnyRelationshipEndpoint = treeNodeSomeOtherIdParameter.endpoints.first!.value
         let someOtherIdParameterId: UUID = endpointGroupLevel.parameters.first { $0.name == "someOtherId" }!.id
-        let endpoint: AnyRelationshipEndpoint = treeNodeNameParameter.endpoints.first!.value
+        let endpoint: any AnyRelationshipEndpoint = treeNodeNameParameter.endpoints.first!.value
         
         XCTAssertEqual(treeNodeA.endpoints.count, 0)
         XCTAssertEqual(treeNodeB.endpoints.count, 0)
@@ -134,7 +134,7 @@ final class SemanticModelBuilderTests: ApodiniTests {
         
         // test nested use of path parameter that is only set inside `Handler` (i.e. `TestHandler2`)
         let treeNodeSomeIdParameter: EndpointsTreeNode = treeNodeNameParameter.children.first!
-        let nestedEndpoint: AnyRelationshipEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
+        let nestedEndpoint: any AnyRelationshipEndpoint = treeNodeSomeIdParameter.endpoints.first!.value
         let someIdParameterId: UUID = nestedEndpoint.parameters.first { $0.name == "someId" }!.id
         
         XCTAssertEqual(nestedEndpoint.parameters.count, 2)

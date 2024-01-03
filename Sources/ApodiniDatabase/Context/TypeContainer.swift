@@ -27,7 +27,7 @@ enum TypeContainer: Codable, Hashable, Equatable {
     case noValue
     
     // swiftlint:disable cyclomatic_complexity
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let values = try decoder.singleValueContainer()
         self = .noValue
         if let value = try? values.decode(Int.self) {
@@ -64,7 +64,7 @@ enum TypeContainer: Codable, Hashable, Equatable {
     }
     
     // swiftlint:disable cyclomatic_complexity
-    init(with codable: Codable?) {
+    init(with codable: (any Codable)?) {
         guard let wrappedValue = codable else {
             self = .noValue
             return
@@ -105,7 +105,7 @@ enum TypeContainer: Codable, Hashable, Equatable {
     }
     
     // swiftlint:disable cyclomatic_complexity
-    func typed() -> Codable? {
+    func typed() -> (any Codable)? {
         switch self {
         case .bool(let value):
             return value
@@ -143,7 +143,7 @@ enum TypeContainer: Codable, Hashable, Equatable {
     }
     
     // swiftlint:disable cyclomatic_complexity
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case .bool(let value):

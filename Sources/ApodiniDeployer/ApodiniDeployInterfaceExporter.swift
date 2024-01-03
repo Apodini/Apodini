@@ -41,7 +41,7 @@ struct ApodiniDeployerError: Swift.Error {
 public final class ApodiniDeployer: Configuration {
     let configuration: ApodiniDeployer.ExporterConfiguration
     
-    public init(runtimes: [DeploymentProviderRuntime.Type] = [], config: DeploymentConfig = .init()) {
+    public init(runtimes: [any DeploymentProviderRuntime.Type] = [], config: DeploymentConfig = .init()) {
         self.configuration = ApodiniDeployer.ExporterConfiguration(runtimes: runtimes, config: config)
     }
     
@@ -52,7 +52,7 @@ public final class ApodiniDeployer: Configuration {
         app.registerExporter(exporter: deployExporter)
     }
     
-    public var command: ParsableCommand.Type {
+    public var command: any ParsableCommand.Type {
         ApodiniDeployerCommand.withSubcommands(
             ExportStructureCommand.withSubcommands(
                 configuration.runtimes.map { $0.exportCommand }
@@ -113,7 +113,7 @@ class ApodiniDeployerInterfaceExporter: LegacyInterfaceExporter {
     
     private(set) var collectedEndpoints: [CollectedEndpointInfo] = []
     private(set) var explicitlyCreatedDeploymentGroups: [DeploymentGroup.ID: Set<AnyHandlerIdentifier>] = [:]
-    private(set) var deploymentProviderRuntime: DeploymentProviderRuntime?
+    private(set) var deploymentProviderRuntime: (any DeploymentProviderRuntime)?
     
     init(_ app: Apodini.Application,
          _ exporterConfiguration: ApodiniDeployer.ExporterConfiguration = ApodiniDeployer.ExporterConfiguration()
@@ -168,7 +168,7 @@ class ApodiniDeployerInterfaceExporter: LegacyInterfaceExporter {
         try self.exportDeployedSystemIfNeeded()
         
         let currentNodeId: String
-        let deployedSystem: AnyDeployedSystem
+        let deployedSystem: any AnyDeployedSystem
         
         if let deploymentConfig = app.storage[DeploymentStartUpStorageKey.self] {
             // check if any startup data are available
@@ -273,7 +273,7 @@ extension ApodiniDeployerInterfaceExporter {
             )
         }
         
-        func collectedArgumentValue(for endpointParameter: AnyEndpointParameter) -> Argument? {
+        func collectedArgumentValue(for endpointParameter: any AnyEndpointParameter) -> Argument? {
             argumentValues[endpointParameter.stableIdentity]
         }
     }

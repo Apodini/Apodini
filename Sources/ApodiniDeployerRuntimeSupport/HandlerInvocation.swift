@@ -64,7 +64,7 @@ extension HandlerInvocation {
     public struct Parameter {
         /// The type constraint for supported values.
         /// - Note: This should ideally somehow be fixed to the constraint Apodini defines for an `EndpointParameter`'s type (i.e. `Codable`).
-        public typealias Value = Codable
+        public typealias Value = any Codable
         
         /// A string which can be used to reference this parameter (relative to its defining Handler) in a stable way,
         /// i.e. across multiple compilations and executions of the web service, as long as the parameter definition wasn't somehow modified.
@@ -87,7 +87,7 @@ extension HandlerInvocation {
         }
         
         /// Encode the value to a `Data` object, using the specified encoder.
-        public func encodeValue(using encoder: AnyEncoder) throws -> Data {
+        public func encodeValue(using encoder: any AnyEncoder) throws -> Data {
             try encoder.encode(value)
         }
     }

@@ -10,33 +10,33 @@ import MetadataSystem
 
 
 struct AnyHandlerMetadataArray: AnyMetadataArray, AnyHandlerMetadata {
-    let array: [AnyHandlerMetadata]
+    let array: [any AnyHandlerMetadata]
 
-    init(_ array: [AnyHandlerMetadata]) {
+    init(_ array: [any AnyHandlerMetadata]) {
         self.array = array
     }
 }
 
 struct AnyComponentOnlyMetadataArray: AnyMetadataArray, AnyComponentOnlyMetadata {
-    let array: [AnyComponentOnlyMetadata]
+    let array: [any AnyComponentOnlyMetadata]
 
-    init(_ array: [AnyComponentOnlyMetadata]) {
+    init(_ array: [any AnyComponentOnlyMetadata]) {
         self.array = array
     }
 }
 
 struct AnyWebServiceMetadataArray: AnyMetadataArray, AnyWebServiceMetadata {
-    let array: [AnyWebServiceMetadata]
+    let array: [any AnyWebServiceMetadata]
 
-    init(_ array: [AnyWebServiceMetadata]) {
+    init(_ array: [any AnyWebServiceMetadata]) {
         self.array = array
     }
 }
 
 struct AnyComponentMetadataArray: AnyMetadataArray, AnyComponentMetadata {
-    let array: [AnyComponentMetadata]
+    let array: [any AnyComponentMetadata]
 
-    init(_ array: [AnyComponentMetadata]) {
+    init(_ array: [any AnyComponentMetadata]) {
         self.array = array
     }
 }

@@ -13,13 +13,13 @@ import NIO
 /// Base protocol for a configuration of a ``MetricsHandler`` via ``ApodiniObserve``
 public protocol MetricHandlerConfiguration {
     /// The factory which creates the `MetricsHandler`
-    var factory: MetricsFactory { get }
+    var factory: any MetricsFactory { get }
 }
 
 /// A configuration for pull based `MetricsHandler`, so for example Prometheus
 public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
     /// The factory which creates the `MetricsHandler`
-    public let factory: MetricsFactory
+    public let factory: any MetricsFactory
     /// The name of the web endpoint where the metrics can be pulled from
     public let endpoint: String
     /// Collects the metrics data from the `MetricsHandler` that is then provided via an endpoint to pull based `MetricsHandler`, so for example Prometheus
@@ -30,7 +30,7 @@ public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
     ///   - factory: The `MetricsFactory` that should be used as a metrics backend
     ///   - endpoint: Name of the web endpoint where the metrics data is provided
     ///   - collect: A closure that collects the metrics data that is then provided via a web endpoint
-    public init(factory: MetricsFactory, endpoint: String, collect: @escaping (EventLoopPromise<String>) -> EventLoopFuture<String>) {
+    public init(factory: any MetricsFactory, endpoint: String, collect: @escaping (EventLoopPromise<String>) -> EventLoopFuture<String>) {
         self.factory = factory
         self.endpoint = endpoint
         self.collect = collect
@@ -40,11 +40,11 @@ public struct MetricPullHandlerConfiguration: MetricHandlerConfiguration {
 /// A configuration for push based `MetricsHandler`
 public struct MetricPushHandlerConfiguration: MetricHandlerConfiguration {
     /// The factory which creates the `MetricsHandler`
-    public let factory: MetricsFactory
+    public let factory: any MetricsFactory
     
     /// Inizializes a ``MetricPushHandlerConfiguration``
     /// - Parameter factory: The `MetricsFactory` that should be used as a metrics backend
-    public init(factory: MetricsFactory) {
+    public init(factory: any MetricsFactory) {
         self.factory = factory
     }
 }

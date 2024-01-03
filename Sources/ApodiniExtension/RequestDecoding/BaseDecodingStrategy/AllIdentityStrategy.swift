@@ -24,9 +24,9 @@ import ApodiniUtils
 /// - Note: Usage of this strategy only really makes sense if there is only one parameter
 /// to be decoded from the given `Data`.
 public struct AllIdentityStrategy: BaseDecodingStrategy {
-    private let decoder: AnyDecoder
+    private let decoder: any AnyDecoder
     
-    public init(_ decoder: AnyDecoder) {
+    public init(_ decoder: any AnyDecoder) {
         self.decoder = decoder
     }
     

@@ -49,21 +49,21 @@ final class InformationTests: XCTestCase {
         XCTAssertEqual(information[MockIntInformationInstantiatable.self], 5)
 
         let result: [String: String] = information
-            .compactMap { $0 as? MockStringInformationClass }
+            .compactMap { $0 as? any MockStringInformationClass }
             .map { $0.entry }
             .reduce(into: [:]) { result, entry in
                 result[entry.key] = entry.value
             }
 
         let result2: [String: String] = information
-            .compactMap { $0 as? MockString2InformationClass }
+            .compactMap { $0 as? any MockString2InformationClass }
             .map { $0.entry }
             .reduce(into: [:]) { result, entry in
                 result[entry.key] = entry.value
             }
 
         let intResult: [String: Int] = information
-            .compactMap { $0 as? MockIntInformationClass }
+            .compactMap { $0 as? any MockIntInformationClass }
             .map { $0.entry }
             .reduce(into: [:]) { result, entry in
                 result[entry.key] = entry.value

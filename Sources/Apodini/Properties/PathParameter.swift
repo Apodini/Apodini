@@ -54,7 +54,7 @@ public struct PathParameter<Element: Codable & LosslessStringConvertible>: Decod
     
     /// Required because `WebService` conform to `ParsableCommand` which conforms to `Decodable`
     /// Can't be automatically synthesized by Swift
-    public init(from decoder: Decoder) throws {}
+    public init(from decoder: any Decoder) throws {}
 }
 
 extension PathParameter {
@@ -66,11 +66,11 @@ extension PathParameter {
 
 /// Since ``PathParameter`` is now allowed in the ``WebService``, the property values have to be backed up and then restored since the ArgumentParser doesn't cache those values
 extension PathParameter: ArgumentParserStoreable {
-    public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
+    public func store(in store: inout [String: any ArgumentParserStoreable], keyedBy key: String) {
         store[key] = self
     }
     
-    public func restore(from store: [String: ArgumentParserStoreable], keyedBy key: String) {
+    public func restore(from store: [String: any ArgumentParserStoreable], keyedBy key: String) {
         if let storedValues = store[key] as? PathParameter {
             self.id = storedValues.id
             self.identifyingType = storedValues.identifyingType

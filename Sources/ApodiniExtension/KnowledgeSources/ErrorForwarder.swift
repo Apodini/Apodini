@@ -9,7 +9,7 @@
 import Apodini
 
 public struct ErrorForwarderContextKey: OptionalContextKey {
-    public typealias Value = (Error) -> Void
+    public typealias Value = (any Error) -> Void
 }
 
 /// This value stores an optional closure that can be used to receive
@@ -28,7 +28,7 @@ public struct ErrorForwarder: OptionalContextKeyKnowledgeSource {
     /// Forward an error using the forwarders forwarding closure, if it is non-nil.
     ///
     /// - Parameter error: The error to forward.
-    public func forward(_ error: Error) {
+    public func forward(_ error: any Error) {
         forwardClosure?(error)
     }
 }

@@ -50,10 +50,10 @@ struct TypeIndexBuilder: CustomDebugStringConvertible {
     }
 
     mutating func indexContentType(
-        content: Encodable.Type,
+        content: any Encodable.Type,
         reference: EndpointReference,
         markedDefault: Bool,
-        pathParameters: [AnyEndpointPathParameter],
+        pathParameters: [any AnyEndpointPathParameter],
         operation: Operation) {
         let identifier = ObjectIdentifier(content)
 
@@ -167,9 +167,9 @@ struct ParsedTypeIndexEntryCapture: CustomDebugStringConvertible {
     /// The returned `Content` type of the reference `Endpoint`
     let type: Any.Type
     let markedDefault: Bool
-    let pathParameters: [AnyEndpointPathParameter]
+    let pathParameters: [any AnyEndpointPathParameter]
 
-    init(_ reference: EndpointReference, type: Any.Type, markedDefault: Bool, pathParameters: [AnyEndpointPathParameter]) {
+    init(_ reference: EndpointReference, type: Any.Type, markedDefault: Bool, pathParameters: [any AnyEndpointPathParameter]) {
         self.reference = reference
         self.type = type
         self.markedDefault = markedDefault

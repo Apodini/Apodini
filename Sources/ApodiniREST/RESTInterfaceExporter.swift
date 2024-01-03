@@ -20,18 +20,18 @@ import Foundation
 public final class REST: DependableConfiguration {
     public typealias InternalConfiguration = HTTPExporterConfiguration
     
-    public var staticConfigurations: [AnyDependentStaticConfiguration] = []
+    public var staticConfigurations: [any AnyDependentStaticConfiguration] = []
     let configuration: HTTPExporterConfiguration
     
     /// The default `AnyEncoder`, a `JSONEncoder` with certain set parameters
-    public static var defaultEncoder: AnyEncoder {
+    public static var defaultEncoder: any AnyEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
         return encoder
     }
     
     /// The default `AnyDecoder`, a `JSONDecoder`
-    public static var defaultDecoder: AnyDecoder {
+    public static var defaultDecoder: any AnyDecoder {
         JSONDecoder()
     }
     
@@ -42,8 +42,8 @@ public final class REST: DependableConfiguration {
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     ///    - rootPath: Configures the root path for the HTTP endpoints
     public init(
-        encoder: AnyEncoder = defaultEncoder,
-        decoder: AnyDecoder = defaultDecoder,
+        encoder: any AnyEncoder = defaultEncoder,
+        decoder: any AnyDecoder = defaultDecoder,
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil
@@ -110,7 +110,7 @@ extension REST {
         urlParamDateDecodingStrategy: ApodiniNetworking.DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,
-        @DependentStaticConfigurationBuilder<HTTPExporterConfiguration> staticConfigurations: () -> [AnyDependentStaticConfiguration] = { [] }
+        @DependentStaticConfigurationBuilder<HTTPExporterConfiguration> staticConfigurations: () -> [any AnyDependentStaticConfiguration] = { [] }
     ) {
         self.init(
             encoder: encoder,

@@ -11,10 +11,10 @@ struct RelationshipNameContextKey: OptionalContextKey {
 }
 
 public struct RelationshipNameModifier: PathComponentModifier {
-    let pathComponent: _PathComponent
+    let pathComponent: any _PathComponent
     let relationshipName: String
 
-    init(_ pathComponent: PathComponent, relationshipName: String) {
+    init(_ pathComponent: any PathComponent, relationshipName: String) {
         self.pathComponent = pathComponent.toInternal()
         self.relationshipName = relationshipName
     }

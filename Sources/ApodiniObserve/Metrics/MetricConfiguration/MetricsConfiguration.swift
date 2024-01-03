@@ -33,17 +33,17 @@ public class MetricsConfiguration: Configuration {
     }
     
     /// Holds the configured `MetricsFactory`'s
-    let metricHandlerConfigurations: [MetricHandlerConfiguration]
+    let metricHandlerConfigurations: [any MetricHandlerConfiguration]
     /// Holds the configured `SystemMetrics.Configuration`
     let systemMetricsConfiguration: SystemMetricsConfiguration
     /// Publicly store the used `MetricsFactory`
-    public static var factories: [MetricsFactory] = []
+    public static var factories: [any MetricsFactory] = []
     
     /// Initializes the ``MetricsConfiguration`` with an arbitrary number of ``MetricHandlerConfiguration`` as well as a single ``SystemMetricsConfiguration``
     /// - Parameters:
     ///   - handlerConfiguration: Arbitrary number of ``MetricHandlerConfiguration`` that specify the to be used metric backends
     ///   - systemMetricsConfiguration: Specifies the collection of system metrics via a ``SystemMetricsConfiguration``
-    public init(handlerConfiguration: MetricHandlerConfiguration..., systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
+    public init(handlerConfiguration: any MetricHandlerConfiguration..., systemMetricsConfiguration: SystemMetricsConfiguration = .default) {
         self.metricHandlerConfigurations = handlerConfiguration
         self.systemMetricsConfiguration = systemMetricsConfiguration
         

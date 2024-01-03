@@ -61,7 +61,7 @@ struct TestWebService: Apodini.WebService {
         AddComponent()
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         switch httpsConfig {
         case .none:
             HTTPConfiguration(
@@ -137,7 +137,7 @@ enum HTTPSConfig: Decodable, ExpressibleByArgument {
         }
     }
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let rawValue = try decoder.singleValueContainer().decode(String.self)
         if let value = Self(argument: rawValue) {
             self = value

@@ -24,7 +24,7 @@ public class MockTracer: Tracer {
     }
 
     public var startSpanHandler: ((MockSpan) -> Void)?
-    public func startSpan(_ operationName: String, baggage: Baggage, ofKind kind: SpanKind, at time: DispatchWallTime) -> Span {
+    public func startSpan(_ operationName: String, baggage: Baggage, ofKind kind: SpanKind, at time: DispatchWallTime) -> any Span {
         let span = MockSpan(
             operationName: operationName,
             baggage: baggage,
@@ -108,8 +108,8 @@ public class MockTracer: Tracer {
         }
 
         public private(set) var recordErrorCallCount = 0
-        public var recordErrorHandler: ((Error) -> Void)?
-        public func recordError(_ error: Error) {
+        public var recordErrorHandler: ((any Error) -> Void)?
+        public func recordError(_ error: any Error) {
             recordErrorCallCount += 1
             if let recordErrorHandler = recordErrorHandler {
                 recordErrorHandler(error)

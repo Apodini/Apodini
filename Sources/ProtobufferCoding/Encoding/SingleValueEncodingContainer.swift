@@ -12,11 +12,11 @@ import Foundation
 
 
 struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let dstBufferRef: Box<ByteBuffer>
     let context: EncoderContext
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
+    init(codingPath: [any CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
         self.context = context
@@ -90,7 +90,7 @@ struct ProtobufferSingleValueEncodingContainer: SingleValueEncodingContainer {
             try encode(boolVal)
         } else if protobufferUnsupportedNumericTypes.contains(type(of: value)) {
             try throwUnsupportedNumericTypeEncodingError(value: value, codingPath: codingPath)
-        } else if value as? ProtobufRepeatedEncodable != nil {
+        } else if value as? any ProtobufRepeatedEncodable != nil {
             throw EncodingError.invalidValue(value, .init(
                 codingPath: codingPath,
                 debugDescription: "Cannot encode repeated value into \(Self.self)",

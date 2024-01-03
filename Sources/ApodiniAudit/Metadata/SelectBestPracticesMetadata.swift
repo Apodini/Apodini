@@ -11,7 +11,7 @@ import Apodini
 public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
     public typealias Key = BestPracticeInclusionRuleContextKey
     
-    public let value: BestPracticeInclusionRule
+    public let value: any BestPracticeInclusionRule
     
     public init(_ action: BestPracticeInclusionAction, _ categories: BestPracticeCategories) {
         self.value = BestPracticeCategoryInclusionRule(categories: categories, action: action)
@@ -21,7 +21,7 @@ public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
         self.value = BestPracticeScopeInclusionRule(scopes: scopes, action: action)
     }
     
-    public init(_ action: BestPracticeInclusionAction, _ bestPractice: BestPractice.Type) {
+    public init(_ action: BestPracticeInclusionAction, _ bestPractice: any BestPractice.Type) {
         self.value = SingleBestPracticeInclusionRule(action: action, bestPractice: bestPractice)
     }
 }
@@ -29,9 +29,9 @@ public struct SelectBestPracticesMetadata: ComponentMetadataDefinition {
 public struct BestPracticeInclusionRuleContextKey: ContextKey {
     public typealias Value = BestPracticeInclusionRule
     
-    public static var defaultValue: BestPracticeInclusionRule = PassThroughInclusionRule()
+    public static var defaultValue: any BestPracticeInclusionRule = PassThroughInclusionRule()
     
-    public static func reduce(value: inout BestPracticeInclusionRule, nextValue: BestPracticeInclusionRule) {
+    public static func reduce(value: inout any BestPracticeInclusionRule, nextValue: any BestPracticeInclusionRule) {
         value = value.apply(nextValue)
     }
 }

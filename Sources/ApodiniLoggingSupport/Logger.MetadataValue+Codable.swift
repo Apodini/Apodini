@@ -11,7 +11,7 @@ import Logging
 
 /// Make ``Logger.MetadataValue`` ``Encodable``
 extension Logger.MetadataValue: Encodable {
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         
         switch self {
@@ -56,7 +56,7 @@ enum LoggerMetadataIntermediateRepresentation: Codable {
         }
     }
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
          
         if container.decodeNil() {
@@ -97,7 +97,7 @@ extension Logger.MetadataValue {
     }()
     
     /// Converts a ``Codable`` element to ``Logger.MetadataValue``
-    public static func convertToMetadata(encodableElement: Encodable) throws -> Logger.MetadataValue {
+    public static func convertToMetadata(encodableElement: any Encodable) throws -> Logger.MetadataValue {
         let encodedElement = try encodableElement.encodeToJSON(outputFormatting: .withoutEscapingSlashes)
         return try Self.convertToMetadata(data: encodedElement)
     }

@@ -79,9 +79,9 @@ private extension Application {
 /// An ``AuthorizationStateContainer`` manages all stored ``Authenticatable`` instances stored in the environment
 /// in the ``Application/authorizationStateContainer`` KeyPath.
 private struct AuthorizationStateContainer {
-    let storedElements: [ObjectIdentifier: Authenticatable]
+    let storedElements: [ObjectIdentifier: any Authenticatable]
 
-    init(_ elements: [ObjectIdentifier: Authenticatable] = [:]) {
+    init(_ elements: [ObjectIdentifier: any Authenticatable] = [:]) {
         storedElements = elements
     }
 

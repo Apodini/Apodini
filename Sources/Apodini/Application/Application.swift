@@ -31,7 +31,7 @@ public protocol LifecycleHandler {
     /// This function is primarily intended to give components that integrate with Apodini the ability to "disable" individual endpoints
     /// (e.g. by returning, for these specific endpoints, an empty array).
     /// This function is called once for every endpoint-interfaceExporter combination.
-    func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint]
+    func map<IE: InterfaceExporter>(endpoint: any AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [any AnyEndpoint]
 }
 
 
@@ -43,7 +43,7 @@ extension LifecycleHandler {
     /// server is shutting down
     public func shutdown(_ application: Application) throws {}
     /// Allows interested parties to apply changes to the web service's endpoints.
-    public func map<IE: InterfaceExporter>(endpoint: AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [AnyEndpoint] {
+    public func map<IE: InterfaceExporter>(endpoint: any AnyEndpoint, app: Application, for interfaceExporter: IE) throws -> [any AnyEndpoint] {
         [endpoint]
     }
 }
@@ -70,14 +70,14 @@ public final class Application {
     /// Decides how EventLoopGroups are created
     public let eventLoopGroupProvider: EventLoopGroupProvider
     /// The EventLoopGroup for the application
-    public let eventLoopGroup: EventLoopGroup
+    public let eventLoopGroup: any EventLoopGroup
     /// Enables swift extensions to declare "stored" properties for use in application configuration
     public var storage: Storage
     /// Used for logging
     public var logger: Logger
     private var didShutdown: Bool
     private var isBooted: Bool
-    private var signalSources: [DispatchSourceSignal] = []
+    private var signalSources: [any DispatchSourceSignal] = []
 
     /// Keeps track of all application lifecycle handlers
     public struct Lifecycle {
@@ -143,7 +143,7 @@ public final class Application {
     /// Defines how EventLoopGroups are created
     public enum EventLoopGroupProvider {
         /// use shared EventLoopGroup
-        case shared(EventLoopGroup)
+        case shared(any EventLoopGroup)
         /// create new EventLoopGroup
         case createNew
     }

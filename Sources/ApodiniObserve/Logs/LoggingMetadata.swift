@@ -124,7 +124,7 @@ private extension LoggingMetadata {
     /// Provides `Logger.Metadata` regarding the `Information` set of a `Request`, for example HTTP headers
     private func getInformationMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
-            if let stringKeyedStringInformation = info as? StringKeyedStringInformationClass,
+            if let stringKeyedStringInformation = info as? any StringKeyedStringInformationClass,
                    !stringKeyedStringInformation.sensitive {
                 partialResult[stringKeyedStringInformation.entry.key] = .string(stringKeyedStringInformation.entry.value)
             }
@@ -134,7 +134,7 @@ private extension LoggingMetadata {
     /// Provides `Logger.Metadata` regarding the raw `Information` set of a `Request`, depends on the `Exporter` type
     private func getRawRequestMetadata(from informationSet: InformationSet) -> Logger.Metadata {
         informationSet.reduce(into: [:]) { partialResult, info in
-            if let loggingMetadataInformation = info as? LoggingMetadataInformationClass,
+            if let loggingMetadataInformation = info as? any LoggingMetadataInformationClass,
                    !loggingMetadataInformation.sensitive {
                 partialResult[loggingMetadataInformation.entry.key] = loggingMetadataInformation.entry.value as? Logger.MetadataValue
             }
@@ -142,7 +142,7 @@ private extension LoggingMetadata {
     }
     
     /// Provides `Logger.Metadata` regarding the `Request` like parameters
-    private func getRequestMetadata(from request: Request) -> Logger.Metadata {
+    private func getRequestMetadata(from request: any Request) -> Logger.Metadata {
         var builtRequestMetadata: Logger.Metadata = [:]
         
         // Limit size since eg. the description of the WebSocket exporter contains the request parameters
@@ -164,7 +164,7 @@ private extension LoggingMetadata {
 
 private extension LoggingMetadata {
     /// Converts a ``Codable`` parameter to `Logger.MetadataValue`
-    private static func convertToMetadata(parameter: Encodable) -> Logger.MetadataValue {
+    private static func convertToMetadata(parameter: any Encodable) -> Logger.MetadataValue {
         do {
             let encodedParameter = try parameter.encodeToJSON()
             

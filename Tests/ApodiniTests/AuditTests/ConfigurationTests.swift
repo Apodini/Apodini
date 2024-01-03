@@ -20,7 +20,7 @@ final class ConfigurationTests: ApodiniTests {
             .final(information: ETag("aosidhaoshid"))
         }
 
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             SelectBestPractices(.include, .urlPath)
         }
     }
@@ -53,7 +53,7 @@ final class ConfigurationTests: ApodiniTests {
             }
         }
 
-        @ConfigurationBuilder var conf: Configuration {
+        @ConfigurationBuilder var conf: any Configuration {
             HTTP {
                 APIAuditor {
                     if addCustomConfig {
@@ -63,7 +63,7 @@ final class ConfigurationTests: ApodiniTests {
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             conf
         }
     }
@@ -75,13 +75,13 @@ final class ConfigurationTests: ApodiniTests {
             }
         }
 
-        @ConfigurationBuilder var conf: Configuration {
+        @ConfigurationBuilder var conf: any Configuration {
             REST {
                 APIAuditor()
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             conf
         }
     }
@@ -126,7 +126,7 @@ final class ConfigurationTests: ApodiniTests {
             SomeHandler()
         }
 
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST {
                 APIAuditor()
             }
@@ -156,7 +156,7 @@ final class ConfigurationTests: ApodiniTests {
 
 func getAudit<W: WebService>(
     webService: W,
-    bestPracticeType: BestPractice.Type,
+    bestPracticeType: any BestPractice.Type,
     endpointPath: String
 ) throws -> Audit? {
     var command = AuditRunCommand<W>()
@@ -181,7 +181,7 @@ func getAudit<W: WebService>(
 
 func assertNoFinding<W: WebService>(
     webService: W,
-    bestPracticeType: BestPractice.Type,
+    bestPracticeType: any BestPractice.Type,
     endpointPath: String
 ) throws {
     let audit = try getAudit(webService: webService, bestPracticeType: bestPracticeType, endpointPath: endpointPath)
@@ -192,7 +192,7 @@ func assertNoFinding<W: WebService>(
 
 func assertOneFinding<F: Finding & Equatable, W: WebService>(
     webService: W,
-    bestPracticeType: BestPractice.Type,
+    bestPracticeType: any BestPractice.Type,
     endpointPath: String,
     expectedFinding: F
 ) throws {

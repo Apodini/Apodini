@@ -129,7 +129,7 @@ extension ObservedObject: AnyObservedObject {
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
-            case let published as AnyPublished:
+            case let published as any AnyPublished:
                 published.register(childObservation)
             default:
                 continue

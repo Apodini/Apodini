@@ -26,7 +26,7 @@ class ThrowingErrorTests: ApodiniTests {
     
     struct ThrowingEventLoopFutureHandler: Handler {
         @Apodini.Environment(\.database)
-        var database: Database
+        var database: any Database
         
         func handle() throws -> EventLoopFuture<String> {
             database.eventLoop.makeFailedFuture(MyError(reason: "The operation failed"))
@@ -35,7 +35,7 @@ class ThrowingErrorTests: ApodiniTests {
     
     struct ThrowingEventLoopFutureHandler2: Handler {
         @Apodini.Environment(\.eventLoopGroup)
-        var eventLoopGroup: EventLoopGroup
+        var eventLoopGroup: any EventLoopGroup
         
         func handle() -> EventLoopFuture<String> {
             eventLoopGroup.next().makeFailedFuture(MyError(reason: "The operation failed"))
@@ -48,7 +48,7 @@ class ThrowingErrorTests: ApodiniTests {
             var content: some Component {
                 ThrowingHandler()
             }
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -67,7 +67,7 @@ class ThrowingErrorTests: ApodiniTests {
             var content: some Component {
                 ThrowingEventLoopFutureHandler()
             }
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -87,7 +87,7 @@ class ThrowingErrorTests: ApodiniTests {
             var content: some Component {
                 ThrowingEventLoopFutureHandler2()
             }
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

@@ -29,7 +29,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 SomeComp()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST {
                     OpenAPI()
                 }
@@ -68,7 +68,7 @@ final class OpenAPIInterfaceExporterTests: ApodiniTests {
                 SomeComp()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 HTTP(encoder: JSONEncoder(), decoder: JSONDecoder()) {
                     OpenAPI(outputFormat: .yaml,
                             outputEndpoint: "/oas",

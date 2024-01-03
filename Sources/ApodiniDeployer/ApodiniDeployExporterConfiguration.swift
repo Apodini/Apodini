@@ -14,11 +14,11 @@ import ApodiniDeployerRuntimeSupport
 
 extension ApodiniDeployer {
     struct ExporterConfiguration {
-        let runtimes: [DeploymentProviderRuntime.Type]
+        let runtimes: [any DeploymentProviderRuntime.Type]
         let config: DeploymentConfig
         
         init(
-            runtimes: [DeploymentProviderRuntime.Type] = [],
+            runtimes: [any DeploymentProviderRuntime.Type] = [],
             config: DeploymentConfig = .init()
         ) {
             self.runtimes = runtimes

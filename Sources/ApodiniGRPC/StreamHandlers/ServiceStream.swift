@@ -14,7 +14,7 @@ import Foundation
 
 
 class ServiceSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    override func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let responsesStream = GRPCMessageOut.Stream()
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer(),

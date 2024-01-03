@@ -52,7 +52,7 @@ extension EventLoopFuture {
         }
     }
     
-    private func handleError<T: ResultTransformer>(_ transformer: T, _ error: Error) throws -> T.Output {
+    private func handleError<T: ResultTransformer>(_ transformer: T, _ error: any Error) throws -> T.Output {
         let error = error.apodiniError
         switch transformer.handle(error: error) {
         case let .graceful(output):

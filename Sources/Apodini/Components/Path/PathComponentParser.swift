@@ -19,13 +19,13 @@ extension PathComponentParser {
 }
 
 
-extension Array where Element == PathComponent {
+extension Array where Element == any PathComponent {
     func asPathString(delimiter: String = "/") -> String {
         PathComponentStringBuilder(self, delimiter: delimiter).build()
     }
 }
 
-extension Array where Element == _PathComponent {
+extension Array where Element == any _PathComponent {
     func asPathString(delimiter: String = "/") -> String {
         PathComponentStringBuilder(self, delimiter: delimiter).build()
     }
@@ -35,7 +35,7 @@ private struct PathComponentStringBuilder: PathComponentParser {
     private let delimiter: String
     private var paths: [String] = []
 
-    init(_ pathComponents: [PathComponent], delimiter: String = "/") {
+    init(_ pathComponents: [any PathComponent], delimiter: String = "/") {
         self.delimiter = delimiter
 
         for pathComponent in pathComponents {

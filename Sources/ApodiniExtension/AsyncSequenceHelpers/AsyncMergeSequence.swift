@@ -29,13 +29,13 @@ extension AsyncMergeSequence {
         private var base: Base.AsyncIterator?
         private var other: Other.AsyncIterator?
         
-        private var latestBase: Result<Element, Error>?
-        private var latestOther: Result<Element, Error>?
+        private var latestBase: Result<Element, any Error>?
+        private var latestOther: Result<Element, any Error>?
         
         private var baseBusy = false
         private var otherBusy = false
         
-        private var continuation: CheckedContinuation<Element?, Error>?
+        private var continuation: CheckedContinuation<Element?, any Error>?
         
         // until actors can resume continuations we just use a good old mutex
         private let _lock = NSRecursiveLock()
@@ -125,7 +125,7 @@ extension AsyncMergeSequence {
             }
         }
         
-        private func handleResultFromBase(result: Result<Element?, Error>) {
+        private func handleResultFromBase(result: Result<Element?, any Error>) {
             _lock.lock()
             
             switch result {
@@ -171,7 +171,7 @@ extension AsyncMergeSequence {
             _lock.unlock()
         }
         
-        private func handleResultFromOther(result: Result<Element?, Error>) {
+        private func handleResultFromOther(result: Result<Element?, any Error>) {
             _lock.lock()
             
             switch result {

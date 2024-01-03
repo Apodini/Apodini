@@ -14,7 +14,7 @@ import ApodiniNetworking
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Delete<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: FluentKit.Database
+    private var database: any FluentKit.Database
 
     @Parameter(.http(.path))
     var id: Model.IDValue
@@ -27,7 +27,7 @@ public struct Delete<Model: DatabaseModel>: Handler {
             }
     }
     
-    public var metadata: AnyHandlerMetadata {
+    public var metadata: any AnyHandlerMetadata {
         Operation(.delete)
     }
     

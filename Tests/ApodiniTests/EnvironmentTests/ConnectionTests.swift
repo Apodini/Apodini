@@ -90,7 +90,7 @@ final class ConnectionTests: ApodiniTests {
                 TestHandler()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

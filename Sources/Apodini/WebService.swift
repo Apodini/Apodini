@@ -23,7 +23,7 @@ public protocol WebService: AnyWebServiceMetadataBlock, Component, Configuration
 // MARK: Metadata DSL
 public extension WebService {
     /// WebService has an empty `AnyWebServiceMetadata` by default.
-    var metadata: AnyWebServiceMetadata {
+    var metadata: any AnyWebServiceMetadata {
         Empty()
     }
 }
@@ -34,11 +34,11 @@ extension WebService {
     /// Store the values of wrapped properties in the `WebService` (eg. `@Environment`)  before parsing the CLI arguments and then restore the saved values after the parsing is finished
     public static func main(_ arguments: [String]? = nil) {     // swiftlint:disable:this discouraged_optional_collection
         let mirror = Mirror(reflecting: Self())
-        var propertyStore: [String: ArgumentParserStoreable] = [:]
+        var propertyStore: [String: any ArgumentParserStoreable] = [:]
         
         // Backup of property wrapper values
         for child in mirror.children {
-            if let property = child.value as? ArgumentParserStoreable {
+            if let property = child.value as? any ArgumentParserStoreable {
                 guard let label = child.label else {
                     fatalError("Label of the to be stored property couldn't be read!")
                 }
@@ -55,7 +55,7 @@ extension WebService {
             
             // Restore property wrapper values
             for child in mirror.children {
-                if let property = child.value as? ArgumentParserStoreable {
+                if let property = child.value as? any ArgumentParserStoreable {
                     guard let label = child.label else {
                         fatalError("Label of the to be stored property couldn't be read!")
                     }
@@ -108,7 +108,7 @@ extension WebService {
         //   ["--port", "90"]
         // which is successful as the port is the only argument.
         // We can then extract the subcommands and pass this to the configuration below.
-        func parseAutomaticSubcommands(arguments: [String]) -> [ParsableCommand.Type] {
+        func parseAutomaticSubcommands(arguments: [String]) -> [any ParsableCommand.Type] {
             do {
                 return try Self.parse(arguments).configuration._commands
             } catch {

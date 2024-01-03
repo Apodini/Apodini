@@ -98,12 +98,12 @@ public struct ExportedEndpoint: Codable, Hashable, Equatable {
 ///         and will only work if all deployment options of both objects being compared are reducible.
 public struct CollectedEndpointInfo: Hashable {
     public let handlerType: HandlerTypeIdentifier
-    public let endpoint: AnyEndpoint
+    public let endpoint: any AnyEndpoint
     public let deploymentOptions: PropertyOptionSet<DeploymentOptionNamespace>
     
     public init(
         handlerType: HandlerTypeIdentifier,
-        endpoint: AnyEndpoint,
+        endpoint: any AnyEndpoint,
         deploymentOptions: PropertyOptionSet<DeploymentOptionNamespace> = .init()
     ) {
         self.handlerType = handlerType

@@ -89,7 +89,7 @@ class EndToEndTests: XCTApodiniTest {
         }
         
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.serviceSideStream)
         }
     }
@@ -117,7 +117,7 @@ class EndToEndTests: XCTApodiniTest {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.clientSideStream)
         }
     }
@@ -136,12 +136,12 @@ class EndToEndTests: XCTApodiniTest {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.bidirectionalStream)
         }
     }
 
-    var configuration: Configuration {
+    var configuration: any Configuration {
         HTTP()
     }
 

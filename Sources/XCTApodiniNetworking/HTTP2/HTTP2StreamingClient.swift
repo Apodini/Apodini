@@ -17,8 +17,8 @@ import NIOExtras
 /// A client which can be used to test the HTTP/2 streaming patterns exported by the ``HTTPInterfaceExporter``.
 /// ``StreamingDelegate``s can be attached to the client to send and receive on an individual HTTP/2 stream.
 public class HTTP2StreamingClient {
-    var connection: Channel?
-    var eventLoop: EventLoop
+    var connection: (any Channel)?
+    var eventLoop: any EventLoop
     
     /// Initialize an ``HTTP2StreamingClient`` and connect it to the specified `host` and `port`
     public init(_ host: String, _ port: Int) throws {
@@ -73,12 +73,12 @@ public class HTTP2StreamingClient {
     }
     
     /// Register a ``HTTPClientStreamingHandler`` on the passed `channel` for the `streamingDelegate`
-    private func registerStreamingHandler<D: StreamingDelegate>(channel: Channel, streamingDelegate: D) -> EventLoopFuture<Channel> {
+    private func registerStreamingHandler<D: StreamingDelegate>(channel: any Channel, streamingDelegate: D) -> EventLoopFuture<any Channel> {
         // Step 1 is to find the HTTP2StreamMultiplexer so we can create HTTP/2 streams for our requests.
         channel.pipeline.handler(type: HTTP2StreamMultiplexer.self).flatMap { http2Multiplexer in
             // Step 2: Let's create the HTTP/2 stream.
-            let promise = channel.eventLoop.makePromise(of: Channel.self)
-            http2Multiplexer.createStreamChannel(promise: promise) { (streamChannel: Channel) in
+            let promise = channel.eventLoop.makePromise(of: (any Channel).self)
+            http2Multiplexer.createStreamChannel(promise: promise) { (streamChannel: any Channel) in
                 let handler = HTTPClientStreamingHandler(streamingDelegate: streamingDelegate)
                 streamingDelegate.streamingHandler = handler
                 return streamChannel.pipeline.addHandlers([

@@ -16,7 +16,7 @@ import XCTApodiniNetworking
 final class CustomComponentTests: ApodiniTests {
     struct AddBirdsHandler: Handler {
         @Apodini.Environment(\.database)
-        var database: Database
+        var database: any Database
 
         @Parameter
         var bird: Bird
@@ -54,7 +54,7 @@ final class CustomComponentTests: ApodiniTests {
                 AddBirdsHandler()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

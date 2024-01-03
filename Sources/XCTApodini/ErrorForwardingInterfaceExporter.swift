@@ -11,9 +11,9 @@ import ApodiniExtension
 
 /// An `InterfaceExporter` that attaches a error forwarding closure to all endpoints.
 public final class ErrorForwardingInterfaceExporter: InterfaceExporter {
-    let forwardClosure: (Error) -> Void
+    let forwardClosure: (any Error) -> Void
 
-    public init(forwardClosure: @escaping (Error) -> Void) {
+    public init(forwardClosure: @escaping (any Error) -> Void) {
         self.forwardClosure = forwardClosure
     }
 

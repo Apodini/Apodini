@@ -20,7 +20,7 @@ let protobufferUnsupportedNumericTypes = Set(
 )
 
 
-func throwUnsupportedNumericTypeEncodingError(value: Any, codingPath: [CodingKey]) throws -> Never {
+func throwUnsupportedNumericTypeEncodingError(value: Any, codingPath: [any CodingKey]) throws -> Never {
     precondition(
         protobufferUnsupportedNumericTypes.contains(type(of: value)),
         "Asked to throw an \"unsupported numeric type\" error for a type that is not, in fact, an unsupported numeric type."
@@ -33,7 +33,7 @@ func throwUnsupportedNumericTypeEncodingError(value: Any, codingPath: [CodingKey
 }
 
 
-func throwUnsupportedNumericTypeDecodingError(_ attemptedType: Any.Type, codingPath: [CodingKey]) throws -> Never {
+func throwUnsupportedNumericTypeDecodingError(_ attemptedType: Any.Type, codingPath: [any CodingKey]) throws -> Never {
     precondition(
         protobufferUnsupportedNumericTypes.contains(attemptedType),
         "Asked to throw an \"unsupported numeric type\" error for a type that it not, in fact, an unsupported numeric type."
@@ -48,11 +48,11 @@ func throwUnsupportedNumericTypeDecodingError(_ attemptedType: Any.Type, codingP
 
 
 struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let dstBufferRef: Box<ByteBuffer>
     let context: EncoderContext
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
+    init(codingPath: [any CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
         self.context = context
@@ -162,7 +162,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
     }
     
     
-    mutating func _encode(_ value: Encodable, forKey key: Key) throws { // swiftlint:disable:this cyclomatic_complexity identifier_name
+    mutating func _encode(_ value: any Encodable, forKey key: Key) throws { // swiftlint:disable:this cyclomatic_complexity identifier_name
         func encodeLengthDelimitedKeyedBytes<S: Collection>(_ sequence: S) where S.Element == UInt8 {
             precondition(!sequence.isEmpty)
             dstBufferRef.value.writeProtoKey(forFieldNumber: key.getProtoFieldNumber(), wireType: .lengthDelimited)
@@ -170,8 +170,8 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         }
         
         if getProtoCodingKind(type(of: value)) == .message {
-            context.pushSyntax(value is Proto2Codable ? .proto2 : .proto3)
-            precondition((value is Proto2Codable) == (getProtoSyntax(type(of: value)) == .proto2))
+            context.pushSyntax(value is any Proto2Codable ? .proto2 : .proto3)
+            precondition((value is any Proto2Codable) == (getProtoSyntax(type(of: value)) == .proto2))
         }
         defer {
             if getProtoCodingKind(type(of: value)) == .message {
@@ -179,13 +179,13 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             }
         }
         
-        if let optionalVal = value as? AnyOptional {
-            try _encodeIfPresent(optionalVal.typeErasedWrappedValue as! Encodable?, forKey: key)
-        } else if value is _ProtobufEmbeddedType {
+        if let optionalVal = value as? any AnyOptional {
+            try _encodeIfPresent(optionalVal.typeErasedWrappedValue as! (any Encodable)?, forKey: key)
+        } else if value is any _ProtobufEmbeddedType {
             // We're encoding an embedded type (i.e. a oneof), which means that we completely ignore the key
             // and simply encode the set value as if it were a normal field
-            precondition(value is AnyProtobufEnumWithAssociatedValues)
-            let possibleKeys: [CodingKey] = (type(of: value) as! AnyProtobufEnumWithAssociatedValues.Type).getCodingKeysType().allCases
+            precondition(value is any AnyProtobufEnumWithAssociatedValues)
+            let possibleKeys: [any CodingKey] = (type(of: value) as! any AnyProtobufEnumWithAssociatedValues.Type).getCodingKeysType().allCases
             let possibleCodingPaths = possibleKeys.map { self.codingPath.appending($0) }
             context.markAsRequiredOutput(possibleCodingPaths)
             defer {
@@ -193,7 +193,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             }
             let encoder = _ProtobufferEncoder(codingPath: self.codingPath, dstBufferRef: dstBufferRef, context: context)
             try value.encode(to: encoder)
-        } else if let enumVal = value as? AnyProtobufEnum {
+        } else if let enumVal = value as? any AnyProtobufEnum {
             let enumTy = type(of: enumVal)
             switch getProtoSyntax(enumTy) {
             case .proto2:
@@ -258,7 +258,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
             encodeLengthDelimitedKeyedBytes(array)
         } else if let data = value as? Data {
             encodeLengthDelimitedKeyedBytes(data)
-        } else if let protobufRepeatedTy = value as? ProtobufRepeatedEncodable {
+        } else if let protobufRepeatedTy = value as? any ProtobufRepeatedEncodable {
             let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
             try protobufRepeatedTy.encodeElements(to: encoder, forKey: key)
         } else {
@@ -291,15 +291,15 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         ))
     }
     
-    mutating func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
+    mutating func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
         fatalError("Not implemented.")
     }
     
-    mutating func superEncoder() -> Encoder {
+    mutating func superEncoder() -> any Encoder {
         fatalError("Not implemented.")
     }
     
-    mutating func superEncoder(forKey key: Key) -> Encoder {
+    mutating func superEncoder(forKey key: Key) -> any Encoder {
         fatalError("Not implemented.")
     }
     
@@ -366,7 +366,7 @@ struct ProtobufferKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainer
         try _encodeIfPresent(value, forKey: key)
     }
     
-    mutating func _encodeIfPresent(_ value: Encodable?, forKey key: Key) throws { // swiftlint:disable:this identifier_name
+    mutating func _encodeIfPresent(_ value: (any Encodable)?, forKey key: Key) throws { // swiftlint:disable:this identifier_name
         // We're encoding an Optional. this is a bit tricky bc we have to properly handle proto2 and proto3's optional encoding behaviour here.
         // We're using proto3 everywhere, with the exception of the descriptors proto definitions.
         // (These are still defined as proto2 message types, so we have to match that behaviour.)

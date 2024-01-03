@@ -23,7 +23,7 @@ class ServerReflectionInfoRPCHandler: GRPCStreamRPCHandler {
         self.server = server
     }
     
-    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let reflectionRequest: ReflectionRequest
         do {
             reflectionRequest = try ProtobufferDecoder().decode(ReflectionRequest.self, from: message.payload)

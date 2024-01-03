@@ -26,7 +26,7 @@ final class HandlerIdentifierTests: ApodiniTests {
             self.description = description
         }
 
-        init(endpoint: AnyEndpoint) {
+        init(endpoint: any AnyEndpoint) {
             self.init(
                 id: endpoint[AnyHandlerIdentifier.self].rawValue,
                 path: endpoint.absoluteRESTPath(rootPrefix: nil).asPathString(),
@@ -146,7 +146,7 @@ final class HandlerIdentifierTests: ApodiniTests {
                 TestHandler()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

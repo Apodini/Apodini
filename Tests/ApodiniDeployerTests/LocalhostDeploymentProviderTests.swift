@@ -351,7 +351,7 @@ class HTTPRequestClientResponseDelegate: AsyncHTTPClient.HTTPClientResponseDeleg
         return task.eventLoop.makeSucceededVoidFuture()
     }
     
-    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: any Error) {
         if let error = error as? HTTPClientError {
             XCTFail("Received HTTPClientError in \(Self.self): \(error.description)")
         } else {

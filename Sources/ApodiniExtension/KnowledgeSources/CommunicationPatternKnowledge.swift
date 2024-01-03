@@ -30,14 +30,14 @@ struct AutomaticCommunicationPattern: HandlerKnowledgeSource {
     let value: CommunicationPattern
     
     init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
-        guard H.Response.self is CustomizableResponse.Type else {
+        guard H.Response.self is any CustomizableResponse.Type else {
             self.value = .requestResponse
             return
         }
         
-        let isObserving = !sharedRepository[All<AnyObservedObject>.self].elements.isEmpty
-        let hasState = !sharedRepository[All<AnyState>.self].elements.isEmpty
-        let expectsInputStream = !sharedRepository[All<ConnectionEnvironment>.self].elements.isEmpty
+        let isObserving = !sharedRepository[All<any AnyObservedObject>.self].elements.isEmpty
+        let hasState = !sharedRepository[All<any AnyState>.self].elements.isEmpty
+        let expectsInputStream = !sharedRepository[All<any ConnectionEnvironment>.self].elements.isEmpty
         
         
         if expectsInputStream {

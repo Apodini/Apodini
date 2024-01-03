@@ -18,7 +18,7 @@ import ApodiniUtils
 public struct IndexedNamedChildPatternStrategy<P: DecodingPattern>: ParameterDecodingStrategy {
     public typealias Content = P.Element
 
-    private let decoder: AnyDecoder
+    private let decoder: any AnyDecoder
     
     private let name: String
 
@@ -27,7 +27,7 @@ public struct IndexedNamedChildPatternStrategy<P: DecodingPattern>: ParameterDec
     /// - Parameters:
     ///     - `name`:  The name that is provided to the ``DynamicNamePattern`` if that is part of `P`
     ///     - `decoder`: The decoder that is used to decode `P` from the input `Data`
-    public init(_ name: String, _ decoder: AnyDecoder) {
+    public init(_ name: String, _ decoder: any AnyDecoder) {
         self.name = name
         self.decoder = decoder
     }

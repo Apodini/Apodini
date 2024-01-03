@@ -18,7 +18,7 @@ import Apodini
 /// ``end``. After the ``end`` only ``trigger(_:)``s may follow.
 public enum Event {
     /// A `Request` from the client
-    case request(Request)
+    case request(any Request)
     /// A `TriggerEvent` raised by an `ObservedObject`
     case trigger(TriggerEvent)
     /// The signal from the client that it won't send

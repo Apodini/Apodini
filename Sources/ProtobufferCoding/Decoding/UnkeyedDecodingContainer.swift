@@ -12,13 +12,13 @@ import Foundation
 
 
 struct ProtobufferUnkeyedDecodingContainer: UnkeyedDecodingContainer {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let count: Int? = nil
     var isAtEnd: Bool { buffer.readableBytes == 0 }
     private(set) var currentIndex: Int = 0
     private var buffer: ByteBuffer
     
-    init(codingPath: [CodingKey], buffer: ByteBuffer) {
+    init(codingPath: [any CodingKey], buffer: ByteBuffer) {
         self.codingPath = codingPath
         self.buffer = buffer
     }
@@ -32,11 +32,11 @@ struct ProtobufferUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         fatalError("Not implemented")
     }
     
-    mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+    mutating func nestedUnkeyedContainer() throws -> any UnkeyedDecodingContainer {
         fatalError("Not implemented")
     }
     
-    mutating func superDecoder() throws -> Decoder {
+    mutating func superDecoder() throws -> any Decoder {
         fatalError("Not implemented")
     }
     

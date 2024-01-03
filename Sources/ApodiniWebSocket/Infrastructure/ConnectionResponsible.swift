@@ -14,7 +14,7 @@ import Foundation
 import ApodiniNetworking
 
 
-typealias ContextOpener = (ConnectionResponsible, UUID) -> (ContextResponsible)
+typealias ContextOpener = (ConnectionResponsible, UUID) -> (any ContextResponsible)
 
 
 class ConnectionResponsible: Identifiable {
@@ -24,7 +24,7 @@ class ConnectionResponsible: Identifiable {
     let initiatingRequest: HTTPRequest
     private let onClose: (ID) -> Void
     private var endpoints: [String: ContextOpener]
-    private var contexts: [UUID: ContextResponsible] = [:]
+    private var contexts: [UUID: any ContextResponsible] = [:]
     
     init(
         _ websocket: WebSocketKit.WebSocket,
@@ -82,7 +82,7 @@ class ConnectionResponsible: Identifiable {
         }
     }
     
-    func send(_ error: Error, in context: UUID) {
+    func send(_ error: any Error, in context: UUID) {
         guard let websocket = websocket else {
             logInvalidOperationOnClosedWebSocketError()
             return
@@ -191,7 +191,7 @@ class ConnectionResponsible: Identifiable {
         ctx.complete()
     }
     
-    private static func handleSerializationError(_ error: Error, using errors: inout [SerializationError]) throws {
+    private static func handleSerializationError(_ error: any Error, using errors: inout [SerializationError]) throws {
         if let serializationError = error as? SerializationError {
             errors.append(serializationError)
         } else {
@@ -319,7 +319,7 @@ struct ErrorMessage<E: Codable>: Codable {
 
 private extension Error {
     func message(on context: UUID?) -> ErrorMessage<String> {
-        if let wserr = self as? WSError {
+        if let wserr = self as? any WSError {
             return ErrorMessage(context: context, error: wserr.reason)
         } else {
             #if DEBUG

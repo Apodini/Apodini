@@ -24,7 +24,7 @@ public class EmptyRequest: RequestBasis {
 
     public var parameters: [Any??]
 
-    public init(information: AnyInformation..., parameters: Any??...) {
+    public init(information: any AnyInformation..., parameters: Any??...) {
         self.information = InformationSet(information)
         self.parameters = parameters
     }
@@ -32,10 +32,10 @@ public class EmptyRequest: RequestBasis {
 
 open class MockExporter<Request>: LegacyInterfaceExporter {
     struct EndpointRepresentation {
-        let endpoint: AnyEndpoint
+        let endpoint: any AnyEndpoint
         let evaluateCallback: (_ request: Request, _ parameters: [Any??], _ app: Apodini.Application) throws -> Response<AnyEncodable>
 
-        internal init(_ endpoint: AnyEndpoint,
+        internal init(_ endpoint: any AnyEndpoint,
                       _ evaluateCallback: @escaping (Request, [Any??], Apodini.Application) throws -> Response<AnyEncodable>) {
             self.endpoint = endpoint
             self.evaluateCallback = evaluateCallback
@@ -44,14 +44,14 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
 
     var parameterValues: [Any??] = []
     
-    let onExport: (AnyEndpoint) -> Void
+    let onExport: (any AnyEndpoint) -> Void
     let onFinished: (WebServiceModel) -> Void
 
     var endpoints: [EndpointRepresentation] = []
 
     /// Creates a new MockExporter which uses the passed parameter values as FIFO queue on retrieveParameter
     public init(queued parameterValues: Any??...,
-                calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+                calling onExport: @escaping (any AnyEndpoint) -> Void = { _ in },
                 onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
         self.onExport = onExport
@@ -60,7 +60,7 @@ open class MockExporter<Request>: LegacyInterfaceExporter {
 
     // See https://bugs.swift.org/browse/SR-128
     public init(queued parameterValues: [Any??],
-                calling onExport: @escaping (AnyEndpoint) -> Void = { _ in },
+                calling onExport: @escaping (any AnyEndpoint) -> Void = { _ in },
                 onFinished: @escaping (WebServiceModel) -> Void = { _ in }) {
         self.parameterValues = parameterValues
         self.onExport = onExport

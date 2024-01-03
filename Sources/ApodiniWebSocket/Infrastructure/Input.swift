@@ -22,7 +22,7 @@ protocol ParameterDecoder {
 /// A stateful abstraction for representing validatable input.
 protocol Input {
     /// Update the value for the given `parameter` using the given `decoder` and validate this new value.
-    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult
+    mutating func update(_ parameter: String, using decoder: any ParameterDecoder) -> ParameterUpdateResult
     /// Check the complete `Input` for validity after all parameters have been updated.
     nonmutating func check() -> InputCheckResult
     /// Expose the latest updates to its upstream users. E.g. update public variables.
@@ -32,7 +32,7 @@ protocol Input {
 /// A stateful abstraction for representing a single validatable parameter.
 protocol InputParameter {
     /// Update the internal value using the given `decoder` and validate this new value.
-    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult
+    mutating func update(using decoder: any ParameterDecoder) -> ParameterUpdateResult
     /// Check the parameter` for validity.
     nonmutating func check() -> ParameterCheckResult
     /// Expose the latest updates to its upstream users. E.g. update public variables.
@@ -88,7 +88,7 @@ enum InputCheckResult {
 
 /// An implementation of `Input` that accumulates results from given `InputParameter`s.
 struct SomeInput: Input {
-    private(set) var parameters: [String: InputParameter]
+    private(set) var parameters: [String: any InputParameter]
     
     var parametersValid: String {
         switch self.check() {
@@ -99,11 +99,11 @@ struct SomeInput: Input {
         }
     }
     
-    init(parameters: [String: InputParameter]) {
+    init(parameters: [String: any InputParameter]) {
         self.parameters = parameters
     }
     
-    mutating func update(_ parameter: String, using decoder: ParameterDecoder) -> ParameterUpdateResult {
+    mutating func update(_ parameter: String, using decoder: any ParameterDecoder) -> ParameterUpdateResult {
         guard var inputParameter = parameters[parameter] else {
             return .error(.notExistant)
         }
@@ -156,7 +156,7 @@ struct BasicInputParameter<Type: Decodable>: InputParameter {
     
     init() { }
     
-    mutating func update(using decoder: ParameterDecoder) -> ParameterUpdateResult {
+    mutating func update(using decoder: any ParameterDecoder) -> ParameterUpdateResult {
         do {
             self._interim = try decoder.decode(Type.self)
             return .ok

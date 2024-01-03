@@ -12,11 +12,11 @@ import Foundation
 
 /// A single-value decoding container, which supports decoding a single unkeyed value.
 struct ProtobufferSingleValueDecodingContainer: SingleValueDecodingContainer {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     private let buffer: ByteBuffer
     
     /// The buffer should point to the start of a value
-    init(codingPath: [CodingKey], buffer: ByteBuffer) {
+    init(codingPath: [any CodingKey], buffer: ByteBuffer) {
         self.codingPath = codingPath
         self.buffer = buffer
     }

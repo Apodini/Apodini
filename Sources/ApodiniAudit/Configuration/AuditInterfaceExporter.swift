@@ -15,7 +15,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
     
     var app: Application
     var parentConfiguration: HTTPExporterConfiguration
-    var bestPractices: [BestPractice]
+    var bestPractices: [any BestPractice]
     
     var webServiceString: String
     
@@ -58,7 +58,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
         Reporter.logReport(report, webServiceString)
     }
     
-    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [BestPractice], _ webServiceString: String) {
+    init(_ app: Application, _ parentConfiguration: HTTPExporterConfiguration, _ bestPractices: [any BestPractice], _ webServiceString: String) {
         self.app = app
         self.parentConfiguration = parentConfiguration
         self.report = Report()
@@ -68,7 +68,7 @@ final class AuditInterfaceExporter: InterfaceExporter {
 }
 
 extension AuditInterfaceExporter {
-    static let defaultBestPracticeConfigurations: [BestPracticeConfiguration] = [
+    static let defaultBestPracticeConfigurations: [any BestPracticeConfiguration] = [
         // Suggestions
         EmptyBestPracticeConfiguration<EncourageETags>(),
         

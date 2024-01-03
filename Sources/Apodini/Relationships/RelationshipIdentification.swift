@@ -8,7 +8,7 @@
 
 /// A type-erased version of an `RelationshipIdentification`.
 public struct AnyRelationshipIdentification {
-    let resolver: AnyPathParameterResolver
+    let resolver: any AnyPathParameterResolver
 
     init<From, To: Identifiable>(from identification: RelationshipIdentification<From, To>) {
         resolver = identification.resolver()
@@ -60,7 +60,7 @@ public struct RelationshipIdentification<From, To: Identifiable> where To.ID: Lo
         self.keyPath = keyPath
     }
 
-    func resolver() -> AnyPathParameterResolver {
+    func resolver() -> any AnyPathParameterResolver {
         PathParameterPropertyResolver(destination: type, at: keyPath)
     }
 }

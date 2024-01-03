@@ -34,7 +34,7 @@ class ConditionalConfigurationTests: ApodiniTests {
         let flag4 = Box(false)
         
         @ConfigurationBuilder
-        var configuration: Configuration {
+        var configuration: any Configuration {
             BlockBasedConfiguration { flag1.value = true }
                 .skip(if: .isHTTPSEnabled)
             BlockBasedConfiguration { flag2.value = true }
@@ -58,7 +58,7 @@ class ConditionalConfigurationTests: ApodiniTests {
         let flag = Box(false)
         
         @ConfigurationBuilder
-        var configuration: Configuration {
+        var configuration: any Configuration {
             BlockBasedConfiguration { flag.value = true }
                 .skip(if: { randBool })
         }
@@ -75,7 +75,7 @@ class ConditionalConfigurationTests: ApodiniTests {
         let flag4 = Box(false)
         
         @ConfigurationBuilder
-        var configuration: Configuration {
+        var configuration: any Configuration {
             BlockBasedConfiguration { flag1.value = true }
                 .enable(if: !.isHTTPSEnabled && .isDebugBuild)
             BlockBasedConfiguration { flag2.value = true }

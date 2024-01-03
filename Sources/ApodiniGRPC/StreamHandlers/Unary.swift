@@ -15,7 +15,7 @@ import Foundation
 
 
 class UnaryRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    override func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = decodingStrategy
             .decodeRequest(from: message, with: message, with: context.eventLoop)
             .insertDefaults(with: defaults)

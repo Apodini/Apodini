@@ -21,7 +21,7 @@ public enum ProtoSyntax: String {
 
 /// Returns the `ProtoSyntax` version to be used for the type `type`
 func getProtoSyntax(_ type: Any.Type) -> ProtoSyntax {
-    if type as? Proto2Codable.Type != nil {
+    if type as? any Proto2Codable.Type != nil {
         return .proto2
     } else {
         return .proto3
@@ -215,8 +215,8 @@ extension ByteBuffer {
     func decodeProtoString(
         fieldValueInfo: ProtobufFieldInfo.ValueInfo,
         fieldValueOffset: Int,
-        codingPath: [CodingKey],
-        makeDataCorruptedError: (String) -> Error
+        codingPath: [any CodingKey],
+        makeDataCorruptedError: (String) -> any Error
     ) throws -> String {
         switch fieldValueInfo {
         case let .lengthDelimited(length, dataOffset):
@@ -278,7 +278,7 @@ enum ProtoCodingKind {
 
 
 func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:disable:this cyclomatic_complexity
-    let conformsToMessageProtocol = (type as? ProtobufMessage.Type) != nil
+    let conformsToMessageProtocol = (type as? any ProtobufMessage.Type) != nil
     
     if type == Never.self {
         // We have this as a special case since never isn't really codable, but still allowed as a return type for handlers.
@@ -291,20 +291,20 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
         return getProtoCodingKind(ProtoTimestamp.self)
     }
     
-    if let optionalTy = type as? AnyOptional.Type {
+    if let optionalTy = type as? any AnyOptional.Type {
         return getProtoCodingKind(optionalTy.wrappedType)
-    } else if type as? ProtobufBytesMapped.Type != nil {
+    } else if type as? any ProtobufBytesMapped.Type != nil {
         return .primitive
     } else if isProtoRepeatedEncodableOrDecodable(type) {
         return .repeated
     }
     
-    guard (type as? Encodable.Type != nil) || (type as? Decodable.Type != nil) else {
+    guard (type as? any Encodable.Type != nil) || (type as? any Decodable.Type != nil) else {
         // A type which isn't codable couldn't be en- or decoded in the first place
         fatalError("Type '\(type)' is not supported by ProtobufferCoding, because it does not conform to Codable")
     }
     
-    if (type as? ProtobufPrimitive.Type) != nil {
+    if (type as? any ProtobufPrimitive.Type) != nil {
         // The type is a primitive
         precondition(!conformsToMessageProtocol)
         return .primitive
@@ -319,17 +319,17 @@ func getProtoCodingKind(_ type: Any.Type) -> ProtoCodingKind? { // swiftlint:dis
         // The type is a struct, it is codable, but it is not a primitive.
         return .message
     case .enum:
-        let isSimpleEnum = (type as? AnyProtobufEnum.Type) != nil
-        let isComplexEnum = (type as? AnyProtobufEnumWithAssociatedValues.Type) != nil
+        let isSimpleEnum = (type as? any AnyProtobufEnum.Type) != nil
+        let isComplexEnum = (type as? any AnyProtobufEnumWithAssociatedValues.Type) != nil
         switch (isSimpleEnum, isComplexEnum) {
         case (false, false):
-            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\(AnyProtobufEnum.self)' nor to '\(AnyProtobufEnumWithAssociatedValues.self)'")
+            fatalError("Encountered an enum type (\(String(reflecting: type))) that conforms neither to '\((any AnyProtobufEnum).self)' nor to '\((any AnyProtobufEnumWithAssociatedValues).self)'")
         case (true, false):
             return .enum
         case (false, true):
             return .oneof
         case (true, true):
-            fatalError("Invalid enum, type: The '\(AnyProtobufEnum.self)' and '\(AnyProtobufEnumWithAssociatedValues.self)' protocols are mutually exclusive.")
+            fatalError("Invalid enum, type: The '\((any AnyProtobufEnum).self)' and '\((any AnyProtobufEnumWithAssociatedValues).self)' protocols are mutually exclusive.")
         }
     default:
         return nil

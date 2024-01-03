@@ -44,7 +44,7 @@ class ComponentTests: ApodiniTests {
                 AnyComponent(Text("Hello"))
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -64,7 +64,7 @@ class ComponentTests: ApodiniTests {
                 AnyHandler(Text("Hello"))
             }
             
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

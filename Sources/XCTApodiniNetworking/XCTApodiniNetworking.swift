@@ -130,7 +130,7 @@ extension Apodini.Application {
     
     
     /// Creates a proxy application/request tester
-    public func testable(_ methods: Set<TestingMethod> = [.inMemory]) -> XCTApodiniNetworkingRequestResponseTester {
+    public func testable(_ methods: Set<TestingMethod> = [.inMemory]) -> any XCTApodiniNetworkingRequestResponseTester {
         MultiplexingTester(testers: methods.map { method in
             switch method {
             case .inMemory:
@@ -143,7 +143,7 @@ extension Apodini.Application {
     
     
     private struct MultiplexingTester: XCTApodiniNetworkingRequestResponseTester {
-        let testers: [XCTApodiniNetworkingRequestResponseTester]
+        let testers: [any XCTApodiniNetworkingRequestResponseTester]
         
         func performTest(
             _ request: XCTHTTPRequest,
@@ -202,7 +202,6 @@ extension Apodini.Application {
             switch app.httpConfiguration.bindAddress {
             case let .interface(currentAppHostname, port: currentAppPort):
                 address = (interface ?? currentAppHostname, port ?? currentAppPort)
-                //app.httpConfiguration.address = .hostname(address.hostname, port: address.port)
                 HTTPConfiguration(hostname: nil, bindAddress: .interface(address.interface, port: address.port))
                     .configure(app)
             case .unixDomainSocket:
@@ -309,7 +308,7 @@ private class ActualRequestsTestHTTPClientResponseDelegate: AsyncHTTPClient.HTTP
         return response
     }
     
-    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: any Error) {
         print(#function, error)
         task.cancel()
     }

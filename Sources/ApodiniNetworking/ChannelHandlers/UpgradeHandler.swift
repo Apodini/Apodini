@@ -37,13 +37,13 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
     }
     
     
-    private let handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]
+    private let handlersToRemoveOnWebSocketUpgrade: [any RemovableChannelHandler]
     private var state: State = .ready
     private var bufferedData: [NIOAny] = []
     private var logger = Logger(label: "HTTPUpgradeHandler")
     
     
-    init(handlersToRemoveOnWebSocketUpgrade: [RemovableChannelHandler]) {
+    init(handlersToRemoveOnWebSocketUpgrade: [any RemovableChannelHandler]) {
         self.handlersToRemoveOnWebSocketUpgrade = handlersToRemoveOnWebSocketUpgrade
         logger[metadataKey: "self"] = "\(getMemoryAddressAsHexString(self))"
     }
@@ -136,7 +136,7 @@ class HTTPUpgradeHandler: ChannelInboundHandler, ChannelOutboundHandler, Removab
                     }
                     .flatMap { () -> EventLoopFuture<Void> in
                         self.logger.notice("Removing handlers")
-                        let handlers: [RemovableChannelHandler] = [self] + self.handlersToRemoveOnWebSocketUpgrade
+                        let handlers: [any RemovableChannelHandler] = [self] + self.handlersToRemoveOnWebSocketUpgrade
                         return .andAllComplete(handlers.map { handler in
                             context.pipeline.removeHandler(handler)
                         }, on: context.eventLoop)

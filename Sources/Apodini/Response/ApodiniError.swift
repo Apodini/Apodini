@@ -68,7 +68,7 @@ public struct ApodiniError: Error {
     /// - Parameter `description`: The **internal** description of this error. This will only be exposed in `DEBUG` mode.
     /// - Parameter `information`: Possible array of `Information` entries attached to the `Response`.
     /// - Parameter `options`: Possible exporter-specific options that provide guidance for how to handle this error.
-    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, information: AnyInformation..., options: Option...) {
+    internal init(type: ErrorType, reason: String? = nil, description: String? = nil, information: any AnyInformation..., options: Option...) {
         self.init(type: type, reason: reason, description: description, information: InformationSet(information), PropertyOptionSet(options))
     }
 
@@ -80,7 +80,7 @@ public struct ApodiniError: Error {
     public func callAsFunction(
         reason: String? = nil,
         description: String? = nil,
-        information: [AnyInformation],
+        information: [any AnyInformation],
         options: [Option]
     ) -> ApodiniError {
         ApodiniError(
@@ -100,13 +100,13 @@ public struct ApodiniError: Error {
     public func callAsFunction(
         reason: String? = nil,
         description: String? = nil,
-        information: AnyInformation...,
+        information: any AnyInformation...,
         options: Option...
     ) -> ApodiniError {
         callAsFunction(reason: reason, description: description, information: information, options: options)
     }
 
-    public func detailed(by error: Error) -> ApodiniError {
+    public func detailed(by error: any Error) -> ApodiniError {
         detailed(by: error.apodiniError)
     }
 
@@ -183,7 +183,7 @@ public extension Error {
     var apodiniError: ApodiniError {
         if let apodiniError = self as? ApodiniError {
             return apodiniError
-        } else if let localizedError = self as? LocalizedError {
+        } else if let localizedError = self as? any LocalizedError {
             return ApodiniError(type: .other)(localizedError)
         } else {
             return ApodiniError(type: .other, description: self.localizedDescription)
@@ -192,7 +192,7 @@ public extension Error {
 }
 
 extension ApodiniError {
-    public func callAsFunction(_ error: LocalizedError) -> ApodiniError {
+    public func callAsFunction(_ error: any LocalizedError) -> ApodiniError {
         self(reason: error.failureReason,
              description: error.errorDescription
                             ?? error.recoverySuggestion

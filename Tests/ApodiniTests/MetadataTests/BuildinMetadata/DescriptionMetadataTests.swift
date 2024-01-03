@@ -60,7 +60,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let endpoint: any AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
 
         XCTAssertEqual(customDescription, "The description inside the TestHandler")
@@ -75,7 +75,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let endpoint: any AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let customDescription = endpoint[Context.self].get(valueFor: HandlerDescriptionMetadata.self)
     
         XCTAssertEqual(customDescription, "Returns greeting with name parameter.")
@@ -90,7 +90,7 @@ final class DescriptionModifierTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let endpoint: any AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         
         XCTAssertEqual(endpoint.description, "TestHandler")
     }

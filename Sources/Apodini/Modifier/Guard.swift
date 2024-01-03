@@ -65,7 +65,7 @@ extension GuardingHandlerInitializer: SomeGuardInitializer { }
 
 struct GuardFilter: DelegationFilter {
     func callAsFunction<I>(_ initializer: I) -> Bool where I: AnyDelegatingHandlerInitializer {
-        if initializer is SomeGuardInitializer {
+        if initializer is any SomeGuardInitializer {
             return false
         }
         return true

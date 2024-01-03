@@ -24,13 +24,13 @@ public struct DebugAsyncSequence<Base>: AsyncSequence where Base: AsyncSequence 
     
     let afterNext: (Base.Element?) -> Void
     
-    let onError: (Error) -> Void
+    let onError: (any Error) -> Void
     
     init(_ base: Base,
          onMake: @escaping (Base.AsyncIterator) -> Void,
          onNext: @escaping () -> Void,
          afterNext: @escaping (Base.Element?) -> Void,
-         onError: @escaping (Error) -> Void) {
+         onError: @escaping (any Error) -> Void) {
         self.base = base
         self.onMake = onMake
         self.onNext = onNext
@@ -53,7 +53,7 @@ extension DebugAsyncSequence {
         
         let afterNext: (Base.Element?) -> Void
         
-        let onError: (Error) -> Void
+        let onError: (any Error) -> Void
         
         public mutating func next() async throws -> Element? {
             do {
@@ -75,7 +75,7 @@ public extension AsyncSequence {
     func debug(onMake: @escaping (Self.AsyncIterator) -> Void,
                onNext: @escaping () -> Void,
                afterNext: @escaping (Self.Element?) -> Void,
-               onError: @escaping (Error) -> Void) -> DebugAsyncSequence<Self> {
+               onError: @escaping (any Error) -> Void) -> DebugAsyncSequence<Self> {
         DebugAsyncSequence(self, onMake: onMake, onNext: onNext, afterNext: afterNext, onError: onError)
     }
 }

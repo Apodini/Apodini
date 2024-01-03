@@ -11,11 +11,11 @@ import Foundation
 protocol AnyParameter {
     var options: PropertyOptionSet<ParameterOptionNameSpace> { get set }
     
-    func accept(_ visitor: AnyParameterVisitor)
+    func accept(_ visitor: any AnyParameterVisitor)
 }
 
 extension AnyParameter {
-    func accept(_ visitor: AnyParameterVisitor) {
+    func accept(_ visitor: any AnyParameterVisitor) {
         visitor.visit(self)
     }
 }
@@ -31,7 +31,7 @@ extension AnyParameterVisitor {
 }
 
 extension Handler {
-    func extractParameters() -> [(String, AnyParameter)] {
+    func extractParameters() -> [(String, any AnyParameter)] {
         Apodini.extractParameters(from: self)
     }
 }

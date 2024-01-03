@@ -121,7 +121,7 @@ class GRPCResponseEncoder: ChannelOutboundHandler {
     private func writeLengthPrefixedMessage(
         _ payload: ByteBuffer,
         closeStream: Bool,
-        connectionContext: GRPCStreamConnectionContext,
+        connectionContext: any GRPCStreamConnectionContext,
         channelHandlerContext: ChannelHandlerContext
     ) -> EventLoopFuture<Void> {
         let messageLength = payload.writerIndex

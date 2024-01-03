@@ -42,14 +42,14 @@ public protocol DeploymentProviderRuntime: AnyObject {
     ///         used to create the deployment, so it has to match the corresponding CLI's `identifier` exactly.
     static var identifier: DeploymentProviderID { get }
     
-    init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws
+    init(deployedSystem: any AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws
     
-    var deployedSystem: AnyDeployedSystem { get }
+    var deployedSystem: any AnyDeployedSystem { get }
     var currentNodeId: DeployedSystemNode.ID { get }
     /// The subcommand of `export-ws-structure` that should be used with this runtime.
-    static var exportCommand: StructureExporter.Type { get }
+    static var exportCommand: any StructureExporter.Type { get }
     /// The subcommand of `startup` that should be used with this runtime.
-    static var startupCommand: DeploymentStartupCommand.Type { get }
+    static var startupCommand: any DeploymentStartupCommand.Type { get }
     
     func configure(_ app: Apodini.Application) throws
     
@@ -91,5 +91,5 @@ public protocol DeploymentStartupCommand: ParsableCommand {
     var nodeId: String { get }
     /// The type of `AnyDeployedSystem` that should is used by the Deployment Provider.
     /// To this type the json at `fileUrl` will be decoded to. You can use `DeployedSystem` if you don't need to define a custom type.
-    var deployedSystemType: AnyDeployedSystem.Type { get }
+    var deployedSystemType: any AnyDeployedSystem.Type { get }
 }

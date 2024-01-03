@@ -11,7 +11,7 @@ import ArgumentParser
 /// A type-erased `DependentStaticConfiguration`
 public protocol AnyDependentStaticConfiguration {
     /// A subcommand that this DependentStaticConfiguration exports
-    var command: ParsableCommand.Type? { get }
+    var command: (any ParsableCommand.Type)? { get }
     
     /// Configures this configuration
     /// - Parameters:
@@ -22,10 +22,10 @@ public protocol AnyDependentStaticConfiguration {
 
 extension AnyDependentStaticConfiguration {
     /// By default, no command is provided
-    public var command: ParsableCommand.Type? { nil }
+    public var command: (any ParsableCommand.Type)? { nil }
 }
 
-extension Array where Element == AnyDependentStaticConfiguration {
+extension Array where Element == any AnyDependentStaticConfiguration {
     /// A method that handles the configuration of dependent static exporters
     /// - Parameters:
     ///    - app: The `Application` which is used to register the configuration in Apodini

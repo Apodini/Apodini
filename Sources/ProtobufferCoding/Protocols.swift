@@ -30,7 +30,7 @@ public protocol ProtobufMessageCodingKeys: AnyProtobufMessageCodingKeys & CaseIt
 /// Type-erased version of `ProtobufTypeWithCustomFieldMapping`
 public protocol AnyProtobufTypeWithCustomFieldMapping {
     /// Returns the type's `CodingKeys` type.
-    static func getCodingKeysType() -> AnyProtobufMessageCodingKeys.Type
+    static func getCodingKeysType() -> any AnyProtobufMessageCodingKeys.Type
 }
 
 
@@ -41,7 +41,7 @@ public protocol ProtobufTypeWithCustomFieldMapping: AnyProtobufTypeWithCustomFie
 
 public extension ProtobufTypeWithCustomFieldMapping {
     /// :nodoc:
-    static func getCodingKeysType() -> AnyProtobufMessageCodingKeys.Type {
+    static func getCodingKeysType() -> any AnyProtobufMessageCodingKeys.Type {
         CodingKeys.self
     }
 }

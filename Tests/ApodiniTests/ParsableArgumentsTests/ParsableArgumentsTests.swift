@@ -13,7 +13,7 @@ import ApodiniUtils
 
 
 class ParsableArgumentsTests: XCTApodiniTest {
-    func getCommandError(_ error: Error) throws -> CommandError {
+    func getCommandError(_ error: any Error) throws -> CommandError {
         try XCTUnwrap(error as? CommandError)
     }
     
@@ -218,7 +218,7 @@ private struct NoDefaultsTestWebService: WebService {
         Text("EmptyText")
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         HTTPConfiguration(bindAddress: .interface(hostname, port: port))
         TestSubcommandConfiguration<Self>()
         TestNestedSubcommandConfiguration<Self>()
@@ -231,7 +231,7 @@ private struct TestSubcommandConfiguration<Service: WebService>: Configuration {
         print("👋")
     }
     
-    var command: ParsableCommand.Type {
+    var command: any ParsableCommand.Type {
         TestCommand<Service>.self
     }
 }
@@ -252,7 +252,7 @@ private struct TestCommand<Service: WebService>: ParsableCommand {
 private struct TestNestedSubcommandConfiguration<Service: WebService>: Configuration {
     @OptionGroup var webServiceOptions: Service
     
-    var command: ParsableCommand.Type {
+    var command: any ParsableCommand.Type {
         TestNestedCommand<Service>.self
     }
     

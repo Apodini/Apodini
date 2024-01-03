@@ -19,7 +19,7 @@ public struct DelegateFactoryBasis<H: Handler>: KnowledgeSource {
 /// A ``DelegateFactory`` allows for creating ``instance()``s of a ``Delegate``
 /// suitable for usage in an ``InterfaceExporter``.
 public class DelegateFactory<H: Handler, I: InterfaceExporter>: KnowledgeSource {
-    private let sharedRepository: SharedRepository
+    private let sharedRepository: any SharedRepository
     
     private lazy var delegate: Delegate<H> = sharedRepository[DelegateFactoryBasis<H>.self].delegate
     

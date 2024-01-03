@@ -143,7 +143,7 @@ final class JobsTests: XCTApodiniTest {
         try app.scheduler.dequeue(\KeyStore.testJob)
         
         // Check if `Scheduled` was cancelled
-        var error: Error?
+        var error: (any Error)?
         scheduled3.futureResult.whenFailure { error = $0 }
         XCTAssertNotNil(error)
     }
@@ -171,7 +171,7 @@ final class JobsTests: XCTApodiniTest {
         try app.scheduler.dequeue(\KeyStore.testJob)
         
         // Check if `Scheduled` was cancelled
-        var error: Error?
+        var error: (any Error)?
         scheduled3.futureResult.whenFailure { error = $0 }
         XCTAssertNotNil(error)
     }
@@ -210,7 +210,7 @@ final class JobsTests: XCTApodiniTest {
         eventLoop.advanceTime(by: .seconds(60))
         
         // Check if `Scheduled` was cancelled
-        var error: Error?
+        var error: (any Error)?
         scheduled2.futureResult.whenFailure { error = $0 }
         XCTAssertNotNil(error)
     }

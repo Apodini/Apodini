@@ -75,7 +75,7 @@ public final class PluralSegmentForStoresAndCollections: BestPractice {
 public struct PluralSegmentConfiguration: BestPracticeConfiguration {
     var allowedSegments: [String]
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         PluralSegmentForStoresAndCollections(configuration: self)
     }
     

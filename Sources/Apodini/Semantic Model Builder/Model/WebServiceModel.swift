@@ -9,9 +9,9 @@
 import Foundation
 
 public struct WebServiceModel: SharedRepository {
-    private let sharedRepository: SharedRepository
+    private let sharedRepository: any SharedRepository
     
-    internal init(sharedRepository: SharedRepository) {
+    internal init(sharedRepository: any SharedRepository) {
         self.sharedRepository = sharedRepository
     }
     

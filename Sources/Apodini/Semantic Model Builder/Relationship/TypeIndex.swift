@@ -23,7 +23,7 @@ struct TypeIndexEntry: CustomDebugStringConvertible {
     let reference: EndpointReference
     /// PathParameters contained in the path to the Endpoint.
     /// Depending on the `RelationshipType` those need to resolvable from the source.
-    let pathParameters: [AnyEndpointPathParameter]
+    let pathParameters: [any AnyEndpointPathParameter]
 
     var debugDescription: String {
         reference.debugDescription
@@ -52,7 +52,7 @@ struct TypeIndex {
     /// Contains automatically collected and explicitly defined inheritances
     fileprivate var collectedInheritanceCandidates: [EndpointReference: Set<IndexedRelationshipInheritanceCandidate>] = [:]
     /// Contains explicitly defined .reference and .link relationships
-    private var collectedOtherCandidates: [SomeRelationshipSourceCandidate] = []
+    private var collectedOtherCandidates: [any SomeRelationshipSourceCandidate] = []
 
 
     init(from typeIndexBuilder: TypeIndexBuilder, buildingWith relationshipBuilder: RelationshipBuilder) {
@@ -121,7 +121,7 @@ struct TypeIndex {
         }
     }
 
-    private func resolve(candidate: SomeRelationshipSourceCandidate, type: DefinitionType) {
+    private func resolve(candidate: any SomeRelationshipSourceCandidate, type: DefinitionType) {
         // we need to check afterwards if we found ANY destinations
         var foundSome = false
 
@@ -179,13 +179,13 @@ struct TypeIndex {
     ///   - entry: The `TypeIndexEntry` representing the destination of the relationship.
     ///   - type: The type of relationship definition.
     /// - Returns: Returns `true` if the given candidate fails the parameter check.
-    private func failsParameterResolvability(for candidate: SomeRelationshipSourceCandidate, on entry: TypeIndexEntry, type: DefinitionType) -> Bool {
+    private func failsParameterResolvability(for candidate: any SomeRelationshipSourceCandidate, on entry: TypeIndexEntry, type: DefinitionType) -> Bool {
         if candidate.type.checkResolvers {
             // we loop through every path parameter of the destination and check if
             // the definition provides enough information to fill in those parameters at runtime (while request handling).
             // Additionally we track unused resolvers and print a warning of those.
-            var unresolvedPathParameters: [AnyEndpointPathParameter] = []
-            let unusedResolvers: [AnyPathParameterResolver] = candidate.resolvers
+            var unresolvedPathParameters: [any AnyEndpointPathParameter] = []
+            let unusedResolvers: [any AnyPathParameterResolver] = candidate.resolvers
                 .resolvability(of: entry.reference.absolutePath, unresolved: &unresolvedPathParameters)
 
             if !unresolvedPathParameters.isEmpty {
@@ -388,10 +388,10 @@ struct IndexedRelationshipInheritanceCandidate: Hashable, CustomDebugStringConve
         candidate.debugDescription
     }
 
-    private let candidate: SomeRelationshipSourceCandidate
+    private let candidate: any SomeRelationshipSourceCandidate
     let definitionType: TypeIndex.DefinitionType
 
-    init(from candidate: SomeRelationshipSourceCandidate, type: TypeIndex.DefinitionType) {
+    init(from candidate: any SomeRelationshipSourceCandidate, type: TypeIndex.DefinitionType) {
         self.candidate = candidate
         self.definitionType = type
     }

@@ -15,7 +15,7 @@ import Foundation
 @dynamicMemberLookup
 @propertyWrapper
 public struct Properties: Property {
-    internal var elements: [String: Property]
+    internal var elements: [String: any Property]
     
     internal var namingStrategy: ([String]) -> String? = Self.defaultNamingStrategy
     
@@ -28,7 +28,7 @@ public struct Properties: Property {
     ///         `@Parameter` using the name that was given to the wrapping `Properties` the
     ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(1)
-    public init(wrappedValue elements: [String: Property], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
+    public init(wrappedValue elements: [String: any Property], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = elements
         self.namingStrategy = namingStrategy
     }
@@ -42,7 +42,7 @@ public struct Properties: Property {
     ///         `@Parameter` using the name that was given to the wrapping `Properties` the
     ///         `namingStrategy` would be to return `names[names.count-2]`.
     /// - Complexity: O(n)
-    public init(_ elements: [(String, Property)], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
+    public init(_ elements: [(String, any Property)], namingStrategy: @escaping ([String]) -> String? = Self.defaultNamingStrategy) {
         self.elements = [:]
         for element in elements {
             self.elements[element.0] = element.1
@@ -55,7 +55,7 @@ public struct Properties: Property {
     }
     
     /// The named elements managed by this object.
-    public var wrappedValue: [String: Property] {
+    public var wrappedValue: [String: any Property] {
         self.elements
     }
     
@@ -71,7 +71,7 @@ extension Properties: ExpressibleByDictionaryLiteral {
     
     /// Create a new `Properties` from the given `elements`
     /// - Complexity: O(n)
-    public init(dictionaryLiteral elements: (String, Property)...) {
+    public init(dictionaryLiteral elements: (String, any Property)...) {
         self.elements = [:]
         for element in elements {
             self.elements[element.0] = element.1
@@ -81,7 +81,7 @@ extension Properties: ExpressibleByDictionaryLiteral {
 
 extension Properties: Collection {
     public typealias Index = Dictionary<String, Property>.Index
-    public typealias Element = (String, Property)
+    public typealias Element = (String, any Property)
     
     public var startIndex: Index {
         self.elements.startIndex

@@ -23,7 +23,7 @@ public class ConnectionContext<Input, H: Handler> {
     let delegate: Delegate<H>
     let strategy: AnyDecodingStrategy<Input>
     let defaults: DefaultValueStore
-    var listeners: [ObservedListener] = []
+    var listeners: [any ObservedListener] = []
     var observation: Observation?
     var latestRequest: MutabilityValidatingRequest<DefaultValueStore.DefaultInsertingRequest>?
     
@@ -34,7 +34,7 @@ public class ConnectionContext<Input, H: Handler> {
     }
     
     /// Evaluate the inner `Delegate` using the given `request`.
-    public func handle(request: Input, eventLoop: EventLoop, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
+    public func handle(request: Input, eventLoop: any EventLoop, final: Bool = true) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
         self.handleAndReturnParameters(request: request, eventLoop: eventLoop, final: final).map { response, _ in response }
     }
     
@@ -42,7 +42,7 @@ public class ConnectionContext<Input, H: Handler> {
     /// decoded input parameters based on the parameter's id.
     public func handleAndReturnParameters(
         request: Input,
-        eventLoop: EventLoop,
+        eventLoop: any EventLoop,
         final: Bool = true
     ) -> EventLoopFuture<(Apodini.Response<H.Response.Content>, (UUID) -> Any?)> {
         if self.observation == nil {
@@ -51,7 +51,7 @@ public class ConnectionContext<Input, H: Handler> {
             }
         }
         let request = strategy
-            .decodeRequest(from: request, with: (request as? RequestBasis) ?? DefaultRequestBasis(base: request), with: eventLoop)
+            .decodeRequest(from: request, with: (request as? any RequestBasis) ?? DefaultRequestBasis(base: request), with: eventLoop)
             .insertDefaults(with: defaults)
         self.latestRequest = latestRequest?.reduce(with: request) ?? MutabilityValidatingRequest(request)
         let cachingRequest = latestRequest!.cache()
@@ -62,8 +62,8 @@ public class ConnectionContext<Input, H: Handler> {
     
     /// Evaluate the inner `Delegate` based on the given `event`.
     public func handle(
-        eventLoop: EventLoop,
-        observedObject: AnyObservedObject? = nil,
+        eventLoop: any EventLoop,
+        observedObject: (any AnyObservedObject)? = nil,
         event: TriggerEvent
     ) -> EventLoopFuture<Apodini.Response<H.Response.Content>> {
         guard let request = self.latestRequest else {
@@ -74,7 +74,7 @@ public class ConnectionContext<Input, H: Handler> {
     
     /// Register an `ObservedListener` to be called whenever an `ObservableObject` observed by the `Delegate`
     /// is triggered.
-    public func register(listener: ObservedListener) {
+    public func register(listener: any ObservedListener) {
         listeners.append(listener)
     }
 }
@@ -89,7 +89,7 @@ public extension ConnectionContext where Input: WithEventLoop {
 /// Something that brings an NIO `EventLoop`.
 public protocol WithEventLoop {
     /// The `EventLoop` associated with this object.
-    var eventLoop: EventLoop { get }
+    var eventLoop: any EventLoop { get }
 }
 
 extension HTTPRequest: WithEventLoop { }
@@ -137,7 +137,7 @@ extension RESTInterfaceExporter: EndpointDecodingStrategyProvider {
 /// An object that can be called whenever a `TriggerEvent` is raised.
 public protocol ObservedListener {
     /// The function to be called whenever a `TriggerEvent` is raised.
-    func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent)
+    func onObservedDidChange(_ observedObject: any AnyObservedObject, _ event: TriggerEvent)
 }
 
 #endif

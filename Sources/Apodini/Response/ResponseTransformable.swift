@@ -22,7 +22,7 @@ public protocol ResponseTransformable {
     
     /// Transforms an `ResponseTransformable` into an `Response` to be processed by the Apodini
     /// - Parameter eventLoop: The `EventLoop` that should be used to transform the `ResponseTransformable` to an `Response` if needed
-    func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>>
+    func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Content>>
 }
 
 
@@ -38,7 +38,7 @@ extension Encodable {
     ///
     /// Transforms a `ResponseTransformable` into a `Response` to be processed by Apodini
     /// - Parameter eventLoop: The `EventLoop` that should be used to transform the `ResponseTransformable` to an `Response` if needed
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Self>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Self>> {
         eventLoop.makeSucceededFuture(.final(self))
     }
 }
@@ -48,7 +48,7 @@ extension Encodable {
 extension EventLoopFuture: ResponseTransformable where Value: ResponseTransformable {
     public typealias Content = Value.Content
     
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Content>> {
         self.hop(to: eventLoop)
             .flatMap { value in
                 value.transformToResponse(on: eventLoop)

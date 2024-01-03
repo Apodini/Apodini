@@ -55,12 +55,12 @@ extension Application {
     }
 
     /// default database
-    public var database: Database {
+    public var database: any Database {
         self.database(nil)
     }
 
     /// Get database with id
-    public func database(_ id: DatabaseID?) -> Database {
+    public func database(_ id: DatabaseID?) -> any Database {
         // swiftlint:disable force_unwrapping
         self.databases
             .database(
@@ -76,7 +76,7 @@ extension Application {
             let databases: Databases
             let migrations: Migrations
 
-            init(threadPool: NIOThreadPool, on eventLoopGroup: EventLoopGroup) {
+            init(threadPool: NIOThreadPool, on eventLoopGroup: any EventLoopGroup) {
                 self.databases = Databases(
                     threadPool: threadPool,
                     on: eventLoopGroup

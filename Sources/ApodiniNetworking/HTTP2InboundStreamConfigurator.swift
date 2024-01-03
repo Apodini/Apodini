@@ -19,11 +19,11 @@ class HTTP2InboundStreamConfigurator: ChannelInboundHandler, RemovableChannelHan
         enum MappingAction {
             /// Inserts NIO's `HTTP2FramePayloadToHTTP1ServerCodec` into the channel pipeline,
             /// and treats the stream as a HTTP2 connection serviced by a HTTP1 handler
-            case forwardToHTTP1Handler(HTTPResponder)
+            case forwardToHTTP1Handler(any HTTPResponder)
             //case forwardAsHTTP2
             /// Allows whoever created this config mapping to provide a custom configurator function,
             /// which will be given the opportunity to configure the channel.
-            case configureHTTP2Stream((Channel) -> EventLoopFuture<Void>)
+            case configureHTTP2Stream((any Channel) -> EventLoopFuture<Void>)
         }
         
         struct Mapping {

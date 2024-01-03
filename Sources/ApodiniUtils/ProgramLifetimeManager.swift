@@ -14,7 +14,7 @@ import Dispatch
 /// until it either crashes or receives a `SIGTERM` or `SIGINT` signal (i.e. was terminated by the user).
 public class ProgramLifetimeManager {
     private var promise: EventLoopPromise<Void>?
-    private var signalSources: [DispatchSourceSignal] = []
+    private var signalSources: [any DispatchSourceSignal] = []
     
     /// Whether the program currently is running
     public var isRunning: Bool { promise != nil }
@@ -24,7 +24,7 @@ public class ProgramLifetimeManager {
     
     /// Start a program lifecycle
     /// - returns: a future you can `wait()` on that will succeed once the program received either the `SIGTERM` or `SIGINT` signal
-    public func start(on eventLoop: EventLoop) -> EventLoopFuture<Void> {
+    public func start(on eventLoop: any EventLoop) -> EventLoopFuture<Void> {
         precondition(!isRunning, "Cannot start lifecycle that is already running")
         let promise = eventLoop.makePromise(of: Void.self)
         promise.futureResult.whenComplete { [unowned self] _ in

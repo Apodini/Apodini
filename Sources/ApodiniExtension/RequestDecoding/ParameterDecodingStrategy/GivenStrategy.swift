@@ -28,10 +28,10 @@ public struct GivenStrategy<E: Decodable, I>: ParameterDecodingStrategy {
 /// A ``ParameterDecodingStrategy`` that ignores its actual input and instead always
 /// throws the same `error`.
 public struct ThrowingStrategy<E: Decodable, I>: ParameterDecodingStrategy {
-    private let error: Error
+    private let error: any Error
     
     /// Create a new ``ThrowingStrategy`` that always throws `error`.
-    public init(_ error: Error) {
+    public init(_ error: any Error) {
         self.error = error
     }
     

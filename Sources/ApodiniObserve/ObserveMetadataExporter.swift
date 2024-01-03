@@ -17,7 +17,7 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
         public struct SharedRepositoryObserveMetadata {
             let endpointName: String
             let endpointParameters: EndpointParameters
-            let parameters: [(String, ParameterRetriever)]
+            let parameters: [(String, any ParameterRetriever)]
             let operation: Apodini.Operation
             let endpointPathComponents: EndpointPathComponents
             let context: Context
@@ -31,14 +31,14 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
     }
     
     let app: Apodini.Application
-    let exporterConfiguration: Configuration
+    let exporterConfiguration: any Configuration
     
     /// Internal initializer for the exporter
     /// - Parameters:
     ///   - app: The Apodini `Application`
     ///   - exporterConfiguration: The appropriate exporter configuration
     init(_ app: Apodini.Application,
-         _ exporterConfiguration: Configuration) {
+         _ exporterConfiguration: any Configuration) {
         self.app = app
         self.exporterConfiguration = exporterConfiguration
     }
@@ -60,7 +60,7 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
             SharedRepositoryObserveMetadata.SharedRepositoryObserveMetadata(
                 endpointName: Self.extractRawEndpointName(endpoint.description),
                 endpointParameters: endpoint[EndpointParameters.self],
-                parameters: endpoint[All<ParameterRetriever>.self].elements,
+                parameters: endpoint[All<any ParameterRetriever>.self].elements,
                 operation: endpoint[Operation.self],
                 endpointPathComponents: endpoint[EndpointPathComponents.self],
                 context: endpoint[Context.self],
@@ -91,11 +91,11 @@ public final class ObserveMetadataExporter: InterfaceExporter, TruthAnchor {
 /// A type-erased protocol implemented by `Parameter`. It allows ``ApodiniLogger`` to
 /// access input-values from a `Request` in an untyped manner.
 protocol ParameterRetriever {
-    func retrieveParameter(from request: Request) throws -> AnyEncodable
+    func retrieveParameter(from request: any Request) throws -> AnyEncodable
 }
 
 extension Parameter: ParameterRetriever {
-    func retrieveParameter(from request: Request) throws -> AnyEncodable {
+    func retrieveParameter(from request: any Request) throws -> AnyEncodable {
         AnyEncodable(try request.retrieveParameter(self))
     }
 }

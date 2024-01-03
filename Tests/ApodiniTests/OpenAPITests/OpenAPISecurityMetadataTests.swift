@@ -106,7 +106,7 @@ final class OpenAPISecurityMetadataTests: ApodiniTests, InterfaceExporterVisitor
             }
         }
 
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST {
                 OpenAPI()
             }

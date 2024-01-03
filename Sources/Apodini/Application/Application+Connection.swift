@@ -87,11 +87,11 @@ public struct Connection {
     /// Holds the state of the current client-side stream.
     public var state: ConnectionState = .end
     /// Holds the latest `Request`
-    public var request: Request
+    public var request: any Request
     /// The remote address of the client that created the request.
     public var remoteAddress: SocketAddress? { request.remoteAddress }
     /// The `EventLoop` the request is running on.
-    public var eventLoop: EventLoop { request.eventLoop }
+    public var eventLoop: any EventLoop { request.eventLoop }
     /// The `Information` the request is carrying.
     public var information: InformationSet { request.information }
 }

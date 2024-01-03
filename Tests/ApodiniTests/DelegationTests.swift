@@ -112,7 +112,7 @@ final class DelegationTests: ApodiniTests {
     
     func testLazyDecodingThroughDelegateCall() throws {
         struct Undecodable: Codable {
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 XCTFail("Unneeded lazy parameter was decoded.")
                 throw DecodingError.valueNotFound(Self.self,
                                                   .init(codingPath: [],
@@ -120,7 +120,7 @@ final class DelegationTests: ApodiniTests {
                                                         underlyingError: nil))
             }
             
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.singleValueContainer()
                 try container.encode(false)
             }
@@ -197,18 +197,18 @@ final class DelegationTests: ApodiniTests {
     }
     
     class TestListener<H: Handler>: ObservedListener where H.Response.Content: StringProtocol {
-        var eventLoop: EventLoop
+        var eventLoop: any EventLoop
         
         var context: ConnectionContext<String, H>
         
         var result: EventLoopFuture<TimeInterval>?
         
-        init(eventLoop: EventLoop, context: ConnectionContext<String, H>) {
+        init(eventLoop: any EventLoop, context: ConnectionContext<String, H>) {
             self.eventLoop = eventLoop
             self.context = context
         }
 
-        func onObservedDidChange(_ observedObject: AnyObservedObject, _ event: TriggerEvent) {
+        func onObservedDidChange(_ observedObject: any AnyObservedObject, _ event: TriggerEvent) {
             result = context.handle(eventLoop: eventLoop, observedObject: observedObject, event: event).map { response in
                 TimeInterval(response.content!)!
             }
@@ -625,7 +625,7 @@ private struct SimpleForwardFilter: DelegationFilter {
     static var calledIds: [Int] = []
 
     func callAsFunction<I: AnyDelegatingHandlerInitializer>(_ initializer: I) -> Bool {
-        if initializer is SomeSimpleForwardInit {
+        if initializer is any SomeSimpleForwardInit {
             return false
         }
         return true

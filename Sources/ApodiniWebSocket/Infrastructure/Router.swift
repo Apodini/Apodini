@@ -34,7 +34,7 @@ enum Message<T> {
     /// Send a message of type `T`
     case message(T)
     /// Send an error message **without** closing the connection.
-    case error(Error)
+    case error(any Error)
 }
 
 /// A `Router` provides an endpoint-based, typed abstraction of a WebSocket connection. It uses
@@ -49,7 +49,7 @@ protocol Router {
     /// on the input publisher) and can be executed by the server (a completion is sent on the `output`).
     func register<I: Input, O: Encodable>(
         on identifier: String,
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, any EventLoop, ConnectionInformation) ->
             (default: I, output: AnyAsyncSequence<Message<O>>)
     )
 }
@@ -133,7 +133,7 @@ final class VaporWSRouter: Router {
     /// different code.
     func register<I: Input, O: Encodable>(
         on identifier: String,
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, ConnectionInformation) -> (default: I, output: AnyAsyncSequence<Message<O>>)
+        _ opener: @escaping (AnyAsyncSequence<I>, any EventLoop, ConnectionInformation) -> (default: I, output: AnyAsyncSequence<Message<O>>)
     ) {
         if self.endpoints[identifier] != nil {
             self.logger.warning("Endpoint \(identifier) on VaporWSRouter registered at \(path.httpPathString) was registered more than once.")

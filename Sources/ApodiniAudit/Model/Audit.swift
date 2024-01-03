@@ -21,17 +21,17 @@ public struct Report {
 /// An `Audit` stores the findings of a best practice for an endpoint.
 /// There can be multiple findings, e.g. one for every URL segment of the endpoint.
 public class Audit {
-    var findings: [Finding] = []
+    var findings: [any Finding] = []
     /// The ``Endpoint`` this audit lists ``Finding``s for.
-    public var endpoint: AnyEndpoint
-    var bestPractice: BestPractice
+    public var endpoint: any AnyEndpoint
+    var bestPractice: any BestPractice
     
     /// Record a finding into this audit.
-    public func recordFinding(_ finding: Finding) {
+    public func recordFinding(_ finding: any Finding) {
         findings.append(finding)
     }
     
-    init(_ endpoint: AnyEndpoint, _ bestPractice: BestPractice) {
+    init(_ endpoint: any AnyEndpoint, _ bestPractice: any BestPractice) {
         self.endpoint = endpoint
         self.bestPractice = bestPractice
     }

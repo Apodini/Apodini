@@ -114,7 +114,7 @@ final class TracingHandlerTests: XCTestCase {
 
     func testFailureHandler_whenUserError() throws {
         // Arrange
-        var errorValue: Error?
+        var errorValue: (any Error)?
         var statusValue: SpanStatus?
         Self.tracer.startSpanHandler = { span in
             span.recordErrorHandler = { error in
@@ -152,7 +152,7 @@ final class TracingHandlerTests: XCTestCase {
 
     func testFailureHandler_whenServerError() throws {
         // Arrange
-        var errorValue: Error?
+        var errorValue: (any Error)?
         var statusValue: SpanStatus?
         Self.tracer.startSpanHandler = { span in
             span.recordErrorHandler = { error in

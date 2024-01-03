@@ -38,7 +38,7 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         preconditionTypeIsStruct(H.self, messagePrefix: "Delegating Handler")
 
         // Collect the Metadata from potential `Delegates` declared in the `Handler`
-        var metadata: [AnyMetadata] = []
+        var metadata: [any AnyMetadata] = []
         collectChildrenMetadata(from: handler, into: &metadata, ignoring: lastHandlerType)
         for entry in metadata {
             entry.collectMetadata(self.visitor)
@@ -72,9 +72,9 @@ class DelegatingHandlerInitializerVisitor: HandlerVisitor {
         // `initializers` now contain only the newly added ones
 
         // apply DelegationFilters
-        while let index = initializers.firstIndex(where: { $0.initializer is DelegationFilter && !$0.markedFiltered }) {
+        while let index = initializers.firstIndex(where: { $0.initializer is any DelegationFilter && !$0.markedFiltered }) {
             let filterEntry = initializers[index]
-            guard let filter = filterEntry.initializer as? DelegationFilter else {
+            guard let filter = filterEntry.initializer as? any DelegationFilter else {
                 fatalError("Reached inconsistent state. Someone introduced a bug somewhere!")
             }
 
@@ -168,16 +168,16 @@ private protocol DelegateWithComponentMetadata {
     ///   - metadata: The array of ``AnyMetadata`` the results should be collected into.
     ///   - handlerType: The ObjectIdentifier of the ``Handler`` visited last. Any Delegates with that
     ///     type are ignored to avoid getting into an infinite loop.
-    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?)
+    func collectMetadata(into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?)
 }
 
 private protocol DelegateWithComponentOnlyMetadata {
-    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?)
+    func collectMetadata(into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?)
 }
 
 
 private extension Delegate where D: AnyMetadataBlock {
-    func collectAnyMetadataBlock(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+    func collectAnyMetadataBlock(into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
         if handlerType == ObjectIdentifier(D.self) {
             return
         }
@@ -193,19 +193,19 @@ private extension Delegate where D: AnyMetadataBlock {
 
 
 extension Delegate: DelegateWithComponentMetadata where D: AnyComponentMetadataBlock {
-    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+    func collectMetadata(into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
         collectAnyMetadataBlock(into: &metadata, ignoring: handlerType)
     }
 }
 
 extension Delegate: DelegateWithComponentOnlyMetadata where D: AnyComponentOnlyMetadataBlock {
-    func collectMetadata(into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+    func collectMetadata(into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
         collectAnyMetadataBlock(into: &metadata, ignoring: handlerType)
     }
 }
 
 
-private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
+private func collectChildrenMetadata(from any: Any, into metadata: inout [any AnyMetadata], ignoring handlerType: ObjectIdentifier?) {
     // This is probably the part were its a bit weird how we set precedence for metadata reduction.
     // But we define that a property declared second has higher priority that the Delegate declared before,
     // similar how it is done in the Metadata Blocks itself.
@@ -213,9 +213,9 @@ private func collectChildrenMetadata(from any: Any, into metadata: inout [AnyMet
 
     let mirror = Mirror(reflecting: any)
     for (_, value) in mirror.children {
-        if let delegate = value as? DelegateWithComponentMetadata {
+        if let delegate = value as? any DelegateWithComponentMetadata {
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
-        } else if let delegate = value as? DelegateWithComponentOnlyMetadata {
+        } else if let delegate = value as? any DelegateWithComponentOnlyMetadata {
             delegate.collectMetadata(into: &metadata, ignoring: handlerType)
         }
     }

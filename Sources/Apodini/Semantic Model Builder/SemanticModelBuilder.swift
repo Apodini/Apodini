@@ -19,7 +19,7 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     /// towards parameter naming.
     private let allowLenientParameterNamespaces = true
     
-    private(set) var collectedEndpoints: [_AnyEndpoint] = []
+    private(set) var collectedEndpoints: [any _AnyEndpoint] = []
 
     init(_ app: Application) {
         self.app = app
@@ -55,10 +55,10 @@ class SemanticModelBuilder: InterfaceExporterVisitor {
     }
 
     private func call<I: InterfaceExporter>(exporter: I) {
-        let endpoints: [_AnyEndpoint]
+        let endpoints: [any _AnyEndpoint]
         do {
             endpoints = try app.lifecycle.handlers.reduce(self.collectedEndpoints) { endpoints, lifecycleHandler in
-                try endpoints.flatMap { try lifecycleHandler.map(endpoint: $0, app: self.app, for: exporter) as! [_AnyEndpoint] }
+                try endpoints.flatMap { try lifecycleHandler.map(endpoint: $0, app: self.app, for: exporter) as! [any _AnyEndpoint] }
             }
         } catch {
             fatalError("Error during lifecycle-endpoint-filtering: \(error)")

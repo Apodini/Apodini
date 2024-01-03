@@ -21,7 +21,7 @@ public extension Handler {
 
 public extension ResponseTransformer {
     /// A type erased version of a `ResponseTransformer`'s `Response` type
-    var transformedResponseContent: Encodable.Type {
+    var transformedResponseContent: any Encodable.Type {
         Self.Content.self
     }
     
@@ -30,7 +30,7 @@ public extension ResponseTransformer {
     /// - Parameter response: The input as a type-erased `Response<AnyEncodable>`
     /// - Parameter eventLoop: The `EventLoop` that should be used to retrieve the `Response` of the `ResponseTransformable`
     /// - Returns: The output as a type-erased `EventLoopFuture<Response<AnyEncodable>>`
-    func transform(response: Response<AnyEncodable>, on eventLoop: EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
+    func transform(response: Response<AnyEncodable>, on eventLoop: any EventLoop) -> EventLoopFuture<Response<AnyEncodable>> {
         guard let typedInputResponse = response.typed(Self.InputContent.self) else {
             fatalError("Could not cast the `Response<AnyEncodable>` passed to the `ResponseTransformer` to the expected \(Response<Self.Content>.self) type")
         }

@@ -32,8 +32,8 @@ public extension AsyncSequence where Element: Request {
 public struct MutabilityValidatingRequest<R: Request>: WithRequest, Initializable {
     public typealias InitialInput = R
     
-    public var request: Request {
-        _request as Request
+    public var request: any Request {
+        _request // as any Request // TODO(lk)
     }
     
     private var _request: R

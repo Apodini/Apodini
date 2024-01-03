@@ -18,7 +18,7 @@ typealias ProtobufRepeatedCodable = ProtobufRepeatedEncodable & ProtobufRepeated
 /// A type which can be encoded into a `repeated` field.
 /// - Note: This protocol is intentionally not public, because we don't want users to conform their custom types to it.
 protocol ProtobufRepeatedEncodable {
-    static var elementType: Encodable.Type { get }
+    static var elementType: any Encodable.Type { get }
     /// Whether the elements are encoded using the packed encoding
     static var isPacked: Bool { get }
     /// Encodes the object's elements into the encoder, keyed by the specified key.
@@ -26,14 +26,14 @@ protocol ProtobufRepeatedEncodable {
     /// The elements in the repeated value.
     /// - Note: This is used by `encodeElements(to:forKey:)`'s default implementation to get the elements in the repeated value.
     ///         This computed property should return an array of objects of the same type as `Self.elementType`.
-    var typeErasedElements: [Encodable] { get }
+    var typeErasedElements: [any Encodable] { get }
 }
 
 
 /// A type which can be decoded from a `repeated` field.
 /// - Note: This protocol is intentionally not public, because we don't want users to conform their custom types to it.
 protocol ProtobufRepeatedDecodable {
-    static var elementType: Decodable.Type { get }
+    static var elementType: any Decodable.Type { get }
     /// Whether the elements are encoded using the packed encoding
     static var isPacked: Bool { get }
     /// Initialises the type by decoding its elements from a ProtobufferDecoder, at the specified fields.
@@ -105,7 +105,7 @@ extension ProtobufRepeatedDecodable {
             precondition(fieldValueBytes.readableBytes == Int(fieldLength))
             switch guessWireType(Self.elementType)! {
             case .varInt: // valueBytes is a bunch of varInts following each other
-                let elementTy = Self.elementType as! ProtoVarIntInitialisable.Type
+                let elementTy = Self.elementType as! any ProtoVarIntInitialisable.Type
                 var elements: [Any] = []
                 while fieldValueBytes.readableBytes > 0 {
                     let varInt = try fieldValueBytes.readVarInt()
@@ -119,7 +119,7 @@ extension ProtobufRepeatedDecodable {
                 // valueBytes is a bunch of 32-bit values following each other
                 precondition(fieldValueBytes.readableBytes.isMultiple(of: u32Size), "Invalid length for packed array of 32-bit values")
                 let numElements = fieldValueBytes.readableBytes / u32Size
-                let elementTy = Self.elementType as! Proto32BitValueInitialisable.Type
+                let elementTy = Self.elementType as! any Proto32BitValueInitialisable.Type
                 self.init(typeErasedElements: try (0..<numElements).map { idx in
                     if let u32Val = fieldValueBytes.readInteger(endianness: .little, as: UInt32.self) {
                         if let element = elementTy.init(proto32BitValue: u32Val) {
@@ -143,7 +143,7 @@ extension ProtobufRepeatedDecodable {
                 let u64Size = MemoryLayout<UInt64>.size
                 precondition(fieldValueBytes.readableBytes.isMultiple(of: u64Size), "Invalid length for packed array of 64-bit values")
                 let numElements = fieldValueBytes.readableBytes / u64Size
-                let elementTy = Self.elementType as! Proto64BitValueInitialisable.Type
+                let elementTy = Self.elementType as! any Proto64BitValueInitialisable.Type
                 self.init(typeErasedElements: try (0..<numElements).map { idx in
                     if let u64Val = fieldValueBytes.readInteger(endianness: .little, as: UInt64.self) {
                         if let element = elementTy.init(proto64BitValue: u64Val) {
@@ -185,7 +185,7 @@ extension ProtobufRepeatedDecodable {
 // MARK: Array
 
 extension Array: ProtobufRepeatedEncodable where Element: Encodable {
-    static var elementType: Encodable.Type { Element.self }
+    static var elementType: any Encodable.Type { Element.self }
     
     static var isPacked: Bool {
         switch guessWireType(Element.self)! {
@@ -196,14 +196,14 @@ extension Array: ProtobufRepeatedEncodable where Element: Encodable {
         }
     }
     
-    var typeErasedElements: [Encodable] {
+    var typeErasedElements: [any Encodable] {
         self
     }
 }
 
 
 extension Array: ProtobufRepeatedDecodable where Element: Decodable {
-    static var elementType: Decodable.Type { Element.self }
+    static var elementType: any Decodable.Type { Element.self }
     
     static var isPacked: Bool {
         switch guessWireType(Element.self)! {
@@ -229,15 +229,15 @@ typealias ProtobufMapCodable = ProtobufMapEncodable & ProtobufMapDecodable
 
 /// A proto3 `map<K, V>`-encodable type, i.e. a `Dictionary<K, V>` in Swift. Maps are encoded as repeated fields, so we inherit the `ProtobufRepeatedEncodable` protocol to get that behaviour.
 protocol ProtobufMapEncodable: ProtobufRepeatedEncodable {
-    static var keyType: Encodable.Type { get }
-    static var valueType: Encodable.Type { get }
+    static var keyType: any Encodable.Type { get }
+    static var valueType: any Encodable.Type { get }
 }
 
 
 /// A proto3 `map<K, V>`-decodable type, i.e. a `Dictionary<K, V>` in Swift. Maps are encoded as repeated fields, so we inherit the `ProtobufRepeatedEncodable` protocol to get that behaviour.
 protocol ProtobufMapDecodable: ProtobufRepeatedDecodable {
-    static var keyType: Decodable.Type { get }
-    static var valueType: Decodable.Type { get }
+    static var keyType: any Decodable.Type { get }
+    static var valueType: any Decodable.Type { get }
 }
 
 
@@ -262,23 +262,23 @@ extension ProtobufMapFieldEntry: Hashable where Key: Hashable, Value: Hashable {
 
 
 extension Dictionary: ProtobufMapEncodable & ProtobufRepeatedEncodable where Key: Encodable, Value: Encodable {
-    static var keyType: Encodable.Type { Key.self }
-    static var valueType: Encodable.Type { Value.self }
+    static var keyType: any Encodable.Type { Key.self }
+    static var valueType: any Encodable.Type { Value.self }
     
-    static var elementType: Encodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
+    static var elementType: any Encodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
     static var isPacked: Bool { false }
     
-    var typeErasedElements: [Encodable] {
+    var typeErasedElements: [any Encodable] {
         self.map { ProtobufMapFieldEntry(key: $0, value: $1) }
     }
 }
 
 
 extension Dictionary: ProtobufMapDecodable & ProtobufRepeatedDecodable where Key: Decodable, Value: Decodable {
-    static var keyType: Decodable.Type { Key.self }
-    static var valueType: Decodable.Type { Value.self }
+    static var keyType: any Decodable.Type { Key.self }
+    static var valueType: any Decodable.Type { Value.self }
     
-    static var elementType: Decodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
+    static var elementType: any Decodable.Type { ProtobufMapFieldEntry<Key, Value>.self }
     static var isPacked: Bool { false }
     
     init(typeErasedElements elements: [Any]) {

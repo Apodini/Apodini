@@ -23,9 +23,9 @@ public class RelationshipSource<From, To>: RelationshipsContentMetadataBlock {
 
     let name: String
     let destinationType: To.Type
-    let resolvers: [AnyPathParameterResolver]
+    let resolvers: [any AnyPathParameterResolver]
 
-    fileprivate init(name: String, destinationType: To.Type, resolvers: [AnyPathParameterResolver]) {
+    fileprivate init(name: String, destinationType: To.Type, resolvers: [any AnyPathParameterResolver]) {
         self.name = name
         self.destinationType = destinationType
         self.resolvers = resolvers

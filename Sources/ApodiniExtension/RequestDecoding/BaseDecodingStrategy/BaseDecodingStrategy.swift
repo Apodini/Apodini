@@ -61,7 +61,7 @@ public extension BaseDecodingStrategy {
 
 /// A type-erased wrapper around any ``BaseDecodingStrategy``.
 public struct AnyBaseDecodingStrategy<Input>: BaseDecodingStrategy {
-    private let caller: BaseDecodingStrategyCaller
+    private let caller: any BaseDecodingStrategyCaller
     
     
     init<S: BaseDecodingStrategy>(_ strategy: S) where S.Input == Input {

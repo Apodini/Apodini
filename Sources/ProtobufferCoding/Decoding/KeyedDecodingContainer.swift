@@ -21,38 +21,38 @@ import ApodiniUtils
 /// So we have to work around this by storing the to-be-decoded type in a global variable, and then passing a specific single-purpose type to `decode`,
 /// which will not be decoded itself, but rather serves to tell the decode function to decode the type stored in here.
 /// (Look, I'm not appy about this either...)
-private let typeToDecode = ThreadSpecificVariable<Box<Decodable.Type>>()
+private let typeToDecode = ThreadSpecificVariable<Box<any Decodable.Type>>()
 
 
 extension KeyedDecodingContainerProtocol {
     @_disfavoredOverload
-    func decode(_ type: Decodable.Type, forKey key: Key) throws -> Decodable {
+    func decode(_ type: any Decodable.Type, forKey key: Key) throws -> any Decodable {
         precondition(typeToDecode.currentValue == nil)
         typeToDecode.currentValue = Box(type)
         let helperResult = try decode(DecodeTypeErasedDecodableTypeHelper.self, forKey: key)
         precondition(typeToDecode.currentValue == nil)
-        return helperResult.value as! Decodable
+        return helperResult.value as! any Decodable
     }
 }
 
 
 private struct DecodeTypeErasedDecodableTypeHelper: Decodable {
     let value: Any
-    let originalType: Decodable.Type
+    let originalType: any Decodable.Type
     
-    init(value: Any, originalType: Decodable.Type) {
+    init(value: Any, originalType: any Decodable.Type) {
         self.value = value
         self.originalType = originalType
     }
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         fatalError("Should be unreachable. If you end up here, that means that you used a decoder which didn't properly handle the \(Self.self) type.")
     }
 }
 
 
 struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     private let buffer: ByteBuffer
     let fields: ProtobufFieldsMapping
     
@@ -60,7 +60,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         fields.allFields.mapIntoSet(\.tag).compactMap { Key(intValue: $0) }
     }
     
-    init(codingPath: [CodingKey], buffer: ByteBuffer) throws {
+    init(codingPath: [any CodingKey], buffer: ByteBuffer) throws {
         self.codingPath = codingPath
         self.buffer = buffer
         self.fields = try ProtobufMessageLayoutDecoder.getFields(in: buffer)
@@ -185,15 +185,15 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         fatalError("Not implemented (type: \(type), key: \(key))")
     }
     
-    func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+    func nestedUnkeyedContainer(forKey key: Key) throws -> any UnkeyedDecodingContainer {
         fatalError("Not implemented (key: \(key))")
     }
     
-    func superDecoder() throws -> Decoder {
+    func superDecoder() throws -> any Decoder {
         fatalError("Not implemented")
     }
     
-    func superDecoder(forKey key: Key) throws -> Decoder {
+    func superDecoder(forKey key: Key) throws -> any Decoder {
         fatalError("Not implemented (key: \(key))")
     }
     
@@ -237,7 +237,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
     
     
     func _decode( // swiftlint:disable:this identifier_name cyclomatic_complexity
-        _ type: Decodable.Type,
+        _ type: any Decodable.Type,
         forKey key: Key,
         keyOffset: Int?
     ) throws -> Any {
@@ -249,13 +249,13 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                 value: try _decode(type, forKey: key, keyOffset: keyOffset),
                 originalType: type
             )
-        } else if (type as? _ProtobufEmbeddedType.Type) != nil {
+        } else if (type as? any _ProtobufEmbeddedType.Type) != nil {
             // We're asked to decode an embedded type (currently only oneof, as far as i'm aware),
             // which means what we need to ignore the coding key.
             // Note: since oneofs can't be repeated, we can safely ignore a potentially specified offset here
             precondition(keyOffset == nil)
             return try type.init(from: _ProtobufferDecoder(codingPath: codingPath, buffer: buffer))
-        } else if let protobufRepeatedTy = type as? ProtobufRepeatedDecodable.Type {
+        } else if let protobufRepeatedTy = type as? any ProtobufRepeatedDecodable.Type {
             let decoder = _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: buffer)
             let retval = try protobufRepeatedTy.init(
                 decodingFrom: decoder,
@@ -263,8 +263,8 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                 atFields: fields.getAll(forFieldNumber: key.getProtoFieldNumber())
             )
             return retval
-        } else if let optionalTy = type as? AnyOptional.Type {
-            return try _decodeIfPresent(optionalTy.wrappedType as! Decodable.Type, forKey: key, atKeyOffset: keyOffset) as Any
+        } else if let optionalTy = type as? any AnyOptional.Type {
+            return try _decodeIfPresent(optionalTy.wrappedType as! any Decodable.Type, forKey: key, atKeyOffset: keyOffset) as Any
         } else if keyOffset == nil && type == String.self {
             return try decode(String.self, forKey: key)
         } else if keyOffset == nil && type == Int.self {
@@ -286,7 +286,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
         } else if keyOffset == nil && type == Float.self {
             return try decode(Float.self, forKey: key)
         } else {
-            if let enumTy = type as? AnyProtobufEnum.Type, !contains(key, atOffset: keyOffset) {
+            if let enumTy = type as? any AnyProtobufEnum.Type, !contains(key, atOffset: keyOffset) {
                 // Decoding an enum which is not present in the message, so we need to replace it with the default value
                 switch getProtoSyntax(enumTy) {
                 case .proto2:
@@ -309,7 +309,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
                 precondition(
                     fieldInfo.valueInfo == .lengthDelimited(dataLength: length, dataOffset: adjustedValueBytes.readerIndex - valueBytes.readerIndex)
                 )
-                if let bytesMappedTy = type as? ProtobufBytesMapped.Type {
+                if let bytesMappedTy = type as? any ProtobufBytesMapped.Type {
                     return try bytesMappedTy.init(rawBytes: adjustedValueBytes)
                 } else if type == String.self {
                     return try String(from: _ProtobufferDecoder(codingPath: codingPath.appending(key), userInfo: [:], buffer: valueBytes))
@@ -412,7 +412,7 @@ struct ProtobufferDecoderKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingCo
     }
     
     
-    private func _decodeIfPresent(_ type: Decodable.Type, forKey key: Key, atKeyOffset keyOffset: Int? = nil) throws -> Any? {
+    private func _decodeIfPresent(_ type: any Decodable.Type, forKey key: Key, atKeyOffset keyOffset: Int? = nil) throws -> Any? {
         if let keyOffset = keyOffset, fields.getAll(forFieldNumber: key.getProtoFieldNumber()).contains(where: { $0.keyOffset == keyOffset }) {
             // We're given an explicit key offset, but can't find something at that offset
             return .none

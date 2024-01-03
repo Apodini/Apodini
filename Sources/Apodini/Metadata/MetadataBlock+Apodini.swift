@@ -48,8 +48,8 @@ public protocol HandlerMetadataBlock: AnyHandlerMetadataBlock {
 
 extension HandlerMetadataBlock {
     /// Returns the type erased metadata content of the `AnyMetadataBlock`.
-    public var typeErasedContent: AnyMetadata {
-        self.metadata as! AnyMetadata
+    public var typeErasedContent: any AnyMetadata {
+        self.metadata as! any AnyMetadata
     }
 }
 
@@ -81,8 +81,8 @@ public protocol ComponentOnlyMetadataBlock: AnyComponentOnlyMetadataBlock {
 
 extension ComponentOnlyMetadataBlock {
     /// Returns the type erased metadata content of the `AnyMetadataBlock`.
-    public var typeErasedContent: AnyMetadata {
-        self.metadata as! AnyMetadata
+    public var typeErasedContent: any AnyMetadata {
+        self.metadata as! any AnyMetadata
     }
 }
 
@@ -116,8 +116,8 @@ public protocol WebServiceMetadataBlock: AnyWebServiceMetadataBlock {
 
 extension WebServiceMetadataBlock {
     /// Returns the type erased metadata content of the `AnyMetadataBlock`.
-    public var typeErasedContent: AnyMetadata {
-        self.metadata as! AnyMetadata
+    public var typeErasedContent: any AnyMetadata {
+        self.metadata as! any AnyMetadata // TODO(lk) is the cast even needed? (here and in a couple other places)
     }
 }
 
@@ -151,8 +151,8 @@ public protocol ComponentMetadataBlock: AnyComponentMetadataBlock {
 
 extension ComponentMetadataBlock {
     /// Returns the type erased metadata content of the `AnyMetadataBlock`.
-    public var typeErasedContent: AnyMetadata {
-        self.metadata as! AnyMetadata
+    public var typeErasedContent: any AnyMetadata {
+        self.metadata as! any AnyMetadata
     }
 }
 
@@ -193,9 +193,9 @@ extension ComponentMetadataNamespace {
 /// }
 /// ```
 public struct StandardHandlerMetadataBlock: HandlerMetadataBlock {
-    public var metadata: AnyHandlerMetadata
+    public var metadata: any AnyHandlerMetadata
 
-    public init(@MetadataBuilder<MetadataBuilderScope_Handler> metadata: () -> AnyHandlerMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_Handler> metadata: () -> any AnyHandlerMetadata) {
         self.metadata = metadata()
     }
 }
@@ -217,9 +217,9 @@ public struct StandardHandlerMetadataBlock: HandlerMetadataBlock {
 /// }
 /// ```
 public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
-    public var metadata: AnyComponentOnlyMetadata
+    public var metadata: any AnyComponentOnlyMetadata
 
-    public init(@MetadataBuilder<MetadataBuilderScope_ComponentOnly> metadata: () -> AnyComponentOnlyMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_ComponentOnly> metadata: () -> any AnyComponentOnlyMetadata) {
         self.metadata = metadata()
     }
 }
@@ -240,9 +240,9 @@ public struct StandardComponentOnlyMetadataBlock: ComponentOnlyMetadataBlock {
 /// }
 /// ```
 public struct StandardWebServiceMetadataBlock: WebServiceMetadataBlock {
-    public var metadata: AnyWebServiceMetadata
+    public var metadata: any AnyWebServiceMetadata
 
-    public init(@MetadataBuilder<MetadataBuilderScope_WebService> metadata: () -> AnyWebServiceMetadata) {
+    public init(@MetadataBuilder<MetadataBuilderScope_WebService> metadata: () -> any AnyWebServiceMetadata) {
         self.metadata = metadata()
     }
 }
@@ -264,9 +264,9 @@ public struct StandardWebServiceMetadataBlock: WebServiceMetadataBlock {
 /// }
 /// ```
 public struct StandardComponentMetadataBlock: ComponentMetadataBlock {
-    public var metadata: AnyComponentMetadata
+    public var metadata: any AnyComponentMetadata
 
-    public init(@ComponentMetadataBuilder metadata: () -> AnyComponentMetadata) {
+    public init(@ComponentMetadataBuilder metadata: () -> any AnyComponentMetadata) {
         self.metadata = metadata()
     }
 }

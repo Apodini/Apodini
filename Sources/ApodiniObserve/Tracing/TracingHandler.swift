@@ -65,7 +65,7 @@ struct TracingHandler<H: Handler>: Handler {
         "\(sharedRepositoryMetadata.operation.description) \(sharedRepositoryMetadata.endpointName)"
     }
 
-    private func setEndpointMetadata(to span: Span) {
+    private func setEndpointMetadata(to span: any Span) {
         span.attributes.apodini.endpointName = sharedRepositoryMetadata.endpointName
         span.attributes.apodini.endpointOperation = sharedRepositoryMetadata.operation.description
         span.attributes.apodini.endpointPath = String(
@@ -81,7 +81,7 @@ struct TracingHandler<H: Handler>: Handler {
         )?.debugDescription ?? "unknown"
     }
 
-    private func setErrorMetadata(to span: Span, for error: Error) {
+    private func setErrorMetadata(to span: any Span, for error: any Error) {
         // Tracers need to convert an Error to a String to record it. The OTel implementation uses String(describing:) internally.
         // Because ApodiniError currently doesn't conform to CustomStringConvertible/CustomDebugStringConvertible,
         // this results in a quite an ugly string representation in the trace.

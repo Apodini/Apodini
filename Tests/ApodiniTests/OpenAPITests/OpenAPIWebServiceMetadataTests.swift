@@ -44,7 +44,7 @@ final class OpenAPIWebServiceMetadataTests: ApodiniTests, InterfaceExporterVisit
             )
         }
 
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTPConfiguration(hostname: Hostname(address: "example.com"))
             REST {
                 ApodiniOpenAPI.OpenAPI(title: "ExampleWebService")

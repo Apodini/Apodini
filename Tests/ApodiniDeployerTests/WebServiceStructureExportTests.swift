@@ -29,7 +29,7 @@ private struct TestWebService: Apodini.WebService {
         }
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         REST {
             OpenAPI()
         }

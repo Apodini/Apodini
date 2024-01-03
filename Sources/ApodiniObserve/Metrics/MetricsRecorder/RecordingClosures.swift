@@ -15,5 +15,5 @@ public enum RecordingClosures<Key: Hashable, Value> {
     /// The closure type of a closure which is executed after the handler is processed (also in case of an exception)
     public typealias After = (ObserveMetadata.Value, Logger.Metadata, [Key: Value]) -> Void
     /// The closure type of a closure which is executed if the handler throws an exception
-    public typealias AfterException = (ObserveMetadata.Value, Logger.Metadata, Error, [Key: Value]) -> Void
+    public typealias AfterException = (ObserveMetadata.Value, Logger.Metadata, any Error, [Key: Value]) -> Void
 }

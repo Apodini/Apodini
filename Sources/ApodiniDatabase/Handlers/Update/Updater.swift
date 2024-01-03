@@ -27,7 +27,7 @@ internal struct Updater<Model: DatabaseModel> {
         self.modelID = modelId
     }
     
-    func executeUpdate(on database: Database) -> EventLoopFuture<Model> {
+    func executeUpdate(on database: any Database) -> EventLoopFuture<Model> {
         Model
             .find(modelID, on: database)
             .unwrap(orError: HTTPAbortError(status: .notFound))
@@ -50,7 +50,7 @@ internal struct Updater<Model: DatabaseModel> {
     /// It iterates over all properties of the model and updates all which are found in the request.
     private func executeUpdateWithParameters(on model: inout Model) {
         for child in Mirror(reflecting: model).children {
-            guard let visitable = child.value as? UpdatableFieldProperty,
+            guard let visitable = child.value as? any UpdatableFieldProperty,
                   let label = child.label else {
                 continue
             }

@@ -22,7 +22,7 @@ public struct Delegate<D> {
         var delegate: D
         weak var observation: Observation?
         // swiftlint:disable:next discouraged_optional_collection
-        var observables: [(AnyObservedObject, Observation)]?
+        var observables: [(any AnyObservedObject, Observation)]?
         var changed = false
         // storage for observable objects set via .setObservable
         var observableObjectsSetters: [() -> Void] = []
@@ -78,7 +78,7 @@ public struct Delegate<D> {
         // ConnectionContext earlier
         if store.value.observation != nil {
             if store.value.observables == nil {
-                var observables = [(AnyObservedObject, Observation)]()
+                var observables = [(any AnyObservedObject, Observation)]()
                 defer {
                     store.value.observables = observables
                 }
@@ -247,7 +247,7 @@ extension Delegate: TypeInjectable {
 
 extension Delegate: RequestInjectable {
     // We conform `Delegate` to `RequestInjectable`. This way requests are not injected into the `delegate` right away.
-    func inject(using request: Request) throws { }
+    func inject(using request: any Request) throws { } // TODO(lk) make this a properly-generic function?
 }
 
 // Delegate bundles all contained ObservedObjects into one.
@@ -303,7 +303,7 @@ extension Delegate: AnyObservedObject {
 
 public extension _Internal {
     /// Evaluates the delegate using the given `state` and `request`.
-    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: Request, with state: ConnectionState = .end) async throws -> H.Response {
+    static func evaluate<H: Handler>(delegate: Delegate<H>, using request: any Request, with state: ConnectionState = .end) async throws -> H.Response { // TODO(lk) make this generic over the request type?
         do {
             delegate.inject(Connection(state: state, request: request), for: \Application.connection)
             try delegate.inject(using: request)

@@ -14,10 +14,10 @@ import Apodini
 /// - Note: Thrown `Error`s will be forwarded transparently so they can be
 ///         handled properly afterwards.
 public struct DecodingErrorForwardingRequest: WithRequest {
-    public let request: Request
-    let forwardClosure: (Error) -> Void
+    public let request: any Request
+    let forwardClosure: (any Error) -> Void
 
-    init(request: Request, forward forwardClosure: @escaping (Error) -> Void) {
+    init(request: any Request, forward forwardClosure: @escaping (any Error) -> Void) {
         self.request = request
         self.forwardClosure = forwardClosure
     }
@@ -33,7 +33,7 @@ public struct DecodingErrorForwardingRequest: WithRequest {
 }
 
 extension ErrorForwarder {
-    func forwardDecodingErrors(_ request: Request) -> DecodingErrorForwardingRequest {
+    func forwardDecodingErrors(_ request: any Request) -> DecodingErrorForwardingRequest {
         DecodingErrorForwardingRequest(request: request, forward: forwardClosure ?? { _ in })
     }
 }

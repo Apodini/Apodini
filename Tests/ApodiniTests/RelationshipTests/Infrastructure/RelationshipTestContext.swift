@@ -42,7 +42,7 @@ class RelationshipTestContext {
         self.exporter = retrieval.retrieved
     }
 
-    func endpoint(on index: Int) -> AnyEndpoint {
+    func endpoint(on index: Int) -> any AnyEndpoint {
         endpoints[index].endpoint
     }
 

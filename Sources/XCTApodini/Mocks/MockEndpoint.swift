@@ -36,7 +36,7 @@ public extension Handler {
             handler = handler.inject(app: application)
         }
         
-        var sharedRepository: SharedRepository
+        var sharedRepository: any SharedRepository
         if let application = app {
             sharedRepository = LocalSharedRepository<LazyHashmapSharedRepository, GlobalSharedRepository<LazyHashmapSharedRepository>>(
                 GlobalSharedRepository<LazyHashmapSharedRepository>(application),

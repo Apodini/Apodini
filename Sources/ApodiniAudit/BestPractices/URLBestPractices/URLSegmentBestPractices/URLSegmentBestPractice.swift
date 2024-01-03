@@ -11,7 +11,7 @@ import Apodini
 protocol URLSegmentBestPractice: BestPractice {
     var checkedSegments: [String] { get set }
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding?
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)?
 }
 
 extension URLSegmentBestPractice {

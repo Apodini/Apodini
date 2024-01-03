@@ -57,7 +57,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(SecondTestResponseMediator())
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -100,7 +100,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(ThirdTestResponseMediator())
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -133,7 +133,7 @@ final class ConcatenatedResponseTransformerTests: ApodiniTests {
                     .response(ThirdTestResponseMediator())
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

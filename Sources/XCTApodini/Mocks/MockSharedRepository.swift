@@ -13,10 +13,10 @@ import Foundation
 /// A `SharedRepository` which only provides access to the `contents` provided on initialization or values
 /// that have previously been placed on the shared repository.
 public class MockSharedRepository: SharedRepository {
-    private var content: [ObjectIdentifier: KnowledgeSource]
+    private var content: [ObjectIdentifier: any KnowledgeSource]
     
-    public init(_ contents: (KnowledgeSource.Type, KnowledgeSource)...) {
-        var storage = [ObjectIdentifier: KnowledgeSource]()
+    public init(_ contents: (any KnowledgeSource.Type, any KnowledgeSource)...) {
+        var storage = [ObjectIdentifier: any KnowledgeSource]()
         for content in contents {
             storage[ObjectIdentifier(content.0)] = content.1
         }
@@ -39,7 +39,7 @@ public class MockSharedRepository: SharedRepository {
 
 public extension RelationshipWebServiceModel {
     /// Create a `RelationshipWebServiceModel` providing access to an empty global `SharedRepository`
-    convenience init(mockSharedRepository: SharedRepository = MockSharedRepository()) {
+    convenience init(mockSharedRepository: any SharedRepository = MockSharedRepository()) {
         self.init(mockSharedRepository)
     }
 }

@@ -11,7 +11,7 @@ import Foundation
 public enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible {
     case root
     case string(_ path: String)
-    case parameter(_ parameter: AnyEndpointPathParameter)
+    case parameter(_ parameter: any AnyEndpointPathParameter)
 
     public var description: String {
         switch self {
@@ -45,7 +45,7 @@ public enum EndpointPath: CustomStringConvertible, CustomDebugStringConvertible 
         return false
     }
 
-    func scoped(on endpoint: ParameterCollection) -> EndpointPath {
+    func scoped(on endpoint: any ParameterCollection) -> EndpointPath {
         if case let .parameter(parameter) = self {
             var parameter = parameter.toInternal()
             parameter.scoped(on: endpoint)
@@ -107,7 +107,7 @@ public protocol AnyEndpointPathParameter: CustomStringConvertible {
     var description: String { get }
     /// Defines the property type of the `PathParameter` declaration in a statically accessible way.
     /// Use `PathBuilder` to access the `EndpointPathParameter` in a generic way.
-    var propertyType: Codable.Type { get }
+    var propertyType: any Codable.Type { get }
     /// Defines which data type the `EndpointPathParameter` is identifying,
     /// meaning the value of the path parameter uniquely identifies a instance of supplied data type.
     /// The property is an Optional as the user might not specify such a type with `@PathParameter`.
@@ -128,8 +128,8 @@ public protocol AnyEndpointPathParameter: CustomStringConvertible {
 }
 
 extension AnyEndpointPathParameter {
-    func toInternal() -> _AnyEndpointPathParameter {
-        guard let parameter = self as? _AnyEndpointPathParameter else {
+    func toInternal() -> any _AnyEndpointPathParameter {
+        guard let parameter = self as? any _AnyEndpointPathParameter else {
             fatalError("Encountered `AnyEndpointPathParameter` which doesn't conform to `_AnyEndpointPathParameter`: \(self)!")
         }
         return parameter
@@ -150,7 +150,7 @@ protocol _AnyEndpointPathParameter: AnyEndpointPathParameter {
     /// - `scopedEndpointHasDefinedParameter`
     ///
     /// - Parameter endpoint: The scope to use for the Parameter
-    mutating func scoped(on endpoint: ParameterCollection)
+    mutating func scoped(on endpoint: any ParameterCollection)
 
     /// Internal method to remove the scope of a PathParameter again.
     /// See `scoped(on:)` for more information on scoped PathParameters.
@@ -179,7 +179,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         ":\(id)"
     }
 
-    public var propertyType: Codable.Type {
+    public var propertyType: any Codable.Type {
         Type.self
     }
     public var identifyingType: IdentifyingType?
@@ -211,7 +211,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
         self.identifyingType = identifyingType
     }
 
-    mutating func scoped(on endpoint: ParameterCollection) {
+    mutating func scoped(on endpoint: any ParameterCollection) {
         precondition(storedScopedEndpointHasDefinedParameter == nil, "Cannot scope an already scoped EndpointPathParameter!")
 
         if let parameter = endpoint.findParameter(for: id) {
@@ -243,7 +243,7 @@ public struct EndpointPathParameter<Type: Codable>: _AnyEndpointPathParameter {
 
 // MARK: EndpointPath
 extension Array where Element == EndpointPath {
-    func scoped(on endpoint: ParameterCollection) -> [Element] {
+    func scoped(on endpoint: any ParameterCollection) -> [Element] { // TODO make this generic over the param?
         map { path in
             path.scoped(on: endpoint)
         }
@@ -274,7 +274,7 @@ extension Array where Element == EndpointPath {
 
 // MARK: EndpointPath
 extension Array where Element == EndpointPath {
-    func listPathParameters() -> [AnyEndpointPathParameter] {
+    func listPathParameters() -> [any AnyEndpointPathParameter] {
         reduce(into: []) { result, path in
             if case let .parameter(parameter) = path {
                 result.append(parameter)

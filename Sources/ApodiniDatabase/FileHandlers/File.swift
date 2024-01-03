@@ -31,7 +31,7 @@ public struct File: Codable {
     }
     
     /// `Decodable` conformance.
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let data = try container.decode(Data.self, forKey: .data)
         var buffer = ByteBufferAllocator().buffer(capacity: 0)
@@ -41,7 +41,7 @@ public struct File: Codable {
     }
     
     /// `Encodable` conformance.
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         let data = self.data.getData(at: self.data.readerIndex, length: self.data.readableBytes)
         try container.encode(data, forKey: .data)

@@ -30,7 +30,7 @@ public protocol Component: AnyComponentOnlyMetadataBlock {
 // MARK: Metadata DSL
 public extension Component {
     /// Components have an empty `AnyComponentOnlyMetadata` by default.
-    var metadata: AnyComponentOnlyMetadata {
+    var metadata: any AnyComponentOnlyMetadata {
         Empty()
     }
 }
@@ -38,8 +38,8 @@ public extension Component {
 // MARK: AnyMetadataBlock
 public extension Component {
     /// Returns the type erased metadata content of the ``Component``.
-    var typeErasedContent: AnyMetadata {
-        self.metadata as! AnyMetadata
+    var typeErasedContent: any AnyMetadata {
+        self.metadata as! any AnyMetadata
     }
 }
 
@@ -56,7 +56,7 @@ extension Component {
 
         visitor.markContextWorkSetBegin()
 
-        if let visitable = self as? SyntaxTreeVisitable {
+        if let visitable = self as? any SyntaxTreeVisitable {
             // This cases covers any Components conforming to SyntaxTreeVisitable.
             // Most commonly this are Modifiers, but also Components like `Group`
             // or special purpose Components like `TupleComponent`
@@ -64,7 +64,7 @@ extension Component {
             // As stated above, this might be a Modifier and the Metadata of Modifiers can't be accessed.
             // So we only start parsing the metadata if in fact we know that it isn't a Modifier.
             if (self as? any Modifier) == nil {
-                (metadata as! AnyMetadata).collectMetadata(visitor)
+                (metadata as! any AnyMetadata).collectMetadata(visitor)
             }
 
             visitable.accept(visitor)
@@ -75,7 +75,7 @@ extension Component {
                 // Covering components which are not Handlers and don't conform to `SyntaxTreeVisitable`.
                 // Such Components are typically constructed by users.
                 // Executed before we enter the content below.
-                (metadata as! AnyMetadata).collectMetadata(visitor)
+                (metadata as! any AnyMetadata).collectMetadata(visitor)
             }
 
             if Self.Content.self != Never.self {

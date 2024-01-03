@@ -19,14 +19,14 @@ public struct NamedChildPatternStrategy<P: DecodingPattern>: ParameterDecodingSt
     
     private let name: String
     
-    private let decoder: AnyDecoder
+    private let decoder: any AnyDecoder
     
     /// Create a new ``NamedChildPatternStrategy``.
     ///
     /// - Parameters:
     ///     - `name`:  The name that is provided to the ``DynamicNamePattern`` if that is part of `P`
     ///     - `decoder`: The decoder that is used to decode `P` from the input `Data`
-    public init(_ name: String, _ decoder: AnyDecoder) {
+    public init(_ name: String, _ decoder: any AnyDecoder) {
         self.name = name
         self.decoder = decoder
     }

@@ -14,7 +14,7 @@ public enum ConfigurationBuilder {
     /// - Parameter configurations: A variadic number of `ConfigurationsConvertible`
     ///
     /// - Returns: An `AnyConfigurationCollection` which consists of `ConfigurationConvertible`s
-    public static func buildBlock(_ configurations: Configuration...) -> [Configuration] {
+    public static func buildBlock(_ configurations: any Configuration...) -> [any Configuration] {
         configurations
     }
     
@@ -24,7 +24,7 @@ public enum ConfigurationBuilder {
     /// - Parameter configuration: The `Configuration` within the if statement.
     ///
     /// - Returns: Either the `Configuration` within the branch if the condition evaluates to `true` or an `EmptyConfiguration`.
-    public static func buildIf(_ configuration: Configuration?) -> Configuration {
+    public static func buildIf(_ configuration: (any Configuration)?) -> any Configuration {
         configuration ?? EmptyConfiguration()
     }
     

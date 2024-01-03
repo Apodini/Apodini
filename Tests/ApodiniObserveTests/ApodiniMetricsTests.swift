@@ -101,7 +101,7 @@ public class ApodiniMetricsTests: XCTestCase {
     }
     
     @ConfigurationBuilder
-    static var configuration: Configuration {
+    static var configuration: any Configuration {
         HTTP()
     }
 

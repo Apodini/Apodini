@@ -10,7 +10,7 @@
 @resultBuilder
 public enum PathComponentBuilder {
     /// Return any array of `PathComponent`s directly
-    public static func buildBlock(_ paths: PathComponent...) -> [PathComponent] {
+    public static func buildBlock(_ paths: any PathComponent...) -> [any PathComponent] {
         paths
     }
 }

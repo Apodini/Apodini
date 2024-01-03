@@ -13,7 +13,7 @@ import Apodini
 
 // MARK: - ApodiniMigratorCore.Parameter
 extension ApodiniMigratorCore.Parameter {
-    static func of(endpoint: AnyEndpoint, from parameter: Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
+    static func of(endpoint: any AnyEndpoint, from parameter: any Apodini.AnyEndpointParameter, with logger: Logger) -> ApodiniMigratorCore.Parameter {
         let typeInformation: TypeInformation
         do {
             typeInformation = try TypeInformation(type: parameter.propertyType)
@@ -43,8 +43,8 @@ extension ApodiniMigratorCore.Parameter {
 }
 
 // MARK: - Array
-extension Array where Element == Apodini.AnyEndpointParameter {
-    func migratorParameters(of endpoint: AnyEndpoint, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
+extension Array where Element == any Apodini.AnyEndpointParameter {
+    func migratorParameters(of endpoint: any AnyEndpoint, with logger: Logger) -> [ApodiniMigratorCore.Parameter] {
         map { .of(endpoint: endpoint, from: $0, with: logger) }
     }
 }

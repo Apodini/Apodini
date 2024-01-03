@@ -46,7 +46,7 @@ extension EndpointDecodingStrategy {
     /// - Warning: The given `endpoint` must be the one that the resulting ``DecodingStrategy`` is
     /// going to be used on, otherwise evaluating the ``DecodingStrategy/strategy(for:)`` might result
     /// in a runtime crash.
-    public func applied(to endpoint: AnyEndpoint) -> AnyDecodingStrategy<Input> {
+    public func applied(to endpoint: any AnyEndpoint) -> AnyDecodingStrategy<Input> {
         EndpointParameterBasedDecodingStrategy(self, on: endpoint).typeErased
     }
 }
@@ -55,15 +55,15 @@ extension EndpointDecodingStrategy {
 private struct EndpointParameterBasedDecodingStrategy<S: EndpointDecodingStrategy>: DecodingStrategy {
     private let strategy: S
     
-    private let endpointParameters: [UUID: AnyEndpointParameter]
+    private let endpointParameters: [UUID: any AnyEndpointParameter]
     
-    init(_ strategy: S, on endpoint: AnyEndpoint) {
+    init(_ strategy: S, on endpoint: any AnyEndpoint) {
         self.strategy = strategy
         self.endpointParameters = endpoint[EndpointParametersById.self].parameters
     }
     
     func strategy<Element: Decodable>(for parameter: Parameter<Element>) -> AnyParameterDecodingStrategy<Element, S.Input> {
-        guard let parameter = endpointParameters[parameter.id] as? CanCallEndpointParameterDecodingStrategy else {
+        guard let parameter = endpointParameters[parameter.id] as? any CanCallEndpointParameterDecodingStrategy else {
             fatalError("Couldn't find matching 'EndpointParameter' with id \(parameter.id) while determining 'DecodingStrategy'.")
         }
         
@@ -116,7 +116,7 @@ public extension EndpointDecodingStrategy {
 
 /// A type-erased wrapper around any ``EndpointDecodingStrategy``.
 public struct AnyEndpointDecodingStrategy<I>: EndpointDecodingStrategy {
-    private let caller: EndpointDecodingStrategyCaller
+    private let caller: any EndpointDecodingStrategyCaller
     
     init<S: EndpointDecodingStrategy>(_ strategy: S) where S.Input == I {
         self.caller = SomeEndpointDecodingStrategyCaller(strategy: strategy)

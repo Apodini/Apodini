@@ -148,7 +148,7 @@ struct WebService: Apodini.WebService {
         }
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         HTTPConfiguration(
             tlsConfiguration: TLSConfigurationBuilder(
                 certificatePath: "/Users/lukas/Documents/uni/apodini certs/2023/localhost.cer.pem",

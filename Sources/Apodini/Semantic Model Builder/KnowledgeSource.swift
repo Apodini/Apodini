@@ -119,7 +119,7 @@ public struct AnyEndpointSource: KnowledgeSource {
     public let handlerType: Any.Type
     public let context: Context
     
-    private let initializer: HandlerKnowledgeSourceInitializer
+    private let initializer: any HandlerKnowledgeSourceInitializer
     
     internal init<H: Handler>(source: EndpointSource<H>) {
         self.context = source.context
@@ -156,10 +156,10 @@ public struct SharedRepositorys: KnowledgeSource {
     public static let preference: LocationPreference = .global
     
     // default collection of available SharedRepositorys for unrestricted TruthAnchors
-    private var sharedRepositorys: [SharedRepository] = []
+    private var sharedRepositorys: [any SharedRepository] = []
     
     // we store the available SharedRepositorys for each restricted TruthAnchor separately
-    private var restricted: [ObjectIdentifier: [SharedRepository]] = [:]
+    private var restricted: [ObjectIdentifier: [any SharedRepository]] = [:]
     
     public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         throw KnowledgeError.unsatisfiableDependency("SharedRepositorys", "GlobalSharedRepository")
@@ -167,11 +167,11 @@ public struct SharedRepositorys: KnowledgeSource {
     
     internal init() { }
     
-    public subscript<A>(for anchor: A.Type) -> [SharedRepository] where A: TruthAnchor {
+    public subscript<A>(for anchor: A.Type) -> [any SharedRepository] where A: TruthAnchor {
         restricted[ObjectIdentifier(anchor)] ?? sharedRepositorys
     }
     
-    mutating func addSharedRepository(_ sharedRepository: SharedRepository, hiddenFor restrictions: [TruthAnchor.Type] = []) {
+    mutating func addSharedRepository(_ sharedRepository: any SharedRepository, hiddenFor restrictions: [any TruthAnchor.Type] = []) {
         // we handle restrictions first
         for knownRestriction in self.restricted.keys {
             if !restrictions.contains(where: { newRestriction in ObjectIdentifier(newRestriction) == knownRestriction }) {

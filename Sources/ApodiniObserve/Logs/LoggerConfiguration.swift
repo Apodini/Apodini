@@ -32,7 +32,7 @@ public final class LoggerConfiguration: Configuration {
     /// The globally configured `Logger.Level`
     let logLevel: Logger.Level
     /// The to be used `LogHandler`'s
-    let logHandlers: [(String) -> LogHandler]
+    let logHandlers: [(String) -> any LogHandler]
     /// The custom configuration closure that can be used by the developer to set up the to be used`LogHandler`'s
     let configureLogHandlers: () -> Void
     
@@ -40,7 +40,7 @@ public final class LoggerConfiguration: Configuration {
     /// - Parameters:
     ///   - logHandlers: Arbitrary number of `LogHandler`s that represent the to be used logging backends
     ///   - logLevel: Specifies the global log level for the ``ApodiniLogger``
-    public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level) {
+    public init(logHandlers: (String) -> any LogHandler..., logLevel: Logger.Level) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
         self.configureLogHandlers = {}
@@ -51,7 +51,7 @@ public final class LoggerConfiguration: Configuration {
     ///   - logHandlers: Arbitrary number of `LogHandler`s that represent the to be used logging backends
     ///   - logLevel: Specifies the global log level for the ``ApodiniLogger``
     ///   - configureLogHandlers: A custom closure that is able to statically set up the to be used `LogHandler`'s
-    public init(logHandlers: (String) -> LogHandler..., logLevel: Logger.Level, configureLogHandlers: @escaping () -> Void) {
+    public init(logHandlers: (String) -> any LogHandler..., logLevel: Logger.Level, configureLogHandlers: @escaping () -> Void) {
         self.logLevel = logLevel
         self.logHandlers = logHandlers
         self.configureLogHandlers = configureLogHandlers

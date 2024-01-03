@@ -19,7 +19,7 @@ public enum DefaultRecordingClosures {
     
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
-    public static func buildDefaultRecordingClosures(_ defaultRecorders: [DefaultRecorder.Type])
+    public static func buildDefaultRecordingClosures(_ defaultRecorders: [any DefaultRecorder.Type])
     -> ([DefaultRecordingClosures.Before], [DefaultRecordingClosures.After], [DefaultRecordingClosures.AfterException]) {
         (
             defaultRecorders.compactMap { defaultRecorder in
@@ -36,7 +36,7 @@ public enum DefaultRecordingClosures {
     
     /// Builds a tupel of ``DefaultRecordingClosures`` (before, after, afterExecution)  from an arbitrary number of types of ``DefaultRecorder``'s (overload as a variadic function)
     /// - Parameter defaultRecorders: The ``DefaultRecorder`` types of which the ``DefaultRecordingClosures`` should be built from
-    public static func buildDefaultRecordingClosures(_ defaultRecorders: DefaultRecorder.Type...)
+    public static func buildDefaultRecordingClosures(_ defaultRecorders: any DefaultRecorder.Type...)
     -> ([DefaultRecordingClosures.Before], [DefaultRecordingClosures.After], [DefaultRecordingClosures.AfterException]) {
         Self.buildDefaultRecordingClosures(defaultRecorders)
     }

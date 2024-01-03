@@ -22,7 +22,7 @@ public struct MultipleDownloader: Handler {
     private var fileio: NonBlockingFileIO
     
     @Environment(\.eventLoopGroup)
-    private var eventLoopGroup: EventLoopGroup
+    private var eventLoopGroup: any EventLoopGroup
     
     @Parameter(.http(.path))
     var fileName: String
@@ -48,7 +48,7 @@ public struct MultipleDownloader: Handler {
             )
     }
     
-    private func readFile(for info: FileInfo, on eventLoop: EventLoop) -> EventLoopFuture<File> {
+    private func readFile(for info: FileInfo, on eventLoop: any EventLoop) -> EventLoopFuture<File> {
         fileio
             .openFile(path: info.path, mode: .read, eventLoop: eventLoop)
             .flatMap { handler in

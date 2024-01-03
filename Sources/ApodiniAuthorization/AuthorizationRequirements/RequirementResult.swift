@@ -27,9 +27,9 @@ public enum RequirementResult {
     /// Represents the ``Cause`` of a specific ``RequirementResult`` instance.
     public enum Cause {
         /// The result was caused by an `Error`.
-        case error(_ error: Error, in: AnyAuthorizationRequirement? = nil)
+        case error(_ error: any Error, in: (any AnyAuthorizationRequirement)? = nil)
         /// The result is the cause of a single ``AuthenticationRequirement``.
-        case result(_ requirement: AnyAuthorizationRequirement)
+        case result(_ requirement: any AnyAuthorizationRequirement)
         /// The result is the cause of multiple evaluations of different ``AuthenticationRequirement``s.
         case results(_ results: [RequirementResult])
         /// The cause is not specified.

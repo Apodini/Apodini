@@ -43,7 +43,7 @@ struct RelationshipDestinations: ContextKeyKnowledgeSource {
 }
 
 public struct AnyRelationshipEndpointInstance: KnowledgeSource {
-    public let instance: AnyRelationshipEndpoint
+    public let instance: any AnyRelationshipEndpoint
     
     public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         _ = sharedRepository[RelationshipModelKnowledgeSource.self]
@@ -121,7 +121,7 @@ extension RelationshipModelKnowledgeSource {
     
     
     struct EndpointInjector: HandlerKnowledgeSource {
-            let endpoint: _AnyRelationshipEndpoint
+            let endpoint: any _AnyRelationshipEndpoint
         
         init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
             var endpoint = RelationshipEndpoint(handler: handler, sharedRepository: sharedRepository)

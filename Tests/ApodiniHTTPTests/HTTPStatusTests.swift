@@ -122,7 +122,7 @@ final class HTTPStatusTests: XCTApodiniTest {
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTP()
         }
     }

@@ -123,7 +123,7 @@ class RelationshipBuilder {
         }
     }
 
-    func addRelationshipInheritance(at reference: EndpointReference, from: EndpointReference, resolvers: [AnyPathParameterResolver]) {
+    func addRelationshipInheritance(at reference: EndpointReference, from: EndpointReference, resolvers: [any AnyPathParameterResolver]) {
         endpoints[reference, default: BuildingEndpoint(for: reference)]
             .addInheritance(from: from, with: resolvers)
 
@@ -134,7 +134,7 @@ class RelationshipBuilder {
     func addDestinationFromExplicitTyping(at reference: EndpointReference,
                                           name: String,
                                           destination: EndpointReference,
-                                          with resolvers: [AnyPathParameterResolver]) {
+                                          with resolvers: [any AnyPathParameterResolver]) {
         endpoints[reference, default: BuildingEndpoint(for: reference)]
             .addDestinationFromExplicitTyping(name: name, destination: destination, with: resolvers)
     }
@@ -145,7 +145,7 @@ class RelationshipBuilder {
             .addRelationshipInstance(relationship)
     }
 
-    func selfRelationshipResolvers(for reference: EndpointReference) -> [AnyPathParameterResolver] {
+    func selfRelationshipResolvers(for reference: EndpointReference) -> [any AnyPathParameterResolver] {
         guard let endpoint = endpoints[reference] else {
             fatalError("Tried accessing selfRelationship resolvers but didn't have an endpoint for \(reference)!")
         }
@@ -266,7 +266,7 @@ private class BuildingEndpoint {
         }
     }
 
-    func addInheritance(from: EndpointReference, with resolvers: [AnyPathParameterResolver]) {
+    func addInheritance(from: EndpointReference, with resolvers: [any AnyPathParameterResolver]) {
         precondition(!built, "Tried altering relationships for \(reference) after they were built!")
         let destination = RelationshipDestination(self: from, resolvers: resolvers)
 
@@ -283,7 +283,7 @@ private class BuildingEndpoint {
 
     func addDestinationFromExplicitTyping(name: String,
                                           destination reference: EndpointReference,
-                                          with resolvers: [AnyPathParameterResolver]) {
+                                          with resolvers: [any AnyPathParameterResolver]) {
         precondition(!built, "Tried altering relationships for \(reference) after they were built!")
         let destination = RelationshipDestination(name: name, destination: reference, resolvers: resolvers)
 
@@ -311,7 +311,7 @@ private class BuildingEndpoint {
         inheritedRelationships = inherited
     }
 
-    func selfRelationshipResolvers() -> [AnyPathParameterResolver] {
+    func selfRelationshipResolvers() -> [any AnyPathParameterResolver] {
         guard let destination = inheritedSelfRelationship?.get(for: reference.operation)
             ?? structuralSelfRelationship.get(for: reference.operation) else {
             fatalError("Failed to retrieve the self relationship for \(reference)")

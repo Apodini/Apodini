@@ -210,7 +210,7 @@ class ApodiniLoggerTests: XCTestCase {
         }
         
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.serviceSideStream)
         }
     }
@@ -247,7 +247,7 @@ class ApodiniLoggerTests: XCTestCase {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.clientSideStream)
         }
     }
@@ -275,13 +275,13 @@ class ApodiniLoggerTests: XCTestCase {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.bidirectionalStream)
         }
     }
 
     @ConfigurationBuilder
-    static var configuration: Configuration {
+    static var configuration: any Configuration {
         HTTP()
     }
 

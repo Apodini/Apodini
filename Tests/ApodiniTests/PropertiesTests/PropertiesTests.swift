@@ -12,7 +12,7 @@ import XCTest
 
 final class PropertiesTests: ApodiniTests {
     func testTypedPorperties() throws {
-        let elements: [(String, Property)] = [
+        let elements: [(String, any Property)] = [
             ("number", Parameter<Int>(wrappedValue: 42)),
             ("anOtherNumber", Parameter<Int>(wrappedValue: 0)),
             ("string", Parameter<String>(wrappedValue: "Paul")),

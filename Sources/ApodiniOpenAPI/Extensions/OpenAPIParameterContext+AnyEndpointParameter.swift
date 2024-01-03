@@ -12,7 +12,7 @@ import OpenAPIKit
 
 extension OpenAPIKit.OpenAPI.Parameter.Context {
     /// Currently, only `query` and `path` are supported.
-    init?(_ endpointParameter: AnyEndpointParameter) {
+    init?(_ endpointParameter: any AnyEndpointParameter) {
         switch endpointParameter.parameterType {
         case .lightweight:
             self = .query(required: Self.isRequired(endpointParameter))
@@ -23,7 +23,7 @@ extension OpenAPIKit.OpenAPI.Parameter.Context {
         }
     }
     
-    private static func isRequired(_ endpointParameter: AnyEndpointParameter) -> Bool {
+    private static func isRequired(_ endpointParameter: any AnyEndpointParameter) -> Bool {
         !endpointParameter.nilIsValidValue
             && !endpointParameter.hasDefaultValue
             && endpointParameter.option(for: PropertyOptionKey.optionality) != Optionality.optional

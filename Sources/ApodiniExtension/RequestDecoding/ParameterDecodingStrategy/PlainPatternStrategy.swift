@@ -14,10 +14,10 @@ import ApodiniUtils
 public struct PlainPatternStrategy<P: DecodingPattern>: ParameterDecodingStrategy {
     public typealias Content = P.Element
     
-    private let decoder: AnyDecoder
+    private let decoder: any AnyDecoder
     
     /// Create a new ``PlainPatternStrategy`` that uses the given `decoder`.
-    public init(_ decoder: AnyDecoder) {
+    public init(_ decoder: any AnyDecoder) {
         self.decoder = decoder
     }
     

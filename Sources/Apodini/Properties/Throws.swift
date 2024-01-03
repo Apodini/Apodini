@@ -61,7 +61,7 @@ public struct Throws {
         _ type: ErrorType,
         reason: String? = nil,
         description: String? = nil,
-        information: AnyInformation...,
+        information: any AnyInformation...,
         options: ApodiniError.Option...
     ) {
         self.init(type: type, reason: reason, description: description, information: InformationSet(information), options)

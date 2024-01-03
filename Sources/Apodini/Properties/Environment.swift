@@ -92,7 +92,7 @@ public struct Environment<Key: EnvironmentAccessible, Value>: Property {
 }
 
 extension Environment: Decodable {
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         self._localEnvironment = LocalEnvironment()
         self.keyPath = nil
         self.observe = false
@@ -101,11 +101,11 @@ extension Environment: Decodable {
 
 /// Since ``Environment`` is now allowed in the ``WebService``, the property values have to be backed up and then restored since the ArgumentParser doesn't cache those values
 extension Environment: ArgumentParserStoreable {
-    public func store(in store: inout [String: ArgumentParserStoreable], keyedBy key: String) {
+    public func store(in store: inout [String: any ArgumentParserStoreable], keyedBy key: String) {
         store[key] = self
     }
     
-    public func restore(from store: [String: ArgumentParserStoreable], keyedBy key: String) {
+    public func restore(from store: [String: any ArgumentParserStoreable], keyedBy key: String) {
         if let storedValues = store[key] as? Environment {
             self.keyPath = storedValues.keyPath
             self.observe = storedValues.observe
@@ -189,7 +189,7 @@ extension Environment: KeyPathInjectable {
         if keyPath == self.keyPath {
             if let typedValue = value as? Value {
                 _localEnvironment.setValue(typedValue)
-                (self as? Observing)?.registerChildObservation()
+                (self as? any Observing)?.registerChildObservation()
             }
         }
     }
@@ -265,7 +265,7 @@ extension Environment: AnyObservedObject, Observing where Value: ObservableObjec
         
         for property in Mirror(reflecting: wrappedValue).children {
             switch property.value {
-            case let published as AnyPublished:
+            case let published as any AnyPublished:
                 published.register(childObservation)
             default:
                 continue

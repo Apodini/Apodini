@@ -50,7 +50,7 @@ public struct MigratorConfiguration<Service: WebService>: Configuration {
     }
 
     /// Returns the `Migrator<Service>` type
-    public var command: ParsableCommand.Type {
+    public var command: any ParsableCommand.Type {
         Migrator<Service>.self
     }
 }

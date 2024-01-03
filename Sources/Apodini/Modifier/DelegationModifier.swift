@@ -86,12 +86,12 @@ public protocol AnyDelegatingHandlerInitializer {
     func anyinstance<D: Handler>(for delegate: D) throws -> AnyHandler
     
     /// A visitor-function that calls the given `filter` and returns its result by default.
-    func evaluate(filter: DelegationFilter) -> Bool
+    func evaluate(filter: any DelegationFilter) -> Bool
 }
 
 public extension AnyDelegatingHandlerInitializer {
     /// The default implementation for `evaluate`, which calls the filter under any condition.
-    func evaluate(filter: DelegationFilter) -> Bool {
+    func evaluate(filter: any DelegationFilter) -> Bool {
         filter(self)
     }
 }
@@ -133,7 +133,7 @@ extension DelegatingHandlerContextKey {
         let uuid: UUID
 
         /// The according ``AnyDelegatingHandlerInitializer`` used to instantiate the delegating ``Handler``.
-        let initializer: AnyDelegatingHandlerInitializer
+        let initializer: any AnyDelegatingHandlerInitializer
 
         /// If set to true, it is ensure that the same ``AnyDelegatingHandlerInitializer``, even though
         /// when inserted multiple times into the context, is only used a single time (the first time it got inserted).
@@ -153,7 +153,7 @@ extension DelegatingHandlerContextKey {
         ///     Therefore, such an initializer which is added first, should be inserted on the "innermost" position not
         ///     the "outermost", as it should be the first to act once handle returns.
         public init(
-            _ initializer: AnyDelegatingHandlerInitializer,
+            _ initializer: any AnyDelegatingHandlerInitializer,
             ensureInitializerTypeUniqueness: Bool = false,
             inverseOrder: Bool = false
         ) {

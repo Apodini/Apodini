@@ -24,14 +24,14 @@ extension AsyncSequence {
     /// the sequence ends after this final value. ``ErrorHandlingStrategy/abort(_:)``
     /// causes a the error to be thrown`.
     public func transform<T: ResultTransformer>(using transformer: T)
-        -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, Error> {
+        -> AnyAsyncSequence<T.Output> where Element == Result<Response<T.Input>, any Error> {
         self.cancelIf { result in
             if case let .success(response) = result {
                 return response.connectionEffect == .close
             }
             return false
         }
-        .compactMap { result throws -> Result<T.Output, Error>? in
+        .compactMap { result throws -> Result<T.Output, any Error>? in
             switch result {
             case let .success(response):
                 if let content = response.content {
@@ -61,14 +61,14 @@ extension AsyncSequence {
     /// the value is followed by a `.finished` completion. ``ErrorHandlingStrategy/abort(_:)``
     /// causes a completion with `.failure(_:)`.
     public func transform<T: ResultTransformer, C: Encodable>(using transformer: T)
-    -> AnyAsyncSequence<T.Output> where T.Input == Response<C>, Element == Result<Response<C>, Error> {
+    -> AnyAsyncSequence<T.Output> where T.Input == Response<C>, Element == Result<Response<C>, any Error> {
         self.cancelIf { result in
             if case let .success(response) = result {
                 return response.connectionEffect == .close
             }
             return false
         }
-        .map { result throws -> Result<T.Output, Error> in
+        .map { result throws -> Result<T.Output, any Error> in
             switch result {
             case let .success(response):
                 do {
@@ -85,7 +85,7 @@ extension AsyncSequence {
 }
 
 private extension AsyncSequence {
-    func handleError<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<T.Output, Error> {
+    func handleError<T: ResultTransformer>(using transformer: T) -> AnyAsyncSequence<T.Output> where Element == Result<T.Output, any Error> {
         self
             .compactMap { result throws -> (Bool, T.Output)? in
                 switch result {

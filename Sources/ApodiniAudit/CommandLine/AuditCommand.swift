@@ -29,7 +29,7 @@ struct AuditCommand<Service: WebService>: ParsableCommand {
         )
     }
     
-    private static var runCommand: ParsableCommand.Type {
+    private static var runCommand: any ParsableCommand.Type {
         AuditRunCommand<Service>.self
     }
 }

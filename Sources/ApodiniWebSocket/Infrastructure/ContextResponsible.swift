@@ -53,7 +53,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     private let inputReceiver: Subscribable
     
     convenience init(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, HTTPRequest) ->
+        _ opener: @escaping (AnyAsyncSequence<I>, any EventLoop, HTTPRequest) ->
             (default: I, output: AnyAsyncSequence<Message<O>>),
         con: ConnectionResponsible,
         context: UUID
@@ -74,10 +74,10 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
     }
     
     init(
-        _ opener: @escaping (AnyAsyncSequence<I>, EventLoop, HTTPRequest) -> (default: I, output: AnyAsyncSequence<Message<O>>),
-        eventLoop: EventLoop,
+        _ opener: @escaping (AnyAsyncSequence<I>, any EventLoop, HTTPRequest) -> (default: I, output: AnyAsyncSequence<Message<O>>),
+        eventLoop: any EventLoop,
         send: @escaping (O) -> Void,
-        sendError: @escaping (Error) -> Void,
+        sendError: @escaping (any Error) -> Void,
         destruct: @escaping () -> Void,
         close: @escaping (WebSocketErrorCode) -> Void,
         initiatingRequest: HTTPRequest
@@ -121,7 +121,7 @@ class TypeSafeContextResponsible<I: Input, O: Encodable>: ContextResponsible {
                 destruct()
             } catch {
                 sendError(error)
-                close((error as? WSClosingError)?.code ?? .unexpectedServerError)
+                close((error as? any WSClosingError)?.code ?? .unexpectedServerError)
             }
         }
     }
@@ -198,7 +198,7 @@ private struct ParameterWrapper<T: Decodable>: Decodable {
     
     var value: T??
 
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         guard let parameterName = decoder.userInfo[.parameterName] as? String else {
             fatalError("Tried to decode parameter without parameterName.")
         }

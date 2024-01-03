@@ -29,15 +29,15 @@ public extension Request {
 /// A wrapper around an Apodini `Request` which caches all of the original request's
 /// properties as well as the results of the ``retrieveParameter(_:)`` function.
 public class CachingRequest: WithRequest {
-    public let request: Request
+    public let request: any Request
     private var cache = [UUID: Any]()
     public private(set) lazy var description: String = request.description
     public private(set) lazy var debugDescription: String = request.debugDescription
-    public private(set) lazy var eventLoop: EventLoop = request.eventLoop
+    public private(set) lazy var eventLoop: any EventLoop = request.eventLoop
     public private(set) lazy var remoteAddress: SocketAddress? = request.remoteAddress
     public private(set) lazy var information: InformationSet = request.information
     
-    init(_ request: Request) {
+    init(_ request: any Request) {
         self.request = request
     }
     

@@ -103,7 +103,7 @@ class ApodiniDeployerTestCase: XCTestCase {
     }
     
     
-    func makeError(message: String) -> Error {
+    func makeError(message: String) -> any Error {
         ApodiniDeployerTestError(message: message)
     }
 }

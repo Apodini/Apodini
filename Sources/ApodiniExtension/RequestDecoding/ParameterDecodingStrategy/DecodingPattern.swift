@@ -24,7 +24,7 @@ public protocol DecodingPattern: Decodable {
 public struct IdentityPattern<E: Decodable>: DecodingPattern {
     public let value: E
     
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         value = try E(from: decoder)
     }
 }
@@ -33,7 +33,7 @@ public struct IdentityPattern<E: Decodable>: DecodingPattern {
 public struct DynamicNamePattern<E: DecodingPattern>: DecodingPattern {
     public let value: E.Element
     
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         guard let name = namedChildStrategyFieldName.currentValue?.name else {
             fatalError("DynamicNamePattern was used without setting field name prior to decoding!")
         }
@@ -75,7 +75,7 @@ extension String: CodingKey {
 public struct DynamicIndexPattern<E: DecodingPattern>: DecodingPattern {
     public let value: E.Element
     
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         guard let index = indexStrategyIndex.currentValue?.index else {
             fatalError("DynamicIndexPattern was used without setting index prior to decoding!")
         }
@@ -89,7 +89,7 @@ public struct DynamicIndexPattern<E: DecodingPattern>: DecodingPattern {
     }
     
     private struct MockDecodable: Decodable {
-        init(from decoder: Decoder) throws { }
+        init(from decoder: any Decoder) throws { }
     }
 }
 

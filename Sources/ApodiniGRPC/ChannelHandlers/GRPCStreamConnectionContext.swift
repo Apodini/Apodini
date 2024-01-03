@@ -14,19 +14,19 @@ import NIOHPACK
 /// Type that can handle events on a gRPC connection.
 protocol GRPCStreamRPCHandler: AnyObject {
     /// The function that will be invoked when the stream is first opened
-    func handleStreamOpen(context: GRPCStreamConnectionContext)
+    func handleStreamOpen(context: any GRPCStreamConnectionContext)
     /// Invoked when the RPC connection receives an incoming client message.
     /// - returns: An EventLoopFuture that will eventually fulfill to a gRPC resonse message.
-    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
+    func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>
     /// Will be invoked when the stream is about to close.
     /// - returns: An optional EventLoopFuture. If the return value is `nil`, the connection will immediately be closed.
     ///     If the return value is not nil, the connection will be kept open until the future is fulfilled, the future's value will then be written to the connection, and the channel will be closed.
-    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
+    func handleStreamClose(context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>?
 }
 
 extension GRPCStreamRPCHandler {
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
-    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+    func handleStreamOpen(context: any GRPCStreamConnectionContext) {}
+    func handleStreamClose(context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         nil
     }
 }
@@ -35,7 +35,7 @@ extension GRPCStreamRPCHandler {
 /// An open gRPC stream over which messages are sent
 protocol GRPCStreamConnectionContext {
     /// The event loop associated with the connection. (... on which the connection is handled)
-    var eventLoop: EventLoop { get }
+    var eventLoop: any EventLoop { get }
     /// The HTTP/2 headers sent by the client, as part of the initial request creating this connection
     var initialRequestHeaders: HPACKHeaders { get }
     /// Fully qualified name of the method this connection is calling.
@@ -44,13 +44,13 @@ protocol GRPCStreamConnectionContext {
 
 
 class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
-    let eventLoop: EventLoop
+    let eventLoop: any EventLoop
     let initialRequestHeaders: HPACKHeaders
     let grpcMethodName: String
-    private let rpcHandler: GRPCStreamRPCHandler
+    private let rpcHandler: any GRPCStreamRPCHandler
     private(set) var isHandlingMessage = false
     
-    init(eventLoop: EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: GRPCStreamRPCHandler, grpcMethodName: String) {
+    init(eventLoop: any EventLoop, initialRequestHeaders: HPACKHeaders, rpcHandler: any GRPCStreamRPCHandler, grpcMethodName: String) {
         self.eventLoop = eventLoop
         self.initialRequestHeaders = initialRequestHeaders
         self.rpcHandler = rpcHandler
@@ -88,15 +88,15 @@ class GRPCStreamConnectionContextImpl: GRPCStreamConnectionContext, Hashable {
 /// A queue of `EventLoopFuture`s, which will be evaluated one after the other.
 /// - Note: This is not always a useful or desirable thing, so use with caution.
 class EventLoopFutureQueue {
-    private let eventLoop: EventLoop?
+    private let eventLoop: (any EventLoop)?
     private var lastMessageResponseFuture: EventLoopFuture<Void>?
     private var numQueuedHandlerCalls = 0
     
-    init(eventLoop: EventLoop? = nil) {
+    init(eventLoop: (any EventLoop)? = nil) {
         self.eventLoop = eventLoop
     }
     
-    func submit<Result>(on eventLoop: EventLoop? = nil, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
+    func submit<Result>(on eventLoop: (any EventLoop)? = nil, _ task: @escaping () -> EventLoopFuture<Result>) -> EventLoopFuture<Result> {
         guard let eventLoop = eventLoop ?? self.eventLoop else {
             fatalError("You need to specify an event loop, either here or in the initializer!")
         }

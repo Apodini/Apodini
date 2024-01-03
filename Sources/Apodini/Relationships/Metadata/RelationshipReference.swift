@@ -21,7 +21,7 @@ public class RelationshipReference<From, To: Identifiable>: RelationshipsContent
 
     let name: String
     let destinationType: To.Type
-    let resolvers: [AnyPathParameterResolver]
+    let resolvers: [any AnyPathParameterResolver]
 
     /// Creates a new `RelationshipReference`, referencing from the specified type using the specified resolver.
     /// - Parameters:

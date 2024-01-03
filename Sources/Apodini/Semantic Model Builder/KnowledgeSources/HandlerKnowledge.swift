@@ -44,7 +44,7 @@ public struct HandlerReflectiveName: HandlerKnowledgeSource, RawRepresentable, C
 }
 
 public struct HandleReturnType: HandlerKnowledgeSource {
-    public let type: Encodable.Type
+    public let type: any Encodable.Type
     
     public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {
         self.type = H.Response.Content.self
@@ -84,7 +84,7 @@ extension Operation: OptionalContextKeyKnowledgeSource {
 }
 
 /// A collection of ``AnyEndpointParameter`` that can be directly obtained from a local ``SharedRepository``.
-public typealias EndpointParameters = [AnyEndpointParameter]
+public typealias EndpointParameters = [any AnyEndpointParameter]
 
 extension EndpointParameters: HandlerKnowledgeSource, KnowledgeSource {
     public init<H, B>(from handler: H, _ sharedRepository: B) throws where H: Handler, B: SharedRepository {

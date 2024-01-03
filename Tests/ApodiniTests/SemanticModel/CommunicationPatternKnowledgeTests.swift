@@ -71,7 +71,7 @@ final class CommunicationPatternKnowledgeTests: ApodiniTests {
         }
         
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.serviceSideStream)
         }
     }
@@ -99,7 +99,7 @@ final class CommunicationPatternKnowledgeTests: ApodiniTests {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.clientSideStream)
         }
     }
@@ -118,7 +118,7 @@ final class CommunicationPatternKnowledgeTests: ApodiniTests {
             }
         }
         
-        var metadata: AnyHandlerMetadata {
+        var metadata: any AnyHandlerMetadata {
             Pattern(.bidirectionalStream)
         }
     }

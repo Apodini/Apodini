@@ -113,7 +113,7 @@ extension HTTPMediaType: Codable {
         case parameters
     }
     
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
         let subtype = try container.decode(String.self, forKey: .subtype)
@@ -121,7 +121,7 @@ extension HTTPMediaType: Codable {
         self = HTTPMediaType(type: type, subtype: subtype, parameters: parameters)
     }
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
         try container.encode(subtype, forKey: .subtype)

@@ -99,7 +99,7 @@ final class ResponseTransformerTests: ApodiniTests {
                 }
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -133,7 +133,7 @@ final class ResponseTransformerTests: ApodiniTests {
                 }
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -175,7 +175,7 @@ final class ResponseTransformerTests: ApodiniTests {
                 }
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

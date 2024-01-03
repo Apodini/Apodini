@@ -15,7 +15,7 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
     // class as it is used as a reference in `EndpointReference`
     internal let root = EndpointsTreeNode(storedPath: .root)
 
-    private var rootEndpoints: [Operation: AnyRelationshipEndpoint] = [:]
+    private var rootEndpoints: [Operation: any AnyRelationshipEndpoint] = [:]
     private lazy var structuralRootRelationships: [EndpointRelationship] = {
         guard finishedParsing else {
             fatalError("Tried retrieving root relationships before WebService was finished parsing!")
@@ -26,16 +26,16 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
 
     private var finishedParsing = false
     
-    public let globalSharedRepository: SharedRepository
+    public let globalSharedRepository: any SharedRepository
 
-    init(_ globalSharedRepository: SharedRepository) {
+    init(_ globalSharedRepository: any SharedRepository) {
         self.globalSharedRepository = globalSharedRepository
     }
 
     /// Retrieve the `RelationshipEndpoint` located under the `EndpointPath.root`.
     /// - Parameter operation: The `Operation` to retrieve the `RelationshipEndpoint` for.
     /// - Returns: The `AnyRelationshipEndpoint` or nil if it doesn't exist.
-    public func getEndpoint(for operation: Operation) -> AnyRelationshipEndpoint? {
+    public func getEndpoint(for operation: Operation) -> (any AnyRelationshipEndpoint)? {
         rootEndpoints[operation]
     }
 
@@ -72,7 +72,7 @@ public class RelationshipWebServiceModel: CustomDebugStringConvertible {
         rootEndpoints = root.endpoints
     }
 
-    func addEndpoint<H: Handler>(_ endpoint: inout RelationshipEndpoint<H>, at paths: [PathComponent]) {
+    func addEndpoint<H: Handler>(_ endpoint: inout RelationshipEndpoint<H>, at paths: [any PathComponent]) {
         var context = EndpointInsertionContext(for: endpoint, with: paths)
         context.assertRootPath()
         root.addEndpoint(&endpoint, context: &context)

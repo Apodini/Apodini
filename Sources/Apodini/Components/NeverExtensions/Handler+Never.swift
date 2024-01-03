@@ -11,14 +11,14 @@ import NIO
 
 extension Never: Encodable {
     /// Default implementation which will simply crash
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         fatalError("The '\(Self.self)' type cannot be encoded")
     }
 }
 
 extension Never: ResponseTransformable {
     /// Default implementation which will simply crash
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Never>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Never>> {
         fatalError("The '\(Self.self)' type cannot be passed as a `ResponseTransformable`")
     }
 }
@@ -32,7 +32,7 @@ extension Handler where Response == Never {
 
 extension _EmptyComponentCustomNeverImpl: ResponseTransformable {
     /// Default implementation which will simply crash
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Never>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Never>> {
         fatalError("The '\(Self.self)' type cannot be passed as a `ResponseTransformable`")
     }
 }

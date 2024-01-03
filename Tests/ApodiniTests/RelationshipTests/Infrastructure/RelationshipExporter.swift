@@ -14,12 +14,12 @@ import XCTApodini
 
 class RelationshipExporter: MockExporter<String> {
     struct EndpointRepresentation {
-        let endpoint: AnyEndpoint
-        let relationshipEndpoint: AnyRelationshipEndpoint
+        let endpoint: any AnyEndpoint
+        let relationshipEndpoint: any AnyRelationshipEndpoint
         let evaluateCallback: (_ request: String, _ parameters: [Any??], _ app: Application) throws -> EnrichedContent
         
-        internal init(_ endpoint: AnyEndpoint,
-                      _ relationshipEndpoint: AnyRelationshipEndpoint,
+        internal init(_ endpoint: any AnyEndpoint,
+                      _ relationshipEndpoint: any AnyRelationshipEndpoint,
                       _ evaluateCallback: @escaping (String, [Any??], Application) throws -> EnrichedContent) {
             self.endpoint = endpoint
             self.relationshipEndpoint = relationshipEndpoint

@@ -11,10 +11,10 @@ import Foundation
 
 
 public struct EndpointParametersById: KnowledgeSource {
-    public let parameters: [UUID: AnyEndpointParameter]
+    public let parameters: [UUID: any AnyEndpointParameter]
     
     public init<B>(_ sharedRepository: B) throws where B: SharedRepository {
-        self.parameters = sharedRepository[EndpointParameters.self].reduce(into: [UUID: AnyEndpointParameter](), { storage, parameter in
+        self.parameters = sharedRepository[EndpointParameters.self].reduce(into: [UUID: any AnyEndpointParameter](), { storage, parameter in
             storage[parameter.id] = parameter
         })
     }

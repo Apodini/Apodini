@@ -7,7 +7,7 @@
 //              
 
 protocol PathComponentModifier: _PathComponent {
-    var pathComponent: _PathComponent { get }
+    var pathComponent: any _PathComponent { get }
 
     func accept<Parser: PathComponentParser>(_ parser: inout Parser)
 }

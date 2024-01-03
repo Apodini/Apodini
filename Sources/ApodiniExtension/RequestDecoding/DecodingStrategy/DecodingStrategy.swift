@@ -43,7 +43,7 @@ public extension DecodingStrategy {
 
 /// A type-erased wrapper around any ``DecodingStrategy``.
 public struct AnyDecodingStrategy<I>: DecodingStrategy {
-    private let caller: DecodingStrategyCaller
+    private let caller: any DecodingStrategyCaller
     
     init<S: DecodingStrategy>(_ strategy: S) where S.Input == I {
         self.caller = SomeDecodingStrategyCaller(strategy: strategy)

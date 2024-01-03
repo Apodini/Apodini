@@ -19,7 +19,7 @@ public class URLPathSegmentLength: URLSegmentBestPractice {
     
     var configuration = URLPathSegmentLengthConfiguration()
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)? {
         guard !isParameter && !configuration.allowedSegments.contains(segment) else {
             return nil
         }
@@ -61,7 +61,7 @@ public struct URLPathSegmentLengthConfiguration: BestPracticeConfiguration {
     var maximumLength: Int
     var allowedSegments: [String]
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         URLPathSegmentLength(configuration: self)
     }
     

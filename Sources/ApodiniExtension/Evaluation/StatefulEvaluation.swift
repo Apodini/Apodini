@@ -29,7 +29,7 @@ public extension AsyncSequence where Element: Request {
     ///     - it subscribes to `TriggerEvent`s produced by the given `handler`
     ///     and maps them to a ``Event/trigger(_:)``
     func subscribe<H: Handler>(to handler: Delegate<H>) -> AsyncMergeSequence<AnyAsyncSequence<Event>, AnyAsyncSequence<Event>> {
-        let upstream: AnyAsyncSequence<Event> = self.map { (request: Request) -> Event in
+        let upstream: AnyAsyncSequence<Event> = self.map { (request: any Request) -> Event in
             Event.request(request)
         }
         .append([Event.end].asAsyncSequence)
@@ -62,8 +62,8 @@ public extension AsyncSequence where Element == Event {
     /// - Warning: If the sequence of ``Event``s coming from the upstream `AsyncSequence`
     /// does not follow rules for a valid sequence of ``Event``s as defined on ``Event``, the
     /// `AsyncIterator` might crash at runtime.
-    func evaluate<H: Handler>(on handler: Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, Error>> {
-        var latestRequest: Request?
+    func evaluate<H: Handler>(on handler: Delegate<H>) -> AnyAsyncSequence<Result<Response<H.Response.Content>, any Error>> {
+        var latestRequest: (any Request)?
         
         var connectionState = ConnectionState.open
         
@@ -77,7 +77,7 @@ public extension AsyncSequence where Element == Event {
                 return event
             }
         }
-        .compactMap { (event: Event) async throws -> Result<Response<H.Response.Content>, Error>? in
+        .compactMap { (event: Event) async throws -> Result<Response<H.Response.Content>, any Error>? in
             switch event {
             case let .request(request):
                 latestRequest = request

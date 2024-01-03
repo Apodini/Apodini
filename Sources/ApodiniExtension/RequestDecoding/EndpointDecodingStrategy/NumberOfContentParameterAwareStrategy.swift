@@ -23,7 +23,7 @@ public struct NumberOfContentParameterAwareStrategy<Input>: EndpointDecodingStra
     ///     - `one`: The strategy that is used if `endpoint` has one or zero parameters with `ParameterType/content`
     ///     - `many`: The strategy that is used if `endpoint` has more than one parameter with `ParameterType/content`
     public init<One: EndpointDecodingStrategy, Many: EndpointDecodingStrategy>(
-        for endpoint: AnyEndpoint,
+        for endpoint: any AnyEndpoint,
         using one: One,
         or many: Many) where One.Input == Input, Many.Input == Input {
         let onlyOneContentParameter = 1 <= endpoint[EndpointParameters.self].reduce(0, { count, parameter in
@@ -46,7 +46,7 @@ public struct NumberOfContentParameterAwareStrategy<Input>: EndpointDecodingStra
 public extension NumberOfContentParameterAwareStrategy where Input == Data {
     /// An instance of ``NumberOfContentParameterAwareStrategy`` that chooses between
     /// ``AllIdentityStrategy`` and ``AllNamedStrategy``.
-    static func oneIdentityOrAllNamedContentStrategy(_ decoder: AnyDecoder, for endpoint: AnyEndpoint) -> Self {
+    static func oneIdentityOrAllNamedContentStrategy(_ decoder: any AnyDecoder, for endpoint: any AnyEndpoint) -> Self {
         self.init(for: endpoint, using: AllIdentityStrategy(decoder), or: AllNamedStrategy(decoder))
     }
 }

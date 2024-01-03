@@ -14,9 +14,9 @@ import ApodiniNetworkingHTTPSupport
 
 
 public struct HTTPResponseTransformer<H: Handler>: ResultTransformer {
-    private let encoder: AnyEncoder
+    private let encoder: any AnyEncoder
     
-    public init(_ encoder: AnyEncoder) {
+    public init(_ encoder: any AnyEncoder) {
         self.encoder = encoder
     }
     

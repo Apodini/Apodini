@@ -42,7 +42,7 @@ public struct ExportStructureCommand: ParsableCommand {
         )
     }
     
-    public static func withSubcommands(_ commands: [ParsableCommand.Type]) -> ExportStructureCommand.Type {
+    public static func withSubcommands(_ commands: [any ParsableCommand.Type]) -> ExportStructureCommand.Type {
         configuration.subcommands = commands
         return ExportStructureCommand.self
     }
@@ -77,7 +77,7 @@ public struct StartupCommand: ParsableCommand {
         )
     }
     
-    public static func withSubcommands(_ commands: [ParsableCommand.Type]) -> StartupCommand.Type {
+    public static func withSubcommands(_ commands: [any ParsableCommand.Type]) -> StartupCommand.Type {
         configuration.subcommands = commands
         return StartupCommand.self
     }

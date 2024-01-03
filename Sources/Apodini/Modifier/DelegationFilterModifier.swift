@@ -15,7 +15,7 @@ extension Component {
     /// - Parameters:
     ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegationFilter``
     ///     is only used a single time, even when inserted multiple times.
-    public func reset(using filter: DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) -> DelegationFilterModifier<Self> {
+    public func reset(using filter: any DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) -> DelegationFilterModifier<Self> {
         DelegationFilterModifier(self, filter: AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)
     }
 }
@@ -57,7 +57,7 @@ public protocol DelegationFilter {
 }
 
 struct AnyDelegateFilter: DelegatingHandlerInitializer, DelegationFilter {
-    let filter: DelegationFilter
+    let filter: any DelegationFilter
     
     func instance<D>(for delegate: D) throws -> SomeHandler<Never> where D: Handler {
         fatalError("AnyDelegateFilter was evaluated as normal AnyDelegatingHandlerInitializer")

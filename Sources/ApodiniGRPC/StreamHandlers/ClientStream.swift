@@ -16,7 +16,7 @@ import Foundation
 class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
     private var lastRequest: GRPCMessageIn?
     
-    override func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+    override func handleStreamClose(context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         let message = self.lastRequest!
         let responseFuture: EventLoopFuture<Apodini.Response<H.Response.Content>> = self.decodingStrategy
             .decodeRequest(from: message, with: message, with: context.eventLoop)
@@ -43,7 +43,7 @@ class ClientSideStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
             }
     }
     
-    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    override func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         self.lastRequest = message
         let abortAnyError = ErrorForwardingResultTransformer(
             wrapped: AbortTransformer(),

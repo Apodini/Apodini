@@ -146,7 +146,7 @@ final class HTTPRouter {
         let method: HTTPMethod
         let path: [HTTPPathComponent]
         let expectedCommunicationPattern: Apodini.CommunicationPattern?
-        let responder: HTTPResponder
+        let responder: any HTTPResponder
     }
     
     enum RouteRegistrationError: Swift.Error {

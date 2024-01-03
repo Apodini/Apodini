@@ -14,124 +14,124 @@ public enum RestrictedMetadataBlockBuilder<Block: RestrictedMetadataBlock> {}
 
 // MARK: Restricted Handler Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: HandlerMetadataBlock, Block.RestrictedContent: AnyHandlerMetadata {
-    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyHandlerMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> any AnyHandlerMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Block) -> AnyHandlerMetadata {
+    static func buildExpression(_ expression: Block) -> any AnyHandlerMetadata {
         expression
     }
 
-    static func buildOptional(_ component: AnyHandlerMetadata?) -> AnyHandlerMetadata {
+    static func buildOptional(_ component: (any AnyHandlerMetadata)?) -> any AnyHandlerMetadata {
         component ?? EmptyHandlerMetadata()
     }
 
-    static func buildEither(first: AnyHandlerMetadata) -> AnyHandlerMetadata {
+    static func buildEither(first: any AnyHandlerMetadata) -> any AnyHandlerMetadata {
         first
     }
 
-    static func buildEither(second: AnyHandlerMetadata) -> AnyHandlerMetadata {
+    static func buildEither(second: any AnyHandlerMetadata) -> any AnyHandlerMetadata {
         second
     }
 
-    static func buildArray(_ components: [AnyHandlerMetadata]) -> AnyHandlerMetadata {
+    static func buildArray(_ components: [any AnyHandlerMetadata]) -> any AnyHandlerMetadata {
         AnyHandlerMetadataArray(components)
     }
 
-    static func buildBlock(_ components: AnyHandlerMetadata...) -> AnyHandlerMetadata {
+    static func buildBlock(_ components: any AnyHandlerMetadata...) -> any AnyHandlerMetadata {
         AnyHandlerMetadataArray(components)
     }
 }
 
 // MARK: Restricted Component-Only Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: ComponentOnlyMetadataBlock, Block.RestrictedContent: AnyComponentOnlyMetadata {
-    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyComponentOnlyMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> any AnyComponentOnlyMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Block) -> AnyComponentOnlyMetadata {
+    static func buildExpression(_ expression: Block) -> any AnyComponentOnlyMetadata {
         expression
     }
 
-    static func buildOptional(_ component: AnyComponentOnlyMetadata?) -> AnyComponentOnlyMetadata {
+    static func buildOptional(_ component: (any AnyComponentOnlyMetadata)?) -> any AnyComponentOnlyMetadata {
         component ?? EmptyComponentOnlyMetadata()
     }
 
-    static func buildEither(first: AnyComponentOnlyMetadata) -> AnyComponentOnlyMetadata {
+    static func buildEither(first: any AnyComponentOnlyMetadata) -> any AnyComponentOnlyMetadata {
         first
     }
 
-    static func buildEither(second: AnyComponentOnlyMetadata) -> AnyComponentOnlyMetadata {
+    static func buildEither(second: any AnyComponentOnlyMetadata) -> any AnyComponentOnlyMetadata {
         second
     }
 
-    static func buildArray(_ components: [AnyComponentOnlyMetadata]) -> AnyComponentOnlyMetadata {
+    static func buildArray(_ components: [any AnyComponentOnlyMetadata]) -> any AnyComponentOnlyMetadata {
         AnyComponentOnlyMetadataArray(components)
     }
 
-    static func buildBlock(_ components: AnyComponentOnlyMetadata...) -> AnyComponentOnlyMetadata {
+    static func buildBlock(_ components: any AnyComponentOnlyMetadata...) -> any AnyComponentOnlyMetadata {
         AnyComponentOnlyMetadataArray(components)
     }
 }
 
 // MARK: Restricted WebService Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: WebServiceMetadataBlock, Block.RestrictedContent: AnyWebServiceMetadata {
-    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyWebServiceMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> any AnyWebServiceMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Block) -> AnyWebServiceMetadata {
+    static func buildExpression(_ expression: Block) -> any AnyWebServiceMetadata {
         expression
     }
 
-    static func buildOptional(_ component: AnyWebServiceMetadata?) -> AnyWebServiceMetadata {
+    static func buildOptional(_ component: (any AnyWebServiceMetadata)?) -> any AnyWebServiceMetadata {
         component ?? EmptyWebServiceMetadata()
     }
 
-    static func buildEither(first: AnyWebServiceMetadata) -> AnyWebServiceMetadata {
+    static func buildEither(first: any AnyWebServiceMetadata) -> any AnyWebServiceMetadata {
         first
     }
 
-    static func buildEither(second: AnyWebServiceMetadata) -> AnyWebServiceMetadata {
+    static func buildEither(second: any AnyWebServiceMetadata) -> any AnyWebServiceMetadata {
         second
     }
 
-    static func buildArray(_ components: [AnyWebServiceMetadata]) -> AnyWebServiceMetadata {
+    static func buildArray(_ components: [any AnyWebServiceMetadata]) -> any AnyWebServiceMetadata {
         AnyWebServiceMetadataArray(components)
     }
 
-    static func buildBlock(_ components: AnyWebServiceMetadata...) -> AnyWebServiceMetadata {
+    static func buildBlock(_ components: any AnyWebServiceMetadata...) -> any AnyWebServiceMetadata {
         AnyWebServiceMetadataArray(components)
     }
 }
 
 // MARK: Restricted Component Metadata Block
 public extension RestrictedMetadataBlockBuilder where Block: ComponentMetadataBlock, Block.RestrictedContent: AnyComponentMetadata {
-    static func buildExpression(_ expression: Block.RestrictedContent) -> AnyComponentMetadata {
+    static func buildExpression(_ expression: Block.RestrictedContent) -> any AnyComponentMetadata {
         expression
     }
 
-    static func buildExpression(_ expression: Block) -> AnyComponentMetadata {
+    static func buildExpression(_ expression: Block) -> any AnyComponentMetadata {
         expression
     }
 
-    static func buildOptional(_ component: AnyComponentMetadata?) -> AnyComponentMetadata {
+    static func buildOptional(_ component: (any AnyComponentMetadata)?) -> any AnyComponentMetadata {
         component ?? EmptyComponentMetadata()
     }
 
-    static func buildEither(first: AnyComponentMetadata) -> AnyComponentMetadata {
+    static func buildEither(first: any AnyComponentMetadata) -> any AnyComponentMetadata {
         first
     }
 
-    static func buildEither(second: AnyComponentMetadata) -> AnyComponentMetadata {
+    static func buildEither(second: any AnyComponentMetadata) -> any AnyComponentMetadata {
         second
     }
 
-    static func buildArray(_ components: [AnyComponentMetadata]) -> AnyComponentMetadata {
+    static func buildArray(_ components: [any AnyComponentMetadata]) -> any AnyComponentMetadata {
         AnyComponentMetadataArray(components)
     }
 
-    static func buildBlock(_ components: AnyComponentMetadata...) -> AnyComponentMetadata {
+    static func buildBlock(_ components: any AnyComponentMetadata...) -> any AnyComponentMetadata {
         AnyComponentMetadataArray(components)
     }
 }

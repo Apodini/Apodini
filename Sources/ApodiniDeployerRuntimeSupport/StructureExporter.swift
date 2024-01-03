@@ -33,7 +33,7 @@ public protocol StructureExporter: ParsableCommand {
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
-    ) throws -> AnyDeployedSystem
+    ) throws -> any AnyDeployedSystem
 }
 
 // MARK: - Default implementations of `StructureExporter`
@@ -50,7 +50,7 @@ extension StructureExporter {
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
         app: Application
-    ) throws -> AnyDeployedSystem {
+    ) throws -> any AnyDeployedSystem {
         try retrieveDefaultDeployedSystem(endpoints, config: config, app: app)
     }
 

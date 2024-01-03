@@ -44,7 +44,7 @@ public struct Blob: Encodable, ResponseTransformable {
     }
     
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         Application.logger.debug(
             """
             Information: The used Exporter currently doesn't support Blob's as a content of an Apodini Reponse.

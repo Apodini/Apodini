@@ -48,7 +48,7 @@ struct AddHandler: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Pattern(.bidirectionalStream)
         Operation(.create)
     }
@@ -62,7 +62,7 @@ struct ServiceSideStreamingHandler: Handler {
         .send(AddStruct(sum: 3, number: 3))
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.create)
         Pattern(.serviceSideStream)
     }
@@ -85,7 +85,7 @@ struct SummingHandler: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.create)
         Pattern(.clientSideStream)
     }
@@ -109,7 +109,7 @@ struct IncreasingBlobLengthHandler: Handler {
         return .send(Blob(byteBuffer))
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.create)
         Pattern(.serviceSideStream)
     }
@@ -140,7 +140,7 @@ struct MaxStruct: Codable {
 }
 
 @ConfigurationBuilder
-var httpsConfiguration: Configuration {
+var httpsConfiguration: any Configuration {
     HTTP()
     
     HTTPConfiguration(

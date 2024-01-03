@@ -120,7 +120,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollection: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST()
         }
     }
@@ -183,7 +183,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollectionCaseSensitive: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(caseInsensitiveRouting: false)
         }
     }
@@ -238,7 +238,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     
     // swiftlint:disable type_name
     struct TestRESTExporterCollectionCaseInsensitive: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(caseInsensitiveRouting: true)
         }
     }
@@ -416,7 +416,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
                 InformationHandler()
             }
             
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -448,7 +448,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
                 BlobInformationHandler()
             }
             
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -465,7 +465,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testDecodingErrorForwarding() throws {
-        var forwardedError: Error?
+        var forwardedError: (any Error)?
         let errorForwardingExporter = ErrorForwardingInterfaceExporter {
             forwardedError = $0
         }
@@ -487,7 +487,7 @@ class RESTInterfaceExporterTests: ApodiniTests {
     }
 
     func testEvaluationErrorForwarding() throws {
-        var forwardedError: Error?
+        var forwardedError: (any Error)?
         let errorForwardingExporter = ErrorForwardingInterfaceExporter {
             forwardedError = $0
         }

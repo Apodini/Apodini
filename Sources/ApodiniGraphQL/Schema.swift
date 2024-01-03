@@ -23,8 +23,8 @@ extension TypeInformation {
 
 class GraphQLSchemaBuilder {
     enum SchemaError: Swift.Error {
-        case unableToConstructInputType(TypeInformation, underlying: Swift.Error?)
-        case unableToConstructOutputType(TypeInformation, underlying: Swift.Error)
+        case unableToConstructInputType(TypeInformation, underlying: (any Swift.Error)?)
+        case unableToConstructOutputType(TypeInformation, underlying: any Swift.Error)
         /// Two or more handlers have defined the same key
         case duplicateEndpointNames(String)
         case unsupportedOpCommPatternTuple(Apodini.Operation, CommunicationPattern)
@@ -45,22 +45,22 @@ class GraphQLSchemaBuilder {
     
     
     private struct TypesCacheEntry {
-        let input: GraphQLInputType?
-        let output: GraphQLOutputType
+        let input: (any GraphQLInputType)?
+        let output: any GraphQLOutputType
         
-        init(inputType: GraphQLInputType? = nil, outputType: GraphQLOutputType) {
+        init(inputType: (any GraphQLInputType)? = nil, outputType: any GraphQLOutputType) {
             self.input = inputType
             self.output = outputType
         }
         
-        init(inputAndOutputType type: GraphQLInputType & GraphQLOutputType) {
+        init(inputAndOutputType type: any GraphQLInputType & GraphQLOutputType) {
             self.input = type
             self.output = type
         }
         
         func map(
-            input inputTransform: (GraphQLInputType) -> GraphQLInputType,
-            output outputTransform: (GraphQLOutputType) -> GraphQLOutputType
+            input inputTransform: (any GraphQLInputType) -> any GraphQLInputType,
+            output outputTransform: (any GraphQLOutputType) -> any GraphQLOutputType
         ) -> Self {
             Self(
                 inputType: input.map(inputTransform),
@@ -68,7 +68,7 @@ class GraphQLSchemaBuilder {
             )
         }
         
-        func type(for usageCtx: TypeUsageContext) -> GraphQLType? {
+        func type(for usageCtx: TypeUsageContext) -> (any GraphQLType)? {
             switch usageCtx {
             case .input:
                 return self.input
@@ -184,7 +184,7 @@ class GraphQLSchemaBuilder {
     }
     
     
-    private func toGraphQLInputType(_ typeInfo: TypeInformation) throws -> GraphQLInputType {
+    private func toGraphQLInputType(_ typeInfo: TypeInformation) throws -> any GraphQLInputType {
         do {
             if let inputType = try toGraphQLType(typeInfo, for: .input).input {
                 return inputType
@@ -197,7 +197,7 @@ class GraphQLSchemaBuilder {
     }
     
     
-    private func toGraphQLOutputType(_ typeInfo: TypeInformation) throws -> GraphQLOutputType {
+    private func toGraphQLOutputType(_ typeInfo: TypeInformation) throws -> any GraphQLOutputType {
         do {
             return try toGraphQLType(typeInfo, for: .output).output
         } catch {
@@ -217,13 +217,13 @@ class GraphQLSchemaBuilder {
         switch typeInfo {
         case .scalar, .repeated, .dictionary, .enum, .object, .reference:
             result = try _toGraphQLType(typeInfo, for: usageCtx).map(
-                input: { GraphQLNonNull($0 as! GraphQLNullableType) },
-                output: { GraphQLNonNull($0 as! GraphQLNullableType) }
+                input: { GraphQLNonNull($0 as! any GraphQLNullableType) },
+                output: { GraphQLNonNull($0 as! any GraphQLNullableType) }
             )
         case .optional(let wrappedValue):
             result = try _toGraphQLType(wrappedValue, for: usageCtx).map(
-                input: { (($0 as? GraphQLNonNull)?.ofType as? GraphQLInputType) ?? $0 },
-                output: { ($0 as? GraphQLNonNull).map { $0.ofType as! GraphQLOutputType } ?? $0 }
+                input: { (($0 as? GraphQLNonNull)?.ofType as? any GraphQLInputType) ?? $0 },
+                output: { ($0 as? GraphQLNonNull).map { $0.ofType as! any GraphQLOutputType } ?? $0 }
             )
         }
         precondition(cachedTypeMappings.updateValue(result, forKey: typeInfo) == nil)
@@ -408,7 +408,7 @@ let GraphQLDate = try! GraphQLScalarType( // swiftlint:disable:this identifier_n
             return .null
         }
     },
-    parseLiteral: { (value: Value) -> Map in
+    parseLiteral: { (value: any Value) -> Map in
         if let string = (value as? StringValue)?.value {
             return .string(string)
         } else if let intNode = (value as? IntValue)?.value, let intValue = Int(intNode) {
@@ -434,7 +434,7 @@ let GraphQLInt64 = try! GraphQLScalarType( // swiftlint:disable:this identifier_
     parseValue: { (input: Map) -> Map in
         input
     },
-    parseLiteral: { (value: Value) -> Map in
+    parseLiteral: { (value: any Value) -> Map in
         if let stringValue = (value as? IntValue)?.value ?? (value as? StringValue)?.value, let intValue = Int64(stringValue) {
             return .number(Number(intValue))
         } else {
@@ -456,7 +456,7 @@ let GraphQLUInt64 = try! GraphQLScalarType( // swiftlint:disable:this identifier
     parseValue: { (input: Map) -> Map in
         input
     },
-    parseLiteral: { (value: Value) -> Map in
+    parseLiteral: { (value: any Value) -> Map in
         if let stringValue = (value as? IntValue)?.value ?? (value as? StringValue)?.value, let intValue = UInt64(stringValue) {
             return .number(Number(intValue))
         } else {
@@ -477,7 +477,7 @@ let GraphQLURL = try! GraphQLScalarType( // swiftlint:disable:this identifier_na
     parseValue: { (input: Map) throws -> Map in
         input
     },
-    parseLiteral: { (value: Value) throws -> Map in
+    parseLiteral: { (value: any Value) throws -> Map in
         if let stringValue = (value as? StringValue)?.value {
             return .string(stringValue)
         } else {
@@ -498,7 +498,7 @@ let GraphQLData = try! GraphQLScalarType( // swiftlint:disable:this identifier_n
     parseValue: { (input: Map) throws -> Map in
         input
     },
-    parseLiteral: { (value: Value) throws -> Map in
+    parseLiteral: { (value: any Value) throws -> Map in
         if let stringValue = (value as? StringValue)?.value {
             return .string(stringValue)
         } else {

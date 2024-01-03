@@ -33,7 +33,7 @@ public struct ResetMetadata: HandlerMetadataDefinition, DefinitionWithDelegating
     /// - Parameters:
     ///   - ensureInitializerTypeUniqueness: If set to true, it is ensured that the same ``DelegationFilter``
     ///     is only used a single time, even when inserted multiple times.
-    public init(using filter: DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) {
+    public init(using filter: any DelegationFilter, ensureInitializerTypeUniqueness: Bool = false) {
         self.initializer = [.init(AnyDelegateFilter(filter: filter), ensureInitializerTypeUniqueness: ensureInitializerTypeUniqueness)]
     }
 }

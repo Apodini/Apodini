@@ -26,12 +26,12 @@ class ProxyServer {
     fileprivate let logger = Logger(label: "LocalhostDeploymentProvider.ProxyServer")
     fileprivate let httpClient: AsyncHTTPClient.HTTPClient
     
-    var eventLoopGroup: EventLoopGroup {
+    var eventLoopGroup: any EventLoopGroup {
         httpServer.eventLoopGroup
     }
     
     
-    init(openApiDocument: OpenAPI.Document, deployedSystem: AnyDeployedSystem, port: Int) throws {
+    init(openApiDocument: OpenAPI.Document, deployedSystem: any AnyDeployedSystem, port: Int) throws {
         let httpServer = HTTPServer(
             eventLoopGroupProvider: .createNew,
             address: .interface("0.0.0.0", port: port),
@@ -119,7 +119,7 @@ private struct ProxyRequestResponder: HTTPResponder {
     private var httpClient: HTTPClient { proxyServer.httpClient }
     private var logger: Logger { proxyServer.logger }
     
-    func respond(to incomingRequest: HTTPRequest) -> HTTPResponseConvertible {
+    func respond(to incomingRequest: HTTPRequest) -> any HTTPResponseConvertible {
         guard let targetNodeLocalhostData = targetNode.readUserInfo(as: LocalhostLaunchInfo.self) else {
             fatalError("Unable to read node userInfo")
         }
@@ -185,7 +185,7 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
         response?.headers[.contentLength]
     }
     
-    init(on eventLoop: EventLoop, endpointCommPattern: Apodini.CommunicationPattern, logger: Logger) {
+    init(on eventLoop: any EventLoop, endpointCommPattern: Apodini.CommunicationPattern, logger: Logger) {
         self.httpResponsePromise = eventLoop.makePromise(of: HTTPResponse.self)
         self.endpointCommPattern = endpointCommPattern
         self.logger = logger
@@ -248,7 +248,7 @@ private class ProxyServerForwardingResponseDelegate: HTTPClientResponseDelegate 
         response.bodyStorage.stream?.close()
     }
     
-    func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {
+    func didReceiveError(task: HTTPClient.Task<Response>, _ error: any Error) {
         if let error = error as? HTTPClientError {
             logger.error("Received HTTPClientError in \(Self.self): \(error.description)")
         } else {

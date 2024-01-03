@@ -19,7 +19,7 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
     
     var configuration = CRUDVerbConfiguration()
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)? {
         let containsCRUDVerb = configuration.forbiddenVerbs.contains { segment.lowercased().contains($0.lowercased()) }
         if containsCRUDVerb {
             return URLCRUDVerbsFinding.crudVerbFound(segment: segment)
@@ -37,7 +37,7 @@ public class NoCRUDVerbsInURLPathSegments: URLSegmentBestPractice {
 public struct CRUDVerbConfiguration: BestPracticeConfiguration {
     var forbiddenVerbs = ["get", "post", "remove", "delete", "put", "set", "create"]
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         NoCRUDVerbsInURLPathSegments(configuration: self)
     }
     

@@ -26,7 +26,7 @@ class JWTTests: XCTApodiniTest {
             }
         }
 
-        var configuration: Configuration {
+        var configuration: any Configuration {
             JWTSigner(.hs256(key: "secretKey"))
         }
     }

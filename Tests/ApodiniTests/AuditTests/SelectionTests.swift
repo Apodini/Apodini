@@ -47,17 +47,17 @@ final class SelectionTests: ApodiniTests {
             }
         }
 
-        @ConfigurationBuilder static var conf: Configuration {
+        @ConfigurationBuilder static var conf: any Configuration {
             REST {
                 APIAuditor()
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             Self.conf
         }
         
-        var metadata: AnyWebServiceMetadata {
+        var metadata: any AnyWebServiceMetadata {
             SelectBestPractices(.exclude, .urlPath)
         }
     }
@@ -70,17 +70,17 @@ final class SelectionTests: ApodiniTests {
             }
         }
 
-        @ConfigurationBuilder static var conf: Configuration {
+        @ConfigurationBuilder static var conf: any Configuration {
             REST {
                 APIAuditor()
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             Self.conf
         }
         
-        var metadata: AnyWebServiceMetadata {
+        var metadata: any AnyWebServiceMetadata {
             SelectBestPractices(.exclude, .urlPath)
         }
     }
@@ -93,17 +93,17 @@ final class SelectionTests: ApodiniTests {
             .metadata(SelectBestPractices(.include, URLPathSegmentLength.self))
         }
 
-        @ConfigurationBuilder static var conf: Configuration {
+        @ConfigurationBuilder static var conf: any Configuration {
             REST {
                 APIAuditor()
             }
         }
         
-        var configuration: Configuration {
+        var configuration: any Configuration {
             Self.conf
         }
         
-        var metadata: AnyWebServiceMetadata {
+        var metadata: any AnyWebServiceMetadata {
             SelectBestPractices(.exclude, .rest)
         }
     }

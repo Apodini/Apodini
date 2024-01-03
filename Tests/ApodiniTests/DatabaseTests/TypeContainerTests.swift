@@ -152,7 +152,7 @@ final class TypeContainerTests: ApodiniTests {
     }
 }
 
-func unwrap(_ value: TypeContainer) throws -> Codable {
+func unwrap(_ value: TypeContainer) throws -> any Codable {
     try XCTUnwrap(value.typed())
 }
 

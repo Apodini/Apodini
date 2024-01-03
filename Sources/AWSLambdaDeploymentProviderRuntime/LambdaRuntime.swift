@@ -26,11 +26,11 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         lambdaDeploymentProviderId
     }
     
-    public let deployedSystem: AnyDeployedSystem
+    public let deployedSystem: any AnyDeployedSystem
     public let currentNodeId: DeployedSystemNode.ID
     private let lambdaDeploymentContext: LambdaDeployedSystemContext
     
-    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
+    public required init(deployedSystem: any AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard let lambdaDeploymentContext = (deployedSystem as? LambdaDeployedSystem)?.context else {
@@ -61,11 +61,11 @@ public class LambdaRuntime<Service: WebService>: DeploymentProviderRuntime {
         return .invokeDefault(url: url)
     }
     
-    public static var exportCommand: StructureExporter.Type {
+    public static var exportCommand: any StructureExporter.Type {
         LambdaStructureExporterCommand<Service>.self
     }
     
-    public static var startupCommand: DeploymentStartupCommand.Type {
+    public static var startupCommand: any DeploymentStartupCommand.Type {
         LambdaStartupCommand<Service>.self
     }
 }

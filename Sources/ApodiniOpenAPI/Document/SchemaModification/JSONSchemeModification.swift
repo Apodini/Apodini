@@ -12,9 +12,9 @@ import OpenAPIKit
 /// Defines a modification to a `Content` type.
 public enum JSONSchemeModificationType {
     /// The modification applies to the `Content` type itself.
-    case root(modification: AnyJSONContextModification)
+    case root(modification: any AnyJSONContextModification)
     /// The modification applies to a property of the `Content` type.
-    case property(property: String, modification: AnyJSONContextModification)
+    case property(property: String, modification: any AnyJSONContextModification)
 }
 
 private extension Array where Element == JSONSchemeModificationType {
@@ -39,7 +39,7 @@ private extension Array where Element == JSONSchemeModificationType {
 
 
 struct JSONSchemeModification {
-    typealias Modifications = [AnyHashable: AnyJSONContextModification]
+    typealias Modifications = [AnyHashable: any AnyJSONContextModification]
     typealias PropertyModifications = [String: Modifications]
 
     private var rootModifications: Modifications
@@ -49,7 +49,7 @@ struct JSONSchemeModification {
         !propertyModifications.isEmpty
     }
 
-    init(root modification: AnyJSONContextModification) {
+    init(root modification: any AnyJSONContextModification) {
         self.init(with: [.root(modification: modification)])
     }
 

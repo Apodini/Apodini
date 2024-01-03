@@ -11,7 +11,7 @@ import Foundation
 /// A ``ParameterCollection`` provides access to an endpoint's ``EndpointParameter``s.
 public protocol ParameterCollection {
     /// Provides access to the ``EndpointParameter``s related to this collection.
-    var parameters: [AnyEndpointParameter] { get }
+    var parameters: [any AnyEndpointParameter] { get }
 }
 
 public extension ParameterCollection {
@@ -20,7 +20,7 @@ public extension ParameterCollection {
     ///
     /// - Parameter id: The parameter `id` to search for.
     /// - Returns: Returns the `AnyEndpointParameter` if a parameter with the given `id` exists on that `Endpoint`. Otherwise nil.
-    func findParameter(for id: UUID) -> AnyEndpointParameter? {
+    func findParameter(for id: UUID) -> (any AnyEndpointParameter)? {
         parameters.first { parameter in
             parameter.id == id
         }
@@ -52,9 +52,9 @@ protocol _AnyEndpoint: AnyEndpoint {
 
 /// Models a single Endpoint which is identified by its PathComponents and its operation
 public struct Endpoint<H: Handler>: _AnyEndpoint {
-    private let sharedRepository: SharedRepository
+    private let sharedRepository: any SharedRepository
     
-    init(sharedRepository: SharedRepository) {
+    init(sharedRepository: any SharedRepository) {
         self.sharedRepository = sharedRepository
     }
     
@@ -68,7 +68,7 @@ public struct Endpoint<H: Handler>: _AnyEndpoint {
     }
 
     /// Provides the ``EndpointParameters`` that correspond to the ``Parameter``s defined on the ``Handler`` of this ``Endpoint``
-    public var parameters: [AnyEndpointParameter] {
+    public var parameters: [any AnyEndpointParameter] {
         self[EndpointParameters.self]
     }
 
@@ -89,7 +89,7 @@ extension Endpoint {
 
 extension Endpoint {
     func exportEndpoint<I: InterfaceExporter>(on exporter: I) -> I.EndpointExportOutput {
-        if let blobEndpoint = self as? BlobEndpoint {
+        if let blobEndpoint = self as? any BlobEndpoint {
             return blobEndpoint.exportBlobEndpoint(on: exporter)
         } else {
             return exporter.export(self)

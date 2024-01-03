@@ -18,7 +18,7 @@ import Logging
 
 /// Enables swift extensions to declare "stored" properties for use in application configuration
 public struct Storage {
-    var storage: [ObjectIdentifier: AnyStorageValue]
+    var storage: [ObjectIdentifier: any AnyStorageValue]
 
     struct Value<T>: AnyStorageValue {
         var value: T

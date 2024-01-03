@@ -19,51 +19,51 @@ public struct Response<Content: Encodable>: ResponseTransformable {
         Response<Content>(information: InformationSet(), connectionEffect: .close)
     }
 
-    public static func end(status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+    public static func end(status: Status? = nil, information: [any AnyInformation] = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
 
-    public static func end(status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+    public static func end(status: Status? = nil, information: any AnyInformation...) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
 
 
-    public static func send(_ content: Content, status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+    public static func send(_ content: Content, status: Status? = nil, information: [any AnyInformation] = []) -> Response<Content> {
         // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
     }
 
-    public static func send(_ content: Content, status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+    public static func send(_ content: Content, status: Status? = nil, information: any AnyInformation...) -> Response<Content> {
         // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .open)
     }
 
 
-    public static func send(_ status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+    public static func send(_ status: Status? = nil, information: [any AnyInformation] = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .open)
     }
 
-    public static func send(_ status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+    public static func send(_ status: Status? = nil, information: any AnyInformation...) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .open)
     }
 
 
-    public static func final(_ content: Content, status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+    public static func final(_ content: Content, status: Status? = nil, information: [any AnyInformation] = []) -> Response<Content> {
         // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
     }
 
-    public static func final(_ content: Content, status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+    public static func final(_ content: Content, status: Status? = nil, information: any AnyInformation...) -> Response<Content> {
         // nil must not be passable by the user as a value
         Response<Content>(status: status, content: content, information: information, connectionEffect: .close)
     }
 
     
-    public static func final(_ status: Status? = nil, information: [AnyInformation] = []) -> Response<Content> {
+    public static func final(_ status: Status? = nil, information: [any AnyInformation] = []) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
 
-    public static func final(_ status: Status? = nil, information: AnyInformation...) -> Response<Content> {
+    public static func final(_ status: Status? = nil, information: any AnyInformation...) -> Response<Content> {
         Response<Content>(status: status, information: information, connectionEffect: .close)
     }
 
@@ -73,7 +73,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
     public var information: InformationSet
     public let connectionEffect: ConnectionEffect
 
-    private init(status: Status? = nil, content: Content? = nil, information: [AnyInformation] = [], connectionEffect: ConnectionEffect) {
+    private init(status: Status? = nil, content: Content? = nil, information: [any AnyInformation] = [], connectionEffect: ConnectionEffect) {
         self.init(status: status, content: content, information: InformationSet(information), connectionEffect: connectionEffect)
     }
 
@@ -85,7 +85,7 @@ public struct Response<Content: Encodable>: ResponseTransformable {
     }
     
     
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Content>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Content>> {
         eventLoop.makeSucceededFuture(self)
     }
     

@@ -23,7 +23,7 @@ public struct SingleDownloader: Handler {
     private var fileio: NonBlockingFileIO
     
     @Environment(\.eventLoopGroup)
-    private var eventLoopGroup: EventLoopGroup
+    private var eventLoopGroup: any EventLoopGroup
     
     @Parameter(.http(.path))
     var fileName: String

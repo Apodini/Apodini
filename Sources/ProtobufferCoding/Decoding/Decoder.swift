@@ -76,11 +76,11 @@ public struct ProtobufferDecoder {
 
 
 class _ProtobufferDecoder: Decoder { // swiftlint:disable:this type_name
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let userInfo: [CodingUserInfoKey: Any]
     let buffer: ByteBuffer
     
-    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], buffer: ByteBuffer) {
+    init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any] = [:], buffer: ByteBuffer) {
         self.codingPath = codingPath
         self.userInfo = userInfo
         self.buffer = buffer
@@ -93,11 +93,11 @@ class _ProtobufferDecoder: Decoder { // swiftlint:disable:this type_name
         ))
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         ProtobufferUnkeyedDecodingContainer(codingPath: codingPath, buffer: buffer)
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    func singleValueContainer() throws -> any SingleValueDecodingContainer {
         // NOTE: We really don't want to end up here, except for cases where the caller knows what it's doing.
         ProtobufferSingleValueDecodingContainer(codingPath: codingPath, buffer: buffer)
     }

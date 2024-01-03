@@ -58,7 +58,7 @@ public struct EndpointRelationship: Equatable {
     ///   - nameOverride: Optional override for the relationship name.
     ///   - hideLink: Flag defining if the Relationship link should be hidden.
     mutating func addEndpoint(
-        _ endpoint: _AnyRelationshipEndpoint,
+        _ endpoint: any _AnyRelationshipEndpoint,
         prefix: String,
         relativeNamingPath: [EndpointPath],
         nameOverride: String? = nil,
@@ -80,7 +80,7 @@ public struct EndpointRelationship: Equatable {
     /// - Parameters:
     ///   - endpoint: The destination Endpoint of the Relationship.
     ///   - name: The name for the Relationship.
-    mutating func addEndpoint(_ endpoint: _AnyRelationshipEndpoint, name: String) {
+    mutating func addEndpoint(_ endpoint: any _AnyRelationshipEndpoint, name: String) {
         precondition(path == endpoint.absolutePath,
                      "Tried adding endpoint to relationship \(path.asPathString()) located under different \(endpoint.absolutePath.asPathString())")
 
@@ -92,7 +92,7 @@ public struct EndpointRelationship: Equatable {
         )
     }
 
-    mutating func addEndpoint(self endpoint: _AnyRelationshipEndpoint) {
+    mutating func addEndpoint(self endpoint: any _AnyRelationshipEndpoint) {
         addEndpoint(endpoint, name: "self")
     }
 
@@ -125,7 +125,7 @@ public struct EndpointRelationship: Equatable {
         relationshipDestinations[destination.operation] = destination
     }
 
-    mutating func replaceAll(resolvers: [AnyPathParameterResolver]) {
+    mutating func replaceAll(resolvers: [any AnyPathParameterResolver]) {
         for operation in relationshipDestinations.keys {
             relationshipDestinations[operation]?.replace(resolvers: resolvers)
         }
@@ -163,10 +163,10 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     public let hideLink: Bool
 
     /// Contains PathParameter resolvers for the destinationPath. Could contain duplicates.
-    private(set) var resolvers: [AnyPathParameterResolver]
+    private(set) var resolvers: [any AnyPathParameterResolver]
 
     /// Initializes the special "self" Relationship for a given EndpointReference
-    init(self reference: EndpointReference, resolvers: [AnyPathParameterResolver]) {
+    init(self reference: EndpointReference, resolvers: [any AnyPathParameterResolver]) {
         self.name = "self"
         self.reference = reference
         self.operation = reference.operation
@@ -176,7 +176,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     }
 
     /// Initializes a destination from a .reference or .link relationship candidate
-    init(name: String, destination reference: EndpointReference, resolvers: [AnyPathParameterResolver]) {
+    init(name: String, destination reference: EndpointReference, resolvers: [any AnyPathParameterResolver]) {
         self.name = name
         self.reference = reference
         self.operation = reference.operation
@@ -188,7 +188,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
     /// Initializer to create structural Relationships or relationships derived from `Relationship` instances.
     fileprivate init(
         name: String,
-        endpoint: _AnyRelationshipEndpoint,
+        endpoint: any _AnyRelationshipEndpoint,
         absolutePath: [EndpointPath],
         hideLink: Bool
     ) {
@@ -220,7 +220,7 @@ public struct RelationshipDestination: CustomStringConvertible, Hashable {
         }
     }
 
-    mutating func replace(resolvers parameterResolvers: [AnyPathParameterResolver]) {
+    mutating func replace(resolvers parameterResolvers: [any AnyPathParameterResolver]) {
         self.resolvers = parameterResolvers
     }
 
@@ -258,7 +258,7 @@ private struct RelationshipNameBuilder: PathBuilderWithResult {
 
 
 extension Array where Element == EndpointRelationship {
-    func replaceAll(resolvers: [AnyPathParameterResolver]) -> [EndpointRelationship] {
+    func replaceAll(resolvers: [any AnyPathParameterResolver]) -> [EndpointRelationship] {
         map { entry in
             var relationship = entry
             relationship.replaceAll(resolvers: resolvers)

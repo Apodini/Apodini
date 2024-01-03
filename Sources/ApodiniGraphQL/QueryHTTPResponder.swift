@@ -25,7 +25,7 @@ struct GraphQLQueryHTTPResponder: HTTPResponder {
         self.schema = schema
     }
     
-    func respond(to httpRequest: HTTPRequest) -> HTTPResponseConvertible {
+    func respond(to httpRequest: HTTPRequest) -> any HTTPResponseConvertible {
         let resultFuture: EventLoopFuture<GraphQLResult>
         do {
             resultFuture = try handleRequest(httpRequest)
@@ -135,7 +135,7 @@ struct GraphQLRequest: Codable {
         self.operationName = operationName
     }
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let keyedContainer = try decoder.container(keyedBy: CodingKeys.self)
         self.query = try keyedContainer.decode(String.self, forKey: .query)
         self.variables = try keyedContainer.decodeIfPresent([String: Map].self, forKey: .variables) ?? [:]

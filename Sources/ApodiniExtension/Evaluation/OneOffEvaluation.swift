@@ -14,7 +14,7 @@ import NIO
 /// A wrapper which contains the input-output pair of a `Delegate`'s evaluation.
 public struct ResponseWithRequest<C: Encodable>: WithRequest {
     public let response: Response<C>
-    public let request: Request
+    public let request: any Request
 }
 
 public extension Request {
@@ -59,11 +59,11 @@ public extension Request {
 }
 
 internal extension Delegate where D: Handler {
-    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> D.Response {
+    func evaluate(using request: any Request, with state: ConnectionState = .end) async throws -> D.Response {
         try await _Internal.evaluate(delegate: self, using: request, with: state)
     }
     
-    func evaluate(using request: Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
+    func evaluate(using request: any Request, with state: ConnectionState = .end) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
         promise.completeWithTask {
             try await self.evaluate(using: request, with: state)
@@ -71,14 +71,14 @@ internal extension Delegate where D: Handler {
         return promise.futureResult
     }
     
-    func evaluate(using request: Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
+    func evaluate(using request: any Request, with state: ConnectionState = .end) async throws -> Response<D.Response.Content> {
         let result: D.Response = try await self.evaluate(using: request, with: state)
         return try await result.transformToResponse(on: request.eventLoop).get()
     }
     
     func evaluate(
         _ trigger: TriggerEvent,
-        using request: Request,
+        using request: any Request,
         with state: ConnectionState = .end
     ) -> EventLoopFuture<Response<D.Response.Content>> {
         let promise = request.eventLoop.makePromise(of: Response<D.Response.Content>.self)
@@ -90,7 +90,7 @@ internal extension Delegate where D: Handler {
     
     func evaluate(
         _ trigger: TriggerEvent,
-        using request: Request,
+        using request: any Request,
         with state: ConnectionState = .end
     ) async throws -> Response<D.Response.Content> {
         self.setChanged(to: true, reason: trigger)

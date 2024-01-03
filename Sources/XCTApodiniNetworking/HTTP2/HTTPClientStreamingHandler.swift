@@ -138,7 +138,7 @@ public final class HTTPClientStreamingHandler<D: StreamingDelegate>: ChannelInbo
         self.streamingDelegate.handleInbound(response: response)
     }
     
-    public func errorCaught(context: ChannelHandlerContext, error: Error) {
+    public func errorCaught(context: ChannelHandlerContext, error: any Error) {
         context.fireErrorCaught(error)
         context.close(promise: nil)
     }

@@ -8,7 +8,7 @@
 
 /// Helper type which acts as a Hashable wrapper around `AnyEndpoint`
 private struct AnyHashableRelationshipEndpoint: Hashable, Equatable {
-    let endpoint: AnyRelationshipEndpoint
+    let endpoint: any AnyRelationshipEndpoint
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(endpoint[AnyHandlerIdentifier.self])
@@ -20,7 +20,7 @@ private struct AnyHashableRelationshipEndpoint: Hashable, Equatable {
 }
 
 extension EndpointsTreeNode {
-    func collectEndpoints() -> [AnyRelationshipEndpoint] {
+    func collectEndpoints() -> [any AnyRelationshipEndpoint] {
         if let parent = parent {
             return parent.collectEndpoints()
         }

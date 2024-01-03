@@ -46,7 +46,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
 
     struct TestWebSocketExporterCollection: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             WebSocket()
         }
     }
@@ -293,7 +293,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
 
     func testDecodingErrorForwarding() throws {
-        var forwardedError: Error?
+        var forwardedError: (any Error)?
         let errorForwardingExporter = ErrorForwardingInterfaceExporter {
             forwardedError = $0
         }
@@ -323,7 +323,7 @@ class WebSocketInterfaceExporterTests: XCTApodiniTest {
     }
 
     func testEvaluationErrorForwarding() throws {
-        var forwardedError: Error?
+        var forwardedError: (any Error)?
         let errorForwardingExporter = ErrorForwardingInterfaceExporter {
             forwardedError = $0
         }
@@ -495,7 +495,7 @@ struct BidirectionalHandler: Handler {
     
     @Environment(\.connection) var connection: Connection
     
-    let eventLoop: EventLoop
+    let eventLoop: any EventLoop
     
     let app: Application
     

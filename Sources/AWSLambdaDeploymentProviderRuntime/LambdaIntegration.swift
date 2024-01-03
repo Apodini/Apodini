@@ -97,7 +97,7 @@ struct APIGatewayV2Handler: EventLoopLambdaHandler {
 
 class LambdaServer: Apodini.LifecycleHandler {
     private let application: Application
-    private let eventLoop: EventLoop
+    private let eventLoop: any EventLoop
     private let lambdaLifecycle: Lambda.Lifecycle
     
     init(application: Application) {

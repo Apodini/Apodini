@@ -18,7 +18,7 @@ public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
     
     var checkedSegments = [String]()
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)? {
         let dotIndex = segment.firstIndex(of: ".")
         guard let dotIndex = dotIndex else {
             return nil
@@ -41,7 +41,7 @@ public class NoFileExtensionsInURLPathSegments: URLSegmentBestPractice {
 public struct FileExtensionConfiguration: BestPracticeConfiguration {
     var allowedExtensions: [String]
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         NoFileExtensionsInURLPathSegments(configuration: self)
     }
     

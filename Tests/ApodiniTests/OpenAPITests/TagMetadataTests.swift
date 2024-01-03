@@ -46,7 +46,7 @@ final class TagMetadataTests: ApodiniTests {
         }.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let endpoint: any AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
         let tags = endpoint[Context.self].get(valueFor: TagContextKey.self)
     
         XCTAssertEqual(tags, ["tag3", "tag1", "People_Register"])

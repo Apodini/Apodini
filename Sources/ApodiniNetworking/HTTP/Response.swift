@@ -121,7 +121,7 @@ extension EventLoopFuture: HTTPResponseConvertible where Value: HTTPResponseConv
             case .success(let value):
                 return value.makeHTTPResponse(for: request)
             case .failure(let error):
-                if let error = error as? HTTPResponseConvertible {
+                if let error = error as? any HTTPResponseConvertible {
                     return error.makeHTTPResponse(for: request)
                 } else {
                     return request.eventLoop.makeSucceededFuture(HTTPResponse(

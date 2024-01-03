@@ -50,7 +50,7 @@ enum Reporter {
                     }
                     
                     // Sort findings by priority
-                    let sortedFindings = audit.findings.sorted(by: \Finding.priority)
+                    let sortedFindings = audit.findings.sorted(by: \(any Finding).priority)
                     for finding in sortedFindings {
                         printedSomething = true
                         addLine(&reportStr, "    \(finding.diagnosis)")

@@ -41,7 +41,7 @@ struct Add: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Pattern(.bidirectionalStream)
         Operation(.create)
     }

@@ -34,7 +34,7 @@ extension BestPractice {
         .normal
     }
     
-    func check(for endpoint: AnyEndpoint, _ app: Application) -> Audit {
+    func check(for endpoint: any AnyEndpoint, _ app: Application) -> Audit {
         let audit = Audit(endpoint, self)
         check(into: audit, app)
         return audit

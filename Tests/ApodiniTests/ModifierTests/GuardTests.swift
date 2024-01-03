@@ -39,7 +39,7 @@ final class GuardTests: ApodiniTests {
                 Version(major: 2, minor: 1)
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST(rootPath: .version)
             }
         }
@@ -75,7 +75,7 @@ final class GuardTests: ApodiniTests {
                 }.guard(TestGuard())
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -124,7 +124,7 @@ final class GuardTests: ApodiniTests {
                 .resetGuards()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -153,7 +153,7 @@ final class GuardTests: ApodiniTests {
                     .resetGuards()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -186,7 +186,7 @@ final class GuardTests: ApodiniTests {
                     .resetGuards()
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
@@ -224,7 +224,7 @@ final class GuardTests: ApodiniTests {
                     .guard(TestGuard())
             }
             
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }

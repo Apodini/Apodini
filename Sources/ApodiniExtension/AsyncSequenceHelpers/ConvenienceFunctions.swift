@@ -31,7 +31,7 @@ public extension AsyncSequence {
 public extension AsyncSequence {
     /// Returns an `EventLoopFuture` that either completes with the first element available from this
     /// `AsyncSequence`, the error thrown while retrieving the first element, or nil if the sequence is empty.
-    func firstFuture(on eventLoop: EventLoop) -> EventLoopFuture<Element?> {
+    func firstFuture(on eventLoop: any EventLoop) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         promise.completeWithTask {
             try await self.first(where: { _ in true })
@@ -40,7 +40,7 @@ public extension AsyncSequence {
     }
     
     /// Returns an `EventLoopFuture` which will fulfill with the first element in the sequence, and also calls the specified closure once with every element in the sequence
-    func firstFutureAndForEach(on eventLoop: EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
+    func firstFutureAndForEach(on eventLoop: any EventLoop, objectsHandler: @escaping (Element) -> Void) -> EventLoopFuture<Element?> {
         let promise = eventLoop.makePromise(of: Element?.self)
         Task {
             var idx = 0

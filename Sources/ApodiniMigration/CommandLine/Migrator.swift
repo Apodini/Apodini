@@ -28,7 +28,7 @@ struct Migrator<Service: WebService>: ParsableCommand {
         )
     }
     
-    private static var `default`: ParsableCommand.Type {
+    private static var `default`: any ParsableCommand.Type {
         MigratorDocument<Service>.self
     }
 }

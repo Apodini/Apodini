@@ -13,7 +13,7 @@ import ArgumentParser
 struct SingleCommandConfiguration: Configuration {
     func configure(_ app: Application) {}
     
-    var command: ParsableCommand.Type {
+    var command: any ParsableCommand.Type {
         DummyParsableCommand.self
     }
 }
@@ -21,7 +21,7 @@ struct SingleCommandConfiguration: Configuration {
 struct MultipleCommandConfiguration: Configuration {
     func configure(_ app: Application) {}
     
-    var command: ParsableCommand.Type {
+    var command: any ParsableCommand.Type {
         DummyParsableCommandWithSubCommands.self
     }
 }

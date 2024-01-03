@@ -262,7 +262,7 @@ final class ComponentMetadataTest: ApodiniTests {
         component.accept(visitor)
         visitor.finishParsing()
 
-        let endpoint: AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
+        let endpoint: any AnyEndpoint = try XCTUnwrap(modelBuilder.collectedEndpoints.first)
 
         let capturedInts = endpoint[Context.self].get(valueFor: TestIntComponentMetadata.self)
         let expectedInts: [Int] = Self.expectedIntsState + [50, 51, 60, 61, 62, 63]

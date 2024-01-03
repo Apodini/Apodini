@@ -12,13 +12,13 @@ import Foundation
 
 
 struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     let dstBufferRef: Box<ByteBuffer>
     let context: EncoderContext
     
     private(set) var count: Int = 0
     
-    init(codingPath: [CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
+    init(codingPath: [any CodingKey], dstBufferRef: Box<ByteBuffer>, context: EncoderContext) {
         self.codingPath = codingPath
         self.dstBufferRef = dstBufferRef
         self.context = context
@@ -32,11 +32,11 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         fatalError("Not implemented")
     }
     
-    mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
+    mutating func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
         fatalError("Not implemented")
     }
     
-    mutating func superEncoder() -> Encoder {
+    mutating func superEncoder() -> any Encoder {
         fatalError("Not implemented")
     }
     
@@ -100,7 +100,7 @@ struct ProtobufferUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         try _encode(value)
     }
     
-    mutating func _encode(_ value: Encodable) throws { // swiftlint:disable:this identifier_name
+    mutating func _encode(_ value: any Encodable) throws { // swiftlint:disable:this identifier_name
         let encoder = _ProtobufferEncoder(codingPath: codingPath, dstBufferRef: dstBufferRef, context: context)
         try value.encode(to: encoder)
     }

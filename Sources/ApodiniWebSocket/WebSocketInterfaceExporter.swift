@@ -60,10 +60,10 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
 
     
     func export<H: Handler>(_ endpoint: Endpoint<H>) {
-        let inputParameters: [(name: String, value: InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
+        let inputParameters: [(name: String, value: any InputParameter)] = endpoint.exportParameters(on: self).map { parameter in
             (name: parameter.0, value: parameter.1.parameter)
         }
-        let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: InputParameter](), { result, parameter in
+        let emptyInput = SomeInput(parameters: inputParameters.reduce(into: [String: any InputParameter](), { result, parameter in
             result[parameter.name] = parameter.value
         }))
         let decodingStrategy = InterfaceExporterLegacyStrategy(self).applied(to: endpoint)
@@ -127,7 +127,7 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
     }
     
     struct Transformer<H: Handler>: ResultTransformer {
-        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Message<H.Response.Content>, Error> {
+        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Message<H.Response.Content>, any Error> {
             switch error.option(for: .webSocketConnectionConsequence) {
             case .none:
                 return .graceful(.error(error))
@@ -150,9 +150,9 @@ final class WebSocketInterfaceExporter: LegacyInterfaceExporter {
 /// A struct that wrapps the `WebSocketInterfaceExporter`'s internal representation of
 /// an `@Parameter`.
 public struct WebSocketParameter {
-    internal var parameter: InputParameter
+    internal var parameter: any InputParameter
     
-    internal init(_ parameter: InputParameter) {
+    internal init(_ parameter: any InputParameter) {
         self.parameter = parameter
     }
 }
@@ -162,9 +162,9 @@ public struct WebSocketParameter {
 
 extension SomeInput: Reducible {
     func reduce(with new: SomeInput) -> SomeInput {
-        var newParameters: [String: InputParameter] = [:]
+        var newParameters: [String: any InputParameter] = [:]
         for (name, value) in new.parameters {
-            if let reducible = self.parameters[name] as? ReducibleParameter {
+            if let reducible = self.parameters[name] as? any ReducibleParameter {
                 newParameters[name] = reducible.reduce(to: value)
             } else {
                 newParameters[name] = value
@@ -175,11 +175,11 @@ extension SomeInput: Reducible {
 }
 
 private protocol ReducibleParameter {
-    func reduce(to new: InputParameter) -> InputParameter
+    func reduce(to new: any InputParameter) -> any InputParameter
 }
 
 extension BasicInputParameter: ReducibleParameter {
-    func reduce(to new: InputParameter) -> InputParameter {
+    func reduce(to new: any InputParameter) -> any InputParameter {
         if let newParameter = new as? Self {
             switch newParameter.value {
             case .some:
@@ -196,7 +196,7 @@ extension BasicInputParameter: ReducibleParameter {
 // MARK: WSError Conformance
 
 private extension ApodiniError {
-    var wsError: WSError {
+    var wsError: any WSError {
         switch self.option(for: .webSocketConnectionConsequence) {
         case .closeContext:
             return FatalWSError(reason: self.webSocketMessage, code: self.option(for: .webSocketErrorCode))

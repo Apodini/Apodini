@@ -47,10 +47,10 @@ extension InstrumentConfiguration {
     public static func openTelemetryWithConfig(
         serviceName: String,
         resourceDetection: OTel.ResourceDetection = .automatic(additionalDetectors: []),
-        idGenerator: OTelIDGenerator = OTel.RandomIDGenerator(),
-        sampler: OTelSampler = OTel.ParentBasedSampler(rootSampler: OTel.ConstantSampler(isOn: true)),
-        processor: @escaping (_ group: EventLoopGroup) -> OTelSpanProcessor,
-        propagator: OTelPropagator = OTel.W3CPropagator(),
+        idGenerator: any OTelIDGenerator = OTel.RandomIDGenerator(),
+        sampler: any OTelSampler = OTel.ParentBasedSampler(rootSampler: OTel.ConstantSampler(isOn: true)),
+        processor: @escaping (_ group: any EventLoopGroup) -> any OTelSpanProcessor,
+        propagator: any OTelPropagator = OTel.W3CPropagator(),
         logger: Logger = Logger(label: "org.apodini.observe.OpenTelemetry")
     ) -> InstrumentConfiguration {
         InstrumentConfiguration { group in

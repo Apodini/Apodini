@@ -43,7 +43,7 @@ class ConfigurationBuilderTests: XCTestCase {
         struct EmptyCollection: ConfigurationCollection { }
 
         let testCollection = EmptyCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 1)
         XCTAssert(configurations[0] is EmptyConfiguration)
@@ -51,13 +51,13 @@ class ConfigurationBuilderTests: XCTestCase {
 
     func testCollectionWithOneElement() throws {
         struct TestCollection: ConfigurationCollection {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 SomeConfiguration()
             }
         }
 
         let testCollection = TestCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 1)
         XCTAssert(configurations[0] is SomeConfiguration)
@@ -67,20 +67,20 @@ class ConfigurationBuilderTests: XCTestCase {
         struct TestCollection: ConfigurationCollection {
             let counter = ConfigureCounter()
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 CheckConfigurationTriggered(counter: counter)
             }
         }
 
         let testCollection = TestCollection()
-        (testCollection.configuration as? [Configuration])?.configure(app)
+        (testCollection.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollection.counter.number == 1)
     }
 
     func testCollectionWithMultipleElements() throws {
         struct TestCollection: ConfigurationCollection {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 SomeConfiguration()
                 EmptyConfiguration()
                 SomeConfiguration()
@@ -88,7 +88,7 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollection = TestCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 3)
         XCTAssert(configurations[0] is SomeConfiguration)
@@ -100,7 +100,7 @@ class ConfigurationBuilderTests: XCTestCase {
         struct TestCollection: ConfigurationCollection {
             let counter = ConfigureCounter()
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 CheckConfigurationTriggered(counter: counter)
                 CheckConfigurationTriggered(counter: counter)
                 CheckConfigurationTriggered(counter: counter)
@@ -108,7 +108,7 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollection = TestCollection()
-        (testCollection.configuration as? [Configuration])?.configure(app)
+        (testCollection.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollection.counter.number == 3)
     }
@@ -117,7 +117,7 @@ class ConfigurationBuilderTests: XCTestCase {
         struct TestCollection: ConfigurationCollection {
             let triggerConditional: Bool
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 if triggerConditional {
                     SomeConfiguration()
                 }
@@ -127,14 +127,14 @@ class ConfigurationBuilderTests: XCTestCase {
         let testCollectionTrue = TestCollection(triggerConditional: true)
         let testCollectionFalse = TestCollection(triggerConditional: false)
 
-        let configurationsTrue = try XCTUnwrap(testCollectionTrue.configuration as? [Configuration])
-        let configurationsNestedTrue = try XCTUnwrap(configurationsTrue[0] as? [Configuration])
+        let configurationsTrue = try XCTUnwrap(testCollectionTrue.configuration as? [any Configuration])
+        let configurationsNestedTrue = try XCTUnwrap(configurationsTrue[0] as? [any Configuration])
 
         XCTAssert(configurationsTrue.count == 1)
         XCTAssert(configurationsNestedTrue.count == 1)
         XCTAssert(configurationsNestedTrue[0] is SomeConfiguration)
 
-        let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [Configuration])
+        let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [any Configuration])
 
         XCTAssert(configurationsFalse.count == 1)
         XCTAssert(configurationsFalse[0] is EmptyConfiguration)
@@ -144,7 +144,7 @@ class ConfigurationBuilderTests: XCTestCase {
         struct TestCollection: ConfigurationCollection {
             let triggerConditional: Bool
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 if triggerConditional {
                     SomeConfiguration()
                 } else {
@@ -157,16 +157,16 @@ class ConfigurationBuilderTests: XCTestCase {
         let testCollectionTrue = TestCollection(triggerConditional: true)
         let testCollectionFalse = TestCollection(triggerConditional: false)
 
-        let configurationsTrue = try XCTUnwrap(testCollectionTrue.configuration as? [Configuration])
-        let configurationsNestedTrue = try XCTUnwrap(configurationsTrue[0] as? [Configuration])
+        let configurationsTrue = try XCTUnwrap(testCollectionTrue.configuration as? [any Configuration])
+        let configurationsNestedTrue = try XCTUnwrap(configurationsTrue[0] as? [any Configuration])
 
         XCTAssert(configurationsTrue.count == 2)
         XCTAssert(configurationsNestedTrue.count == 1)
         XCTAssert(configurationsNestedTrue[0] is SomeConfiguration)
         XCTAssert(configurationsTrue[1] is SomeConfiguration)
 
-        let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [Configuration])
-        let configurationsNestedFalse = try XCTUnwrap(configurationsFalse[0] as? [Configuration])
+        let configurationsFalse = try XCTUnwrap(testCollectionFalse.configuration as? [any Configuration])
+        let configurationsNestedFalse = try XCTUnwrap(configurationsFalse[0] as? [any Configuration])
 
         XCTAssert(configurationsFalse.count == 2)
         XCTAssert(configurationsNestedFalse.count == 1)
@@ -179,7 +179,7 @@ class ConfigurationBuilderTests: XCTestCase {
             let counter = ConfigureCounter()
             let triggerConditional: Bool
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 if triggerConditional {
                     CheckConfigurationTriggered(counter: counter)
                 } else {
@@ -190,12 +190,12 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollectionTrue = TestCollection(triggerConditional: true)
-        (testCollectionTrue.configuration as? [Configuration])?.configure(app)
+        (testCollectionTrue.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollectionTrue.counter.number == 2)
 
         let testCollectionFalse = TestCollection(triggerConditional: false)
-        (testCollectionFalse.configuration as? [Configuration])?.configure(app)
+        (testCollectionFalse.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollectionFalse.counter.number == 1)
     }
@@ -206,7 +206,7 @@ class ConfigurationBuilderTests: XCTestCase {
             let triggerConditional1: Bool
             let triggerConditional2: Bool
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 if triggerConditional1 {
                     CheckConfigurationTriggered(counter: counter)
                     if !triggerConditional2 {
@@ -222,12 +222,12 @@ class ConfigurationBuilderTests: XCTestCase {
         }
 
         let testCollectionTrue = TestCollection(triggerConditional1: true, triggerConditional2: true)
-        (testCollectionTrue.configuration as? [Configuration])?.configure(app)
+        (testCollectionTrue.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollectionTrue.counter.number == 2)
 
         let testCollectionFalse = TestCollection(triggerConditional1: true, triggerConditional2: false)
-        (testCollectionFalse.configuration as? [Configuration])?.configure(app)
+        (testCollectionFalse.configuration as? [any Configuration])?.configure(app)
 
         XCTAssert(testCollectionFalse.counter.number == 3)
     }

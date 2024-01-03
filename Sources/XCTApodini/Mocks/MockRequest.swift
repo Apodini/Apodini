@@ -17,7 +17,7 @@ import ApodiniExtension
 public enum MockRequest {
     /// Create a request on an `EmptyHandler`
     public static func createRequest(
-        running eventLoop: EventLoop,
+        running eventLoop: any EventLoop,
         queuedParameters parameterValues: Any??...
     ) -> DefaultValueStore.DefaultInsertingRequest {
         createRequest(on: EmptyHandler(), running: eventLoop, queuedParameters: parameterValues)
@@ -26,7 +26,7 @@ public enum MockRequest {
     /// Create a request on `handler`
     public static func createRequest<H: Handler>(
         on handler: H,
-        running eventLoop: EventLoop,
+        running eventLoop: any EventLoop,
         queuedParameters parameterValues: Any??...
     ) -> DefaultValueStore.DefaultInsertingRequest {
         createRequest(on: handler, running: eventLoop, queuedParameters: parameterValues)
@@ -34,7 +34,7 @@ public enum MockRequest {
 
     private static func createRequest<H: Handler>(
         on handler: H,
-        running eventLoop: EventLoop,
+        running eventLoop: any EventLoop,
         queuedParameters parameterValues: [Any??]
     ) -> DefaultValueStore.DefaultInsertingRequest {
         let exporter = MockExporter<String>(queued: parameterValues)

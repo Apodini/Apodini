@@ -10,7 +10,7 @@ import Apodini
 import Tracing
 
 /// Factory that produces an `Instrument` and an optional closure that gets called when the `Application` shuts down.
-public typealias InstrumentFactory = (_ group: EventLoopGroup) -> (instrument: Instrument, instrumentShutdown: InstrumentShutdown?)?
+public typealias InstrumentFactory = (_ group: any EventLoopGroup) -> (instrument: any Instrument, instrumentShutdown: InstrumentShutdown?)?
 
 /// Closure to shutdown an instrumentation backend.
 public typealias InstrumentShutdown = () throws -> Void
@@ -36,7 +36,7 @@ public struct InstrumentConfiguration {
 
     /// Initializes an ``InstrumentConfiguration`` from an `Instrument`.
     /// - Parameter instrument: The `Instrument` that should be used as a tracing backend.
-    public init(_ instrument: Instrument) {
+    public init(_ instrument: any Instrument) {
         self.factory = { _ in (instrument, nil) }
     }
 }

@@ -39,13 +39,13 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
         self.endpointContext = endpointContext
     }
     
-    func handleStreamOpen(context: GRPCStreamConnectionContext) {}
+    func handleStreamOpen(context: any GRPCStreamConnectionContext) {}
     
-    func handleStreamClose(context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
+    func handleStreamClose(context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut>? {
         nil
     }
     
-    func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         fatalError("Abstract. Implement in subclass.")
     }
     
@@ -70,7 +70,7 @@ class StreamRPCHandlerBase<H: Handler>: GRPCStreamRPCHandler {
 
 extension StreamRPCHandlerBase {
     struct AbortTransformer: ResultTransformer {
-        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Apodini.Response<H.Response.Content>, Error> {
+        func handle(error: ApodiniError) -> ErrorHandlingStrategy<Apodini.Response<H.Response.Content>, any Error> {
             .abort(error)
         }
         

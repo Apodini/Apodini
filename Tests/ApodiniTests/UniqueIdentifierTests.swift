@@ -44,7 +44,7 @@ final class UniqueIdentifierTests: ApodiniTests {
         
         
         struct TestWebService: WebService {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 IdentifierAccessing()
             }
             

@@ -37,7 +37,7 @@ extension EventLoopFuture {
     public func flatMapAlways<NewValue>(
         file: StaticString = #file,
         line: UInt = #line,
-        _ block: @escaping (Result<Value, Error>) -> EventLoopFuture<NewValue>
+        _ block: @escaping (Result<Value, any Error>) -> EventLoopFuture<NewValue>
     ) -> EventLoopFuture<NewValue> {
         let promise = self.eventLoop.makePromise(of: NewValue.self, file: file, line: line)
         self.whenComplete { block($0).cascade(to: promise) }
@@ -45,7 +45,7 @@ extension EventLoopFuture {
     }
     
     /// Runs the specified block when the future is completed, regardless of whether the result is a success or a failure
-    public func inspect(_ block: @escaping (Result<Value, Error>) -> Void) -> EventLoopFuture<Value> {
+    public func inspect(_ block: @escaping (Result<Value, any Error>) -> Void) -> EventLoopFuture<Value> {
         self.whenComplete(block)
         return self
     }
@@ -57,7 +57,7 @@ extension EventLoopFuture {
     }
     
     /// Runs the specified block when the future fails
-    public func inspectFailure(_ block: @escaping (Error) -> Void) -> EventLoopFuture<Value> {
+    public func inspectFailure(_ block: @escaping (any Error) -> Void) -> EventLoopFuture<Value> {
         self.whenFailure(block)
         return self
     }

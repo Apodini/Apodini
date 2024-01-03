@@ -92,7 +92,7 @@ public class SyntaxTreeVisitor: HandlerVisitor {
         // across multiple runs of an Apodini web service.
         addContext(HandlerIndexPath.ContextKey.self, value: formHandlerIndexPathForCurrentNode(), scope: .current)
 
-        if let contentType = H.Response.Content.self as? AnyStaticContentMetadataBlock.Type {
+        if let contentType = H.Response.Content.self as? any AnyStaticContentMetadataBlock.Type {
             let parser = StandardMetadataParser()
             contentType.collectMetadata(parser)
             addContext(RootContextOfReturnTypeContextKey.self, value: parser.exportContext(), scope: .current)

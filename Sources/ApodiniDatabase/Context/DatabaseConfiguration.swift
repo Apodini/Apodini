@@ -16,7 +16,7 @@ public final class DatabaseConfiguration: Configuration {
     private let databaseConfiguration: FluentKit.DatabaseConfigurationFactory
     private let databaseID: DatabaseID
     private let isDefault: Bool?
-    private(set) var migrations: [Migration] = []
+    private(set) var migrations: [any Migration] = []
     
     
     /// Initializes a new database configuration
@@ -27,7 +27,7 @@ public final class DatabaseConfiguration: Configuration {
         _ databaseConfiguration: FluentKit.DatabaseConfigurationFactory,
         as databaseID: DatabaseID,
         isDefault: Bool? = nil,
-        migrations: [Migration] = []
+        migrations: [any Migration] = []
     ) {
         self.databaseConfiguration = databaseConfiguration
         self.databaseID = databaseID
@@ -50,7 +50,7 @@ public final class DatabaseConfiguration: Configuration {
     ///
     /// - Parameters:
     ///     - migrations: One or more `Migration` objects that should be migrated by the database
-    public func addMigrations(_ migrations: Migration...) -> Self {
+    public func addMigrations(_ migrations: any Migration...) -> Self {
         self.migrations.append(contentsOf: migrations)
         return self
     }

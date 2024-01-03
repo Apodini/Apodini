@@ -125,13 +125,13 @@ public enum BodyStorage {
     
     /// Attempts to decode an object of the specified type from the full body data, using the specified decoder.
     /// - Note: This function does **NOT** move the body's reader index.
-    public func getFullBodyData<T: Decodable>(decodedAs _: T.Type, using decoder: AnyDecoder = JSONDecoder()) throws -> T {
+    public func getFullBodyData<T: Decodable>(decodedAs _: T.Type, using decoder: any AnyDecoder = JSONDecoder()) throws -> T {
         try decoder.decode(T.self, from: getFullBodyData() ?? Data())
     }
     
     /// Attempts to decode the new data to the specified type.
     /// Note that this is probably somewhat useless since the new data would have to not be a chunk or some kind of partial object.
-    public mutating func readNewData<T: Decodable>(decodedAs _: T.Type, using decoder: AnyDecoder = JSONDecoder()) throws -> T {
+    public mutating func readNewData<T: Decodable>(decodedAs _: T.Type, using decoder: any AnyDecoder = JSONDecoder()) throws -> T {
         try decoder.decode(T.self, from: readNewData() ?? Data())
     }
     
@@ -146,7 +146,7 @@ public enum BodyStorage {
     
     
     /// Writes the specified value to the storage, encoding it using the specified encoder
-    public mutating func write<T: Encodable>(encoding value: T, using encoder: AnyEncoder = JSONEncoder()) throws {
+    public mutating func write<T: Encodable>(encoding value: T, using encoder: any AnyEncoder = JSONEncoder()) throws {
         write(try encoder.encode(value))
     }
     
@@ -343,7 +343,7 @@ extension BodyStorage {
         /// - returns: An `EventLoopFuture` to a `ByteBuffer` containing the contents of the stream, which will fulfill when the stream is closed.
         ///         If the stream is already closed, the future will succeed to an empty buffer.
         /// - Note: This function registers an observer on the stream.
-        public func collect(on eventLoop: EventLoop) -> EventLoopFuture<ByteBuffer> {
+        public func collect(on eventLoop: any EventLoop) -> EventLoopFuture<ByteBuffer> {
             guard !self.isClosed else {
                 return eventLoop.makeSucceededFuture(ByteBuffer())
             }

@@ -89,7 +89,7 @@ private func runEndpointTest(httpConfiguration: HTTPExporterConfiguration, respo
 // swiftlint:disable:next function_body_length
 private func manuallyCreateDocument(
     _ responseSchema: JSONSchema,
-    _ endpoint: AnyEndpoint,
+    _ endpoint: any AnyEndpoint,
     _ exporterConfiguration: ApodiniOpenAPI.OpenAPI.ExporterConfiguration
 ) -> OpenAPIKit.OpenAPI.Document {
     OpenAPI.Document(

@@ -76,7 +76,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
     private let migrationGuideConfig: MigrationGuideConfiguration?
     private let logger = Logger(label: "org.apodini.migrator")
 
-    private var endpoints: [Apodini.AnyEndpoint] = []
+    private var endpoints: [any Apodini.AnyEndpoint] = []
     private var webService: WebServiceModel?
 
     init<W: WebService>(_ app: Apodini.Application, configuration: MigratorConfiguration<W>) {
@@ -147,7 +147,7 @@ final class ApodiniMigratorInterfaceExporter: InterfaceExporter, LifecycleHandle
         handleMigrationGuide(document: document)
     }
 
-    private func handleEndpoint(_ endpoint: AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
+    private func handleEndpoint(_ endpoint: any AnyEndpoint) -> ApodiniMigratorCore.Endpoint {
         let handlerName = endpoint[HandlerReflectiveName.self]
         let operation = endpoint[Apodini.Operation.self]
         let communicationPattern = endpoint[Apodini.CommunicationPattern.self]

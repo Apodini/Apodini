@@ -10,13 +10,13 @@ import Foundation
 import ApodiniUtils
 
 
-typealias MatchedResolvers = [UUID: AnyPathParameterResolver]
+typealias MatchedResolvers = [UUID: any AnyPathParameterResolver]
 
 /// A `AnyParameterResolver` can be used to resolve a `PathParameter`
 /// of the destination of a `EndpointRelationship`.
 protocol AnyPathParameterResolver: CustomStringConvertible {
     /// Checks whether this resolvers is able to resolve the given `AnyEndpointPathParameter`
-    func resolves(parameter: AnyEndpointPathParameter) -> Bool
+    func resolves(parameter: any AnyEndpointPathParameter) -> Bool
 
     /// Resolves the value for a path parameter from the given `ResolveContext`.
     ///
@@ -59,7 +59,7 @@ struct PathParameterPropertyResolver<Element, Destination: Identifiable>: AnyPat
         self.keyPath = keyPath
     }
 
-    func resolves(parameter: AnyEndpointPathParameter) -> Bool {
+    func resolves(parameter: any AnyEndpointPathParameter) -> Bool {
         // This line basically creates the restriction that we require the `identifyingType`
         // to be supplied with the `@PathParameter` definition.
         // Additionally, `parameter.identifyingType` holds the `IdentifyingType` as defined
@@ -100,7 +100,7 @@ struct PathParameterResolver: AnyPathParameterResolver {
 
     let parameterId: UUID
 
-    func resolves(parameter: AnyEndpointPathParameter) -> Bool {
+    func resolves(parameter: any AnyEndpointPathParameter) -> Bool {
         parameterId == parameter.id
     }
 
@@ -124,23 +124,23 @@ extension ParsedTypeIndexEntryCapture {
     }
 }
 
-extension Array where Element == AnyEndpointPathParameter {
-    func resolvers() -> [AnyPathParameterResolver] {
+extension Array where Element == any AnyEndpointPathParameter {
+    func resolvers() -> [any AnyPathParameterResolver] {
         map { parameter in
             PathParameterResolver(parameterId: parameter.id)
         }
     }
 }
 
-extension Array where Element == AnyPathParameterResolver {
+extension Array where Element == any AnyPathParameterResolver {
     /// This method checks if the given array of `AnyPathParameterResolver` is able to resolve any
     /// path parameters located in the path of the provided `EndpointReference`.
     /// - Parameters:
     ///   - reference: The `EndpointReference` to check resolvability for.
     ///   - pathParameters: The array where unresolved PathParameters are stored in.
     /// - Returns: Returns the list of `AnyPathParameterResolver` which weren't used for resolving steps.
-    func resolvability(of path: [EndpointPath], unresolved pathParameters: inout [AnyEndpointPathParameter]) -> [AnyPathParameterResolver] {
-        var unusedResolvers: [AnyPathParameterResolver] = self
+    func resolvability(of path: [EndpointPath], unresolved pathParameters: inout [any AnyEndpointPathParameter]) -> [any AnyPathParameterResolver] {
+        var unusedResolvers: [any AnyPathParameterResolver] = self
 
         for parameter in path.listPathParameters() {
             if let index = unusedResolvers.firstIndex(where: { $0.resolves(parameter: parameter) }) {
@@ -156,7 +156,7 @@ extension Array where Element == AnyPathParameterResolver {
 
 
 extension Identifiable {
-    static func makePathParameterPropertyResolver() -> AnyPathParameterResolver {
+    static func makePathParameterPropertyResolver() -> any AnyPathParameterResolver {
         PathParameterPropertyResolver(destination: Self.self, at: \Self.id)
     }
 }

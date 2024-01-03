@@ -14,7 +14,7 @@ public struct ReadOne<Model: DatabaseModel>: Handler {
     var objectNotFoundError: ApodiniError
     
     @Apodini.Environment(\.database)
-    private var database: FluentKit.Database
+    private var database: any FluentKit.Database
     
     @Parameter(.http(.path))
     var id: Model.IDValue
@@ -25,7 +25,7 @@ public struct ReadOne<Model: DatabaseModel>: Handler {
     
     public init() {}
     
-    public var metadata: AnyHandlerMetadata {
+    public var metadata: any AnyHandlerMetadata {
         Operation(.read)
     }
 }

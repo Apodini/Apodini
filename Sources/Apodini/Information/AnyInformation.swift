@@ -18,7 +18,7 @@ public protocol AnyInformation {
     /// Returns the untyped version of the ``AnyInformation`` instance. This method has no effect on ``Information``
     /// instances and returns self. For ``InformationInstantiatable`` it returns the corresponding ``Information`` instance.
     /// - Returns: The untyped ``AnyInformation``.
-    func anyUntyped() -> AnyInformation
+    func anyUntyped() -> any AnyInformation
 
     /// Type erased version of the ``Information/merge(with:)-1xjd0`` and ``InformationInstantiatable/merge(with:)-66dae`` methods.
     ///
@@ -26,7 +26,7 @@ public protocol AnyInformation {
     ///
     /// - Parameter information: The ``AnyInformation`` to merge with.
     /// - Returns: The resulting ``AnyInformation``.
-    func anyMerge(with information: AnyInformation) -> AnyInformation
+    func anyMerge(with information: any AnyInformation) -> any AnyInformation
 }
 
 internal extension AnyInformation {

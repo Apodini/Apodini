@@ -19,7 +19,7 @@ import Foundation
 // But even then there's really no good way for the handler to differentiate between getting called for a proper message or for one of these observed object calls.
 // Also, the NIO channel handler calling the handler will somehow need to know about the fact that the handler is currently still busy, so that it can wait with handling new incoming requests until the handler is done handling the current one.
 class BidirectionalStreamRPCHandler<H: Handler>: StreamRPCHandlerBase<H> {
-    override func handle(message: GRPCMessageIn, context: GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
+    override func handle(message: GRPCMessageIn, context: any GRPCStreamConnectionContext) -> EventLoopFuture<GRPCMessageOut> {
         let headers = HPACKHeaders {
             $0[.contentType] = .gRPC(.proto)
         }

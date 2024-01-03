@@ -20,7 +20,7 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         self.parameters = parameters
     }
     
-    internal func execute(on database: FluentKit.Database) -> EventLoopFuture<[Model]> {
+    internal func execute(on database: any FluentKit.Database) -> EventLoopFuture<[Model]> {
         let queryBuilder = Model.query(on: database)
         for (key, value) in parameters {
             queryBuilder.filter(key: key, method: .equal, codableValue: value)
@@ -33,11 +33,11 @@ internal struct QueryBuilder<Model: DatabaseModel> {
         let keys = type.keys
         for (index, child) in Mirror(reflecting: Model()).children.enumerated() {
             let key = keys[index]
-            if let idVisitable = child.value as? VisitableIDProperty {
+            if let idVisitable = child.value as? any VisitableIDProperty {
                 let concreteCodable = idVisitable.accept(ConcreteIDPropertyVisitor())
                 modelInfo.append(ModelInfo(key: key, value: concreteCodable))
             }
-            if let fieldVisitable = child.value as? VisitableFieldProperty {
+            if let fieldVisitable = child.value as? any VisitableFieldProperty {
                 let concreteCodable = fieldVisitable.accept(ConcreteTypeVisitor())
                 modelInfo.append(ModelInfo(key: key, value: concreteCodable))
             }

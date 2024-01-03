@@ -16,7 +16,7 @@ extension LoggingMetadataInformation: LoggingMetadataInformationClass {}
 
 public extension LoggingMetadataInformationClass where Self == LoggingMetadataInformation {
     /// Returns the Logging Metadata as a tuple.
-    var entry: (key: String, value: Encodable) {
+    var entry: (key: String, value: any Encodable) {
         (key: self.key.key, value: self.value)
     }
 }

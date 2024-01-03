@@ -133,13 +133,13 @@ public extension Information {
     }
 
     /// Returns `self`
-    func anyUntyped() -> AnyInformation {
+    func anyUntyped() -> any AnyInformation {
         self
     }
 
     /// Default implementation. Forwards to ``Information/merge(with:)``.
     /// If types don't match, the passed value will override the current Information.
-    func anyMerge(with information: AnyInformation) -> AnyInformation {
+    func anyMerge(with information: any AnyInformation) -> any AnyInformation {
         if let selfInformation = information as? Self {
             return merge(with: selfInformation)
         }

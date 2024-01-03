@@ -52,7 +52,7 @@ public struct ResponseTransformingHandlerInitializer<T: ResponseTransformer>: De
         if let transformingHandler =
             (TransformerCandidate(
                 transformer: transformer,
-                delegate: delegate) as? Transformable)?() as? SomeHandler<Response> {
+                delegate: delegate) as? any Transformable)?() as? SomeHandler<Response> {
             return transformingHandler
         }
         

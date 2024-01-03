@@ -71,7 +71,7 @@ protocol SomeRelationshipSourceCandidate: CustomDebugStringConvertible {
     var type: RelationshipType { get }
     var destinationType: Any.Type { get }
     var reference: EndpointReference { get }
-    var resolvers: [AnyPathParameterResolver] { get }
+    var resolvers: [any AnyPathParameterResolver] { get }
 
     /// Returns a resolved version of the candidate representation
     func ensureResolved(using builder: RelationshipBuilder) -> RelationshipSourceCandidate
@@ -92,10 +92,10 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
     let destinationType: Any.Type
     /// Defines the reference to the source
     let reference: EndpointReference
-    let resolvers: [AnyPathParameterResolver]
+    let resolvers: [any AnyPathParameterResolver]
 
     /// Initializes a `RelationshipSourceCandidate` with type of inheritance.
-    init(destinationType: Any.Type, reference: EndpointReference, resolvers: [AnyPathParameterResolver]) {
+    init(destinationType: Any.Type, reference: EndpointReference, resolvers: [any AnyPathParameterResolver]) {
         self.type = .inheritance
         self.destinationType = destinationType
         self.reference = reference
@@ -109,7 +109,7 @@ struct RelationshipSourceCandidate: SomeRelationshipSourceCandidate {
         self.destinationType = partialCandidate.destinationType
         self.reference = reference
 
-        var parameterResolvers: [AnyPathParameterResolver]
+        var parameterResolvers: [any AnyPathParameterResolver]
         if case .inheritance = type {
             parameterResolvers = reference.absolutePath.listPathParameters().resolvers()
         } else {
@@ -142,7 +142,7 @@ public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidat
 
     /// Defines the type of the destination in the `TypeIndex`
     let destinationType: Any.Type
-    let resolvers: [AnyPathParameterResolver]
+    let resolvers: [any AnyPathParameterResolver]
 
     /// Defines the reference to the source
     var reference: EndpointReference {
@@ -154,27 +154,27 @@ public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidat
     var storedReference: EndpointReference?
 
     /// Initializes a `RelationshipSourceCandidate` with type of inheritance.
-    init(destinationType: Any.Type, resolvers: [AnyPathParameterResolver]) {
+    init(destinationType: Any.Type, resolvers: [any AnyPathParameterResolver]) {
         self.type = .inheritance
         self.destinationType = destinationType
         self.resolvers = resolvers
     }
 
     /// Initializes a `RelationshipSourceCandidate` with type of reference.
-    init(reference name: String, destinationType: Any.Type, resolvers: [AnyPathParameterResolver]) {
+    init(reference name: String, destinationType: Any.Type, resolvers: [any AnyPathParameterResolver]) {
         self.type = .reference(name: name)
         self.destinationType = destinationType
         self.resolvers = resolvers
     }
 
     /// Initializes a `RelationshipSourceCandidate` with type of reference.
-    init(link name: String, destinationType: Any.Type, resolvers: [AnyPathParameterResolver] = []) {
+    init(link name: String, destinationType: Any.Type, resolvers: [any AnyPathParameterResolver] = []) {
         self.type = .link(name: name)
         self.destinationType = destinationType
         self.resolvers = resolvers
     }
 
-    mutating func link(to endpoint: _AnyRelationshipEndpoint) {
+    mutating func link(to endpoint: any _AnyRelationshipEndpoint) {
         storedReference = endpoint.reference
     }
 
@@ -184,7 +184,7 @@ public struct PartialRelationshipSourceCandidate: SomeRelationshipSourceCandidat
 }
 
 extension Array where Element == PartialRelationshipSourceCandidate {
-    func linked(to endpoint: _AnyRelationshipEndpoint) -> [PartialRelationshipSourceCandidate] {
+    func linked(to endpoint: any _AnyRelationshipEndpoint) -> [PartialRelationshipSourceCandidate] {
         map {
             var candidate = $0
             candidate.link(to: endpoint)

@@ -53,7 +53,7 @@ enum Context {
     }
     
     
-    static func makeError(code: Int = 0, _ message: String) -> Swift.Error {
+    static func makeError(code: Int = 0, _ message: String) -> any Swift.Error {
         NSError(domain: "LambdaDeploy", code: code, userInfo: [
             NSLocalizedDescriptionKey: message
         ])

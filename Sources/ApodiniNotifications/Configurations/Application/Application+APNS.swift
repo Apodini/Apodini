@@ -79,7 +79,7 @@ extension APNS: APNSwiftClient {
         self.application.logger
     }
     
-    public var eventLoop: EventLoop {
+    public var eventLoop: any EventLoop {
         self.application.eventLoopGroup.next()
     }
     
@@ -143,14 +143,14 @@ internal final class APNSConnectionSource: ConnectionPoolSource {
     
     func makeConnection(
         logger: Logger,
-        on eventLoop: EventLoop
+        on eventLoop: any EventLoop
     ) -> EventLoopFuture<APNSwiftConnection> {
         APNSwiftConnection.connect(configuration: self.configuration, on: eventLoop)
     }
 }
 
 extension APNSwiftConnection: ConnectionPoolItem {
-    public var eventLoop: EventLoop {
+    public var eventLoop: any EventLoop {
         self.channel.eventLoop
     }
     

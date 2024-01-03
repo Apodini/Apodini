@@ -17,9 +17,9 @@ import ApodiniHTTPProtocol
 /// Internal configuration of the `RESTInterfaceExporter` and `HTTPInterfaceExporter`
 public struct HTTPExporterConfiguration {
     /// The to be used `AnyEncoder` for encoding responses of the exporter
-    public let encoder: AnyEncoder
+    public let encoder: any AnyEncoder
     /// The to be used `AnyDecoder` for decoding requests to the exporter
-    public let decoder: AnyDecoder
+    public let decoder: any AnyDecoder
     /// How `Date` objects passed as query or path parameters should be decoded
     public let urlParamDateDecodingStrategy: DateDecodingStrategy
     /// Indicates whether the HTTP route is interpreted case-sensitively
@@ -39,8 +39,8 @@ public struct HTTPExporterConfiguration {
     ///    - caseInsensitiveRouting: Indicates whether the HTTP route is interpreted case-sensitively
     ///    - rootPath: The ``RootPath`` under which the web service is registered.
     public init(
-        encoder: AnyEncoder = HTTP.defaultEncoder,
-        decoder: AnyDecoder = HTTP.defaultDecoder,
+        encoder: any AnyEncoder = HTTP.defaultEncoder,
+        decoder: any AnyDecoder = HTTP.defaultDecoder,
         urlParamDateDecodingStrategy: DateDecodingStrategy = .default,
         caseInsensitiveRouting: Bool = false,
         rootPath: RootPath? = nil,

@@ -44,7 +44,7 @@ public struct CollectedArgument<HandlerType: Handler> {
 public struct RemoteHandlerInvocationManager {
     private let app: Apodini.Application
     
-    private var eventLoop: EventLoop {
+    private var eventLoop: any EventLoop {
         app.eventLoopGroup.next()
     }
     
@@ -164,7 +164,7 @@ extension RemoteHandlerInvocationManager {
             else {
                 fatalError("Unable to get @Parameter id for collected parameter with key path \(collectedArg.handlerKeyPath)")
             }
-            guard let endpointParam: AnyEndpointParameter = targetEndpoint.findParameter(for: handlerParamId) else {
+            guard let endpointParam: any AnyEndpointParameter = targetEndpoint.findParameter(for: handlerParamId) else {
                 fatalError("Unable to fetch endpoint parameter for handlerParamId '\(handlerParamId)'")
             }
             if !alreadyProcessedParamKeyPaths.insert(collectedArg.handlerKeyPath).inserted {
@@ -273,7 +273,7 @@ extension Endpoint {
     func invokeImp(
         withCollectedArguments arguments: [CollectedArgument<H>],
         internalInterfaceExporter: ApodiniDeployerInterfaceExporter,
-        on eventLoop: EventLoop
+        on eventLoop: any EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         invokeImp(
             withRequest: ApodiniDeployerInterfaceExporter.ExporterRequest(endpoint: self, collectedArguments: arguments),
@@ -286,7 +286,7 @@ extension Endpoint {
     func invokeImp(
         withRequest request: ApodiniDeployerInterfaceExporter.ExporterRequest,
         internalInterfaceExporter: ApodiniDeployerInterfaceExporter,
-        on eventLoop: EventLoop
+        on eventLoop: any EventLoop
     ) -> EventLoopFuture<H.Response.Content> {
         let delegate = self[DelegateFactory<H, ApodiniDeployerInterfaceExporter>.self].instance()
         precondition(self[CommunicationPattern.self] == .requestResponse)

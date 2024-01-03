@@ -10,7 +10,7 @@ import Foundation
 
 class EndpointsTreeNode {
     let storedPath: StoredEndpointPath
-    var endpoints: [Operation: _AnyRelationshipEndpoint] = [:]
+    var endpoints: [Operation: any _AnyRelationshipEndpoint] = [:]
 
     let parent: EndpointsTreeNode?
     private var nodeChildren: [EndpointPath: EndpointsTreeNode] = [:]
@@ -114,7 +114,7 @@ class EndpointsTreeNode {
 }
 
 struct EndpointInsertionContext {
-    private let endpoint: AnyRelationshipEndpoint
+    private let endpoint: any AnyRelationshipEndpoint
     private(set) var storedPath: [StoredEndpointPath]
 
     /// This array holds all UUIDs of Parameters which were already retrieved from the path array above.
@@ -129,16 +129,16 @@ struct EndpointInsertionContext {
         storedPath.count
     }
 
-    init(for endpoint: AnyRelationshipEndpoint, with pathComponents: [PathComponent]) {
+    init(for endpoint: any AnyRelationshipEndpoint, with pathComponents: [any PathComponent]) {
         self.endpoint = endpoint
         self.storedPath = pathComponents.pathModelBuilder().results
     }
 
-    func retrievedPathContains(parameter: AnyEndpointParameter) -> Bool {
+    func retrievedPathContains(parameter: any AnyEndpointParameter) -> Bool {
         retrievedParameters.contains(parameter.id)
     }
 
-    mutating func append(parameter: AnyEndpointParameter) {
+    mutating func append(parameter: any AnyEndpointParameter) {
         storedPath.append(StoredEndpointPath(
             path: parameter.toInternal().derivePathParameterModel()
         ))

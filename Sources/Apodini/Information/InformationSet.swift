@@ -11,13 +11,13 @@ import ApodiniUtils
 /// An ``InformationSet`` is used to store ``Information`` instances, checked for uniqueness
 /// against their ``InformationKey``.
 public struct InformationSet {
-    private var storage: [AnyHashable: AnyInformation] = [:]
+    private var storage: [AnyHashable: any AnyInformation] = [:]
     /// Pretty much acts a typed cache for the above storage dict.
     /// For every key contained in this dictionary, there is a according untyped value preset above.
     /// The other way around doesn't hold.
-    private var capturedInstantiatables: [AnyHashable: AnyInformation] = [:]
+    private var capturedInstantiatables: [AnyHashable: any AnyInformation] = [:]
 
-    fileprivate init(_ storage: [AnyHashable: AnyInformation], _ instantiatables: [AnyHashable: AnyInformation]) {
+    fileprivate init(_ storage: [AnyHashable: any AnyInformation], _ instantiatables: [AnyHashable: any AnyInformation]) {
         self.storage = storage
         self.capturedInstantiatables = instantiatables
     }
@@ -44,7 +44,7 @@ public struct InformationSet {
 extension InformationSet {
     /// Initializes a new ``InformationSet`` form a preexisting array of ``AnyInformation``.
     /// - Parameter information: The array of ``AnyInformation``.
-    public init(_ information: [AnyInformation]) {
+    public init(_ information: [any AnyInformation]) {
         for info in information {
             info.collect(&self)
         }
@@ -61,7 +61,7 @@ extension InformationSet {
 
 // MARK: ExpressibleByArrayLiteral
 extension InformationSet: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: AnyInformation...) {
+    public init(arrayLiteral elements: any AnyInformation...) {
         self.init(elements)
     }
 }
@@ -134,7 +134,7 @@ extension InformationSet {
     /// Returns a new ``InformationSet`` with the elements of both this set and the given one.
     /// - Parameter other: The other array of ``AnyInformation``
     /// - Returns: A new ``InformationSet`` with the values of both, while the other sets overrides existing Information.
-    public func merge(with other: [AnyInformation]) -> Self {
+    public func merge(with other: [any AnyInformation]) -> Self {
         merge(with: InformationSet(other))
     }
 

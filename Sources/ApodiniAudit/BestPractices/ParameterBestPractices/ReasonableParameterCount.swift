@@ -62,7 +62,7 @@ enum ParameterCountFinding: Finding, Equatable {
 public struct ParameterCountConfiguration: BestPracticeConfiguration {
     var maximumCount: Int
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         ReasonableParameterCount(configuration: self)
     }
     

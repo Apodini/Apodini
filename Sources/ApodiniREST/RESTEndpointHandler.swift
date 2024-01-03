@@ -17,7 +17,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     let app: Apodini.Application
     let exporterConfiguration: HTTPExporterConfiguration
     let endpoint: Endpoint<H>
-    let relationshipEndpoint: AnyRelationshipEndpoint
+    let relationshipEndpoint: any AnyRelationshipEndpoint
     let exporter: RESTInterfaceExporter
     let delegateFactory: DelegateFactory<H, RESTInterfaceExporter>
     private let strategy: AnyDecodingStrategy<HTTPRequest>
@@ -28,7 +28,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
         with app: Apodini.Application,
         withExporterConfiguration exporterConfiguration: HTTPExporterConfiguration,
         for endpoint: Endpoint<H>,
-        _ relationshipEndpoint: AnyRelationshipEndpoint,
+        _ relationshipEndpoint: any AnyRelationshipEndpoint,
         on exporter: RESTInterfaceExporter
     ) {
         self.app = app
@@ -49,7 +49,7 @@ struct RESTEndpointHandler<H: Handler>: HTTPResponder {
     }
     
 
-    func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
+    func respond(to request: HTTPRequest) -> any HTTPResponseConvertible {
         let delegate = delegateFactory.instance()
         return strategy
             .decodeRequest(from: request, with: request.eventLoop)

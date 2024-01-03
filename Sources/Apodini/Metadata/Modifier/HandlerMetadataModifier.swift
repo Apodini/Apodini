@@ -25,7 +25,7 @@
 public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
     public let component: H
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
-    let handlerMetadata: AnyHandlerMetadata
+    let handlerMetadata: any AnyHandlerMetadata
 
     /// Creates a new `HandlerMetadataModifier` used to modify the Metadata of a given ``Handler``.
     /// - Parameters:
@@ -36,7 +36,7 @@ public struct HandlerMetadataModifier<H: Handler>: HandlerModifier {
         self.handlerMetadata = metadata
     }
 
-    fileprivate init(modifies handler: H, with metadata: AnyHandlerMetadata) {
+    fileprivate init(modifies handler: H, with metadata: any AnyHandlerMetadata) {
         self.component = handler
         self.handlerMetadata = metadata
     }
@@ -57,13 +57,13 @@ extension Handler {
     ///     from `ComponentMetadataNamespace` are available.
     ///     As a workaround declare your `AnyHandlerMetadata` in a separate `HandlerMetadataBlock` and use it here.
     public func metadata(
-        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyHandlerMetadata
+        @MetadataBuilder<MetadataBuilderScope> content: () -> any AnyHandlerMetadata // TODO some?
     ) -> HandlerMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_Handler {
         HandlerMetadataModifier(modifies: self, with: content())
     }
     
     public func metadata2(
-        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyHandlerMetadata
+        @MetadataBuilder<MetadataBuilderScope> content: () -> any AnyHandlerMetadata
     ) -> HandlerMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_Handler {
         HandlerMetadataModifier(modifies: self, with: content())
     }

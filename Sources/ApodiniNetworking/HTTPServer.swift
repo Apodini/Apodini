@@ -26,9 +26,9 @@ import Logging
 
 struct ApodiniNetworkingError: Swift.Error {
     let message: String
-    let underlying: Error?
+    let underlying: (any Error)?
     
-    init(message: String, underlying: Error? = nil) {
+    init(message: String, underlying: (any Error)? = nil) {
         self.message = message
         self.underlying = underlying
     }
@@ -45,7 +45,7 @@ private class ErrorHandler: ChannelInboundHandler, RemovableChannelHandler {
         self.name = name
     }
     
-    func errorCaught(context: ChannelHandlerContext, error: Error) {
+    func errorCaught(context: ChannelHandlerContext, error: any Error) {
         print("\(Self.self)[name: \(name)] received error: \(error). Closing channel in response.")
         context.close(promise: nil)
     }
@@ -56,7 +56,7 @@ private class ErrorHandler: ChannelInboundHandler, RemovableChannelHandler {
 public final class HTTPServer {
     private struct ConfigStorage {
         let eventLoopGroupProvider: NIOEventLoopGroupProvider
-        let eventLoopGroup: EventLoopGroup
+        let eventLoopGroup: any EventLoopGroup
         let tlsConfiguration: TLSConfiguration?
         let enableHTTP2: Bool
         let address: BindAddress
@@ -75,7 +75,7 @@ public final class HTTPServer {
     
     private var customHTTP2StreamConfigurationMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping] = []
     
-    private var channel: Channel?
+    private var channel: (any Channel)?
     
     /// Whether the HTTP server should bind to the specified address when its `start()` function is called.
     /// This prroperty is set to `true` by default, and can be used to replace the server with a custom component
@@ -98,7 +98,7 @@ public final class HTTPServer {
     }
     
     /// The server's event loop group
-    public var eventLoopGroup: EventLoopGroup {
+    public var eventLoopGroup: any EventLoopGroup {
         switch config {
         case .app(let app):
             return app.eventLoopGroup
@@ -193,7 +193,7 @@ public final class HTTPServer {
         hostname: Hostname,
         logger: Logger = .init(label: "\(HTTPServer.self)")
     ) {
-        let eventLoopGroup: EventLoopGroup = {
+        let eventLoopGroup: any EventLoopGroup = {
             switch eventLoopGroupProvider {
             case .shared(let eventLoopGroup):
                 return eventLoopGroup
@@ -244,7 +244,7 @@ public final class HTTPServer {
         let bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(ChannelOptions.backlog, value: 256)
             .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: 1)
-            .childChannelInitializer { [weak self] (channel: Channel) -> EventLoopFuture<Void> in
+            .childChannelInitializer { [weak self] (channel: any Channel) -> EventLoopFuture<Void> in
                 guard let self = self else {
                     fatalError("Asked to configure NIO channel for already-deallocated HTTPServer")
                 }
@@ -317,7 +317,7 @@ public final class HTTPServer {
     /// by the client with the channel-opening initial request,
     public func addIncomingHTTP2StreamConfigurationHandler(
         forContentTypes contentTypes: Set<HTTPMediaType>,
-        configurationHandler: @escaping (Channel) -> EventLoopFuture<Void>
+        configurationHandler: @escaping (any Channel) -> EventLoopFuture<Void>
     ) {
         customHTTP2StreamConfigurationMappings.append(.init(
             triggeringContentTypes: contentTypes,
@@ -332,7 +332,7 @@ extension HTTPServer: HTTPRoutesBuilder {
         _ method: HTTPMethod,
         _ path: [HTTPPathComponent],
         _ expectedCommunicationPattern: CommunicationPattern? = nil,
-        handler: @escaping (HTTPRequest) -> HTTPResponseConvertible
+        handler: @escaping (HTTPRequest) -> any HTTPResponseConvertible
     ) throws {
         try router.add(HTTPRouter.Route(
             method: method,
@@ -345,7 +345,7 @@ extension HTTPServer: HTTPRoutesBuilder {
 
 
 extension HTTPServer: HTTPResponder {
-    public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
+    public func respond(to request: HTTPRequest) -> any HTTPResponseConvertible {
         if let route = router.getRoute(for: request, populateRequest: true) {
             return route.responder
                 .respond(to: request)
@@ -372,7 +372,7 @@ extension Channel {
         hostname: Hostname,
         isTLSEnabled: Bool,
         inboundStreamConfigMappings: [HTTP2InboundStreamConfigurator.Configuration.Mapping],
-        httpResponder: HTTPResponder
+        httpResponder: any HTTPResponder
     ) -> EventLoopFuture<Void> {
         let targetWindowSize: Int = numericCast(UInt16.max)
         return self.pipeline.addHandlers([
@@ -402,7 +402,7 @@ extension Channel {
     func initializeHTTP2InboundStreamUsingHTTP2ToHTTP1Converter(
         hostname: Hostname,
         isTLSEnabled: Bool,
-        responder: HTTPResponder
+        responder: any HTTPResponder
     ) -> EventLoopFuture<Void> {
         pipeline.addHandlers([
             HTTP2FramePayloadToHTTP1ServerCodec(),
@@ -417,9 +417,9 @@ extension Channel {
     func addApodiniNetworkingHTTP1Handlers(
         hostname: Hostname,
         isTLSEnabled: Bool,
-        responder: HTTPResponder
+        responder: any HTTPResponder
     ) -> EventLoopFuture<Void> {
-        var httpHandlers: [RemovableChannelHandler] = []
+        var httpHandlers: [any RemovableChannelHandler] = []
         let httpResponseEncoder = HTTPResponseEncoder()
         httpHandlers += [
             httpResponseEncoder,
@@ -431,7 +431,7 @@ extension Channel {
         let upgrader = HTTPUpgradeHandler(
             handlersToRemoveOnWebSocketUpgrade: httpHandlers.appending(httpRequestHandler)
         )
-        httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [RemovableChannelHandler])
+        httpHandlers.append(contentsOf: [upgrader, httpRequestHandler] as [any RemovableChannelHandler])
         httpHandlers.append(ErrorHandler(name: "HTTP1PipelineErrorHandler"))
         return pipeline.addHandlers(httpHandlers)
     }

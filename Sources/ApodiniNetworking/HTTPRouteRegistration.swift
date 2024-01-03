@@ -22,7 +22,7 @@ public protocol HTTPRoutesBuilder {
         _ method: HTTPMethod,
         _ path: [HTTPPathComponent],
         _ expectedCommunicationPattern: CommunicationPattern?,
-        handler: @escaping (HTTPRequest) -> HTTPResponseConvertible
+        handler: @escaping (HTTPRequest) -> any HTTPResponseConvertible
     ) throws
 //    /// Registers a new route on the HTTP server
 //    /// - parameter method: The route's HTTP method
@@ -53,9 +53,9 @@ public extension HTTPRoutesBuilder {
         _ method: HTTPMethod,
         _ path: [HTTPPathComponent],
         _ expectedCommunicationPattern: CommunicationPattern? = nil,
-        handler: @escaping (HTTPRequest) throws -> HTTPResponseConvertible
+        handler: @escaping (HTTPRequest) throws -> any HTTPResponseConvertible
     ) throws {
-        try registerRoute(method, path, expectedCommunicationPattern) { request -> HTTPResponseConvertible in
+        try registerRoute(method, path, expectedCommunicationPattern) { request -> any HTTPResponseConvertible in
             do {
                 return try handler(request)
             } catch {
@@ -73,9 +73,9 @@ public extension HTTPRoutesBuilder {
         _ method: HTTPMethod,
         _ path: [HTTPPathComponent],
         _ expectedCommunicationPattern: CommunicationPattern? = nil,
-        responder: HTTPResponder
+        responder: any HTTPResponder
     ) throws {
-        try registerRoute(method, path, expectedCommunicationPattern) { request -> HTTPResponseConvertible in
+        try registerRoute(method, path, expectedCommunicationPattern) { request -> any HTTPResponseConvertible in
             responder.respond(to: request)
         }
     }

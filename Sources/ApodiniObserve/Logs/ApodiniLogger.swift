@@ -48,7 +48,7 @@ public struct ApodiniLogger: DynamicProperty {
     /// A user-defined label of the built `Logging.Logger`, else a standard default value
     private let label: String?
     /// A user-defined factory for the `Logging.Logger`
-    private let logHandler: ((String) -> LogHandler)?
+    private let logHandler: ((String) -> any LogHandler)?
     /// A user-defined level of automatic metadata aggregation
     private let metadataLevel: MetadataLevel
     
@@ -68,7 +68,7 @@ public struct ApodiniLogger: DynamicProperty {
                 label: String? = nil,
                 logLevel: Logger.Level? = nil,
                 metadataLevel: MetadataLevel = .all,
-                logHandler: ((String) -> LogHandler)? = nil) {
+                logHandler: ((String) -> any LogHandler)? = nil) {
         self.id = id
         self.logLevel = logLevel
         self.label = label

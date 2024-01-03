@@ -78,12 +78,12 @@ open class AnyHandlerIdentifier: Codable, RawRepresentable, Hashable, CustomStri
     }
     
     
-    public required init(from decoder: Decoder) throws {
+    public required init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         self.rawValue = try container.decode(String.self)
     }
     
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(self.rawValue)
     }
@@ -114,7 +114,7 @@ open class ScopedHandlerIdentifier<H: IdentifiableHandler>: AnyHandlerIdentifier
         fatalError("Not supported. Use one of the rawValue initializers.")
     }
     
-    public required init(from decoder: Decoder) throws {
+    public required init(from decoder: any Decoder) throws {
         try super.init(from: decoder)
     }
     

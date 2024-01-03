@@ -13,18 +13,18 @@ import Apodini
 
 /// A `EnrichedContent` describes the outcome of a `ConnectionContext.handle(...)`.
 struct EnrichedContent: Encodable {
-    private let endpoint: AnyRelationshipEndpoint
+    private let endpoint: any AnyRelationshipEndpoint
 
     let response: AnyEncodable
     private let parameters: (UUID) -> Any?
 
-    init(for endpoint: AnyRelationshipEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
+    init(for endpoint: any AnyRelationshipEndpoint, response: AnyEncodable, parameters: @escaping (UUID) -> Any?) {
         self.endpoint = endpoint
         self.response = response
         self.parameters = parameters
     }
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         try response.encode(to: encoder)
     }
 

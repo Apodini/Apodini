@@ -23,7 +23,7 @@ final class ResponseTests: ApodiniTests {
     }
     
     struct EmptyResponseHandler: Handler {
-        @Environment(\.eventLoopGroup) var eventLoopGroup: EventLoopGroup
+        @Environment(\.eventLoopGroup) var eventLoopGroup: any EventLoopGroup
         
         func handle() -> EventLoopFuture<Status> {
             eventLoopGroup
@@ -34,7 +34,7 @@ final class ResponseTests: ApodiniTests {
     }
     
     struct FutureBasedHandler: Handler {
-        var eventLoop: EventLoop
+        var eventLoop: any EventLoop
         var message: String
 
         func handle() -> EventLoopFuture<EventLoopFuture<EventLoopFuture<Response<String>>>> {
@@ -84,7 +84,7 @@ final class ResponseTests: ApodiniTests {
     
     func testAsyncAwaitRequestHandling() throws {
         struct AsyncBasedHandler: Handler {
-            var eventLoop: EventLoop
+            var eventLoop: any EventLoop
             var message: String
 
             func handle() async throws -> String {

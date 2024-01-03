@@ -25,14 +25,14 @@ public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
     public typealias Response = Never
     
     private let _accept: (SyntaxTreeVisitor) -> Void
-    private let _handleraccept: (HandlerVisitor) throws -> Void
+    private let _handleraccept: (any HandlerVisitor) throws -> Void
     
     public init<H: Handler>(_ handler: H) {
         _accept = handler.accept
         _handleraccept = handler.accept
     }
     
-    fileprivate init(accept: @escaping (SyntaxTreeVisitor) -> Void, handleraccept: @escaping (HandlerVisitor) throws -> Void) {
+    fileprivate init(accept: @escaping (SyntaxTreeVisitor) -> Void, handleraccept: @escaping (any HandlerVisitor) throws -> Void) {
         self._accept = accept
         self._handleraccept = handleraccept
     }
@@ -42,14 +42,14 @@ public struct AnyHandler: Handler, SyntaxTreeVisitable, VisitableHandler {
         _accept(visitor)
     }
     
-    func accept(_ visitor: HandlerVisitor) throws {
+    func accept(_ visitor: any HandlerVisitor) throws {
         try _handleraccept(visitor)
     }
 }
 
 extension Handler {
     @_disfavoredOverload
-    func accept(_ visitor: HandlerVisitor) throws {
+    func accept(_ visitor: any HandlerVisitor) throws {
         try visitor.visit(handler: self)
     }
 }
@@ -60,7 +60,7 @@ protocol HandlerVisitor {
 }
 
 protocol VisitableHandler {
-    func accept(_ visitor: HandlerVisitor) throws
+    func accept(_ visitor: any HandlerVisitor) throws
 }
 
 
@@ -68,7 +68,7 @@ public struct SomeHandler<R: ResponseTransformable>: SyntaxTreeVisitable, Visita
     public typealias Response = R
     
     private let _accept: (SyntaxTreeVisitor) -> Void
-    private let _handleraccept: (HandlerVisitor) throws -> Void
+    private let _handleraccept: (any HandlerVisitor) throws -> Void
     
     public init<H: Handler>(_ handler: H) {
         _accept = handler.accept
@@ -83,7 +83,7 @@ public struct SomeHandler<R: ResponseTransformable>: SyntaxTreeVisitable, Visita
         _accept(visitor)
     }
     
-    func accept(_ visitor: HandlerVisitor) throws {
+    func accept(_ visitor: any HandlerVisitor) throws {
         try _handleraccept(visitor)
     }
 }

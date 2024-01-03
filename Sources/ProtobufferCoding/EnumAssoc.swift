@@ -32,7 +32,7 @@ extension Encodable {
 extension ProtobufEnumWithAssociatedValues {
     /// Default `Decodable` implementation, decoding this enum type from a protobuf value
     /// - NOTE: This will only work with the `_ProtobufferDecoder`
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         precondition(decoder is _ProtobufferDecoder)
         let keyedContainer = try decoder.container(keyedBy: CodingKeys.self)
         let codingKeysTI = try typeInfo(of: CodingKeys.self)
@@ -47,7 +47,7 @@ extension ProtobufEnumWithAssociatedValues {
                 let selfCaseIdx = selfTI.cases.firstIndex { $0.name == enumCaseTI.name }!
                 let selfCaseTI = selfTI.cases[selfCaseIdx]//.first(where: { $0.name == enumCaseTI.name })!
                 let payloadTy = selfCaseTI.payloadType!
-                guard let payloadDecodableTy = payloadTy as? Decodable.Type else {
+                guard let payloadDecodableTy = payloadTy as? any Decodable.Type else {
                     fatalError("Enum payload must be Decodable")
                 }
                 let payloadValue = try keyedContainer.decode(payloadDecodableTy, forKey: enumCase)
@@ -61,11 +61,11 @@ extension ProtobufEnumWithAssociatedValues {
     
     /// Default `Encodable` implementation, encoding this enum type to a protobuf value
     /// - NOTE: This will only work with the `_ProtobufferEncoder`
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         precondition(encoder is _ProtobufferEncoder)
         let (codingKey, payload) = self.getCodingKeyAndPayload
         var keyedEncodingContainer = encoder.container(keyedBy: CodingKeys.self)
-        guard let payload = payload as? Encodable else {
+        guard let payload = payload as? any Encodable else {
             fatalError("Payload of type \(type(of: payload)) is not Encodable.")
         }
         try payload._encode(into: &keyedEncodingContainer, forKey: codingKey)

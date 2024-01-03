@@ -50,7 +50,7 @@ final class LocalSharedRepository<L: IndependentSharedRepository, G: SharedRepos
     private let global: G
     private var local: L
     
-    init<H: Handler>(_ global: G, hiddenFor restrictions: [TruthAnchor.Type] = [], using handler: H, _ context: Context) {
+    init<H: Handler>(_ global: G, hiddenFor restrictions: [any TruthAnchor.Type] = [], using handler: H, _ context: Context) {
         self.global = global
         self.local = L()
         
@@ -141,7 +141,7 @@ struct GlobalSharedRepository<B: IndependentSharedRepository>: SharedRepository,
 }
 
 final class LazyHashmapSharedRepository: IndependentSharedRepository {
-    private var storage: [ObjectIdentifier: KnowledgeSource] = [:]
+    private var storage: [ObjectIdentifier: any KnowledgeSource] = [:]
     
     subscript<S>(type: S.Type) -> S where S: KnowledgeSource {
         get {

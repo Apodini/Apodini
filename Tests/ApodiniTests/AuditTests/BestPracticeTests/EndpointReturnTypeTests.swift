@@ -59,7 +59,7 @@ struct LetterAHandler: Handler {
         .ok
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.update)
     }
 }
@@ -69,7 +69,7 @@ struct BHandler: Handler {
         fatalError("Can't build an eventloop here")
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.delete)
     }
 }
@@ -79,7 +79,7 @@ struct CHandler: Handler {
         .noContent
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.create)
     }
 }
@@ -89,13 +89,13 @@ struct DHandler: Handler {
         .final("")
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Operation(.read)
     }
 }
 
 func getAudit(
-    bestPractice: BestPractice,
+    bestPractice: any BestPractice,
     handlerName: String
 ) throws -> Audit {
     let webService = ReturnTypeWebService()
@@ -105,7 +105,7 @@ func getAudit(
 }
 
 func assertNoFinding(
-    bestPractice: BestPractice,
+    bestPractice: any BestPractice,
     handlerName: String
 ) throws {
     let audit = try getAudit(bestPractice: bestPractice, handlerName: handlerName)
@@ -113,7 +113,7 @@ func assertNoFinding(
 }
 
 func assertOneFinding<F: Finding & Equatable>(
-    bestPractice: BestPractice,
+    bestPractice: any BestPractice,
     handlerName: String,
     expectedFinding: F
 ) throws {

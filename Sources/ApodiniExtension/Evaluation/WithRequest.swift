@@ -12,7 +12,7 @@ import Apodini
 /// forwarding the access to an underlying `Request`.
 public protocol WithRequest: Request {
     /// The underlying `Request`.
-    var request: Request { get }
+    var request: any Request { get }
 }
 
 
@@ -31,7 +31,7 @@ public extension WithRequest {
 
     /// The default implementation of ``WithRequest`` for the ``eventLoop``
     /// forwards the call to the underlying `Request`.
-    var eventLoop: EventLoop {
+    var eventLoop: any EventLoop {
         request.eventLoop
     }
 
@@ -61,7 +61,7 @@ public extension WithRequest {
     func unwrapped<T: Request>(to type: T.Type = T.self) -> T? {
         if let typed = self as? T {
             return typed
-        } else if let withRequest = self.request as? WithRequest {
+        } else if let withRequest = self.request as? any WithRequest {
             return withRequest.unwrapped()
         }
         return nil

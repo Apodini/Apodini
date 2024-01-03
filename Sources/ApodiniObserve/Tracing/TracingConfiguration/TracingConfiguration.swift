@@ -19,15 +19,15 @@ public final class TracingConfiguration: Configuration {
     /// The value key for Tracing-related information.
     public struct TracingStorageValue {
         /// The application `Instrument`.
-        public let instrument: Instrument
+        public let instrument: any Instrument
         /// The application `Tracer`.
-        public let tracer: Tracer
+        public let tracer: any Tracer
         /// The configuration used by `Instrument` instances.
         public let configuration: TracingConfiguration
 
         init(
-            instrument: Instrument,
-            tracer: Tracer,
+            instrument: any Instrument,
+            tracer: any Tracer,
             configuration: TracingConfiguration
         ) {
             self.instrument = instrument
@@ -41,7 +41,7 @@ public final class TracingConfiguration: Configuration {
     // Due to the precondition in InstrumentationSystem.bootstrap limiting bootstrapping
     // to once per process, we need to inject the InstrumentationSystem.bootstrapInteral
     // method to allow testing.
-    private let instrumentationSystemBootstrap: (Instrument) -> Void
+    private let instrumentationSystemBootstrap: (any Instrument) -> Void
 
     /// Initializes a ``TracingConfiguration`` with the ``InstrumentConfiguration``s for each `Instrument`.
     ///
@@ -55,7 +55,7 @@ public final class TracingConfiguration: Configuration {
 
     internal init(
         _ instrumentConfiguration: [InstrumentConfiguration],
-        instrumentationSystemBootstrap: @escaping (Instrument) -> Void
+        instrumentationSystemBootstrap: @escaping (any Instrument) -> Void
     ) {
         self.instrumentConfigurations = instrumentConfiguration
         self.instrumentationSystemBootstrap = instrumentationSystemBootstrap

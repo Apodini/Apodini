@@ -46,9 +46,9 @@ struct MultiplyHandler: Handler {
 struct Throwing: Apodini.Content, Decodable {
     let makeRuntimeThrow: () -> Void
     
-    func encode(to encoder: Encoder) throws {}
+    func encode(to encoder: any Encoder) throws {}
     
-    init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         makeRuntimeThrow = {}
     }
 }
@@ -65,7 +65,7 @@ struct MigratorWebService: WebService {
             .identified(by: "blob")
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         ApodiniMigratorTests.migratorConfig
     }
 }
@@ -75,7 +75,7 @@ final class ApodiniMigratorTests: ApodiniTests {
     
     static var sut: MigratorConfiguration<MigratorWebService>?
     
-    static var migratorConfig: Configuration {
+    static var migratorConfig: any Configuration {
         sut ?? EmptyConfiguration()
     }
 
@@ -311,7 +311,7 @@ final class ApodiniMigratorTests: ApodiniTests {
                 Text("Hello World")
             }
             
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
                 HTTPConfiguration(hostname: Hostname(address: "1.2.3.4", port: 56), bindAddress: .interface("1.2.3.4", port: 56))
             }
@@ -336,7 +336,7 @@ final class ApodiniMigratorTests: ApodiniTests {
                 Text("Hello World")
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
                 HTTPConfiguration(hostname: Hostname(address: "myaddress"), bindAddress: .interface("1.2.3.4", port: 56))
             }
@@ -361,7 +361,7 @@ final class ApodiniMigratorTests: ApodiniTests {
                 Text("Hello World")
             }
 
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 Migrator(documentConfig: .export(.endpoint("api-spec")))
                 HTTPConfiguration(hostname: Hostname(address: "localhost2", port: 57), bindAddress: .interface("1.2.3.4", port: 56))
             }

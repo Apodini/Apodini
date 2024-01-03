@@ -14,7 +14,7 @@ import XCTApodini
 
 final class DatabaseEnvironmentTests: ApodiniTests {
     struct DatabaseComponent: Handler {
-        @Apodini.Environment(\.database) var database: Database
+        @Apodini.Environment(\.database) var database: any Database
         
         func handle() -> String {
             database.history.debugDescription

@@ -23,7 +23,7 @@ struct GreetComponent: Component {
         }
     }
     
-    var metadata: AnyComponentOnlyMetadata {
+    var metadata: any AnyComponentOnlyMetadata {
         SelectBestPractices(.exclude, NoCRUDVerbsInURLPathSegments.self)
     }
 }

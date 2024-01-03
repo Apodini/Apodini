@@ -59,7 +59,7 @@ class GRPCServer {
     }
     
     /// - returns: `nil` if the service/method was not found
-    func makeStreamRPCHandler(toService serviceNameString: String, method: String) -> GRPCStreamRPCHandler? {
+    func makeStreamRPCHandler(toService serviceNameString: String, method: String) -> (any GRPCStreamRPCHandler)? {
         let serviceNameComponents = serviceNameString.split(separator: ".")
         precondition(serviceNameComponents.count >= 2)
         let packageName = serviceNameComponents.dropLast().joined(separator: ".")
@@ -196,7 +196,7 @@ class GRPCMethod {
     /// The method's output proto type. This is guaranteed to be a top-level type.
     let outputType: ProtoType
     /// Closure that makes a `GRPCStreamRPCHandler`
-    private let streamRPCHandlerMaker: () -> GRPCStreamRPCHandler
+    private let streamRPCHandlerMaker: () -> any GRPCStreamRPCHandler
     let sourceCodeComments: [String]
 
     /// The reflective type name of the Handler. Only present if the method was created for a `Handler`.
@@ -214,7 +214,7 @@ class GRPCMethod {
         self.type = endpoint[CommunicationPattern.self]
         
         let defaults = endpoint[DefaultValueStore.self]
-        self.streamRPCHandlerMaker = { () -> GRPCStreamRPCHandler in
+        self.streamRPCHandlerMaker = { () -> any GRPCStreamRPCHandler in
             let rpcHandlerType: StreamRPCHandlerBase<H>.Type = {
                 switch endpoint[CommunicationPattern.self] {
                 case .requestResponse:
@@ -251,7 +251,7 @@ class GRPCMethod {
         type: CommunicationPattern,
         inputType: ProtoType,
         outputType: ProtoType,
-        streamRPCHandlerMaker: @escaping () -> GRPCStreamRPCHandler,
+        streamRPCHandlerMaker: @escaping () -> any GRPCStreamRPCHandler,
         sourceCodeComments: [String] = []
     ) {
         self.name = name
@@ -264,7 +264,7 @@ class GRPCMethod {
     }
     
     
-    func makeStreamConnectionContext() -> GRPCStreamRPCHandler {
+    func makeStreamConnectionContext() -> any GRPCStreamRPCHandler {
         streamRPCHandlerMaker()
     }
 }

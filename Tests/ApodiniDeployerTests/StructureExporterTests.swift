@@ -28,7 +28,7 @@ private struct TestWebService: Apodini.WebService {
         }.formDeploymentGroup(withId: "apiID")
     }
     
-    var configuration: Configuration {
+    var configuration: any Configuration {
         ApodiniDeployer(runtimes: [TestRuntime.self])
     }
 }
@@ -39,20 +39,20 @@ private class TestRuntime: DeploymentProviderRuntime {
         DeploymentProviderID("de.apodini.ApodiniDeploymentProvider.test")
     }
     
-    required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
+    required init(deployedSystem: any AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
     }
     
-    var deployedSystem: AnyDeployedSystem
+    var deployedSystem: any AnyDeployedSystem
     
     var currentNodeId: DeployedSystemNode.ID
     
-    static var exportCommand: StructureExporter.Type {
+    static var exportCommand: any StructureExporter.Type {
         TestExportCommand.self
     }
     
-    static var startupCommand: DeploymentStartupCommand.Type {
+    static var startupCommand: any DeploymentStartupCommand.Type {
         TestStartupCommand.self
     }
     
@@ -96,7 +96,7 @@ private struct TestStartupCommand: DeploymentStartupCommand {
     @Argument
     var nodeId: String
     
-    var deployedSystemType: AnyDeployedSystem.Type {
+    var deployedSystemType: any AnyDeployedSystem.Type {
         DeployedSystem.self
     }
     

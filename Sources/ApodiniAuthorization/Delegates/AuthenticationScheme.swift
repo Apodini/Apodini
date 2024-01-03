@@ -83,7 +83,7 @@ public extension AuthenticationScheme {
 // MARK: Metadata DSL
 public extension AuthenticationScheme {
     /// Components have an empty `AnyComponentOnlyMetadata` by default.
-    var metadata: AnyComponentMetadata {
+    var metadata: any AnyComponentMetadata {
         Empty()
     }
 }

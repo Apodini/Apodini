@@ -23,16 +23,16 @@ open class XCTApodiniTest: XCTestCase {
     
     override open func tearDownWithError() throws {
         try super.tearDownWithError()
-        app.shutdown()
+        app?.shutdown()
         XCTAssertApodiniApplicationNotRunning()
     }
     
     
-    open func database() throws -> Database {
+    open func database() throws -> any Database {
         try XCTUnwrap(self.app.database)
     }
     
-    open func addMigrations(_ migrations: Migration...) throws {
+    open func addMigrations(_ migrations: any Migration...) throws {
         app.databases.use(
             .sqlite(.memory),
             as: .init(string: "ApodiniTest"),

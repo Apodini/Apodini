@@ -13,7 +13,7 @@ extension SyntaxTreeVisitor: MetadataParser {
     public func visit<Definition: MetadataDefinition>(definition: Definition) {
         self.addContext(Definition.Key.self, value: definition.value, scope: Definition.scope)
 
-        if let metadataWithDelegatingHandler = definition as? AnyDefinitionWithDynamicDelegatingHandler {
+        if let metadataWithDelegatingHandler = definition as? any AnyDefinitionWithDynamicDelegatingHandler {
             metadataWithDelegatingHandler.addInitializerContextValue(self)
         }
     }

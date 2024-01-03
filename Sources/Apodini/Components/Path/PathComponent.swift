@@ -16,7 +16,7 @@ protocol _PathComponent: PathComponent {
 
 extension _PathComponent {
     func accept<Parser: PathComponentParser>(_ parser: inout Parser) {
-        if let parsable = self as? PathComponentModifier {
+        if let parsable = self as? any PathComponentModifier {
             parsable.accept(&parser)
         } else {
             append(to: &parser)
@@ -25,8 +25,8 @@ extension _PathComponent {
 }
 
 extension PathComponent {
-    func toInternal() -> _PathComponent {
-        guard let pathComponent = self as? _PathComponent else {
+    func toInternal() -> any _PathComponent {
+        guard let pathComponent = self as? any _PathComponent else {
             fatalError("Encountered `PathComponent` which doesn't conform to `_PathComponent`: \(self)!")
         }
         return pathComponent

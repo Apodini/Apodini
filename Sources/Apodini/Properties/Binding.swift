@@ -18,7 +18,7 @@ private protocol PotentiallyParameterIdentifyingBinding {
 extension _Internal {
     /// :nodoc:
     public static func getParameterId(ofBinding value: Any) -> UUID? {
-        (value as? PotentiallyParameterIdentifyingBinding)?.parameterId
+        (value as? any PotentiallyParameterIdentifyingBinding)?.parameterId
     }
 }
 

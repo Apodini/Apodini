@@ -13,31 +13,31 @@
 public enum ComponentMetadataBuilder {}
 
 public extension ComponentMetadataBuilder {
-    static func buildExpression<Metadata: ComponentMetadataDefinition>(_ expression: Metadata) -> AnyComponentMetadata {
+    static func buildExpression<Metadata: ComponentMetadataDefinition>(_ expression: Metadata) -> any AnyComponentMetadata {
         WrappedComponentMetadataDefinition(expression)
     }
 
-    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> AnyComponentMetadata {
+    static func buildExpression<Metadata: ComponentMetadataBlock>(_ expression: Metadata) -> any AnyComponentMetadata {
         expression
     }
 
-    static func buildOptional(_ component: AnyComponentMetadata?) -> AnyComponentMetadata {
+    static func buildOptional(_ component: (any AnyComponentMetadata)?) -> any AnyComponentMetadata {
         component ?? EmptyComponentMetadata()
     }
 
-    static func buildEither(first: AnyComponentMetadata) -> AnyComponentMetadata {
+    static func buildEither(first: any AnyComponentMetadata) -> any AnyComponentMetadata {
         first
     }
 
-    static func buildEither(second: AnyComponentMetadata) -> AnyComponentMetadata {
+    static func buildEither(second: any AnyComponentMetadata) -> any AnyComponentMetadata {
         second
     }
 
-    static func buildArray(_ components: [AnyComponentMetadata]) -> AnyComponentMetadata {
+    static func buildArray(_ components: [any AnyComponentMetadata]) -> any AnyComponentMetadata {
         AnyComponentMetadataArray(components)
     }
 
-    static func buildBlock(_ components: AnyComponentMetadata...) -> AnyComponentMetadata {
+    static func buildBlock(_ components: any AnyComponentMetadata...) -> any AnyComponentMetadata {
         AnyComponentMetadataArray(components)
     }
 }

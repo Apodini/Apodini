@@ -18,7 +18,7 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
     
     var configuration = NumberOrSymbolConfiguration()
     
-    func checkSegment(segment: String, isParameter: Bool) -> Finding? {
+    func checkSegment(segment: String, isParameter: Bool) -> (any Finding)? {
         if segment.contains(where: { char in
             !char.isLetter && !configuration.allowedSymbols.contains(char)
         }) {
@@ -37,7 +37,7 @@ public class NoNumbersOrSymbolsInURLPathSegments: URLSegmentBestPractice {
 public struct NumberOrSymbolConfiguration: BestPracticeConfiguration {
     var allowedSymbols: [Character] = ["-"]
     
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         NoNumbersOrSymbolsInURLPathSegments(configuration: self)
     }
     

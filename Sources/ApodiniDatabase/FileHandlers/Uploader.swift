@@ -20,7 +20,7 @@ public struct Uploader: Handler {
     private var fileio: NonBlockingFileIO
     
     @Environment(\.eventLoopGroup)
-    private var eventLoopGroup: EventLoopGroup
+    private var eventLoopGroup: any EventLoopGroup
     
     @Parameter
     private var file: File

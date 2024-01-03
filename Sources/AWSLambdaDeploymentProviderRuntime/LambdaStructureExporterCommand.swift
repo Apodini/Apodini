@@ -71,7 +71,7 @@ public struct LambdaStructureExporterCommand<Service: WebService>: StructureExpo
     public func retrieveStructure(
         _ endpoints: Set<CollectedEndpointInfo>,
         config: DeploymentConfig,
-        app: Apodini.Application) throws -> AnyDeployedSystem {
+        app: Apodini.Application) throws -> any AnyDeployedSystem {
         guard let openApiDocument = app.storage.get(OpenAPI.StorageKey.self)?.document else {
             throw ApodiniDeployerRuntimeSupportError(message: "Unable to get OpenAPI document")
         }

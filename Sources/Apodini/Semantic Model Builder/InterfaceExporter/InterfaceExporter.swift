@@ -91,7 +91,7 @@ public struct ExporterTypeObserveMetadata: EnvironmentAccessible {
 
 // MARK: Interface Exporter Visitor
 extension InterfaceExporter {
-    func accept(_ visitor: InterfaceExporterVisitor) {
+    func accept(_ visitor: any InterfaceExporterVisitor) {
         visitor.visit(exporter: self)
     }
 }

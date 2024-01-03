@@ -26,7 +26,7 @@ public enum Status: ResponseTransformable, Equatable {
     /// The request was handled and the response has not been changed versus the client's cache
     case notModified
     
-    public func transformToResponse(on eventLoop: EventLoop) -> EventLoopFuture<Response<Empty>> {
+    public func transformToResponse(on eventLoop: any EventLoop) -> EventLoopFuture<Response<Empty>> {
         eventLoop.makeSucceededFuture(Response.final(self))
     }
 }

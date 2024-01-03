@@ -42,7 +42,7 @@ public struct LambdaStartupCommand<Service: WebService>: DeploymentStartupComman
     @ArgumentParser.OptionGroup
     public var webServiceWithArguments: Service
 
-    public var deployedSystemType: AnyDeployedSystem.Type {
+    public var deployedSystemType: any AnyDeployedSystem.Type {
         LambdaDeployedSystem.self
     }
     

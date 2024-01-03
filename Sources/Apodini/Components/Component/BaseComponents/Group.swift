@@ -6,21 +6,21 @@
 // SPDX-License-Identifier: MIT
 //
 public struct PathComponentContextKey: ContextKey {
-    public typealias Value = [PathComponent]
-    public static var defaultValue: [PathComponent] = []
+    public typealias Value = [any PathComponent]
+    public static var defaultValue: [any PathComponent] = []
 }
 
 
 public struct Group<Content: Component>: Component, SyntaxTreeVisitable {
-    private let pathComponents: [PathComponent]
+    private let pathComponents: [any PathComponent]
     public let content: Content
     
-    public init(_ pathComponents: PathComponent..., @ComponentBuilder content: () -> Content) {
+    public init(_ pathComponents: any PathComponent..., @ComponentBuilder content: () -> Content) {
         self.pathComponents = pathComponents
         self.content = content()
     }
 
-    public init(@PathComponentBuilder path: () -> [PathComponent], @ComponentBuilder content: () -> Content) {
+    public init(@PathComponentBuilder path: () -> [any PathComponent], @ComponentBuilder content: () -> Content) {
         self.pathComponents = path()
         self.content = content()
     }

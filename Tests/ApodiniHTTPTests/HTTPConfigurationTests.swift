@@ -15,7 +15,7 @@ import Foundation
 
 class HTTPConfigurationTests: XCTApodiniTest {
     func testCustomRootPrefixRequest() throws {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTP(rootPath: "prefix")
         }
 
@@ -40,7 +40,7 @@ class HTTPConfigurationTests: XCTApodiniTest {
     }
     
     func testVersionPrefixRequest() throws {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTP(rootPath: .version)
         }
 

@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.8
 
 //
 // This source file is part of the Apodini open source project
@@ -147,7 +147,8 @@ let package = Package(
                 .product(name: "Runtime", package: "Runtime"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Algorithms", package: "swift-algorithms")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -170,7 +171,8 @@ let package = Package(
             ],
             exclude: [
                 "Components/ComponentBuilder.swift.gyb"
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -180,7 +182,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Logging", package: "swift-log")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -208,7 +211,8 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -216,7 +220,8 @@ let package = Package(
             dependencies: [
                 .target(name: "XCTUtils"),
                 .target(name: "ApodiniUtils")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
@@ -224,7 +229,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini")
             ],
-            exclude: ["Cases"]
+            exclude: ["Cases"],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -233,7 +239,8 @@ let package = Package(
                 .target(name: "XCTUtils"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniUtils")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
@@ -242,7 +249,8 @@ let package = Package(
                 .target(name: "XCTApodiniNetworking"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniNetworkingHTTPSupport")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -251,7 +259,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniNetworking"),
                 .product(name: "FluentKit", package: "fluent-kit")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -259,7 +268,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "SwifCron", package: "SwifCron")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -267,7 +277,8 @@ let package = Package(
             dependencies: [
                 .target(name: "ApodiniJobs"),
                 .target(name: "XCTApodini")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -276,7 +287,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniDatabase"),
                 .product(name: "APNSwift", package: "apnswift")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -287,7 +299,8 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -296,7 +309,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "OrderedCollections", package: "swift-collections")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -313,7 +327,8 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -325,7 +340,8 @@ let package = Package(
                 .target(name: "ApodiniHTTP"),
                 .target(name: "ApodiniNetworking"),
                 .target(name: "ApodiniMigrationCommon")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -335,7 +351,8 @@ let package = Package(
                 .target(name: "ApodiniExtension"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniNetworking")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -344,7 +361,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         
@@ -365,7 +383,8 @@ let package = Package(
                 .product(name: "NIOFoundationCompat", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Logging", package: "swift-log")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -375,7 +394,8 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOHTTP2", package: "swift-nio-http2"),
                 .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -389,7 +409,8 @@ let package = Package(
                 .product(name: "NIOWebSocket", package: "swift-nio"),
                 .product(name: "WebSocketKit", package: "websocket-kit"),
                 .product(name: "Runtime", package: "Runtime")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         // MARK: Apodini Authorization
@@ -399,7 +420,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .target(name: "ApodiniOpenAPISecurity")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -408,7 +430,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniAuthorization")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -417,7 +440,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniHTTPProtocol"),
                 .target(name: "ApodiniAuthorization")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -427,7 +451,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorization"),
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .product(name: "JWTKit", package: "jwt-kit")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .testTarget(
@@ -439,7 +464,8 @@ let package = Package(
                 .target(name: "ApodiniAuthorizationBearerScheme"),
                 .target(name: "ApodiniAuthorizationJWT"),
                 .target(name: "XCTApodini")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         // ApodiniMigration
@@ -449,7 +475,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "ApodiniMigratorExporterSupport", package: "ApodiniMigrator")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -460,7 +487,8 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .product(name: "ApodiniMigrator", package: "ApodiniMigrator"),
                 .product(name: "ApodiniDocumentExport", package: "ApodiniDocumentExport")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         // XCTApodini
@@ -479,7 +507,8 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .target(name: "XCTApodiniNetworking"),
                 .target(name: "ApodiniAudit")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -490,14 +519,16 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
                 .product(name: "NIOExtras", package: "swift-nio-extras")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
             name: "XCTUtils",
             dependencies: [
                 .target(name: "ApodiniUtils")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .executableTarget(
@@ -513,7 +544,8 @@ let package = Package(
                 .target(name: "ApodiniWebSocket"),
                 .target(name: "ApodiniNotifications"),
                 .target(name: "ApodiniDeployer")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
@@ -526,14 +558,16 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
             name: "ApodiniExtensionTests",
             dependencies: [
                 .target(name: "XCTApodini")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         
@@ -541,7 +575,8 @@ let package = Package(
             name: "ApodiniUtilsTests",
             dependencies: [
                 .target(name: "ApodiniUtils")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         //
@@ -557,7 +592,8 @@ let package = Package(
                 .target(name: "ApodiniDeployerBuildSupport"),
                 .target(name: "ApodiniDeployerRuntimeSupport"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -567,7 +603,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Runtime", package: "Runtime")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .target(
             name: "ApodiniDeployerRuntimeSupport",
@@ -576,7 +613,8 @@ let package = Package(
                 .target(name: "Apodini"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Logging", package: "swift-log")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .testTarget(
             name: "ApodiniDeployerTests",
@@ -593,7 +631,8 @@ let package = Package(
                 .product(name: "SotoIAM", package: "soto"),
                 .target(name: "LocalhostDeploymentProvider"),
                 .target(name: "AWSLambdaDeploymentProvider")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .executableTarget(
             name: "LocalhostDeploymentProvider",
@@ -606,13 +645,15 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "AsyncHTTPClient", package: "async-http-client")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .target(
             name: "LocalhostDeploymentProviderCommon",
             dependencies: [
                 .target(name: "ApodiniDeployerBuildSupport")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .target(
             name: "LocalhostDeploymentProviderRuntime",
@@ -620,7 +661,8 @@ let package = Package(
                 .target(name: "LocalhostDeploymentProviderCommon"),
                 .target(name: "ApodiniDeployerRuntimeSupport"),
                 .target(name: "ApodiniOpenAPI")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .executableTarget(
@@ -641,13 +683,15 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .target(
             name: "AWSLambdaDeploymentProviderCommon",
             dependencies: [
                 .target(name: "ApodiniDeployerBuildSupport")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         .target(
             name: "AWSLambdaDeploymentProviderRuntime",
@@ -658,7 +702,8 @@ let package = Package(
                 .target(name: "ApodiniNetworking"),
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
                 .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         //
@@ -678,7 +723,8 @@ let package = Package(
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "SystemMetrics", package: "swift-metrics-extras"),
                 .product(name: "Tracing", package: "swift-distributed-tracing")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -686,7 +732,8 @@ let package = Package(
             dependencies: [
                 .target(name: "Apodini"),
                 .product(name: "Logging", package: "swift-log")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -697,7 +744,8 @@ let package = Package(
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "OpenTelemetry", package: "opentelemetry-swift"),
                 .product(name: "OtlpGRPCSpanExporting", package: "opentelemetry-swift")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -711,7 +759,8 @@ let package = Package(
                 .target(name: "ProtobufferCoding"),
                 .target(name: "ApodiniUtils"),
                 .product(name: "Runtime", package: "Runtime")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -723,7 +772,8 @@ let package = Package(
                 .target(name: "ApodiniUtils"),
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "Runtime", package: "Runtime")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
@@ -733,7 +783,8 @@ let package = Package(
                 .target(name: "ApodiniGRPC"),
                 .target(name: "XCTUtils"),
                 .product(name: "Algorithms", package: "swift-algorithms")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
         .target(
@@ -749,7 +800,8 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .target(
@@ -760,7 +812,8 @@ let package = Package(
                 .product(name: "CoreMetrics", package: "swift-metrics"),
                 .product(name: "Instrumentation", package: "swift-distributed-tracing"),
                 .product(name: "Tracing", package: "swift-distributed-tracing")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         .testTarget(
@@ -775,7 +828,8 @@ let package = Package(
                 .product(name: "SwiftLogTesting", package: "swift-log-testing"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "MetricsTestUtils", package: "swift-metrics-extras")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
         //
@@ -789,19 +843,24 @@ let package = Package(
                 .target(name: "ApodiniREST"),
                 .target(name: "ApodiniHTTP"),
                 .product(name: "PythonKit", package: "PythonKit")
-            ]
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
 
-        .executableTarget(name: "LKTestWebService", dependencies: [
-            .target(name: "Apodini"),
-            .target(name: "ApodiniHTTP"),
-            .target(name: "ApodiniREST"),
-            .target(name: "ApodiniGRPC"),
-            .target(name: "ApodiniGraphQL"),
-            .target(name: "ProtobufferCoding"),
-            .target(name: "ApodiniOpenAPI"),
-            .target(name: "ApodiniWebSocket"),
-            .target(name: "ApodiniDeployer")
-        ])
+        .executableTarget(
+            name: "LKTestWebService",
+            dependencies: [
+                .target(name: "Apodini"),
+                .target(name: "ApodiniHTTP"),
+                .target(name: "ApodiniREST"),
+                .target(name: "ApodiniGRPC"),
+                .target(name: "ApodiniGraphQL"),
+                .target(name: "ProtobufferCoding"),
+                .target(name: "ApodiniOpenAPI"),
+                .target(name: "ApodiniWebSocket"),
+                .target(name: "ApodiniDeployer")
+            ],
+            swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
+        )
     ]
 )

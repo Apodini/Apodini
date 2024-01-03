@@ -16,7 +16,7 @@ import NIO
 /// where they are exposed to the user.
 public protocol Request: CustomStringConvertible, CustomDebugStringConvertible {
     /// The `EventLoop` this request is to be handled on.
-    var eventLoop: EventLoop { get }
+    var eventLoop: any EventLoop { get }
 
     /// The remote address associated with this request.
     var remoteAddress: SocketAddress? { get }

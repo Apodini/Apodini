@@ -34,12 +34,12 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
     public let parent: WebServiceComponent<A>?
     public let identifier: EndpointPath
     
-    public lazy var endpoints: [Operation: SharedRepository] = deriveEndpoints()
+    public lazy var endpoints: [Operation: any SharedRepository] = deriveEndpoints()
     public lazy var children: [WebServiceComponent<A>] = deriveChildren()
     
     public lazy var globalPath: [EndpointPath] = (parent?.globalPath ?? []) + [identifier]
     
-    private let sharedRepositorys: [SharedRepository]
+    private let sharedRepositorys: [any SharedRepository]
     
     public required init<B>(_ sharedRepository: B) throws where B: SharedRepository {
         // we make sure the WebServiceComponent that is meant to be initilaized here is created by
@@ -51,14 +51,14 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
         throw KnowledgeError.instancePresent
     }
     
-    fileprivate init(parent: WebServiceComponent<A>?, identifier: EndpointPath, sharedRepositorys: [SharedRepository]) {
+    fileprivate init(parent: WebServiceComponent<A>?, identifier: EndpointPath, sharedRepositorys: [any SharedRepository]) {
         self.parent = parent
         self.identifier = identifier
         self.sharedRepositorys = sharedRepositorys
     }
     
-    private func deriveEndpoints() -> [Operation: SharedRepository] {
-        var endpoints = [Operation: SharedRepository]()
+    private func deriveEndpoints() -> [Operation: any SharedRepository] {
+        var endpoints = [Operation: any SharedRepository]()
         for endpoint in sharedRepositorys.filter({ sharedRepository in
             sharedRepository[PathComponents.self].value.count == self.globalPath.count - 1
         }) {
@@ -73,7 +73,7 @@ public class WebServiceComponent<A: TruthAnchor>: KnowledgeSource {
             sharedRepository[PathComponents.self].value.count > self.globalPath.count - 1
         }
         
-        var childrenByPathElement = [EndpointPath: [SharedRepository]]()
+        var childrenByPathElement = [EndpointPath: [any SharedRepository]]()
         
         for sharedRepository in children {
             let identifier = sharedRepository[PathComponents.self].value[self.globalPath.count - 1].toEndpointPath()
@@ -103,7 +103,7 @@ extension WebServiceComponent: CustomStringConvertible {
 }
 
 extension WebServiceComponent {
-    func findChild(for path: [PathComponent], registerSelfToSharedRepositorys: Bool = false) -> WebServiceComponent? {
+    func findChild(for path: [any PathComponent], registerSelfToSharedRepositorys: Bool = false) -> WebServiceComponent? {
         if path.isEmpty {
             if registerSelfToSharedRepositorys {
                 _ = self.endpoints

@@ -88,7 +88,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
     
     
     struct TestGRPCExporterCollection: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             HTTPConfiguration(
                 bindAddress: .interface("localhost", port: 50051),
                 tlsConfiguration: .init(
@@ -110,7 +110,7 @@ class GRPCInterfaceExporterTests: XCTApodiniTest {
                 x + y
             }
             
-            var metadata: AnyHandlerMetadata {
+            var metadata: any AnyHandlerMetadata {
                 HandlerInputProtoMessageName("AdditionInput")
                 HandlerResponseProtoMessageName("AdditionResult")
             }
@@ -326,7 +326,7 @@ struct Rocket: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Pattern(.serviceSideStream)
     }
 }

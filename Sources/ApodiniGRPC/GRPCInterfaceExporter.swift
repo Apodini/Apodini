@@ -402,7 +402,7 @@ class GRPCInterfaceExporter: InterfaceExporter {
         try! app.httpServer.registerRoute(
             .GET,
             ["__apodini", "grpc", "schema", .namedParameter("format"), "file", .wildcardMultiple("filename")]
-        ) { req -> HTTPResponseConvertible in
+        ) { req -> any HTTPResponseConvertible in
             guard
                 let outputFormat = try req.getParameter("format", as: OutputFormat.self),
                 let filename = req.getMultipleWildcardParameter(named: "filename")?.joined(separator: "/")

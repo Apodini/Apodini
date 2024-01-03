@@ -15,7 +15,7 @@ import Apodini
 ///
 /// - Note: An instance can be obtained from any local `SharedRepository`, e.g. an `Endpoint`.
 public struct DefaultValueStore {
-    private let handler: (UUID, Error) throws -> Any
+    private let handler: (UUID, any Error) throws -> Any
     
     
     internal init(_ parameters: EndpointParameters) {
@@ -26,7 +26,7 @@ public struct DefaultValueStore {
         })
         
         let defaultNilValues = parameters.reduce(into: [UUID: Any](), { storage, parameter in
-            if case let .some(.some(nilValue)) = (parameter as? DefaultNilValueProvider)?.nilValue {
+            if case let .some(.some(nilValue)) = (parameter as? any DefaultNilValueProvider)?.nilValue {
                 storage[parameter.id] = nilValue
             }
         })
@@ -46,7 +46,7 @@ public struct DefaultValueStore {
         }
     }
     
-    func insertDefaults(_ request: Request) -> DefaultInsertingRequest {
+    func insertDefaults(_ request: any Request) -> DefaultInsertingRequest {
         DefaultInsertingRequest(request: request, handler: handler)
     }
     
@@ -56,15 +56,15 @@ public struct DefaultValueStore {
     ///
     /// - Note: Usually, any request should be wrapped in a ``DefaultInsertingRequest``.
     public struct DefaultInsertingRequest: WithRequest {
-        public var request: Request {
+        public var request: any Request {
             _request
         }
         
-        private var _request: Request
+        private var _request: any Request
         
-        private let handler: (UUID, Error) throws -> Any
+        private let handler: (UUID, any Error) throws -> Any
         
-        init(request: Request, handler: @escaping (UUID, Error) throws -> Any) {
+        init(request: any Request, handler: @escaping (UUID, any Error) throws -> Any) {
             self._request = request
             self.handler = handler
         }

@@ -40,12 +40,12 @@ class HTTPServerRequestDecoder: ChannelInboundHandler, RemovableChannelHandler {
     
     private var state: State = .ready
     private let logger: Logger
-    private let responder: HTTPResponder
+    private let responder: any HTTPResponder
     private let hostname: Hostname
     private let isTLSEnabled: Bool
     
     
-    init(responder: HTTPResponder, hostname: Hostname, isTLSEnabled: Bool) {
+    init(responder: any HTTPResponder, hostname: Hostname, isTLSEnabled: Bool) {
         self.responder = responder
         self.hostname = hostname
         self.isTLSEnabled = isTLSEnabled

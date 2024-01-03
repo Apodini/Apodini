@@ -14,20 +14,20 @@ protocol InterfaceExporterVisitor {
 
 struct AnyInterfaceExporter {
     internal /* used only by tests */ let typeErasedInterfaceExporter: Any
-    private let accept: (_ visitor: InterfaceExporterVisitor) -> Void
+    private let accept: (_ visitor: any InterfaceExporterVisitor) -> Void
 
     init<I: InterfaceExporter>(_ exporter: I) {
         self.accept = exporter.accept(_:)
         self.typeErasedInterfaceExporter = exporter
     }
 
-    func accept(_ visitor: InterfaceExporterVisitor) {
+    func accept(_ visitor: any InterfaceExporterVisitor) {
         accept(visitor)
     }
 }
 
 extension Array where Element == AnyInterfaceExporter {
-    func acceptAll(_ visitor: InterfaceExporterVisitor) {
+    func acceptAll(_ visitor: any InterfaceExporterVisitor) {
         for exporter in self {
             exporter.accept(visitor)
         }

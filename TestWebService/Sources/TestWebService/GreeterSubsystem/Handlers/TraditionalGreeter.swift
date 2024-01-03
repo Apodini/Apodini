@@ -22,7 +22,7 @@ struct TraditionalGreeter: Handler {
     
     @Environment(\.connection) var connection: Connection
     @Environment(\.logger) var logger: Logger
-    @Environment(\.tracer) var tracer: Tracer
+    @Environment(\.tracer) var tracer: any Tracer
 
     
     func handle() -> Response<String> {
@@ -44,7 +44,7 @@ struct TraditionalGreeter: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         SelectBestPractices(.include, NoCRUDVerbsInURLPathSegments.self)
     }
 }

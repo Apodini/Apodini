@@ -15,7 +15,7 @@ public protocol HTTPResponder {
     /// Handle a request received by the server.
     /// - Note: The responder is responsible for converting errors thrown when handling a request,
     ///         ideally by turning them into `HTTPResponse`s with an appropriate status code.
-    func respond(to request: HTTPRequest) -> HTTPResponseConvertible
+    func respond(to request: HTTPRequest) -> any HTTPResponseConvertible
     
     /// Determines the expected communication pattern for a request.
     /// - returns: the expected communication pattern, or `nil` if this could not be determined
@@ -33,13 +33,13 @@ extension HTTPResponder {
 
 
 public struct DefaultHTTPResponder: HTTPResponder {
-    private let imp: (HTTPRequest) -> HTTPResponseConvertible
+    private let imp: (HTTPRequest) -> any HTTPResponseConvertible
     
-    public init(_ imp: @escaping (HTTPRequest) -> HTTPResponseConvertible) {
+    public init(_ imp: @escaping (HTTPRequest) -> any HTTPResponseConvertible) {
         self.imp = imp
     }
     
-    public func respond(to request: HTTPRequest) -> HTTPResponseConvertible {
+    public func respond(to request: HTTPRequest) -> any HTTPResponseConvertible {
         imp(request)
     }
 }

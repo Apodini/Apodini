@@ -15,7 +15,7 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter expression: The `DependentStaticConfiguration`
     ///
     /// - Returns: An array of `AnyDependentStaticConfiguration`s
-    public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [AnyDependentStaticConfiguration]
+    public static func buildExpression<T: DependentStaticConfiguration>(_ expression: T) -> [any AnyDependentStaticConfiguration]
         where T.InternalParentConfiguration == ParentConfiguration {
         [expression]
     }
@@ -25,7 +25,7 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter staticConfigurations: A variadic number of `AnyDependentStaticConfiguration`
     ///
     /// - Returns: An array of `AnyDependentStaticConfiguration`s
-    public static func buildBlock(_ staticConfigurations: [AnyDependentStaticConfiguration]...) -> [AnyDependentStaticConfiguration] {
+    public static func buildBlock(_ staticConfigurations: [any AnyDependentStaticConfiguration]...) -> [any AnyDependentStaticConfiguration] {
         staticConfigurations.flatMap { $0 }
     }
     
@@ -34,7 +34,7 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter first: The `AnyDependentStaticConfiguration` within the if statement
     ///
     /// - Returns: The `AnyDependentStaticConfiguration` within the if statement
-    public static func buildEither(first: [AnyDependentStaticConfiguration]) -> [AnyDependentStaticConfiguration] {
+    public static func buildEither(first: [any AnyDependentStaticConfiguration]) -> [any AnyDependentStaticConfiguration] {
         first
     }
     
@@ -44,7 +44,7 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter second: The `AnyDependentStaticConfiguration` within the else statement
     ///
     /// - Returns: The `AnyDependentStaticConfiguration` within the else statement
-    public static func buildEither(second: [AnyDependentStaticConfiguration]) -> [AnyDependentStaticConfiguration] {
+    public static func buildEither(second: [any AnyDependentStaticConfiguration]) -> [any AnyDependentStaticConfiguration] {
         second
     }
     
@@ -53,7 +53,7 @@ public enum DependentStaticConfigurationBuilder<ParentConfiguration> {
     /// - Parameter component: The `AnyDependentStaticConfiguration` within if statement
     ///
     /// - Returns: The `AnyDependentStaticConfiguration` within the if statement if the condition is true, an empty array otherwise
-    public static func buildOptional(_ component: [AnyDependentStaticConfiguration]?) -> [AnyDependentStaticConfiguration] {
+    public static func buildOptional(_ component: [any AnyDependentStaticConfiguration]?) -> [any AnyDependentStaticConfiguration] {
         // swiftlint:disable:previous discouraged_optional_collection
         component ?? []
     }

@@ -35,7 +35,7 @@ public struct ApodiniSecurityType {
         /// Specifies an OpenId Connect scheme type.
         case openIdConnect(openIdConnectUrl: URL)
         /// Transports an arbitrary `OpenAPIKit.OpenAPI.SecurityScheme.SchemeType` instance.
-        case openAPIScheme(_ scheme: OpenAPISecurityType)
+        case openAPIScheme(_ scheme: any OpenAPISecurityType)
     }
 }
 

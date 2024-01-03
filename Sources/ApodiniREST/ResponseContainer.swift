@@ -25,7 +25,7 @@ public struct ResponseContainer: Encodable {
     let information: InformationSet
     let data: AnyEncodable?
     let links: Links?
-    let encoder: AnyEncoder
+    let encoder: any AnyEncoder
     
     var containsNoContent: Bool {
         data == nil && (links?.isEmpty ?? true)
@@ -37,7 +37,7 @@ public struct ResponseContainer: Encodable {
         information: InformationSet = [],
         data: E? = nil,
         links: Links? = nil,
-        encoder: AnyEncoder = JSONEncoder()
+        encoder: any AnyEncoder = JSONEncoder()
     ) {
         self.status = status
         self.information = information

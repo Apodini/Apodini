@@ -32,7 +32,7 @@ struct Countdown: Handler {
         }
     }
     
-    var metadata: AnyHandlerMetadata {
+    var metadata: any AnyHandlerMetadata {
         Pattern(.serviceSideStream)
     }
 }

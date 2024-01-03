@@ -39,13 +39,13 @@ extension XMLDecoder: ApodiniUtils.AnyDecoder {
 class ExporterConfigurationTests: ApodiniTests {
     func testExporterConfigurationWithDefaultEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST()
             }
         }
 
         let testCollection = TestCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 1)
         XCTAssert(configurations[0] is REST)
@@ -76,13 +76,13 @@ class ExporterConfigurationTests: ApodiniTests {
         }
         
         struct TestCollection: ConfigurationCollection {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST(encoder: TestEncoder(), decoder: TestDecoder())
             }
         }
 
         let testCollection = TestCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 1)
         XCTAssert(configurations[0] is REST)
@@ -93,7 +93,7 @@ class ExporterConfigurationTests: ApodiniTests {
             var content: some Component {
                 Text("Servus")
             }
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST(encoder: TestEncoder(), decoder: TestDecoder())
             }
         }
@@ -109,13 +109,13 @@ class ExporterConfigurationTests: ApodiniTests {
     
     func testExporterConfigurationWithXMLEncoderAndDecoder() throws {
         struct TestCollection: ConfigurationCollection {
-            var configuration: Configuration {
+            var configuration: any Configuration {
                 REST(encoder: XMLEncoder(), decoder: XMLDecoder())
             }
         }
 
         let testCollection = TestCollection()
-        let configurations = try XCTUnwrap(testCollection.configuration as? [Configuration])
+        let configurations = try XCTUnwrap(testCollection.configuration as? [any Configuration])
 
         XCTAssert(configurations.count == 1)
         XCTAssert(configurations[0] is REST)
@@ -168,7 +168,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollection: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST()
         }
     }
@@ -192,7 +192,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollectionWithJSONEncoderConfig: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(encoder: JSONEncoder(), decoder: JSONDecoder())
         }
     }
@@ -216,7 +216,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollectionWithXMLCoderConfig: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(encoder: XMLEncoder(), decoder: XMLDecoder())
         }
     }
@@ -279,7 +279,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollectionWithJSONEncoderAndXMLDecoderConfig: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(encoder: JSONEncoder(), decoder: XMLDecoder())
         }
     }
@@ -305,7 +305,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestRESTExporterCollectionWithXMLEncoderAndJSONDecoderConfig: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             REST(encoder: XMLEncoder(), decoder: JSONDecoder())
         }
     }
@@ -330,7 +330,7 @@ class RESTExporterConfigurationTests: ApodiniTests {
     }
     
     struct TestExporterCollectionWithXMLCoderAndOpenAPI: ConfigurationCollection {
-        var configuration: Configuration {
+        var configuration: any Configuration {
             // Doesn't compile (it shouldn't) -> sometimes weird useless error messages
             //REST(encoder: XMLEncoder(), decoder: JSONDecoder()) {
             REST(encoder: JSONEncoder(), decoder: JSONDecoder()) {

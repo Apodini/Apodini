@@ -26,9 +26,9 @@ import Apodini
 /// }
 /// ```
 public struct AllNamedStrategy: EndpointDecodingStrategy {
-    private let decoder: AnyDecoder
+    private let decoder: any AnyDecoder
     
-    public init(_ decoder: AnyDecoder) {
+    public init(_ decoder: any AnyDecoder) {
         self.decoder = decoder
     }
     

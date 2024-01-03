@@ -17,7 +17,7 @@ import Apodini
 /// It uses the database that has been specified in the `DatabaseConfiguration`.
 public struct Update<Model: DatabaseModel>: Handler {
     @Apodini.Environment(\.database)
-    private var database: FluentKit.Database
+    private var database: any FluentKit.Database
     
     @Parameter<[String: TypeContainer]>
     private var parameters: [String: TypeContainer]
@@ -35,7 +35,7 @@ public struct Update<Model: DatabaseModel>: Handler {
     
     public init() {}
     
-    public var metadata: AnyHandlerMetadata {
+    public var metadata: any AnyHandlerMetadata {
         Operation(.update)
     }
 }

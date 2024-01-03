@@ -11,11 +11,11 @@ import Foundation
 /// A rule capturing the inclusion and exclusion of specific ``BestPractice``s from auditing.
 public protocol BestPracticeInclusionRule {
     /// Derive an action for a specific ``BestPractice`` from this inclusion rule.
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction
 }
 
 extension BestPracticeInclusionRule {
-    func apply(_ newRule: BestPracticeInclusionRule) -> BestPracticeInclusionRule {
+    func apply(_ newRule: any BestPracticeInclusionRule) -> any BestPracticeInclusionRule {
         CompositeBestPracticeInclusionRule(rules: [self, newRule])
     }
 }
@@ -24,7 +24,7 @@ struct BestPracticeScopeInclusionRule: BestPracticeInclusionRule {
     let scopes: BestPracticeScopes
     let action: BestPracticeInclusionAction
     
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction {
         scopes.contains(bestPractice.scope) ? action : .noAction
     }
 }
@@ -33,30 +33,30 @@ struct BestPracticeCategoryInclusionRule: BestPracticeInclusionRule {
     let categories: BestPracticeCategories
     let action: BestPracticeInclusionAction
     
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction {
         bestPractice.category.contains(categories) ? action : .noAction
     }
 }
 
 struct SingleBestPracticeInclusionRule: BestPracticeInclusionRule {
     var action: BestPracticeInclusionAction
-    var bestPractice: BestPractice.Type
+    var bestPractice: any BestPractice.Type
     
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction {
         bestPractice == self.bestPractice ? action : .noAction
     }
 }
 
 /// A `CompositeBestPracticeInclusionRule` is represented by a number of inclusions and exclusions, starting from the set of all best practices
 struct CompositeBestPracticeInclusionRule: BestPracticeInclusionRule {
-    var rules: [BestPracticeInclusionRule] = []
+    var rules: [any BestPracticeInclusionRule] = []
     
-    mutating func apply(_ newRule: BestPracticeInclusionRule) -> BestPracticeInclusionRule {
+    mutating func apply(_ newRule: any BestPracticeInclusionRule) -> any BestPracticeInclusionRule {
         rules.append(newRule)
         return self
     }
     
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction {
         rules.reduce(.noAction) { action, rule -> BestPracticeInclusionAction in
             let newAction = rule.action(for: bestPractice)
             if newAction == .noAction {
@@ -69,7 +69,7 @@ struct CompositeBestPracticeInclusionRule: BestPracticeInclusionRule {
 }
 
 struct PassThroughInclusionRule: BestPracticeInclusionRule {
-    func action(for bestPractice: BestPractice.Type) -> BestPracticeInclusionAction {
+    func action(for bestPractice: any BestPractice.Type) -> BestPracticeInclusionAction {
         .noAction
     }
 }

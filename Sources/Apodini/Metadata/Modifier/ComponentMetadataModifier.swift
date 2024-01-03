@@ -29,14 +29,14 @@ public struct ComponentMetadataModifier<C: Component>: Modifier {
     public typealias MetadataBuilderScope = C.MetadataBuilderScope
     public let component: C
     // property is not called `metadata` as it would conflict with the Metadata Declaration block
-    let componentMetadata: AnyComponentOnlyMetadata
+    let componentMetadata: any AnyComponentOnlyMetadata
 
     public init<Metadata: ComponentOnlyMetadataDefinition>(modifies component: C, with metadata: Metadata) {
         self.component = component
         self.componentMetadata = metadata
     }
 
-    fileprivate init(modifies component: C, with metadata: AnyComponentOnlyMetadata) {
+    fileprivate init(modifies component: C, with metadata: any AnyComponentOnlyMetadata) {
         self.component = component
         self.componentMetadata = metadata
     }
@@ -56,7 +56,7 @@ extension Component {
     /// - Parameter content: The closure containing the Metadata to be built.
     /// - Returns: The modified `Component` with the added Metadata.
     public func metadata(
-        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyComponentOnlyMetadata
+        @MetadataBuilder<MetadataBuilderScope> content: () -> any AnyComponentOnlyMetadata
     ) -> ComponentMetadataModifier<Self> where MetadataBuilderScope == MetadataBuilderScope_ComponentOnly {
         ComponentMetadataModifier(modifies: self, with: content())
     }
@@ -79,7 +79,7 @@ extension Component {
     /// - Parameter content: The closure containing the Metadata to be built.
     /// - Returns: The modified `Component` with the added Metadata.
     public func metadata(
-        @MetadataBuilder<MetadataBuilderScope> content: () -> AnyComponentMetadata
+        @MetadataBuilder<MetadataBuilderScope> content: () -> any AnyComponentMetadata
     ) -> ComponentMetadataModifier<Self> {
         ComponentMetadataModifier(modifies: self, with: content())
     }

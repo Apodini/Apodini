@@ -25,11 +25,11 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         localhostDeploymentProviderId
     }
     
-    public let deployedSystem: AnyDeployedSystem
+    public let deployedSystem: any AnyDeployedSystem
     public let currentNodeId: DeployedSystemNode.ID
     private let currentNodeCustomLaunchInfo: LocalhostLaunchInfo
     
-    public required init(deployedSystem: AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
+    public required init(deployedSystem: any AnyDeployedSystem, currentNodeId: DeployedSystemNode.ID) throws {
         self.deployedSystem = deployedSystem
         self.currentNodeId = currentNodeId
         guard
@@ -65,11 +65,11 @@ public class LocalhostRuntime<Service: WebService>: DeploymentProviderRuntime {
         return .invokeDefault(url: url)
     }
     
-    public static var exportCommand: StructureExporter.Type {
+    public static var exportCommand: any StructureExporter.Type {
         LocalhostStructureExporterCommand<Service>.self
     }
     
-    public static var startupCommand: DeploymentStartupCommand.Type {
+    public static var startupCommand: any DeploymentStartupCommand.Type {
         LocalhostStartupCommand<Service>.self
     }
 }

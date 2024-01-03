@@ -21,11 +21,11 @@ public extension WebService {
 public final class APIAuditorConfiguration<Service: WebService>: DependentStaticConfiguration {
     public typealias InteralParentConfiguration = HTTPExporterConfiguration
     
-    public var command: ParsableCommand.Type? {
+    public var command: (any ParsableCommand.Type)? {
         SharedAPIAuditorConfiguration.getAuditCommand(AuditCommand<Service>.self)
     }
     
-    private let bestPractices: [BestPractice]
+    private let bestPractices: [any BestPractice]
     
     public func configure(_ app: Apodini.Application, parentConfiguration: HTTPExporterConfiguration) {
         // This Configuration is only relevant if the webservice has been run through the audit CLI
@@ -38,7 +38,7 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
         app.registerExporter(exporter: auditInterfaceExporter)
     }
     
-    public init(@AuditConfigurationBuilder bestPractices: () -> [BestPractice]) {
+    public init(@AuditConfigurationBuilder bestPractices: () -> [any BestPractice]) {
         self.bestPractices = bestPractices()
     }
     
@@ -49,7 +49,7 @@ public final class APIAuditorConfiguration<Service: WebService>: DependentStatic
 
 private enum SharedAPIAuditorConfiguration {
     fileprivate static var registeredCommand = false
-    fileprivate static func getAuditCommand(_ auditCommand: ParsableCommand.Type) -> ParsableCommand.Type? {
+    fileprivate static func getAuditCommand(_ auditCommand: any ParsableCommand.Type) -> (any ParsableCommand.Type)? {
         if !registeredCommand {
             registeredCommand = true
             return auditCommand
@@ -59,17 +59,17 @@ private enum SharedAPIAuditorConfiguration {
 }
 
 struct BestPracticesStorageKey: StorageKey {
-    typealias Value = [BestPractice]
+    typealias Value = [any BestPractice]
 }
 
 /// A configuration for a ``BestPractice``.
 public protocol BestPracticeConfiguration {
     /// Produce a ``BestPractice`` instance with this configuration.
-    func configure() -> BestPractice
+    func configure() -> any BestPractice
 }
 
 public struct EmptyBestPracticeConfiguration<BP: BestPractice>: BestPracticeConfiguration {
-    public func configure() -> BestPractice {
+    public func configure() -> any BestPractice {
         BP()
     }
 }

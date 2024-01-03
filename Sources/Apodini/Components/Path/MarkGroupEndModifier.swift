@@ -11,9 +11,9 @@ struct MarkGroupEndModifierContextKey: OptionalContextKey {
 }
 
 struct MarkGroupEndModifier: PathComponentModifier {
-    let pathComponent: _PathComponent
+    let pathComponent: any _PathComponent
 
-    init(_ pathComponent: PathComponent) {
+    init(_ pathComponent: any PathComponent) {
         self.pathComponent = pathComponent.toInternal()
     }
 
@@ -29,7 +29,7 @@ extension PathComponent {
     }
 }
 
-extension Array where Element == PathComponent {
+extension Array where Element == any PathComponent {
     mutating func markEnd() {
         if let last = self.last {
             self[endIndex - 1] = last.markGroupEnd()

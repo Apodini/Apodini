@@ -63,7 +63,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
     public let url: URI
     public var headers: HTTPHeaders
     public var bodyStorage: BodyStorage
-    public let eventLoop: EventLoop
+    public let eventLoop: any EventLoop
     
     /// For incoming requests from external clients processed through the HTTP server's router, the route this request matched against.
     /// - Note: This property is `nil` for manually constructed requests
@@ -80,7 +80,7 @@ public final class HTTPRequest: RequestBasis, Equatable, Hashable, CustomStringC
         url: URI,
         headers: HTTPHeaders = [:],
         bodyStorage: BodyStorage = .buffer(),
-        eventLoop: EventLoop
+        eventLoop: any EventLoop
     ) {
         self.remoteAddress = remoteAddress
         self.version = version

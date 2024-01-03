@@ -56,11 +56,11 @@ public protocol AnyEndpointParameter: CustomStringConvertible, CustomDebugString
     /// this property holds `String.Type` and not `Optional<String>.self`.
     ///
     /// Use the `nilIsValidValue` property to check if the original parameter definition used an `Optional` type.
-    var propertyType: Codable.Type { get }
+    var propertyType: any Codable.Type { get }
     /// The "original" property type, without any modifications.
     /// This will almost always be identical to `propertyType`, except for e.g. optional properties,
     /// in which case the `propertyType` will be some `T`, and this property will be `Optional<T>`
-    var originalPropertyType: Codable.Type { get }
+    var originalPropertyType: any Codable.Type { get }
     /// See documentation of `propertyType`
     var nilIsValidValue: Bool { get }
     /// Defines the `Necessity` of the parameter.
@@ -101,8 +101,8 @@ extension AnyEndpointParameter {
         typeErasedDefaultValue != nil
     }
 
-    func toInternal() -> _AnyEndpointParameter {
-        guard let parameter = self as? _AnyEndpointParameter else {
+    func toInternal() -> any _AnyEndpointParameter {
+        guard let parameter = self as? any _AnyEndpointParameter else {
             fatalError("Encountered `AnyEndpointParameter` which doesn't conform to `_AnyEndpointParameter`: \(self)!")
         }
         return parameter
@@ -129,8 +129,8 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
     }
     public let name: String
     public let label: String
-    public let propertyType: Codable.Type
-    public let originalPropertyType: Codable.Type
+    public let propertyType: any Codable.Type
+    public let originalPropertyType: any Codable.Type
     public let nilIsValidValue: Bool
     public let necessity: Necessity
     public let parameterType: ParameterType
@@ -149,7 +149,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         id: UUID,
         name: String,
         label: String,
-        originalPropertyType: Codable.Type,
+        originalPropertyType: any Codable.Type,
         nilIsValidValue: Bool,
         necessity: Necessity,
         options: PropertyOptionSet<ParameterOptionNameSpace>,
@@ -161,7 +161,7 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
         self.propertyType = Type.self
         self.originalPropertyType = originalPropertyType
         self.nilIsValidValue = nilIsValidValue
-        precondition(nilIsValidValue == (originalPropertyType as? AnyOptional.Type != nil))
+        precondition(nilIsValidValue == (originalPropertyType as? any AnyOptional.Type != nil))
         self.options = options
         self.necessity = necessity
         self.defaultValue = defaultValue
@@ -217,18 +217,18 @@ public struct EndpointParameter<Type: Codable>: _AnyEndpointParameter, Identifia
     }
     
     private static var isValidLightweightParamType: Bool {
-        Type.self is LosslessStringConvertible.Type || Type.self == Foundation.Date.self
+        Type.self is any LosslessStringConvertible.Type || Type.self == Foundation.Date.self
     }
     
     private static func assertIsValidLightweightParamType(forParameterMode parameterMode: HTTPParameterMode, description: String) {
         if !isValidLightweightParamType {
-            fatalError("Invalid option .\(parameterMode) for \(description): Parameter type \(Type.self) must conform to \(LosslessStringConvertible.self), or be \(Foundation.Date.self).")
+            fatalError("Invalid option .\(parameterMode) for \(description): Parameter type \(Type.self) must conform to \((any LosslessStringConvertible).self), or be \(Foundation.Date.self).")
         }
     }
 }
 
 // MARK: Endpoint Parameter
-extension Array where Element == AnyEndpointParameter {
+extension Array where Element == any AnyEndpointParameter {
     func exportParameters<I: InterfaceExporter>(on exporter: I) -> [I.ParameterExportOutput] {
         self.map { parameter -> I.ParameterExportOutput in
             parameter.toInternal().exportParameter(on: exporter)
@@ -243,7 +243,7 @@ public extension EndpointParameter {
     /// - Parameter description: The Lossless string description for the `type`
     /// - Returns: The result of `LosslessStringConvertible.init(...)`. Nil if the Type couldn't be instantiated for the given `String`
     func initLosslessStringConvertibleParameterValue(from description: String) -> Type? {
-        guard let losslessStringParameter = self as? LosslessStringConvertibleEndpointParameter else {
+        guard let losslessStringParameter = self as? any LosslessStringConvertibleEndpointParameter else {
             fatalError("Encountered .path Parameter which isn't type of LosslessStringConvertible!")
         }
 
