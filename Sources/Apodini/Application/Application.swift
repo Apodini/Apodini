@@ -81,14 +81,26 @@ public final class Application {
 
     /// Keeps track of all application lifecycle handlers
     public struct Lifecycle {
-        var handlers: [LifecycleHandler]
+        private(set) var handlers: [any LifecycleHandler]
         init() {
-            self.handlers = []
+            handlers = []
         }
 
         /// add lifecycle handler
-        public mutating func use(_ handler: LifecycleHandler) {
-            self.handlers.append(handler)
+        public mutating func use(_ handler: any LifecycleHandler) {
+            handlers.append(handler)
+        }
+        
+        /// Calls `-shutdown` on all handlers (in reverse order of registration), and removes them from the lifecycle
+        mutating func shutdown(app: Application) {
+            for handler in handlers.reversed() {
+                do {
+                    try handler.shutdown(app)
+                } catch {
+                    app.logger.error("Error during lifecycle-shutdown: \(error)")
+                }
+            }
+            handlers.removeAll()
         }
     }
 
@@ -217,13 +229,8 @@ public final class Application {
         self.running?.stop()
         self.logger.debug("Application shutting down [pid=\(getpid())]")
 
-        self.logger.trace("Shutting down providers")
-        do {
-            try self.lifecycle.handlers.forEach { try $0.shutdown(self) }
-        } catch {
-            self.logger.error("Error during lifecycle-shutdown: \(error)")
-        }
-        self.lifecycle.handlers = []
+        self.logger.trace("Shutting down lifecycle handlers")
+        self.lifecycle.shutdown(app: self)
 
         self.logger.trace("Clearing Application storage")
         self.storage.shutdown()
