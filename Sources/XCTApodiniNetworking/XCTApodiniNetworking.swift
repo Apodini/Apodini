@@ -230,7 +230,7 @@ extension Apodini.Application {
                 }
             )
             let responseTask = httpClient.execute(request: try AsyncHTTPClient.HTTPClient.Request(
-                url: "\(request.url.scheme)://\(address.interface):\(address.port)\(request.url.pathIncludingQueryAndFragment)",
+                url: rewriteUrl(for: request, address: address).stringValue,
                 method: request.method,
                 headers: request.headers,
                 body: .byteBuffer(request.body),
@@ -239,6 +239,24 @@ extension Apodini.Application {
             
             let httpResponse = try responseTask.wait()
             try responseEnd(httpResponse)
+        }
+        
+        private func rewriteUrl(for request: XCTHTTPRequest, address: (interface: String, port: Int?)) -> URI {
+            URI(
+                scheme: request.url.scheme,
+                hostname: address.interface,
+                port: address.port ?? { () -> Int in
+                    switch request.url.scheme {
+                    case .http:
+                        return HTTPConfiguration.Defaults.httpPort
+                    case .https:
+                        return HTTPConfiguration.Defaults.httpsPort
+                    }
+                }(),
+                path: request.url.path,
+                rawQuery: request.url.rawQuery,
+                fragment: request.url.fragment
+            )
         }
     }
 }
