@@ -30,13 +30,6 @@ class ComponentTests: ApodiniTests {
     }
     
     
-    func testTupleComponentErrors() throws {
-        struct NoComponent {}
-        let failingTupleComponent = TupleComponent((NoComponent(), NoComponent()))
-        let syntaxTreeVisitor = SyntaxTreeVisitor()
-        XCTAssertRuntimeFailure(failingTupleComponent.accept(syntaxTreeVisitor))
-    }
-    
     
     func testAnyComponentTypeErasure() throws {
         struct TestWebService: WebService {

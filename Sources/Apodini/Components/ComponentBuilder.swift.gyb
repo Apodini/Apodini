@@ -10,49 +10,61 @@
 // This file was automatically generated and should not be edited.
 %{
     # Edit this if you want to include more components in a single tuple component
-    maximumNumberOfComponents = 100
-
-    print("Generating ComponentBuilder...")
+    max_num_components = 100
 }%
+
+// Set this to either `LegacyComponentBuilder` or `NewComponentBuilder` to switch between
+// - the (working) overload-based old implementation, or
+// - the (still WIP) variadic-generics-based new implementation.
+public typealias ComponentBuilder = LegacyComponentBuilder
+
 
 @resultBuilder
-public struct ComponentBuilder {
-    public static func buildIf<T: Component>(_ component: T?) -> T? {
-        return component
+public enum NewComponentBuilder {
+    public static func buildOptional<C: Component>(_ component: C?) -> C? {
+        component
     }
     
-    public static func buildBlock<T: Component>(_ arg0: T) -> T {
-        return arg0
-    }
-
-    public static func buildEither<T: Component>(first: T) -> T {
-        return first
+    public static func buildEither<C: Component>(first: C) -> C {
+        first
     }
     
-    public static func buildEither<T: Component>(second: T) -> T {
-        return second
-    }
-
-    public static func buildIf<T: Component>(first: T) -> T {
-        return first
-    }
-
-    % for num_components in range(2, maximumNumberOfComponents):
-%{
-        indices = range(0, num_components)
-        generic_names_in = ['T{}'.format(idx) for idx in indices]
-        generics = ', '.join(['{}: Component'.format(name) for name in generic_names_in])
-        generic_names_out = ['T{}'.format(idx) for idx in indices]
-        param_names = ['arg{}'.format(idx) for idx in indices]
-        params = ', '.join(['_ {}: {}'.format(param, type) for param, type in zip(param_names, generic_names_in)])
-        tuple_ctor_args = param_names
-}%
-    public static func buildBlock<${generics}>(${params}) -> some Component {
-        return TupleComponent<(${', '.join(generic_names_out)})>((${', '.join(tuple_ctor_args)}))
+    public static func buildEither<C: Component>(second: C) -> C {
+        second
     }
     
-    % end
+    // Technically speaking this overload isn't necessary (since the other -buildBlock overload
+    // also can handle single-parameter invocations), but we do keep this as to maintain the type
+    // of the Component for single-component blocks.
+    public static func buildBlock<C: Component>(_ component: C) -> C {
+        component
+    }
+    
+    public static func buildBlock<each C: Component>(_ component: repeat each C) -> some Component {
+        TupleComponent<repeat each C>(repeat each component)
+    }
 }
-%{
-    print("Finished generating ComponentBuilder!")
-}%
+
+
+
+@resultBuilder
+public struct LegacyComponentBuilder {
+    public static func buildOptional<C: Component>(_ component: C?) -> C? {
+        component
+    }
+    public static func buildEither<C: Component>(first: C) -> C {
+        first
+    }
+    public static func buildEither<C: Component>(second: C) -> C {
+        second
+    }
+    public static func buildBlock<C: Component>(_ arg0: C) -> C {
+        arg0
+    }
+% for num_components in range(2, max_num_components + 1):
+%   arg_names = [f'arg{idx}' for idx in range(0, num_components)]
+    public static func buildBlock(${', '.join([f'_ {name}: some Component' for name in arg_names])}) -> some Component {
+        TupleComponent(${', '.join(arg_names)})
+    }
+% end
+}

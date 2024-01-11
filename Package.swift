@@ -1,4 +1,4 @@
-// swift-tools-version:5.8
+// swift-tools-version:5.9
 
 //
 // This source file is part of the Apodini open source project
@@ -15,7 +15,7 @@ import PackageDescription
 let package = Package(
     name: "Apodini",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v14)
     ],
     products: [
         .library(name: "Apodini", targets: ["Apodini"]),
