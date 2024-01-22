@@ -7,16 +7,16 @@
 //              
 
 
-struct TupleComponent<each C: Component>: Component, SyntaxTreeVisitable {
-    typealias Content = Never
+public struct TupleComponent<each C: Component>: Component, SyntaxTreeVisitable {
+    public typealias Content = Never
     
-    private let component: (repeat each C)
+    let component: (repeat each C)
     
     init(_ component: repeat each C) {
         self.component = (repeat each component)
     }
     
-    func accept(_ visitor: SyntaxTreeVisitor) {
+    public func accept(_ visitor: SyntaxTreeVisitor) {
         visitor.enterContent {
             repeat (each component).acceptInNewComponentContext(visitor)
         }

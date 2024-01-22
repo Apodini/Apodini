@@ -169,9 +169,6 @@ let package = Package(
                 .product(name: "TypeInformationMetadata", package: "ApodiniTypeInformation"),
                 .product(name: "ApodiniTypeInformation", package: "ApodiniTypeInformation")
             ],
-            exclude: [
-                "Components/ComponentBuilder.swift.gyb"
-            ],
             swiftSettings: [.enableUpcomingFeature("ExistentialAny")]
         ),
         
