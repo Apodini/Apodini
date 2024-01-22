@@ -55,7 +55,7 @@ public enum ComponentBuilder {
     ///         C()
     ///     }
     ///
-    /// Without this overload, the type of the resulring ``Component`` would be `TupleComponent<TupleComponent<TupleComponent<X, A>, B>, C>`.
+    /// Without this overload, the type of the resulring ``Component`` would be `TupleComponent<TupleComponent<A, B>, C>`.
     /// But with this overload, it instead is `TupleComponent<A, B, C>`.
     /// (Maintaining the flatness of the resulting structure is important for more reasons than just aesthetics and performance,
     /// since it also determines e.g. the internal identifiers assigned to individual ``Handler``s by the semantic model.)
